@@ -25,6 +25,7 @@ import '../oz_contracts/ReentrancyGuard.sol';
 
 import './api.sol';
 //import './RESTToken.sol';
+import './Broker0xVault.sol';
 import './TokenTransferProxy.sol';
 
 import './BrokerTokenPrices.sol';
@@ -45,18 +46,15 @@ contract Broker0x is Ownable, usingTinyOracle {
 
     address public REST_TOKEN_CONTRACT;
     address public TOKEN_TRANSFER_PROXY_CONTRACT;
+    address public VAULT_CONTRACT;
     address public TOKEN_PRICES_CONTRACT;
 
     // Mappings of orderHash => amounts of takerTokenAmount filled or cancelled.
     mapping (bytes32 => uint) public filled;
     mapping (bytes32 => uint) public cancelled;
 
-    mapping (address => mapping (address => uint)) public tokenWallet; //mapping of token addresses to mapping of account balances (token=0 means Ether)
     //mapping (address => mapping (bytes32 => bool)) public orders; //mapping of user accounts to mapping of order hashes to booleans (true = submitted by user, equivalent to offchain signature)
     //mapping (address => mapping (bytes32 => uint)) public orderFills; //mapping of user accounts to mapping of order hashes to uints (amount of order that has been filled)
-
-    mapping (address => uint) public margin_wallet; // mapping of accounts to margin trading wallet balances
-    mapping (address => uint) public funding_wallet; // mapping of accounts to margin funding wallet balances
 
 
     event LogFill(
@@ -86,13 +84,10 @@ contract Broker0x is Ownable, usingTinyOracle {
 
     event LogError(uint8 indexed errorId, bytes32 indexed orderHash);
 
-    event DepositMargin(address token, address user, uint amount, uint balance);
-    event DepositFunding(address token, address user, uint amount, uint balance);
-    event WithdrawMargin(address token, address user, uint amount, uint balance);
-    event WithdrawFunding(address token, address user, uint amount, uint balance);
-
-    event Deposit(address token, address user, uint amount, uint balance);
-    event Withdraw(address token, address user, uint amount, uint balance);
+    event DepositMargin(address user, uint amount, uint balance);
+    event DepositFunding(address user, uint amount, uint balance);
+    event WithdrawMargin(address user, uint amount, uint balance);
+    event WithdrawFunding(address user, uint amount, uint balance);
 
     struct Order {
         address maker;
@@ -112,9 +107,10 @@ contract Broker0x is Ownable, usingTinyOracle {
         revert();
     }
 
-    function Broker0x(address _restToken, address _tokenTransferProxy, address _tokenPrices) {
+    function Broker0x(address _restToken, address _tokenTransferProxy, address _vault, address _tokenPrices) {
         REST_TOKEN_CONTRACT = _restToken;
         TOKEN_TRANSFER_PROXY_CONTRACT = _tokenTransferProxy;
+        VAULT_CONTRACT = _vault
         TOKEN_PRICES_CONTRACT = _tokenPrices;
     }
 
@@ -131,28 +127,38 @@ contract Broker0x is Ownable, usingTinyOracle {
 
     // uint price = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(token_)
 
-    function _deposit(string depositType) private returns(bool) {
-        if (depositType == "margin") {
-            margin_wallet[msg.sender] = margin_wallet[msg.sender].add(msg.value);
-            DepositMargin(0, msg.sender, msg.value, margin_wallet[msg.sender]);
-        }
-        elsif (depositType == "funding") {
-            funding_wallet[msg.sender] = funding_wallet[msg.sender].add(msg.value);
-            DepositFunding(0, msg.sender, msg.value, funding_wallet[msg.sender]);
-        }
-        else
-            return false;
 
-        return true;
-    }
-    function depositMargin() external nonReentrant payable {
-        margin_wallet[msg.sender] = margin_wallet[msg.sender].add(msg.value);
-    }
-    
-    function depositFunds() external nonReentrant payable {
-        funding_wallet[msg.sender] = funding_wallet[msg.sender].add(msg.value);
+    function depositEtherMargin() external nonReentrant payable {
+        uint balance = Broker0xVault(VAULT_CONTRACT).depositMargin.value(msg.value)();
+        DepositMargin(msg.sender, msg.value, balance);
     }
 
+    function depositEtherFunds() external nonReentrant payable {
+        uint balance = Broker0xVault(VAULT_CONTRACT).depositFunding.value(msg.value)();
+        DepositFunding(msg.sender, msg.value, balance);
+    }
+
+
+    function _checkAvailableMargin(address user_) private returns (uint) {
+        uint available = Broker0xVault(VAULT_CONTRACT).marginBalanceOf(0,user_);
+
+        // todo: logic to check for locked up funds
+
+        return available; 
+    }
+
+    function withdrawMargin(uint amount) external nonReentrant {
+        require(amount <= _checkAvailableMargin(msg.sender,amount))
+            revert();
+        tokenWallet[0][msg.sender] = tokenWallet[0][msg.sender].sub(amount);
+        if (!msg.sender.call.value(amount)())
+            revert(); // or? if (!msg.sender.send(amount)) revert();
+        Withdraw(0, msg.sender, amount, tokenWallet[0][msg.sender]);
+    }
+
+
+
+// todo
 
     function depositToken(address token, uint amount) {
         //remember to call ERC20(address).approve(this, amount) or this contract will not be able to do the transfer on your behalf.
