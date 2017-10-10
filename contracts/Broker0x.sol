@@ -1,7 +1,7 @@
 /*
 
-  Copyright 2017 ZeroEx Intl.
-  Modifications Copyright 2017 Tom Bean
+  Copyright 2017 Tom Bean
+  Parts copyright 2017 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ pragma solidity ^0.4.9;
 import '../oz_contracts/token/StandardToken.sol';
 import '../oz_contracts/math/SafeMath.sol';
 import '../oz_contracts/ownership/Ownable.sol';
+import '../oz_contracts/ReentrancyGuard.sol';
 
 import './api.sol';
 //import './RESTToken.sol';
@@ -130,19 +131,41 @@ contract Broker0x is Ownable, usingTinyOracle {
 
     // uint price = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(token_)
 
-    function deposit_margin() payable {
+    function _deposit(string depositType) private returns(bool) {
+        if (depositType == "margin") {
+            margin_wallet[msg.sender] = margin_wallet[msg.sender].add(msg.value);
+            DepositMargin(0, msg.sender, msg.value, margin_wallet[msg.sender]);
+        }
+        elsif (depositType == "funding") {
+            funding_wallet[msg.sender] = funding_wallet[msg.sender].add(msg.value);
+            DepositFunding(0, msg.sender, msg.value, funding_wallet[msg.sender]);
+        }
+        else
+            return false;
+
+        return true;
+    }
+    function depositMargin() external nonReentrant payable {
         margin_wallet[msg.sender] = margin_wallet[msg.sender].add(msg.value);
     }
     
-    function deposit_funds() payable {
+    function depositFunds() external nonReentrant payable {
         funding_wallet[msg.sender] = funding_wallet[msg.sender].add(msg.value);
     }
 
 
-    function deposit() payable {
-        tokenWallet[0][msg.sender] = tokenWallet[0][msg.sender].add(msg.value);
-        Deposit(0, msg.sender, msg.value, tokenWallet[0][msg.sender]);
+    function depositToken(address token, uint amount) {
+        //remember to call ERC20(address).approve(this, amount) or this contract will not be able to do the transfer on your behalf.
+        if (token==0)
+            revert();
+        if (!ERC20(token).transferFrom(msg.sender, this, amount))
+            revert();
+        tokenWallet[token][msg.sender] = tokenWallet[token][msg.sender].add(amount);
+        Deposit(token, msg.sender, amount, tokenWallet[token][msg.sender]);
     }
+
+
+
 
     function withdraw(uint amount) {
         if (tokenWallet[0][msg.sender] < amount)
