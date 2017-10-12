@@ -117,14 +117,14 @@ contract Broker0xVault is Ownable {
         require(token_ != 0);        
         
         marginWallet[token_][user_] = marginWallet[token_][user_].sub(amount_);
-        require(ERC20(token_).transfer(token_, amount_));
+        require(ERC20(token_).transfer(user_, amount_));
         return marginWallet[token_][user_]; 
     }
     function withdrawTokenFunding(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {
         require(token_ != 0);        
         
         fundingWallet[token_][user_] = fundingWallet[token_][user_].sub(amount_);
-        require(ERC20(token_).transfer(token_, amount_));
+        require(ERC20(token_).transfer(user_, amount_));
         return fundingWallet[token_][user_]; 
     } 
 
