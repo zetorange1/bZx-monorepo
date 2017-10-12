@@ -129,34 +129,41 @@ contract Broker0x is Ownable, usingTinyOracle {
 
 
     function depositEtherMargin() external nonReentrant payable {
-        uint balance = Broker0xVault(VAULT_CONTRACT).depositMargin.value(msg.value)();
+        uint balance = Broker0xVault(VAULT_CONTRACT).depositEtherMargin.value(msg.value)();
         DepositMargin(msg.sender, msg.value, balance);
     }
+    function depositTokenMargin(address token_, uint amount_) external nonReentrant {
+        //remember to call ERC20(address).approve(this, amount) or this contract will not be able to do the transfer on your behalf.
+        require(token != 0);
+        require(ERC20(token_).transferFrom(msg.sender, this, amount));
+        tokenWallet[token][msg.sender] = tokenWallet[token][msg.sender].add(amount);
+        Deposit(token, msg.sender, amount, tokenWallet[token][msg.sender]);
+    }
 
-    function depositEtherFunds() external nonReentrant payable {
-        uint balance = Broker0xVault(VAULT_CONTRACT).depositFunding.value(msg.value)();
+
+
+    function depositEtherFunding() external nonReentrant payable {
+        uint balance = Broker0xVault(VAULT_CONTRACT).depositEtherFunding.value(msg.value)();
         DepositFunding(msg.sender, msg.value, balance);
     }
 
 
+    function withdrawEtherMargin(uint amount_) external nonReentrant {
+        uint balance = Broker0xVault(VAULT_CONTRACT).withdrawEtherMargin(msg.sender, amount_);
+        WithdrawMargin(0, msg.sender, amount_, balance);
+    }
+
+
+
     function _checkAvailableMargin(address user_) private returns (uint) {
         uint available = Broker0xVault(VAULT_CONTRACT).marginBalanceOf(0,user_);
-
-        // todo: logic to check for locked up funds
-
         return available; 
     }
 
-    function withdrawMargin(uint amount) external nonReentrant {
-        require(amount <= _checkAvailableMargin(msg.sender,amount))
-            revert();
-        tokenWallet[0][msg.sender] = tokenWallet[0][msg.sender].sub(amount);
-        if (!msg.sender.call.value(amount)())
-            revert(); // or? if (!msg.sender.send(amount)) revert();
-        Withdraw(0, msg.sender, amount, tokenWallet[0][msg.sender]);
+    function _checkAvailableFunding(address user_) private returns (uint) {
+        uint available = Broker0xVault(VAULT_CONTRACT).fundingBalanceOf(0,user_);
+        return available; 
     }
-
-
 
 // todo
 
@@ -171,16 +178,6 @@ contract Broker0x is Ownable, usingTinyOracle {
     }
 
 
-
-
-    function withdraw(uint amount) {
-        if (tokenWallet[0][msg.sender] < amount)
-            revert();
-        tokenWallet[0][msg.sender] = tokenWallet[0][msg.sender].sub(amount);
-        if (!msg.sender.call.value(amount)())
-            revert(); // or? if (!msg.sender.send(amount)) revert();
-        Withdraw(0, msg.sender, amount, tokenWallet[0][msg.sender]);
-    }
 
     function depositToken(address token, uint amount) {
         //remember to call ERC20(address).approve(this, amount) or this contract will not be able to do the transfer on your behalf.

@@ -19,10 +19,12 @@
 
 pragma solidity ^0.4.9;
 
+import '../oz_contracts/math/SafeMath.sol';
 import '../oz_contracts/token/ERC20.sol';
 import '../oz_contracts/ownership/Ownable.sol';
 
 contract Broker0xVault is Ownable {
+    using SafeMath for uint256;
 
     modifier onlyAuthorized {
         require(authorized[msg.sender]);
@@ -81,27 +83,45 @@ contract Broker0xVault is Ownable {
         LogAuthorizedAddressRemoved(target, msg.sender);
     }
 
-    function depositEtherMargin() public onlyAuthorized payable returns (uint) {        
-        marginWallet[0][msg.sender] = marginWallet[0][msg.sender].add(msg.value);
-        return marginWallet[0][msg.sender];
+    function depositEtherMargin(address user_) public onlyAuthorized payable returns (uint) {        
+        marginWallet[0][user_] = marginWallet[0][user_].add(msg.value);
+        return marginWallet[0][user_];
     }
     
-    function depositEtherFunds() public onlyAuthorized payable returns (uint) {
-        fundingWallet[0][msg.sender] = fundingWallet[0][msg.sender].add(msg.value);
-        return fundingWallet[0][msg.sender];
+    function depositEtherFunding(address user_) public onlyAuthorized payable returns (uint) {
+        fundingWallet[0][user_] = fundingWallet[0][user_].add(msg.value);
+        return fundingWallet[0][user_];
+    }
+
+    function withdrawEtherMargin(address user_, uint amount_) public onlyAuthorized returns (uint) {
+        marginWallet[0][user_] = marginWallet[0][user_].sub(amount_);
+        require(user_.call.value(amount_)());
+         // or? if (!user_.send(amount)) revert();
+        return marginWallet[0][user_];
+    }
+
+    function withdrawEtherFunding(address user_, uint amount_) public onlyAuthorized returns (uint) {
+        fundingWallet[0][user_] = fundingWallet[0][user_].sub(amount_);
+        require(user_.call.value(amount_)());
+         // or? if (!user_.send(amount)) revert();
+        return fundingWallet[0][user_];
+    }
+ 
+    function marginBalanceOf(address token_, address user_) public constant returns (uint balance) {
+        return marginWallet[token_][user_];
+    }
+
+    function fundingBalanceOf(address token_, address user_) public constant returns (uint balance) {
+        return fundingWallet[token_][user_];
     }
 
 
+// todo
+    function depositTokenMargin(address token_, address from_, address to_, uint value_) public onlyAuthorized returns (bool) {
+        return ERC20(token).transferFrom(from, to, value);
+    }
 
-    function transferFrom(
-        address token,
-        address from,
-        address to,
-        uint value)
-        public
-        onlyAuthorized
-        returns (bool)
-    {
+    function transferFrom(address token_, address from_, address to_, uint value_) public onlyAuthorized returns (bool) {
         return ERC20(token).transferFrom(from, to, value);
     }
 
