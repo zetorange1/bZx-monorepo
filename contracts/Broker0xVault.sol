@@ -57,32 +57,6 @@ contract Broker0xVault is Ownable {
      * Public functions
      */
 
-    function addAuthorizedAddress(address target)
-        public
-        onlyOwner
-        targetNotAuthorized(target)
-    {
-        authorized[target] = true;
-        authorities.push(target);
-        LogAuthorizedAddressAdded(target, msg.sender);
-    }
-
-    function removeAuthorizedAddress(address target)
-        public
-        onlyOwner
-        targetAuthorized(target)
-    {
-        delete authorized[target];
-        for (uint i = 0; i < authorities.length; i++) {
-            if (authorities[i] == target) {
-                authorities[i] = authorities[authorities.length - 1];
-                authorities.length -= 1;
-                break;
-            }
-        }
-        LogAuthorizedAddressRemoved(target, msg.sender);
-    }
-
     function depositEtherMargin(address user_) public onlyAuthorized payable returns (uint) {        
         marginWallet[0][user_] = marginWallet[0][user_].add(msg.value);
         return marginWallet[0][user_];
@@ -137,12 +111,32 @@ contract Broker0xVault is Ownable {
     }
 
 
-    /*
-     * Public constant functions
-     */
+    function addAuthorizedAddress(address target)
+        public
+        onlyOwner
+        targetNotAuthorized(target)
+    {
+        authorized[target] = true;
+        authorities.push(target);
+        LogAuthorizedAddressAdded(target, msg.sender);
+    }
 
-    /// @dev Gets all authorized addresses.
-    /// @return Array of authorized addresses.
+    function removeAuthorizedAddress(address target)
+        public
+        onlyOwner
+        targetAuthorized(target)
+    {
+        delete authorized[target];
+        for (uint i = 0; i < authorities.length; i++) {
+            if (authorities[i] == target) {
+                authorities[i] = authorities[authorities.length - 1];
+                authorities.length -= 1;
+                break;
+            }
+        }
+        LogAuthorizedAddressRemoved(target, msg.sender);
+    }
+
     function getAuthorizedAddresses()
         public
         constant

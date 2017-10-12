@@ -23,14 +23,14 @@ import '../oz_contracts/math/SafeMath.sol';
 import '../oz_contracts/ownership/Ownable.sol';
 import '../oz_contracts/ReentrancyGuard.sol';
 
-import './api.sol';
+//import '../tinyoracle/api.sol';
 //import './RESTToken.sol';
 import './Broker0xVault.sol';
 import './TokenTransferProxy.sol';
 
 import './BrokerTokenPrices.sol';
 
-contract Broker0x is Ownable, ReentrancyGuard, usingTinyOracle {
+contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     using SafeMath for uint256;
 
     // Error Codes
@@ -118,7 +118,7 @@ contract Broker0x is Ownable, ReentrancyGuard, usingTinyOracle {
         VAULT_CONTRACT = _vault;
         TOKEN_PRICES_CONTRACT = _tokenPrices;
     }
-
+    /*
     bytes public response;
     function __tinyOracleCallback(uint256 id_, address token_, uint price_) onlyFromTinyOracle external {
         require(BrokerTokenPrices(TOKEN_PRICES_CONTRACT).setTokenPrice(msg.sender, token_, price_));
@@ -131,7 +131,7 @@ contract Broker0x is Ownable, ReentrancyGuard, usingTinyOracle {
     }
 
     // uint price = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(token_)
-
+    */
 
     function depositEtherMargin() external nonReentrant payable {
         uint balance = Broker0xVault(VAULT_CONTRACT).depositEtherMargin.value(msg.value)(msg.sender);

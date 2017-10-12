@@ -19,3 +19,4 @@ module.exports = function(deployer) {
 	});
 };
 
+function Broker0x(address _restToken, address _tokenTransferProxy, address _vault, address _tokenPrices) {
