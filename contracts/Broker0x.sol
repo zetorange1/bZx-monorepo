@@ -30,7 +30,7 @@ import './TokenTransferProxy.sol';
 
 import './BrokerTokenPrices.sol';
 
-contract Broker0x is Ownable, usingTinyOracle {
+contract Broker0x is Ownable, ReentrancyGuard, usingTinyOracle {
     using SafeMath for uint256;
 
     // Error Codes
@@ -84,10 +84,15 @@ contract Broker0x is Ownable, usingTinyOracle {
 
     event LogError(uint8 indexed errorId, bytes32 indexed orderHash);
 
-    event DepositMargin(address user, uint amount, uint balance);
-    event DepositFunding(address user, uint amount, uint balance);
-    event WithdrawMargin(address user, uint amount, uint balance);
-    event WithdrawFunding(address user, uint amount, uint balance);
+    event DepositEtherMargin(address user, uint amount, uint balance);
+    event DepositEtherFunding(address user, uint amount, uint balance);
+    event DepositTokenMargin(address token, address user, uint amount, uint balance);
+    event DepositTokenFunding(address token, address user, uint amount, uint balance);
+    
+    event WithdrawEtherMargin(address user, uint amount, uint balance);
+    event WithdrawEtherFunding(address user, uint amount, uint balance);
+    event WithdrawTokenMargin(address token, address user, uint amount, uint balance);
+    event WithdrawTokenFunding(address token, address user, uint amount, uint balance);
 
     struct Order {
         address maker;
@@ -110,7 +115,7 @@ contract Broker0x is Ownable, usingTinyOracle {
     function Broker0x(address _restToken, address _tokenTransferProxy, address _vault, address _tokenPrices) {
         REST_TOKEN_CONTRACT = _restToken;
         TOKEN_TRANSFER_PROXY_CONTRACT = _tokenTransferProxy;
-        VAULT_CONTRACT = _vault
+        VAULT_CONTRACT = _vault;
         TOKEN_PRICES_CONTRACT = _tokenPrices;
     }
 
@@ -129,30 +134,49 @@ contract Broker0x is Ownable, usingTinyOracle {
 
 
     function depositEtherMargin() external nonReentrant payable {
-        uint balance = Broker0xVault(VAULT_CONTRACT).depositEtherMargin.value(msg.value)();
-        DepositMargin(msg.sender, msg.value, balance);
+        uint balance = Broker0xVault(VAULT_CONTRACT).depositEtherMargin.value(msg.value)(msg.sender);
+        DepositEtherMargin(msg.sender, msg.value, balance);
+    }
+    function depositEtherFunding() external nonReentrant payable {
+        uint balance = Broker0xVault(VAULT_CONTRACT).depositEtherFunding.value(msg.value)(msg.sender);
+        DepositEtherFunding(msg.sender, msg.value, balance);
     }
     function depositTokenMargin(address token_, uint amount_) external nonReentrant {
         //remember to call ERC20(address).approve(this, amount) or this contract will not be able to do the transfer on your behalf.
-        require(token != 0);
-        require(ERC20(token_).transferFrom(msg.sender, this, amount));
-        tokenWallet[token][msg.sender] = tokenWallet[token][msg.sender].add(amount);
-        Deposit(token, msg.sender, amount, tokenWallet[token][msg.sender]);
+        require(token_ != 0);
+        require(ERC20(token_).transferFrom(msg.sender, VAULT_CONTRACT, amount_));
+        
+        uint balance = Broker0xVault(VAULT_CONTRACT).depositTokenMargin(token_, msg.sender, amount_);
+        DepositTokenMargin(token_, msg.sender, amount_, balance);
     }
-
-
-
-    function depositEtherFunding() external nonReentrant payable {
-        uint balance = Broker0xVault(VAULT_CONTRACT).depositEtherFunding.value(msg.value)();
-        DepositFunding(msg.sender, msg.value, balance);
+    function depositTokenFunding(address token_, uint amount_) external nonReentrant {
+        //remember to call ERC20(address).approve(this, amount) or this contract will not be able to do the transfer on your behalf.
+        require(token_ != 0);
+        require(ERC20(token_).transferFrom(msg.sender, VAULT_CONTRACT, amount_));
+        
+        uint balance = Broker0xVault(VAULT_CONTRACT).depositTokenFunding(token_, msg.sender, amount_);
+        DepositTokenFunding(token_, msg.sender, amount_, balance);
     }
 
 
     function withdrawEtherMargin(uint amount_) external nonReentrant {
         uint balance = Broker0xVault(VAULT_CONTRACT).withdrawEtherMargin(msg.sender, amount_);
-        WithdrawMargin(0, msg.sender, amount_, balance);
+        WithdrawEtherMargin(msg.sender, amount_, balance);
     }
-
+    function withdrawEtherFunding(uint amount_) external nonReentrant {
+        uint balance = Broker0xVault(VAULT_CONTRACT).withdrawEtherFunding(msg.sender, amount_);
+        WithdrawEtherFunding(msg.sender, amount_, balance);
+    }
+    function withdrawTokenMargin(address token_, uint amount_) external nonReentrant {
+        require(token_ != 0);        
+        uint balance = Broker0xVault(VAULT_CONTRACT).withdrawTokenMargin(token_, msg.sender, amount_);
+        WithdrawTokenMargin(token_, msg.sender, amount_, balance);
+    }
+    function withdrawTokenFunding(address token_, uint amount_) external nonReentrant {
+        require(token_ != 0);        
+        uint balance = Broker0xVault(VAULT_CONTRACT).withdrawTokenFunding(token_, msg.sender, amount_);
+        WithdrawTokenFunding(token_, msg.sender, amount_, balance);
+    }
 
 
     function _checkAvailableMargin(address user_) private returns (uint) {
@@ -163,45 +187,6 @@ contract Broker0x is Ownable, usingTinyOracle {
     function _checkAvailableFunding(address user_) private returns (uint) {
         uint available = Broker0xVault(VAULT_CONTRACT).fundingBalanceOf(0,user_);
         return available; 
-    }
-
-// todo
-
-    function depositToken(address token, uint amount) {
-        //remember to call ERC20(address).approve(this, amount) or this contract will not be able to do the transfer on your behalf.
-        if (token==0)
-            revert();
-        if (!ERC20(token).transferFrom(msg.sender, this, amount))
-            revert();
-        tokenWallet[token][msg.sender] = tokenWallet[token][msg.sender].add(amount);
-        Deposit(token, msg.sender, amount, tokenWallet[token][msg.sender]);
-    }
-
-
-
-    function depositToken(address token, uint amount) {
-        //remember to call ERC20(address).approve(this, amount) or this contract will not be able to do the transfer on your behalf.
-        if (token==0)
-            revert();
-        if (!ERC20(token).transferFrom(msg.sender, this, amount))
-            revert();
-        tokenWallet[token][msg.sender] = tokenWallet[token][msg.sender].add(amount);
-        Deposit(token, msg.sender, amount, tokenWallet[token][msg.sender]);
-    }
-
-    function withdrawToken(address token, uint amount) {
-        if (token==0)
-            revert();
-        if (tokenWallet[token][msg.sender] < amount)
-            revert();
-        tokenWallet[token][msg.sender] = tokenWallet[token][msg.sender].sub(amount);
-        if (!ERC20(token).transfer(msg.sender, amount)) 
-            revert();
-        Withdraw(token, msg.sender, amount, tokenWallet[token][msg.sender]);
-    }
-
-    function balanceOf(address token, address user) constant returns (uint) {
-        return tokenWallet[token][user];
     }
 
     /*
