@@ -143,17 +143,17 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     }
     function depositTokenMargin(address token_, uint amount_) external nonReentrant {
         //remember to call ERC20(address).approve(this, amount) or this contract will not be able to do the transfer on your behalf.
-        require(token_ != 0);
+        require(token_ != address(0));
         require(ERC20(token_).transferFrom(msg.sender, VAULT_CONTRACT, amount_));
-        
+    
         uint balance = Broker0xVault(VAULT_CONTRACT).depositTokenMargin(token_, msg.sender, amount_);
         DepositTokenMargin(token_, msg.sender, amount_, balance);
     }
     function depositTokenFunding(address token_, uint amount_) external nonReentrant {
         //remember to call ERC20(address).approve(this, amount) or this contract will not be able to do the transfer on your behalf.
-        require(token_ != 0);
+        require(token_ != address(0));
         require(ERC20(token_).transferFrom(msg.sender, VAULT_CONTRACT, amount_));
-        
+    
         uint balance = Broker0xVault(VAULT_CONTRACT).depositTokenFunding(token_, msg.sender, amount_);
         DepositTokenFunding(token_, msg.sender, amount_, balance);
     }
@@ -168,12 +168,12 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         WithdrawEtherFunding(msg.sender, amount_, balance);
     }
     function withdrawTokenMargin(address token_, uint amount_) external nonReentrant {
-        require(token_ != 0);        
+        require(token_ != address(0));        
         uint balance = Broker0xVault(VAULT_CONTRACT).withdrawTokenMargin(token_, msg.sender, amount_);
         WithdrawTokenMargin(token_, msg.sender, amount_, balance);
     }
     function withdrawTokenFunding(address token_, uint amount_) external nonReentrant {
-        require(token_ != 0);        
+        require(token_ != address(0));        
         uint balance = Broker0xVault(VAULT_CONTRACT).withdrawTokenFunding(token_, msg.sender, amount_);
         WithdrawTokenFunding(token_, msg.sender, amount_, balance);
     }

@@ -6,7 +6,7 @@ contract RESTToken is Ownable, StandardToken {
     string constant public name = "REST Token";
     string constant public symbol = "REST";
 	uint8 constant public decimals = 18;
-    uint public totalSupply = 20000000; //20 * 10**24; // 20 million tokens (18 decimal places)
+    uint public totalSupply = 20 * 10**24; // 20 million tokens (18 decimal places)
 
 	function RESTToken() {
 		balances[msg.sender] = totalSupply;
