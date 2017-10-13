@@ -1,25 +1,15 @@
 pragma solidity ^0.4.4;
-import '../oz_contracts/token/MintableToken.sol';
+import '../oz_contracts/ownership/Ownable.sol';
+import '../oz_contracts/token/StandardToken.sol';
 
-contract RESTToken is MintableToken {
+contract RESTToken is Ownable, StandardToken {
     string constant public name = "REST Token";
     string constant public symbol = "REST";
 	uint8 constant public decimals = 18;
     uint public totalSupply = 20000000; //20 * 10**24; // 20 million tokens (18 decimal places)
 
-	event MintResumed();
-
-	function RESTToken(address owner_) {
-		transferOwnership(owner_); // owner should become the Broker0x contract
-
-		balances[msg.sender] = 10000;
-		balances[owner_] = totalSupply-10000;
-	}
-
-	function resumeMinting() onlyOwner returns (bool) {
-		mintingFinished = false;
-		MintResumed();
-		return true;
+	function RESTToken() {
+		balances[msg.sender] = totalSupply;
 	}
 
 	/**

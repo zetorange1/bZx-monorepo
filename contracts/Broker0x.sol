@@ -45,7 +45,7 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     uint16 constant public EXTERNAL_QUERY_GAS_LIMIT = 4999;    // Changes to state require at least 5000 gas
 
     address public REST_TOKEN_CONTRACT;
-    address public TOKEN_TRANSFER_PROXY_CONTRACT;
+    //address public TOKEN_TRANSFER_PROXY_CONTRACT;
     address public VAULT_CONTRACT;
     address public TOKEN_PRICES_CONTRACT;
 
@@ -112,9 +112,9 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         revert();
     }
 
-    function Broker0x(address _restToken, address _tokenTransferProxy, address _vault, address _tokenPrices) {
+    function Broker0x(address _restToken, address _vault, address _tokenPrices) {
         REST_TOKEN_CONTRACT = _restToken;
-        TOKEN_TRANSFER_PROXY_CONTRACT = _tokenTransferProxy;
+        //TOKEN_TRANSFER_PROXY_CONTRACT = _tokenTransferProxy;
         VAULT_CONTRACT = _vault;
         TOKEN_PRICES_CONTRACT = _tokenPrices;
     }
@@ -192,7 +192,7 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     /*
     * Core exchange functions
     */
-
+    /*
     /// @dev Fills the input order.
     /// @param orderAddresses Array of order's maker, taker, makerToken, takerToken, and feeRecipient.
     /// @param orderValues Array of order's makerTokenAmount, takerTokenAmount, makerFee, takerFee, expirationTimestampInSec, and salt.
@@ -367,7 +367,7 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         );
         return cancelledTakerTokenAmount;
     }
-
+    */
     /*
     * Constant public functions
     */
@@ -470,7 +470,7 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     /*
     * Internal functions
     */
-
+    /*
     /// @dev Transfers a token using TokenTransferProxy transferFrom function.
     /// @param token Address of token to transferFrom.
     /// @param from Address transfering token.
@@ -551,5 +551,5 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         returns (uint)
     {
         return ERC20(token).allowance.gas(EXTERNAL_QUERY_GAS_LIMIT)(owner, TOKEN_TRANSFER_PROXY_CONTRACT); // Limit gas to prevent reentrancy
-    }
+    }*/
 }

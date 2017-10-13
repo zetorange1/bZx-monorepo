@@ -1,4 +1,135 @@
-var Broker0x = artifacts.require("./Broker0x.sol");
+
+//const BigNumber = require('bignumber.js');
+const Web3 = require('web3')
+let web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"))
+
+let Broker0xVault = artifacts.require("./Broker0xVault.sol");
+let Broker0x = artifacts.require("./Broker0x.sol");
+
+var testEtherAmount = web3.toWei(0.001, "ether");
+
+  //vault.addAuthorizedAddress(DeployedAddresses.Broker0x());
+    //address expected = DeployedAddresses.Broker0x();
+    //address[] authorities = vault.getAuthorizedAddresses();
+    //Assert.equal(authorities[0], expected, "Broker0x contract should be the authorized address");
+
+
+contract('Broker0xTest', function(accounts) {
+  var vault;
+  var broker;
+
+  //printBalances(accounts);
+
+  it("should retrive deployed Broker0xVault contract", function(done) {
+    Broker0xVault.deployed().then(function(instance) {
+      vault = instance;
+      assert.isOk(vault);
+      done();
+    });
+  });
+
+  it("should retrive deployed Broker0x contract", function(done) {
+    Broker0x.deployed().then(function(instance) {
+      broker = instance;
+      assert.isOk(vault);
+      done();
+    });
+  });
+
+  it("should add Broker0x as authorized address for Broker0xVault", function(done) {
+    vault.addAuthorizedAddress(broker.address).then(function() {
+      vault.getAuthorizedAddresses().then(function(authorities) {
+        assert.equal(authorities[0], broker.address, "Broker0x contract should be the authorized address");
+        done();
+      });
+    }, function(error) {
+      // Force an error if callback fails.
+      assert.equal(true, false);
+      console.error(error);
+      done();
+    });
+  });
+
+  it("should deposit ether margin", function(done) {
+    //var beforeWalletBalance = getWeiBalance(accounts[0]);
+    vault.marginBalanceOf(0, accounts[0]).then(function(beforeBalance) {
+      broker.depositEtherMargin({from: accounts[0], to: broker.address, value: testEtherAmount}).then(function(tx) {
+        vault.marginBalanceOf(0, accounts[0]).then(function(afterBalance) {
+          //var totalGas = new BigNumber(tx.receipt.cumulativeGasUsed) * web3.eth.gasPrice.toNumber();
+          assert.equal(afterBalance.toNumber(), beforeBalance.add(testEtherAmount).toNumber(), "afterBalance should equal beforeBalance + testEtherAmountOwner");
+          //assert.equal(getWeiBalance(accounts[0]), beforeWalletBalance-testEtherAmount-totalGas, "afterWalletBalance should equal beforeWalletBalance - testEtherAmountOwner - totalGas");
+          done();
+        });
+      }, function(error) {
+        // Force an error if callback fails.
+        assert.equal(true, false);
+        console.error(error);
+        done();
+      });
+    });
+  });
+
+  it("should withdraw ether margin", function(done) {
+    vault.marginBalanceOf(0, accounts[0]).then(function(beforeBalance) {
+      broker.withdrawEtherMargin(testEtherAmount).then(function() {
+        vault.marginBalanceOf(0, accounts[0]).then(function(afterBalance) {
+          assert.equal(afterBalance.toNumber(), beforeBalance.sub(testEtherAmount).toNumber(), "afterBalance should equal beforeBalance - testEtherAmountOwner");
+          done();
+        });
+      }, function(error) {
+        // Force an error if callback fails.
+        assert.equal(true, false);
+        console.error(error);
+        done();
+      });
+    });
+  });
+
+  it("should deposit ether funding", function(done) {
+    vault.fundingBalanceOf(0, accounts[0]).then(function(beforeBalance) {
+      broker.depositEtherFunding({from: accounts[0], to: broker.address, value: testEtherAmount}).then(function() {
+        vault.fundingBalanceOf(0, accounts[0]).then(function(afterBalance) {
+          assert.equal(afterBalance.toNumber(), beforeBalance.add(testEtherAmount).toNumber(), "afterBalance should equal beforeBalance + testEtherAmountOwner");
+          done();
+        });
+      }, function(error) {
+        // Force an error if callback fails.
+        assert.equal(true, false);
+        console.error(error);
+        done();
+      });
+    });
+  });
+
+  it("should withdraw ether funding", function(done) {
+    vault.fundingBalanceOf(0, accounts[0]).then(function(beforeBalance) {
+      broker.withdrawEtherFunding(testEtherAmount).then(function() {
+        vault.fundingBalanceOf(0, accounts[0]).then(function(afterBalance) {
+          assert.equal(afterBalance.toNumber(), beforeBalance.sub(testEtherAmount).toNumber(), "afterBalance should equal beforeBalance - testEtherAmountOwner");
+          done();
+        });
+      }, function(error) {
+        // Force an error if callback fails.
+        assert.equal(true, false);
+        console.error(error);
+        done();
+      });
+    });
+  });
+
+  // Utility function to display the balances of each account.
+  function printBalances(accounts) {
+    accounts.forEach(function(ac, i) {
+      console.log(accounts[i],": ", web3.fromWei(web3.eth.getBalance(ac), 'ether').toNumber());
+    });
+  }
+
+  function getWeiBalance(account) {
+    return web3.eth.getBalance(account).toNumber();
+  }
+});
+
+
 /*
 var SimpleStorage = artifacts.require("./SimpleStorage.sol");
 
