@@ -61,7 +61,8 @@
     "react": "^15.4.2",
     "react-bootstrap": "^0.31.3",
     "react-dom": "^15.4.2",
-    "truffle": "^3.4.11"
+    "truffle": "^3.4.11",
+    "web3": "^0.20.2"
   },
   "scripts": {
     "start": "node scripts/start.js",
