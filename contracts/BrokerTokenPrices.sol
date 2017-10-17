@@ -98,7 +98,7 @@ contract BrokerTokenPrices is Ownable {
 
 
     // todo: use source_trust_level to allow certain prices to be weighted higher than others in the price calculation 
-    function setTokenPrice(address sender_, address token_, uint price_) onlyAuthorized returns (bool) {
+    function setTokenPrice(address sender_, address token_, uint price_) public onlyAuthorized returns (bool) {
     
         PriceDatum[] storage pf = price_feed[token_];
         
@@ -143,7 +143,7 @@ contract BrokerTokenPrices is Ownable {
         return true;
     }
 
-    function setSourceTrustLevel(address source_, uint trustLevel_) onlyAuthorized returns (bool) {
+    function setSourceTrustLevel(address source_, uint trustLevel_) public onlyAuthorized returns (bool) {
         source_trust_level[source_] = trustLevel_;
     }
 
@@ -163,13 +163,13 @@ contract BrokerTokenPrices is Ownable {
     }
 
 
-    // returns the latest token price in amount per Wei
-    function getTokenPrice(address token_) returns (uint) {
+    // returns the latest token price in wei per 1 token
+    function getTokenPrice(address token_) public returns (uint) {
         return latest_prices[token_];
     }
 
     // returns trust level of the data provider source
-    function getSourceTrustLevel(address source_) returns (uint) {
+    function getSourceTrustLevel(address source_) public returns (uint) {
         return source_trust_level[source_];
     }
 }

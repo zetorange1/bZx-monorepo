@@ -49,10 +49,6 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     address public VAULT_CONTRACT;
     address public TOKEN_PRICES_CONTRACT;
 
-    // Mappings of orderHash => amounts of takerTokenAmount filled or cancelled.
-    mapping (bytes32 => uint) public filled;
-    mapping (bytes32 => uint) public cancelled;
-
     //mapping (address => mapping (bytes32 => bool)) public orders; //mapping of user accounts to mapping of order hashes to booleans (true = submitted by user, equivalent to offchain signature)
     //mapping (address => mapping (bytes32 => uint)) public orderFills; //mapping of user accounts to mapping of order hashes to uints (amount of order that has been filled)
 
@@ -108,6 +104,27 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         bytes32 orderHash;
     }
 
+    struct OrderData {
+        address borrower;
+        address lender;
+        address lenderTokenAddress;
+        address tradeTokenAddress;
+        address interestTokenAddress;
+        address oracleAddress;
+        address feeRecipient;
+        uint lenderTokenAmount;
+        uint tradeTokenAmount;
+        uint lendingLengthSec;
+        uint interestAmount;
+        uint initialMarginAmount;
+        uint liquidationMarginAmount;
+        uint lenderRelayFee;
+        uint borrowerRelayFee;
+        uint expirationTimestampInSec;
+        uint salt;
+        bytes32 orderHash;
+    }
+
     function() {
         revert();
     }
@@ -134,53 +151,120 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     */
 
     /// @dev Fills the offering order created by a lender and taken by a borrorer.
-    /// @param orderAddresses Array of order's maker, taker, makerToken, takerToken, and feeRecipient.
-    /// @param orderValues Array of order's makerTokenAmount, takerTokenAmount, makerFee, takerFee, expirationTimestampInSec, and salt.
-    /// @param fillTakerTokenAmount Desired amount of takerToken to fill.
-    /// @param shouldThrowOnInsufficientBalanceOrAllowance Test if transfer will fail before attempting.
+    /// @param orderAddresses Array of offer order's lender, lenderTokenAddress, interestTokenAddress, oracleAddress, and feeRecipient.
+    /// @param orderValues Array of offer order's lenderTokenAmount, lendingLengthSec, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, borrowerRelayFee, expirationUnixTimestampSec, reinvestAllowed, and salt.
+    /// @param borrower The address of the borrower who is taking this offer order.
+    /// @param tradeTokenAddress The address of the token the for which a position will be opened.
+    /// @param tradeTokenAmount The size of position being being opened in tradeToken units.
     /// @param v ECDSA signature parameter v.
     /// @param r ECDSA signature parameters r.
     /// @param s ECDSA signature parameters s.
-    /// @return Total amount of takerToken filled in trade.
+    /// @return Is the trade successfull? (true or false).
     function fillOfferingOrder(
           address[5] orderAddresses,
-          uint[6] orderValues,
-          uint fillTakerTokenAmount,
-          bool shouldThrowOnInsufficientBalanceOrAllowance,
+          uint[10] orderValues,
+          address borrower,
+          address tradeTokenAddress,
+          uint tradeTokenAmount,
           uint8 v,
           bytes32 r,
           bytes32 s)
           public
-          returns (uint filledTakerTokenAmount)
+          returns (bool orderSuccess)
     {
-        Order memory order = Order({
-            maker: orderAddresses[0],
-            taker: orderAddresses[1],
-            makerToken: orderAddresses[2],
-            takerToken: orderAddresses[3],
+
+        OrderData memory order = OrderData({
+            borrower: borrower,
+            lender: orderAddresses[0],
+            lenderTokenAddress: orderAddresses[1],
+            tradeTokenAddress: tradeTokenAddress,
+            interestTokenAddress: orderAddresses[2],
+            oracleAddress: orderAddresses[3],
             feeRecipient: orderAddresses[4],
-            makerTokenAmount: orderValues[0],
-            takerTokenAmount: orderValues[1],
-            makerFee: orderValues[2],
-            takerFee: orderValues[3],
-            expirationTimestampInSec: orderValues[4],
-            orderHash: getOrderHash(orderAddresses, orderValues)
+            lenderTokenAmount: orderValues[0],
+            tradeTokenAmount: tradeTokenAmount,            
+            lendingLengthSec: orderValues[1],
+            interestAmount: orderValues[2],
+            initialMarginAmount: orderValues[3],
+            liquidationMarginAmount: orderValues[4],
+            lenderRelayFee: orderValues[5],
+            borrowerRelayFee: orderValues[6],
+            expirationTimestampInSec: orderValues[7],
+            salt: orderValues[9],
+            orderHash: getOfferOrderHash(orderAddresses, orderValues)
         });
 
-        require(order.taker == address(0) || order.taker == msg.sender);
-        require(order.makerTokenAmount > 0 && order.takerTokenAmount > 0 && fillTakerTokenAmount > 0);
+
+/*
+	- the order parameters are valid and the order has a valid signiture (signed with the lender's private key)
+	- broker0x has enough REST from the lender to cover the lender fee
+	- broker0x has enough REST from the borrower to cover the borrower fee
+	- broker0x has enough funds from the lender to cover the terms of the order (amount to be loaned)
+	- broker0x has enough funds from the borrower to cover the terms of the order (initial margin + total interest).
+
+- The TRADE token is bought with the lended token on an exchange like Radar Relay or The 0cean. The TRADE token is held in escrow in broker0x.
+	- If the value of the TRADE token increases versus the lended token, the borrower gains account value. If the value the TRADE token decreases, the borrower losses account value.
+	- When the loan term ends, is canceled by the borrower, or is force liquidated:
+		- The TRADE token is sold on an exchange to buy back the lended token. The lended token is returned to lender.
+			- If the TRADE token had lost value, there would not be enough to buy back the full amount of lended token owed to the lender, so the remaining
+			  amount of lended token would be bought using some of the borrower's margin balance (their account would be at a loss)
+			- if the TRADE token had gained value, there would be a surplus after buying back the lended token. The surplus would go to the borrower as profit.
+*/
+
+
+        require(order.borrower == msg.sender);
+        require(order.liquidationMarginAmount >= 0 && order.liquidationMarginAmount < order.initialMarginAmount && order.initialMarginAmount <= 100);
         require(isValidSignature(
-            order.maker,
+            order.lender,
             order.orderHash,
             v,
             r,
             s
         ));
-
+        
         if (block.timestamp >= order.expirationTimestampInSec) {
             LogError(uint8(Errors.ORDER_EXPIRED), order.orderHash);
-            return 0;
+            return false;
         }
+
+        require(! Broker0xVault(VAULT_CONTRACT).isTradeCanceled(order.orderHash));
+
+        require(
+            _checkMargin(REST_TOKEN_CONTRACT,order.borrower) >= order.borrowerRelayFee &&
+            _checkFunding(REST_TOKEN_CONTRACT,order.lender) >= order.lenderRelayFee
+        );
+
+        // prices are returned in wei per 1 token
+        uint lenderTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(order.lenderTokenAddress);
+        require (lenderTokenPrice > 0);
+        uint interestTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(order.interestTokenAddress);
+        require (interestTokenPrice > 0);
+        uint tradeTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(order.tradeTokenAddress);
+        require (tradeTokenPrice > 0);
+
+        uint tradeAmountInWei = order.tradeTokenAmount * tradeTokenPrice;
+        uint lenderBalanceInWei = _checkFunding(order.lenderTokenAddress,order.lender) * lenderTokenPrice;
+        uint borrowerBalanceInWei = _checkMargin(order.interestTokenAddress,order.lender) * interestTokenPrice;
+        
+        // Does lender have enough funds to cover the order?
+        require(tradeAmountInWei <= lenderBalanceInWei);
+
+        // Does borrower have enough initial margin and interest to open the order?
+        require(
+            (tradeAmountInWei * order.initialMarginAmount / 100) // initial margin required
+                + (order.lendingLengthSec / 86400 * order.interestAmount) // total interest required for full length loan
+                    <= borrowerBalanceInWei);
+
+
+
+        return true;
+
+        /*
+        require(order.makerTokenAmount > 0 && order.takerTokenAmount > 0 && fillTakerTokenAmount > 0);
+
+        
+
+
 
         uint remainingTakerTokenAmount = order.takerTokenAmount.sub(getUnavailableTakerTokenAmount(order.orderHash));
         filledTakerTokenAmount = SafeMath.min256(fillTakerTokenAmount, remainingTakerTokenAmount);
@@ -250,6 +334,7 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             order.orderHash
         );
         return filledTakerTokenAmount;
+        */
     }
 
 
@@ -299,139 +384,21 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     }
 
 
-    function _checkAvailableMargin(address user_) private returns (uint) {
-        uint available = Broker0xVault(VAULT_CONTRACT).marginBalanceOf(0,user_);
+    function _checkMargin(address token_, address user_) private returns (uint) {
+        uint available = Broker0xVault(VAULT_CONTRACT).marginBalanceOf(token_,user_);
         return available; 
     }
-
-    function _checkAvailableFunding(address user_) private returns (uint) {
-        uint available = Broker0xVault(VAULT_CONTRACT).fundingBalanceOf(0,user_);
+    function _checkFunding(address token_, address user_) private returns (uint) {
+        uint available = Broker0xVault(VAULT_CONTRACT).fundingBalanceOf(token_,user_);
         return available; 
     }
 
     /*
     * Core exchange functions
     */
+
     /*
-    /// @dev Fills the input order.
-    /// @param orderAddresses Array of order's maker, taker, makerToken, takerToken, and feeRecipient.
-    /// @param orderValues Array of order's makerTokenAmount, takerTokenAmount, makerFee, takerFee, expirationTimestampInSec, and salt.
-    /// @param fillTakerTokenAmount Desired amount of takerToken to fill.
-    /// @param shouldThrowOnInsufficientBalanceOrAllowance Test if transfer will fail before attempting.
-    /// @param v ECDSA signature parameter v.
-    /// @param r ECDSA signature parameters r.
-    /// @param s ECDSA signature parameters s.
-    /// @return Total amount of takerToken filled in trade.
-    function fillOrder(
-          address[5] orderAddresses,
-          uint[6] orderValues,
-          uint fillTakerTokenAmount,
-          bool shouldThrowOnInsufficientBalanceOrAllowance,
-          uint8 v,
-          bytes32 r,
-          bytes32 s)
-          public
-          returns (uint filledTakerTokenAmount)
-    {
-        Order memory order = Order({
-            maker: orderAddresses[0],
-            taker: orderAddresses[1],
-            makerToken: orderAddresses[2],
-            takerToken: orderAddresses[3],
-            feeRecipient: orderAddresses[4],
-            makerTokenAmount: orderValues[0],
-            takerTokenAmount: orderValues[1],
-            makerFee: orderValues[2],
-            takerFee: orderValues[3],
-            expirationTimestampInSec: orderValues[4],
-            orderHash: getOrderHash(orderAddresses, orderValues)
-        });
-
-        require(order.taker == address(0) || order.taker == msg.sender);
-        require(order.makerTokenAmount > 0 && order.takerTokenAmount > 0 && fillTakerTokenAmount > 0);
-        require(isValidSignature(
-            order.maker,
-            order.orderHash,
-            v,
-            r,
-            s
-        ));
-
-        if (block.timestamp >= order.expirationTimestampInSec) {
-            LogError(uint8(Errors.ORDER_EXPIRED), order.orderHash);
-            return 0;
-        }
-
-        uint remainingTakerTokenAmount = order.takerTokenAmount.sub(getUnavailableTakerTokenAmount(order.orderHash));
-        filledTakerTokenAmount = SafeMath.min256(fillTakerTokenAmount, remainingTakerTokenAmount);
-        if (filledTakerTokenAmount == 0) {
-            LogError(uint8(Errors.ORDER_FULLY_FILLED_OR_CANCELLED), order.orderHash);
-            return 0;
-        }
-
-        if (isRoundingError(filledTakerTokenAmount, order.takerTokenAmount, order.makerTokenAmount)) {
-            LogError(uint8(Errors.ROUNDING_ERROR_TOO_LARGE), order.orderHash);
-            return 0;
-        }
-
-        if (!shouldThrowOnInsufficientBalanceOrAllowance && !isTransferable(order, filledTakerTokenAmount)) {
-            LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), order.orderHash);
-            return 0;
-        }
-
-        uint filledMakerTokenAmount = getPartialAmount(filledTakerTokenAmount, order.takerTokenAmount, order.makerTokenAmount);
-        uint paidMakerFee;
-        uint paidTakerFee;
-        filled[order.orderHash] = filled[order.orderHash].add(filledTakerTokenAmount);
-        require(transferViaTokenTransferProxy(
-            order.makerToken,
-            order.maker,
-            msg.sender,
-            filledMakerTokenAmount
-        ));
-        require(transferViaTokenTransferProxy(
-            order.takerToken,
-            msg.sender,
-            order.maker,
-            filledTakerTokenAmount
-        ));
-        if (order.feeRecipient != address(0)) {
-            if (order.makerFee > 0) {
-                paidMakerFee = getPartialAmount(filledTakerTokenAmount, order.takerTokenAmount, order.makerFee);
-                require(transferViaTokenTransferProxy(
-                    REST_TOKEN_CONTRACT,
-                    order.maker,
-                    order.feeRecipient,
-                    paidMakerFee
-                ));
-            }
-            if (order.takerFee > 0) {
-                paidTakerFee = getPartialAmount(filledTakerTokenAmount, order.takerTokenAmount, order.takerFee);
-                require(transferViaTokenTransferProxy(
-                    REST_TOKEN_CONTRACT,
-                    msg.sender,
-                    order.feeRecipient,
-                    paidTakerFee
-                ));
-            }
-        }
-
-        LogFill(
-            order.maker,
-            msg.sender,
-            order.feeRecipient,
-            order.makerToken,
-            order.takerToken,
-            filledMakerTokenAmount,
-            filledTakerTokenAmount,
-            paidMakerFee,
-            paidTakerFee,
-            keccak256(order.makerToken, order.takerToken),
-            order.orderHash
-        );
-        return filledTakerTokenAmount;
-    }
-
+ 
    /// @dev Cancels the input order.
     /// @param orderAddresses Array of order's maker, taker, makerToken, takerToken, and feeRecipient.
     /// @param orderValues Array of order's makerTokenAmount, takerTokenAmount, makerFee, takerFee, expirationTimestampInSec, and salt.
@@ -493,27 +460,31 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     */
 
     /// @dev Calculates Keccak-256 hash of order with specified parameters.
-    /// @param orderAddresses Array of order's maker, taker, makerToken, takerToken, and feeRecipient.
-    /// @param orderValues Array of order's makerTokenAmount, takerTokenAmount, makerFee, takerFee, expirationTimestampInSec, and salt.
+    /// @param orderAddresses Array of offer order's lender, lenderTokenAddress, interestTokenAddress, oracleAddress, and feeRecipient.
+    /// @param orderValues Array of offer order's lenderTokenAmount, lendingLengthSec, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, borrowerRelayFee, expirationUnixTimestampSec, reinvestAllowed, and salt.
     /// @return Keccak-256 hash of order.
-    function getOrderHash(address[5] orderAddresses, uint[6] orderValues)
+    function getOfferOrderHash(address[5] orderAddresses, uint[10] orderValues)
         public
         constant
         returns (bytes32)
     {
         return keccak256(
             address(this),
-            orderAddresses[0], // maker
-            orderAddresses[1], // taker
-            orderAddresses[2], // makerToken
-            orderAddresses[3], // takerToken
+            orderAddresses[0], // lender
+            orderAddresses[1], // lenderTokenAddress
+            orderAddresses[2], // interestTokenAddress
+            orderAddresses[3], // oracleAddress
             orderAddresses[4], // feeRecipient
-            orderValues[0],    // makerTokenAmount
-            orderValues[1],    // takerTokenAmount
-            orderValues[2],    // makerFee
-            orderValues[3],    // takerFee
-            orderValues[4],    // expirationTimestampInSec
-            orderValues[5]     // salt
+            orderValues[0],    // lenderTokenAmount
+            orderValues[1],    // lendingLengthSec
+            orderValues[2],    // interestAmount
+            orderValues[3],    // initialMarginAmount
+            orderValues[4],    // liquidationMarginAmount
+            orderValues[5],     // lenderRelayFee
+            orderValues[6],     // borrowerRelayFee
+            orderValues[7],     // expirationUnixTimestampSec
+            orderValues[8],     // reinvestAllowed
+            orderValues[9]     // salt
         );
     }
 
@@ -561,7 +532,7 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         );
         return errPercentageTimes1000000 > 1000;
     }
-
+/*
     /// @dev Calculates partial value given a numerator and denominator.
     /// @param numerator Numerator.
     /// @param denominator Denominator.
