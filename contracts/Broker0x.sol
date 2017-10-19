@@ -23,6 +23,7 @@ import '../oz_contracts/math/SafeMath.sol';
 import '../oz_contracts/ownership/Ownable.sol';
 import '../oz_contracts/ReentrancyGuard.sol';
 
+//import './Console.sol';
 //import '../tinyoracle/api.sol';
 //import './RESTToken.sol';
 import './Broker0xVault.sol';
@@ -32,6 +33,7 @@ import './BrokerTokenPrices.sol';
 
 contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     using SafeMath for uint256;
+    //using strings for *;
 
     // Error Codes
     enum Errors {
@@ -104,14 +106,16 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         bytes32 orderHash;
     }
 
-    struct OrderData {
+    struct OrderAddresses {
         address borrower;
         address lender;
-        address lenderTokenAddress;
+        address lendTokenAddress;
         address tradeTokenAddress;
         address interestTokenAddress;
         address oracleAddress;
         address feeRecipient;
+    }
+    struct OrderValues {
         uint lenderTokenAmount;
         uint tradeTokenAmount;
         uint lendingLengthSec;
@@ -122,7 +126,6 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         uint borrowerRelayFee;
         uint expirationTimestampInSec;
         uint salt;
-        bytes32 orderHash;
     }
 
     function() {
@@ -150,50 +153,105 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     // uint price = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(token_)
     */
 
+    // helper function is needed due to the "stack too deep" limitation
+    function _getOrderAddressesStruct(
+        address[5] orderAddrs, 
+        address taker_, 
+        address takerTokenAddress, 
+        bool borrowerIsTaker)
+        private 
+        constant 
+        returns (OrderAddresses)
+    {
+        if (borrowerIsTaker) {
+            return (OrderAddresses({
+                borrower: taker_,
+                lender: orderAddrs[0],
+                lendTokenAddress: orderAddrs[1],
+                tradeTokenAddress: takerTokenAddress,
+                interestTokenAddress: orderAddrs[2],
+                oracleAddress: orderAddrs[3],
+                feeRecipient: orderAddrs[4]
+            }));
+        } else {
+            return (OrderAddresses({
+                borrower: orderAddrs[0],
+                lender: taker_,
+                lendTokenAddress: takerTokenAddress,
+                tradeTokenAddress: orderAddrs[1],
+                interestTokenAddress: orderAddrs[2],
+                oracleAddress: orderAddrs[3],
+                feeRecipient: orderAddrs[4]
+            }));
+        }
+    }
+
+    // helper function is needed due to the "stack too deep" limitation
+    function _getOrderValuesStruct(
+        uint[10] orderVals, 
+        uint takerTokenAmount,
+        bool borrowerIsTaker)
+        private 
+        constant 
+        returns (OrderValues)
+    {
+        if (borrowerIsTaker) {
+            return (OrderValues({
+                lenderTokenAmount: orderVals[0],
+                tradeTokenAmount: takerTokenAmount,
+                lendingLengthSec: orderVals[1],
+                interestAmount: orderVals[2],
+                initialMarginAmount: orderVals[3],
+                liquidationMarginAmount: orderVals[4],
+                lenderRelayFee: orderVals[5],
+                borrowerRelayFee: orderVals[6],
+                expirationTimestampInSec: orderVals[7],
+                salt: orderVals[9]
+            }));
+        } else {
+            return (OrderValues({
+                lenderTokenAmount: takerTokenAmount,
+                tradeTokenAmount: orderVals[0],
+                lendingLengthSec: orderVals[1],
+                interestAmount: orderVals[2],
+                initialMarginAmount: orderVals[3],
+                liquidationMarginAmount: orderVals[4],
+                lenderRelayFee: orderVals[5],
+                borrowerRelayFee: orderVals[6],
+                expirationTimestampInSec: orderVals[7],
+                salt: orderVals[9]
+            }));
+        }
+    }
+
     /// @dev Fills the offering order created by a lender and taken by a borrorer.
-    /// @param orderAddresses Array of offer order's lender, lenderTokenAddress, interestTokenAddress, oracleAddress, and feeRecipient.
-    /// @param orderValues Array of offer order's lenderTokenAmount, lendingLengthSec, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, borrowerRelayFee, expirationUnixTimestampSec, reinvestAllowed, and salt.
-    /// @param borrower The address of the borrower who is taking this offer order.
-    /// @param tradeTokenAddress The address of the token the for which a position will be opened.
-    /// @param tradeTokenAmount The size of position being being opened in tradeToken units.
+    /// @param orderAddrs Array of order's maker, makerTakenAddress, interestTokenAddress, oracleAddress, and feeRecipient.
+    /// @param orderVals Array of order's makerTokenAmount, lendingLengthSec, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, borrowerRelayFee, expirationUnixTimestampSec, reinvestAllowed, and salt.
+    /// @param takerTokenAddress The address of the taker's token, which is either the tradeTokenAddress or the lendTokenAddress.
+    /// @param takerTokenAmount The amount of the taker's token.
+    /// @param borrowerIsTaker True if the borrower takes the order, false if the lender takes the order.
     /// @param v ECDSA signature parameter v.
     /// @param r ECDSA signature parameters r.
     /// @param s ECDSA signature parameters s.
     /// @return Is the trade successfull? (true or false).
-    function fillOfferingOrder(
-          address[5] orderAddresses,
-          uint[10] orderValues,
-          address borrower,
-          address tradeTokenAddress,
-          uint tradeTokenAmount,
-          uint8 v,
-          bytes32 r,
-          bytes32 s)
-          public
-          returns (bool orderSuccess)
+    function fillTrade(
+        address[5] orderAddrs,
+        uint[10] orderVals,
+        address takerTokenAddress,
+        uint takerTokenAmount,
+        bool borrowerIsTaker,
+        uint8 v,
+        bytes32 r,
+        bytes32 s)
+        private
+        returns (bool orderSuccess)
     {
 
-        OrderData memory order = OrderData({
-            borrower: borrower,
-            lender: orderAddresses[0],
-            lenderTokenAddress: orderAddresses[1],
-            tradeTokenAddress: tradeTokenAddress,
-            interestTokenAddress: orderAddresses[2],
-            oracleAddress: orderAddresses[3],
-            feeRecipient: orderAddresses[4],
-            lenderTokenAmount: orderValues[0],
-            tradeTokenAmount: tradeTokenAmount,            
-            lendingLengthSec: orderValues[1],
-            interestAmount: orderValues[2],
-            initialMarginAmount: orderValues[3],
-            liquidationMarginAmount: orderValues[4],
-            lenderRelayFee: orderValues[5],
-            borrowerRelayFee: orderValues[6],
-            expirationTimestampInSec: orderValues[7],
-            salt: orderValues[9],
-            orderHash: getOfferOrderHash(orderAddresses, orderValues)
-        });
+        // these helper functions are needed due to the "stack too deep" limitation
+        OrderAddresses memory orderAddresses = _getOrderAddressesStruct(orderAddrs,msg.sender,takerTokenAddress,borrowerIsTaker);
+        OrderValues memory orderValues = _getOrderValuesStruct(orderVals,takerTokenAmount,borrowerIsTaker);
 
+        bytes32 orderHash = getTradeOrderHash(orderAddrs, orderVals);
 
 /*
 	- the order parameters are valid and the order has a valid signiture (signed with the lender's private key)
@@ -212,47 +270,47 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
 */
 
 
-        require(order.borrower == msg.sender);
-        require(order.liquidationMarginAmount >= 0 && order.liquidationMarginAmount < order.initialMarginAmount && order.initialMarginAmount <= 100);
+        require(orderAddresses.borrower == msg.sender);
+        require(orderValues.liquidationMarginAmount >= 0 && orderValues.liquidationMarginAmount < orderValues.initialMarginAmount && orderValues.initialMarginAmount <= 100);
         require(isValidSignature(
-            order.lender,
-            order.orderHash,
+            orderAddresses.lender,
+            orderHash,
             v,
             r,
             s
         ));
         
-        if (block.timestamp >= order.expirationTimestampInSec) {
-            LogError(uint8(Errors.ORDER_EXPIRED), order.orderHash);
+        if (block.timestamp >= orderValues.expirationTimestampInSec) {
+            LogError(uint8(Errors.ORDER_EXPIRED), orderHash);
             return false;
         }
 
-        require(! Broker0xVault(VAULT_CONTRACT).isTradeCanceled(order.orderHash));
+        require(! Broker0xVault(VAULT_CONTRACT).isTradeCanceled(orderHash));
 
         require(
-            _checkMargin(REST_TOKEN_CONTRACT,order.borrower) >= order.borrowerRelayFee &&
-            _checkFunding(REST_TOKEN_CONTRACT,order.lender) >= order.lenderRelayFee
+            _checkMargin(REST_TOKEN_CONTRACT,orderAddresses.borrower) >= orderValues.borrowerRelayFee &&
+            _checkFunding(REST_TOKEN_CONTRACT,orderAddresses.lender) >= orderValues.lenderRelayFee
         );
 
         // prices are returned in wei per 1 token
-        uint lenderTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(order.lenderTokenAddress);
+        uint lenderTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(orderAddresses.lendTokenAddress);
         require (lenderTokenPrice > 0);
-        uint interestTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(order.interestTokenAddress);
+        uint interestTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(orderAddresses.interestTokenAddress);
         require (interestTokenPrice > 0);
-        uint tradeTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(order.tradeTokenAddress);
+        uint tradeTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(orderAddresses.tradeTokenAddress);
         require (tradeTokenPrice > 0);
 
-        uint tradeAmountInWei = order.tradeTokenAmount * tradeTokenPrice;
-        uint lenderBalanceInWei = _checkFunding(order.lenderTokenAddress,order.lender) * lenderTokenPrice;
-        uint borrowerBalanceInWei = _checkMargin(order.interestTokenAddress,order.lender) * interestTokenPrice;
+        uint tradeAmountInWei = orderValues.tradeTokenAmount * tradeTokenPrice;
+        uint lenderBalanceInWei = _checkFunding(orderAddresses.lendTokenAddress, orderAddresses.lender) * lenderTokenPrice;
+        uint borrowerBalanceInWei = _checkMargin(orderAddresses.interestTokenAddress, orderAddresses.borrower) * interestTokenPrice;
         
         // Does lender have enough funds to cover the order?
         require(tradeAmountInWei <= lenderBalanceInWei);
 
         // Does borrower have enough initial margin and interest to open the order?
         require(
-            (tradeAmountInWei * order.initialMarginAmount / 100) // initial margin required
-                + (order.lendingLengthSec / 86400 * order.interestAmount) // total interest required for full length loan
+            (tradeAmountInWei * orderValues.initialMarginAmount / 100) // initial margin required
+                + (orderValues.lendingLengthSec / 86400 * orderValues.interestAmount) // total interest required for full length loan
                     <= borrowerBalanceInWei);
 
 
@@ -458,34 +516,43 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     /*
     * Constant public functions
     */
-
     /// @dev Calculates Keccak-256 hash of order with specified parameters.
-    /// @param orderAddresses Array of offer order's lender, lenderTokenAddress, interestTokenAddress, oracleAddress, and feeRecipient.
-    /// @param orderValues Array of offer order's lenderTokenAmount, lendingLengthSec, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, borrowerRelayFee, expirationUnixTimestampSec, reinvestAllowed, and salt.
+    /// @param orderAddrs Array of order's maker, makerTakenAddress, interestTokenAddress, oracleAddress, and feeRecipient.
+    /// @param orderVals Array of order's makerTokenAmount, lendingLengthSec, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, borrowerRelayFee, expirationUnixTimestampSec, reinvestAllowed, and salt.
     /// @return Keccak-256 hash of order.
-    function getOfferOrderHash(address[5] orderAddresses, uint[10] orderValues)
+    function getTradeOrderHash(
+        address[5] orderAddrs, 
+        uint[10] orderVals)
         public
         constant
         returns (bytes32)
     {
-        return keccak256(
-            address(this),
-            orderAddresses[0], // lender
-            orderAddresses[1], // lenderTokenAddress
-            orderAddresses[2], // interestTokenAddress
-            orderAddresses[3], // oracleAddress
-            orderAddresses[4], // feeRecipient
-            orderValues[0],    // lenderTokenAmount
-            orderValues[1],    // lendingLengthSec
-            orderValues[2],    // interestAmount
-            orderValues[3],    // initialMarginAmount
-            orderValues[4],    // liquidationMarginAmount
-            orderValues[5],     // lenderRelayFee
-            orderValues[6],     // borrowerRelayFee
-            orderValues[7],     // expirationUnixTimestampSec
-            orderValues[8],     // reinvestAllowed
-            orderValues[9]     // salt
+        // multiple keccak256s needed due to the "stack too deep" limitation
+        
+        bytes32 k1 =  keccak256(
+            orderAddrs[0],  // maker
+            orderAddrs[1],  // makerTokenAddress
+            orderAddrs[2],  // interestTokenAddress
+            orderAddrs[3],  // oracleAddress
+            orderAddrs[4]   // feeRecipient
         );
+        bytes32 k2 =  keccak256(
+            orderVals[0],    // makerTokenAmount
+            orderVals[1],    // lendingLengthSec
+            orderVals[2],    // interestAmount
+            orderVals[3],    // initialMarginAmount
+            orderVals[4],    // liquidationMarginAmount
+            orderVals[5],    // lenderRelayFee
+            orderVals[6],    // borrowerRelayFee
+            orderVals[7],    // expirationUnixTimestampSec
+            orderVals[8],    // reinvestAllowed
+            orderVals[9]     // salt
+        );
+        return (keccak256(
+            address(this),
+            k1,
+            k2
+        ));
     }
 
     /// @dev Verifies that an order signature is valid.
