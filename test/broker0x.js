@@ -1,7 +1,15 @@
 const BigNumber = require('bignumber.js');
 const BN = require('bn.js');
-const Web3 = require('web3')
+//const TestRPC = require('ethereumjs-testrpc');
+//const Transaction = require('ethereumjs-tx');
+//const coder = require('web3/lib/solidity/coder');
+//const CryptoJS = require('crypto-js');
+const Web3 = require('web3');
+
+//var provider = TestRPC.provider();
+//let web3 = new Web3(provider);
 let web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"))
+
 
 import { Broker0x } from '../src/Broker0x.js';
 // require('../src/Broker0x.js');
@@ -34,6 +42,19 @@ let test_wallets = [
 Mnemonic: concert load couple harbor equip island argue ramp clarify fence smart topic
 */
 
+let account_privatekeys = [
+  "f2f48ee19680706196e2e339e5da3491186e0c4c5030670656b0e0164837257d",
+  "5d862464fe9303452126c8bc94274b8c5f9874cbd219789b3eb2128075a76f72",
+  "df02719c4df8b9b8ac7f551fcb5d9ef48fa27eef7a66453879f4d8fdc6e78fb1",
+  "ff12e391b79415e941a94de3bf3a9aee577aed0731e297d5cfa0b8a1e02fa1d0",
+  "752dd9cf65e68cfaba7d60225cbdbc1f4729dd5e5507def72815ed0d8abc6249",
+  "efb595a0178eb79a8df953f87c5148402a224cdf725e88c0146727c6aceadccd",
+  "83c6d2cc5ddcf9711a6d59b417dc20eb48afd58d45290099e5987e3d768f328f",
+  "bb2d3f7c9583780a7d3904a2f55d792707c345f21de1bacb2d389934d82796b2",
+  "b2fd4d29c1390b71b8795ae81196bfd60293adf99f9d32a0aff06288fcdac55f",
+  "23cb7121166b9a2f93ae0b7c05bde02eae50d64449b2cbb42bc84e9d38d6cc89"
+];
+
 contract('Broker0xTest', function(accounts) {
   var vault;
   var broker;
@@ -41,6 +62,8 @@ contract('Broker0xTest', function(accounts) {
   var tom_token;
   var bean_token;
   var brokerjs;
+
+  var sample_orderhash;
 
   //printBalances(accounts);
 
@@ -328,8 +351,8 @@ contract('Broker0xTest', function(accounts) {
     var orderParams = {
       "broker0xContractAddress": broker.address, 
       "maker": accounts[1], 
-      "makerTokenAddress": '0x549764eec43711c57f2074853e69e586b78628d6', //tom_token.address, 
-      "interestTokenAddress": '0x1f527b402f429912abe97bb6775380c89936f640', //rest_token.address, 
+      "makerTokenAddress": tom_token.address,
+      "interestTokenAddress": rest_token.address,
       "oracleAddress": "0x0000000000000000000000000000000000000000", 
       "feeRecipient": accounts[9], 
       "makerTokenAmount": web3.toWei(1000000, "ether").toString(), 
@@ -369,6 +392,7 @@ contract('Broker0xTest', function(accounts) {
         new BN(orderParams["salt"])
     ]).then(function(orderHash) {
       //console.log("sol hash: "+orderHash);
+      sample_orderhash = orderHash;
       assert.equal(orderHash, expectedHash, "expectedHash should equal returned orderHash");
       done();
     }, function(error) {
@@ -377,6 +401,74 @@ contract('Broker0xTest', function(accounts) {
       done();
     });
   });
+
+  it("should sign and verify orderHash", function(done) {
+    var signedOrderHash = web3.eth.sign(accounts[1], sample_orderhash);
+    //console.log(signedOrderHash);
+    
+    var ECSignature = {
+      "v": parseInt(signedOrderHash.substring(130,132))+27,
+      "r": "0x"+signedOrderHash.substring(2,66),
+      "s": "0x"+signedOrderHash.substring(66,130)
+    };
+
+    broker.isValidSignature.call(
+      accounts[1],
+      signedOrderHash,
+      ECSignature["v"],
+      ECSignature["r"],
+      ECSignature["s"]
+    ).then(function(result) {
+      //console.log("is valid "+result);
+      assert.isOk(result);
+      done();
+    }, function(error) {
+      console.error(error);
+      assert.equal(true, false);
+      done();
+    });
+  });
+
+  /*it("should sign orderHash", function(done) {
+    brokerjs.signOrderHashAsync(sample_orderhash, accounts[1]).then(function(res) {
+      console.log(res);
+      assert.equal(true, true);
+      done();
+    });
+  });*/
+
+/*  it("should sign orderHash", function(done) {
+    web3.eth.getTransactionCountAsync(accounts[1]).then(function(nonce) {
+      var data = '0x' + encodeFunctionTxData('register', ['uint256'], [testNum])
+      var tx = new Transaction({
+        nonce: web3.toHex(nonce),
+        gasPrice: gasPriceHex,
+        gasLimit: gasLimitHex,
+        to: walletContractAddress,
+        from: fromAccount,
+        value: '0x00',
+        data: payloadData
+      
+        to: broker.address,
+      value: 0,
+      nonce: nonce,
+      data: data,
+      gasLimit: 2000000
+    })
+    tx.sign(Buffer.from(keypair.privateKey.slice(2), 'hex'))
+    var signedRawTx = tx.serialize().toString('hex')
+      
+
+  }).then(nonce => {
+    
+  
+    return web3.eth.sendRawTransactionAsync(signedRawTx)
+  }).then(txHash => {
+    return web3.eth.getTransactionReceiptAsync(txHash)
+  }).then(tx => {
+    console.log('Gas used: ' + tx.gasUsed)
+
+  });*/
 
   function printBalances(accounts) {
     accounts.forEach(function(ac, i) {
@@ -397,4 +489,12 @@ contract('Broker0xTest', function(accounts) {
     var salt = randomNumber.times(factor).round();
     return salt;
   };
+
+  function encodeFunctionTxData(functionName, types, args) {
+    var fullName = functionName + '(' + types.join() + ')';
+    var signature = CryptoJS.SHA3(fullName, { outputLength: 256 }).toString(CryptoJS.enc.Hex).slice(0, 8);
+    var dataHex = signature + coder.encodeParams(types, args);
+  
+    return dataHex;
+  }
 });
