@@ -1,5 +1,6 @@
 const BigNumber = require('bignumber.js');
 const BN = require('bn.js');
+const ethUtil = require('ethereumjs-util');
 //const TestRPC = require('ethereumjs-testrpc');
 //const Transaction = require('ethereumjs-tx');
 //const coder = require('web3/lib/solidity/coder');
@@ -63,7 +64,9 @@ contract('Broker0xTest', function(accounts) {
   var bean_token;
   var brokerjs;
 
+  var orderParams;
   var sample_orderhash;
+  var ECSignature;
 
   //printBalances(accounts);
 
@@ -86,6 +89,15 @@ contract('Broker0xTest', function(accounts) {
   it("should retrieve deployed Broker0x contract", function(done) {
     Broker0xSol.deployed().then(function(instance) {
       broker = instance;
+
+      /*
+      setup event listener
+      var event = broker.LogErrorText(function(error, result) {
+          if (!error)
+              console.log(result);
+      });
+      */
+
       assert.isOk(broker);
       done();
     });
@@ -281,12 +293,13 @@ contract('Broker0xTest', function(accounts) {
   });
 */
   it("should transfer RESTToken to accounts[1] and accounts[1] deposit to funding", function(done) {
-    rest_token.transfer(accounts[1], web3.toWei(100000, "ether"), {from: accounts[0]}).then(function(result) {
-      rest_token.approve(broker.address, web3.toWei(100000, "ether"), {from: accounts[1]}).then(function(tx) {
+    var amount = web3.toWei(100000, "ether");
+    rest_token.transfer(accounts[1], amount, {from: accounts[0]}).then(function(result) {
+      rest_token.approve(broker.address, amount, {from: accounts[1]}).then(function(tx) {
         vault.fundingBalanceOf.call(rest_token.address, accounts[1]).then(function(beforeBalance) {
-          broker.depositTokenFunding(rest_token.address, testDepositAmount, {from: accounts[1]}).then(function() {
+          broker.depositTokenFunding(rest_token.address, amount, {from: accounts[1]}).then(function() {
             vault.fundingBalanceOf.call(rest_token.address, accounts[1]).then(function(afterBalance) {
-              assert.equal(afterBalance.toNumber(), beforeBalance.add(testDepositAmount).toNumber(), "afterBalance should equal beforeBalance + 100000");
+              assert.equal(afterBalance.toNumber(), beforeBalance.add(amount).toNumber(), "afterBalance should equal beforeBalance + 100000");
               done();
             });
           }, function(error) {
@@ -304,12 +317,13 @@ contract('Broker0xTest', function(accounts) {
   });
 
   it("should transfer RESTToken to accounts[2] and accounts[2] deposit to margin", function(done) {
-    rest_token.transfer(accounts[2], web3.toWei(100000, "ether"), {from: accounts[0]}).then(function(result) {
-      rest_token.approve(broker.address, web3.toWei(100000, "ether"), {from: accounts[2]}).then(function(tx) {
+    var amount = web3.toWei(100000, "ether");
+    rest_token.transfer(accounts[2], amount, {from: accounts[0]}).then(function(result) {
+      rest_token.approve(broker.address, amount, {from: accounts[2]}).then(function(tx) {
         vault.marginBalanceOf.call(rest_token.address, accounts[2]).then(function(beforeBalance) {
-          broker.depositTokenMargin(rest_token.address, testDepositAmount, {from: accounts[2]}).then(function() {
+          broker.depositTokenMargin(rest_token.address, amount, {from: accounts[2]}).then(function() {
             vault.marginBalanceOf.call(rest_token.address, accounts[2]).then(function(afterBalance) {
-              assert.equal(afterBalance.toNumber(), beforeBalance.add(testDepositAmount).toNumber(), "afterBalance should equal beforeBalance + 100000");
+              assert.equal(afterBalance.toNumber(), beforeBalance.add(amount).toNumber(), "afterBalance should equal beforeBalance + 100000");
               done();
             });
           }, function(error) {
@@ -327,8 +341,9 @@ contract('Broker0xTest', function(accounts) {
   });
 
   it("should deposit Tom Token funding", function(done) {
-    tom_token.approve(broker.address, web3.toWei(1000000, "ether"), {from: accounts[1]}).then(function(tx) {
-      broker.depositTokenFunding(tom_token.address, web3.toWei(1000000, "ether"), {from: accounts[1]}).then(function(tx) {
+    var amount = web3.toWei(1000000, "ether");
+    tom_token.approve(broker.address, amount, {from: accounts[1]}).then(function(tx) {
+      broker.depositTokenFunding(tom_token.address, amount, {from: accounts[1]}).then(function(tx) {
         assert.isOk(tx.receipt);
         done();
       }, function(error) {
@@ -345,12 +360,12 @@ contract('Broker0xTest', function(accounts) {
 
 
   it("should generate orderHash as lender", function(done) {
-    let salt =  6.5812139555116479528032937647857030113604075300193028100254936553142961334085; //generatePseudoRandomSalt().toString();
-    let expirationUnixTimestampSec = 1510862552; //Math.floor(Date.now() / 1000) + 2592000; // 30 days from now
-    
-    var orderParams = {
+    var salt = generatePseudoRandomSalt().toString();
+    salt = salt.substring(0,salt.length-10);
+  
+    orderParams = {
       "broker0xContractAddress": broker.address, 
-      "maker": accounts[1], 
+      "maker": accounts[1], // lender
       "makerTokenAddress": tom_token.address,
       "interestTokenAddress": rest_token.address,
       "oracleAddress": "0x0000000000000000000000000000000000000000", 
@@ -362,9 +377,9 @@ contract('Broker0xTest', function(accounts) {
       "liquidationMarginAmount": "25", // 25% 
       "lenderRelayFee": web3.toWei(0.001, "ether").toString(), 
       "borrowerRelayFee": web3.toWei(0.0015, "ether").toString(), 
-      "expirationUnixTimestampSec": expirationUnixTimestampSec.toString(), 
+      "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(), 
       "reinvestAllowed": "1", 
-      "salt": salt.toString()
+      "salt": salt
     };
     //console.log(orderParams);
     let expectedHash = brokerjs.getTradeOrderHashHex(orderParams);
@@ -372,12 +387,13 @@ contract('Broker0xTest', function(accounts) {
     //console.log(salt);
     //console.log(expirationUnixTimestampSec);
     //console.log(orderParams);
-    broker.getTradeOrderHash.call([
-      orderParams["maker"],
-      orderParams["makerTokenAddress"],
-      orderParams["interestTokenAddress"],
-      orderParams["oracleAddress"],
-      orderParams["feeRecipient"],
+    broker.getTradeOrderHash.call(
+      [
+        orderParams["maker"],
+        orderParams["makerTokenAddress"],
+        orderParams["interestTokenAddress"],
+        orderParams["oracleAddress"],
+        orderParams["feeRecipient"],
       ],
       [
         new BN(orderParams["makerTokenAmount"]),
@@ -403,23 +419,26 @@ contract('Broker0xTest', function(accounts) {
   });
 
   it("should sign and verify orderHash", function(done) {
-    var signedOrderHash = web3.eth.sign(accounts[1], sample_orderhash);
+    var orderHashBuff = ethUtil.toBuffer(sample_orderhash);
+    var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
+    var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
+
+    var signedOrderHash = web3.eth.sign(accounts[2], msgHashHex);
     //console.log(signedOrderHash);
-    
-    var ECSignature = {
+
+    ECSignature = {
       "v": parseInt(signedOrderHash.substring(130,132))+27,
       "r": "0x"+signedOrderHash.substring(2,66),
       "s": "0x"+signedOrderHash.substring(66,130)
     };
 
     broker.isValidSignature.call(
-      accounts[1],
-      signedOrderHash,
+      accounts[2],
+      sample_orderhash,
       ECSignature["v"],
       ECSignature["r"],
       ECSignature["s"]
     ).then(function(result) {
-      //console.log("is valid "+result);
       assert.isOk(result);
       done();
     }, function(error) {
@@ -428,6 +447,46 @@ contract('Broker0xTest', function(accounts) {
       done();
     });
   });
+
+  it("should take sample trade as borrower", function(done) {
+    broker.fillTrade.call(
+      [
+        orderParams["maker"],
+        orderParams["makerTokenAddress"],
+        orderParams["interestTokenAddress"],
+        orderParams["oracleAddress"],
+        orderParams["feeRecipient"],
+      ],
+      [
+        new BN(orderParams["makerTokenAmount"]),
+        new BN(orderParams["lendingLengthSec"]),
+        new BN(orderParams["interestAmount"]),
+        new BN(orderParams["initialMarginAmount"]),
+        new BN(orderParams["liquidationMarginAmount"]),
+        new BN(orderParams["lenderRelayFee"]),
+        new BN(orderParams["borrowerRelayFee"]),
+        new BN(orderParams["expirationUnixTimestampSec"]),
+        new BN(orderParams["reinvestAllowed"]),
+        new BN(orderParams["salt"])
+      ],
+      rest_token.address, // taker (borrower) using REST as their margin token in this test
+      web3.toWei(2500, "ether"),//(new BN(web3.toWei(2500, "ether").toString())),
+      true, // borrowerIsTaker=true
+      ECSignature["v"],
+      ECSignature["r"],
+      ECSignature["s"],
+      {from: accounts[2]}).then(function(result) {
+        console.log(result);
+        assert.isOk(result);
+        done();
+    }, function(error) {
+      console.error(error);
+      assert.isOk(false);
+      done();
+    });
+  });
+
+  
 
   /*it("should sign orderHash", function(done) {
     brokerjs.signOrderHashAsync(sample_orderhash, accounts[1]).then(function(res) {

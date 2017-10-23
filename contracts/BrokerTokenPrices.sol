@@ -164,12 +164,12 @@ contract BrokerTokenPrices is Ownable {
 
 
     // returns the latest token price in wei per 1 token
-    function getTokenPrice(address token_) public returns (uint) {
+    function getTokenPrice(address token_) public constant returns (uint) {
         return latest_prices[token_];
     }
 
     // returns trust level of the data provider source
-    function getSourceTrustLevel(address source_) public returns (uint) {
+    function getSourceTrustLevel(address source_) public constant returns (uint) {
         return source_trust_level[source_];
     }
 }

@@ -81,6 +81,7 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     );
 
     event LogError(uint8 indexed errorId, bytes32 indexed orderHash);
+    event LogErrorText(string errorTxt, bytes32 indexed orderHash);
 
     event DepositEtherMargin(address user, uint amount, uint balance);
     event DepositEtherFunding(address user, uint amount, uint balance);
@@ -109,7 +110,7 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     struct OrderAddresses {
         address borrower;
         address lender;
-        address lendTokenAddress;
+        address lenderTokenAddress;
         address tradeTokenAddress;
         address interestTokenAddress;
         address oracleAddress;
@@ -124,8 +125,17 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         uint liquidationMarginAmount;
         uint lenderRelayFee;
         uint borrowerRelayFee;
-        uint expirationTimestampInSec;
+        uint expirationUnixTimestampSec;
         uint salt;
+    }
+
+    struct PriceData {
+        uint lenderTokenPrice;
+        uint interestTokenPrice;
+        uint tradeTokenPrice;
+        uint tradeAmountInWei;
+        uint lenderBalanceInWei;
+        uint borrowerBalanceInWei;
     }
 
     function() {
@@ -167,7 +177,7 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             return (OrderAddresses({
                 borrower: taker_,
                 lender: orderAddrs[0],
-                lendTokenAddress: orderAddrs[1],
+                lenderTokenAddress: orderAddrs[1],
                 tradeTokenAddress: takerTokenAddress,
                 interestTokenAddress: orderAddrs[2],
                 oracleAddress: orderAddrs[3],
@@ -177,7 +187,7 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             return (OrderAddresses({
                 borrower: orderAddrs[0],
                 lender: taker_,
-                lendTokenAddress: takerTokenAddress,
+                lenderTokenAddress: takerTokenAddress,
                 tradeTokenAddress: orderAddrs[1],
                 interestTokenAddress: orderAddrs[2],
                 oracleAddress: orderAddrs[3],
@@ -205,7 +215,7 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
                 liquidationMarginAmount: orderVals[4],
                 lenderRelayFee: orderVals[5],
                 borrowerRelayFee: orderVals[6],
-                expirationTimestampInSec: orderVals[7],
+                expirationUnixTimestampSec: orderVals[7],
                 salt: orderVals[9]
             }));
         } else {
@@ -218,16 +228,43 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
                 liquidationMarginAmount: orderVals[4],
                 lenderRelayFee: orderVals[5],
                 borrowerRelayFee: orderVals[6],
-                expirationTimestampInSec: orderVals[7],
+                expirationUnixTimestampSec: orderVals[7],
                 salt: orderVals[9]
             }));
         }
     }
 
+    // helper function is needed due to the "stack too deep" limitation
+    function _getPriceDataStruct(
+        OrderAddresses orderAddresses,
+        OrderValues orderValues)
+        private 
+        constant 
+        returns (PriceData)
+    {
+        // prices are returned in wei per 1 token
+        uint lenderTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(orderAddresses.lenderTokenAddress);
+        uint interestTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(orderAddresses.interestTokenAddress);
+        uint tradeTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(orderAddresses.tradeTokenAddress);
+
+        uint tradeAmountInWei = orderValues.tradeTokenAmount * tradeTokenPrice;
+        uint lenderBalanceInWei = _checkFunding(orderAddresses.lenderTokenAddress, orderAddresses.lender) * lenderTokenPrice;
+        uint borrowerBalanceInWei = _checkMargin(orderAddresses.interestTokenAddress, orderAddresses.borrower) * interestTokenPrice;
+        
+        return (PriceData({
+            lenderTokenPrice: lenderTokenPrice,
+            interestTokenPrice: interestTokenPrice,
+            tradeTokenPrice: tradeTokenPrice,
+            tradeAmountInWei: tradeAmountInWei,
+            lenderBalanceInWei: lenderBalanceInWei,
+            borrowerBalanceInWei: borrowerBalanceInWei
+        }));
+    }
+
     /// @dev Fills the offering order created by a lender and taken by a borrorer.
     /// @param orderAddrs Array of order's maker, makerTakenAddress, interestTokenAddress, oracleAddress, and feeRecipient.
     /// @param orderVals Array of order's makerTokenAmount, lendingLengthSec, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, borrowerRelayFee, expirationUnixTimestampSec, reinvestAllowed, and salt.
-    /// @param takerTokenAddress The address of the taker's token, which is either the tradeTokenAddress or the lendTokenAddress.
+    /// @param takerTokenAddress The address of the taker's token, which is either the tradeTokenAddress or the lenderTokenAddress.
     /// @param takerTokenAmount The amount of the taker's token.
     /// @param borrowerIsTaker True if the borrower takes the order, false if the lender takes the order.
     /// @param v ECDSA signature parameter v.
@@ -243,10 +280,9 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         uint8 v,
         bytes32 r,
         bytes32 s)
-        private
+        public
         returns (bool orderSuccess)
     {
-
         // these helper functions are needed due to the "stack too deep" limitation
         OrderAddresses memory orderAddresses = _getOrderAddressesStruct(orderAddrs,msg.sender,takerTokenAddress,borrowerIsTaker);
         OrderValues memory orderValues = _getOrderValuesStruct(orderVals,takerTokenAmount,borrowerIsTaker);
@@ -269,19 +305,19 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
 			- if the TRADE token had gained value, there would be a surplus after buying back the lended token. The surplus would go to the borrower as profit.
 */
 
-
-        require(orderAddresses.borrower == msg.sender);
+        require(orderAddresses.lender != orderAddresses.borrower && (orderAddresses.lender == msg.sender || orderAddresses.borrower == msg.sender));
         require(orderValues.liquidationMarginAmount >= 0 && orderValues.liquidationMarginAmount < orderValues.initialMarginAmount && orderValues.initialMarginAmount <= 100);
         require(isValidSignature(
-            orderAddresses.lender,
+            msg.sender,
             orderHash,
             v,
             r,
             s
         ));
-        
-        if (block.timestamp >= orderValues.expirationTimestampInSec) {
+
+        if (block.timestamp >= orderValues.expirationUnixTimestampSec) {
             LogError(uint8(Errors.ORDER_EXPIRED), orderHash);
+            LogErrorText("error: order has expired",orderHash);
             return false;
         }
 
@@ -292,26 +328,28 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             _checkFunding(REST_TOKEN_CONTRACT,orderAddresses.lender) >= orderValues.lenderRelayFee
         );
 
-        // prices are returned in wei per 1 token
-        uint lenderTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(orderAddresses.lendTokenAddress);
-        require (lenderTokenPrice > 0);
-        uint interestTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(orderAddresses.interestTokenAddress);
-        require (interestTokenPrice > 0);
-        uint tradeTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(orderAddresses.tradeTokenAddress);
-        require (tradeTokenPrice > 0);
+        PriceData memory priceData = _getPriceDataStruct(orderAddresses,orderValues);
+        if (priceData.lenderTokenPrice == 0) {
+            LogErrorText("error: lenderTokenPrice is 0 or not found",orderHash);
+            return false;
+        }
+        if (priceData.interestTokenPrice == 0) {
+            LogErrorText("error: interestTokenPrice is 0 or not found",orderHash);
+            return false;
+        }
+        if (priceData.tradeTokenPrice == 0) {
+            LogErrorText("error: tradeTokenPrice is 0 or not found",orderHash);
+            return false;
+        }
 
-        uint tradeAmountInWei = orderValues.tradeTokenAmount * tradeTokenPrice;
-        uint lenderBalanceInWei = _checkFunding(orderAddresses.lendTokenAddress, orderAddresses.lender) * lenderTokenPrice;
-        uint borrowerBalanceInWei = _checkMargin(orderAddresses.interestTokenAddress, orderAddresses.borrower) * interestTokenPrice;
-        
         // Does lender have enough funds to cover the order?
-        require(tradeAmountInWei <= lenderBalanceInWei);
+        require(priceData.tradeAmountInWei <= priceData.lenderBalanceInWei);
 
         // Does borrower have enough initial margin and interest to open the order?
         require(
-            (tradeAmountInWei * orderValues.initialMarginAmount / 100) // initial margin required
+            (priceData.tradeAmountInWei * orderValues.initialMarginAmount / 100) // initial margin required
                 + (orderValues.lendingLengthSec / 86400 * orderValues.interestAmount) // total interest required for full length loan
-                    <= borrowerBalanceInWei);
+                    <= priceData.borrowerBalanceInWei);
 
 
 
