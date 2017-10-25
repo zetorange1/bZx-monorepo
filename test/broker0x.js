@@ -13,11 +13,12 @@ let web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"))
 
 
 import { Broker0x } from '../src/Broker0x.js';
-// require('../src/Broker0x.js');
+// require('../src/B0x.js');
 
 
-let Broker0xVault = artifacts.require("./Broker0xVault.sol");
-let Broker0xSol = artifacts.require("./Broker0x.sol");
+let B0xVault = artifacts.require("./B0xVault.sol");
+let B0xPrices = artifacts.require("./B0xPrices.sol");
+let B0xSol = artifacts.require("./B0x.sol");
 let RESTToken = artifacts.require("./RESTToken.sol");
 let ERC20 = artifacts.require("./ERC20.sol"); // for testing with any ERC20 token
 
@@ -56,9 +57,10 @@ let account_privatekeys = [
   "23cb7121166b9a2f93ae0b7c05bde02eae50d64449b2cbb42bc84e9d38d6cc89"
 ];
 
-contract('Broker0xTest', function(accounts) {
+contract('B0xTest', function(accounts) {
   var vault;
   var broker;
+  var prices;
   var rest_token;
   var tom_token;
   var bean_token;
@@ -72,22 +74,37 @@ contract('Broker0xTest', function(accounts) {
 
   before(function() {
     new Promise((resolve, reject) => {
+      console.log("before balance: "+web3.eth.getBalance(accounts[0]));
       const gasPrice = new BigNumber(web3.toWei(2, 'gwei'));
       brokerjs = new Broker0x(web3.currentProvider, { gasPrice });
       resolve(brokerjs);
     });
   });
 
-  it("should retrieve deployed Broker0xVault contract", function(done) {
-    Broker0xVault.deployed().then(function(instance) {
+  after(function() {
+    new Promise((resolve, reject) => {
+      console.log("after balance: "+web3.eth.getBalance(accounts[0]));
+    });
+  });
+
+  it("should retrieve deployed B0xVault contract", function(done) {
+    B0xVault.deployed().then(function(instance) {
       vault = instance;
       assert.isOk(vault);
       done();
     });
   });
 
-  it("should retrieve deployed Broker0x contract", function(done) {
-    Broker0xSol.deployed().then(function(instance) {
+  it("should retrieve deployed B0xPrices contract", function(done) {
+    B0xPrices.deployed().then(function(instance) {
+      prices = instance;
+      assert.isOk(vault);
+      done();
+    });
+  });
+
+  it("should retrieve deployed B0x contract", function(done) {
+    B0xSol.deployed().then(function(instance) {
       broker = instance;
 
       /*
@@ -127,7 +144,7 @@ contract('Broker0xTest', function(accounts) {
     });
   });
 
-  it("should verify total RESTToken supply", function(done) {
+  /*it("should verify total RESTToken supply", function(done) {
     rest_token.totalSupply.call().then(function(totalSupply) {
       assert.equal(totalSupply.toNumber(), expected_RESTTokenTotalSupply, "totalSupply should equal RESTTokenTotalSupply");
       done();
@@ -138,10 +155,10 @@ contract('Broker0xTest', function(accounts) {
     });
   });
 
-  it("should add Broker0x as authorized address for Broker0xVault", function(done) {
+  it("should add B0x as authorized address for B0xVault", function(done) {
     vault.addAuthorizedAddress(broker.address).then(function() {
       vault.getAuthorizedAddresses.call().then(function(authorities) {
-        assert.equal(authorities[0], broker.address, "Broker0x contract should be the authorized address");
+        assert.equal(authorities[0], broker.address, "B0x contract should be the authorized address");
         done();
       });
     }, function(error) {
@@ -150,6 +167,7 @@ contract('Broker0xTest', function(accounts) {
       done();
     });
   });
+  */
 /*
   it("should deposit ether margin", function(done) {
     //var beforeWalletBalance = getWeiBalance(accounts[0]);
@@ -444,6 +462,64 @@ contract('Broker0xTest', function(accounts) {
     }, function(error) {
       console.error(error);
       assert.equal(true, false);
+      done();
+    });
+  });
+
+  it("should send sample prices for REST", function(done) {
+    var expectedPrice = web3.toWei("0.00025998", "ether");
+    broker.testSendPriceUpdate(
+      rest_token.address, 
+      expectedPrice,
+      {from: accounts[0]}).then(function(tx) {
+        prices.getTokenPrice(rest_token.address).then(function(currentPrice) {
+          assert.equal(currentPrice, expectedPrice, "expectedPrice should equal returned currentPrice");
+          done();
+        }, function(error) {
+          console.error("inner: "+error);
+          assert.isOk(false);
+          done();
+        });
+    }, function(error) {
+      console.error("outer: "+error);
+      assert.isOk(false);
+      done();
+    });
+  });
+
+  it("should send sample prices for Tom", function(done) {
+    var expectedPrice = web3.toWei((0.32+0.75)/2, "ether");
+    broker.testSendPriceUpdate(
+      tom_token.address, 
+      web3.toWei(0.32, "ether"), // simulate price from one source
+      {from: accounts[0]}).then(function(tx) {
+        //console.log(tx);
+        prices.getTokenPrice(tom_token.address).then(function(currentPrice) {
+          console.log(currentPrice.toString());
+          broker.testSendPriceUpdate(
+            tom_token.address, 
+            web3.toWei(0.75, "ether"), // simulate price from another source
+            {from: accounts[7]}).then(function(tx) {
+              //console.log(tx);
+              prices.getTokenPrice(tom_token.address).then(function(currentPrice) {
+                currentPrice = currentPrice.toString();
+                console.log(currentPrice);
+                assert.equal(currentPrice, expectedPrice, "expectedPrice should equal returned currentPrice");
+                done();
+              }, function(error) {
+                console.error("inner 2: "+error);
+                assert.isOk(false);
+                done();
+              });
+            }, function(error) {
+              console.error("inner 1: "+error);
+              assert.isOk(false);
+              done();
+            });
+          });
+    }, function(error) {
+      console.error("outer: "+error);
+      assert.isOk(false);
       done();
     });
   });

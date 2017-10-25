@@ -23,7 +23,7 @@ import '../oz_contracts/math/SafeMath.sol';
 import '../oz_contracts/token/ERC20.sol';
 import '../oz_contracts/ownership/Ownable.sol';
 
-contract Broker0xVault is Ownable {
+contract B0xVault is Ownable {
     using SafeMath for uint256;
 
     modifier onlyAuthorized {

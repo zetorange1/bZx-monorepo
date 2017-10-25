@@ -26,12 +26,12 @@ import '../oz_contracts/ReentrancyGuard.sol';
 //import './Console.sol';
 //import '../tinyoracle/api.sol';
 //import './RESTToken.sol';
-import './Broker0xVault.sol';
-import './TokenTransferProxy.sol';
+import './B0xVault.sol';
+//import './TokenTransferProxy.sol';
 
-import './BrokerTokenPrices.sol';
+import './B0xPrices.sol';
 
-contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
+contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     using SafeMath for uint256;
     //using strings for *;
 
@@ -142,7 +142,7 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         revert();
     }
 
-    function Broker0x(address _restToken, address _vault, address _tokenPrices) {
+    function B0x(address _restToken, address _vault, address _tokenPrices) {
         REST_TOKEN_CONTRACT = _restToken;
         //TOKEN_TRANSFER_PROXY_CONTRACT = _tokenTransferProxy;
         VAULT_CONTRACT = _vault;
@@ -151,17 +151,18 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     /*
     bytes public response;
     function __tinyOracleCallback(uint256 id_, address token_, uint price_) onlyFromTinyOracle external {
-        require(BrokerTokenPrices(TOKEN_PRICES_CONTRACT).setTokenPrice(msg.sender, token_, price_));
+        require(B0xPrices(TOKEN_PRICES_CONTRACT).setTokenPrice(msg.sender, token_, price_));
     }
+
+    // uint price = B0xPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(token_)
+    */
 
     // this is purely for testing in a test environment
     // NOT FOR PRODUCTION!
     function testSendPriceUpdate(address token_, uint price_) public {
-        require(BrokerTokenPrices(TOKEN_PRICES_CONTRACT).setTokenPrice(msg.sender, token_, price_));
+        require(B0xPrices(TOKEN_PRICES_CONTRACT).setTokenPrice(msg.sender, token_, price_));
     }
 
-    // uint price = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(token_)
-    */
 
     // helper function is needed due to the "stack too deep" limitation
     function _getOrderAddressesStruct(
@@ -243,9 +244,9 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         returns (PriceData)
     {
         // prices are returned in wei per 1 token
-        uint lenderTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(orderAddresses.lenderTokenAddress);
-        uint interestTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(orderAddresses.interestTokenAddress);
-        uint tradeTokenPrice = BrokerTokenPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(orderAddresses.tradeTokenAddress);
+        uint lenderTokenPrice = B0xPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(orderAddresses.lenderTokenAddress);
+        uint interestTokenPrice = B0xPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(orderAddresses.interestTokenAddress);
+        uint tradeTokenPrice = B0xPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(orderAddresses.tradeTokenAddress);
 
         uint tradeAmountInWei = orderValues.tradeTokenAmount * tradeTokenPrice;
         uint lenderBalanceInWei = _checkFunding(orderAddresses.lenderTokenAddress, orderAddresses.lender) * lenderTokenPrice;
@@ -321,7 +322,7 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             return false;
         }
 
-        require(! Broker0xVault(VAULT_CONTRACT).isTradeCanceled(orderHash));
+        require(! B0xVault(VAULT_CONTRACT).isTradeCanceled(orderHash));
 
         require(
             _checkMargin(REST_TOKEN_CONTRACT,orderAddresses.borrower) >= orderValues.borrowerRelayFee &&
@@ -435,11 +436,11 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
 
 
     function depositEtherMargin() external nonReentrant payable {
-        uint balance = Broker0xVault(VAULT_CONTRACT).depositEtherMargin.value(msg.value)(msg.sender);
+        uint balance = B0xVault(VAULT_CONTRACT).depositEtherMargin.value(msg.value)(msg.sender);
         DepositEtherMargin(msg.sender, msg.value, balance);
     }
     function depositEtherFunding() external nonReentrant payable {
-        uint balance = Broker0xVault(VAULT_CONTRACT).depositEtherFunding.value(msg.value)(msg.sender);
+        uint balance = B0xVault(VAULT_CONTRACT).depositEtherFunding.value(msg.value)(msg.sender);
         DepositEtherFunding(msg.sender, msg.value, balance);
     }
     function depositTokenMargin(address token_, uint amount_) external nonReentrant {
@@ -447,7 +448,7 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         require(token_ != address(0));
         require(ERC20(token_).transferFrom(msg.sender, VAULT_CONTRACT, amount_));
     
-        uint balance = Broker0xVault(VAULT_CONTRACT).depositTokenMargin(token_, msg.sender, amount_);
+        uint balance = B0xVault(VAULT_CONTRACT).depositTokenMargin(token_, msg.sender, amount_);
         DepositTokenMargin(token_, msg.sender, amount_, balance);
     }
     function depositTokenFunding(address token_, uint amount_) external nonReentrant {
@@ -455,37 +456,37 @@ contract Broker0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         require(token_ != address(0));
         require(ERC20(token_).transferFrom(msg.sender, VAULT_CONTRACT, amount_));
     
-        uint balance = Broker0xVault(VAULT_CONTRACT).depositTokenFunding(token_, msg.sender, amount_);
+        uint balance = B0xVault(VAULT_CONTRACT).depositTokenFunding(token_, msg.sender, amount_);
         DepositTokenFunding(token_, msg.sender, amount_, balance);
     }
 
 
     function withdrawEtherMargin(uint amount_) external nonReentrant {
-        uint balance = Broker0xVault(VAULT_CONTRACT).withdrawEtherMargin(msg.sender, amount_);
+        uint balance = B0xVault(VAULT_CONTRACT).withdrawEtherMargin(msg.sender, amount_);
         WithdrawEtherMargin(msg.sender, amount_, balance);
     }
     function withdrawEtherFunding(uint amount_) external nonReentrant {
-        uint balance = Broker0xVault(VAULT_CONTRACT).withdrawEtherFunding(msg.sender, amount_);
+        uint balance = B0xVault(VAULT_CONTRACT).withdrawEtherFunding(msg.sender, amount_);
         WithdrawEtherFunding(msg.sender, amount_, balance);
     }
     function withdrawTokenMargin(address token_, uint amount_) external nonReentrant {
         require(token_ != address(0));        
-        uint balance = Broker0xVault(VAULT_CONTRACT).withdrawTokenMargin(token_, msg.sender, amount_);
+        uint balance = B0xVault(VAULT_CONTRACT).withdrawTokenMargin(token_, msg.sender, amount_);
         WithdrawTokenMargin(token_, msg.sender, amount_, balance);
     }
     function withdrawTokenFunding(address token_, uint amount_) external nonReentrant {
         require(token_ != address(0));        
-        uint balance = Broker0xVault(VAULT_CONTRACT).withdrawTokenFunding(token_, msg.sender, amount_);
+        uint balance = B0xVault(VAULT_CONTRACT).withdrawTokenFunding(token_, msg.sender, amount_);
         WithdrawTokenFunding(token_, msg.sender, amount_, balance);
     }
 
 
     function _checkMargin(address token_, address user_) private returns (uint) {
-        uint available = Broker0xVault(VAULT_CONTRACT).marginBalanceOf(token_,user_);
+        uint available = B0xVault(VAULT_CONTRACT).marginBalanceOf(token_,user_);
         return available; 
     }
     function _checkFunding(address token_, address user_) private returns (uint) {
-        uint available = Broker0xVault(VAULT_CONTRACT).fundingBalanceOf(token_,user_);
+        uint available = B0xVault(VAULT_CONTRACT).fundingBalanceOf(token_,user_);
         return available; 
     }
 

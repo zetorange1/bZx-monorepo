@@ -1,9 +1,9 @@
 var RESTToken = artifacts.require("./RESTToken.sol");
 var TomToken = artifacts.require("./TomToken.sol");
 var BeanToken = artifacts.require("./BeanToken.sol");
-var Broker0xVault = artifacts.require("./Broker0xVault.sol");
-var BrokerTokenPrices = artifacts.require("./BrokerTokenPrices.sol");
-var Broker0x = artifacts.require("./Broker0x.sol");
+var B0xVault = artifacts.require("./B0xVault.sol");
+var B0xPrices = artifacts.require("./B0xPrices.sol");
+var B0x = artifacts.require("./B0x.sol");
 
 /*var Taker0x = artifacts.require("./Taker0x.sol");
 var INTToken = artifacts.require("./INTToken.sol");
@@ -28,13 +28,26 @@ let testWallets = [
 module.exports = function(deployer) {
 
 	deployer.deploy(RESTToken).then(function() {
-		return deployer.deploy(Broker0xVault).then(function() {
-			return deployer.deploy(BrokerTokenPrices).then(function() {
-				return deployer.deploy(Broker0x, RESTToken.address, Broker0xVault.address, BrokerTokenPrices.address);
+		return deployer.deploy(B0xVault).then(function() {
+			return deployer.deploy(B0xPrices).then(function() {
+				return deployer.deploy(B0x, RESTToken.address, B0xVault.address, B0xPrices.address).then(function() {
+					postDepoloymentSetup();
+					return;
+				});
 			});
 		});
 	});
 
 	deployer.deploy(TomToken, testWallets[1]);
 	deployer.deploy(BeanToken, testWallets[2]);
+
+	postDepoloymentSetup = function () {
+		B0xVault.deployed().then(function(instance) {
+			return instance.addAuthorizedAddress(B0x.address);
+		});
+		
+		B0xPrices.deployed().then(function(instance) {
+			return instance.addAuthorizedAddress(B0x.address);
+		});
+	};
 };

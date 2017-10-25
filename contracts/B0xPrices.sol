@@ -22,7 +22,7 @@ pragma solidity ^0.4.9;
 import '../oz_contracts/ownership/Ownable.sol';
 import '../oz_contracts/math/SafeMath.sol';
 
-contract BrokerTokenPrices is Ownable {
+contract B0xPrices is Ownable {
     using SafeMath for uint256;
 
     /// @dev Only authorized addresses can invoke functions with this modifier.
