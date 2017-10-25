@@ -25,7 +25,7 @@ import '../oz_contracts/ReentrancyGuard.sol';
 
 //import './Console.sol';
 //import '../tinyoracle/api.sol';
-//import './RESTToken.sol';
+//import './LOANToken.sol';
 import './B0xVault.sol';
 //import './TokenTransferProxy.sol';
 
@@ -46,7 +46,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     string constant public VERSION = "1.0.0";
     uint16 constant public EXTERNAL_QUERY_GAS_LIMIT = 4999;    // Changes to state require at least 5000 gas
 
-    address public REST_TOKEN_CONTRACT;
+    address public LOAN_TOKEN_CONTRACT;
     //address public TOKEN_TRANSFER_PROXY_CONTRACT;
     address public VAULT_CONTRACT;
     address public TOKEN_PRICES_CONTRACT;
@@ -142,8 +142,8 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         revert();
     }
 
-    function B0x(address _restToken, address _vault, address _tokenPrices) {
-        REST_TOKEN_CONTRACT = _restToken;
+    function B0x(address _loanToken, address _vault, address _tokenPrices) {
+        LOAN_TOKEN_CONTRACT = _loanToken;
         //TOKEN_TRANSFER_PROXY_CONTRACT = _tokenTransferProxy;
         VAULT_CONTRACT = _vault;
         TOKEN_PRICES_CONTRACT = _tokenPrices;
@@ -292,8 +292,8 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
 
 /*
 	- the order parameters are valid and the order has a valid signiture (signed with the lender's private key)
-	- broker0x has enough REST from the lender to cover the lender fee
-	- broker0x has enough REST from the borrower to cover the borrower fee
+	- broker0x has enough LOAN from the lender to cover the lender fee
+	- broker0x has enough LOAN from the borrower to cover the borrower fee
 	- broker0x has enough funds from the lender to cover the terms of the order (amount to be loaned)
 	- broker0x has enough funds from the borrower to cover the terms of the order (initial margin + total interest).
 
@@ -325,8 +325,8 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         require(! B0xVault(VAULT_CONTRACT).isTradeCanceled(orderHash));
 
         require(
-            _checkMargin(REST_TOKEN_CONTRACT,orderAddresses.borrower) >= orderValues.borrowerRelayFee &&
-            _checkFunding(REST_TOKEN_CONTRACT,orderAddresses.lender) >= orderValues.lenderRelayFee
+            _checkMargin(LOAN_TOKEN_CONTRACT,orderAddresses.borrower) >= orderValues.borrowerRelayFee &&
+            _checkFunding(LOAN_TOKEN_CONTRACT,orderAddresses.lender) >= orderValues.lenderRelayFee
         );
 
         PriceData memory priceData = _getPriceDataStruct(orderAddresses,orderValues);
@@ -354,7 +354,8 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
 
 
 
-        return true;
+        LogErrorText("error: some error",orderHash);
+        return false;
 
         /*
         require(order.makerTokenAmount > 0 && order.takerTokenAmount > 0 && fillTakerTokenAmount > 0);
@@ -400,7 +401,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             if (order.makerFee > 0) {
                 paidMakerFee = getPartialAmount(filledTakerTokenAmount, order.takerTokenAmount, order.makerFee);
                 require(transferViaTokenTransferProxy(
-                    REST_TOKEN_CONTRACT,
+                    LOAN_TOKEN_CONTRACT,
                     order.maker,
                     order.feeRecipient,
                     paidMakerFee
@@ -409,7 +410,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             if (order.takerFee > 0) {
                 paidTakerFee = getPartialAmount(filledTakerTokenAmount, order.takerTokenAmount, order.takerFee);
                 require(transferViaTokenTransferProxy(
-                    REST_TOKEN_CONTRACT,
+                    LOAN_TOKEN_CONTRACT,
                     msg.sender,
                     order.feeRecipient,
                     paidTakerFee
@@ -698,17 +699,17 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         uint fillMakerTokenAmount = getPartialAmount(fillTakerTokenAmount, order.takerTokenAmount, order.makerTokenAmount);
 
         if (order.feeRecipient != address(0)) {
-            bool isMakerTokenZRX = order.makerToken == REST_TOKEN_CONTRACT;
-            bool isTakerTokenZRX = order.takerToken == REST_TOKEN_CONTRACT;
+            bool isMakerTokenZRX = order.makerToken == LOAN_TOKEN_CONTRACT;
+            bool isTakerTokenZRX = order.takerToken == LOAN_TOKEN_CONTRACT;
             uint paidMakerFee = getPartialAmount(fillTakerTokenAmount, order.takerTokenAmount, order.makerFee);
             uint paidTakerFee = getPartialAmount(fillTakerTokenAmount, order.takerTokenAmount, order.takerFee);
             uint requiredMakerZRX = isMakerTokenZRX ? fillMakerTokenAmount.add(paidMakerFee) : paidMakerFee;
             uint requiredTakerZRX = isTakerTokenZRX ? fillTakerTokenAmount.add(paidTakerFee) : paidTakerFee;
 
-            if (   getBalance(REST_TOKEN_CONTRACT, order.maker) < requiredMakerZRX
-                || getAllowance(REST_TOKEN_CONTRACT, order.maker) < requiredMakerZRX
-                || getBalance(REST_TOKEN_CONTRACT, taker) < requiredTakerZRX
-                || getAllowance(REST_TOKEN_CONTRACT, taker) < requiredTakerZRX
+            if (   getBalance(LOAN_TOKEN_CONTRACT, order.maker) < requiredMakerZRX
+                || getAllowance(LOAN_TOKEN_CONTRACT, order.maker) < requiredMakerZRX
+                || getBalance(LOAN_TOKEN_CONTRACT, taker) < requiredTakerZRX
+                || getAllowance(LOAN_TOKEN_CONTRACT, taker) < requiredTakerZRX
             ) return false;
 
             if (!isMakerTokenZRX && (   getBalance(order.makerToken, order.maker) < fillMakerTokenAmount // Don't double check makerToken if ZRX

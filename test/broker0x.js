@@ -19,14 +19,14 @@ import { Broker0x } from '../src/Broker0x.js';
 let B0xVault = artifacts.require("./B0xVault.sol");
 let B0xPrices = artifacts.require("./B0xPrices.sol");
 let B0xSol = artifacts.require("./B0x.sol");
-let RESTToken = artifacts.require("./RESTToken.sol");
+let LOANToken = artifacts.require("./LOANToken.sol");
 let ERC20 = artifacts.require("./ERC20.sol"); // for testing with any ERC20 token
 
 let TomToken = artifacts.require("./TomToken.sol");
 let BeanToken = artifacts.require("./BeanToken.sol");
 
 let testDepositAmount = web3.toWei(0.001, "ether");
-let expected_RESTTokenTotalSupply = web3.toWei(20000000, "ether"); // 20MM REST
+let expected_LOANTokenTotalSupply = web3.toWei(20000000, "ether"); // 20MM LOAN
 
 /*
 let test_wallets = [
@@ -61,7 +61,7 @@ contract('B0xTest', function(accounts) {
   var vault;
   var broker;
   var prices;
-  var rest_token;
+  var loan_token;
   var tom_token;
   var bean_token;
   var brokerjs;
@@ -120,10 +120,10 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should retrieve deployed RESTToken contract and transfer to test accounts", function(done) {
-    RESTToken.deployed().then(function(instance) {
-      rest_token = instance;
-      assert.isOk(rest_token);
+  it("should retrieve deployed LOANToken contract and transfer to test accounts", function(done) {
+    LOANToken.deployed().then(function(instance) {
+      loan_token = instance;
+      assert.isOk(loan_token);
       done();
     });
   });
@@ -144,9 +144,9 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  /*it("should verify total RESTToken supply", function(done) {
-    rest_token.totalSupply.call().then(function(totalSupply) {
-      assert.equal(totalSupply.toNumber(), expected_RESTTokenTotalSupply, "totalSupply should equal RESTTokenTotalSupply");
+  /*it("should verify total LOANToken supply", function(done) {
+    loan_token.totalSupply.call().then(function(totalSupply) {
+      assert.equal(totalSupply.toNumber(), expected_LOANTokenTotalSupply, "totalSupply should equal LOANTokenTotalSupply");
       done();
     }, function(error) {
       console.error(error);
@@ -234,10 +234,10 @@ contract('B0xTest', function(accounts) {
 
 
 
-  it("should approve REST Token transfer", function(done) {
-    let tmp_rest = new ERC20(rest_token.address);
-    tmp_rest.approve(broker.address, testDepositAmount*2, {from: accounts[0]}).then(function(tx) {
-      tmp_rest.allowance.call(accounts[0], broker.address).then(function(allowance) {
+  it("should approve LOAN Token transfer", function(done) {
+    let tmp_loan = new ERC20(loan_token.address);
+    tmp_loan.approve(broker.address, testDepositAmount*2, {from: accounts[0]}).then(function(tx) {
+      tmp_loan.allowance.call(accounts[0], broker.address).then(function(allowance) {
         assert.equal(allowance, testDepositAmount*2, "allowance should equal testDepositAmount");
         done();
       });
@@ -250,10 +250,10 @@ contract('B0xTest', function(accounts) {
     });
   });
   
-  it("should deposit REST Token margin", function(done) {
-    vault.marginBalanceOf.call(rest_token.address, accounts[0]).then(function(beforeBalance) {
-      broker.depositTokenMargin(rest_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
-        vault.marginBalanceOf.call(rest_token.address, accounts[0]).then(function(afterBalance) {
+  it("should deposit LOAN Token margin", function(done) {
+    vault.marginBalanceOf.call(loan_token.address, accounts[0]).then(function(beforeBalance) {
+      broker.depositTokenMargin(loan_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
+        vault.marginBalanceOf.call(loan_token.address, accounts[0]).then(function(afterBalance) {
           assert.equal(afterBalance.toNumber(), beforeBalance.add(testDepositAmount).toNumber(), "afterBalance should equal beforeBalance + testDepositAmount");
           done();
         });
@@ -265,10 +265,10 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should withdraw REST Token margin", function(done) {
-    rest_token.balanceOf.call(accounts[0]).then(function(beforeBalance) {
-      broker.withdrawTokenMargin(rest_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
-        rest_token.balanceOf.call(accounts[0]).then(function(afterBalance) {
+  it("should withdraw LOAN Token margin", function(done) {
+    loan_token.balanceOf.call(accounts[0]).then(function(beforeBalance) {
+      broker.withdrawTokenMargin(loan_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
+        loan_token.balanceOf.call(accounts[0]).then(function(afterBalance) {
           assert.equal(afterBalance.toNumber(), beforeBalance.add(testDepositAmount).toNumber(), "afterBalance should equal beforeBalance + testDepositAmount");
           done();
         });
@@ -280,10 +280,10 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should deposit REST Token funding", function(done) {
-    vault.fundingBalanceOf.call(rest_token.address, accounts[0]).then(function(beforeBalance) {
-      broker.depositTokenFunding(rest_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
-        vault.fundingBalanceOf.call(rest_token.address, accounts[0]).then(function(afterBalance) {
+  it("should deposit LOAN Token funding", function(done) {
+    vault.fundingBalanceOf.call(loan_token.address, accounts[0]).then(function(beforeBalance) {
+      broker.depositTokenFunding(loan_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
+        vault.fundingBalanceOf.call(loan_token.address, accounts[0]).then(function(afterBalance) {
           assert.equal(afterBalance.toNumber(), beforeBalance.add(testDepositAmount).toNumber(), "afterBalance should equal beforeBalance + testDepositAmount");
           done();
         });
@@ -295,10 +295,10 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should withdraw REST Token funding", function(done) {
-    rest_token.balanceOf.call(accounts[0]).then(function(beforeBalance) {
-      broker.withdrawTokenFunding(rest_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
-        rest_token.balanceOf.call(accounts[0]).then(function(afterBalance) {
+  it("should withdraw LOAN Token funding", function(done) {
+    loan_token.balanceOf.call(accounts[0]).then(function(beforeBalance) {
+      broker.withdrawTokenFunding(loan_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
+        loan_token.balanceOf.call(accounts[0]).then(function(afterBalance) {
           assert.equal(afterBalance.toNumber(), beforeBalance.add(testDepositAmount).toNumber(), "afterBalance should equal beforeBalance + testDepositAmount");
           done();
         });
@@ -310,13 +310,13 @@ contract('B0xTest', function(accounts) {
     });
   });
 */
-  it("should transfer RESTToken to accounts[1] and accounts[1] deposit to funding", function(done) {
+  it("should transfer LOANToken to accounts[1] and accounts[1] deposit to funding", function(done) {
     var amount = web3.toWei(100000, "ether");
-    rest_token.transfer(accounts[1], amount, {from: accounts[0]}).then(function(result) {
-      rest_token.approve(broker.address, amount, {from: accounts[1]}).then(function(tx) {
-        vault.fundingBalanceOf.call(rest_token.address, accounts[1]).then(function(beforeBalance) {
-          broker.depositTokenFunding(rest_token.address, amount, {from: accounts[1]}).then(function() {
-            vault.fundingBalanceOf.call(rest_token.address, accounts[1]).then(function(afterBalance) {
+    loan_token.transfer(accounts[1], amount, {from: accounts[0]}).then(function(result) {
+      loan_token.approve(broker.address, amount, {from: accounts[1]}).then(function(tx) {
+        vault.fundingBalanceOf.call(loan_token.address, accounts[1]).then(function(beforeBalance) {
+          broker.depositTokenFunding(loan_token.address, amount, {from: accounts[1]}).then(function() {
+            vault.fundingBalanceOf.call(loan_token.address, accounts[1]).then(function(afterBalance) {
               assert.equal(afterBalance.toNumber(), beforeBalance.add(amount).toNumber(), "afterBalance should equal beforeBalance + 100000");
               done();
             });
@@ -334,13 +334,13 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should transfer RESTToken to accounts[2] and accounts[2] deposit to margin", function(done) {
+  it("should transfer LOANToken to accounts[2] and accounts[2] deposit to margin", function(done) {
     var amount = web3.toWei(100000, "ether");
-    rest_token.transfer(accounts[2], amount, {from: accounts[0]}).then(function(result) {
-      rest_token.approve(broker.address, amount, {from: accounts[2]}).then(function(tx) {
-        vault.marginBalanceOf.call(rest_token.address, accounts[2]).then(function(beforeBalance) {
-          broker.depositTokenMargin(rest_token.address, amount, {from: accounts[2]}).then(function() {
-            vault.marginBalanceOf.call(rest_token.address, accounts[2]).then(function(afterBalance) {
+    loan_token.transfer(accounts[2], amount, {from: accounts[0]}).then(function(result) {
+      loan_token.approve(broker.address, amount, {from: accounts[2]}).then(function(tx) {
+        vault.marginBalanceOf.call(loan_token.address, accounts[2]).then(function(beforeBalance) {
+          broker.depositTokenMargin(loan_token.address, amount, {from: accounts[2]}).then(function() {
+            vault.marginBalanceOf.call(loan_token.address, accounts[2]).then(function(afterBalance) {
               assert.equal(afterBalance.toNumber(), beforeBalance.add(amount).toNumber(), "afterBalance should equal beforeBalance + 100000");
               done();
             });
@@ -385,7 +385,7 @@ contract('B0xTest', function(accounts) {
       "broker0xContractAddress": broker.address, 
       "maker": accounts[1], // lender
       "makerTokenAddress": tom_token.address,
-      "interestTokenAddress": rest_token.address,
+      "interestTokenAddress": loan_token.address,
       "oracleAddress": "0x0000000000000000000000000000000000000000", 
       "feeRecipient": accounts[9], 
       "makerTokenAmount": web3.toWei(1000000, "ether").toString(), 
@@ -466,13 +466,13 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should send sample prices for REST", function(done) {
+  /*it("should send sample prices for LOAN", function(done) {
     var expectedPrice = web3.toWei("0.00025998", "ether");
     broker.testSendPriceUpdate(
-      rest_token.address, 
+      loan_token.address, 
       expectedPrice,
       {from: accounts[0]}).then(function(tx) {
-        prices.getTokenPrice(rest_token.address).then(function(currentPrice) {
+        prices.getTokenPrice(loan_token.address).then(function(currentPrice) {
           assert.equal(currentPrice, expectedPrice, "expectedPrice should equal returned currentPrice");
           done();
         }, function(error) {
@@ -485,7 +485,7 @@ contract('B0xTest', function(accounts) {
       assert.isOk(false);
       done();
     });
-  });
+  });*/
 
   it("should send sample prices for Tom", function(done) {
     var expectedPrice = web3.toWei((0.32+0.75)/2, "ether");
@@ -495,7 +495,7 @@ contract('B0xTest', function(accounts) {
       {from: accounts[0]}).then(function(tx) {
         //console.log(tx);
         prices.getTokenPrice(tom_token.address).then(function(currentPrice) {
-          console.log(currentPrice.toString());
+          //console.log(currentPrice.toString());
           broker.testSendPriceUpdate(
             tom_token.address, 
             web3.toWei(0.75, "ether"), // simulate price from another source
@@ -503,7 +503,7 @@ contract('B0xTest', function(accounts) {
               //console.log(tx);
               prices.getTokenPrice(tom_token.address).then(function(currentPrice) {
                 currentPrice = currentPrice.toString();
-                console.log(currentPrice);
+                //console.log(currentPrice);
                 assert.equal(currentPrice, expectedPrice, "expectedPrice should equal returned currentPrice");
                 done();
               }, function(error) {
@@ -525,7 +525,7 @@ contract('B0xTest', function(accounts) {
   });
 
   it("should take sample trade as borrower", function(done) {
-    broker.fillTrade.call(
+    broker.fillTrade(
       [
         orderParams["maker"],
         orderParams["makerTokenAddress"],
@@ -545,7 +545,7 @@ contract('B0xTest', function(accounts) {
         new BN(orderParams["reinvestAllowed"]),
         new BN(orderParams["salt"])
       ],
-      rest_token.address, // taker (borrower) using REST as their margin token in this test
+      loan_token.address, // taker (borrower) using LOAN as their margin token in this test
       web3.toWei(2500, "ether"),//(new BN(web3.toWei(2500, "ether").toString())),
       true, // borrowerIsTaker=true
       ECSignature["v"],
@@ -553,6 +553,8 @@ contract('B0xTest', function(accounts) {
       ECSignature["s"],
       {from: accounts[2]}).then(function(result) {
         console.log(result);
+        console.log(result.logs[0].args);
+        //console.log(result);
         assert.isOk(result);
         done();
     }, function(error) {

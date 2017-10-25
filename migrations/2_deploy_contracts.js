@@ -1,4 +1,4 @@
-var RESTToken = artifacts.require("./RESTToken.sol");
+var LOANToken = artifacts.require("./LOANToken.sol");
 var TomToken = artifacts.require("./TomToken.sol");
 var BeanToken = artifacts.require("./BeanToken.sol");
 var B0xVault = artifacts.require("./B0xVault.sol");
@@ -27,10 +27,10 @@ let testWallets = [
 
 module.exports = function(deployer) {
 
-	deployer.deploy(RESTToken).then(function() {
+	deployer.deploy(LOANToken).then(function() {
 		return deployer.deploy(B0xVault).then(function() {
 			return deployer.deploy(B0xPrices).then(function() {
-				return deployer.deploy(B0x, RESTToken.address, B0xVault.address, B0xPrices.address).then(function() {
+				return deployer.deploy(B0x, LOANToken.address, B0xVault.address, B0xPrices.address).then(function() {
 					postDepoloymentSetup();
 					return;
 				});

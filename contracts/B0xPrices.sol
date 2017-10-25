@@ -117,7 +117,7 @@ contract B0xPrices is Ownable {
             else {
                 // only use other prices that aren't stale
                 if (pf[p].updated >= now-staleThreshold) {
-                    sum = sum.add(price_);
+                    sum = sum.add(pf[p].price);
                     count++;
                 }
                 else {
