@@ -30,6 +30,7 @@ import './B0xVault.sol';
 //import './TokenTransferProxy.sol';
 
 import './B0xPrices.sol';
+import './B0xPool.sol';
 
 contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     using SafeMath for uint256;
@@ -50,6 +51,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     //address public TOKEN_TRANSFER_PROXY_CONTRACT;
     address public VAULT_CONTRACT;
     address public TOKEN_PRICES_CONTRACT;
+    address public POOL_CONTRACT;
 
     //mapping (address => mapping (bytes32 => bool)) public orders; //mapping of user accounts to mapping of order hashes to booleans (true = submitted by user, equivalent to offchain signature)
     //mapping (address => mapping (bytes32 => uint)) public orderFills; //mapping of user accounts to mapping of order hashes to uints (amount of order that has been filled)
@@ -136,17 +138,19 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         uint tradeAmountInWei;
         uint lenderBalanceInWei;
         uint borrowerBalanceInWei;
+        uint lenderAmountForTrade;
     }
 
     function() {
         revert();
     }
 
-    function B0x(address _loanToken, address _vault, address _tokenPrices) {
+    function B0x(address _loanToken, address _vault, address _tokenPrices, address _pool) {
         LOAN_TOKEN_CONTRACT = _loanToken;
         //TOKEN_TRANSFER_PROXY_CONTRACT = _tokenTransferProxy;
         VAULT_CONTRACT = _vault;
         TOKEN_PRICES_CONTRACT = _tokenPrices;
+        POOL_CONTRACT = _pool;
     }
     /*
     bytes public response;
@@ -251,14 +255,17 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         uint tradeAmountInWei = orderValues.tradeTokenAmount * tradeTokenPrice;
         uint lenderBalanceInWei = _checkFunding(orderAddresses.lenderTokenAddress, orderAddresses.lender) * lenderTokenPrice;
         uint borrowerBalanceInWei = _checkMargin(orderAddresses.interestTokenAddress, orderAddresses.borrower) * interestTokenPrice;
-        
+
+        uint lenderAmountForTrade = tradeAmountInWei / lenderTokenPrice;
+
         return (PriceData({
             lenderTokenPrice: lenderTokenPrice,
             interestTokenPrice: interestTokenPrice,
             tradeTokenPrice: tradeTokenPrice,
             tradeAmountInWei: tradeAmountInWei,
             lenderBalanceInWei: lenderBalanceInWei,
-            borrowerBalanceInWei: borrowerBalanceInWei
+            borrowerBalanceInWei: borrowerBalanceInWei,
+            lenderAmountForTrade: lenderAmountForTrade
         }));
     }
 
@@ -373,8 +380,32 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             return false;
         }
 
-
+        // approve the POOL to transfer in the lender token from the vault
+        if (! B0xVault(VAULT_CONTRACT).setTokenApproval(orderAddresses.lenderTokenAddress, POOL_CONTRACT, priceData.lenderAmountForTrade)) {
+            LogErrorText("error: unbale to approve trade amount",orderHash);
+            return false;
+        }
         
+        // execute trade with the pool contract
+        if (! B0xPool(POOL_CONTRACT).tradeToken(
+            VAULT_CONTRACT,
+            orderAddresses.lenderTokenAddress, 
+            orderAddresses.tradeTokenAddress, 
+            priceData.lenderAmountForTrade,
+            orderValues.tradeTokenAmount
+        )) {
+            LogErrorText("error: unable to make trade",orderHash);
+            return false;
+        }
+
+        // here!!!
+        B0xVault(VAULT_CONTRACT).withdrawTokenFunding(
+            orderAddresses.lenderTokenAddress, 
+            orderAddresses.lender,
+            priceData.lenderAmountForTrade
+        );
+
+ 
 
         LogErrorText("success!",orderHash);
         return true;

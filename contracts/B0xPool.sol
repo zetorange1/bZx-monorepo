@@ -38,21 +38,16 @@ contract B0xPool is Ownable {
         return tokenPool[token_]; 
     }
 
-    function withdrawToken(address putToken_, uint putTokenAmount_, address getToken_, address sendToAddress_) public returns (bool) {
-        
-        uint putTokenPrice = B0xPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(putToken_);
-        uint getTokenPrice = B0xPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(getToken_);
-
-        uint putAmountInWei = putTokenAmount_.mul(putTokenPrice);
-
-        uint getTokenAmount = putAmountInWei.div(getTokenPrice);
+    function tradeToken(address tokenSource_, address putToken_, address getToken_, uint putTokenAmount_, uint getTokenAmount_) public returns (bool) {
 
         tokenPool[putToken_].add(putTokenAmount_);
-        tokenPool[getToken_].sub(getTokenAmount);
+        tokenPool[getToken_].sub(getTokenAmount_);
         
         // todo: handle approval in B0x contract
-        require(ERC20(putToken_).transferFrom(msg.sender, this, putTokenAmount_));
-        require(ERC20(getToken_).transfer(sendToAddress_, getTokenAmount));
+        //withdrawTokenFunding
+        
+        require(ERC20(putToken_).transferFrom(tokenSource_, this, putTokenAmount_));
+        require(ERC20(getToken_).transfer(tokenSource_, getTokenAmount_));
 
         return true;
     }

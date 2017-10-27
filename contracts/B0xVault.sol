@@ -64,6 +64,23 @@ contract B0xVault is Ownable {
      * Public functions
      */
 
+    // note: this overrides current approval amount
+    function setTokenApproval(address token_, address user_, uint amount_) public onlyAuthorized returns (bool) { 
+        require(token_ != address(0));
+
+        uint allowance = ERC20(token_).allowance(this, user_);
+        if (allowance == amount_) {
+            return true;
+        }
+
+        if (allowance != 0) {
+            require(ERC20(token_).approve(user_, 0)); // required to change approval
+        }
+        require(ERC20(token_).approve(user_, amount_));
+
+        return true;
+    }
+
     function depositEtherMargin(address user_) public onlyAuthorized payable returns (uint) {        
         marginWallet[0][user_] = marginWallet[0][user_].add(msg.value);
         return marginWallet[0][user_];

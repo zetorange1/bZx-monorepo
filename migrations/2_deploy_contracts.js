@@ -34,15 +34,17 @@ module.exports = function(deployer) {
 	deployer.deploy(LOANToken).then(function() {
 		return deployer.deploy(B0xVault).then(function() {
 			return deployer.deploy(B0xPrices).then(function() {
-				return deployer.deploy(B0x, LOANToken.address, B0xVault.address, B0xPrices.address).then(function() {
-					postDepoloymentSetup();
-					return;
+				return deployer.deploy(B0xPool, B0xPrices.address).then(function() {
+					return deployer.deploy(B0x, LOANToken.address, B0xVault.address, B0xPrices.address, B0xPool.address).then(function() {
+						postDepoloymentSetup();
+						return;
+					});
 				});
 			});
 		});
 	});
 
-	deployer.deploy(B0xPool, B0xPrices.address).then(function() {
+	postDepoloymentSetup = function () {
 		deployer.deploy(TomToken).then(function() {
 			TomToken.deployed().then(function(instance) {
 				instance.transfer(B0xPool.address, web3.toWei(5000000, "ether"));
@@ -58,9 +60,7 @@ module.exports = function(deployer) {
 		LOANToken.deployed().then(function(instance) {
 			return instance.transfer(B0xPool.address, web3.toWei(5000000, "ether"));
 		});
-	});
-
-	postDepoloymentSetup = function () {
+		
 		B0xVault.deployed().then(function(instance) {
 			return instance.addAuthorizedAddress(B0x.address);
 		});
