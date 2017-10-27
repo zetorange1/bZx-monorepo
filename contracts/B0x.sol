@@ -306,28 +306,43 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
 			- if the TRADE token had gained value, there would be a surplus after buying back the lended token. The surplus would go to the borrower as profit.
 */
 
-        require(orderAddresses.lender != orderAddresses.borrower && (orderAddresses.lender == msg.sender || orderAddresses.borrower == msg.sender));
-        require(orderValues.liquidationMarginAmount >= 0 && orderValues.liquidationMarginAmount < orderValues.initialMarginAmount && orderValues.initialMarginAmount <= 100);
-        require(isValidSignature(
+        if(! (orderAddresses.lender != orderAddresses.borrower && (orderAddresses.lender == msg.sender || orderAddresses.borrower == msg.sender))) {
+            LogErrorText("error: borrower or lender is invalid",orderHash);
+            return false;
+        }
+        if(! (orderValues.liquidationMarginAmount >= 0 && orderValues.liquidationMarginAmount < orderValues.initialMarginAmount && orderValues.initialMarginAmount <= 100)) {
+            LogErrorText("error: margin parameter invalid",orderHash);
+            return false;
+        }
+        if(! isValidSignature(
             msg.sender,
             orderHash,
             v,
             r,
             s
-        ));
+        )) {
+            LogErrorText("error: signiture is invalid",orderHash);
+            return false;
+        }
 
         if (block.timestamp >= orderValues.expirationUnixTimestampSec) {
-            LogError(uint8(Errors.ORDER_EXPIRED), orderHash);
+            //LogError(uint8(Errors.ORDER_EXPIRED), orderHash);
             LogErrorText("error: order has expired",orderHash);
             return false;
         }
 
-        require(! B0xVault(VAULT_CONTRACT).isTradeCanceled(orderHash));
+        if (B0xVault(VAULT_CONTRACT).isTradeCanceled(orderHash)) {
+            LogErrorText("error: trade is canceled",orderHash);
+            return false;
+        }
 
-        require(
+        if (! (
             _checkMargin(LOAN_TOKEN_CONTRACT,orderAddresses.borrower) >= orderValues.borrowerRelayFee &&
             _checkFunding(LOAN_TOKEN_CONTRACT,orderAddresses.lender) >= orderValues.lenderRelayFee
-        );
+        )) {
+            LogErrorText("error: margin or lending balances can't cover fees",orderHash);
+            return false;
+        }
 
         PriceData memory priceData = _getPriceDataStruct(orderAddresses,orderValues);
         if (priceData.lenderTokenPrice == 0) {
@@ -344,18 +359,25 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         }
 
         // Does lender have enough funds to cover the order?
-        require(priceData.tradeAmountInWei <= priceData.lenderBalanceInWei);
+        if(! (priceData.tradeAmountInWei <= priceData.lenderBalanceInWei)) {
+            LogErrorText("error: lender doesn't have enough funds to cover the order",orderHash);
+            return false;
+        }
 
         // Does borrower have enough initial margin and interest to open the order?
-        require(
+        if(! (
             (priceData.tradeAmountInWei * orderValues.initialMarginAmount / 100) // initial margin required
                 + (orderValues.lendingLengthSec / 86400 * orderValues.interestAmount) // total interest required for full length loan
-                    <= priceData.borrowerBalanceInWei);
+                    <= priceData.borrowerBalanceInWei)) {
+            LogErrorText("error: borrower doesn't have enough intitial margin or interest to cover the order",orderHash);
+            return false;
+        }
 
 
+        
 
-        LogErrorText("error: some error",orderHash);
-        return false;
+        LogErrorText("success!",orderHash);
+        return true;
 
         /*
         require(order.makerTokenAmount > 0 && order.takerTokenAmount > 0 && fillTakerTokenAmount > 0);

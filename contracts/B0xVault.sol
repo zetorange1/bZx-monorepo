@@ -73,10 +73,14 @@ contract B0xVault is Ownable {
         return fundingWallet[0][user_];
     }
     function depositTokenMargin(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {        
+        require(token_ != address(0));
+        
         marginWallet[token_][user_] = marginWallet[token_][user_].add(amount_);
         return marginWallet[token_][user_];
     }
     function depositTokenFunding(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {        
+        require(token_ != address(0));
+        
         fundingWallet[token_][user_] = fundingWallet[token_][user_].add(amount_);
         return fundingWallet[token_][user_];
     }
@@ -95,14 +99,14 @@ contract B0xVault is Ownable {
         return fundingWallet[0][user_];
     }
     function withdrawTokenMargin(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {
-        require(token_ != 0);        
+        require(token_ != address(0));
         
         marginWallet[token_][user_] = marginWallet[token_][user_].sub(amount_);
         require(ERC20(token_).transfer(user_, amount_));
         return marginWallet[token_][user_]; 
     }
     function withdrawTokenFunding(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {
-        require(token_ != 0);        
+        require(token_ != address(0));
         
         fundingWallet[token_][user_] = fundingWallet[token_][user_].sub(amount_);
         require(ERC20(token_).transfer(user_, amount_));

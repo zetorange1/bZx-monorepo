@@ -3,7 +3,11 @@ var TomToken = artifacts.require("./TomToken.sol");
 var BeanToken = artifacts.require("./BeanToken.sol");
 var B0xVault = artifacts.require("./B0xVault.sol");
 var B0xPrices = artifacts.require("./B0xPrices.sol");
+var B0xPool = artifacts.require("./B0xPool.sol");
 var B0x = artifacts.require("./B0x.sol");
+
+const Web3 = require('web3');
+let web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"))
 
 /*var Taker0x = artifacts.require("./Taker0x.sol");
 var INTToken = artifacts.require("./INTToken.sol");
@@ -38,8 +42,23 @@ module.exports = function(deployer) {
 		});
 	});
 
-	deployer.deploy(TomToken, testWallets[1]);
-	deployer.deploy(BeanToken, testWallets[2]);
+	deployer.deploy(B0xPool, B0xPrices.address).then(function() {
+		deployer.deploy(TomToken).then(function() {
+			TomToken.deployed().then(function(instance) {
+				instance.transfer(B0xPool.address, web3.toWei(5000000, "ether"));
+				return instance.transfer(testWallets[1], web3.toWei(2000000, "ether"));
+			});
+		});
+		deployer.deploy(BeanToken).then(function(instance) {
+			BeanToken.deployed().then(function(instance) {
+				instance.transfer(B0xPool.address, web3.toWei(5000000, "ether"));
+				return instance.transfer(testWallets[2], web3.toWei(2000000, "ether"));
+			});
+		});
+		LOANToken.deployed().then(function(instance) {
+			return instance.transfer(B0xPool.address, web3.toWei(5000000, "ether"));
+		});
+	});
 
 	postDepoloymentSetup = function () {
 		B0xVault.deployed().then(function(instance) {

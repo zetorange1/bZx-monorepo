@@ -466,7 +466,7 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  /*it("should send sample prices for LOAN", function(done) {
+  it("should send sample prices for LOAN", function(done) {
     var expectedPrice = web3.toWei("0.00025998", "ether");
     broker.testSendPriceUpdate(
       loan_token.address, 
@@ -485,7 +485,28 @@ contract('B0xTest', function(accounts) {
       assert.isOk(false);
       done();
     });
-  });*/
+  });
+
+  it("should send sample prices for BEAN", function(done) {
+    var expectedPrice = web3.toWei("1.2", "ether");
+    broker.testSendPriceUpdate(
+      bean_token.address, 
+      expectedPrice,
+      {from: accounts[0]}).then(function(tx) {
+        prices.getTokenPrice(bean_token.address).then(function(currentPrice) {
+          assert.equal(currentPrice, expectedPrice, "expectedPrice should equal returned currentPrice");
+          done();
+        }, function(error) {
+          console.error("inner: "+error);
+          assert.isOk(false);
+          done();
+        });
+    }, function(error) {
+      console.error("outer: "+error);
+      assert.isOk(false);
+      done();
+    });
+  });
 
   it("should send sample prices for Tom", function(done) {
     var expectedPrice = web3.toWei((0.32+0.75)/2, "ether");
@@ -545,17 +566,17 @@ contract('B0xTest', function(accounts) {
         new BN(orderParams["reinvestAllowed"]),
         new BN(orderParams["salt"])
       ],
-      loan_token.address, // taker (borrower) using LOAN as their margin token in this test
-      web3.toWei(2500, "ether"),//(new BN(web3.toWei(2500, "ether").toString())),
+      bean_token.address, // taker (borrower) is wanting to open a trade of bean_token
+      web3.toWei(15, "ether"),
       true, // borrowerIsTaker=true
       ECSignature["v"],
       ECSignature["r"],
       ECSignature["s"],
-      {from: accounts[2]}).then(function(result) {
-        console.log(result);
-        console.log(result.logs[0].args);
-        //console.log(result);
-        assert.isOk(result);
+      {from: accounts[2]}).then(function(tx) {
+        //console.log(tx);
+        if (tx.logs[0] !== undefined)
+          console.log(tx.logs[0].args);
+        assert.isOk(tx);
         done();
     }, function(error) {
       console.error(error);
