@@ -49,13 +49,7 @@ contract B0xVault is Ownable {
     mapping (address => mapping (address => uint)) public fundingWallet; // mapping of token addresses to mapping of accounts to margin funding wallet balances
     mapping (address => mapping (address => uint)) public usedMargin; // mapping of token addresses to mapping of accounts to margin in use
     mapping (address => mapping (address => uint)) public usedFunding; // mapping of token addresses to mapping of accounts to funding in use
-
-    // mapping of orderHash to amount of open trade (escrowed trade token)
-    mapping (bytes32 => uint) public openTrades;
-   
-    // mapping of orderHash to boolean indicated canceled orders
-    mapping (bytes32 => bool) public canceledOrders;
-  
+ 
 
     event LogAuthorizedAddressAdded(address indexed target, address indexed caller);
     event LogAuthorizedAddressRemoved(address indexed target, address indexed caller);
@@ -136,14 +130,6 @@ contract B0xVault is Ownable {
 
     function fundingBalanceOf(address token_, address user_) public constant returns (uint balance) {
         return fundingWallet[token_][user_];
-    }
-
-    function tradeBalanceOf(bytes32 orderHash_) public constant returns (uint balance) {
-        return openTrades[orderHash_];
-    }
-
-    function isTradeCanceled(bytes32 orderHash_) public constant returns (bool isCanceled) {
-        return canceledOrders[orderHash_];
     }
 
     function addAuthorizedAddress(address target)

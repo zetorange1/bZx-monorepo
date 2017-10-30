@@ -37,12 +37,12 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     //using strings for *;
 
     // Error Codes
-    enum Errors {
+    /*enum Errors {
         ORDER_EXPIRED,                    // Order has already expired
         ORDER_FULLY_FILLED_OR_CANCELLED,  // Order has already been fully filled or cancelled
         ROUNDING_ERROR_TOO_LARGE,         // Rounding error too large
         INSUFFICIENT_BALANCE_OR_ALLOWANCE // Insufficient balance or allowance for token transfer
-    }
+    }*/
 
     string constant public VERSION = "1.0.0";
     uint16 constant public EXTERNAL_QUERY_GAS_LIMIT = 4999;    // Changes to state require at least 5000 gas
@@ -52,62 +52,6 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     address public VAULT_CONTRACT;
     address public TOKEN_PRICES_CONTRACT;
     address public POOL_CONTRACT;
-
-    //mapping (address => mapping (bytes32 => bool)) public orders; //mapping of user accounts to mapping of order hashes to booleans (true = submitted by user, equivalent to offchain signature)
-    //mapping (address => mapping (bytes32 => uint)) public orderFills; //mapping of user accounts to mapping of order hashes to uints (amount of order that has been filled)
-
-
-    event LogFill(
-        address indexed maker,
-        address taker,
-        address indexed feeRecipient,
-        address makerToken,
-        address takerToken,
-        uint filledMakerTokenAmount,
-        uint filledTakerTokenAmount,
-        uint paidMakerFee,
-        uint paidTakerFee,
-        bytes32 indexed tokens, // keccak256(makerToken, takerToken), allows subscribing to a token pair
-        bytes32 orderHash
-    );
-
-    event LogCancel(
-        address indexed maker,
-        address indexed feeRecipient,
-        address makerToken,
-        address takerToken,
-        uint cancelledMakerTokenAmount,
-        uint cancelledTakerTokenAmount,
-        bytes32 indexed tokens,
-        bytes32 orderHash
-    );
-
-    event LogError(uint8 indexed errorId, bytes32 indexed orderHash);
-    event LogErrorText(string errorTxt, bytes32 indexed orderHash);
-
-    event DepositEtherMargin(address user, uint amount, uint balance);
-    event DepositEtherFunding(address user, uint amount, uint balance);
-    event DepositTokenMargin(address token, address user, uint amount, uint balance);
-    event DepositTokenFunding(address token, address user, uint amount, uint balance);
-    
-    event WithdrawEtherMargin(address user, uint amount, uint balance);
-    event WithdrawEtherFunding(address user, uint amount, uint balance);
-    event WithdrawTokenMargin(address token, address user, uint amount, uint balance);
-    event WithdrawTokenFunding(address token, address user, uint amount, uint balance);
-
-    struct Order {
-        address maker;
-        address taker;
-        address makerToken;
-        address takerToken;
-        address feeRecipient;
-        uint makerTokenAmount;
-        uint takerTokenAmount;
-        uint makerFee;
-        uint takerFee;
-        uint expirationTimestampInSec;
-        bytes32 orderHash;
-    }
 
     struct OrderAddresses {
         address borrower;
@@ -131,6 +75,11 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         uint salt;
     }
 
+    struct FilledTrade {
+        OrderAddresses addresses;
+        OrderValues values;
+    }
+
     struct PriceData {
         uint lenderTokenPrice;
         uint interestTokenPrice;
@@ -140,6 +89,51 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         uint borrowerBalanceInWei;
         uint lenderAmountForTrade;
     }
+
+    mapping (bytes32 => OrderAddresses) public openTradeAddresses; // mapping of orderHash to open trade order addreses
+    mapping (bytes32 => OrderValues) public openTradeValues; // mapping of orderHash to open trade order values
+    mapping (bytes32 => uint) public openTrades; // mapping of orderHash to open trade amounts (in trade token units)
+
+    mapping (bytes32 => bool) public closedOrders; // mapping of orderhash to closedOrders
+
+
+    /*event LogFill(
+        address indexed maker,
+        address taker,
+        address indexed feeRecipient,
+        address makerToken,
+        address takerToken,
+        uint filledMakerTokenAmount,
+        uint filledTakerTokenAmount,
+        uint paidMakerFee,
+        uint paidTakerFee,
+        bytes32 indexed tokens, // keccak256(makerToken, takerToken), allows subscribing to a token pair
+        bytes32 orderHash
+    );
+
+    event LogCancel(
+        address indexed maker,
+        address indexed feeRecipient,
+        address makerToken,
+        address takerToken,
+        uint cancelledMakerTokenAmount,
+        uint cancelledTakerTokenAmount,
+        bytes32 indexed tokens,
+        bytes32 orderHash
+    );*/
+
+    event LogError(uint8 indexed errorId, bytes32 indexed orderHash);
+    event LogErrorText(string errorTxt, bytes32 indexed orderHash);
+
+    event DepositEtherMargin(address user, uint amount, uint balance);
+    event DepositEtherFunding(address user, uint amount, uint balance);
+    event DepositTokenMargin(address token, address user, uint amount, uint balance);
+    event DepositTokenFunding(address token, address user, uint amount, uint balance);
+    
+    event WithdrawEtherMargin(address user, uint amount, uint balance);
+    event WithdrawEtherFunding(address user, uint amount, uint balance);
+    event WithdrawTokenMargin(address token, address user, uint amount, uint balance);
+    event WithdrawTokenFunding(address token, address user, uint amount, uint balance);
 
     function() {
         revert();
@@ -269,6 +263,20 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         }));
     }
 
+
+    function liquidateTrade(
+        bytes32 orderHash,
+        address dex)
+        public
+        returns (bool tradeSuccess)
+    {
+        openTradeAddresses[orderHash]
+        openTradeValues[orderHash]
+        openTrades[orderHash]
+
+        return true;
+    }
+
     /// @dev Fills the offering order created by a lender and taken by a borrorer.
     /// @param orderAddrs Array of order's maker, makerTakenAddress, interestTokenAddress, oracleAddress, and feeRecipient.
     /// @param orderVals Array of order's makerTokenAmount, lendingLengthSec, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, borrowerRelayFee, expirationUnixTimestampSec, reinvestAllowed, and salt.
@@ -289,7 +297,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         bytes32 r,
         bytes32 s)
         public
-        returns (bool orderSuccess)
+        returns (bool tradeSuccess)
     {
         // these helper functions are needed due to the "stack too deep" limitation
         OrderAddresses memory orderAddresses = _getOrderAddressesStruct(orderAddrs,msg.sender,takerTokenAddress,borrowerIsTaker);
@@ -338,7 +346,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             return false;
         }
 
-        if (B0xVault(VAULT_CONTRACT).isTradeCanceled(orderHash)) {
+        if (isTradeCanceled(orderHash)) {
             LogErrorText("error: trade is canceled",orderHash);
             return false;
         }
@@ -405,7 +413,13 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             priceData.lenderAmountForTrade
         );
 
+        uint filledAmount = 5000;
  
+ 
+        openTradeAddresses[orderHash] = orderAddresses;
+        openTradeValues[orderHash] = orderValues;
+        openTrades[orderHash] = filledAmount;
+
 
         LogErrorText("success!",orderHash);
         return true;
@@ -488,6 +502,13 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         */
     }
 
+    /*function tradeBalanceOf(bytes32 orderHash_) public constant returns (uint balance) {
+        return openTrades[orderHash_];
+    }*/
+
+    function isTradeCanceled(bytes32 orderHash_) public constant returns (bool isCanceled) {
+        return closedOrders[orderHash_];
+    }
 
     function depositEtherMargin() external nonReentrant payable {
         uint balance = B0xVault(VAULT_CONTRACT).depositEtherMargin.value(msg.value)(msg.sender);
