@@ -6,6 +6,10 @@ var B0xPrices = artifacts.require("./B0xPrices.sol");
 var B0xPool = artifacts.require("./B0xPool.sol");
 var B0x = artifacts.require("./B0x.sol");
 
+var DexA = artifacts.require("./DexA.sol");
+//var DexB = artifacts.require("./DexB.sol");
+//var DexC = artifacts.require("./DexC.sol");
+
 const Web3 = require('web3');
 let web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"))
 
@@ -43,6 +47,8 @@ module.exports = function(deployer) {
 			});
 		});
 	});
+
+	deployer.deploy(DexA);
 
 	postDepoloymentSetup = function () {
 		deployer.deploy(TomToken).then(function() {

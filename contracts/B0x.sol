@@ -157,9 +157,9 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
 
     // this is purely for testing in a test environment
     // NOT FOR PRODUCTION!
-    function testSendPriceUpdate(address token_, uint price_) public {
+    /*function testSendPriceUpdate(address token_, uint price_) public {
         require(B0xPrices(TOKEN_PRICES_CONTRACT).setTokenPrice(msg.sender, token_, price_));
-    }
+    }*/
 
 
     // helper function is needed due to the "stack too deep" limitation
@@ -266,13 +266,16 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
 
     function liquidateTrade(
         bytes32 orderHash,
-        address dex)
+        address dexAddress)
         public
         returns (bool tradeSuccess)
     {
-        openTradeAddresses[orderHash]
-        openTradeValues[orderHash]
-        openTrades[orderHash]
+        OrderAddresses memory orderAddrs = openTradeAddresses[orderHash];
+        OrderValues memory orderVals = openTradeValues[orderHash];
+        
+        uint tradeAmount = openTrades[orderHash];
+
+        closedOrders[orderHash] = true;
 
         return true;
     }
@@ -506,7 +509,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         return openTrades[orderHash_];
     }*/
 
-    function isTradeCanceled(bytes32 orderHash_) public constant returns (bool isCanceled) {
+    function isTradeCanceled(bytes32 orderHash_) public constant returns (bool isClosed) {
         return closedOrders[orderHash_];
     }
 

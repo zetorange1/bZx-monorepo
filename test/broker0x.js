@@ -28,6 +28,10 @@ let BeanToken = artifacts.require("./BeanToken.sol");
 let testDepositAmount = web3.toWei(0.001, "ether");
 let expected_LOANTokenTotalSupply = web3.toWei(20000000, "ether"); // 20MM LOAN
 
+let DexA = artifacts.require("./DexA.sol");
+//let DexB = artifacts.require("./DexB.sol");
+//let DexC = artifacts.require("./DexC.sol");
+
 /*
 let test_wallets = [
   "0x5409ED021D9299bf6814279A6A1411A7e866A631",
@@ -466,6 +470,27 @@ contract('B0xTest', function(accounts) {
     });
   });
 
+  it('is should create sample prices for tokens', async function () {
+    
+    const DexA_LOAN = await fundRaise.address
+
+    /*await fundRaise.pause()
+
+    try {
+        await fundRaise.sendTransaction({ value: 1e+18, from: donor })
+        assert.fail()
+    } catch (error) {
+        assert(error.toString().includes('invalid opcode'), error.toString())
+    }
+    const fundRaiseAddress = await fundRaise.address
+    assert.equal(web3.eth.getBalance(fundRaiseAddress).toNumber(), 0)
+
+    await fundRaise.unpause()
+    await fundRaise.sendTransaction({ value: 1e+18, from: donor })
+    assert.equal(web3.eth.getBalance(fundRaiseAddress).toNumber(), 1e+18)*/
+  })
+
+  /*
   it("should send sample prices for LOAN", function(done) {
     var expectedPrice = web3.toWei("0.00025998", "ether");
     broker.testSendPriceUpdate(
@@ -544,7 +569,9 @@ contract('B0xTest', function(accounts) {
       done();
     });
   });
+  */
 
+  /*
   it("should take sample trade as borrower", function(done) {
     broker.fillTrade(
       [
@@ -584,7 +611,7 @@ contract('B0xTest', function(accounts) {
       done();
     });
   });
-
+  */
   
 
   /*it("should sign orderHash", function(done) {
