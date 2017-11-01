@@ -58,6 +58,37 @@ let account_privatekeys = [
   "23cb7121166b9a2f93ae0b7c05bde02eae50d64449b2cbb42bc84e9d38d6cc89"
 ];
 
+//ref: https://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript
+// Warn if overriding existing method
+if(Array.prototype.equals)
+console.warn("Overriding existing Array.prototype.equals. Possible causes: New API defines the method, there's a framework conflict or you've got double inclusions in your code.");
+// attach the .equals method to Array's prototype to call it on any array
+Array.prototype.equals = function (array) {
+// if the other array is a falsy value, return
+if (!array)
+    return false;
+
+// compare lengths - can save a lot of time 
+if (this.length != array.length)
+    return false;
+
+for (var i = 0, l=this.length; i < l; i++) {
+    // Check if we have nested arrays
+    if (this[i] instanceof Array && array[i] instanceof Array) {
+        // recurse into the nested arrays
+        if (!this[i].equals(array[i]))
+            return false;       
+    }           
+    else if (this[i] != array[i]) { 
+        // Warning - two different object instances will never be equal: {x:20} != {x:20}
+        return false;   
+    }           
+}       
+return true;
+}
+// Hide method from for-in loops
+Object.defineProperty(Array.prototype, "equals", {enumerable: false});
+
 contract('Liquidate_Test', function(accounts) {
   var vault;
   var broker;
@@ -146,9 +177,39 @@ contract('Liquidate_Test', function(accounts) {
     });
   });
 
+  /*it('should check dex array functions', async function () {
+    var dexList;
+    //dexList = await broker.getDexList.call();
+    //console.log(dexList);
 
-  it('is should create sample prices for tokens', async function () {
+    await broker.addToDexList([accounts[0],accounts[1],accounts[2]], { from: accounts[0] });
+    dexList = await broker.getDexList.call();
+    //console.log(dexList);
+    assert.isOk(dexList.equals([accounts[0],accounts[1],accounts[2]]), "check 1");
+
+    await broker.addToDexList([accounts[1],accounts[4],accounts[2]], { from: accounts[0] });
+    dexList = await broker.getDexList.call();
+    //console.log(dexList);
+    assert.isOk(dexList.equals([accounts[0],accounts[1],accounts[2],accounts[4]]), "check 2");
+
+    await broker.removeFromDexList([accounts[0],accounts[3],accounts[4],accounts[1]], { from: accounts[0] });
+    dexList = await broker.getDexList.call();
+    //console.log(dexList);
+    assert.isOk(dexList.equals([accounts[2]]), "check 3");
     
+    await broker.removeFromDexList([,accounts[3],accounts[0],accounts[2],accounts[4],accounts[1]], { from: accounts[0] });
+    dexList = await broker.getDexList.call();
+    //console.log(dexList); 
+    assert.isOk(dexList.equals([]), "check 4");
+  });*/
+
+  it('should check that DexA is added to the dex list', async function () {
+    var dexList = await broker.getDexList.call();
+    //console.log(dexList);
+    assert.isOk(dexList.includes(dexA.address));
+  });
+
+  it('should create sample prices for tokens', async function () {
     //await dexA.genTokenPrice(loan_token.address, { from: accounts[0] });
     //var DexA_LOAN_price = await dexA.getTokenPrice.call(loan_token.address);
     //console.log(DexA_LOAN_price.toString());
@@ -171,21 +232,6 @@ contract('Liquidate_Test', function(accounts) {
       console.log(error.toString());
       //assert(error.toString().includes('invalid opcode'), error.toString());
     }*/
-
-    /*await fundRaise.pause()
-
-    try {
-        await fundRaise.sendTransaction({ value: 1e+18, from: donor })
-        assert.fail()
-    } catch (error) {
-        assert(error.toString().includes('invalid opcode'), error.toString())
-    }
-    const fundRaiseAddress = await fundRaise.address
-    assert.equal(web3.eth.getBalance(fundRaiseAddress).toNumber(), 0)
-
-    await fundRaise.unpause()
-    await fundRaise.sendTransaction({ value: 1e+18, from: donor })
-    assert.equal(web3.eth.getBalance(fundRaiseAddress).toNumber(), 1e+18)*/
   });
 
   /*

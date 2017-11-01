@@ -32,6 +32,8 @@ import './B0xVault.sol';
 import './B0xPrices.sol';
 import './B0xPool.sol';
 
+import './DexInterface.sol';
+
 contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     using SafeMath for uint256;
     //using strings for *;
@@ -96,6 +98,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
 
     mapping (bytes32 => bool) public closedOrders; // mapping of orderhash to closedOrders
 
+    address[] dexList; // list of dex's for opening trades
 
     /*event LogFill(
         address indexed maker,
@@ -251,6 +254,12 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         uint borrowerBalanceInWei = _checkMargin(orderAddresses.interestTokenAddress, orderAddresses.borrower) * interestTokenPrice;
 
         uint lenderAmountForTrade = tradeAmountInWei / lenderTokenPrice;
+
+
+        address[] memory devList = getDexList();
+        uint tradePrice = DexInterface(devList[0]).getTradePrice(orderAddresses.lenderTokenAddress, orderAddresses.tradeTokenAddress);
+
+        //here!!!
 
         return (PriceData({
             lenderTokenPrice: lenderTokenPrice,
@@ -568,9 +577,51 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         return available; 
     }
 
-    /*
-    * Core exchange functions
-    */
+
+
+    function getDexList() public returns (address[]) {
+        return dexList;
+    }
+
+    function addToDexList(address[] dexListToAdd) public onlyOwner {
+        uint i;
+        uint j;
+        for (i = 0; i < dexListToAdd.length; i++) {
+            bool found = false;
+            for (j = 0; j < dexList.length; j++) {
+                if (dexList[j] == dexListToAdd[i]) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                dexList.push(dexListToAdd[i]);
+            }
+        }
+    }
+
+    function removeFromDexList(address[] dexListToRemove) public onlyOwner {
+        uint i;
+        uint j;
+        uint k;
+        for (i = 0; i < dexListToRemove.length; i++) {
+            bool found = false;
+            for (j = 0; j < dexList.length; j++) {
+                if (dexList[j] == dexListToRemove[i]) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) {
+                // removes found value and shrinks array
+                for (k = j; k < dexList.length-1; k++) {
+                    dexList[k] = dexList[k+1];
+                }
+                delete dexList[dexList.length-1];
+                dexList.length--;
+            }
+        }
+    }
 
     /*
  

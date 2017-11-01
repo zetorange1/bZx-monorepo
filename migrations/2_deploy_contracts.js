@@ -48,7 +48,11 @@ module.exports = function(deployer) {
 		});
 	});
 
-	deployer.deploy(DexA);
+	deployer.deploy(DexA).then(function() {
+		B0x.deployed().then(function(instance) {
+			return instance.addToDexList([DexA.address]);
+		});
+	});
 
 	postDepoloymentSetup = function () {
 		deployer.deploy(TomToken).then(function() {
