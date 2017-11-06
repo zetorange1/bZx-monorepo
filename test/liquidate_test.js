@@ -210,6 +210,16 @@ contract('Liquidate_Test', function(accounts) {
   });
 
   it('should create sample prices for tokens', async function () {
+    
+    /*var transfers = meta.Transfer({fromBlock: "latest"});
+    transfers.watch(function(error, result) {
+      // This will catch all Transfer events, regardless of how they originated.
+      if (error == null) {
+        console.log(result.args);
+      }
+    }*/
+    
+    
     //await dexA.genTokenPrice(loan_token.address, { from: accounts[0] });
     //var DexA_LOAN_price = await dexA.getTokenPrice.call(loan_token.address);
     //console.log(DexA_LOAN_price.toString());

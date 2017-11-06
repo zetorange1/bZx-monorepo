@@ -16,12 +16,7 @@ contract DexInterface is Ownable {
 
     mapping (address => uint) public latest_prices; // mapping of token address to the last market price (price in amount per Wei)
 
-    uint public liquidity_level; // liquidity level (high numbers mean better liquidity)
-    uint public trust_level; // trust level (high numbers mean more trust)
-
     function setDexAddress(address dexAddress_) onlyOwner public;
-    function setLiquidityLevel(uint liquidityLevel_) onlyOwner public;
-    function setTrustLevel(uint trustLevel_) onlyOwner public;
 
     // TODO: This currently for testing purposes. Remove later!
     function setTokenPrice(address token_, uint price_) onlyOwner public;

@@ -9,7 +9,7 @@ contract DexA is DexInterface {
         dexContract = dexAddress_;
     }*/
 
-    function setDexAddress(address dexAddress_) onlyOwner public {
+    function setDexAddress(address dexAddress_) onlyOwner private {
         dexContract = dexAddress_;
     }
 
