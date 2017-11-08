@@ -19,9 +19,9 @@
 
 pragma solidity ^0.4.9;
 
-import '../oz_contracts/math/SafeMath.sol';
-import '../oz_contracts/token/ERC20.sol';
-import '../oz_contracts/ownership/Ownable.sol';
+import 'oz_contracts/math/SafeMath.sol';
+import 'oz_contracts/token/ERC20.sol';
+import 'oz_contracts/ownership/Ownable.sol';
 
 contract B0xVault is Ownable {
     using SafeMath for uint256;

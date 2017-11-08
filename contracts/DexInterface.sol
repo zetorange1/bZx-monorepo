@@ -3,8 +3,8 @@
 
 pragma solidity ^0.4.9;
 
-import '../oz_contracts/ownership/Ownable.sol';
-import '../oz_contracts/math/SafeMath.sol';
+import 'oz_contracts/ownership/Ownable.sol';
+import 'oz_contracts/math/SafeMath.sol';
 
 /**
  * @title Dex interface

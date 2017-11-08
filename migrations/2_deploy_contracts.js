@@ -3,10 +3,10 @@ var TomToken = artifacts.require("./TomToken.sol");
 var BeanToken = artifacts.require("./BeanToken.sol");
 var B0xVault = artifacts.require("./B0xVault.sol");
 var B0xPrices = artifacts.require("./B0xPrices.sol");
-var B0xPool = artifacts.require("./B0xPool.sol");
+//var B0xPool = artifacts.require("./B0xPool.sol");
 var B0x = artifacts.require("./B0x.sol");
 
-var DexA = artifacts.require("./DexA.sol");
+//var DexA = artifacts.require("./DexA.sol");
 //var DexB = artifacts.require("./DexB.sol");
 //var DexC = artifacts.require("./DexC.sol");
 
@@ -18,7 +18,7 @@ var INTToken = artifacts.require("./INTToken.sol");
 var POCToken = artifacts.require("./POCToken.sol");
 */
 
-let testWallets = [
+/*let testWallets = [
     "0x5409ED021D9299bf6814279A6A1411A7e866A631",
 	"0x6Ecbe1DB9EF729CBe972C83Fb886247691Fb6beb",
 	"0xE36Ea790bc9d7AB70C55260C66D52b1eca985f84",
@@ -29,54 +29,37 @@ let testWallets = [
 	"0x4404ac8bd8F9618D27Ad2f1485AA1B2cFD82482D",
 	"0x7457d5E02197480Db681D3fdF256c7acA21bDc12",
 	"0x91c987bf62D25945dB517BDAa840A6c661374402"
-];
+];*/
 // Mnemonic: concert load couple harbor equip island argue ramp clarify fence smart topic
 
+var testWallets = web3.eth.accounts;
+module.exports = async function(deployer) {
+	
+	await Promise.all([
+		deployer.deploy(LOANToken),
+		deployer.deploy(B0xVault),
+		deployer.deploy(B0xPrices),
+		deployer.deploy(TomToken),
+		deployer.deploy(BeanToken)
+	]);
 
-module.exports = function(deployer) {
+	await Promise.all([
+		deployer.deploy(B0x, LOANToken.address, B0xVault.address, B0xPrices.address),
+		TomToken.deployed().then(function(instance) {
+			instance.transfer(testWallets[1], web3.toWei(2000000, "ether"));
+		}),
+		BeanToken.deployed().then(function(instance) {
+			instance.transfer(testWallets[2], web3.toWei(2000000, "ether"));
+		}),
+	]);
 
-	deployer.deploy(LOANToken).then(function() {
-		return deployer.deploy(B0xVault).then(function() {
-			return deployer.deploy(B0xPrices).then(function() {
-				return deployer.deploy(B0xPool, B0xPrices.address).then(function() {
-					return deployer.deploy(B0x, LOANToken.address, B0xVault.address, B0xPrices.address, B0xPool.address).then(function() {
-						postDepoloymentSetup();
-						return;
-					});
-				});
-			});
-		});
-	});
-
-	deployer.deploy(DexA).then(function() {
-		B0x.deployed().then(function(instance) {
-			return instance.addToDexList([DexA.address]);
-		});
-	});
-
-	postDepoloymentSetup = function () {
-		deployer.deploy(TomToken).then(function() {
-			TomToken.deployed().then(function(instance) {
-				instance.transfer(B0xPool.address, web3.toWei(5000000, "ether"));
-				return instance.transfer(testWallets[1], web3.toWei(2000000, "ether"));
-			});
-		});
-		deployer.deploy(BeanToken).then(function(instance) {
-			BeanToken.deployed().then(function(instance) {
-				instance.transfer(B0xPool.address, web3.toWei(5000000, "ether"));
-				return instance.transfer(testWallets[2], web3.toWei(2000000, "ether"));
-			});
-		});
-		LOANToken.deployed().then(function(instance) {
-			return instance.transfer(B0xPool.address, web3.toWei(5000000, "ether"));
-		});
-		
+	await Promise.all([
 		B0xVault.deployed().then(function(instance) {
-			return instance.addAuthorizedAddress(B0x.address);
-		});
-		
+			instance.addAuthorizedAddress(B0x.address);
+		}),
 		B0xPrices.deployed().then(function(instance) {
-			return instance.addAuthorizedAddress(B0x.address);
-		});
-	};
+			instance.addAuthorizedAddress(B0x.address);
+		})
+	]);
+
 };

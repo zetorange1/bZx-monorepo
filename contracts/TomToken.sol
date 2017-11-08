@@ -1,6 +1,6 @@
 pragma solidity ^0.4.4;
 
-import '../oz_contracts/token/StandardToken.sol';
+import 'oz_contracts/token/StandardToken.sol';
 
 contract TomToken is StandardToken {
 

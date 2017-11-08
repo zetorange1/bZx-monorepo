@@ -19,7 +19,7 @@
 
 pragma solidity ^0.4.9;
 
-import '../oz_contracts/ownership/Ownable.sol';
+import 'oz_contracts/ownership/Ownable.sol';
 
 /// @title Token Registry - Stores metadata associated with ERC20 tokens. See ERC22 https://github.com/ethereum/EIPs/issues/22
 /// @author Amir Bandeali - <amir@0xProject.com>, Will Warren - <will@0xProject.com>

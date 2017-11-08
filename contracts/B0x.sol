@@ -18,10 +18,10 @@
 */
 
 pragma solidity ^0.4.9;
-import '../oz_contracts/token/StandardToken.sol';
-import '../oz_contracts/math/SafeMath.sol';
-import '../oz_contracts/ownership/Ownable.sol';
-import '../oz_contracts/ReentrancyGuard.sol';
+import 'oz_contracts/token/StandardToken.sol';
+import 'oz_contracts/math/SafeMath.sol';
+import 'oz_contracts/ownership/Ownable.sol';
+import 'oz_contracts/ReentrancyGuard.sol';
 
 //import './Console.sol';
 //import '../tinyoracle/api.sol';
@@ -30,13 +30,14 @@ import './B0xVault.sol';
 //import './TokenTransferProxy.sol';
 
 import './B0xPrices.sol';
-import './B0xPool.sol';
+//import './B0xPool.sol';
 
-import './DexInterface.sol';
+//import './DexInterface.sol';
+
+//import './strings.sol';
 
 contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     using SafeMath for uint256;
-    //using strings for *;
 
     // Error Codes
     /*enum Errors {
@@ -53,7 +54,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     //address public TOKEN_TRANSFER_PROXY_CONTRACT;
     address public VAULT_CONTRACT;
     address public TOKEN_PRICES_CONTRACT;
-    address public POOL_CONTRACT;
+    //address public POOL_CONTRACT;
 
     struct OrderAddresses {
         address borrower;
@@ -142,12 +143,10 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         revert();
     }
 
-    function B0x(address _loanToken, address _vault, address _tokenPrices, address _pool) {
+    function B0x(address _loanToken, address _vault, address _tokenPrices) {
         LOAN_TOKEN_CONTRACT = _loanToken;
-        //TOKEN_TRANSFER_PROXY_CONTRACT = _tokenTransferProxy;
         VAULT_CONTRACT = _vault;
         TOKEN_PRICES_CONTRACT = _tokenPrices;
-        POOL_CONTRACT = _pool;
     }
     /*
     bytes public response;
@@ -164,6 +163,25 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         require(B0xPrices(TOKEN_PRICES_CONTRACT).setTokenPrice(msg.sender, token_, price_));
     }*/
 
+
+
+    /*function get0xObject(bytes32 orderHash)
+        public
+        constant 
+        returns (string jsonStr)
+    {
+        jsonStr = "{";
+
+        OrderAddresses memory orderAddrs = openTradeAddresses[orderHash];
+        OrderValues memory orderVals = openTradeValues[orderHash];
+
+        jsonStr = strConcat(jsonStr, "\x22b0x\x22: \x220x", toAsciiString(msg.sender), "\x22");
+        jsonStr = strConcat(jsonStr, "\x22maker\x22: \x220x", toAsciiString(msg.sender), "\x22");
+        jsonStr = strConcat(jsonStr, "\x22b0x\x22: \x220x", toAsciiString(msg.sender), "\x22");
+        jsonStr = strConcat(jsonStr, "\x22b0x\x22: \x220x", toAsciiString(msg.sender), "\x22");
+        
+        jsonStr = strConcat(jsonStr,"}");
+    }*/
 
     // helper function is needed due to the "stack too deep" limitation
     function _getOrderAddressesStruct(
@@ -257,7 +275,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
 
 
         address[] memory devList = getDexList();
-        uint tradePrice = DexInterface(devList[0]).getTradePrice(orderAddresses.lenderTokenAddress, orderAddresses.tradeTokenAddress);
+        //uint tradePrice = DexInterface(devList[0]).getTradePrice(orderAddresses.lenderTokenAddress, orderAddresses.tradeTokenAddress);
 
         //here!!!
 
@@ -315,7 +333,8 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         OrderAddresses memory orderAddresses = _getOrderAddressesStruct(orderAddrs,msg.sender,takerTokenAddress,borrowerIsTaker);
         OrderValues memory orderValues = _getOrderValuesStruct(orderVals,takerTokenAmount,borrowerIsTaker);
 
-        bytes32 orderHash = getTradeOrderHash(orderAddrs, orderVals);
+        //bytes32 orderHash = getTradeOrderHash(orderAddrs, orderVals);
+        bytes32 orderHash;
 
 /*
 	- the order parameters are valid and the order has a valid signiture (signed with the lender's private key)
@@ -401,11 +420,11 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         }
 
         // approve the POOL to transfer in the lender token from the vault
-        if (! B0xVault(VAULT_CONTRACT).setTokenApproval(orderAddresses.lenderTokenAddress, POOL_CONTRACT, priceData.lenderAmountForTrade)) {
+        /*if (! B0xVault(VAULT_CONTRACT).setTokenApproval(orderAddresses.lenderTokenAddress, POOL_CONTRACT, priceData.lenderAmountForTrade)) {
             LogErrorText("error: unbale to approve trade amount",orderHash);
             return false;
-        }
-        
+        }*/
+        /*
         // execute trade with the pool contract
         if (! B0xPool(POOL_CONTRACT).tradeToken(
             VAULT_CONTRACT,
@@ -424,9 +443,9 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             orderAddresses.lender,
             priceData.lenderAmountForTrade
         );
-
+        */
         uint filledAmount = 5000;
- 
+
  
         openTradeAddresses[orderHash] = orderAddresses;
         openTradeValues[orderHash] = orderValues;
@@ -681,14 +700,31 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         return cancelledTakerTokenAmount;
     }
     */
+    
+    /*function test_setTradeOrderHash(
+        address[5] orderAddrs, 
+        uint[10] orderVals)
+        public
+    {
+        address takerTokenAddress = address(1);
+        uint takerTokenAmount = 1;
+        bool borrowerIsTaker = false;
+        
+        OrderAddresses memory orderAddresses = _getOrderAddressesStruct(orderAddrs,msg.sender,takerTokenAddress,borrowerIsTaker);
+        OrderValues memory orderValues = _getOrderValuesStruct(orderVals,takerTokenAmount,borrowerIsTaker);
+
+        bytes32 orderHash = getTradeOrderHash(orderAddrs, orderVals);
+ 
+        openTradeAddresses[orderHash] = orderAddresses;
+        openTradeValues[orderHash] = orderValues;
+    }*/
+    
+    
     /*
     * Constant public functions
     */
-    /// @dev Calculates Keccak-256 hash of order with specified parameters.
-    /// @param orderAddrs Array of order's maker, makerTakenAddress, interestTokenAddress, oracleAddress, and feeRecipient.
-    /// @param orderVals Array of order's makerTokenAmount, lendingLengthSec, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, borrowerRelayFee, expirationUnixTimestampSec, reinvestAllowed, and salt.
-    /// @return Keccak-256 hash of order.
-    function getTradeOrderHash(
+
+    /*function getTradeOrderHash(
         address[5] orderAddrs, 
         uint[10] orderVals)
         public
@@ -720,6 +756,35 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             address(this),
             k1,
             k2
+        ));
+    }*/
+
+    /// @dev Calculates Keccak-256 hash of order with specified parameters.
+    /// @param orderAddrs Array of order's maker, taker, lendTokenAddress, interestTokenAddress, and feeRecipientAddress.
+    /// @param orderVals Array of order's lendTokenAmount, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
+    /// @return Keccak-256 hash of order.
+    function getTradeOrderHash(
+        address[5] orderAddrs, 
+        uint[8] orderVals)
+        public
+        constant
+        returns (bytes32)
+    {
+        return(keccak256(
+            address(this),
+            orderAddrs[0],  // maker
+            orderAddrs[1],  // taker
+            orderAddrs[2],  // lendTokenAddress
+            orderAddrs[3],  // interestTokenAddress
+            orderAddrs[4],   // feeRecipientAddress
+            orderVals[0],    // lendTokenAmount
+            orderVals[1],    // interestAmount
+            orderVals[2],    // initialMarginAmount
+            orderVals[3],    // liquidationMarginAmount
+            orderVals[4],    // lenderRelayFee
+            orderVals[5],    // traderRelayFee
+            orderVals[6],    // expirationUnixTimestampSec
+            orderVals[7]     // salt
         ));
     }
 

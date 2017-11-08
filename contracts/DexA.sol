@@ -9,17 +9,17 @@ contract DexA is DexInterface {
         dexContract = dexAddress_;
     }*/
 
-    function setDexAddress(address dexAddress_) onlyOwner private {
+    function setDexAddress(address dexAddress_) onlyOwner public {
         dexContract = dexAddress_;
     }
 
-    function setLiquidityLevel(uint liquidityLevel_) onlyOwner public {
+    /*function setLiquidityLevel(uint liquidityLevel_) onlyOwner public {
         liquidity_level = liquidityLevel_;
     }
     
     function setTrustLevel(uint trustLevel_) onlyOwner public {
         trust_level = trustLevel_;
-    }
+    }*/
 
     // TODO: This currently for testing purposes. Remove later!
     function setTokenPrice(address token_, uint price_) onlyOwner public {
