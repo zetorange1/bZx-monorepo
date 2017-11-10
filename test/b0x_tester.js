@@ -190,6 +190,19 @@ contract('B0xTest', function(accounts) {
     });
   });
   
+  it("should add B0x as authorized address for B0xPrices", function(done) {
+    prices.addAuthorizedAddress(broker.address).then(function() {
+      prices.getAuthorizedAddresses.call().then(function(authorities) {
+        assert.equal(authorities[0], broker.address, "B0x contract should be the authorized address");
+        done();
+      });
+    }, function(error) {
+      console.error(error);
+      assert.equal(true, false);
+      done();
+    });
+  });
+  
 /*
   it("should deposit ether margin", function(done) {
     //var beforeWalletBalance = getWeiBalance(accounts[0]);
@@ -333,7 +346,7 @@ contract('B0xTest', function(accounts) {
   });
 */
 
-  it("should transfer LOANToken to accounts[1] and accounts[1] deposit to funding", function(done) {
+  it("should transfer LOANToken to accounts[1] and accounts[1] deposit to funding (for lender)", function(done) {
     var amount = web3.toWei(100000, "ether");
     loan_token.transfer(accounts[1], amount, {from: accounts[0]}).then(function(result) {
       loan_token.approve(broker.address, amount, {from: accounts[1]}).then(function(tx) {
@@ -369,8 +382,8 @@ contract('B0xTest', function(accounts) {
       done();
     });
   });
-/*
-  it("should transfer LOANToken to accounts[2] and accounts[2] deposit to margin", function(done) {
+
+  it("should transfer LOANToken to accounts[2] and accounts[2] deposit to margin (for trader)", function(done) {
     var amount = web3.toWei(100000, "ether");
     loan_token.transfer(accounts[2], amount, {from: accounts[0]}).then(function(result) {
       loan_token.approve(broker.address, amount, {from: accounts[2]}).then(function(tx) {
@@ -393,7 +406,7 @@ contract('B0xTest', function(accounts) {
       done();
     });
   });
-*/
+
   it("should deposit Tom Token funding", async function() {
     var amount = web3.toWei(1000000, "ether");
     try
@@ -411,7 +424,7 @@ contract('B0xTest', function(accounts) {
     }
   });
 
-  it("should generate tradeOrderHash", function(done) {
+  it("should generate lendOrderHash", function(done) {
     var salt = generatePseudoRandomSalt().toString();
     salt = salt.substring(0,salt.length-10);
   
@@ -420,7 +433,7 @@ contract('B0xTest', function(accounts) {
       "maker": accounts[1], // lender
       "taker": "0x0000000000000000000000000000000000000000",
       "lendTokenAddress": tom_token.address,
-      "interestTokenAddress": loan_token.address, 
+      "marginTokenAddress": loan_token.address, 
       "feeRecipientAddress": accounts[9], 
       "lendTokenAmount": web3.toWei(1000000, "ether").toString(), 
       "interestAmount": web3.toWei(2, "ether").toString(), // 2 token units per day
@@ -432,17 +445,17 @@ contract('B0xTest', function(accounts) {
       "salt": salt
     };
     //console.log(orderParams);
-    let expectedHash = brokerjs.getTradeOrderHashHex(orderParams);
+    let expectedHash = brokerjs.getLendOrderHashHex(orderParams);
     //console.log("js hash: "+expectedHash);
     //console.log(salt);
     //console.log(expirationUnixTimestampSec);
     //console.log(orderParams);
-    broker.getTradeOrderHash.call(
+    broker.getLendOrderHash.call(
       [
         orderParams["maker"],
         orderParams["taker"],
         orderParams["lendTokenAddress"],
-        orderParams["interestTokenAddress"],
+        orderParams["marginTokenAddress"],
         orderParams["feeRecipientAddress"]
       ],
       [
@@ -457,7 +470,7 @@ contract('B0xTest', function(accounts) {
     ]).then(function(orderHash) {
       //console.log("sol hash: "+orderHash);
       sample_orderhash = orderHash;
-      assert.equal(orderHash, expectedHash, "expectedHash should equal returned tradeOrderHash");
+      assert.equal(orderHash, expectedHash, "expectedHash should equal returned lendOrderHash");
       done();
     }, function(error) {
       console.error(error);
@@ -466,12 +479,25 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  /*it("should sign and verify orderHash", function(done) {
-    var orderHashBuff = ethUtil.toBuffer(sample_orderhash);
-    var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
-    var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
+  it("should sign and verify orderHash", function(done) {
+    var msgHashHex;
+    const nodeVersion = web3.version.node;
+    const isParityNode = _.includes(nodeVersion, 'Parity');
+    const isTestRpc = _.includes(nodeVersion, 'TestRPC');
+    //console.log("isParityNode:" + isParityNode);
+    //console.log("isTestRpc:" + isTestRpc);
+    
+    if (isParityNode || isTestRpc) {
+      // Parity and TestRpc nodes add the personalMessage prefix itself
+      msgHashHex = sample_orderhash;
+    }
+    else {
+      var orderHashBuff = ethUtil.toBuffer(sample_orderhash);
+      var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
+      msgHashHex = ethUtil.bufferToHex(msgHashBuff);
+    }
 
-    var signedOrderHash = web3.eth.sign(accounts[2], msgHashHex);
+    var signedOrderHash = web3.eth.sign(accounts[1], msgHashHex);
     //console.log(signedOrderHash);
 
     ECSignature = {
@@ -481,8 +507,8 @@ contract('B0xTest', function(accounts) {
     };
 
     broker.isValidSignature.call(
-      accounts[2],
-      sample_orderhash,
+      accounts[1], // lender
+      msgHashHex,
       ECSignature["v"],
       ECSignature["r"],
       ECSignature["s"]
@@ -491,38 +517,22 @@ contract('B0xTest', function(accounts) {
       done();
     }, function(error) {
       console.error(error);
-      assert.equal(true, false);
+      assert.isOk(false);
       done();
     });
-  });*/
+  });
 
-  /*it('is should create sample prices for tokens', async function () {
-    
-    const DexA_LOAN = await fundRaise.address
-
-    await fundRaise.pause()
-
-    try {
-        await fundRaise.sendTransaction({ value: 1e+18, from: donor })
-        assert.fail()
-    } catch (error) {
-        assert(error.toString().includes('invalid opcode'), error.toString())
-    }
-    const fundRaiseAddress = await fundRaise.address
-    assert.equal(web3.eth.getBalance(fundRaiseAddress).toNumber(), 0)
-
-    await fundRaise.unpause()
-    await fundRaise.sendTransaction({ value: 1e+18, from: donor })
-    assert.equal(web3.eth.getBalance(fundRaiseAddress).toNumber(), 1e+18)
-  })*/
-
-  /*
   it("should send sample prices for LOAN", function(done) {
     var expectedPrice = web3.toWei("0.00025998", "ether");
     broker.testSendPriceUpdate(
       loan_token.address, 
       expectedPrice,
       {from: accounts[0]}).then(function(tx) {
+        /*if (tx.logs[0] !== undefined)
+          console.log(tx.logs[0].args);
+        else
+          console.log(tx);*/
+        
         prices.getTokenPrice(loan_token.address).then(function(currentPrice) {
           assert.equal(currentPrice, expectedPrice, "expectedPrice should equal returned currentPrice");
           done();
@@ -595,40 +605,37 @@ contract('B0xTest', function(accounts) {
       done();
     });
   });
-  */
 
-  /*
   it("should take sample trade as trader", function(done) {
-    broker.fillTrade(
+    broker.takeLendOrderAsTrader(
       [
         orderParams["maker"],
-        orderParams["makerTokenAddress"],
-        orderParams["interestTokenAddress"],
-        orderParams["oracleAddress"],
-        orderParams["feeRecipient"],
+        orderParams["taker"],
+        orderParams["lendTokenAddress"],
+        orderParams["marginTokenAddress"],
+        orderParams["feeRecipientAddress"]
       ],
       [
-        new BN(orderParams["makerTokenAmount"]),
-        new BN(orderParams["lendingLengthSec"]),
+        new BN(orderParams["lendTokenAmount"]),
         new BN(orderParams["interestAmount"]),
         new BN(orderParams["initialMarginAmount"]),
         new BN(orderParams["liquidationMarginAmount"]),
         new BN(orderParams["lenderRelayFee"]),
         new BN(orderParams["traderRelayFee"]),
         new BN(orderParams["expirationUnixTimestampSec"]),
-        new BN(orderParams["reinvestAllowed"]),
         new BN(orderParams["salt"])
       ],
-      bean_token.address, // taker (trader) is wanting to open a trade of bean_token
       web3.toWei(15, "ether"),
-      true, // traderIsTaker=true
       ECSignature["v"],
       ECSignature["r"],
       ECSignature["s"],
       {from: accounts[2]}).then(function(tx) {
-        //console.log(tx);
-        if (tx.logs[0] !== undefined)
-          console.log(tx.logs[0].args);
+        if (tx.logs !== undefined) {
+          for (var i=0; i < tx.logs.length; i++) {
+            console.log(tx.logs[i].args);
+          }
+        } else
+          console.log(tx);
         assert.isOk(tx);
         done();
     }, function(error) {
@@ -637,49 +644,29 @@ contract('B0xTest', function(accounts) {
       done();
     });
   });
-  */
-  
 
-  /*it("should sign orderHash", function(done) {
-    brokerjs.signOrderHashAsync(sample_orderhash, accounts[1]).then(function(res) {
-      console.log(res);
-      assert.equal(true, true);
-      done();
-    });
-  });*/
 
-/*  it("should sign orderHash", function(done) {
-    web3.eth.getTransactionCountAsync(accounts[1]).then(function(nonce) {
-      var data = '0x' + encodeFunctionTxData('register', ['uint256'], [testNum])
-      var tx = new Transaction({
-        nonce: web3.toHex(nonce),
-        gasPrice: gasPriceHex,
-        gasLimit: gasLimitHex,
-        to: walletContractAddress,
-        from: fromAccount,
-        value: '0x00',
-        data: payloadData
-      
-        to: broker.address,
-      value: 0,
-      nonce: nonce,
-      data: data,
-      gasLimit: 2000000
-    })
-    tx.sign(Buffer.from(keypair.privateKey.slice(2), 'hex'))
-    var signedRawTx = tx.serialize().toString('hex')
-      
-
-  }).then(nonce => {
+  /*it('is should create sample prices for tokens', async function () {
     
-  
-    return web3.eth.sendRawTransactionAsync(signedRawTx)
-  }).then(txHash => {
-    return web3.eth.getTransactionReceiptAsync(txHash)
-  }).then(tx => {
-    console.log('Gas used: ' + tx.gasUsed)
+    const DexA_LOAN = await fundRaise.address
 
-  });*/
+    await fundRaise.pause()
+
+    try {
+        await fundRaise.sendTransaction({ value: 1e+18, from: donor })
+        assert.fail()
+    } catch (error) {
+        assert(error.toString().includes('invalid opcode'), error.toString())
+    }
+    const fundRaiseAddress = await fundRaise.address
+    assert.equal(web3.eth.getBalance(fundRaiseAddress).toNumber(), 0)
+
+    await fundRaise.unpause()
+    await fundRaise.sendTransaction({ value: 1e+18, from: donor })
+    assert.equal(web3.eth.getBalance(fundRaiseAddress).toNumber(), 1e+18)
+  })*/
+
+
 
   function printBalances(accounts) {
     accounts.forEach(function(ac, i) {

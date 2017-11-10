@@ -75,14 +75,14 @@ contract B0xVault is Ownable {
         return true;
     }
 
-    function depositEtherMargin(address user_) public onlyAuthorized payable returns (uint) {        
+    /*function depositEtherMargin(address user_) public onlyAuthorized payable returns (uint) {        
         marginWallet[0][user_] = marginWallet[0][user_].add(msg.value);
         return marginWallet[0][user_];
     }
     function depositEtherFunding(address user_) public onlyAuthorized payable returns (uint) {
         fundingWallet[0][user_] = fundingWallet[0][user_].add(msg.value);
         return fundingWallet[0][user_];
-    }
+    }*/
     function depositTokenMargin(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {        
         require(token_ != address(0));
         
@@ -97,7 +97,7 @@ contract B0xVault is Ownable {
     }
 
 
-    function withdrawEtherMargin(address user_, uint amount_) public onlyAuthorized returns (uint) {
+    /*function withdrawEtherMargin(address user_, uint amount_) public onlyAuthorized returns (uint) {
         marginWallet[0][user_] = marginWallet[0][user_].sub(amount_);
         require(user_.call.value(amount_)());
          // or? if (!user_.send(amount)) revert();
@@ -108,7 +108,7 @@ contract B0xVault is Ownable {
         require(user_.call.value(amount_)());
          // or? if (!user_.send(amount)) revert();
         return fundingWallet[0][user_];
-    }
+    }*/
     function withdrawTokenMargin(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {
         require(token_ != address(0));
         
@@ -122,7 +122,22 @@ contract B0xVault is Ownable {
         fundingWallet[token_][user_] = fundingWallet[token_][user_].sub(amount_);
         require(ERC20(token_).transfer(user_, amount_));
         return fundingWallet[token_][user_]; 
-    } 
+    }
+
+    function transferOutTokenMargin(address token_, address from_, address to_, uint amount_) public onlyAuthorized returns (bool) {
+        require(token_ != address(0));
+        
+        marginWallet[token_][from_] = marginWallet[token_][from_].sub(amount_);
+        require(ERC20(token_).transfer(to_, amount_));
+        return true; 
+    }
+    function transferOutTokenFunding(address token_, address from_, address to_, uint amount_) public onlyAuthorized returns (bool) {
+        require(token_ != address(0));
+        
+        fundingWallet[token_][from_] = fundingWallet[token_][from_].sub(amount_);
+        require(ERC20(token_).transfer(to_, amount_));
+        return true; 
+    }
 
     function marginBalanceOf(address token_, address user_) public constant returns (uint balance) {
         return marginWallet[token_][user_];
