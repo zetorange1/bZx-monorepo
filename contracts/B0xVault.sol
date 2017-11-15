@@ -83,7 +83,7 @@ contract B0xVault is Ownable {
         fundingWallet[0][user_] = fundingWallet[0][user_].add(msg.value);
         return fundingWallet[0][user_];
     }*/
-    function depositTokenMargin(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {        
+    /*function depositTokenMargin(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {        
         require(token_ != address(0));
         
         marginWallet[token_][user_] = marginWallet[token_][user_].add(amount_);
@@ -94,7 +94,7 @@ contract B0xVault is Ownable {
         
         fundingWallet[token_][user_] = fundingWallet[token_][user_].add(amount_);
         return fundingWallet[token_][user_];
-    }
+    }*/
 
 
     /*function withdrawEtherMargin(address user_, uint amount_) public onlyAuthorized returns (uint) {
@@ -109,7 +109,7 @@ contract B0xVault is Ownable {
          // or? if (!user_.send(amount)) revert();
         return fundingWallet[0][user_];
     }*/
-    function withdrawTokenMargin(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {
+    /*function withdrawTokenMargin(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {
         require(token_ != address(0));
         
         marginWallet[token_][user_] = marginWallet[token_][user_].sub(amount_);
@@ -122,9 +122,9 @@ contract B0xVault is Ownable {
         fundingWallet[token_][user_] = fundingWallet[token_][user_].sub(amount_);
         require(ERC20(token_).transfer(user_, amount_));
         return fundingWallet[token_][user_]; 
-    }
+    }*/
 
-    function transferOutTokenMargin(address token_, address from_, address to_, uint amount_) public onlyAuthorized returns (bool) {
+    /*function transferOutTokenMargin(address token_, address from_, address to_, uint amount_) public onlyAuthorized returns (bool) {
         require(token_ != address(0));
         
         marginWallet[token_][from_] = marginWallet[token_][from_].sub(amount_);
@@ -137,14 +137,20 @@ contract B0xVault is Ownable {
         fundingWallet[token_][from_] = fundingWallet[token_][from_].sub(amount_);
         require(ERC20(token_).transfer(to_, amount_));
         return true; 
-    }
+    }*/
 
     function marginBalanceOf(address token_, address user_) public constant returns (uint balance) {
         return marginWallet[token_][user_];
     }
+    function usedMarginBalanceOf(address token_, address user_) public constant returns (uint balance) {
+        return usedMargin[token_][user_];
+    }
 
     function fundingBalanceOf(address token_, address user_) public constant returns (uint balance) {
         return fundingWallet[token_][user_];
+    }
+    function usedFundingBalanceOf(address token_, address user_) public constant returns (uint balance) {
+        return usedFunding[token_][user_];
     }
 
     function addAuthorizedAddress(address target)
@@ -173,6 +179,80 @@ contract B0xVault is Ownable {
         LogAuthorizedAddressRemoved(target, msg.sender);
     }
 
+    function transferInTokenMarginAndUse(
+        address token,
+        address from,
+        uint value)
+        public
+        onlyAuthorized
+        returns (bool)
+    {
+        uint valueNotInWallet = SafeMath.max256(value - marginWallet[token][from], 0);
+        uint valueInWallet = value.sub(valueNotInWallet);
+        marginWallet[token][from] = marginWallet[token][from].sub(valueInWallet);
+        usedMargin[token][from].add(value);
+        if (valueNotInWallet > 0) {
+            return ERC20(token).transferFrom(from, this, valueNotInWallet);
+        }
+        return true;
+    }
+    function transferInTokenFundingAndUse(
+        address token,
+        address from,
+        uint value)
+        public
+        onlyAuthorized
+        returns (bool)
+    {
+        uint valueNotInWallet = SafeMath.max256(value - fundingWallet[token][from], 0);
+        uint valueInWallet = value.sub(valueNotInWallet);
+        fundingWallet[token][from] = fundingWallet[token][from].sub(valueInWallet);
+        usedFunding[token][from].add(value);
+        if (valueNotInWallet > 0) {
+            if (!ERC20(token).transferFrom(from, this, valueNotInWallet))
+                return false;
+        }
+        return true;
+    }
+
+    function transferOutTokenMargin(
+        address token,
+        address from,
+        address to,        
+        uint value)
+        public
+        onlyAuthorized
+        returns (bool)
+    {
+        uint valueNotInWallet = SafeMath.max256(value - marginWallet[token][from], 0);
+        uint valueInWallet = value.sub(valueNotInWallet);
+        marginWallet[token][from] = marginWallet[token][from].sub(valueInWallet);
+        if (valueNotInWallet > 0) {
+            if (!ERC20(token).transferFrom(from, this, valueNotInWallet))
+                return false;
+        }
+        return ERC20(token).transfer(to, value);
+    }
+
+    function transferOutTokenFunding(
+        address token,
+        address from,
+        address to,        
+        uint value)
+        public
+        onlyAuthorized
+        returns (bool)
+    {
+        uint valueNotInWallet = SafeMath.max256(value - fundingWallet[token][from], 0);
+        uint valueInWallet = value.sub(valueNotInWallet);
+        fundingWallet[token][from] = fundingWallet[token][from].sub(valueInWallet);
+        if (valueNotInWallet > 0) {
+            if (!ERC20(token).transferFrom(from, this, valueNotInWallet))
+                return false;
+        }
+        return ERC20(token).transfer(to, value);
+    }
+
     function getAuthorizedAddresses()
         public
         constant
@@ -181,3 +261,43 @@ contract B0xVault is Ownable {
         return authorities;
     }
 }
+
+/*
+    function transferTokenViaVault(
+        address token,
+        address from,
+        address to,
+        uint amount)
+        internal
+        returns (bool)
+    {
+        return B0xVault(VAULT_CONTRACT).transferFrom(token, from, to, amount);
+    }
+
+    /// @dev Get token balance of an address.
+    /// @param token Address of token.
+    /// @param owner Address of owner.
+    /// @return Token balance of owner.
+    function getBalance(address token, address owner)
+        internal
+        constant  // The called token contract may attempt to change state, but will not be able to due to an added gas limit.
+        returns (uint)
+    {
+        return ERC20(token).balanceOf.gas(EXTERNAL_QUERY_GAS_LIMIT)(owner); // Limit gas to prevent reentrancy
+    }
+
+    /// @dev Get allowance of token given to TokenTransferProxy by an address.
+    /// @param token Address of token.
+    /// @param owner Address of owner.
+    /// @return Allowance of token given to TokenTransferProxy by owner.
+    function getAllowance(address token, address owner)
+        internal
+        constant  // The called token contract may attempt to change state, but will not be able to due to an added gas limit.
+        returns (uint)
+    {
+        return ERC20(token).allowance.gas(EXTERNAL_QUERY_GAS_LIMIT)(owner, VAULT_CONTRACT); // Limit gas to prevent reentrancy
+    }
+
+
+
+*/

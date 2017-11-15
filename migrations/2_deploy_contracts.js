@@ -32,6 +32,14 @@ var POCToken = artifacts.require("./POCToken.sol");
 ];*/
 // Mnemonic: concert load couple harbor equip island argue ramp clarify fence smart topic
 
+let contracts0x = {
+	"ZRXToken": "0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3",
+	"EtherToken": "0x48BaCB9266a570d521063EF5dD96e61686DbE788",
+	"Exchange": "0xB69e673309512a9D726F87304C6984054f87a93b",
+	"TokenRegistry": "0x0B1ba0af832d7C05fD64161E0Db78E85978E8082",
+	"TokenTransferProxy": "0x871DD7C2B4b25E1Aa18728e9D5f2Af4C4e431f5c"
+};
+
 var testWallets = web3.eth.accounts;
 module.exports = async function(deployer) {
 	
@@ -44,7 +52,7 @@ module.exports = async function(deployer) {
 	]);
 
 	await Promise.all([
-		deployer.deploy(B0x, LOANToken.address, B0xVault.address, B0xPrices.address),
+		deployer.deploy(B0x, LOANToken.address, B0xVault.address, B0xPrices.address, contracts0x["Exchange"]),
 		TomToken.deployed().then(function(instance) {
 			instance.transfer(testWallets[1], web3.toWei(2000000, "ether"));
 		}),

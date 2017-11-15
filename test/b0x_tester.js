@@ -9,7 +9,7 @@ const Web3 = require('web3');
 
 //var provider = TestRPC.provider();
 //let web3 = new Web3(provider);
-let web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"))
+web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"))
 
 
 import { B0xJS } from '../src/B0xJS.js';
@@ -28,9 +28,21 @@ let BeanToken = artifacts.require("./BeanToken.sol");
 let testDepositAmount = web3.toWei(0.001, "ether");
 let expected_LOANTokenTotalSupply = web3.toWei(20000000, "ether"); // 20MM LOAN
 
+let Exchange0x = artifacts.require("0x_contracts/Exchange.sol");
+
 //let DexA = artifacts.require("./DexA.sol");
 //let DexB = artifacts.require("./DexB.sol");
 //let DexC = artifacts.require("./DexC.sol");
+
+/*
+ZRXToken.sol: 0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3
+EtherToken.sol: 0x48BaCB9266a570d521063EF5dD96e61686DbE788
+Exchange.sol: 0xB69e673309512a9D726F87304C6984054f87a93b
+TokenRegistry.sol: 0x0B1ba0af832d7C05fD64161E0Db78E85978E8082
+TokenTransferProxy.sol: 0x871DD7C2B4b25E1Aa18728e9D5f2Af4C4e431f5c
+
+The entirety of the ZRX balance is in the 0x5409ED021D9299bf6814279A6A1411A7e866A631 user account setup by TestRPC.
+*/
 
 /*
 let test_wallets = [
@@ -47,6 +59,14 @@ let test_wallets = [
 ];
 Mnemonic: concert load couple harbor equip island argue ramp clarify fence smart topic
 */
+
+let contracts0x = {
+  "ZRXToken": "0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3",
+  "EtherToken": "0x48BaCB9266a570d521063EF5dD96e61686DbE788",
+  "Exchange": "0xB69e673309512a9D726F87304C6984054f87a93b",
+  "TokenRegistry": "0x0B1ba0af832d7C05fD64161E0Db78E85978E8082",
+  "TokenTransferProxy": "0x871DD7C2B4b25E1Aa18728e9D5f2Af4C4e431f5c"
+};
 
 let account_privatekeys = [
   "f2f48ee19680706196e2e339e5da3491186e0c4c5030670656b0e0164837257d",
@@ -69,6 +89,10 @@ contract('B0xTest', function(accounts) {
   var tom_token;
   var bean_token;
   var brokerjs;
+
+  var zrx_token;
+  //var 0x_exchange;
+  //var 0x_token_registry;
 
   var orderParams;
   var sample_orderhash;
@@ -95,7 +119,7 @@ contract('B0xTest', function(accounts) {
     ]);
   
     await Promise.all([
-      (broker = await B0xSol.new(loan_token.address,vault.address,prices.address)),
+      (broker = await B0xSol.new(loan_token.address,vault.address,prices.address,contracts0x["Exchange"])),
       tom_token.transfer(accounts[1], web3.toWei(2000000, "ether")),
       bean_token.transfer(accounts[2], web3.toWei(2000000, "ether"))
     ]);
@@ -177,6 +201,23 @@ contract('B0xTest', function(accounts) {
     });
   });
   */
+  
+  it("should retrieve deployed ZRXToken contract", function(done) {
+    ERC20.at(contracts0x["ZRXToken"]).then(function(instance) {
+      zrx_token = instance;
+      assert.isOk(zrx_token);
+      done();
+    });
+  });
+
+  /*it("should retrieve deployed 0x Exchange contract", function(done) {
+    Exchange0x.at(contracts0x["Exchange"]).then(function(instance) {
+      zrx_token = instance;
+      assert.isOk(zrx_token);
+      done();
+    });
+  });*/
+
   it("should add B0x as authorized address for B0xVault", function(done) {
     vault.addAuthorizedAddress(broker.address).then(function() {
       vault.getAuthorizedAddresses.call().then(function(authorities) {
@@ -346,24 +387,24 @@ contract('B0xTest', function(accounts) {
   });
 */
 
-  it("should transfer LOANToken to accounts[1] and accounts[1] deposit to funding (for lender)", function(done) {
+  it("should transfer LOANToken to accounts[1] and accounts[1] approve vault for transfer (for lender)", function(done) {
     var amount = web3.toWei(100000, "ether");
     loan_token.transfer(accounts[1], amount, {from: accounts[0]}).then(function(result) {
-      loan_token.approve(broker.address, amount, {from: accounts[1]}).then(function(tx) {
+      loan_token.approve(vault.address, amount, {from: accounts[1]}).then(function(tx) {
         
         /*loan_token.allowance.call(accounts[1],broker.address).then(function(allowance) {
           console.log("allowance: "+allowance);
         });*/
         
-        vault.fundingBalanceOf.call(loan_token.address, accounts[1]).then(function(beforeBalance) {
+        /*vault.fundingBalanceOf.call(loan_token.address, accounts[1]).then(function(beforeBalance) {
           //console.log("beforeBalance: "+beforeBalance);
           broker.depositTokenFunding(loan_token.address, amount, {from: accounts[1]}).then(function() {
             vault.fundingBalanceOf.call(loan_token.address, accounts[1]).then(function(afterBalance) {
               
-              /*vault.getAuthorizedAddresses.call().then(function(addrs) {
-                console.log(addrs);
-                console.log(broker.address);
-              });*/
+              //vault.getAuthorizedAddresses.call().then(function(addrs) {
+              //  console.log(addrs);
+              //  console.log(broker.address);
+              //});
 
               assert.equal(afterBalance.toNumber(), beforeBalance.add(amount).toNumber(), "afterBalance should equal beforeBalance + 100000");
               done();
@@ -374,7 +415,9 @@ contract('B0xTest', function(accounts) {
             assert.equal(true, false);
             done();
           });
-        });
+        });*/
+        assert.isOk(tx.receipt);
+        done();
       });
     }, function(error) {
       console.error("outer: "+error);
@@ -383,11 +426,17 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should transfer LOANToken to accounts[2] and accounts[2] deposit to margin (for trader)", function(done) {
+  it("should transfer LOANToken to accounts[2] and accounts[2] approve vault for transfer (for trader)", function(done) {
     var amount = web3.toWei(100000, "ether");
     loan_token.transfer(accounts[2], amount, {from: accounts[0]}).then(function(result) {
-      loan_token.approve(broker.address, amount, {from: accounts[2]}).then(function(tx) {
-        vault.marginBalanceOf.call(loan_token.address, accounts[2]).then(function(beforeBalance) {
+      loan_token.approve(vault.address, amount, {from: accounts[2]}).then(function(tx) {
+        
+        loan_token.allowance.call(accounts[2],vault.address).then(function(allowance) {
+          console.log("allowance: "+allowance);
+        });
+        
+        
+        /*vault.marginBalanceOf.call(loan_token.address, accounts[2]).then(function(beforeBalance) {
           broker.depositTokenMargin(loan_token.address, amount, {from: accounts[2]}).then(function() {
             vault.marginBalanceOf.call(loan_token.address, accounts[2]).then(function(afterBalance) {
               assert.equal(afterBalance.toNumber(), beforeBalance.add(amount).toNumber(), "afterBalance should equal beforeBalance + 100000");
@@ -398,7 +447,9 @@ contract('B0xTest', function(accounts) {
             assert.equal(true, false);
             done();
           });
-        });
+        });*/
+        assert.isOk(tx.receipt);
+        done();
       });
     }, function(error) {
       console.error("outer: "+error);
@@ -407,19 +458,19 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should deposit Tom Token funding", async function() {
+  it("should approve vault to transfer Tom Token (for lender)", async function() {
     var amount = web3.toWei(1000000, "ether");
     try
     {
-      var tx1 = await tom_token.approve(broker.address, amount, {from: accounts[1]});
+      var tx1 = await tom_token.approve(vault.address, amount, {from: accounts[1]});
       assert.isOk(tx1.receipt);
       //console.log(tx1.receipt);
-      var tx2 = await broker.depositTokenFunding.call(tom_token.address, amount, {from: accounts[1]});
+      //var tx2 = await broker.depositTokenFunding.call(tom_token.address, amount, {from: accounts[1]});
       //console.log(tx2);
-      assert.isOk(true);
+      //assert.isOk(true);
       //assert.isOk(tx2.receipt);
     } catch (error) {
-      console.error("outer: "+error);
+      console.error(error);
       assert.isOk(false);
     }
   });
@@ -444,9 +495,9 @@ contract('B0xTest', function(accounts) {
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(), 
       "salt": salt
     };
-    //console.log(orderParams);
+    console.log(orderParams);
     let expectedHash = brokerjs.getLendOrderHashHex(orderParams);
-    //console.log("js hash: "+expectedHash);
+    console.log("js hash: "+expectedHash);
     //console.log(salt);
     //console.log(expirationUnixTimestampSec);
     //console.log(orderParams);
@@ -468,7 +519,7 @@ contract('B0xTest', function(accounts) {
         new BN(orderParams["expirationUnixTimestampSec"]),
         new BN(orderParams["salt"])
     ]).then(function(orderHash) {
-      //console.log("sol hash: "+orderHash);
+      console.log("sol hash: "+orderHash);
       sample_orderhash = orderHash;
       assert.equal(orderHash, expectedHash, "expectedHash should equal returned lendOrderHash");
       done();
@@ -480,25 +531,23 @@ contract('B0xTest', function(accounts) {
   });
 
   it("should sign and verify orderHash", function(done) {
-    var msgHashHex;
-    const nodeVersion = web3.version.node;
+    var signedOrderHash;
+    /*const nodeVersion = web3.version.node;
     const isParityNode = _.includes(nodeVersion, 'Parity');
     const isTestRpc = _.includes(nodeVersion, 'TestRPC');
-    //console.log("isParityNode:" + isParityNode);
-    //console.log("isTestRpc:" + isTestRpc);
+    console.log("isParityNode:" + isParityNode);
+    console.log("isTestRpc:" + isTestRpc);*/
     
-    if (isParityNode || isTestRpc) {
+    /*if (isParityNode || isTestRpc) {
       // Parity and TestRpc nodes add the personalMessage prefix itself
-      msgHashHex = sample_orderhash;
+      signedOrderHash = web3.eth.sign(accounts[1], sample_orderhash);
     }
-    else {
+    else {*/
       var orderHashBuff = ethUtil.toBuffer(sample_orderhash);
       var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
-      msgHashHex = ethUtil.bufferToHex(msgHashBuff);
-    }
-
-    var signedOrderHash = web3.eth.sign(accounts[1], msgHashHex);
-    //console.log(signedOrderHash);
+      var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
+      signedOrderHash = web3.eth.sign(accounts[1], msgHashHex);
+    //}
 
     ECSignature = {
       "v": parseInt(signedOrderHash.substring(130,132))+27,
@@ -508,7 +557,7 @@ contract('B0xTest', function(accounts) {
 
     broker.isValidSignature.call(
       accounts[1], // lender
-      msgHashHex,
+      sample_orderhash,
       ECSignature["v"],
       ECSignature["r"],
       ECSignature["s"]
@@ -606,7 +655,7 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should take sample trade as trader", function(done) {
+  it("should take sample lender order as trader", function(done) {
     broker.takeLendOrderAsTrader(
       [
         orderParams["maker"],
@@ -644,6 +693,154 @@ contract('B0xTest', function(accounts) {
       done();
     });
   });
+
+  it("should send ZRX Token to trader, then approve vault to transfer for trader", async function(done) {
+    var amount = web3.toWei(10000, "ether");
+
+    try
+    {
+      //const zrx_supply = await zrx_token.totalSupply.call();
+      //console.log(zrx_supply.toNumber());
+      
+      //const balance = await zrx_token.balanceOf.call(accounts[0]);
+      //console.log(balance.toNumber());
+
+      var tx1 = await zrx_token.transfer(accounts[2], amount, {from: accounts[0]});
+      assert.isOk(tx1.receipt);
+
+      var tx2 = await zrx_token.approve(vault.address, amount, {from: accounts[2]});
+      assert.isOk(tx2.receipt);
+    } catch (error) {
+      console.error(error);
+      assert.isOk(false);
+    }
+  });
+
+  it("should generate signed 0x order", async function(done) {
+    var salt = generatePseudoRandomSalt().toString();
+    salt = salt.substring(0,salt.length-10);
+  
+    var OrderParams_0x = {
+      "exchangeContractAddress": contracts0x["Exchange"],
+      "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
+      "feeRecipient": "0x1230000000000000000000000000000000000000",
+      "maker": accounts[7],
+      "makerFee": web3.toWei(0.002, "ether").toString(),
+      "makerTokenAddress": bean_token.address,
+      "makerTokenAmount": web3.toWei(100, "ether").toString(), // 2 token units per day,
+      "salt": salt,
+      "taker": "0x0000000000000000000000000000000000000000",
+      "takerFee": web3.toWei(0.0013, "ether").toString(),
+      "takerTokenAddress": tom_token.address,
+      "takerTokenAmount": web3.toWei(10000, "ether").toString(),
+    };
+    console.log(orderParams);
+    
+    let orderHash0x = OrderParams_0x.getOrderHashHex(OrderParams_0x);
+    
+    var orderHashBuff = ethUtil.toBuffer(orderHash0x);
+    var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
+    var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
+    var signedOrderHash = web3.eth.sign(accounts[7], msgHashHex);
+
+    ECSignature0x = {
+      "v": parseInt(signedOrderHash.substring(130,132))+27,
+      "r": "0x"+signedOrderHash.substring(2,66),
+      "s": "0x"+signedOrderHash.substring(66,130)
+    };
+
+    var isValid = broker.isValidSignature.call(
+      accounts[7],
+      orderHash0x,
+      ECSignature0x["v"],
+      ECSignature0x["r"],
+      ECSignature0x["s"]
+    ).then(function(result) {
+      assert.isOk(result);
+      done();
+    }, function(error) {
+      console.error(error);
+      assert.isOk(false);
+      done();
+    });
+  });
+
+    let expectedHash = brokerjs.getLendOrderHashHex(orderParams);
+    console.log("js hash: "+expectedHash);
+    //console.log(salt);
+    //console.log(expirationUnixTimestampSec);
+    //console.log(orderParams);
+    broker.getLendOrderHash.call(
+      [
+        orderParams["maker"],
+        orderParams["taker"],
+        orderParams["lendTokenAddress"],
+        orderParams["marginTokenAddress"],
+        orderParams["feeRecipientAddress"]
+      ],
+      [
+        new BN(orderParams["lendTokenAmount"]),
+        new BN(orderParams["interestAmount"]),
+        new BN(orderParams["initialMarginAmount"]),
+        new BN(orderParams["liquidationMarginAmount"]),
+        new BN(orderParams["lenderRelayFee"]),
+        new BN(orderParams["traderRelayFee"]),
+        new BN(orderParams["expirationUnixTimestampSec"]),
+        new BN(orderParams["salt"])
+    ]).then(function(orderHash) {
+      console.log("sol hash: "+orderHash);
+      sample_orderhash = orderHash;
+      assert.equal(orderHash, expectedHash, "expectedHash should equal returned lendOrderHash");
+      done();
+    }, function(error) {
+      console.error(error);
+      assert.equal(true, false);
+      done();
+    });
+  });
+
+  it("should sign and verify orderHash", function(done) {
+    var signedOrderHash;
+    /*const nodeVersion = web3.version.node;
+    const isParityNode = _.includes(nodeVersion, 'Parity');
+    const isTestRpc = _.includes(nodeVersion, 'TestRPC');
+    console.log("isParityNode:" + isParityNode);
+    console.log("isTestRpc:" + isTestRpc);*/
+    
+    /*if (isParityNode || isTestRpc) {
+      // Parity and TestRpc nodes add the personalMessage prefix itself
+      signedOrderHash = web3.eth.sign(accounts[1], sample_orderhash);
+    }
+    else {*/
+      var orderHashBuff = ethUtil.toBuffer(sample_orderhash);
+      var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
+      var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
+      signedOrderHash = web3.eth.sign(accounts[1], msgHashHex);
+    //}
+
+    ECSignature = {
+      "v": parseInt(signedOrderHash.substring(130,132))+27,
+      "r": "0x"+signedOrderHash.substring(2,66),
+      "s": "0x"+signedOrderHash.substring(66,130)
+    };
+
+    broker.isValidSignature.call(
+      accounts[1], // lender
+      sample_orderhash,
+      ECSignature["v"],
+      ECSignature["r"],
+      ECSignature["s"]
+    ).then(function(result) {
+      assert.isOk(result);
+      done();
+    }, function(error) {
+      console.error(error);
+      assert.isOk(false);
+      done();
+    });
+  });
+
+
 
 
   /*it('is should create sample prices for tokens', async function () {
