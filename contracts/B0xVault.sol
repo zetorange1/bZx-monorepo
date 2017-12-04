@@ -19,8 +19,8 @@
 
 pragma solidity ^0.4.9;
 
+import './ERC20.sol';
 import 'oz_contracts/math/SafeMath.sol';
-import 'oz_contracts/token/ERC20.sol';
 import 'oz_contracts/ownership/Ownable.sol';
 
 contract B0xVault is Ownable {
@@ -44,12 +44,18 @@ contract B0xVault is Ownable {
     mapping (address => bool) public authorized;
     address[] public authorities;
 
+    event LogErrorText(string errorTxt, uint errorValue);
+
     // in the below mappings, token=0 means Ether
+/*
     mapping (address => mapping (address => uint)) public marginWallet; // mapping of token addresses to mapping of accounts to margin trading wallet balance available for usage
     mapping (address => mapping (address => uint)) public fundingWallet; // mapping of token addresses to mapping of accounts to margin funding wallet balances
     mapping (address => mapping (address => uint)) public usedMargin; // mapping of token addresses to mapping of accounts to margin in use
     mapping (address => mapping (address => uint)) public usedFunding; // mapping of token addresses to mapping of accounts to funding in use
- 
+ */
+    mapping (address => mapping (address => uint)) public margin; // mapping of token addresses to mapping of accounts to margin
+    mapping (address => mapping (address => uint)) public funding; // mapping of token addresses to mapping of accounts to funding
+
 
     event LogAuthorizedAddressAdded(address indexed target, address indexed caller);
     event LogAuthorizedAddressRemoved(address indexed target, address indexed caller);
@@ -140,18 +146,18 @@ contract B0xVault is Ownable {
     }*/
 
     function marginBalanceOf(address token_, address user_) public constant returns (uint balance) {
-        return marginWallet[token_][user_];
+        return margin[token_][user_];
     }
-    function usedMarginBalanceOf(address token_, address user_) public constant returns (uint balance) {
+    /*function usedMarginBalanceOf(address token_, address user_) public constant returns (uint balance) {
         return usedMargin[token_][user_];
-    }
+    }*/
 
     function fundingBalanceOf(address token_, address user_) public constant returns (uint balance) {
-        return fundingWallet[token_][user_];
+        return funding[token_][user_];
     }
-    function usedFundingBalanceOf(address token_, address user_) public constant returns (uint balance) {
+    /*function usedFundingBalanceOf(address token_, address user_) public constant returns (uint balance) {
         return usedFunding[token_][user_];
-    }
+    }*/
 
     function addAuthorizedAddress(address target)
         public
@@ -179,75 +185,80 @@ contract B0xVault is Ownable {
         LogAuthorizedAddressRemoved(target, msg.sender);
     }
 
-    function transferInTokenMarginAndUse(
+    function ensureMarginAndStoreValue(
         address token,
-        address from,
+        address user,
         uint value)
         public
         onlyAuthorized
         returns (bool)
     {
-        uint valueNotInWallet = SafeMath.max256(value - marginWallet[token][from], 0);
-        uint valueInWallet = value.sub(valueNotInWallet);
-        marginWallet[token][from] = marginWallet[token][from].sub(valueInWallet);
-        usedMargin[token][from].add(value);
+        uint valueNotInWallet = 0;
+        if (margin[token][user] < value)
+            valueNotInWallet = value - margin[token][user];
         if (valueNotInWallet > 0) {
-            return ERC20(token).transferFrom(from, this, valueNotInWallet);
+            margin[token][user] = margin[token][user].add(valueNotInWallet);
+            if (!ERC20(token).transferFrom(user, this, valueNotInWallet))
+                return false;
         }
         return true;
     }
-    function transferInTokenFundingAndUse(
+    function ensureFundingAndStoreValue(
         address token,
-        address from,
+        address user,
         uint value)
         public
         onlyAuthorized
         returns (bool)
     {
-        uint valueNotInWallet = SafeMath.max256(value - fundingWallet[token][from], 0);
-        uint valueInWallet = value.sub(valueNotInWallet);
-        fundingWallet[token][from] = fundingWallet[token][from].sub(valueInWallet);
-        usedFunding[token][from].add(value);
+        uint valueNotInWallet = 0;
+        if (funding[token][user] < value)
+            valueNotInWallet = value - funding[token][user];
         if (valueNotInWallet > 0) {
-            if (!ERC20(token).transferFrom(from, this, valueNotInWallet))
+            funding[token][user] = funding[token][user].add(valueNotInWallet);
+            if (!ERC20(token).transferFrom(user, this, valueNotInWallet))
                 return false;
         }
         return true;
     }
 
-    function transferOutTokenMargin(
+    function ensureMarginAndPayValue(
         address token,
-        address from,
+        address user,
         address to,        
         uint value)
         public
         onlyAuthorized
         returns (bool)
     {
-        uint valueNotInWallet = SafeMath.max256(value - marginWallet[token][from], 0);
+        uint valueNotInWallet = 0;
+        if (margin[token][user] < value)
+            valueNotInWallet = value - margin[token][user];
         uint valueInWallet = value.sub(valueNotInWallet);
-        marginWallet[token][from] = marginWallet[token][from].sub(valueInWallet);
+        margin[token][user] = margin[token][user].sub(valueInWallet);
         if (valueNotInWallet > 0) {
-            if (!ERC20(token).transferFrom(from, this, valueNotInWallet))
+            if (!ERC20(token).transferFrom(user, this, valueNotInWallet))
                 return false;
         }
         return ERC20(token).transfer(to, value);
     }
 
-    function transferOutTokenFunding(
+    function ensureFundingAndPayValue(
         address token,
-        address from,
+        address user,
         address to,        
         uint value)
         public
         onlyAuthorized
         returns (bool)
     {
-        uint valueNotInWallet = SafeMath.max256(value - fundingWallet[token][from], 0);
+        uint valueNotInWallet = 0;
+        if (funding[token][user] < value)
+            valueNotInWallet = value - funding[token][user];
         uint valueInWallet = value.sub(valueNotInWallet);
-        fundingWallet[token][from] = fundingWallet[token][from].sub(valueInWallet);
+        funding[token][user] = funding[token][user].sub(valueInWallet);
         if (valueNotInWallet > 0) {
-            if (!ERC20(token).transferFrom(from, this, valueNotInWallet))
+            if (!ERC20(token).transferFrom(user, this, valueNotInWallet))
                 return false;
         }
         return ERC20(token).transfer(to, value);

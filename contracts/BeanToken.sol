@@ -1,8 +1,8 @@
 pragma solidity ^0.4.4;
 
-import 'oz_contracts/token/StandardToken.sol';
+import './ERC20_AlwaysOwned.sol';
 
-contract BeanToken is StandardToken {
+contract BeanToken is ERC20_AlwaysOwned {
 
     string constant public name = "Bean Token";
     string constant public symbol = "BEAN";
@@ -10,9 +10,9 @@ contract BeanToken is StandardToken {
     uint public totalSupply = 15000000000000000000000000; // 15 million tokens (18 decimal places), 10 * 10**24
 
     function BeanToken(address owner_) public {
-        if (owner_ != address(0))
+        /*if (owner_ != address(0))
 			balances[owner_] = totalSupply;
 		else
-			balances[msg.sender] = totalSupply;
+			balances[msg.sender] = totalSupply;*/
     }
 }

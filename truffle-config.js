@@ -11,5 +11,16 @@ module.exports = {
       gas: 4712388, // Default is 4712388
       gasPrice: 0 // Default is 100000000000 (100 Shannon)
     }
+  },
+  solc: {
+    optimizer: {
+      enabled: true,
+      runs: 200
+    }
   }
 };
+
+/*module.exports = {
+  // See <http://truffleframework.com/docs/advanced/configuration>
+  // to customize your Truffle configuration!
+};*/

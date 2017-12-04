@@ -24,9 +24,9 @@ THE SOFTWARE.
 
 pragma solidity ^0.4.4;
 
-import 'oz_contracts/token/StandardToken.sol';
+import './ERC20_Standard.sol';
 
-contract HumanStandardToken is StandardToken {
+contract HumanStandardToken is ERC20_Standard {
 
     /* Public variables of the token */
 
@@ -52,11 +52,6 @@ contract HumanStandardToken is StandardToken {
         name = _tokenName;                                   // Set the name for display purposes
         decimals = _decimalUnits;                            // Amount of decimals for display purposes
         symbol = _tokenSymbol;                               // Set the symbol for display purposes
-    }
-
-    function() public {
-        //if ether is sent to this address, send it back.
-        revert();
     }
 
     /* Approves and then calls the receiving contract */

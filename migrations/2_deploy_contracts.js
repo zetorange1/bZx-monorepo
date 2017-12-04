@@ -6,12 +6,8 @@ var B0xPrices = artifacts.require("./B0xPrices.sol");
 //var B0xPool = artifacts.require("./B0xPool.sol");
 var B0x = artifacts.require("./B0x.sol");
 
-//var DexA = artifacts.require("./DexA.sol");
-//var DexB = artifacts.require("./DexB.sol");
-//var DexC = artifacts.require("./DexC.sol");
-
-const Web3 = require('web3');
-let web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"))
+//const Web3 = require('web3');
+//let web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:9545")) // :8545
 
 /*var Taker0x = artifacts.require("./Taker0x.sol");
 var INTToken = artifacts.require("./INTToken.sol");
@@ -40,9 +36,7 @@ let contracts0x = {
 	"TokenTransferProxy": "0x871DD7C2B4b25E1Aa18728e9D5f2Af4C4e431f5c"
 };
 
-var testWallets = web3.eth.accounts;
-module.exports = async function(deployer) {
-	
+module.exports = async function(deployer, network, accounts) {
 	await Promise.all([
 		deployer.deploy(LOANToken),
 		deployer.deploy(B0xVault),
@@ -50,15 +44,21 @@ module.exports = async function(deployer) {
 		deployer.deploy(TomToken),
 		deployer.deploy(BeanToken)
 	]);
-
+	
 	await Promise.all([
 		deployer.deploy(B0x, LOANToken.address, B0xVault.address, B0xPrices.address, contracts0x["Exchange"]),
 		TomToken.deployed().then(function(instance) {
-			instance.transfer(testWallets[1], web3.toWei(2000000, "ether"));
+			instance.transfer(accounts[1], web3.toWei(2000000, "ether"));
 		}),
 		BeanToken.deployed().then(function(instance) {
-			instance.transfer(testWallets[2], web3.toWei(2000000, "ether"));
+			instance.transfer(accounts[2], web3.toWei(2000000, "ether"));
 		}),
+		LOANToken.deployed().then(function(instance) {
+			instance.transfer(accounts[1], web3.toWei(100000, "ether"));
+		}),
+		LOANToken.deployed().then(function(instance) {
+			instance.transfer(accounts[2], web3.toWei(100000, "ether"));
+		}),						
 	]);
 
 	await Promise.all([
@@ -69,5 +69,4 @@ module.exports = async function(deployer) {
 			instance.addAuthorizedAddress(B0x.address);
 		})
 	]);
-
 };

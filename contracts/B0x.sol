@@ -18,8 +18,8 @@
 */
 
 pragma solidity ^0.4.9;
-import 'oz_contracts/token/StandardToken.sol';
-import 'oz_contracts/math/SafeMath.sol';
+
+//import './ERC20_Interface.sol';
 import 'oz_contracts/ownership/Ownable.sol';
 import 'oz_contracts/ReentrancyGuard.sol';
 
@@ -61,8 +61,8 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
 
     struct LendOrder {
         address maker;
-        address taker;
         address lendTokenAddress;
+        address interestTokenAddress;
         address marginTokenAddress;
         address feeRecipientAddress;
         uint lendTokenAmount;
@@ -82,6 +82,12 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         uint filledUnixTimestampSec;
     }
 
+    struct Trade {
+        address tradeTokenAddress;
+        uint tradeTokenAmountFilled;
+        bool active;
+    }    
+
     struct PriceData {
         uint lendTokenPrice;
         uint marginTokenPrice;
@@ -99,6 +105,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     mapping (bytes32 => uint) public cancelled; // mapping of orderHash to lendTokenAmount cancelled
     mapping (bytes32 => LendOrder) public orders; // mapping of orderHash to taken lendOrders
     mapping (bytes32 => mapping (address => FilledOrder)) public orderFills; // mapping of orderHash to mapping of traders to lendOrder fills
+    mapping (bytes32 => mapping (address => Trade)) public trades; // mapping of orderHash to mapping of traders to active trades
 
     mapping (bytes32 => mapping (address => uint)) public interestPaid; // mapping of orderHash to mapping of traders to amount of interest paid so far to a lender
 
@@ -117,6 +124,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         address indexed lender,
         address indexed feeRecipientAddress,
         address lendTokenAddress,
+        address interestTokenAddress,
         address marginTokenAddress,
         uint lendTokenAmountFilled,
         uint interestAmount,
@@ -141,6 +149,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     );*/
 
     event LogError(uint8 indexed errorId, bytes32 indexed orderHash);
+    
     event LogErrorText(string errorTxt, uint errorValue, bytes32 indexed orderHash);
 
     //event DepositEtherMargin(address user, uint amount, uint balance);
@@ -222,8 +231,44 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         constant
         returns (uint)
     {
+        LendOrder memory lendOrder = orders[lendOrderHash];
+        if (lendOrder.orderHash != lendOrderHash) {
+            LogErrorText("error: invalid lend order", 0, lendOrderHash);
+            return intOrRevert(0);
+        }
+
+        FilledOrder memory filledOrder = orderFills[lendOrderHash][trader];
+        if (filledOrder.lendTokenAmountFilled == 0) {
+            LogErrorText("error: filled order not found for specified lendOrder and trader", 0, lendOrderHash);
+            return intOrRevert(0);
+        }
+
+        Trade memory activeTrade = trades[lendOrderHash][trader];
+        if (!activeTrade.active) {
+            LogErrorText("error: trade not found or not active", 0, lendOrderHash);
+            return intOrRevert(0);
+        }
+
+        PriceData memory priceData = _getPriceData(lendOrder, activeTrade.tradeTokenAddress);
+        if (priceData.lendTokenPrice == 0) {
+            LogErrorText("error: lendTokenPrice is 0 or not found", 0, lendOrderHash);
+            return intOrRevert(0);
+        }
+        if (priceData.marginTokenPrice == 0) {
+            LogErrorText("error: marginTokenPrice is 0 or not found", 0, lendOrderHash);
+            return intOrRevert(0);
+        }
+        if (priceData.tradeTokenPrice == 0) {
+            LogErrorText("error: tradeTokenPrice is 0 or not found", 0, lendOrderHash);
+            return intOrRevert(0);
+        }
+        
+
+        //tradeTokenAmountFilled
+
+        
         // todo: implement below!!!
-        uint level;
+        uint level = 100;
         /*uint level = (
                                      (lendTokenAmountFilled * priceData.lendTokenPrice * lendOrder.initialMarginAmount / 100) // initial margin required
                                    + (lendOrder.expirationUnixTimestampSec.sub(block.timestamp) / 86400 * lendOrder.interestAmount * lendTokenAmountFilled / lendOrder.lendTokenAmount) // total interest required is loan is kept until order expiration
@@ -266,7 +311,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         }
 
         FilledOrder memory filledOrder = orderFills[lendOrderHash][msg.sender];
-        if (filledOrder.lender == address(0)) {
+        if (filledOrder.lendTokenAmountFilled == 0) {
             LogErrorText("error: filled order not found", 0, lendOrderHash);
             return intOrRevert(0);
         }
@@ -334,7 +379,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         uint amountToPay = totalAmountAccrued.sub(interestPaid[lendOrderHash][trader]);
         interestPaid[lendOrderHash][trader] = totalAmountAccrued;
         
-        if (! B0xVault(VAULT_CONTRACT).transferOutTokenMargin(
+        if (! B0xVault(VAULT_CONTRACT).ensureMarginAndPayValue(
             lendOrder.marginTokenAddress,
             trader,
             filledOrder.lender,
@@ -351,6 +396,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     function takeLendOrderAsTrader(
         address[5] orderAddresses,
         uint[8] orderValues,
+        address marginTokenAddressFilled,
         uint lendTokenAmountFilled,
         uint8 v,
         bytes32 r,
@@ -360,9 +406,9 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     {
         LendOrder memory lendOrder = LendOrder({
             maker: orderAddresses[0],
-            taker: orderAddresses[1],
-            lendTokenAddress: orderAddresses[2],
-            marginTokenAddress: orderAddresses[3],
+            lendTokenAddress: orderAddresses[1],
+            interestTokenAddress: orderAddresses[2],
+            marginTokenAddress: marginTokenAddressFilled,
             feeRecipientAddress: orderAddresses[4],
             lendTokenAmount: orderValues[0],
             interestAmount: orderValues[1],
@@ -393,7 +439,8 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
                 lendOrder.maker,
                 lendOrder.feeRecipientAddress,
                 lendOrder.lendTokenAddress,
-                lendOrder.marginTokenAddress,
+                lendOrder.interestTokenAddress,
+                marginTokenAddressFilled,
                 lendTokenAmountFilled,
                 lendOrder.interestAmount,
                 lendOrder.initialMarginAmount,
@@ -425,8 +472,8 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     {
         LendOrder memory lendOrder = LendOrder({
             maker: orderAddresses[0],
-            taker: orderAddresses[1],
-            lendTokenAddress: orderAddresses[2],
+            lendTokenAddress: orderAddresses[1],
+            interestTokenAddress: orderAddresses[2],
             marginTokenAddress: orderAddresses[3],
             feeRecipientAddress: orderAddresses[4],
             lendTokenAmount: orderValues[0],
@@ -458,6 +505,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
                 msg.sender,
                 lendOrder.feeRecipientAddress,
                 lendOrder.lendTokenAddress,
+                lendOrder.interestTokenAddress,
                 lendOrder.marginTokenAddress,
                 lendTokenAmountFilled,
                 lendOrder.interestAmount,
@@ -528,12 +576,12 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     }*/
 
 
-    function _checkUsedMargin(address token_, address user_) internal returns (uint) {
+    /*function _checkUsedMargin(address token_, address user_) internal returns (uint) {
         return B0xVault(VAULT_CONTRACT).usedMarginBalanceOf(token_,user_);
     }
     function _checkUsedFunding(address token_, address user_) internal returns (uint) {
         return B0xVault(VAULT_CONTRACT).usedFundingBalanceOf(token_,user_); 
-    }
+    }*/
 
 
     /*
@@ -647,7 +695,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     */
 
     /// @dev Calculates Keccak-256 hash of order with specified parameters.
-    /// @param orderAddresses Array of order's maker, taker, lendTokenAddress, marginTokenAddress, and feeRecipientAddress.
+    /// @param orderAddresses Array of order's maker, lendTokenAddress, interestTokenAddress marginTokenAddress, and feeRecipientAddress.
     /// @param orderValues Array of order's lendTokenAmount, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
     /// @return Keccak-256 hash of lendOrder.
     function getLendOrderHash(
@@ -660,10 +708,10 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         return(keccak256(
             address(this),
             orderAddresses[0],  // maker
-            orderAddresses[1],  // taker
-            orderAddresses[2],  // lendTokenAddress
+            orderAddresses[1],  // lendTokenAddress
+            orderAddresses[2],  // interestTokenAddress
             orderAddresses[3],  // marginTokenAddress
-            orderAddresses[4],   // feeRecipientAddress
+            orderAddresses[4],  // feeRecipientAddress
             orderValues[0],    // lendTokenAmount
             orderValues[1],    // interestAmount
             orderValues[2],    // initialMarginAmount
@@ -783,11 +831,11 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         internal
         returns (bool)
     {
-        if ((lendOrder.taker != address(0) && lendOrder.taker != msg.sender) || lendOrder.maker == msg.sender) {
+        if (lendOrder.maker == msg.sender) {
             LogErrorText("error: invalid taker", 0, lendOrder.orderHash);
             return boolOrRevert(false);
         }
-        if (! (lendOrder.lendTokenAddress > 0 && lendOrder.marginTokenAddress > 0 && lendOrder.lendTokenAmount > 0)) {
+        if (! (lendOrder.lendTokenAddress > 0 && lendOrder.lendTokenAmount > 0)) {
             LogErrorText("error: invalid token params", 0, lendOrder.orderHash);
             return boolOrRevert(false);
         }
@@ -873,8 +921,8 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         filledOrder.marginTokenAmountFilled = marginTokenAmountFilled;
         filledOrder.lendTokenAmountFilled = lendTokenAmountFilled;
         filledOrder.filledUnixTimestampSec = block.timestamp;
-        
-        if (! B0xVault(VAULT_CONTRACT).transferInTokenMarginAndUse(
+
+        if (! B0xVault(VAULT_CONTRACT).ensureMarginAndStoreValue(
             lendOrder.marginTokenAddress,
             trader,
             marginTokenAmountFilled
@@ -883,7 +931,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             return intOrRevert(lendTokenAmountFilled);
         }
 
-        if (! B0xVault(VAULT_CONTRACT).transferInTokenFundingAndUse(
+        if (! B0xVault(VAULT_CONTRACT).ensureFundingAndStoreValue(
             lendOrder.lendTokenAddress,
             lender,
             lendTokenAmountFilled
@@ -896,7 +944,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             if (lendOrder.traderRelayFee > 0) {
                 paidTraderFee = getPartialAmount(lendTokenAmountFilled, lendOrder.lendTokenAmount, lendOrder.traderRelayFee);
                 
-                if (! B0xVault(VAULT_CONTRACT).transferOutTokenMargin(
+                if (! B0xVault(VAULT_CONTRACT).ensureMarginAndPayValue(
                     LOAN_TOKEN_CONTRACT, 
                     trader,
                     lendOrder.feeRecipientAddress,
@@ -909,7 +957,7 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             if (lendOrder.lenderRelayFee > 0) {
                 paidLenderFee = getPartialAmount(lendTokenAmountFilled, lendOrder.lendTokenAmount, lendOrder.lenderRelayFee);
                 
-                if (! B0xVault(VAULT_CONTRACT).transferOutTokenFunding(
+                if (! B0xVault(VAULT_CONTRACT).ensureFundingAndPayValue(
                     LOAN_TOKEN_CONTRACT, 
                     lender,
                     lendOrder.feeRecipientAddress,

@@ -5,15 +5,14 @@ const ethUtil = require('ethereumjs-util');
 //const Transaction = require('ethereumjs-tx');
 //const coder = require('web3/lib/solidity/coder');
 //const CryptoJS = require('crypto-js');
-const Web3 = require('web3');
+//const Web3 = require('web3');
 
 //var provider = TestRPC.provider();
 //let web3 = new Web3(provider);
-web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"))
+//web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545")) // :9545
 
 
 import { B0xJS } from '../src/B0xJS.js';
-// require('../src/B0x.js');
 
 
 let B0xVault = artifacts.require("./B0xVault.sol");
@@ -28,11 +27,7 @@ let BeanToken = artifacts.require("./BeanToken.sol");
 let testDepositAmount = web3.toWei(0.001, "ether");
 let expected_LOANTokenTotalSupply = web3.toWei(20000000, "ether"); // 20MM LOAN
 
-let Exchange0x = artifacts.require("0x_contracts/Exchange.sol");
-
-//let DexA = artifacts.require("./DexA.sol");
-//let DexB = artifacts.require("./DexB.sol");
-//let DexC = artifacts.require("./DexC.sol");
+let Exchange0x = artifacts.require("./Exchange0x.sol");
 
 /*
 ZRXToken.sol: 0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3
@@ -131,13 +126,13 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-    /*
-    setup event listener
-    var event = broker.LogErrorText(function(error, result) {
-        if (!error)
-            console.log(result);
-    });
-    */
+  /*
+  //setup event listener
+  var event = broker.LogErrorText(function(error, result) {
+      if (!error)
+          console.log(result);
+  });
+  */
 
   /*
   it("should retrieve deployed B0xVault contract", function(done) {
@@ -387,11 +382,13 @@ contract('B0xTest', function(accounts) {
   });
 */
 
+  // not needed since loan_token is ERC20_AlwaysOwned
+  /*
   it("should transfer LOANToken to accounts[1] and accounts[1] approve vault for transfer (for lender)", function(done) {
     var amount = web3.toWei(100000, "ether");
     loan_token.transfer(accounts[1], amount, {from: accounts[0]}).then(function(result) {
       loan_token.approve(vault.address, amount, {from: accounts[1]}).then(function(tx) {
-        
+  */
         /*loan_token.allowance.call(accounts[1],broker.address).then(function(allowance) {
           console.log("allowance: "+allowance);
         });*/
@@ -415,7 +412,7 @@ contract('B0xTest', function(accounts) {
             assert.equal(true, false);
             done();
           });
-        });*/
+        });*/ /*
         assert.isOk(tx.receipt);
         done();
       });
@@ -424,8 +421,10 @@ contract('B0xTest', function(accounts) {
       assert.equal(true, false);
       done();
     });
-  });
+  }); */
 
+  // not needed since loan_token is ERC20_AlwaysOwned
+  /*
   it("should transfer LOANToken to accounts[2] and accounts[2] approve vault for transfer (for trader)", function(done) {
     var amount = web3.toWei(100000, "ether");
     loan_token.transfer(accounts[2], amount, {from: accounts[0]}).then(function(result) {
@@ -434,7 +433,7 @@ contract('B0xTest', function(accounts) {
         loan_token.allowance.call(accounts[2],vault.address).then(function(allowance) {
           console.log("allowance: "+allowance);
         });
-        
+  */
         
         /*vault.marginBalanceOf.call(loan_token.address, accounts[2]).then(function(beforeBalance) {
           broker.depositTokenMargin(loan_token.address, amount, {from: accounts[2]}).then(function() {
@@ -447,7 +446,7 @@ contract('B0xTest', function(accounts) {
             assert.equal(true, false);
             done();
           });
-        });*/
+        });*/ /*
         assert.isOk(tx.receipt);
         done();
       });
@@ -456,8 +455,10 @@ contract('B0xTest', function(accounts) {
       assert.equal(true, false);
       done();
     });
-  });
+  }); */
 
+  // not needed since tom_token is ERC20_AlwaysOwned
+  /*
   it("should approve vault to transfer Tom Token (for lender)", async function() {
     var amount = web3.toWei(1000000, "ether");
     try
@@ -474,17 +475,38 @@ contract('B0xTest', function(accounts) {
       assert.isOk(false);
     }
   });
+  */
 
-  it("should generate lendOrderHash", function(done) {
+  // not needed since bean_token is ERC20_AlwaysOwned
+  /*
+  it("should approve vault to transfer Tom Token (for lender)", async function() {
+    var amount = web3.toWei(2000000, "ether");
+    try
+    {
+      var tx1 = await bean_token.approve(vault.address, amount, {from: accounts[1]});
+      assert.isOk(tx1.receipt);
+      //console.log(tx1.receipt);
+      //var tx2 = await broker.depositTokenFunding.call(bean_token.address, amount, {from: accounts[1]});
+      //console.log(tx2);
+      //assert.isOk(true);
+      //assert.isOk(tx2.receipt);
+    } catch (error) {
+      console.error(error);
+      assert.isOk(false);
+    }
+  });
+  */
+
+  it("should generate lendOrderHash (as lender)", function(done) {
     var salt = generatePseudoRandomSalt().toString();
     salt = salt.substring(0,salt.length-10);
   
     orderParams = {
       "b0x": broker.address, 
       "maker": accounts[1], // lender
-      "taker": "0x0000000000000000000000000000000000000000",
       "lendTokenAddress": tom_token.address,
-      "marginTokenAddress": loan_token.address, 
+      "interestTokenAddress": bean_token.address, 
+      "marginTokenAddress": "0x0000000000000000000000000000000000000000",
       "feeRecipientAddress": accounts[9], 
       "lendTokenAmount": web3.toWei(1000000, "ether").toString(), 
       "interestAmount": web3.toWei(2, "ether").toString(), // 2 token units per day
@@ -504,8 +526,8 @@ contract('B0xTest', function(accounts) {
     broker.getLendOrderHash.call(
       [
         orderParams["maker"],
-        orderParams["taker"],
         orderParams["lendTokenAddress"],
+        orderParams["interestTokenAddress"],
         orderParams["marginTokenAddress"],
         orderParams["feeRecipientAddress"]
       ],
@@ -532,22 +554,22 @@ contract('B0xTest', function(accounts) {
 
   it("should sign and verify orderHash", function(done) {
     var signedOrderHash;
-    /*const nodeVersion = web3.version.node;
+    const nodeVersion = web3.version.node;
     const isParityNode = _.includes(nodeVersion, 'Parity');
     const isTestRpc = _.includes(nodeVersion, 'TestRPC');
-    console.log("isParityNode:" + isParityNode);
-    console.log("isTestRpc:" + isTestRpc);*/
+    //console.log("isParityNode:" + isParityNode);
+    //console.log("isTestRpc:" + isTestRpc);
     
-    /*if (isParityNode || isTestRpc) {
+    if (isParityNode || isTestRpc) {
       // Parity and TestRpc nodes add the personalMessage prefix itself
       signedOrderHash = web3.eth.sign(accounts[1], sample_orderhash);
     }
-    else {*/
+    else {
       var orderHashBuff = ethUtil.toBuffer(sample_orderhash);
       var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
       var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
       signedOrderHash = web3.eth.sign(accounts[1], msgHashHex);
-    //}
+    }
 
     ECSignature = {
       "v": parseInt(signedOrderHash.substring(130,132))+27,
@@ -659,8 +681,8 @@ contract('B0xTest', function(accounts) {
     broker.takeLendOrderAsTrader(
       [
         orderParams["maker"],
-        orderParams["taker"],
         orderParams["lendTokenAddress"],
+        orderParams["interestTokenAddress"],
         orderParams["marginTokenAddress"],
         orderParams["feeRecipientAddress"]
       ],
@@ -674,6 +696,7 @@ contract('B0xTest', function(accounts) {
         new BN(orderParams["expirationUnixTimestampSec"]),
         new BN(orderParams["salt"])
       ],
+      loan_token.address,
       web3.toWei(15, "ether"),
       ECSignature["v"],
       ECSignature["r"],
@@ -693,7 +716,7 @@ contract('B0xTest', function(accounts) {
       done();
     });
   });
-
+/*
   it("should send ZRX Token to trader, then approve vault to transfer for trader", async function(done) {
     var amount = web3.toWei(10000, "ether");
 
@@ -714,8 +737,8 @@ contract('B0xTest', function(accounts) {
       console.error(error);
       assert.isOk(false);
     }
-  });
-
+  });*/
+/*
   it("should generate signed 0x order", async function(done) {
     var salt = generatePseudoRandomSalt().toString();
     salt = salt.substring(0,salt.length-10);
@@ -801,22 +824,10 @@ contract('B0xTest', function(accounts) {
 
   it("should sign and verify orderHash", function(done) {
     var signedOrderHash;
-    /*const nodeVersion = web3.version.node;
-    const isParityNode = _.includes(nodeVersion, 'Parity');
-    const isTestRpc = _.includes(nodeVersion, 'TestRPC');
-    console.log("isParityNode:" + isParityNode);
-    console.log("isTestRpc:" + isTestRpc);*/
-    
-    /*if (isParityNode || isTestRpc) {
-      // Parity and TestRpc nodes add the personalMessage prefix itself
-      signedOrderHash = web3.eth.sign(accounts[1], sample_orderhash);
-    }
-    else {*/
-      var orderHashBuff = ethUtil.toBuffer(sample_orderhash);
-      var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
-      var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
-      signedOrderHash = web3.eth.sign(accounts[1], msgHashHex);
-    //}
+    var orderHashBuff = ethUtil.toBuffer(sample_orderhash);
+    var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
+    var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
+    signedOrderHash = web3.eth.sign(accounts[1], msgHashHex);
 
     ECSignature = {
       "v": parseInt(signedOrderHash.substring(130,132))+27,
@@ -840,7 +851,7 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-
+*/
 
 
   /*it('is should create sample prices for tokens', async function () {
