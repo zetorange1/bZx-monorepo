@@ -1,30 +1,13 @@
-/*
-
-  Copyright 2017 ZeroEx Intl.
-  Modifications Copyright 2017 Tom Bean
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-
-*/
 
 pragma solidity ^0.4.9;
 
-import 'oz_contracts/token/ERC20.sol';
 import 'oz_contracts/ownership/Ownable.sol';
+import 'oz_contracts/math/SafeMath.sol';
 
-/// @title TokenTransferProxy - Transfers tokens on behalf of contracts that have been approved via decentralized governance.
-/// @author Amir Bandeali - <amir@0xProject.com>, Will Warren - <will@0xProject.com>
-contract TokenTransferProxy is Ownable {
+//import './ERC20_AlwaysOwned.sol';
+
+contract KyberWrapper is Ownable {
+    using SafeMath for uint256;
 
     /// @dev Only authorized addresses can invoke functions with this modifier.
     modifier onlyAuthorized {
@@ -44,6 +27,8 @@ contract TokenTransferProxy is Ownable {
 
     mapping (address => bool) public authorized;
     address[] public authorities;
+
+    mapping(bytes32 => uint) pairConversionRate;
 
     event LogAuthorizedAddressAdded(address indexed target, address indexed caller);
     event LogAuthorizedAddressRemoved(address indexed target, address indexed caller);
@@ -82,23 +67,30 @@ contract TokenTransferProxy is Ownable {
         LogAuthorizedAddressRemoved(target, msg.sender);
     }
 
-    /// @dev Calls into ERC20 Token contract, invoking transferFrom.
-    /// @param token Address of token to transfer.
-    /// @param from Address to transfer token from.
-    /// @param to Address to transfer token to.
-    /// @param value Amount of token to transfer.
-    /// @return Success of transfer.
-    function transferFrom(
-        address token,
-        address from,
-        address to,
-        uint value)
+
+    // note: this is intentionally not a constant function to ease testing
+    // this function creates bogus rates to simulate price changes
+    function getKyberPrice(
+        address source,
+        address dest)
         public
-        onlyAuthorized
-        returns (bool)
+        returns (uint rate)
     {
-        return ERC20(token).transferFrom(from, to, value);
+        bytes32 pair = keccak256(source,dest);
+
+        if (pairConversionRate[pair] == 0) {
+            pairConversionRate[pair] = (uint(block.blockhash(block.number-1)) % 100 + 1) * 10**16;
+        } else {
+            if (uint(block.blockhash(block.number-1)) % 2 == 0) {
+                pairConversionRate[pair] = pairConversionRate[pair].sub(pairConversionRate[pair]/100);
+            } else {
+                pairConversionRate[pair] = pairConversionRate[pair].add(pairConversionRate[pair]/100);
+            }
+        }
+        
+        rate = pairConversionRate[pair];
     }
+
 
     /*
      * Public constant functions

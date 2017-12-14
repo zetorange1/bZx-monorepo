@@ -5,7 +5,7 @@ const ethUtil = require('ethereumjs-util');
 //const Transaction = require('ethereumjs-tx');
 //const coder = require('web3/lib/solidity/coder');
 //const CryptoJS = require('crypto-js');
-//const Web3 = require('web3');
+const Web3 = require('web3');
 
 //var provider = TestRPC.provider();
 //let web3 = new Web3(provider);
@@ -15,8 +15,12 @@ const ethUtil = require('ethereumjs-util');
 import { B0xJS } from '../src/B0xJS.js';
 
 
+import { ZeroEx } from '0x.js';
+//const zeroEx = new ZeroEx(new Web3.providers.HttpProvider("http://localhost:8545"));
+
+
 let B0xVault = artifacts.require("./B0xVault.sol");
-let B0xPrices = artifacts.require("./B0xPrices.sol");
+let KyberWrapper = artifacts.require("./KyberWrapper.sol");
 let B0xSol = artifacts.require("./B0x.sol");
 let LOANToken = artifacts.require("./LOANToken.sol");
 let ERC20 = artifacts.require("./ERC20.sol"); // for testing with any ERC20 token
@@ -27,7 +31,7 @@ let BeanToken = artifacts.require("./BeanToken.sol");
 let testDepositAmount = web3.toWei(0.001, "ether");
 let expected_LOANTokenTotalSupply = web3.toWei(20000000, "ether"); // 20MM LOAN
 
-let Exchange0x = artifacts.require("./Exchange0x.sol");
+let Exchange0x = artifacts.require("./Exchange0x_Interface.sol");
 
 /*
 ZRXToken.sol: 0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3
@@ -56,11 +60,11 @@ Mnemonic: concert load couple harbor equip island argue ramp clarify fence smart
 */
 
 let contracts0x = {
-  "ZRXToken": "0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3",
-  "EtherToken": "0x48BaCB9266a570d521063EF5dD96e61686DbE788",
-  "Exchange": "0xB69e673309512a9D726F87304C6984054f87a93b",
-  "TokenRegistry": "0x0B1ba0af832d7C05fD64161E0Db78E85978E8082",
-  "TokenTransferProxy": "0x871DD7C2B4b25E1Aa18728e9D5f2Af4C4e431f5c"
+	"ZRXToken": "0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3",
+	"EtherToken": "0x48BaCB9266a570d521063EF5dD96e61686DbE788",
+	"Exchange": "0xb69e673309512a9d726f87304c6984054f87a93b",
+	"TokenRegistry": "0x0B1ba0af832d7C05fD64161E0Db78E85978E8082",
+	"TokenTransferProxy": "0x871DD7C2B4b25E1Aa18728e9D5f2Af4C4e431f5c"
 };
 
 let account_privatekeys = [
@@ -79,19 +83,23 @@ let account_privatekeys = [
 contract('B0xTest', function(accounts) {
   var vault;
   var broker;
-  var prices;
+  var kyber;
   var loan_token;
   var tom_token;
   var bean_token;
   var brokerjs;
 
   var zrx_token;
-  //var 0x_exchange;
+  var exchange_0x;
   //var 0x_token_registry;
 
   var orderParams;
   var sample_orderhash;
   var ECSignature;
+
+  var OrderParams_0x;
+  var OrderHash_0x;
+  var ECSignature_0x;
 
   //printBalances(accounts);
 
@@ -108,13 +116,13 @@ contract('B0xTest', function(accounts) {
     await Promise.all([
       (loan_token = await LOANToken.new()),
       (vault = await B0xVault.new()),
-      (prices = await B0xPrices.new()),
+      (kyber = await KyberWrapper.new()),
       (tom_token = await TomToken.new()),
       (bean_token = await BeanToken.new())
     ]);
   
     await Promise.all([
-      (broker = await B0xSol.new(loan_token.address,vault.address,prices.address,contracts0x["Exchange"])),
+      (broker = await B0xSol.new(loan_token.address,vault.address,kyber.address,contracts0x["Exchange"],contracts0x["ZRXToken"])),
       tom_token.transfer(accounts[1], web3.toWei(2000000, "ether")),
       bean_token.transfer(accounts[2], web3.toWei(2000000, "ether"))
     ]);
@@ -143,9 +151,9 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should retrieve deployed B0xPrices contract", function(done) {
-    B0xPrices.deployed().then(function(instance) {
-      prices = instance;
+  it("should retrieve deployed KyberWrapper contract", function(done) {
+    KyberWrapper.deployed().then(function(instance) {
+      kyber = instance;
       assert.isOk(vault);
       done();
     });
@@ -200,18 +208,24 @@ contract('B0xTest', function(accounts) {
   it("should retrieve deployed ZRXToken contract", function(done) {
     ERC20.at(contracts0x["ZRXToken"]).then(function(instance) {
       zrx_token = instance;
+      //console.log(zrx_token);
+      /*zrx_token.totalSupply.call().then(function(totalSupply) {
+        console.log(totalSupply);
+        done();
+      });*/
       assert.isOk(zrx_token);
       done();
     });
   });
 
-  /*it("should retrieve deployed 0x Exchange contract", function(done) {
+  it("should retrieve deployed 0x Exchange contract", function(done) {
     Exchange0x.at(contracts0x["Exchange"]).then(function(instance) {
-      zrx_token = instance;
-      assert.isOk(zrx_token);
+      exchange_0x = instance;
+      //console.log(exchange_0x);
+      assert.isOk(exchange_0x);
       done();
     });
-  });*/
+  });
 
   it("should add B0x as authorized address for B0xVault", function(done) {
     vault.addAuthorizedAddress(broker.address).then(function() {
@@ -226,9 +240,9 @@ contract('B0xTest', function(accounts) {
     });
   });
   
-  it("should add B0x as authorized address for B0xPrices", function(done) {
-    prices.addAuthorizedAddress(broker.address).then(function() {
-      prices.getAuthorizedAddresses.call().then(function(authorities) {
+  it("should add B0x as authorized address for KyberWrapper", function(done) {
+    kyber.addAuthorizedAddress(broker.address).then(function() {
+      kyber.getAuthorizedAddresses.call().then(function(authorities) {
         assert.equal(authorities[0], broker.address, "B0x contract should be the authorized address");
         done();
       });
@@ -506,7 +520,7 @@ contract('B0xTest', function(accounts) {
       "maker": accounts[1], // lender
       "lendTokenAddress": tom_token.address,
       "interestTokenAddress": bean_token.address, 
-      "marginTokenAddress": "0x0000000000000000000000000000000000000000",
+      "marginTokenAddress": bean_token.address,
       "feeRecipientAddress": accounts[9], 
       "lendTokenAmount": web3.toWei(1000000, "ether").toString(), 
       "interestAmount": web3.toWei(2, "ether").toString(), // 2 token units per day
@@ -593,18 +607,18 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should send sample prices for LOAN", function(done) {
+  /*it("should send sample kyber for LOAN", function(done) {
     var expectedPrice = web3.toWei("0.00025998", "ether");
     broker.testSendPriceUpdate(
       loan_token.address, 
       expectedPrice,
       {from: accounts[0]}).then(function(tx) {
-        /*if (tx.logs[0] !== undefined)
+        *//*if (tx.logs[0] !== undefined)
           console.log(tx.logs[0].args);
         else
-          console.log(tx);*/
+          console.log(tx);*//*
         
-        prices.getTokenPrice(loan_token.address).then(function(currentPrice) {
+        kyber.getTokenPrice(loan_token.address).then(function(currentPrice) {
           assert.equal(currentPrice, expectedPrice, "expectedPrice should equal returned currentPrice");
           done();
         }, function(error) {
@@ -619,13 +633,13 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should send sample prices for BEAN", function(done) {
+  it("should send sample kyber for BEAN", function(done) {
     var expectedPrice = web3.toWei("1.2", "ether");
     broker.testSendPriceUpdate(
       bean_token.address, 
       expectedPrice,
       {from: accounts[0]}).then(function(tx) {
-        prices.getTokenPrice(bean_token.address).then(function(currentPrice) {
+        kyber.getTokenPrice(bean_token.address).then(function(currentPrice) {
           assert.equal(currentPrice, expectedPrice, "expectedPrice should equal returned currentPrice");
           done();
         }, function(error) {
@@ -640,21 +654,21 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should send sample prices for Tom", function(done) {
+  it("should send sample kyber for Tom", function(done) {
     var expectedPrice = web3.toWei((0.32+0.75)/2, "ether");
     broker.testSendPriceUpdate(
       tom_token.address, 
       web3.toWei(0.32, "ether"), // simulate price from one source
       {from: accounts[0]}).then(function(tx) {
         //console.log(tx);
-        prices.getTokenPrice(tom_token.address).then(function(currentPrice) {
+        kyber.getTokenPrice(tom_token.address).then(function(currentPrice) {
           //console.log(currentPrice.toString());
           broker.testSendPriceUpdate(
             tom_token.address, 
             web3.toWei(0.75, "ether"), // simulate price from another source
             {from: accounts[7]}).then(function(tx) {
               //console.log(tx);
-              prices.getTokenPrice(tom_token.address).then(function(currentPrice) {
+              kyber.getTokenPrice(tom_token.address).then(function(currentPrice) {
                 currentPrice = currentPrice.toString();
                 //console.log(currentPrice);
                 assert.equal(currentPrice, expectedPrice, "expectedPrice should equal returned currentPrice");
@@ -675,7 +689,7 @@ contract('B0xTest', function(accounts) {
       assert.isOk(false);
       done();
     });
-  });
+  });*/
 
   it("should take sample lender order as trader", function(done) {
     broker.takeLendOrderAsTrader(
@@ -697,7 +711,7 @@ contract('B0xTest', function(accounts) {
         new BN(orderParams["salt"])
       ],
       loan_token.address,
-      web3.toWei(15, "ether"),
+      web3.toWei(12.3, "ether"),
       ECSignature["v"],
       ECSignature["r"],
       ECSignature["s"],
@@ -716,68 +730,95 @@ contract('B0xTest', function(accounts) {
       done();
     });
   });
-/*
-  it("should send ZRX Token to trader, then approve vault to transfer for trader", async function(done) {
+
+
+  it("should send ZRX Token to trader, then approve b0x to transfer for trader for taking 0x trades", function(done) {
     var amount = web3.toWei(10000, "ether");
+    zrx_token.transfer(accounts[2], amount, {from: accounts[0]}).then(function(tx) {
+      zrx_token.approve(broker.address, amount, {from: accounts[0]}).then(function(tx) {
+        assert.isOk(tx.receipt);
+        done();
+      }, function(error) {
+        console.error("inner: "+error);
+        assert.isOk(false);
+        done();
+      });
+    }, function(error) {
+      console.error("outer: "+error);
+      assert.isOk(false);
+      done();
+    });
+  });
 
-    try
-    {
-      //const zrx_supply = await zrx_token.totalSupply.call();
-      //console.log(zrx_supply.toNumber());
-      
-      //const balance = await zrx_token.balanceOf.call(accounts[0]);
-      //console.log(balance.toNumber());
 
-      var tx1 = await zrx_token.transfer(accounts[2], amount, {from: accounts[0]});
-      assert.isOk(tx1.receipt);
-
-      var tx2 = await zrx_token.approve(vault.address, amount, {from: accounts[2]});
-      assert.isOk(tx2.receipt);
-    } catch (error) {
+  it("should send ZRX Token to account[7] (maker of 0x sample order)", function(done) {
+    var amount = web3.toWei(10000, "ether");
+    zrx_token.transfer(accounts[7], amount, {from: accounts[0]}).then(function(tx) {
+      assert.isOk(tx.receipt);
+      done();
+    }, function(error) {
       console.error(error);
       assert.isOk(false);
-    }
-  });*/
-/*
-  it("should generate signed 0x order", async function(done) {
+      done();
+    });
+  });
+
+  it("should generate 0x order", async function() {
     var salt = generatePseudoRandomSalt().toString();
     salt = salt.substring(0,salt.length-10);
   
-    var OrderParams_0x = {
+    OrderParams_0x = {
       "exchangeContractAddress": contracts0x["Exchange"],
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
-      "feeRecipient": "0x1230000000000000000000000000000000000000",
+      "feeRecipient": "0x0000000000000000000000000000000000000000", //"0x1230000000000000000000000000000000000000",
       "maker": accounts[7],
       "makerFee": web3.toWei(0.002, "ether").toString(),
       "makerTokenAddress": bean_token.address,
-      "makerTokenAmount": web3.toWei(100, "ether").toString(), // 2 token units per day,
+      "makerTokenAmount": web3.toWei(100, "ether").toString(),
       "salt": salt,
       "taker": "0x0000000000000000000000000000000000000000",
       "takerFee": web3.toWei(0.0013, "ether").toString(),
       "takerTokenAddress": tom_token.address,
-      "takerTokenAmount": web3.toWei(10000, "ether").toString(),
+      "takerTokenAmount": web3.toWei(2.1, "ether").toString(),
     };
-    console.log(orderParams);
+    console.log(OrderParams_0x);
     
-    let orderHash0x = OrderParams_0x.getOrderHashHex(OrderParams_0x);
-    
-    var orderHashBuff = ethUtil.toBuffer(orderHash0x);
-    var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
-    var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
-    var signedOrderHash = web3.eth.sign(accounts[7], msgHashHex);
+    OrderHash_0x = ZeroEx.getOrderHashHex(OrderParams_0x);
 
-    ECSignature0x = {
+    assert.isOk(true);
+  });
+  
+  it("should sign and verify 0x order", function(done) {
+    var signedOrderHash;
+    const nodeVersion = web3.version.node;
+    const isParityNode = _.includes(nodeVersion, 'Parity');
+    const isTestRpc = _.includes(nodeVersion, 'TestRPC');
+    //console.log("isParityNode:" + isParityNode);
+    //console.log("isTestRpc:" + isTestRpc);
+    
+    if (isParityNode || isTestRpc) {
+      // Parity and TestRpc nodes add the personalMessage prefix itself
+      signedOrderHash = web3.eth.sign(accounts[7], OrderHash_0x);
+    }
+    else {
+      var orderHashBuff = ethUtil.toBuffer(OrderHash_0x);
+      var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
+      var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
+      signedOrderHash = web3.eth.sign(accounts[7], msgHashHex);
+    }
+
+    ECSignature_0x = {
       "v": parseInt(signedOrderHash.substring(130,132))+27,
       "r": "0x"+signedOrderHash.substring(2,66),
       "s": "0x"+signedOrderHash.substring(66,130)
     };
 
-    var isValid = broker.isValidSignature.call(
+    exchange_0x.isValidSignature.call(
       accounts[7],
-      orderHash0x,
-      ECSignature0x["v"],
-      ECSignature0x["r"],
-      ECSignature0x["s"]
+      OrderHash_0x,
+      ECSignature_0x["v"],
+      ECSignature_0x["r"],
+      ECSignature_0x["s"]
     ).then(function(result) {
       assert.isOk(result);
       done();
@@ -787,6 +828,45 @@ contract('B0xTest', function(accounts) {
       done();
     });
   });
+
+  it("should open 0x trade with borrowed funds", function(done) {
+    broker.open0xTrade(
+      sample_orderhash,      
+      [
+        OrderParams_0x["maker"],
+        OrderParams_0x["taker"],
+        OrderParams_0x["makerTokenAddress"],
+        OrderParams_0x["takerTokenAddress"],
+        OrderParams_0x["feeRecipient"]
+      ],
+      [
+        new BN(OrderParams_0x["makerTokenAmount"]),
+        new BN(OrderParams_0x["takerTokenAmount"]),
+        new BN(OrderParams_0x["makerFee"]),
+        new BN(OrderParams_0x["takerFee"]),
+        new BN(OrderParams_0x["expirationUnixTimestampSec"]),
+        new BN(OrderParams_0x["salt"])
+      ],
+      ECSignature_0x["v"],
+      ECSignature_0x["r"],
+      ECSignature_0x["s"],
+      {from: accounts[2]}).then(function(tx) {
+        if (tx.logs !== undefined) {
+          for (var i=0; i < tx.logs.length; i++) {
+            console.log(tx.logs[i].args);
+          }
+        } else
+          console.log(tx);
+        assert.isOk(tx);
+        done();
+    }, function(error, tx) {
+      console.error(error);
+      assert.isOk(false);
+      done();
+    });
+  });
+
+  /*
 
     let expectedHash = brokerjs.getLendOrderHashHex(orderParams);
     console.log("js hash: "+expectedHash);
@@ -854,7 +934,7 @@ contract('B0xTest', function(accounts) {
 */
 
 
-  /*it('is should create sample prices for tokens', async function () {
+  /*it('is should create sample kyber for tokens', async function () {
     
     const DexA_LOAN = await fundRaise.address
 

@@ -19,26 +19,16 @@
 
 pragma solidity ^0.4.9;
 
-//import './ERC20_Interface.sol';
+import './ERC20_AlwaysOwned.sol';
 import 'oz_contracts/ownership/Ownable.sol';
 import 'oz_contracts/ReentrancyGuard.sol';
 
 //import '../tinyoracle/api.sol';
 import './B0xVault.sol';
-import './B0xPrices.sol';
+//import './B0xPrices.sol';
+import './KyberWrapper.sol';
 
-contract Exchange0x {
-    function fillOrder(
-          address[5] orderAddresses,
-          uint[6] orderValues,
-          uint fillTakerTokenAmount,
-          bool shouldThrowOnInsufficientBalanceOrAllowance,
-          uint8 v,
-          bytes32 r,
-          bytes32 s)
-          public
-          returns (uint filledTakerTokenAmount);
-}
+import './Exchange0x_Interface.sol';
 
 contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     using SafeMath for uint256;
@@ -54,10 +44,13 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     string constant public VERSION = "1.0.0";
     uint16 constant public EXTERNAL_QUERY_GAS_LIMIT = 4999;    // Changes to state require at least 5000 gas
 
+    uint constant PRECISION = (10**18);
+
     address public LOAN_TOKEN_CONTRACT;
     address public VAULT_CONTRACT;
-    address public TOKEN_PRICES_CONTRACT;
+    address public KYBER_CONTRACT;
     address public EXCHANGE0X_CONTRACT;
+    address public ZRX_TOKEN_CONTRACT;
 
     struct LendOrder {
         address maker;
@@ -92,6 +85,11 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         uint lendTokenPrice;
         uint marginTokenPrice;
         uint tradeTokenPrice;
+    }
+
+    struct RateData {
+        uint marginToLendRate;
+        uint tradeToLendRate;
     }
 
     struct BalanceData {
@@ -166,26 +164,27 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         revert();
     }
 
-    function B0x(address _loanToken, address _vault, address _tokenPrices, address _0xExchange) {
+    function B0x(address _loanToken, address _vault, address _kyber, address _0xExchange, address _zrxToken) {
         LOAN_TOKEN_CONTRACT = _loanToken;
         VAULT_CONTRACT = _vault;
-        TOKEN_PRICES_CONTRACT = _tokenPrices;
+        KYBER_CONTRACT = _kyber;
         EXCHANGE0X_CONTRACT = _0xExchange;
+        ZRX_TOKEN_CONTRACT = _zrxToken;
     }
     /*
     bytes public response;
     function __tinyOracleCallback(uint256 id_, address token_, uint price_) onlyFromTinyOracle external {
-        require(B0xPrices(TOKEN_PRICES_CONTRACT).setTokenPrice(msg.sender, token_, price_));
+        require(B0xPrices(KYBER_CONTRACT).setTokenPrice(msg.sender, token_, price_));
     }
 
-    // uint price = B0xPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(token_)
+    // uint price = B0xPrices(KYBER_CONTRACT).getTokenPrice(token_)
     */
 
     // this is purely for testing in a test environment
     // NOT FOR PRODUCTION!
-    function testSendPriceUpdate(address token_, uint price_) public {
-        require(B0xPrices(TOKEN_PRICES_CONTRACT).setTokenPrice(msg.sender, token_, price_));
-    }
+    /*function testSendPriceUpdate(address token_, uint price_) public {
+        require(B0xPrices(KYBER_CONTRACT).setTokenPrice(msg.sender, token_, price_));
+    }*/
 
 
 
@@ -246,23 +245,24 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         Trade memory activeTrade = trades[lendOrderHash][trader];
         if (!activeTrade.active) {
             LogErrorText("error: trade not found or not active", 0, lendOrderHash);
-            return intOrRevert(0);
+            return intOrRevert(999);
         }
 
-        PriceData memory priceData = _getPriceData(lendOrder, activeTrade.tradeTokenAddress);
-        if (priceData.lendTokenPrice == 0) {
-            LogErrorText("error: lendTokenPrice is 0 or not found", 0, lendOrderHash);
+
+        RateData memory rateData = _getRateData(
+            lendOrder.lendTokenAddress,
+            lendOrder.marginTokenAddress,
+            activeTrade.tradeTokenAddress
+        );
+        if (rateData.marginToLendRate == 0) {
+            LogErrorText("error: conversion rate from marginToken to lendToken is 0 or not found", 0, lendOrderHash);
             return intOrRevert(0);
         }
-        if (priceData.marginTokenPrice == 0) {
-            LogErrorText("error: marginTokenPrice is 0 or not found", 0, lendOrderHash);
+        if (rateData.tradeToLendRate == 0) {
+            LogErrorText("error: conversion rate from tradeToken to lendToken is 0 or not found", 0, lendOrderHash);
             return intOrRevert(0);
         }
-        if (priceData.tradeTokenPrice == 0) {
-            LogErrorText("error: tradeTokenPrice is 0 or not found", 0, lendOrderHash);
-            return intOrRevert(0);
-        }
-        
+       
 
         //tradeTokenAmountFilled
 
@@ -270,9 +270,9 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         // todo: implement below!!!
         uint level = 100;
         /*uint level = (
-                                     (lendTokenAmountFilled * priceData.lendTokenPrice * lendOrder.initialMarginAmount / 100) // initial margin required
+                                     (lendTokenAmountFilled * rateData.lendTokenPrice * lendOrder.initialMarginAmount / 100) // initial margin required
                                    + (lendOrder.expirationUnixTimestampSec.sub(block.timestamp) / 86400 * lendOrder.interestAmount * lendTokenAmountFilled / lendOrder.lendTokenAmount) // total interest required is loan is kept until order expiration
-        ) / priceData.marginTokenPrice;*/
+        ) / rateData.marginTokenPrice;*/
 
         return level;
     }
@@ -283,6 +283,14 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         onlyOwner
     {
         EXCHANGE0X_CONTRACT = _0xExchange;
+    }
+
+    function setZRXToken(
+        address _zrxToken)
+        public
+        onlyOwner
+    {
+        ZRX_TOKEN_CONTRACT = _zrxToken;
     }
 
 /*
@@ -327,8 +335,17 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             return intOrRevert(0);
         }
 
+        if (orderAddresses0x[4] != address(0) && // feeRecipient
+                orderValues0x[1] > 0 // takerTokenAmount
+        ) {
+            if (!ERC20(ZRX_TOKEN_CONTRACT).transferFrom(msg.sender, this, orderValues0x[1])) {
+                LogErrorText("error: b0x can't transfer ZRX from trader", 0, lendOrderHash);
+                return intOrRevert(0);
+            }
+        }
+
         // 0x order will fail if filledOrder.lendTokenAmountFilled is too high
-        uint amountFilled = Exchange0x(EXCHANGE0X_CONTRACT).fillOrder(
+        uint filledTakerTokenAmount = Exchange0x_Interface(EXCHANGE0X_CONTRACT).fillOrder(
             orderAddresses0x,
             orderValues0x,
             filledOrder.lendTokenAmountFilled,
@@ -336,14 +353,24 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             v,
             r,
             s);
-        if (amountFilled == 0) {
+        if (filledTakerTokenAmount == 0) {
             LogErrorText("error: 0x order failed!", 0, lendOrderHash);
             return intOrRevert(0);
         }
 
+        uint filledMakerTokenAmount = getPartialAmount(
+            filledTakerTokenAmount,
+            orderValues0x[1], // takerTokenAmount
+            orderValues0x[0] // makerTokenAmount
+        );
+
         // todo: record trade data with amountFilled
 
-        return amountFilled;
+        LogErrorText("0x order: filledTakerTokenAmount", filledTakerTokenAmount, lendOrderHash);
+        LogErrorText("0x order: filledMakerTokenAmount", filledMakerTokenAmount, lendOrderHash);
+        LogErrorText("success taking 0x trade!", 0, lendOrderHash);
+
+        return filledMakerTokenAmount;
     }
 
     function payInterest(
@@ -392,7 +419,8 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
         return amountToPay;
     }
 
-    // trader's can take a portion of the total coin being lended (lendTokenAmountFilled)
+    // traders can take a portion of the total coin being lended (lendTokenAmountFilled)
+    // traders also specifiy the token that will fill the margin requirement if they are taking the order
     function takeLendOrderAsTrader(
         address[5] orderAddresses,
         uint[8] orderValues,
@@ -524,6 +552,421 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
             return 0;
         }
     }
+
+    
+    /*
+    * Constant public functions
+    */
+
+    /// @dev Calculates Keccak-256 hash of order with specified parameters.
+    /// @param orderAddresses Array of order's maker, lendTokenAddress, interestTokenAddress marginTokenAddress, and feeRecipientAddress.
+    /// @param orderValues Array of order's lendTokenAmount, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
+    /// @return Keccak-256 hash of lendOrder.
+    function getLendOrderHash(
+        address[5] orderAddresses, 
+        uint[8] orderValues)
+        public
+        constant
+        returns (bytes32)
+    {
+        return(keccak256(
+            address(this),
+            orderAddresses[0],  // maker
+            orderAddresses[1],  // lendTokenAddress
+            orderAddresses[2],  // interestTokenAddress
+            orderAddresses[3],  // marginTokenAddress
+            orderAddresses[4],  // feeRecipientAddress
+            orderValues[0],    // lendTokenAmount
+            orderValues[1],    // interestAmount
+            orderValues[2],    // initialMarginAmount
+            orderValues[3],    // liquidationMarginAmount
+            orderValues[4],    // lenderRelayFee
+            orderValues[5],    // traderRelayFee
+            orderValues[6],    // expirationUnixTimestampSec
+            orderValues[7]     // salt
+        ));
+    }
+
+    /// @dev Verifies that an order signature is valid.
+    /// @param signer address of signer.
+    /// @param hash Signed Keccak-256 hash.
+    /// @param v ECDSA signature parameter v.
+    /// @param r ECDSA signature parameters r.
+    /// @param s ECDSA signature parameters s.
+    /// @return Validity of order signature.
+    function isValidSignature(
+        address signer,
+        bytes32 hash,
+        uint8 v,
+        bytes32 r,
+        bytes32 s)
+        public
+        constant
+        returns (bool)
+    {
+        return signer == ecrecover(
+            keccak256("\x19Ethereum Signed Message:\n32", hash),
+            v,
+            r,
+            s
+        );
+    }
+
+    /// @dev Checks if rounding error > 0.1%.
+    /// @param numerator Numerator.
+    /// @param denominator Denominator.
+    /// @param target Value to multiply with numerator/denominator.
+    /// @return Rounding error is present.
+    /*function isRoundingError(uint numerator, uint denominator, uint target)
+        public
+        constant
+        returns (bool)
+    {
+        uint remainder = mulmod(target, numerator, denominator);
+        if (remainder == 0) return false; // No rounding error.
+
+        uint errPercentageTimes1000000 = SafeMath.div(
+            remainder.mul(1000000),
+            numerator.mul(target)
+        );
+        return errPercentageTimes1000000 > 1000;
+    }*/
+
+    /// @dev Calculates partial value given a numerator and denominator.
+    /// @param numerator Numerator.
+    /// @param denominator Denominator.
+    /// @param target Value to calculate partial of.
+    /// @return Partial value of target.
+    function getPartialAmount(uint numerator, uint denominator, uint target)
+        public
+        constant
+        returns (uint)
+    {
+        return SafeMath.div(SafeMath.mul(numerator, target), denominator);
+    }
+
+    /// @dev Calculates the sum of values already filled and cancelled for a given lendOrder.
+    /// @param orderHash The Keccak-256 hash of the given lendOrder.
+    /// @return Sum of values already filled and cancelled.
+    function getUnavailableLendTokenAmount(bytes32 orderHash)
+        public
+        constant
+        returns (uint)
+    {
+        return filled[orderHash].add(cancelled[orderHash]);
+    }
+
+
+    /*
+    * Internal functions
+    */
+   
+
+    function _getRateData(
+        address lendTokenAddress,
+        address marginTokenAddress,
+        address tradeTokenAddress)
+        internal 
+        constant 
+        returns (RateData)
+    {   
+        uint lendTokenDecimals = getDecimals(ERC20_AlwaysOwned(lendTokenAddress));
+        uint marginTokenDecimals = getDecimals(ERC20_AlwaysOwned(marginTokenAddress));
+        uint tradeTokenDecimals;
+
+        if (tradeTokenAddress != address(0)) {
+            tradeTokenDecimals = getDecimals(ERC20_AlwaysOwned(tradeTokenAddress));
+
+            return (RateData({
+                marginToLendRate: (KyberWrapper(KYBER_CONTRACT).getKyberPrice(marginTokenAddress, lendTokenAddress)
+                                     * (10**lendTokenDecimals)) / (10**marginTokenDecimals),
+                tradeToLendRate: (KyberWrapper(KYBER_CONTRACT).getKyberPrice(tradeTokenAddress, lendTokenAddress)
+                                     * (10**lendTokenDecimals)) / (10**tradeTokenDecimals)
+            }));
+        } else {
+            return (RateData({
+                marginToLendRate: (KyberWrapper(KYBER_CONTRACT).getKyberPrice(marginTokenAddress, lendTokenAddress)
+                                     * (10**lendTokenDecimals)) / (10**marginTokenDecimals),
+                tradeToLendRate: 0
+            }));
+        }
+
+
+        // prices are returned in wei per 1 token
+        /*uint lendTokenPrice = B0xPrices(KYBER_CONTRACT).getPrices(lendOrder.lendTokenAddress);
+        
+        uint marginTokenPrice = B0xPrices(KYBER_CONTRACT).getTokenPrice(lendOrder.marginTokenAddress);
+        
+        uint tradeTokenPrice = 0;
+        if (tradeTokenAddress != address(0)) {
+            tradeTokenPrice = B0xPrices(KYBER_CONTRACT).getTokenPrice(tradeTokenAddress);
+        }*/
+
+        /*return (PriceData({
+            lendTokenPrice: lendTokenPrice,
+            marginTokenPrice: marginTokenPrice,
+            tradeTokenPrice: tradeTokenPrice
+        }));*/
+    }
+
+    function _verifyLendOrder(
+        LendOrder lendOrder,
+        uint lendTokenAmountFilled,
+        uint8 v,
+        bytes32 r,
+        bytes32 s)
+        internal
+        returns (bool)
+    {
+        if (lendOrder.maker == msg.sender) {
+            LogErrorText("error: invalid taker", 0, lendOrder.orderHash);
+            return boolOrRevert(false);
+        }
+        if (! (lendOrder.lendTokenAddress > 0 && lendOrder.lendTokenAmount > 0)) {
+            LogErrorText("error: invalid token params", 0, lendOrder.orderHash);
+            return boolOrRevert(false);
+        }
+        if (block.timestamp >= lendOrder.expirationUnixTimestampSec) {
+            //LogError(uint8(Errors.ORDER_EXPIRED), 0, lendOrder.orderHash);
+            LogErrorText("error: lendOrder has expired", 0, lendOrder.orderHash);
+            return boolOrRevert(false);
+        }
+        if(! isValidSignature(
+            lendOrder.maker,
+            lendOrder.orderHash,
+            v,
+            r,
+            s
+        )) {
+            LogErrorText("error: invalid signiture", 0, lendOrder.orderHash);
+            return boolOrRevert(false);
+        }
+
+        if(! (lendOrder.liquidationMarginAmount >= 0 && lendOrder.liquidationMarginAmount < lendOrder.initialMarginAmount && lendOrder.initialMarginAmount <= 100)) {
+            LogErrorText("error: valid margin parameters", 0, lendOrder.orderHash);
+            return boolOrRevert(false);
+        }
+
+        uint remainingLendTokenAmount = lendOrder.lendTokenAmount.sub(getUnavailableLendTokenAmount(lendOrder.orderHash));
+        if (remainingLendTokenAmount < lendTokenAmountFilled) {
+            LogErrorText("error: not enough lendToken still available in thie order", 0, lendOrder.orderHash);
+            return boolOrRevert(false);
+        }
+        /*uint remainingLendTokenAmount = safeSub(lendOrder.lendTokenAmount, getUnavailableLendTokenAmount(lendOrder.orderHash));
+        uint filledLendTokenAmount = min256(lendTokenAmountFilled, remainingLendTokenAmount);
+        if (filledLendTokenAmount == 0) {
+            //LogError(uint8(Errors.ORDER_FULLY_FILLED_OR_CANCELLED), 0, lendOrder.orderHash);
+            LogErrorText("error: order is fully filled or cancelled", 0, lendOrder.orderHash);
+            return boolOrRevert(false);
+        }*/
+
+        /*if (isRoundingError(filledLendTokenAmount, lendOrder.lendTokenAmount)) {
+            //LogError(uint8(Errors.ROUNDING_ERROR_TOO_LARGE), 0, lendOrder.orderHash);
+            LogErrorText("error: rounding error to large", 0, lendOrder.orderHash);
+            return boolOrRevert(false);
+        }*/
+
+        return true;
+    }
+
+    function _takeLendOrder(
+        LendOrder lendOrder,
+        address trader,
+        address lender,
+        uint lendTokenAmountFilled)
+        internal
+        returns (uint)
+    {
+        // a trader can only fill a portion or all of a lendOrder once
+        // todo: explain reason in the whitepaper:
+        //      - avoids complex interest payments for parts of an order filled at different times by the same trader
+        //      - avoids potentially large loops when calculating margin reqirements and interest payments
+        FilledOrder storage filledOrder = orderFills[lendOrder.orderHash][trader];
+        if (filledOrder.lendTokenAmountFilled != 0) {
+            LogErrorText("error: lendOrder already filled for this trader", 0, lendOrder.orderHash);
+            return intOrRevert(0);
+        }
+
+        RateData memory rateData = _getRateData(
+            lendOrder.lendTokenAddress,
+            lendOrder.marginTokenAddress,
+            0
+        );
+        if (rateData.marginToLendRate == 0) {
+            LogErrorText("error: conversion rate from marginToken to lendToken is 0 or not found", 0, lendOrder.orderHash);
+            return intOrRevert(0);
+        }
+
+        uint marginTokenAmountFilled = _initialMargin(lendOrder.initialMarginAmount, rateData.marginToLendRate, lendTokenAmountFilled);
+
+        uint paidTraderFee;
+        uint paidLenderFee;
+        orders[lendOrder.orderHash] = lendOrder;
+        filled[lendOrder.orderHash] = filled[lendOrder.orderHash].add(lendTokenAmountFilled);
+
+        filledOrder.lender = lender;
+        filledOrder.marginTokenAmountFilled = marginTokenAmountFilled;
+        filledOrder.lendTokenAmountFilled = lendTokenAmountFilled;
+        filledOrder.filledUnixTimestampSec = block.timestamp;
+
+        if (! B0xVault(VAULT_CONTRACT).ensureMarginAndStoreValue(
+            lendOrder.marginTokenAddress,
+            trader,
+            marginTokenAmountFilled
+        )) {
+            LogErrorText("error: unable to transfer enough marginToken", 0, lendOrder.orderHash);
+            return intOrRevert(lendTokenAmountFilled);
+        }
+
+        if (! B0xVault(VAULT_CONTRACT).ensureFundingAndStoreValue(
+            lendOrder.lendTokenAddress,
+            lender,
+            lendTokenAmountFilled
+        )) {
+            LogErrorText("error: unable to transfer enough lendToken", 0, lendOrder.orderHash);
+            return intOrRevert(lendTokenAmountFilled);
+        }
+
+        if (lendOrder.feeRecipientAddress != address(0)) {
+            if (lendOrder.traderRelayFee > 0) {
+                paidTraderFee = getPartialAmount(lendTokenAmountFilled, lendOrder.lendTokenAmount, lendOrder.traderRelayFee);
+                
+                if (! B0xVault(VAULT_CONTRACT).ensureMarginAndPayValue(
+                    LOAN_TOKEN_CONTRACT, 
+                    trader,
+                    lendOrder.feeRecipientAddress,
+                    paidTraderFee
+                )) {
+                    LogErrorText("error: unable to pay traderRelayFee", 0, lendOrder.orderHash);
+                    return intOrRevert(lendTokenAmountFilled);
+                }
+            }
+            if (lendOrder.lenderRelayFee > 0) {
+                paidLenderFee = getPartialAmount(lendTokenAmountFilled, lendOrder.lendTokenAmount, lendOrder.lenderRelayFee);
+                
+                if (! B0xVault(VAULT_CONTRACT).ensureFundingAndPayValue(
+                    LOAN_TOKEN_CONTRACT, 
+                    lender,
+                    lendOrder.feeRecipientAddress,
+                    paidLenderFee
+                )) {
+                    LogErrorText("error: unable to pay lenderRelayFee", 0, lendOrder.orderHash);
+                    return intOrRevert(lendTokenAmountFilled);
+                }
+            }
+        }
+
+        LogErrorText("success!", 0, lendOrder.orderHash);
+
+        return lendTokenAmountFilled;
+    }
+
+    function _initialMargin(
+        uint initialMarginAmount,
+        uint marginToLendRate,
+        uint lendTokenAmountFilled)
+        internal
+        constant
+        returns (uint marginTokenAmountFilled)
+    {
+        marginTokenAmountFilled = (lendTokenAmountFilled * marginToLendRate * initialMarginAmount / 100) / PRECISION;
+
+        /*marginTokenAmountFilled = (
+                                     (lendTokenAmountFilled * rateData.lendTokenPrice * lendOrder.initialMarginAmount / 100) // initial margin required
+                                   + (lendOrder.expirationUnixTimestampSec.sub(block.timestamp) / 86400 * lendOrder.interestAmount * lendTokenAmountFilled / lendOrder.lendTokenAmount) // total interest required is loan is kept until order expiration
+        ) / rateData.marginTokenPrice;*/
+    }
+
+    function getDecimals(ERC20_AlwaysOwned token) 
+        constant 
+        returns(uint)
+    {
+        return token.decimals();
+    }
+
+    function intOrRevert(uint retVal) 
+        internal
+        constant 
+        returns (uint) {
+        if (!DEBUG) {
+            revert();
+        }
+
+        return retVal;
+    }
+    function boolOrRevert(bool retVal) 
+        internal
+        constant 
+        returns (bool) {
+        if (!DEBUG) {
+            revert();
+        }
+
+        return retVal;
+    }
+
+}
+
+
+
+
+
+    /*function checkAmounts(
+        LendOrder lendOrder,
+        PriceData priceData,
+        BalanceData balanceData,
+        address trader,
+        address lender,
+        uint lendTokenAmountFilled)
+        internal
+        constant  // The called token contracts may attempt to change state, but will not be able to due to gas limits on getBalance and getAllowance.
+        returns (bool)
+    {
+        // todo: deal with stack too deep, by calculating marginTokenAmountFilled prior to this function
+        // and also calculate requiredLenderFeeTokenTransfer and others prior to this
+        
+        uint requiredLendTokenTransfer = SafeMath.max256(lendTokenAmountFilled-balanceData.lendTokenBalance,0);
+
+        uint marginTokenAmountFilled = _initialMargin(lendOrder, priceData, lendTokenAmountFilled);
+        uint requiredMarginTokenTransfer = SafeMath.max256(marginTokenAmountFilled-balanceData.marginTokenBalance,0);
+
+        if (lendOrder.feeRecipientAddress != address(0)) {
+            //bool isLendTokenLOAN = lendOrder.lendTokenAddress == LOAN_TOKEN_CONTRACT;
+            //bool isMarginTokenLOAN = lendOrder.marginTokenAddress == LOAN_TOKEN_CONTRACT;
+            uint paidLenderFee = getPartialAmount(lendTokenAmountFilled, lendOrder.lendTokenAmount, lendOrder.lenderRelayFee);
+            uint paidTraderFee = getPartialAmount(lendTokenAmountFilled, lendOrder.lendTokenAmount, lendOrder.traderRelayFee);
+            
+            uint requiredLenderFeeTokenTransfer = lendOrder.lendTokenAddress == LOAN_TOKEN_CONTRACT ? lendTokenAmountFilled.add(paidLenderFee) : paidLenderFee;
+            requiredLenderFeeTokenTransfer = SafeMath.max256(requiredLenderFeeTokenTransfer-balanceData.feeTokenLenderBalance,0);
+            
+            uint requiredTraderFeeTokenTransfer = lendOrder.marginTokenAddress == LOAN_TOKEN_CONTRACT ? marginTokenAmountFilled.add(paidTraderFee) : paidTraderFee;
+            requiredTraderFeeTokenTransfer = SafeMath.max256(requiredTraderFeeTokenTransfer-balanceData.feeTokenTraderBalance,0);
+
+            if (requiredLenderFeeTokenTransfer > 0 && (   getBalance(LOAN_TOKEN_CONTRACT, lender) < requiredLenderFeeTokenTransfer
+                                           || getAllowance(LOAN_TOKEN_CONTRACT, lender) < requiredLenderFeeTokenTransfer)
+            ) return false;
+            if (requiredTraderFeeTokenTransfer > 0 && (   getBalance(LOAN_TOKEN_CONTRACT, trader) < requiredTraderFeeTokenTransfer
+                                           || getAllowance(LOAN_TOKEN_CONTRACT, trader) < requiredTraderFeeTokenTransfer)
+            ) return false;
+
+            if (lendOrder.lendTokenAddress != LOAN_TOKEN_CONTRACT && requiredLendTokenTransfer > 0 && (   getBalance(lendOrder.lendTokenAddress, lender) < requiredLendTokenTransfer // Don't double check lendTokenAddress if LOAN
+                                     || getAllowance(lendOrder.lendTokenAddress, lender) < requiredLendTokenTransfer)
+            ) return false;
+            if (lendOrder.marginTokenAddress != LOAN_TOKEN_CONTRACT && requiredMarginTokenTransfer > 0 && (   getBalance(lendOrder.marginTokenAddress, trader) < requiredMarginTokenTransfer // Don't double check marginTokenAddress if LOAN
+                                     || getAllowance(lendOrder.marginTokenAddress, trader) < requiredMarginTokenTransfer)
+            ) return false;
+        } else if (requiredLendTokenTransfer > 0 && (   getBalance(lendOrder.lendTokenAddress, lender) < requiredLendTokenTransfer
+                                                     || getAllowance(lendOrder.lendTokenAddress, lender) < requiredLendTokenTransfer)
+        ) { 
+            return false;
+        } else if (requiredMarginTokenTransfer > 0 && (   getBalance(lendOrder.marginTokenAddress, trader) < requiredMarginTokenTransfer
+                                                     || getAllowance(lendOrder.marginTokenAddress, trader) < requiredMarginTokenTransfer)
+        ) {
+            return false;
+        }
+
+        return true;
+    }*/
 
     /*function tradeBalanceOf(bytes32 orderHash_) public constant returns (uint balance) {
         return openTrades[orderHash_];
@@ -689,428 +1132,3 @@ contract B0x is Ownable, ReentrancyGuard { //, usingTinyOracle {
     }
     */
     
-    
-    /*
-    * Constant public functions
-    */
-
-    /// @dev Calculates Keccak-256 hash of order with specified parameters.
-    /// @param orderAddresses Array of order's maker, lendTokenAddress, interestTokenAddress marginTokenAddress, and feeRecipientAddress.
-    /// @param orderValues Array of order's lendTokenAmount, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
-    /// @return Keccak-256 hash of lendOrder.
-    function getLendOrderHash(
-        address[5] orderAddresses, 
-        uint[8] orderValues)
-        public
-        constant
-        returns (bytes32)
-    {
-        return(keccak256(
-            address(this),
-            orderAddresses[0],  // maker
-            orderAddresses[1],  // lendTokenAddress
-            orderAddresses[2],  // interestTokenAddress
-            orderAddresses[3],  // marginTokenAddress
-            orderAddresses[4],  // feeRecipientAddress
-            orderValues[0],    // lendTokenAmount
-            orderValues[1],    // interestAmount
-            orderValues[2],    // initialMarginAmount
-            orderValues[3],    // liquidationMarginAmount
-            orderValues[4],    // lenderRelayFee
-            orderValues[5],    // traderRelayFee
-            orderValues[6],    // expirationUnixTimestampSec
-            orderValues[7]     // salt
-        ));
-    }
-
-    /// @dev Verifies that an order signature is valid.
-    /// @param signer address of signer.
-    /// @param hash Signed Keccak-256 hash.
-    /// @param v ECDSA signature parameter v.
-    /// @param r ECDSA signature parameters r.
-    /// @param s ECDSA signature parameters s.
-    /// @return Validity of order signature.
-    function isValidSignature(
-        address signer,
-        bytes32 hash,
-        uint8 v,
-        bytes32 r,
-        bytes32 s)
-        public
-        constant
-        returns (bool)
-    {
-        return signer == ecrecover(
-            keccak256("\x19Ethereum Signed Message:\n32", hash),
-            v,
-            r,
-            s
-        );
-    }
-
-    /// @dev Checks if rounding error > 0.1%.
-    /// @param numerator Numerator.
-    /// @param denominator Denominator.
-    /// @param target Value to multiply with numerator/denominator.
-    /// @return Rounding error is present.
-    /*function isRoundingError(uint numerator, uint denominator, uint target)
-        public
-        constant
-        returns (bool)
-    {
-        uint remainder = mulmod(target, numerator, denominator);
-        if (remainder == 0) return false; // No rounding error.
-
-        uint errPercentageTimes1000000 = SafeMath.div(
-            remainder.mul(1000000),
-            numerator.mul(target)
-        );
-        return errPercentageTimes1000000 > 1000;
-    }*/
-
-    /// @dev Calculates partial value given a numerator and denominator.
-    /// @param numerator Numerator.
-    /// @param denominator Denominator.
-    /// @param target Value to calculate partial of.
-    /// @return Partial value of target.
-    function getPartialAmount(uint numerator, uint denominator, uint target)
-        public
-        constant
-        returns (uint)
-    {
-        return SafeMath.div(SafeMath.mul(numerator, target), denominator);
-    }
-
-    /// @dev Calculates the sum of values already filled and cancelled for a given lendOrder.
-    /// @param orderHash The Keccak-256 hash of the given lendOrder.
-    /// @return Sum of values already filled and cancelled.
-    function getUnavailableLendTokenAmount(bytes32 orderHash)
-        public
-        constant
-        returns (uint)
-    {
-        return filled[orderHash].add(cancelled[orderHash]);
-    }
-
-
-    /*
-    * Internal functions
-    */
-   
-
-    function _getPriceData(
-        LendOrder lendOrder,
-        address tradeTokenAddress)
-        internal 
-        constant 
-        returns (PriceData)
-    {   
-        // prices are returned in wei per 1 token
-        uint lendTokenPrice = B0xPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(lendOrder.lendTokenAddress);
-        
-        uint marginTokenPrice = B0xPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(lendOrder.marginTokenAddress);
-        
-        uint tradeTokenPrice = 0;
-        if (tradeTokenAddress != address(0)) {
-            tradeTokenPrice = B0xPrices(TOKEN_PRICES_CONTRACT).getTokenPrice(tradeTokenAddress);
-        }
-
-        return (PriceData({
-            lendTokenPrice: lendTokenPrice,
-            marginTokenPrice: marginTokenPrice,
-            tradeTokenPrice: tradeTokenPrice
-        }));
-    }
-
-    function _verifyLendOrder(
-        LendOrder lendOrder,
-        uint lendTokenAmountFilled,
-        uint8 v,
-        bytes32 r,
-        bytes32 s)
-        internal
-        returns (bool)
-    {
-        if (lendOrder.maker == msg.sender) {
-            LogErrorText("error: invalid taker", 0, lendOrder.orderHash);
-            return boolOrRevert(false);
-        }
-        if (! (lendOrder.lendTokenAddress > 0 && lendOrder.lendTokenAmount > 0)) {
-            LogErrorText("error: invalid token params", 0, lendOrder.orderHash);
-            return boolOrRevert(false);
-        }
-        if (block.timestamp >= lendOrder.expirationUnixTimestampSec) {
-            //LogError(uint8(Errors.ORDER_EXPIRED), 0, lendOrder.orderHash);
-            LogErrorText("error: lendOrder has expired", 0, lendOrder.orderHash);
-            return boolOrRevert(false);
-        }
-        if(! isValidSignature(
-            lendOrder.maker,
-            lendOrder.orderHash,
-            v,
-            r,
-            s
-        )) {
-            LogErrorText("error: invalid signiture", 0, lendOrder.orderHash);
-            return boolOrRevert(false);
-        }
-
-        if(! (lendOrder.liquidationMarginAmount >= 0 && lendOrder.liquidationMarginAmount < lendOrder.initialMarginAmount && lendOrder.initialMarginAmount <= 100)) {
-            LogErrorText("error: valid margin parameters", 0, lendOrder.orderHash);
-            return boolOrRevert(false);
-        }
-
-        uint remainingLendTokenAmount = lendOrder.lendTokenAmount.sub(getUnavailableLendTokenAmount(lendOrder.orderHash));
-        if (remainingLendTokenAmount < lendTokenAmountFilled) {
-            LogErrorText("error: not enough lendToken still available in thie order", 0, lendOrder.orderHash);
-            return boolOrRevert(false);
-        }
-        /*uint remainingLendTokenAmount = safeSub(lendOrder.lendTokenAmount, getUnavailableLendTokenAmount(lendOrder.orderHash));
-        uint filledLendTokenAmount = min256(lendTokenAmountFilled, remainingLendTokenAmount);
-        if (filledLendTokenAmount == 0) {
-            //LogError(uint8(Errors.ORDER_FULLY_FILLED_OR_CANCELLED), 0, lendOrder.orderHash);
-            LogErrorText("error: order is fully filled or cancelled", 0, lendOrder.orderHash);
-            return boolOrRevert(false);
-        }*/
-
-        /*if (isRoundingError(filledLendTokenAmount, lendOrder.lendTokenAmount)) {
-            //LogError(uint8(Errors.ROUNDING_ERROR_TOO_LARGE), 0, lendOrder.orderHash);
-            LogErrorText("error: rounding error to large", 0, lendOrder.orderHash);
-            return boolOrRevert(false);
-        }*/
-
-        return true;
-    }
-
-    function _takeLendOrder(
-        LendOrder lendOrder,
-        address trader,
-        address lender,
-        uint lendTokenAmountFilled)
-        internal
-        returns (uint)
-    {
-        // a trader can only fill a portion or all of a lendOrder once
-        // todo: explain reason in the whitepaper:
-        //      - avoids complex interest payments for parts of an order filled at different times by the same trader
-        //      - avoids potentially large loops when calculating margin reqirements and interest payments
-        FilledOrder storage filledOrder = orderFills[lendOrder.orderHash][trader];
-        if (filledOrder.lendTokenAmountFilled != 0) {
-            LogErrorText("error: lendOrder already filled for this trader", 0, lendOrder.orderHash);
-            return intOrRevert(0);
-        }
-
-        PriceData memory priceData = _getPriceData(lendOrder, 0);
-        if (priceData.lendTokenPrice == 0) {
-            LogErrorText("error: lendTokenPrice is 0 or not found", 0, lendOrder.orderHash);
-            return intOrRevert(0);
-        }
-        if (priceData.marginTokenPrice == 0) {
-            LogErrorText("error: marginTokenPrice is 0 or not found", 0, lendOrder.orderHash);
-            return intOrRevert(0);
-        }
-
-        uint marginTokenAmountFilled = _initialMargin(lendOrder, priceData, lendTokenAmountFilled);
-
-        uint paidTraderFee;
-        uint paidLenderFee;
-        orders[lendOrder.orderHash] = lendOrder;
-        filled[lendOrder.orderHash] = filled[lendOrder.orderHash].add(lendTokenAmountFilled);
-
-        filledOrder.lender = lender;
-        filledOrder.marginTokenAmountFilled = marginTokenAmountFilled;
-        filledOrder.lendTokenAmountFilled = lendTokenAmountFilled;
-        filledOrder.filledUnixTimestampSec = block.timestamp;
-
-        if (! B0xVault(VAULT_CONTRACT).ensureMarginAndStoreValue(
-            lendOrder.marginTokenAddress,
-            trader,
-            marginTokenAmountFilled
-        )) {
-            LogErrorText("error: unable to transfer enough marginToken", 0, lendOrder.orderHash);
-            return intOrRevert(lendTokenAmountFilled);
-        }
-
-        if (! B0xVault(VAULT_CONTRACT).ensureFundingAndStoreValue(
-            lendOrder.lendTokenAddress,
-            lender,
-            lendTokenAmountFilled
-        )) {
-            LogErrorText("error: unable to transfer enough lendToken", 0, lendOrder.orderHash);
-            return intOrRevert(lendTokenAmountFilled);
-        }
-
-        if (lendOrder.feeRecipientAddress != address(0)) {
-            if (lendOrder.traderRelayFee > 0) {
-                paidTraderFee = getPartialAmount(lendTokenAmountFilled, lendOrder.lendTokenAmount, lendOrder.traderRelayFee);
-                
-                if (! B0xVault(VAULT_CONTRACT).ensureMarginAndPayValue(
-                    LOAN_TOKEN_CONTRACT, 
-                    trader,
-                    lendOrder.feeRecipientAddress,
-                    paidTraderFee
-                )) {
-                    LogErrorText("error: unable to pay traderRelayFee", 0, lendOrder.orderHash);
-                    return intOrRevert(lendTokenAmountFilled);
-                }
-            }
-            if (lendOrder.lenderRelayFee > 0) {
-                paidLenderFee = getPartialAmount(lendTokenAmountFilled, lendOrder.lendTokenAmount, lendOrder.lenderRelayFee);
-                
-                if (! B0xVault(VAULT_CONTRACT).ensureFundingAndPayValue(
-                    LOAN_TOKEN_CONTRACT, 
-                    lender,
-                    lendOrder.feeRecipientAddress,
-                    paidLenderFee
-                )) {
-                    LogErrorText("error: unable to pay lenderRelayFee", 0, lendOrder.orderHash);
-                    return intOrRevert(lendTokenAmountFilled);
-                }
-            }
-        }
-
-        LogErrorText("success!", 0, lendOrder.orderHash);
-
-        return lendTokenAmountFilled;
-    }
-
-
-    // todo: rather than have a checkAmounts function
-    // just initiate transfers in Vault contract
-    // before calling the tokens for transfer check margin and funding balances
-    // maybe make checkAmounts below, actually do the transfers
-    /*function checkAmounts_new(
-        lendOrder
-    )*/
-
-    /*function checkAmounts(
-        LendOrder lendOrder,
-        PriceData priceData,
-        BalanceData balanceData,
-        address trader,
-        address lender,
-        uint lendTokenAmountFilled)
-        internal
-        constant  // The called token contracts may attempt to change state, but will not be able to due to gas limits on getBalance and getAllowance.
-        returns (bool)
-    {
-        // todo: deal with stack too deep, by calculating marginTokenAmountFilled prior to this function
-        // and also calculate requiredLenderFeeTokenTransfer and others prior to this
-        
-        uint requiredLendTokenTransfer = SafeMath.max256(lendTokenAmountFilled-balanceData.lendTokenBalance,0);
-
-        uint marginTokenAmountFilled = _initialMargin(lendOrder, priceData, lendTokenAmountFilled);
-        uint requiredMarginTokenTransfer = SafeMath.max256(marginTokenAmountFilled-balanceData.marginTokenBalance,0);
-
-        if (lendOrder.feeRecipientAddress != address(0)) {
-            //bool isLendTokenLOAN = lendOrder.lendTokenAddress == LOAN_TOKEN_CONTRACT;
-            //bool isMarginTokenLOAN = lendOrder.marginTokenAddress == LOAN_TOKEN_CONTRACT;
-            uint paidLenderFee = getPartialAmount(lendTokenAmountFilled, lendOrder.lendTokenAmount, lendOrder.lenderRelayFee);
-            uint paidTraderFee = getPartialAmount(lendTokenAmountFilled, lendOrder.lendTokenAmount, lendOrder.traderRelayFee);
-            
-            uint requiredLenderFeeTokenTransfer = lendOrder.lendTokenAddress == LOAN_TOKEN_CONTRACT ? lendTokenAmountFilled.add(paidLenderFee) : paidLenderFee;
-            requiredLenderFeeTokenTransfer = SafeMath.max256(requiredLenderFeeTokenTransfer-balanceData.feeTokenLenderBalance,0);
-            
-            uint requiredTraderFeeTokenTransfer = lendOrder.marginTokenAddress == LOAN_TOKEN_CONTRACT ? marginTokenAmountFilled.add(paidTraderFee) : paidTraderFee;
-            requiredTraderFeeTokenTransfer = SafeMath.max256(requiredTraderFeeTokenTransfer-balanceData.feeTokenTraderBalance,0);
-
-            if (requiredLenderFeeTokenTransfer > 0 && (   getBalance(LOAN_TOKEN_CONTRACT, lender) < requiredLenderFeeTokenTransfer
-                                           || getAllowance(LOAN_TOKEN_CONTRACT, lender) < requiredLenderFeeTokenTransfer)
-            ) return false;
-            if (requiredTraderFeeTokenTransfer > 0 && (   getBalance(LOAN_TOKEN_CONTRACT, trader) < requiredTraderFeeTokenTransfer
-                                           || getAllowance(LOAN_TOKEN_CONTRACT, trader) < requiredTraderFeeTokenTransfer)
-            ) return false;
-
-            if (lendOrder.lendTokenAddress != LOAN_TOKEN_CONTRACT && requiredLendTokenTransfer > 0 && (   getBalance(lendOrder.lendTokenAddress, lender) < requiredLendTokenTransfer // Don't double check lendTokenAddress if LOAN
-                                     || getAllowance(lendOrder.lendTokenAddress, lender) < requiredLendTokenTransfer)
-            ) return false;
-            if (lendOrder.marginTokenAddress != LOAN_TOKEN_CONTRACT && requiredMarginTokenTransfer > 0 && (   getBalance(lendOrder.marginTokenAddress, trader) < requiredMarginTokenTransfer // Don't double check marginTokenAddress if LOAN
-                                     || getAllowance(lendOrder.marginTokenAddress, trader) < requiredMarginTokenTransfer)
-            ) return false;
-        } else if (requiredLendTokenTransfer > 0 && (   getBalance(lendOrder.lendTokenAddress, lender) < requiredLendTokenTransfer
-                                                     || getAllowance(lendOrder.lendTokenAddress, lender) < requiredLendTokenTransfer)
-        ) { 
-            return false;
-        } else if (requiredMarginTokenTransfer > 0 && (   getBalance(lendOrder.marginTokenAddress, trader) < requiredMarginTokenTransfer
-                                                     || getAllowance(lendOrder.marginTokenAddress, trader) < requiredMarginTokenTransfer)
-        ) {
-            return false;
-        }
-
-        return true;
-    }*/
-
-    function _initialMargin(
-        LendOrder lendOrder,
-        PriceData priceData,
-        uint lendTokenAmountFilled)
-        internal
-        constant
-        returns (uint marginTokenAmountFilled)
-    {
-        marginTokenAmountFilled = (
-                                     (lendTokenAmountFilled * priceData.lendTokenPrice * lendOrder.initialMarginAmount / 100) // initial margin required
-                                   + (lendOrder.expirationUnixTimestampSec.sub(block.timestamp) / 86400 * lendOrder.interestAmount * lendTokenAmountFilled / lendOrder.lendTokenAmount) // total interest required is loan is kept until order expiration
-        ) / priceData.marginTokenPrice;
-    }
-
-    function intOrRevert(uint retVal) 
-        internal
-        constant 
-        returns (uint) {
-        if (!DEBUG) {
-            revert();
-        }
-
-        return retVal;
-    }
-    function boolOrRevert(bool retVal) 
-        internal
-        constant 
-        returns (bool) {
-        if (!DEBUG) {
-            revert();
-        }
-
-        return retVal;
-    }
-
-    /*
-        if (lendOrder.feeRecipientAddress != address(0) &&
-            ! (
-            _checkMargin(LOAN_TOKEN_CONTRACT, trader) >= lendOrder.traderRelayFee &&
-            _checkFunding(LOAN_TOKEN_CONTRACT, lender) >= lendOrder.lenderRelayFee
-        )) {
-            LogErrorText("error: margin or lending balances can't cover fees", 0, lendOrder.orderHash);
-            return 0;
-        }
-
-        PriceData memory priceData = _getPriceData(lendOrder, 0);
-        if (priceData.lendTokenPrice == 0) {
-            LogErrorText("error: lendTokenPrice is 0 or not found", 0, lendOrder.orderHash);
-            return 0;
-        }
-        if (priceData.marginTokenPrice == 0) {
-            LogErrorText("error: marginTokenPrice is 0 or not found", 0, lendOrder.orderHash);
-            return 0;
-        }
-
-        uint lendTokenBalance = _checkFunding(lendOrder.lendTokenAddress, lender);
-        uint marginTokenBalance = _checkMargin(lendOrder.marginTokenAddress, trader);
-
-        // Does lender have enough funds to cover the order?
-        if(lendTokenAmountFilled <= lendTokenBalance) {
-            LogErrorText("error: lender doesn't have enough funds to cover the order", 0, lendOrder.orderHash);
-            return 0;
-        }
-
-        // Does trader have enough initial margin to borrow the lendToken?
-        if(! (
-            (lendTokenAmountFilled * priceData.lendTokenPrice * lendOrder.initialMarginAmount / 100) // initial margin required
-                + (lendOrder.expirationUnixTimestampSec.sub(block.timestamp) / 86400 * lendOrder.interestAmount) // total interest required is loan is kept until order expiration
-                    <= (marginTokenBalance * priceData.marginTokenPrice))) {
-            LogErrorText("error: trader doesn't have enough intitial margin and interest to cover the lendOrder", 0, lendOrder.orderHash);
-            return 0;
-        }
-    */
-}

@@ -37,10 +37,10 @@ contract ERC20_Standard {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
-    function() public {
+    /*function() public {
         //if ether is sent to this address, send it back.
         revert();
-    }
+    }*/
 
     /**
     * @dev transfer token for a specified address

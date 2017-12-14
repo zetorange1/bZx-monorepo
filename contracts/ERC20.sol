@@ -6,14 +6,15 @@ pragma solidity ^0.4.11;
  * @dev see https://github.com/ethereum/EIPs/issues/20
  */
 contract ERC20 {
-  uint256 public totalSupply;
-
-  function balanceOf(address who) constant returns (uint256);
-  function transfer(address to, uint256 value) returns (bool);
-  function allowance(address owner, address spender) constant returns (uint256);
-  function transferFrom(address from, address to, uint256 value) returns (bool);
-  function approve(address spender, uint256 value) returns (bool);
-  
-  event Transfer(address indexed from, address indexed to, uint256 value);
-  event Approval(address indexed owner, address indexed spender, uint256 value);
+    function transfer(address _to, uint _value) public returns (bool success);
+    function transferFrom(address _from, address _to, uint _value) public returns (bool success);
+    function approve(address _spender, uint _value) public returns (bool success);
+    function balanceOf(address _owner) public constant returns (uint balance);
+    function allowance(address _owner, address _spender) public constant returns (uint remaining);
+    event Transfer(address indexed _from, address indexed _to, uint _value);
+    event Approval(address indexed _owner, address indexed _spender, uint _value);
+    uint256 public totalSupply;
+    string public name;
+    uint8 public decimals;
+    string public symbol;
 }

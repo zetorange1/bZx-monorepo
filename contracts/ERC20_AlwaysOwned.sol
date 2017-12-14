@@ -29,6 +29,21 @@ import './ERC20_Standard.sol';
 contract ERC20_AlwaysOwned is ERC20_Standard {
     using SafeMath for uint256;
 
+    string public name;
+    uint8 public decimals;
+    string public symbol;
+
+    function ERC20_AlwaysOwned(
+        uint256 _initialAmount,
+        string _tokenName,
+        uint8 _decimalUnits,
+        string _tokenSymbol) public {
+        totalSupply = _initialAmount;
+        name = _tokenName;
+        decimals = _decimalUnits;
+        symbol = _tokenSymbol;
+    }
+
     function transfer(address _to, uint256 _value) returns (bool) {
         Transfer(msg.sender, _to, _value);
         return true;

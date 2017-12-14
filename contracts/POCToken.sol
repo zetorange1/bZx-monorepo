@@ -1,10 +1,9 @@
 pragma solidity ^0.4.4;
 
-import 'oz_contracts/token/StandardToken.sol';
-
+import './ERC20_Standard.sol';
 import './Shared.sol';
 
-contract POCToken is StandardToken, Shared {
+contract POCToken is ERC20_Standard, Shared {
 
     string constant public name = "POC Token";
     string constant public symbol = "POC";

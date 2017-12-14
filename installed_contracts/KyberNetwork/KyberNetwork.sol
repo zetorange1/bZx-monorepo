@@ -12,7 +12,7 @@ contract KyberNetwork {
     address admin;
     ERC20 constant public ETH_TOKEN_ADDRESS = ERC20(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
     uint  constant PRECISION = (10**18);
-    uint  constant EPSILON = (1000);
+    uint  constant EPSILON = (10);
     KyberReserve[] public reserves;
 
     mapping(address=>mapping(bytes32=>bool)) perReserveListedPairs;
@@ -57,9 +57,14 @@ contract KyberNetwork {
     function getPrice( ERC20 source, ERC20 dest ) constant returns(uint) {
       uint rate; uint expBlock; uint balance;
       (rate, expBlock, balance) = getRate( source, dest, 0 );
-      if( expBlock >= block.number ) return 0; // TODO - consider add 1
+      if( expBlock <= block.number ) return 0; // TODO - consider add 1
       if( balance == 0 ) return 0; // TODO - decide on minimal qty
       return rate;
+    }
+
+    function getDecimals( ERC20 token ) constant returns(uint) {
+      if( token == ETH_TOKEN_ADDRESS ) return 18;
+      return token.decimals();
     }
 
     /// @notice use token address ETH_TOKEN_ADDRESS for ether
@@ -84,6 +89,7 @@ contract KyberNetwork {
                 bestReserve = reserves[i];
             }
         }
+
         output.rate = bestRate;
         output.reserveBalance = bestReserveBalance;
         output.reserve = bestReserve;
@@ -200,6 +206,9 @@ contract KyberNetwork {
     }
 
 
+    function isNegligable( uint currentValue, uint originalValue ) constant returns(bool){
+      return (currentValue < (originalValue / 1000)) || (currentValue == 0);
+    }
     /// @notice use token address ETH_TOKEN_ADDRESS for ether
     /// @dev makes a trade between source and dest token and send dest token to destAddress
     /// @param source Source token
@@ -227,7 +236,8 @@ contract KyberNetwork {
 
         TradeInfo memory tradeInfo = TradeInfo(0,srcAmount,false);
 
-        while( (tradeInfo.convertedDestAmount + EPSILON < maxDestAmount) && (tradeInfo.remainedSourceAmount > EPSILON) ) {
+        while( !isNegligable(maxDestAmount-tradeInfo.convertedDestAmount, maxDestAmount)
+               && !isNegligable(tradeInfo.remainedSourceAmount, srcAmount)) {
             KyberReservePairInfo memory reserveInfo = findBestRate(source,dest);
 
             if( reserveInfo.rate == 0 || reserveInfo.rate < minConversionRate ) {
@@ -236,6 +246,9 @@ contract KyberNetwork {
                 ErrorReport( tx.origin, 0x86000001, tradeInfo.remainedSourceAmount );
                 break;
             }
+
+            reserveInfo.rate = (reserveInfo.rate * (10 ** getDecimals(dest))) /
+                                                      (10**getDecimals(source));
 
             uint actualSrcAmount = tradeInfo.remainedSourceAmount;
             // TODO - overflow check
