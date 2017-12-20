@@ -1,0 +1,20 @@
+{
+  "name": "b0x.js",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "0x.js": "^0.28.0",
+    "bignumber.js": "^5.0.0",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-scripts": "1.0.17",
+    "truffle-contract": "^3.0.1",
+    "web3": "^1.0.0-beta.26"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
