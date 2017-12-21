@@ -20,6 +20,7 @@ Your settings for optimal developer experience (DX) should include:
 ```json
 {
   "editor.formatOnSave": true,
+  "prettier.eslintIntegration": true,
   "prettier.trailingComma": "es5"
 }
 ```
