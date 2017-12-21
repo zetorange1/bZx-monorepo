@@ -12,15 +12,12 @@ Run `npm run dev` to start up the development server.
 
 If you are using VSCode as your editor, make sure to install the following packages:
 
-* Prettier
 * ESLint
 
 Your settings for optimal developer experience (DX) should include:
 
 ```json
 {
-  "editor.formatOnSave": true,
-  "prettier.eslintIntegration": true,
-  "prettier.trailingComma": "es5"
+  "eslint.autoFixOnSave": true
 }
 ```
