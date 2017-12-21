@@ -1,10 +1,10 @@
 
 pragma solidity ^0.4.9;
 
-import 'oz_contracts/ownership/Ownable.sol';
-import 'oz_contracts/math/SafeMath.sol';
+import '../helpers/Ownable.sol';
+import '../helpers/SafeMath.sol';
 
-//import './ERC20_AlwaysOwned.sol';
+//import './simulation/ERC20_AlwaysOwned.sol';
 
 contract KyberWrapper is Ownable {
     using SafeMath for uint256;
@@ -90,8 +90,14 @@ contract KyberWrapper is Ownable {
         
         rate = pairConversionRate[pair];
     }
-
-
+/*
+    fuction tradeOnKyber()
+trade( ERC20 sourceToken,
+                    uint sourceAmount,
+                    ERC20 destToken,
+                    address destAddress,
+                    bool validate ) payable returns(bool) {
+*/
     /*
      * Public constant functions
      */

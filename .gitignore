@@ -5,3 +5,5 @@
 /refs_ignored
 package-lock.json
 /web
+/test_network/**
+

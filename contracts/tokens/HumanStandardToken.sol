@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 pragma solidity ^0.4.4;
 
-import './ERC20_Standard.sol';
+import '../tokens/ERC20_Standard.sol';
 
 contract HumanStandardToken is ERC20_Standard {
 

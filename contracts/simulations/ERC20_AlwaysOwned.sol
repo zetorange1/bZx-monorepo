@@ -17,7 +17,7 @@ limitations under the License.
 */
 
 pragma solidity ^0.4.9;
-import './ERC20_Standard.sol';
+import '../tokens/ERC20_Standard.sol';
 
 
 /**
@@ -44,26 +44,28 @@ contract ERC20_AlwaysOwned is ERC20_Standard {
         symbol = _tokenSymbol;
     }
 
-    function transfer(address _to, uint256 _value) returns (bool) {
+    function transfer(address _to, uint256 _value) public returns (bool) {
         Transfer(msg.sender, _to, _value);
         return true;
     }
 
-    function balanceOf(address _owner) constant returns (uint256 balance) {
+    function balanceOf(address _owner) public constant returns (uint256 balance) {
+        if (_owner == address(0)) {} // to silence warning
         return totalSupply;
     }
 
-    function transferFrom(address _from, address _to, uint256 _value) returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
         Transfer(_from, _to, _value);
         return true;
     }
 
-    function approve(address _spender, uint256 _value) returns (bool) {
+    function approve(address _spender, uint256 _value) public returns (bool) {
         Approval(msg.sender, _spender, _value);
         return true;
     }
 
-    function allowance(address _owner, address _spender) constant returns (uint256 remaining) {
+    function allowance(address _owner, address _spender) public constant returns (uint256 remaining) {
+        if (_owner == address(0) || _spender == address(0)) {} // to silence warning
         return totalSupply;
     }
 

@@ -1,7 +1,7 @@
 pragma solidity ^0.4.4;
 
-//import './HumanStandardToken.sol';
-import './ERC20_AlwaysOwned.sol';
+//import '../tokens/HumanStandardToken.sol';
+import '../simulations/ERC20_AlwaysOwned.sol';
 
 // 20 million tokens (18 decimal places), 20 * 10**24
 contract TOMToken is ERC20_AlwaysOwned(

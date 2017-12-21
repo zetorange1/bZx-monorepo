@@ -19,9 +19,9 @@
 
 pragma solidity ^0.4.9;
 
-import './ERC20.sol';
-import 'oz_contracts/math/SafeMath.sol';
-import 'oz_contracts/ownership/Ownable.sol';
+import './interfaces/ERC20.sol';
+import './helpers/SafeMath.sol';
+import './helpers/Ownable.sol';
 
 contract B0xVault is Ownable {
     using SafeMath for uint256;
@@ -55,6 +55,7 @@ contract B0xVault is Ownable {
  */
     mapping (address => mapping (address => uint)) public margin; // mapping of token addresses to mapping of accounts to margin
     mapping (address => mapping (address => uint)) public funding; // mapping of token addresses to mapping of accounts to funding
+    mapping (address => mapping (address => uint)) public interest; // mapping of token addresses to mapping of accounts to interest
 
 
     event LogAuthorizedAddressAdded(address indexed target, address indexed caller);
@@ -159,6 +160,13 @@ contract B0xVault is Ownable {
         return usedFunding[token_][user_];
     }*/
 
+    function interestBalanceOf(address token_, address user_) public constant returns (uint balance) {
+        return interest[token_][user_];
+    }
+    /*function usedInterestBalanceOf(address token_, address user_) public constant returns (uint balance) {
+        return usedInterest[token_][user_];
+    }*/
+
     function addAuthorizedAddress(address target)
         public
         onlyOwner
@@ -185,7 +193,7 @@ contract B0xVault is Ownable {
         LogAuthorizedAddressRemoved(target, msg.sender);
     }
 
-    function ensureMarginAndStoreValue(
+    function storeMargin(
         address token,
         address user,
         uint value)
@@ -193,36 +201,44 @@ contract B0xVault is Ownable {
         onlyAuthorized
         returns (bool)
     {
-        uint valueNotInWallet = 0;
-        if (margin[token][user] < value)
-            valueNotInWallet = value - margin[token][user];
-        if (valueNotInWallet > 0) {
-            margin[token][user] = margin[token][user].add(valueNotInWallet);
-            if (!ERC20(token).transferFrom(user, this, valueNotInWallet))
-                return false;
-        }
-        return true;
-    }
-    function ensureFundingAndStoreValue(
-        address token,
-        address user,
-        uint value)
-        public
-        onlyAuthorized
-        returns (bool)
-    {
-        uint valueNotInWallet = 0;
-        if (funding[token][user] < value)
-            valueNotInWallet = value - funding[token][user];
-        if (valueNotInWallet > 0) {
-            funding[token][user] = funding[token][user].add(valueNotInWallet);
-            if (!ERC20(token).transferFrom(user, this, valueNotInWallet))
-                return false;
-        }
+        margin[token][user] = margin[token][user].add(value);
+        if (!ERC20(token).transferFrom(user, this, value))
+            revert();
+
         return true;
     }
 
-    function ensureMarginAndPayValue(
+    function storeFunding(
+        address token,
+        address user,
+        uint value)
+        public
+        onlyAuthorized
+        returns (bool)
+    {
+        funding[token][user] = funding[token][user].add(value);
+        if (!ERC20(token).transferFrom(user, this, value))
+            revert();
+
+        return true;
+    }
+
+    function storeInterest(
+        address token,
+        address user,
+        uint value)
+        public
+        onlyAuthorized
+        returns (bool)
+    {
+        interest[token][user] = interest[token][user].add(value);
+        if (!ERC20(token).transferFrom(user, this, value))
+            revert();
+
+        return true;
+    }
+
+    function sendMargin(
         address token,
         address user,
         address to,        
@@ -231,19 +247,14 @@ contract B0xVault is Ownable {
         onlyAuthorized
         returns (bool)
     {
-        uint valueNotInWallet = 0;
-        if (margin[token][user] < value)
-            valueNotInWallet = value - margin[token][user];
-        uint valueInWallet = value.sub(valueNotInWallet);
-        margin[token][user] = margin[token][user].sub(valueInWallet);
-        if (valueNotInWallet > 0) {
-            if (!ERC20(token).transferFrom(user, this, valueNotInWallet))
-                return false;
-        }
-        return ERC20(token).transfer(to, value);
-    }
+        margin[token][user] = margin[token][user].sub(value);
+        if (!ERC20(token).transfer(to, value))
+            revert();
 
-    function ensureFundingAndPayValue(
+        return true;
+    }
+    
+    function sendFunding(
         address token,
         address user,
         address to,        
@@ -252,16 +263,42 @@ contract B0xVault is Ownable {
         onlyAuthorized
         returns (bool)
     {
-        uint valueNotInWallet = 0;
-        if (funding[token][user] < value)
-            valueNotInWallet = value - funding[token][user];
-        uint valueInWallet = value.sub(valueNotInWallet);
-        funding[token][user] = funding[token][user].sub(valueInWallet);
-        if (valueNotInWallet > 0) {
-            if (!ERC20(token).transferFrom(user, this, valueNotInWallet))
-                return false;
-        }
-        return ERC20(token).transfer(to, value);
+        funding[token][user] = funding[token][user].sub(value);
+        if (!ERC20(token).transfer(to, value))
+            revert();
+
+        return true;
+    }
+
+    function sendInterest(
+        address token,
+        address user,
+        address to,        
+        uint value)
+        public
+        onlyAuthorized
+        returns (bool)
+    {
+        interest[token][user] = interest[token][user].sub(value);
+        if (!ERC20(token).transfer(to, value))
+            revert();
+
+        return true;
+    }
+
+    function ensureTokenAndPayValue(
+        address token,
+        address user,
+        address to,        
+        uint value)
+        public
+        onlyAuthorized
+        returns (bool)
+    {
+        if (!ERC20(token).transferFrom(user, to, value))
+            revert();
+
+        return true;
     }
 
     function getAuthorizedAddresses()

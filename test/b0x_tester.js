@@ -1,10 +1,6 @@
 const BigNumber = require('bignumber.js');
 const BN = require('bn.js');
 const ethUtil = require('ethereumjs-util');
-//const TestRPC = require('ethereumjs-testrpc');
-//const Transaction = require('ethereumjs-tx');
-//const coder = require('web3/lib/solidity/coder');
-//const CryptoJS = require('crypto-js');
 const Web3 = require('web3');
 
 //var provider = TestRPC.provider();
@@ -12,7 +8,7 @@ const Web3 = require('web3');
 //web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545")) // :9545
 
 
-import { B0xJS } from '../src/B0xJS.js';
+import { B0xJS } from '../src/b0x.js'
 
 
 import { ZeroEx } from '0x.js';
@@ -866,95 +862,7 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  /*
-
-    let expectedHash = brokerjs.getLendOrderHashHex(orderParams);
-    console.log("js hash: "+expectedHash);
-    //console.log(salt);
-    //console.log(expirationUnixTimestampSec);
-    //console.log(orderParams);
-    broker.getLendOrderHash.call(
-      [
-        orderParams["maker"],
-        orderParams["taker"],
-        orderParams["lendTokenAddress"],
-        orderParams["marginTokenAddress"],
-        orderParams["feeRecipientAddress"]
-      ],
-      [
-        new BN(orderParams["lendTokenAmount"]),
-        new BN(orderParams["interestAmount"]),
-        new BN(orderParams["initialMarginAmount"]),
-        new BN(orderParams["liquidationMarginAmount"]),
-        new BN(orderParams["lenderRelayFee"]),
-        new BN(orderParams["traderRelayFee"]),
-        new BN(orderParams["expirationUnixTimestampSec"]),
-        new BN(orderParams["salt"])
-    ]).then(function(orderHash) {
-      console.log("sol hash: "+orderHash);
-      sample_orderhash = orderHash;
-      assert.equal(orderHash, expectedHash, "expectedHash should equal returned lendOrderHash");
-      done();
-    }, function(error) {
-      console.error(error);
-      assert.equal(true, false);
-      done();
-    });
-  });
-
-  it("should sign and verify orderHash", function(done) {
-    var signedOrderHash;
-    var orderHashBuff = ethUtil.toBuffer(sample_orderhash);
-    var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
-    var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
-    signedOrderHash = web3.eth.sign(accounts[1], msgHashHex);
-
-    ECSignature = {
-      "v": parseInt(signedOrderHash.substring(130,132))+27,
-      "r": "0x"+signedOrderHash.substring(2,66),
-      "s": "0x"+signedOrderHash.substring(66,130)
-    };
-
-    broker.isValidSignature.call(
-      accounts[1], // lender
-      sample_orderhash,
-      ECSignature["v"],
-      ECSignature["r"],
-      ECSignature["s"]
-    ).then(function(result) {
-      assert.isOk(result);
-      done();
-    }, function(error) {
-      console.error(error);
-      assert.isOk(false);
-      done();
-    });
-  });
-
-*/
-
-
-  /*it('is should create sample kyber for tokens', async function () {
-    
-    const DexA_LOAN = await fundRaise.address
-
-    await fundRaise.pause()
-
-    try {
-        await fundRaise.sendTransaction({ value: 1e+18, from: donor })
-        assert.fail()
-    } catch (error) {
-        assert(error.toString().includes('invalid opcode'), error.toString())
-    }
-    const fundRaiseAddress = await fundRaise.address
-    assert.equal(web3.eth.getBalance(fundRaiseAddress).toNumber(), 0)
-
-    await fundRaise.unpause()
-    await fundRaise.sendTransaction({ value: 1e+18, from: donor })
-    assert.equal(web3.eth.getBalance(fundRaiseAddress).toNumber(), 1e+18)
-  })*/
-
-
+  
 
   function printBalances(accounts) {
     accounts.forEach(function(ac, i) {
