@@ -3,5 +3,6 @@ module.exports = {
     return {
       "/": { page: `/` }
     };
-  }
+  },
+  assetPrefix: '/portal'
 };
