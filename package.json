@@ -7,12 +7,12 @@
     "test": "jest",
     "dev": "next",
     "build": "next build && next export -o portal",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "eslint pages",
+    "lint:fix": "eslint pages --fix",
     "prepush": "npm run lint && npm run test"
   },
   "jest": {
-    "testPathIgnorePatterns": ["<rootDir>/.next/", "<rootDir>/node_modules/"]
+    "testPathIgnorePatterns": ["<rootDir>/portal/", "<rootDir>/.next/", "<rootDir>/node_modules/"]
   },
   "repository": {
     "type": "git",
