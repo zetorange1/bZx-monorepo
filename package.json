@@ -6,8 +6,7 @@
   "scripts": {
     "test": "jest",
     "dev": "next",
-    "build": "next build",
-    "start": "next start -p 8081",
+    "build": "next build && next export -o portal",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prepush": "npm run lint && npm run test"
