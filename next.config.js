@@ -4,5 +4,5 @@ module.exports = {
       "/": { page: `/` }
     };
   },
-  assetPrefix: '/portal'
+  assetPrefix: `/portal`
 };
