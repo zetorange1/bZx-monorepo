@@ -6,14 +6,14 @@
   "scripts": {
     "test": "jest",
     "dev": "next",
-    "build": "next build && next export -o portal",
+    "build": "next build && next export -o dist",
     "lint": "eslint pages src",
     "lint:fix": "eslint pages src --fix",
     "prepush": "npm run lint && npm run test"
   },
   "jest": {
     "testPathIgnorePatterns": [
-      "<rootDir>/portal/",
+      "<rootDir>/dist/",
       "<rootDir>/.next/",
       "<rootDir>/node_modules/"
     ]
