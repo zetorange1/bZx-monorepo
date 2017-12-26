@@ -1,5 +1,11 @@
 import Document, { Head, Main, NextScript } from "next/document";
-import { ServerStyleSheet } from "styled-components";
+import { ServerStyleSheet, injectGlobal } from "styled-components";
+
+injectGlobal`
+  body {
+    font-family: sans-serif;
+  }
+`
 
 export default class MyDocument extends Document {
   static getInitialProps({ renderPage }) {
@@ -16,6 +22,7 @@ export default class MyDocument extends Document {
       <html lang="en">
         <Head>
           <title>My page</title>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css" />
           {this.props.styleTags}
         </Head>
         <body>
