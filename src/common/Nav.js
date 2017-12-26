@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import NavContent from "./NavContent";
 
 const Container = styled.nav`
   background: white;
@@ -17,9 +18,7 @@ const Container = styled.nav`
 
     /* add a nice shadow effect */
     z-index: 1;
-    box-shadow:
-      0 10px 20px rgba(0,0,0,0.19),
-      0 6px 6px rgba(0,0,0,0.23);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
   }
 `;
 
@@ -29,10 +28,19 @@ const Content = styled.div`
   max-width: 1200px;
   padding-left: 12px;
   padding-right: 12px;
+
+  /* layout children horizontally */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;
 
-export default () => (
+const Nav = () => (
   <Container>
-    <Content>Nav stuff here</Content>
+    <Content>
+      <NavContent />
+    </Content>
   </Container>
 );
+
+export default Nav;

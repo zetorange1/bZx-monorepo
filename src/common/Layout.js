@@ -34,7 +34,7 @@ const ContentContainer = styled.div`
   padding-right: 12px;
 `;
 
-export default ({ children }) =>
+export default ({ children }) => (
   <Container>
     <Nav />
     <Content>
@@ -42,3 +42,4 @@ export default ({ children }) =>
     </Content>
     <Footer />
   </Container>
+);

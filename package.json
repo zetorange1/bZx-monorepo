@@ -8,8 +8,8 @@
     "dev": "next",
     "build": "next build && next export -o portal",
     "start": "npm run build && http-server ./ -p 8080",
-    "lint": "eslint pages",
-    "lint:fix": "eslint pages --fix",
+    "lint": "eslint pages src",
+    "lint:fix": "eslint pages src --fix",
     "prepush": "npm run lint && npm run test"
   },
   "jest": {
