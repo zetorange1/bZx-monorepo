@@ -41,6 +41,7 @@ export const Tab = styled.div`
       box-shadow: ${SHADOWS.dark};
       background-color: ${COLORS.white};
       cursor: unset;
+      z-index: 1;
 
       &:hover {
         color: black;
