@@ -1,9 +1,11 @@
 import styled from "styled-components";
 import NavContent from "./NavContent";
+import { DIMENSIONS, SHADOWS } from "./STYLE";
 
 const Container = styled.nav`
   background: white;
-  height: 64px;
+  height: ${DIMENSIONS.mobileNavHeight};
+  margin-top: 32px;
 
   /* center the inner container */
   display: flex;
@@ -11,6 +13,7 @@ const Container = styled.nav`
 
   /* make navbar fixed at the top on mobile */
   @media screen and (max-width: 600px) {
+    margin-top: 0;
     position: fixed;
     top: 0;
     right: 0;
@@ -18,14 +21,14 @@ const Container = styled.nav`
 
     /* add a nice shadow effect */
     z-index: 1;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+    box-shadow: ${SHADOWS.dark};
   }
 `;
 
 const Content = styled.div`
   /* as wide as it can be, but not too wide */
   width: 100%;
-  max-width: 1200px;
+  max-width: ${DIMENSIONS.maxWidth};
   padding-left: 12px;
   padding-right: 12px;
 

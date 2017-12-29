@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import Nav from "./Nav";
 import Footer from "./Footer";
+import { DIMENSIONS } from "./STYLE";
 
 const Container = styled.div`
   /* make it full height and width */
@@ -22,16 +23,14 @@ const Content = styled.div`
 
   /* deal with fixed navbar on mobile */
   @media screen and (max-width: 600px) {
-    margin-top: 64px;
+    margin-top: ${DIMENSIONS.mobileNavHeight};
   }
 `;
 
 const ContentContainer = styled.div`
   /* as wide as it can be, but not too wide */
   width: 100%;
-  max-width: 1200px;
-  padding-left: 12px;
-  padding-right: 12px;
+  max-width: ${DIMENSIONS.maxWidth};
 `;
 
 export default ({ children }) => (

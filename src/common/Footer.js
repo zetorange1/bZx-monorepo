@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { COLORS, DIMENSIONS } from "./STYLE";
 
 const Container = styled.footer`
   height: 60px;
@@ -6,8 +7,8 @@ const Container = styled.footer`
   padding-bottom: 12px;
 
   /* colors */
-  color: white;
-  background: #2879ff;
+  color: ${COLORS.white};
+  background: ${COLORS.blue};
 
   /* make footer stick to the bottom */
   grid-row-start: 3;
@@ -21,7 +22,7 @@ const Container = styled.footer`
 const Content = styled.div`
   /* as wide as it can be, but not too wide */
   width: 100%;
-  max-width: 1200px;
+  max-width: ${DIMENSIONS.maxWidth};
   padding-left: 12px;
   padding-right: 12px;
 `;

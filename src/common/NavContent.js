@@ -2,9 +2,11 @@ import { Fragment } from "react";
 import styled from "styled-components";
 import { Logo, HorizontalNav } from "./NavComponents";
 
-const HamburgerBtn = styled.div`
+const HamburgerBtn = styled.i.attrs({
+  className: `material-icons`
+})`
   padding: 12px;
-  border: 1px solid blue;
+  cursor: pointer;
 
   /* hide on desktop */
   @media screen and (min-width: 600px) {
@@ -61,11 +63,12 @@ class NavContent extends React.Component {
       <Fragment>
         <Logo>B0X</Logo>
         <HorizontalNav>
-          <div>Link 1</div>
-          <div>Link 2</div>
-          <div>Link 3</div>
+          <div>Orders</div>
+          <div>Trading</div>
+          <div>Lending</div>
+          <div>Bounties</div>
         </HorizontalNav>
-        <HamburgerBtn onClick={this.toggleSideNav}>hamburger</HamburgerBtn>
+        <HamburgerBtn onClick={this.toggleSideNav}>menu</HamburgerBtn>
         <Overlay show={this.state.showSideNav} onClick={this.toggleSideNav} />
         <Drawer show={this.state.showSideNav}>My sidenav items</Drawer>
       </Fragment>
