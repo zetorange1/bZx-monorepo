@@ -5,6 +5,10 @@ export const Card = styled.div`
   min-height: 600px;
   box-shadow: ${SHADOWS.light};
 
+  /* create a new stacking context */
+  position: relative;
+  z-index: 0;
+
   @media screen and (min-width: 600px) {
     margin-bottom: 24px;
   }
