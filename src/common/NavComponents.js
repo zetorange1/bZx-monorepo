@@ -16,6 +16,9 @@ export const HorizontalNav = styled.div`
   & > div {
     margin-left: 24px;
     cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 12px;
 
     &:hover,
     &:active,
