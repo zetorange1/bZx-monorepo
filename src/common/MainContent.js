@@ -6,6 +6,7 @@ export const Card = styled.div`
   box-shadow: ${SHADOWS.light};
   display: flex;
   flex-direction: column;
+  max-width: 100vw;
 
   /* create a new stacking context */
   position: relative;
@@ -20,6 +21,7 @@ export const Header = styled.div`
   padding: 12px 12px 0 12px;
   background-color: ${COLORS.blue};
   color: ${COLORS.white};
+  overflow: auto;
 `;
 
 export const HeaderTitle = styled.h2`
@@ -38,6 +40,14 @@ export const Tab = styled.div`
   background-color: ${COLORS.gray};
   cursor: pointer;
   user-select: none;
+
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 2px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
   &:hover {
     color: rgba(255, 255, 255, 0.5);
