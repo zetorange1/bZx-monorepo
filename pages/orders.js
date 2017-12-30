@@ -2,6 +2,7 @@ import Layout from "../src/common/Layout";
 import {
   Card,
   Header,
+  HeaderTitle,
   TabGroup,
   Tab,
   Content,
@@ -25,7 +26,7 @@ export default class Orders extends React.Component {
       <Layout>
         <Card>
           <Header>
-            <h2>Orders</h2>
+            <HeaderTitle>Orders</HeaderTitle>
             <TabGroup>
               {TABS.map(tab => (
                 <Tab

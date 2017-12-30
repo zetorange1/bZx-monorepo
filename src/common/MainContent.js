@@ -20,6 +20,13 @@ export const Header = styled.div`
   color: ${COLORS.white};
 `;
 
+export const HeaderTitle = styled.h2`
+  font-weight: 300;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  padding-left: 12px;
+`;
+
 export const TabGroup = styled.div`
   display: flex;
 `;
