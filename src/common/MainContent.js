@@ -4,6 +4,8 @@ import { COLORS, SHADOWS } from "./STYLE";
 export const Card = styled.div`
   min-height: 600px;
   box-shadow: ${SHADOWS.light};
+  display: flex;
+  flex-direction: column;
 
   /* create a new stacking context */
   position: relative;
@@ -61,6 +63,7 @@ export const Content = styled.div`
   background-color: ${COLORS.white};
   z-index: 1;
   position: relative;
+  flex: 1;
 `;
 
 export const ContentContainer = styled.div`
