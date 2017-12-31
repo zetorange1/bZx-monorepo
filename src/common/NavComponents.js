@@ -12,10 +12,29 @@ export const HorizontalNav = styled.div`
   @media screen and (max-width: 600px) {
     display: none;
   }
+
+  & > a {
+    margin-left: 24px;
+  }
+
+  & > a:first-child {
+    margin-left: 0;
+  }
 `;
 
-export const PageLink = styled.a`
-  margin-left: 24px;
+export const VerticalNav = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding: 72px 24px 24px;
+
+  & > a {
+    font-size: 24px;
+    margin-bottom: 32px;
+    letter-spacing: 6px;
+  }
+`;
+
+export const NavLink = styled.a`
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -25,9 +44,5 @@ export const PageLink = styled.a`
   &:active,
   &:focus {
     color: ${COLORS.blue};
-  }
-
-  &:first-child {
-    margin-left: 0;
   }
 `;

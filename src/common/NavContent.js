@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import styled from "styled-components";
-import { Logo, HorizontalNav, PageLink } from "./NavComponents";
+import { Logo, HorizontalNav, VerticalNav, NavLink } from "./NavComponents";
 
 const HamburgerBtn = styled.i.attrs({
   className: `material-icons`
@@ -13,6 +13,16 @@ const HamburgerBtn = styled.i.attrs({
   @media screen and (min-width: 600px) {
     display: none;
   }
+`;
+
+const CloseDrawerBtn = styled.i.attrs({
+  className: `material-icons`
+})`
+  padding: 12px;
+  cursor: pointer;
+  position: absolute;
+  top: 12px;
+  right: 12px;
 `;
 
 const Overlay = styled.div`
@@ -65,21 +75,37 @@ class NavContent extends React.Component {
         <Logo>B0X</Logo>
         <HorizontalNav>
           <Link href="/orders">
-            <PageLink>Orders</PageLink>
+            <NavLink>Orders</NavLink>
           </Link>
           <Link href="/trading">
-            <PageLink>Trading</PageLink>
+            <NavLink>Trading</NavLink>
           </Link>
           <Link href="/lending">
-            <PageLink>Lending</PageLink>
+            <NavLink>Lending</NavLink>
           </Link>
           <Link href="/bounties">
-            <PageLink>Bounties</PageLink>
+            <NavLink>Bounties</NavLink>
           </Link>
         </HorizontalNav>
         <HamburgerBtn onClick={this.toggleSideNav}>menu</HamburgerBtn>
         <Overlay show={this.state.showSideNav} onClick={this.toggleSideNav} />
-        <Drawer show={this.state.showSideNav}>My sidenav items</Drawer>
+        <Drawer show={this.state.showSideNav}>
+          <VerticalNav>
+            <Link href="/orders">
+              <NavLink>Orders</NavLink>
+            </Link>
+            <Link href="/trading">
+              <NavLink>Trading</NavLink>
+            </Link>
+            <Link href="/lending">
+              <NavLink>Lending</NavLink>
+            </Link>
+            <Link href="/bounties">
+              <NavLink>Bounties</NavLink>
+            </Link>
+          </VerticalNav>
+          <CloseDrawerBtn onClick={this.toggleSideNav}>close</CloseDrawerBtn>
+        </Drawer>
       </Fragment>
     );
   }
