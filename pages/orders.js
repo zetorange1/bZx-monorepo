@@ -8,6 +8,9 @@ import {
   Content,
   ContentContainer
 } from "../src/common/MainContent";
+import GenerateOrder from "../src/orders/GenerateOrder";
+import FillOrder from "../src/orders/FillOrder";
+import Balances from "../src/orders/Balances";
 
 const TABS = [
   { id: `GEN_ORDER`, label: `Generate Order` },
@@ -41,13 +44,13 @@ export default class Orders extends React.Component {
           </Header>
           <Content>
             <ContentContainer show={activeTab === `GEN_ORDER`}>
-              Put Gen Order Component here
+              <GenerateOrder />
             </ContentContainer>
             <ContentContainer show={activeTab === `FILL_ORDER`}>
-              Put Fill Order Component here
+              <FillOrder />
             </ContentContainer>
             <ContentContainer show={activeTab === `BALANCES`}>
-              Put Balances Component here
+              <Balances />
             </ContentContainer>
           </Content>
         </Card>
