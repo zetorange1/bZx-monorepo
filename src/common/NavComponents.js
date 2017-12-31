@@ -12,22 +12,22 @@ export const HorizontalNav = styled.div`
   @media screen and (max-width: 600px) {
     display: none;
   }
+`;
 
-  & > div {
-    margin-left: 24px;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    font-size: 12px;
+export const PageLink = styled.a`
+  margin-left: 24px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
 
-    &:hover,
-    &:active,
-    &:focus {
-      color: ${COLORS.blue};
-    }
+  &:hover,
+  &:active,
+  &:focus {
+    color: ${COLORS.blue};
+  }
 
-    &:first-child {
-      margin-left: 0;
-    }
+  &:first-child {
+    margin-left: 0;
   }
 `;

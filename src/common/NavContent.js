@@ -1,6 +1,7 @@
 import { Fragment } from "react";
+import Link from "next/link";
 import styled from "styled-components";
-import { Logo, HorizontalNav } from "./NavComponents";
+import { Logo, HorizontalNav, PageLink } from "./NavComponents";
 
 const HamburgerBtn = styled.i.attrs({
   className: `material-icons`
@@ -63,10 +64,18 @@ class NavContent extends React.Component {
       <Fragment>
         <Logo>B0X</Logo>
         <HorizontalNav>
-          <div>Orders</div>
-          <div>Trading</div>
-          <div>Lending</div>
-          <div>Bounties</div>
+          <Link href="/orders">
+            <PageLink>Orders</PageLink>
+          </Link>
+          <Link href="/trading">
+            <PageLink>Trading</PageLink>
+          </Link>
+          <Link href="/lending">
+            <PageLink>Lending</PageLink>
+          </Link>
+          <Link href="/bounties">
+            <PageLink>Bounties</PageLink>
+          </Link>
         </HorizontalNav>
         <HamburgerBtn onClick={this.toggleSideNav}>menu</HamburgerBtn>
         <Overlay show={this.state.showSideNav} onClick={this.toggleSideNav} />
