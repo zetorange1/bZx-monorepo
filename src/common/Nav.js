@@ -21,7 +21,7 @@ const Container = styled.nav`
 
     /* add a nice shadow effect */
     z-index: 1;
-    box-shadow: ${SHADOWS.dark};
+    box-shadow: ${SHADOWS.nav};
   }
 `;
 
