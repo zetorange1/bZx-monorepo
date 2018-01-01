@@ -1,7 +1,8 @@
 import Document, { Head, Main, NextScript } from "next/document";
 import { ServerStyleSheet, injectGlobal } from "styled-components";
+// eslint-disable-next-line import/no-extraneous-dependencies
 import JssProvider from "react-jss/lib/JssProvider";
-import getPageContext from "../src/getPageContext";
+import getPageContext from "../lib/material-ui/getPageContext";
 
 /* eslint-disable no-unused-expressions */
 injectGlobal`
@@ -42,6 +43,7 @@ export default class MyDocument extends Document {
       styles: (
         <style
           id="jss-server-side"
+          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             __html: pageContext.sheetsRegistry.toString()
           }}
