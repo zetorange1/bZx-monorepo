@@ -1,11 +1,11 @@
-import styled from "styled-components";
+import React from "react";
+import Router from "next/router";
 
-const Red = styled.span`
-  color: red;
-`;
-
-export default () => (
-  <div>
-    <Red>Hello</Red> from Next.js
-  </div>
-);
+export default class Index extends React.Component {
+  componentDidMount() {
+    Router.push(`/orders`);
+  }
+  render() {
+    return null;
+  }
+}
