@@ -1,5 +1,7 @@
 import Document, { Head, Main, NextScript } from "next/document";
 import { ServerStyleSheet, injectGlobal } from "styled-components";
+import JssProvider from "react-jss/lib/JssProvider";
+import getPageContext from "../src/getPageContext";
 
 /* eslint-disable no-unused-expressions */
 injectGlobal`
@@ -8,14 +10,44 @@ injectGlobal`
   }
 `;
 
+const withJssProvider = (App, pageContext, props) => (
+  <JssProvider
+    registry={pageContext.sheetsRegistry}
+    generateClassName={pageContext.generateClassName}
+  >
+    <App pageContext={pageContext} {...props} />
+  </JssProvider>
+);
+
 export default class MyDocument extends Document {
   static getInitialProps({ renderPage }) {
-    const sheet = new ServerStyleSheet();
-    const page = renderPage(App => props =>
-      sheet.collectStyles(<App {...props} />)
-    );
-    const styleTags = sheet.getStyleElement();
-    return { ...page, styleTags };
+    const sheet = new ServerStyleSheet(); // for styled-components
+    const pageContext = getPageContext(); // for material-ui
+    const page = renderPage(App => props => {
+      // wrap with JSS provider and pageContext for material-ui
+      const WrappedApp = withJssProvider(App, pageContext, props);
+
+      // collect the styles for styled-components
+      sheet.collectStyles(WrappedApp);
+
+      // return the rendered page
+      return WrappedApp;
+    });
+    // for styled-components: styleTags
+    // for material-ui: pageContext and styles
+    return {
+      ...page,
+      styleTags: sheet.getStyleElement(),
+      pageContext,
+      styles: (
+        <style
+          id="jss-server-side"
+          dangerouslySetInnerHTML={{
+            __html: pageContext.sheetsRegistry.toString()
+          }}
+        />
+      )
+    };
   }
 
   render() {
