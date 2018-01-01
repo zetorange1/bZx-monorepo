@@ -1,3 +1,5 @@
+import Button from "material-ui/Button";
+
 export default class GenerateOrder extends React.Component {
   state = {};
 
@@ -7,6 +9,10 @@ export default class GenerateOrder extends React.Component {
         <div>Checkbox to indicate lender or trader</div>
         <form>
           <input type="text" />
+          <Button color="primary">Flat Primary</Button>
+          <Button raised color="accent">
+            Raised Accent
+          </Button>
         </form>
         <div>Sign Order submit button</div>
       </div>

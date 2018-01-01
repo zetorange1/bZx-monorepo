@@ -1,3 +1,4 @@
+import withRoot from "../lib/material-ui/withRoot";
 import Layout from "../src/common/Layout";
 import {
   Card,
@@ -18,7 +19,7 @@ const TABS = [
   { id: `BALANCES`, label: `Balances` }
 ];
 
-export default class Orders extends React.Component {
+class Orders extends React.Component {
   state = { activeTab: `GEN_ORDER` };
 
   changeTab = tabId => this.setState({ activeTab: tabId });
@@ -58,3 +59,5 @@ export default class Orders extends React.Component {
     );
   }
 }
+
+export default withRoot(Orders);
