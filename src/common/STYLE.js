@@ -4,6 +4,26 @@ export const COLORS = {
   gray: `grey`
 };
 
+export const primaryPalette = {
+  50: `#e5efff`,
+  100: `#bfd7ff`,
+  200: `#94bcff`,
+  300: `#69a1ff`,
+  400: `#488dff`,
+  500: `#2879ff`,
+  600: `#2471ff`,
+  700: `#1e66ff`,
+  800: `#185cff`,
+  900: `#0f49ff`,
+  A100: `#ffffff`,
+  A200: `#f7f9ff`,
+  A400: `#c4d0ff`,
+  A700: `#2879ff`,
+  contrastDefaultColor: `light`
+};
+
+export const accentColor = `#FFD112`;
+
 export const SHADOWS = {
   nav: `0px 2px 4px -1px rgba(0, 0, 0, 0.2),
     0px 4px 5px 0px rgba(0, 0, 0, 0.14),

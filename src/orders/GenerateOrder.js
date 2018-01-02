@@ -1,4 +1,5 @@
 import Button from "material-ui/Button";
+import TextField from "material-ui/TextField";
 
 export default class GenerateOrder extends React.Component {
   state = {};
@@ -9,10 +10,38 @@ export default class GenerateOrder extends React.Component {
         <div>Checkbox to indicate lender or trader</div>
         <form>
           <input type="text" />
-          <Button color="primary">Flat Primary</Button>
+          <Button raised color="primary">
+            Flat Primary
+          </Button>
           <Button raised color="accent">
             Raised Accent
           </Button>
+          <div>
+            <TextField
+              id="uncontrolled"
+              label="Uncontrolled"
+              defaultValue="foo"
+              margin="normal"
+            />
+          </div>
+          <div>
+            <TextField
+              id="uncontrolled"
+              label="Uncontrolled"
+              defaultValue="foo"
+              margin="normal"
+              error
+            />
+          </div>
+          <div>
+            <TextField
+              id="uncontrolled"
+              label="Uncontrolled"
+              defaultValue="foo"
+              margin="normal"
+              disabled
+            />
+          </div>
         </form>
         <div>Sign Order submit button</div>
       </div>
