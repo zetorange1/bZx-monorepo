@@ -1,27 +1,60 @@
+import { FormControlLabel, FormLabel } from "material-ui/Form";
+import Radio, { RadioGroup } from "material-ui/Radio";
 import Button from "material-ui/Button";
 import TextField from "material-ui/TextField";
 
 export default class GenerateOrder extends React.Component {
-  state = {};
+  state = { role: `lender` };
+
+  handleRoleChange = (e, value) => this.setState({ role: value });
 
   render() {
     return (
       <div>
-        <div>Checkbox to indicate lender or trader</div>
+        <FormLabel component="legend">I am a:</FormLabel>
+        <RadioGroup
+          row
+          aria-label="lenderOrTrader"
+          name="lenderOrTrader"
+          value={this.state.role}
+          onChange={this.handleRoleChange}
+        >
+          <FormControlLabel value="lender" control={<Radio />} label="Lender" />
+          <FormControlLabel value="trader" control={<Radio />} label="Trader" />
+        </RadioGroup>
+
+        {/* TODO - lendTokenAddress */}
+        <TextField
+          id="lendTokenAddress"
+          label="Lend Token Address"
+          defaultValue="foo"
+          margin="normal"
+          fullWidth
+          required
+        />
+        {/* TODO - interestTokenAddress */}
+        {/* TODO - marginTokenAddress */}
+        {/* TODO - feeRecipientAddress */}
+        {/* TODO - lendTokenAmount */}
+        {/* TODO - interestAmount */}
+        {/* TODO - initialMarginAmount */}
+        {/* TODO - liquidationMarginAmount */}
+        {/* TODO - lenderRelayFee */}
+        {/* TODO - traderRelayFee */}
+        {/* TODO - datapicker -> expirationUnixTimestampSec */}
         <form>
           <input type="text" />
           <Button raised color="primary">
-            Flat Primary
+            Primary
           </Button>
-          <Button raised color="accent">
-            Raised Accent
-          </Button>
+          <Button raised>Secondary</Button>
           <div>
             <TextField
               id="uncontrolled"
               label="Uncontrolled"
               defaultValue="foo"
               margin="normal"
+              required
             />
           </div>
           <div>
