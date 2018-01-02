@@ -3,7 +3,7 @@ import { COLORS, SHADOWS } from "./STYLE";
 
 export const Card = styled.div`
   min-height: 600px;
-  box-shadow: ${SHADOWS.light};
+  box-shadow: ${SHADOWS.card};
   display: flex;
   flex-direction: column;
   max-width: 100vw;
