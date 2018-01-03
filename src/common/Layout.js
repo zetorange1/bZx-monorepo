@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import Nav from "./Nav";
 import Footer from "./Footer";
-import { DIMENSIONS } from "./STYLE";
+import { DIMENSIONS } from "../styles/constants";
 
 const Container = styled.div`
   /* make it full height and width */

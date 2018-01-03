@@ -1,5 +1,5 @@
 import styled, { css } from "styled-components";
-import { COLORS, SHADOWS } from "./STYLE";
+import { COLORS, SHADOWS } from "../styles/constants";
 
 export const Card = styled.div`
   min-height: 600px;

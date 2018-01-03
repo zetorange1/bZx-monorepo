@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { COLORS } from "./STYLE";
+import { COLORS } from "../styles/constants";
 
 export const Logo = styled.div`
   font-weight: 700;

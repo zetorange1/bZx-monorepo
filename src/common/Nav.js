@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import NavContent from "./NavContent";
-import { DIMENSIONS, SHADOWS } from "./STYLE";
+import { DIMENSIONS, SHADOWS } from "../styles/constants";
 
 const Container = styled.nav`
   background: white;
