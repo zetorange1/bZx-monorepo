@@ -17,7 +17,7 @@ limitations under the License.
 */
 
 pragma solidity ^0.4.9;
-import '../tokens/ERC20_Standard.sol';
+import 'zeppelin-solidity/contracts/token/StandardToken.sol';
 
 
 /**
@@ -26,14 +26,14 @@ import '../tokens/ERC20_Standard.sol';
 * @dev FAKE ERC20 token where all accounts contain the total supply of the coin (a paradox).
 * @dev Note this is only for testing purposes and should never be deployed to mainnet!!!!!
 */
-contract ERC20_AlwaysOwned is ERC20_Standard {
+contract ERC20_AlwaysOwned is StandardToken {
     using SafeMath for uint256;
 
     string public name;
     uint8 public decimals;
     string public symbol;
 
-    function ERC20_AlwaysOwned(
+    /*function ERC20_AlwaysOwned(
         uint256 _initialAmount,
         string _tokenName,
         uint8 _decimalUnits,
@@ -42,7 +42,7 @@ contract ERC20_AlwaysOwned is ERC20_Standard {
         name = _tokenName;
         decimals = _decimalUnits;
         symbol = _tokenSymbol;
-    }
+    }*/
 
     function transfer(address _to, uint256 _value) public returns (bool) {
         Transfer(msg.sender, _to, _value);

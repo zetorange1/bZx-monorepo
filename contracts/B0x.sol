@@ -20,13 +20,13 @@
 pragma solidity ^0.4.9;
 
 // helpers
-import './helpers/Ownable.sol';
+//import './helpers/Ownable.sol';
 
 import './B0xVault.sol';
 import './interfaces/Exchange0x_Interface.sol';
 
 // SIMULATIONS (TO BE REMOVED PRIOR TO MAINNET DEPLOYMENT)
-import './simulations/ERC20_AlwaysOwned.sol';
+//import './simulations/ERC20_AlwaysOwned.sol';
 import './simulations/KyberWrapper.sol';
 
 contract B0x is Ownable {
@@ -291,7 +291,7 @@ contract B0x is Ownable {
         if (orderAddresses0x[4] != address(0) && // feeRecipient
                 orderValues0x[1] > 0 // takerTokenAmount
         ) {
-            if (!ERC20(ZRX_TOKEN_CONTRACT).transferFrom(msg.sender, this, orderValues0x[1])) {
+            if (!EIP20(ZRX_TOKEN_CONTRACT).transferFrom(msg.sender, this, orderValues0x[1])) {
                 LogErrorText("error: b0x can't transfer ZRX from trader", 0, lendOrderHash);
                 return intOrRevert(0);
             }
@@ -658,12 +658,12 @@ contract B0x is Ownable {
         view 
         returns (RateData)
     {   
-        uint lendTokenDecimals = getDecimals(ERC20_AlwaysOwned(lendTokenAddress));
-        uint marginTokenDecimals = getDecimals(ERC20_AlwaysOwned(marginTokenAddress));
+        uint lendTokenDecimals = getDecimals(EIP20(lendTokenAddress));
+        uint marginTokenDecimals = getDecimals(EIP20(marginTokenAddress));
         uint tradeTokenDecimals;
 
         if (tradeTokenAddress != address(0)) {
-            tradeTokenDecimals = getDecimals(ERC20_AlwaysOwned(tradeTokenAddress));
+            tradeTokenDecimals = getDecimals(EIP20(tradeTokenAddress));
 
             return (RateData({
                 marginToLendRate: (KyberWrapper(KYBER_CONTRACT).getKyberPrice(marginTokenAddress, lendTokenAddress)
@@ -869,7 +869,7 @@ contract B0x is Ownable {
         totalInterestRequired = getPartialAmount(lendTokenAmountFilled, lendOrder.lendTokenAmount, (lendOrder.expirationUnixTimestampSec.sub(block.timestamp) / 86400).mul(lendOrder.interestAmount));
     }
 
-    function getDecimals(ERC20_AlwaysOwned token) 
+    function getDecimals(EIP20 token) 
         internal
         view 
         returns(uint)

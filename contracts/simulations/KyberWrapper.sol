@@ -1,10 +1,11 @@
 
 pragma solidity ^0.4.9;
 
-import '../helpers/Ownable.sol';
-import '../helpers/SafeMath.sol';
+import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
-//import './simulation/ERC20_AlwaysOwned.sol';
+//import '../interfaces/EIP20.sol';
+import './ERC20_AlwaysOwned.sol';
 
 contract KyberWrapper is Ownable {
     using SafeMath for uint256;

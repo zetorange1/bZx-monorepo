@@ -19,9 +19,10 @@
 
 pragma solidity ^0.4.9;
 
-import './interfaces/ERC20.sol';
-import './helpers/SafeMath.sol';
-import './helpers/Ownable.sol';
+import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+
+import './interfaces/EIP20.sol';
 
 contract B0xVault is Ownable {
     using SafeMath for uint256;
@@ -69,15 +70,15 @@ contract B0xVault is Ownable {
     function setTokenApproval(address token_, address user_, uint amount_) public onlyAuthorized returns (bool) { 
         require(token_ != address(0));
 
-        uint allowance = ERC20(token_).allowance(this, user_);
+        uint allowance = EIP20(token_).allowance(this, user_);
         if (allowance == amount_) {
             return true;
         }
 
         if (allowance != 0) {
-            require(ERC20(token_).approve(user_, 0)); // required to change approval
+            require(EIP20(token_).approve(user_, 0)); // required to change approval
         }
-        require(ERC20(token_).approve(user_, amount_));
+        require(EIP20(token_).approve(user_, amount_));
 
         return true;
     }
@@ -120,14 +121,14 @@ contract B0xVault is Ownable {
         require(token_ != address(0));
         
         marginWallet[token_][user_] = marginWallet[token_][user_].sub(amount_);
-        require(ERC20(token_).transfer(user_, amount_));
+        require(EIP20(token_).transfer(user_, amount_));
         return marginWallet[token_][user_]; 
     }
     function withdrawTokenFunding(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {
         require(token_ != address(0));
         
         fundingWallet[token_][user_] = fundingWallet[token_][user_].sub(amount_);
-        require(ERC20(token_).transfer(user_, amount_));
+        require(EIP20(token_).transfer(user_, amount_));
         return fundingWallet[token_][user_]; 
     }*/
 
@@ -135,14 +136,14 @@ contract B0xVault is Ownable {
         require(token_ != address(0));
         
         marginWallet[token_][from_] = marginWallet[token_][from_].sub(amount_);
-        require(ERC20(token_).transfer(to_, amount_));
+        require(EIP20(token_).transfer(to_, amount_));
         return true; 
     }
     function transferOutTokenFunding(address token_, address from_, address to_, uint amount_) public onlyAuthorized returns (bool) {
         require(token_ != address(0));
         
         fundingWallet[token_][from_] = fundingWallet[token_][from_].sub(amount_);
-        require(ERC20(token_).transfer(to_, amount_));
+        require(EIP20(token_).transfer(to_, amount_));
         return true; 
     }*/
 
@@ -202,7 +203,7 @@ contract B0xVault is Ownable {
         returns (bool)
     {
         margin[token][user] = margin[token][user].add(value);
-        if (!ERC20(token).transferFrom(user, this, value))
+        if (!EIP20(token).transferFrom(user, this, value))
             revert();
 
         return true;
@@ -217,7 +218,7 @@ contract B0xVault is Ownable {
         returns (bool)
     {
         funding[token][user] = funding[token][user].add(value);
-        if (!ERC20(token).transferFrom(user, this, value))
+        if (!EIP20(token).transferFrom(user, this, value))
             revert();
 
         return true;
@@ -232,7 +233,7 @@ contract B0xVault is Ownable {
         returns (bool)
     {
         interest[token][user] = interest[token][user].add(value);
-        if (!ERC20(token).transferFrom(user, this, value))
+        if (!EIP20(token).transferFrom(user, this, value))
             revert();
 
         return true;
@@ -248,7 +249,7 @@ contract B0xVault is Ownable {
         returns (bool)
     {
         margin[token][user] = margin[token][user].sub(value);
-        if (!ERC20(token).transfer(to, value))
+        if (!EIP20(token).transfer(to, value))
             revert();
 
         return true;
@@ -264,7 +265,7 @@ contract B0xVault is Ownable {
         returns (bool)
     {
         funding[token][user] = funding[token][user].sub(value);
-        if (!ERC20(token).transfer(to, value))
+        if (!EIP20(token).transfer(to, value))
             revert();
 
         return true;
@@ -280,7 +281,7 @@ contract B0xVault is Ownable {
         returns (bool)
     {
         interest[token][user] = interest[token][user].sub(value);
-        if (!ERC20(token).transfer(to, value))
+        if (!EIP20(token).transfer(to, value))
             revert();
 
         return true;
@@ -295,7 +296,7 @@ contract B0xVault is Ownable {
         onlyAuthorized
         returns (bool)
     {
-        if (!ERC20(token).transferFrom(user, to, value))
+        if (!EIP20(token).transferFrom(user, to, value))
             revert();
 
         return true;
@@ -331,7 +332,7 @@ contract B0xVault is Ownable {
         constant  // The called token contract may attempt to change state, but will not be able to due to an added gas limit.
         returns (uint)
     {
-        return ERC20(token).balanceOf.gas(EXTERNAL_QUERY_GAS_LIMIT)(owner); // Limit gas to prevent reentrancy
+        return EIP20(token).balanceOf.gas(EXTERNAL_QUERY_GAS_LIMIT)(owner); // Limit gas to prevent reentrancy
     }
 
     /// @dev Get allowance of token given to TokenTransferProxy by an address.
@@ -343,7 +344,7 @@ contract B0xVault is Ownable {
         constant  // The called token contract may attempt to change state, but will not be able to due to an added gas limit.
         returns (uint)
     {
-        return ERC20(token).allowance.gas(EXTERNAL_QUERY_GAS_LIMIT)(owner, VAULT_CONTRACT); // Limit gas to prevent reentrancy
+        return EIP20(token).allowance.gas(EXTERNAL_QUERY_GAS_LIMIT)(owner, VAULT_CONTRACT); // Limit gas to prevent reentrancy
     }
 
 
