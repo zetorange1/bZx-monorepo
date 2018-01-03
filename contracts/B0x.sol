@@ -411,8 +411,17 @@ contract B0x is Ownable {
         return amountToPay;
     }
 
-    // traders can take a portion of the total coin being lended (lendTokenAmountFilled)
-    // traders also specifiy the token that will fill the margin requirement if they are taking the order
+    /// @dev Takes the order as trader
+    /// @param orderAddresses Array of order's maker, lendTokenAddress, interestTokenAddress marginTokenAddress, and feeRecipientAddress.
+    /// @param orderValues Array of order's lendTokenAmount, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
+    /// @param marginTokenAddressFilled Desired address of the marginToken the trader wants to use.
+    /// @param lendTokenAmountFilled Desired amount of lendToken the trader wants to borrow.
+    /// @param v ECDSA signature parameter v.
+    /// @param r ECDSA signature parameters r.
+    /// @param s ECDSA signature parameters s.
+    /// @return Total amount of lendToken borrowed (uint).
+    /// @dev Traders can take a portion of the total coin being lended (lendTokenAmountFilled).
+    /// @dev Traders also specifiy the token that will fill the margin requirement if they are taking the order.
     function takeLendOrderAsTrader(
         address[5] orderAddresses,
         uint[8] orderValues,
@@ -479,8 +488,15 @@ contract B0x is Ownable {
         }
     }
 
-    // lenders have to fill the entire desired amount the trader wants to borrow
-    // this make lendTokenAmountFilled = lendOrder.lendTokenAmount
+    /// @dev Takes the order as lender
+    /// @param orderAddresses Array of order's maker, lendTokenAddress, interestTokenAddress marginTokenAddress, and feeRecipientAddress.
+    /// @param orderValues Array of order's lendTokenAmount, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
+    /// @param v ECDSA signature parameter v.
+    /// @param r ECDSA signature parameters r.
+    /// @param s ECDSA signature parameters s.
+    /// @return Total amount of lendToken borrowed (uint).
+    /// @dev Lenders have to fill the entire desired amount the trader wants to borrow.
+    /// @dev This makes lendTokenAmountFilled = lendOrder.lendTokenAmount.
     function takeLendOrderAsLender(
         address[5] orderAddresses,
         uint[8] orderValues,
