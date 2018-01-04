@@ -3,14 +3,20 @@ import styled from "styled-components";
 import { FormControlLabel, FormLabel } from "material-ui/Form";
 import Radio, { RadioGroup } from "material-ui/Radio";
 import Checkbox from "material-ui/Checkbox";
-import Divider from "material-ui/Divider";
+import MuiDivider from "material-ui/Divider";
 import Tooltip from "material-ui/Tooltip";
 import Button from "material-ui/Button";
 import MuiTextField from "material-ui/TextField";
 import TokenPicker from "./TokenPicker";
 
+const Divider = styled(MuiDivider)`
+  margin-top: 24px !important;
+  margin-bottom: 24px !important;
+`;
+
 const TextField = styled(MuiTextField)`
-  display: block !important;
+  width: 240px !important;
+  margin-right: 24px !important;
 `;
 
 const TokenInputs = styled.div`
@@ -62,9 +68,10 @@ export default class GenerateOrder extends React.Component {
             />
             {/* TODO - lendTokenAmount */}
             <TextField
+              type="number"
               id="lendTokenAmount"
               label="Lend token amount"
-              defaultValue="foo"
+              defaultValue="42"
               margin="normal"
               required
             />
@@ -72,15 +79,7 @@ export default class GenerateOrder extends React.Component {
 
           <TokenGroup>
             {/* TODO - interestTokenAddress */}
-            <FormLabel component="legend">
-              Interest{` `}
-              <Tooltip
-                title="this is the TOTAL amount of interest token that will be paid per day to the lender if the lend order is open for the max possible time"
-                placement="bottom"
-              >
-                <i className="material-icons">info</i>
-              </Tooltip>
-            </FormLabel>
+            <FormLabel component="legend">Interest</FormLabel>
             <TokenPicker
               onChange={this.setStateFor(`interestTokenAddress`)}
               value={this.state.interestTokenAddress}
@@ -91,9 +90,10 @@ export default class GenerateOrder extends React.Component {
               placement="bottom"
             >
               <TextField
+                type="number"
                 id="interestAmount"
                 label="Interest amount"
-                defaultValue="foo"
+                defaultValue="42"
                 margin="normal"
                 helperText="Total paid per day to lender"
                 required
@@ -115,20 +115,24 @@ export default class GenerateOrder extends React.Component {
 
         <Divider />
 
+        <FormLabel component="legend">Margin Amounts</FormLabel>
+
         {/* TODO - initialMarginAmount */}
         <TextField
+          type="number"
           id="initialMarginAmount"
-          label="Initial Margin Amount"
-          defaultValue="foo"
+          label="Initial margin amount"
+          defaultValue="42"
           margin="normal"
           required
         />
 
         {/* TODO - liquidationMarginAmount */}
         <TextField
+          type="number"
           id="liquidationMarginAmount"
-          label="Liquidation Margin Amount"
-          defaultValue="foo"
+          label="Liquidation margin amount"
+          defaultValue="42"
           margin="normal"
           required
         />
@@ -137,15 +141,17 @@ export default class GenerateOrder extends React.Component {
 
         <Divider />
 
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={sendToRelayExchange}
-              onChange={this.changeSendToRelayExchangeCheckbox}
-            />
-          }
-          label="Send to relay/exchange"
-        />
+        <div>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={sendToRelayExchange}
+                onChange={this.changeSendToRelayExchangeCheckbox}
+              />
+            }
+            label="Send to relay/exchange"
+          />
+        </div>
 
         {sendToRelayExchange && (
           <Fragment>
@@ -157,21 +163,25 @@ export default class GenerateOrder extends React.Component {
               required
             />
             <TextField
+              type="number"
               id="lenderRelayFee"
               label="Lender Relay Fee"
-              defaultValue="foo"
+              defaultValue="42"
               margin="normal"
               required
             />
             <TextField
+              type="number"
               id="traderRelayFee"
               label="Trader Relay Fee"
-              defaultValue="foo"
+              defaultValue="42"
               margin="normal"
               required
             />
           </Fragment>
         )}
+
+        <Divider />
 
         <div>
           <Button raised color="primary">
