@@ -1,3 +1,4 @@
+/* eslint-disable */
 export default class TokenPicker extends React.Component {
   state = { showDialog: false };
   toggleDialog = () => this.setState(p => ({ showDialog: !p.showDialog }));
