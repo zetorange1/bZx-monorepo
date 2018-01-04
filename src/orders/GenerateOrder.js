@@ -21,6 +21,7 @@ const TextField = styled(MuiTextField)`
 
 const TokenInputs = styled.div`
   display: flex;
+  flex-wrap: wrap;
 `;
 
 const TokenGroup = styled.div``;

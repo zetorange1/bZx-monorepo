@@ -5,6 +5,7 @@ const injectGlobalStyles = () => {
   injectGlobal`
     body {
       font-family: sans-serif;
+      background-color: #FAFAFA;
     }
   `;
 };
