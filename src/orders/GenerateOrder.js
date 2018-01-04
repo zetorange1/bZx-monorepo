@@ -1,14 +1,39 @@
+import { Fragment } from "react";
+import styled from "styled-components";
 import { FormControlLabel, FormLabel } from "material-ui/Form";
 import Radio, { RadioGroup } from "material-ui/Radio";
+import Checkbox from "material-ui/Checkbox";
 import Button from "material-ui/Button";
-import TextField from "material-ui/TextField";
+import MuiTextField from "material-ui/TextField";
+import TokenPicker from "./TokenPicker";
+
+const TextField = styled(MuiTextField)`
+  display: block;
+`;
+
+const TokenInputs = styled.div`
+  display: flex;
+`;
+
+const TokenGroup = styled.div``;
 
 export default class GenerateOrder extends React.Component {
-  state = { role: `lender` };
+  state = {
+    role: `lender`,
+    lendTokenAddress: null,
+    interestTokenAddress: null,
+    sendToRelayExchange: false
+  };
+
+  setStateFor = key => value => this.setState({ [key]: value });
 
   handleRoleChange = (e, value) => this.setState({ role: value });
 
+  changeSendToRelayExchangeCheckbox = (e, value) =>
+    this.setState({ sendToRelayExchange: value });
+
   render() {
+    const { role, sendToRelayExchange } = this.state;
     return (
       <div>
         <FormLabel component="legend">I am a:</FormLabel>
@@ -23,60 +48,118 @@ export default class GenerateOrder extends React.Component {
           <FormControlLabel value="trader" control={<Radio />} label="Trader" />
         </RadioGroup>
 
-        {/* TODO - lendTokenAddress */}
-        <TextField
-          id="lendTokenAddress"
-          label="Lend Token Address"
-          defaultValue="foo"
-          margin="normal"
-          fullWidth
-          required
-        />
-        {/* TODO - interestTokenAddress */}
-        {/* TODO - marginTokenAddress */}
-        {/* TODO - feeRecipientAddress */}
-        {/* TODO - lendTokenAmount */}
-        {/* TODO - interestAmount */}
-        {/* TODO - initialMarginAmount */}
-        {/* TODO - liquidationMarginAmount */}
-        {/* TODO - lenderRelayFee */}
-        {/* TODO - traderRelayFee */}
-        {/* TODO - datapicker -> expirationUnixTimestampSec */}
-        <form>
-          <input type="text" />
-          <Button raised color="primary">
-            Primary
-          </Button>
-          <Button raised>Secondary</Button>
-          <div>
+        <TokenInputs>
+          <TokenGroup>
+            {/* TODO - lendTokenAddress */}
+            <FormLabel component="legend">Lending</FormLabel>
+            <TokenPicker
+              onChange={this.setStateFor(`lendTokenAddress`)}
+              value={this.state.lendTokenAddress}
+            />
+            {/* TODO - lendTokenAmount */}
             <TextField
-              id="uncontrolled"
-              label="Uncontrolled"
+              id="lendTokenAmount"
+              label="Lend token amount"
               defaultValue="foo"
               margin="normal"
               required
             />
-          </div>
-          <div>
+          </TokenGroup>
+
+          <TokenGroup>
+            {/* TODO - interestTokenAddress */}
+            <FormLabel component="legend">Interest</FormLabel>
+            <TokenPicker
+              onChange={this.setStateFor(`interestTokenAddress`)}
+              value={this.state.interestTokenAddress}
+            />
+            {/* TODO - interestAmount */}
             <TextField
-              id="uncontrolled"
-              label="Uncontrolled"
+              id="interestAmount"
+              label="Interest amount"
               defaultValue="foo"
               margin="normal"
-              error
+              required
             />
-          </div>
-          <div>
+          </TokenGroup>
+
+          {/* TODO - marginTokenAddress (hidden if role === lender) */}
+          {role === `lender` && (
+            <TokenGroup>
+              <FormLabel component="legend">Margin Token</FormLabel>
+              <TokenPicker
+                onChange={this.setStateFor(`marginTokenAddress`)}
+                value={this.state.marginTokenAddress}
+              />
+            </TokenGroup>
+          )}
+        </TokenInputs>
+
+        <hr />
+
+        {/* TODO - initialMarginAmount */}
+        <TextField
+          id="initialMarginAmount"
+          label="Initial Margin Amount"
+          defaultValue="foo"
+          margin="normal"
+          required
+        />
+
+        {/* TODO - liquidationMarginAmount */}
+        <TextField
+          id="liquidationMarginAmount"
+          label="Liquidation Margin Amount"
+          defaultValue="foo"
+          margin="normal"
+          required
+        />
+
+        {/* TODO - datapicker -> expirationUnixTimestampSec */}
+
+        <hr />
+
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={sendToRelayExchange}
+              onChange={this.changeSendToRelayExchangeCheckbox}
+            />
+          }
+          label="Send to relay/exchange"
+        />
+
+        {sendToRelayExchange && (
+          <Fragment>
             <TextField
-              id="uncontrolled"
-              label="Uncontrolled"
+              id="feeRecipientAddress"
+              label="Relay/Exchange Address"
               defaultValue="foo"
               margin="normal"
-              disabled
+              required
             />
-          </div>
-        </form>
-        <div>Sign Order submit button</div>
+            <TextField
+              id="lenderRelayFee"
+              label="Lender Relay Fee"
+              defaultValue="foo"
+              margin="normal"
+              required
+            />
+            <TextField
+              id="traderRelayFee"
+              label="Trader Relay Fee"
+              defaultValue="foo"
+              margin="normal"
+              required
+            />
+          </Fragment>
+        )}
+
+        <div>
+          <Button raised color="primary">
+            Sign Order
+          </Button>
+        </div>
       </div>
     );
   }
