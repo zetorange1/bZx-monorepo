@@ -3,12 +3,14 @@ import styled from "styled-components";
 import { FormControlLabel, FormLabel } from "material-ui/Form";
 import Radio, { RadioGroup } from "material-ui/Radio";
 import Checkbox from "material-ui/Checkbox";
+import Divider from "material-ui/Divider";
+import Tooltip from "material-ui/Tooltip";
 import Button from "material-ui/Button";
 import MuiTextField from "material-ui/TextField";
 import TokenPicker from "./TokenPicker";
 
 const TextField = styled(MuiTextField)`
-  display: block;
+  display: block !important;
 `;
 
 const TokenInputs = styled.div`
@@ -48,6 +50,8 @@ export default class GenerateOrder extends React.Component {
           <FormControlLabel value="trader" control={<Radio />} label="Trader" />
         </RadioGroup>
 
+        <Divider />
+
         <TokenInputs>
           <TokenGroup>
             {/* TODO - lendTokenAddress */}
@@ -68,19 +72,33 @@ export default class GenerateOrder extends React.Component {
 
           <TokenGroup>
             {/* TODO - interestTokenAddress */}
-            <FormLabel component="legend">Interest</FormLabel>
+            <FormLabel component="legend">
+              Interest{` `}
+              <Tooltip
+                title="this is the TOTAL amount of interest token that will be paid per day to the lender if the lend order is open for the max possible time"
+                placement="bottom"
+              >
+                <i className="material-icons">info</i>
+              </Tooltip>
+            </FormLabel>
             <TokenPicker
               onChange={this.setStateFor(`interestTokenAddress`)}
               value={this.state.interestTokenAddress}
             />
             {/* TODO - interestAmount */}
-            <TextField
-              id="interestAmount"
-              label="Interest amount"
-              defaultValue="foo"
-              margin="normal"
-              required
-            />
+            <Tooltip
+              title="this is the TOTAL amount of interest token that will be paid per day to the lender if the lend order is open for the max possible time"
+              placement="bottom"
+            >
+              <TextField
+                id="interestAmount"
+                label="Interest amount"
+                defaultValue="foo"
+                margin="normal"
+                helperText="Total paid per day to lender"
+                required
+              />
+            </Tooltip>
           </TokenGroup>
 
           {/* TODO - marginTokenAddress (hidden if role === lender) */}
@@ -95,7 +113,7 @@ export default class GenerateOrder extends React.Component {
           )}
         </TokenInputs>
 
-        <hr />
+        <Divider />
 
         {/* TODO - initialMarginAmount */}
         <TextField
@@ -117,7 +135,7 @@ export default class GenerateOrder extends React.Component {
 
         {/* TODO - datapicker -> expirationUnixTimestampSec */}
 
-        <hr />
+        <Divider />
 
         <FormControlLabel
           control={
