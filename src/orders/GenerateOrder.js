@@ -86,20 +86,15 @@ export default class GenerateOrder extends React.Component {
               value={this.state.interestTokenAddress}
             />
             {/* TODO - interestAmount */}
-            <Tooltip
-              title="this is the TOTAL amount of interest token that will be paid per day to the lender if the lend order is open for the max possible time"
-              placement="bottom"
-            >
-              <TextField
-                type="number"
-                id="interestAmount"
-                label="Interest amount"
-                defaultValue="42"
-                margin="normal"
-                helperText="Total paid per day to lender"
-                required
-              />
-            </Tooltip>
+            <TextField
+              type="number"
+              id="interestAmount"
+              label="Interest amount"
+              defaultValue="42"
+              margin="normal"
+              helperText="Total paid per day to lender"
+              required
+            />
           </TokenGroup>
 
           {/* TODO - marginTokenAddress (hidden if role === lender) */}

@@ -69,11 +69,15 @@ export const Tab = styled.div`
 `;
 
 export const Content = styled.div`
-  padding: 12px;
+  padding: 28px;
   background-color: ${COLORS.white};
   z-index: 1;
   position: relative;
   flex: 1;
+
+  @media screen and (max-width: 600px) {
+    padding: 12px;
+  }
 `;
 
 export const ContentContainer = styled.div`
