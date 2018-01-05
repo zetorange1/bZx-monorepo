@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import MuiTextField from "material-ui/TextField";
-import { Section, SectionLabel } from "./components";
+import Section, { SectionLabel } from "../../common/FormSection";
 
 const TextField = styled(MuiTextField)`
   margin: 24px !important;

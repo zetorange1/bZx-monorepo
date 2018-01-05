@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import TextField from "material-ui/TextField";
-import TokenPicker from "./TokenPicker";
-import { Section, SectionLabel } from "./components";
+import TokenPicker from "../../common/TokenPicker";
+import Section, { SectionLabel } from "../../common/FormSection";
 
 const Content = styled.div`
   display: flex;

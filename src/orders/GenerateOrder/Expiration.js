@@ -1,4 +1,4 @@
-import { Section, SectionLabel } from "./components";
+import Section, { SectionLabel } from "../../common/FormSection";
 
 export default () => (
   <Section>

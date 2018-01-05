@@ -6,7 +6,7 @@ import Dialog, {
   DialogActions
 } from "material-ui/Dialog";
 import Button from "material-ui/Button";
-import { SHADOWS } from "../../styles/constants";
+import { SHADOWS } from "../styles/constants";
 
 const Container = styled.div`
   text-align: center;

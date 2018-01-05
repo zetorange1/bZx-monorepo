@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { FormControlLabel } from "material-ui/Form";
 import Checkbox from "material-ui/Checkbox";
 import TextField from "material-ui/TextField";
-import { Section, SectionLabel } from "./components";
+import Section, { SectionLabel } from "../../common/FormSection";
 
 const AddressTextField = styled(TextField)`
   max-width: 480px !important;

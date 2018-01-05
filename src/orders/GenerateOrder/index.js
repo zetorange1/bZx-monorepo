@@ -2,11 +2,11 @@ import styled from "styled-components";
 import MuiDivider from "material-ui/Divider";
 import Button from "material-ui/Button";
 
-import RoleSection from "./GenerateOrder/Role";
-import TokensSection from "./GenerateOrder/Tokens";
-import MarginAmountsSection from "./GenerateOrder/MarginAmounts";
-import ExpirationSection from "./GenerateOrder/Expiration";
-import RelayExchangeSection from "./GenerateOrder/RelayExchange";
+import RoleSection from "./Role";
+import TokensSection from "./Tokens";
+import MarginAmountsSection from "./MarginAmounts";
+import ExpirationSection from "./Expiration";
+import RelayExchangeSection from "./RelayExchange";
 
 const Container = styled.div`
   //text-align: center;
