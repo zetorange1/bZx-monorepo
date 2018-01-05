@@ -1,181 +1,68 @@
-import { Fragment } from "react";
 import styled from "styled-components";
-import { FormControlLabel, FormLabel } from "material-ui/Form";
-import Radio, { RadioGroup } from "material-ui/Radio";
-import Checkbox from "material-ui/Checkbox";
 import MuiDivider from "material-ui/Divider";
-import Tooltip from "material-ui/Tooltip";
 import Button from "material-ui/Button";
-import MuiTextField from "material-ui/TextField";
-import TokenPicker from "./TokenPicker";
+
+import RoleSection from "./GenerateOrder/Role";
+import TokensSection from "./GenerateOrder/Tokens";
+import MarginAmountsSection from "./GenerateOrder/MarginAmounts";
+import ExpirationSection from "./GenerateOrder/Expiration";
+import RelayExchangeSection from "./GenerateOrder/RelayExchange";
+
+const Container = styled.div`
+  //text-align: center;
+`;
 
 const Divider = styled(MuiDivider)`
   margin-top: 24px !important;
   margin-bottom: 24px !important;
 `;
 
-const TextField = styled(MuiTextField)`
-  width: 240px !important;
-  margin-right: 24px !important;
-`;
-
-const TokenInputs = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-`;
-
-const TokenGroup = styled.div``;
-
 export default class GenerateOrder extends React.Component {
   state = {
     role: `lender`,
     lendTokenAddress: null,
     interestTokenAddress: null,
+    marginTokenAddress: null,
     sendToRelayExchange: false
   };
 
   setStateFor = key => value => this.setState({ [key]: value });
 
-  handleRoleChange = (e, value) => this.setState({ role: value });
+  setRole = (e, value) => this.setState({ role: value });
 
-  changeSendToRelayExchangeCheckbox = (e, value) =>
+  setRelayCheckbox = (e, value) =>
     this.setState({ sendToRelayExchange: value });
 
   render() {
     const { role, sendToRelayExchange } = this.state;
     return (
-      <div>
-        <FormLabel component="legend">I am a:</FormLabel>
-        <RadioGroup
-          row
-          aria-label="lenderOrTrader"
-          name="lenderOrTrader"
-          value={this.state.role}
-          onChange={this.handleRoleChange}
-        >
-          <FormControlLabel value="lender" control={<Radio />} label="Lender" />
-          <FormControlLabel value="trader" control={<Radio />} label="Trader" />
-        </RadioGroup>
+      <Container>
+        <RoleSection role={role} setRole={this.setRole} />
 
         <Divider />
 
-        <TokenInputs>
-          <TokenGroup>
-            {/* TODO - lendTokenAddress */}
-            <FormLabel component="legend">Lending</FormLabel>
-            <TokenPicker
-              onChange={this.setStateFor(`lendTokenAddress`)}
-              value={this.state.lendTokenAddress}
-            />
-            {/* TODO - lendTokenAmount */}
-            <TextField
-              type="number"
-              id="lendTokenAmount"
-              label="Lend token amount"
-              defaultValue="42"
-              margin="normal"
-              required
-            />
-          </TokenGroup>
-
-          <TokenGroup>
-            {/* TODO - interestTokenAddress */}
-            <FormLabel component="legend">Interest</FormLabel>
-            <TokenPicker
-              onChange={this.setStateFor(`interestTokenAddress`)}
-              value={this.state.interestTokenAddress}
-            />
-            {/* TODO - interestAmount */}
-            <TextField
-              type="number"
-              id="interestAmount"
-              label="Interest amount"
-              defaultValue="42"
-              margin="normal"
-              helperText="Total paid per day to lender"
-              required
-            />
-          </TokenGroup>
-
-          {/* TODO - marginTokenAddress (hidden if role === lender) */}
-          {role === `lender` && (
-            <TokenGroup>
-              <FormLabel component="legend">Margin Token</FormLabel>
-              <TokenPicker
-                onChange={this.setStateFor(`marginTokenAddress`)}
-                value={this.state.marginTokenAddress}
-              />
-            </TokenGroup>
-          )}
-        </TokenInputs>
-
-        <Divider />
-
-        <FormLabel component="legend">Margin Amounts</FormLabel>
-
-        {/* TODO - initialMarginAmount */}
-        <TextField
-          type="number"
-          id="initialMarginAmount"
-          label="Initial margin amount"
-          defaultValue="42"
-          margin="normal"
-          required
+        <TokensSection
+          role={role}
+          setStateFor={this.setStateFor}
+          lendTokenAddress={this.state.lendTokenAddress}
+          interestTokenAddress={this.state.interestTokenAddress}
+          marginTokenAddress={this.state.marginTokenAddress}
         />
 
-        {/* TODO - liquidationMarginAmount */}
-        <TextField
-          type="number"
-          id="liquidationMarginAmount"
-          label="Liquidation margin amount"
-          defaultValue="42"
-          margin="normal"
-          required
-        />
+        <Divider />
 
-        {/* TODO - datapicker -> expirationUnixTimestampSec */}
+        <MarginAmountsSection />
 
         <Divider />
 
-        <div>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={sendToRelayExchange}
-                onChange={this.changeSendToRelayExchangeCheckbox}
-              />
-            }
-            label="Send to relay/exchange"
-          />
-        </div>
+        <ExpirationSection />
 
-        {sendToRelayExchange && (
-          <Fragment>
-            <TextField
-              id="feeRecipientAddress"
-              label="Relay/Exchange Address"
-              defaultValue="foo"
-              margin="normal"
-              required
-            />
-            <TextField
-              type="number"
-              id="lenderRelayFee"
-              label="Lender Relay Fee"
-              defaultValue="42"
-              margin="normal"
-              required
-            />
-            <TextField
-              type="number"
-              id="traderRelayFee"
-              label="Trader Relay Fee"
-              defaultValue="42"
-              margin="normal"
-              required
-            />
-          </Fragment>
-        )}
+        <Divider />
+
+        <RelayExchangeSection
+          sendToRelayExchange={sendToRelayExchange}
+          setRelayCheckbox={this.setRelayCheckbox}
+        />
 
         <Divider />
 
@@ -184,7 +71,7 @@ export default class GenerateOrder extends React.Component {
             Sign Order
           </Button>
         </div>
-      </div>
+      </Container>
     );
   }
 }
