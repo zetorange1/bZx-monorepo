@@ -15,6 +15,7 @@ const TokenGroup = styled.div`
   text-align: center;
 `;
 
+// TODO - clean up these styles
 const Title = styled.div`
   margin-bottom: 24px !important;
   color: rgba(0, 0, 0, 0.54);
@@ -27,10 +28,16 @@ const Title = styled.div`
 
 export default ({
   role,
-  setStateFor,
+  // state setters
+  setStateForAddress,
+  setStateForInput,
+  // address states
   lendTokenAddress,
   interestTokenAddress,
-  marginTokenAddress
+  marginTokenAddress,
+  // amount states
+  lendTokenAmount,
+  interestAmount
 }) => (
   <Section>
     <SectionLabel>Tokens and Token Amounts</SectionLabel>
@@ -38,14 +45,14 @@ export default ({
       <TokenGroup>
         <Title>Lending Token</Title>
         <TokenPicker
-          onChange={setStateFor(`lendTokenAddress`)}
+          onChange={setStateForAddress(`lendTokenAddress`)}
           value={lendTokenAddress}
         />
         <TextField
           type="number"
-          id="lendTokenAmount"
           label="Lend token amount"
-          defaultValue="42"
+          value={lendTokenAmount}
+          onChange={setStateForInput(`lendTokenAmount`)}
           margin="normal"
           required
           fullWidth
@@ -55,14 +62,15 @@ export default ({
       <TokenGroup>
         <Title>Interest Token</Title>
         <TokenPicker
-          onChange={setStateFor(`interestTokenAddress`)}
+          onChange={setStateForAddress(`interestTokenAddress`)}
           value={interestTokenAddress}
         />
         <TextField
           type="number"
           id="interestAmount"
           label="Interest amount"
-          defaultValue="42"
+          value={interestAmount}
+          onChange={setStateForInput(`interestAmount`)}
           margin="normal"
           helperText="Total paid per day to lender"
           required
@@ -74,7 +82,7 @@ export default ({
         <TokenGroup>
           <Title>Margin Token</Title>
           <TokenPicker
-            onChange={setStateFor(`marginTokenAddress`)}
+            onChange={setStateForAddress(`marginTokenAddress`)}
             value={marginTokenAddress}
           />
         </TokenGroup>

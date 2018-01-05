@@ -6,26 +6,27 @@ const TextField = styled(MuiTextField)`
   margin: 24px !important;
 `;
 
-export default () => (
+export default ({
+  setStateFor,
+  initialMarginAmount,
+  liquidationMarginAmount
+}) => (
   <Section>
     <SectionLabel>Margin Amounts</SectionLabel>
-    {/* TODO - initialMarginAmount */}
     <div style={{ textAlign: `center` }}>
       <TextField
         type="number"
-        id="initialMarginAmount"
         label="Initial margin amount"
-        defaultValue="42"
+        value={initialMarginAmount}
+        onChange={setStateFor(`initialMarginAmount`)}
         margin="normal"
         required
       />
-
-      {/* TODO - liquidationMarginAmount */}
       <TextField
         type="number"
-        id="liquidationMarginAmount"
         label="Liquidation margin amount"
-        defaultValue="42"
+        value={liquidationMarginAmount}
+        onChange={setStateFor(`liquidationMarginAmount`)}
         margin="normal"
         required
       />

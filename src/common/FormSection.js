@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import MuiDivider from "material-ui/Divider";
 
 const Section = styled.div`
   display: flex;
@@ -15,4 +16,9 @@ export const SectionLabel = styled.div`
   font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
   line-height: 1;
+`;
+
+export const Divider = styled(MuiDivider)`
+  margin-top: 24px !important;
+  margin-bottom: 24px !important;
 `;

@@ -1,32 +1,38 @@
-import styled from "styled-components";
-import MuiDivider from "material-ui/Divider";
 import Button from "material-ui/Button";
 
+import { Divider } from "../../common/FormSection";
 import RoleSection from "./Role";
 import TokensSection from "./Tokens";
 import MarginAmountsSection from "./MarginAmounts";
 import ExpirationSection from "./Expiration";
 import RelayExchangeSection from "./RelayExchange";
 
-const Container = styled.div`
-  //text-align: center;
-`;
-
-const Divider = styled(MuiDivider)`
-  margin-top: 24px !important;
-  margin-bottom: 24px !important;
-`;
-
 export default class GenerateOrder extends React.Component {
   state = {
     role: `lender`,
+
+    // token addresses
     lendTokenAddress: null,
     interestTokenAddress: null,
     marginTokenAddress: null,
+
+    // token amounts
+    lendTokenAmount: 40,
+    interestAmount: 41,
+
+    // margin amounts
+    initialMarginAmount: 42,
+    liquidationMarginAmount: 43,
+
+    // TODO - expiration date/time
+    // TODO - relay/exchange settings
     sendToRelayExchange: false
   };
 
   setStateFor = key => value => this.setState({ [key]: value });
+
+  setStateForInput = key => event =>
+    this.setState({ [key]: event.target.value });
 
   setRole = (e, value) => this.setState({ role: value });
 
@@ -36,22 +42,32 @@ export default class GenerateOrder extends React.Component {
   render() {
     const { role, sendToRelayExchange } = this.state;
     return (
-      <Container>
+      <div>
         <RoleSection role={role} setRole={this.setRole} />
 
         <Divider />
 
         <TokensSection
           role={role}
-          setStateFor={this.setStateFor}
+          // state setters
+          setStateForAddress={this.setStateFor}
+          setStateForInput={this.setStateForInput}
+          // address states
           lendTokenAddress={this.state.lendTokenAddress}
           interestTokenAddress={this.state.interestTokenAddress}
           marginTokenAddress={this.state.marginTokenAddress}
+          // token amounts
+          lendTokenAmount={this.state.lendTokenAmount}
+          interestAmount={this.state.interestAmount}
         />
 
         <Divider />
 
-        <MarginAmountsSection />
+        <MarginAmountsSection
+          setStateFor={this.setStateForInput}
+          initialMarginAmount={this.state.initialMarginAmount}
+          liquidationMarginAmount={this.state.liquidationMarginAmount}
+        />
 
         <Divider />
 
@@ -60,6 +76,7 @@ export default class GenerateOrder extends React.Component {
         <Divider />
 
         <RelayExchangeSection
+          setStateFor={this.setStateFor}
           sendToRelayExchange={sendToRelayExchange}
           setRelayCheckbox={this.setRelayCheckbox}
         />
@@ -71,7 +88,7 @@ export default class GenerateOrder extends React.Component {
             Sign Order
           </Button>
         </div>
-      </Container>
+      </div>
     );
   }
 }
