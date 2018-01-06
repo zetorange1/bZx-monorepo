@@ -35,7 +35,6 @@ export default ({
           value={feeRecipientAddress}
           onChange={setStateForInput(`feeRecipientAddress`)}
           label="Relay/Exchange Address"
-          defaultValue="foo"
           margin="normal"
           fullWidth
           required
