@@ -9,7 +9,14 @@ const AddressTextField = styled(TextField)`
   max-width: 480px !important;
 `;
 
-export default ({ sendToRelayExchange, setRelayCheckbox }) => (
+export default ({
+  sendToRelayExchange,
+  setRelayCheckbox,
+  setStateForInput,
+  feeRecipientAddress,
+  lenderRelayFee,
+  traderRelayFee
+}) => (
   <Section>
     <SectionLabel>Relay/Exchange Settings (optional)</SectionLabel>
 
@@ -25,7 +32,8 @@ export default ({ sendToRelayExchange, setRelayCheckbox }) => (
     {sendToRelayExchange && (
       <Fragment>
         <AddressTextField
-          id="feeRecipientAddress"
+          value={feeRecipientAddress}
+          onChange={setStateForInput(`feeRecipientAddress`)}
           label="Relay/Exchange Address"
           defaultValue="foo"
           margin="normal"
@@ -34,17 +42,17 @@ export default ({ sendToRelayExchange, setRelayCheckbox }) => (
         />
         <TextField
           type="number"
-          id="lenderRelayFee"
+          value={lenderRelayFee}
+          onChange={setStateForInput(`lenderRelayFee`)}
           label="Lender Relay Fee"
-          defaultValue="42"
           margin="normal"
           required
         />
         <TextField
           type="number"
-          id="traderRelayFee"
+          value={traderRelayFee}
+          onChange={setStateForInput(`traderRelayFee`)}
           label="Trader Relay Fee"
-          defaultValue="42"
           margin="normal"
           required
         />

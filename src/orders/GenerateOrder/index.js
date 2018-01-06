@@ -25,8 +25,12 @@ export default class GenerateOrder extends React.Component {
     liquidationMarginAmount: 43,
 
     // TODO - expiration date/time
-    // TODO - relay/exchange settings
-    sendToRelayExchange: false
+
+    // relay/exchange settings
+    sendToRelayExchange: false,
+    feeRecipientAddress: `address_here`,
+    lenderRelayFee: 44,
+    traderRelayFee: 45
   };
 
   setStateFor = key => value => this.setState({ [key]: value });
@@ -40,15 +44,14 @@ export default class GenerateOrder extends React.Component {
     this.setState({ sendToRelayExchange: value });
 
   render() {
-    const { role, sendToRelayExchange } = this.state;
     return (
       <div>
-        <RoleSection role={role} setRole={this.setRole} />
+        <RoleSection role={this.state.role} setRole={this.setRole} />
 
         <Divider />
 
         <TokensSection
-          role={role}
+          role={this.state.role}
           // state setters
           setStateForAddress={this.setStateFor}
           setStateForInput={this.setStateForInput}
@@ -64,7 +67,7 @@ export default class GenerateOrder extends React.Component {
         <Divider />
 
         <MarginAmountsSection
-          setStateFor={this.setStateForInput}
+          setStateForInput={this.setStateForInput}
           initialMarginAmount={this.state.initialMarginAmount}
           liquidationMarginAmount={this.state.liquidationMarginAmount}
         />
@@ -76,18 +79,21 @@ export default class GenerateOrder extends React.Component {
         <Divider />
 
         <RelayExchangeSection
-          setStateFor={this.setStateFor}
-          sendToRelayExchange={sendToRelayExchange}
+          // state setters
+          setStateForInput={this.setStateForInput}
           setRelayCheckbox={this.setRelayCheckbox}
+          // form states
+          sendToRelayExchange={this.state.sendToRelayExchange}
+          feeRecipientAddress={this.state.feeRecipientAddress}
+          lenderRelayFee={this.state.lenderRelayFee}
+          traderRelayFee={this.state.traderRelayFee}
         />
 
         <Divider />
 
-        <div>
-          <Button raised color="primary">
-            Sign Order
-          </Button>
-        </div>
+        <Button raised color="primary">
+          Sign Order
+        </Button>
       </div>
     );
   }

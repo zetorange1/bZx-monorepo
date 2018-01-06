@@ -7,7 +7,7 @@ const TextField = styled(MuiTextField)`
 `;
 
 export default ({
-  setStateFor,
+  setStateForInput,
   initialMarginAmount,
   liquidationMarginAmount
 }) => (
@@ -18,7 +18,7 @@ export default ({
         type="number"
         label="Initial margin amount"
         value={initialMarginAmount}
-        onChange={setStateFor(`initialMarginAmount`)}
+        onChange={setStateForInput(`initialMarginAmount`)}
         margin="normal"
         required
       />
@@ -26,7 +26,7 @@ export default ({
         type="number"
         label="Liquidation margin amount"
         value={liquidationMarginAmount}
-        onChange={setStateFor(`liquidationMarginAmount`)}
+        onChange={setStateForInput(`liquidationMarginAmount`)}
         margin="normal"
         required
       />
