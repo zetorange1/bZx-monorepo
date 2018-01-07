@@ -45,7 +45,7 @@ export default ({
       <TokenGroup>
         <Title>Lending Token</Title>
         <TokenPicker
-          onChange={setStateForAddress(`lendTokenAddress`)}
+          setAddress={setStateForAddress(`lendTokenAddress`)}
           value={lendTokenAddress}
         />
         <TextField
@@ -62,7 +62,7 @@ export default ({
       <TokenGroup>
         <Title>Interest Token</Title>
         <TokenPicker
-          onChange={setStateForAddress(`interestTokenAddress`)}
+          setAddress={setStateForAddress(`interestTokenAddress`)}
           value={interestTokenAddress}
         />
         <TextField
@@ -82,7 +82,7 @@ export default ({
         <TokenGroup>
           <Title>Margin Token</Title>
           <TokenPicker
-            onChange={setStateForAddress(`marginTokenAddress`)}
+            setAddress={setStateForAddress(`marginTokenAddress`)}
             value={marginTokenAddress}
           />
         </TokenGroup>

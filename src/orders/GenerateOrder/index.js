@@ -12,9 +12,9 @@ export default class GenerateOrder extends React.Component {
     role: `lender`,
 
     // token addresses
-    lendTokenAddress: null,
-    interestTokenAddress: null,
-    marginTokenAddress: null,
+    lendTokenAddress: `WETH_SM_ADDRESS_HERE`,
+    interestTokenAddress: `ZRX_SM_ADDRESS_HERE`,
+    marginTokenAddress: `MKR_SM_ADDRESS_HERE`,
 
     // token amounts
     lendTokenAmount: 40,
