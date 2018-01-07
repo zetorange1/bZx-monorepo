@@ -71,12 +71,17 @@ const Coin = styled.div`
 
 const CoinIcon = styled.img`
   width: 32px;
+  margin-top: 6px;
 `;
 
 const CoinLabel = styled.div`
   text-align: center;
   margin-top: 12px;
-  font-size: 14px;
+
+  color: rgba(0, 0, 0, 0.54);
+  padding: 0;
+  font-size: 12px;
+  line-height: 1;
 `;
 
 const COINS = {
@@ -123,24 +128,7 @@ export default class TokenPicker extends React.Component {
           <DialogContent>
             {coinsArray.map(coin => (
               <Coin
-                active={value === coin.address}
-                onClick={this.selectCoin(coin.address)}
-              >
-                <CoinIcon src={coin.iconUrl} />
-                <CoinLabel>{coin.label}</CoinLabel>
-              </Coin>
-            ))}
-            {coinsArray.map(coin => (
-              <Coin
-                active={value === coin.address}
-                onClick={this.selectCoin(coin.address)}
-              >
-                <CoinIcon src={coin.iconUrl} />
-                <CoinLabel>{coin.label}</CoinLabel>
-              </Coin>
-            ))}
-            {coinsArray.map(coin => (
-              <Coin
+                key={coin.key}
                 active={value === coin.address}
                 onClick={this.selectCoin(coin.address)}
               >

@@ -1,3 +1,4 @@
+import moment from "moment";
 import Button from "material-ui/Button";
 
 import { Divider } from "../../common/FormSection";
@@ -24,7 +25,8 @@ export default class GenerateOrder extends React.Component {
     initialMarginAmount: 42,
     liquidationMarginAmount: 43,
 
-    // TODO - expiration date/time
+    // expiration date/time
+    expirationDate: moment(),
 
     // relay/exchange settings
     sendToRelayExchange: false,
@@ -62,19 +64,24 @@ export default class GenerateOrder extends React.Component {
           // token amounts
           lendTokenAmount={this.state.lendTokenAmount}
           interestAmount={this.state.interestAmount}
+          initialMarginAmount={this.state.initialMarginAmount}
+          liquidationMarginAmount={this.state.liquidationMarginAmount}
         />
 
-        <Divider />
+        {/* <Divider />
 
         <MarginAmountsSection
           setStateForInput={this.setStateForInput}
           initialMarginAmount={this.state.initialMarginAmount}
           liquidationMarginAmount={this.state.liquidationMarginAmount}
-        />
+        /> */}
 
         <Divider />
 
-        <ExpirationSection />
+        <ExpirationSection
+          setExpirationDate={this.setStateFor(`expirationDate`)}
+          expirationDate={this.state.expirationDate}
+        />
 
         <Divider />
 

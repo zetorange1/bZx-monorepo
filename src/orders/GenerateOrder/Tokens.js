@@ -21,8 +21,6 @@ const Title = styled.div`
   color: rgba(0, 0, 0, 0.54);
   padding: 0;
   font-size: 1rem;
-  font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
   line-height: 1;
 `;
 
@@ -37,7 +35,9 @@ export default ({
   marginTokenAddress,
   // amount states
   lendTokenAmount,
-  interestAmount
+  interestAmount,
+  initialMarginAmount,
+  liquidationMarginAmount
 }) => (
   <Section>
     <SectionLabel>Tokens and Token Amounts</SectionLabel>
@@ -84,6 +84,22 @@ export default ({
           <TokenPicker
             setAddress={setStateForAddress(`marginTokenAddress`)}
             value={marginTokenAddress}
+          />
+          <TextField
+            type="number"
+            label="Initial margin amount"
+            value={initialMarginAmount}
+            onChange={setStateForInput(`initialMarginAmount`)}
+            margin="normal"
+            required
+          />
+          <TextField
+            type="number"
+            label="Liquidation margin amount"
+            value={liquidationMarginAmount}
+            onChange={setStateForInput(`liquidationMarginAmount`)}
+            margin="normal"
+            required
           />
         </TokenGroup>
       )}
