@@ -1,6 +1,6 @@
 var LOANToken = artifacts.require("./LOANToken.sol");
-var TomToken = artifacts.require("./TomToken.sol");
-var BeanToken = artifacts.require("./BeanToken.sol");
+var TOMToken = artifacts.require("./TOMToken.sol");
+var BEANToken = artifacts.require("./BEANToken.sol");
 var B0xVault = artifacts.require("./B0xVault.sol");
 var KyberWrapper = artifacts.require("./KyberWrapper.sol");
 //var B0xPool = artifacts.require("./B0xPool.sol");
@@ -41,16 +41,16 @@ module.exports = async function(deployer, network, accounts) {
 		deployer.deploy(LOANToken),
 		deployer.deploy(B0xVault),
 		deployer.deploy(KyberWrapper),
-		deployer.deploy(TomToken),
-		deployer.deploy(BeanToken)
+		deployer.deploy(TOMToken),
+		deployer.deploy(BEANToken)
 	]);
 	
 	await Promise.all([
 		deployer.deploy(B0x, LOANToken.address, B0xVault.address, KyberWrapper.address, contracts0x["Exchange"], contracts0x["ZRXToken"]),
-		TomToken.deployed().then(function(instance) {
+		TOMToken.deployed().then(function(instance) {
 			instance.transfer(accounts[1], web3.toWei(2000000, "ether"));
 		}),
-		BeanToken.deployed().then(function(instance) {
+		BEANToken.deployed().then(function(instance) {
 			instance.transfer(accounts[2], web3.toWei(2000000, "ether"));
 		}),
 		LOANToken.deployed().then(function(instance) {
