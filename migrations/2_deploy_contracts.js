@@ -36,37 +36,38 @@ let contracts0x = {
 	"TokenTransferProxy": "0x871DD7C2B4b25E1Aa18728e9D5f2Af4C4e431f5c"
 };
 
-module.exports = async function(deployer, network, accounts) {
-	await Promise.all([
-		deployer.deploy(LOANToken),
-		deployer.deploy(B0xVault),
-		deployer.deploy(KyberWrapper),
-		deployer.deploy(TOMToken),
-		deployer.deploy(BEANToken)
-	]);
-	
-	await Promise.all([
-		deployer.deploy(B0x, LOANToken.address, B0xVault.address, KyberWrapper.address, contracts0x["Exchange"], contracts0x["ZRXToken"]),
-		TOMToken.deployed().then(function(instance) {
-			instance.transfer(accounts[1], web3.toWei(2000000, "ether"));
-		}),
-		BEANToken.deployed().then(function(instance) {
-			instance.transfer(accounts[2], web3.toWei(2000000, "ether"));
-		}),
+module.exports = function(deployer, network, accounts) {
+
+	deployer.deploy(LOANToken).then(function() {
 		LOANToken.deployed().then(function(instance) {
 			instance.transfer(accounts[1], web3.toWei(100000, "ether"));
-		}),
-		LOANToken.deployed().then(function(instance) {
 			instance.transfer(accounts[2], web3.toWei(100000, "ether"));
-		}),						
-	]);
+		});
+		
+		return deployer.deploy(B0xVault).then(function() {
+			return deployer.deploy(KyberWrapper).then(function() {
+				return deployer.deploy(TOMToken).then(function() {
+					TOMToken.deployed().then(function(instance) {
+						instance.transfer(accounts[1], web3.toWei(2000000, "ether"));
+					});
+					
+					return deployer.deploy(BEANToken).then(function() {
+						BEANToken.deployed().then(function(instance) {
+							instance.transfer(accounts[2], web3.toWei(2000000, "ether"));
+						});
 
-	await Promise.all([
-		B0xVault.deployed().then(function(instance) {
-			instance.addAuthorizedAddress(B0x.address);
-		}),
-		KyberWrapper.deployed().then(function(instance) {
-			instance.addAuthorizedAddress(B0x.address);
-		})
-	]);
-};
+						return deployer.deploy(B0x, LOANToken.address, B0xVault.address, KyberWrapper.address, contracts0x["Exchange"], contracts0x["ZRXToken"]).then(function() {
+							B0xVault.deployed().then(function(instance) {
+								instance.addAuthorizedAddress(B0x.address);
+							});
+							KyberWrapper.deployed().then(function(instance) {
+								instance.addAuthorizedAddress(B0x.address);
+							});
+						});
+					});
+				});
+			});
+		});
+	});
+
+}
