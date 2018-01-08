@@ -85,7 +85,8 @@
     "deploy_network": "rimraf ./test_network/* && ziptool --unzip ./78fe8dd.zip -o ./test_network",
     "stop_blockchain": "pkill -9 -f ganache-cli || true",
     "start_blockchain": "npm run run_network >> logs/ganache.log 2>&1 &",
-    "restart_blockchain": "npm run stop_blockchain && npm run start_blockchain"
+    "restart_blockchain": "npm run stop_blockchain && npm run start_blockchain",
+	"test_assets": "node generate_test_assets.js"
   },
   "jest": {
     "collectCoverageFrom": [
