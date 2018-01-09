@@ -8,7 +8,7 @@ const Web3 = require('web3');
 //web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545")) // :9545
 
 
-import { B0xJS } from '../src/b0x.js'
+import { B0xJS } from '../../b0x.js/src/b0x.js'
 
 
 import { ZeroEx } from '0x.js';

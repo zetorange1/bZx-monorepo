@@ -1,21 +1,12 @@
 #!/bin/bash
 
-## pm2 setup and common commands
-## =============================
-## pm2 start ./restart_blockchain.sh -e logs/blockchain_startup_err.log -o logs/blockchain_startup.log --name blockchain --no-autorestart
-## pm2 save
-## 
-## pm2 list
-## pm2 restart blockchain
-## pm2 stop blockchain
-## pm2 delete blockchain
-## 
+## to run at boot, add this to /etc/rc.local -> cd /path/to/here && su ec2-user -c ./restart_blockchain.sh
 
 rimraf ./build/contracts/*
-truffle compile
-npm run stop_blockchain
-npm run deploy_network
-npm run start_blockchain
+npm run build
+npm run blockchain:stop
+npm run network:deploy
+npm run blockchain:start
 sleep 3
-npm run migrate_contracts
-npm run test_assets
+npm run migrate
+npm run create_assets
