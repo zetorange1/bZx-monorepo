@@ -1,5 +1,7 @@
 import styled from "styled-components";
 import TextField from "material-ui/TextField";
+import Tooltip from "material-ui/Tooltip";
+
 import TokenPicker from "../../common/TokenPicker";
 import Section, { SectionLabel } from "../../common/FormSection";
 
@@ -66,11 +68,18 @@ export default ({
         <TextField
           type="number"
           id="interestAmount"
-          label="Interest amount"
+          label="Interest amount (paid per day)"
           value={interestAmount}
           onChange={setStateForInput(`interestAmount`)}
           margin="normal"
-          helperText="Total paid per day to lender"
+          helperText={
+            <Tooltip
+              id="tooltip-icon"
+              title="This amount is prorated if the lend order is closed early by the trader, or if the trader's loan is liquidated."
+            >
+              <a href="#">More Info</a>
+            </Tooltip>
+          }
           required
           fullWidth
         />
