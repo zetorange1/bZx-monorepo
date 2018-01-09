@@ -4,7 +4,7 @@ import Button from "material-ui/Button";
 import { Divider } from "../../common/FormSection";
 import RoleSection from "./Role";
 import TokensSection from "./Tokens";
-// import MarginAmountsSection from "./MarginAmounts";
+import MarginAmountsSection from "./MarginAmounts";
 import ExpirationSection from "./Expiration";
 import RelayExchangeSection from "./RelayExchange";
 
@@ -64,17 +64,15 @@ export default class GenerateOrder extends React.Component {
           // token amounts
           lendTokenAmount={this.state.lendTokenAmount}
           interestAmount={this.state.interestAmount}
-          initialMarginAmount={this.state.initialMarginAmount}
-          liquidationMarginAmount={this.state.liquidationMarginAmount}
         />
 
-        {/* <Divider />
+        <Divider />
 
         <MarginAmountsSection
           setStateForInput={this.setStateForInput}
           initialMarginAmount={this.state.initialMarginAmount}
           liquidationMarginAmount={this.state.liquidationMarginAmount}
-        /> */}
+        />
 
         <Divider />
 

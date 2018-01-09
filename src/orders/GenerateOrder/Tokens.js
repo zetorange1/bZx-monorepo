@@ -35,9 +35,7 @@ export default ({
   marginTokenAddress,
   // amount states
   lendTokenAmount,
-  interestAmount,
-  initialMarginAmount,
-  liquidationMarginAmount
+  interestAmount
 }) => (
   <Section>
     <SectionLabel>Tokens and Token Amounts</SectionLabel>
@@ -84,22 +82,6 @@ export default ({
           <TokenPicker
             setAddress={setStateForAddress(`marginTokenAddress`)}
             value={marginTokenAddress}
-          />
-          <TextField
-            type="number"
-            label="Initial margin amount"
-            value={initialMarginAmount}
-            onChange={setStateForInput(`initialMarginAmount`)}
-            margin="normal"
-            required
-          />
-          <TextField
-            type="number"
-            label="Liquidation margin amount"
-            value={liquidationMarginAmount}
-            onChange={setStateForInput(`liquidationMarginAmount`)}
-            margin="normal"
-            required
           />
         </TokenGroup>
       )}
