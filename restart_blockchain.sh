@@ -1,6 +1,15 @@
 #!/bin/bash
 
-## to run at boot, add this to /etc/rc.local -> cd /path/to/here && su ec2-user -c ./restart_blockchain.sh
+## pm2 setup and common commands
+## =============================
+## pm2 start ./restart_blockchain.sh -e logs/blockchain_startup_err.log -o logs/blockchain_startup.log --name blockchain --no-autorestart
+## pm2 save
+## 
+## pm2 list
+## pm2 restart blockchain
+## pm2 stop blockchain
+## pm2 delete blockchain
+## 
 
 rimraf ./build/contracts/*
 truffle compile
