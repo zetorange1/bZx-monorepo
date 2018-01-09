@@ -91,7 +91,7 @@ var outHTML = `
 Listening on b0x.network:8545
 
 Smart Contracts
-===============
+==================
 B0x :: `+addresses["B0x"]+` <a href="abi/B0x.abi.json" target="_blank">abi</a>
 B0xVault :: `+addresses["B0xVault"]+` <a href="abi/B0xVault.abi.json" target="_blank">abi</a>
 LOANToken :: `+addresses["LOANToken"]+` <a href="abi/LOANToken.abi.json" target="_blank">abi</a>
