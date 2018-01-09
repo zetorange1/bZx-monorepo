@@ -54,7 +54,6 @@ export default ({
           value={lendTokenAmount}
           onChange={setStateForInput(`lendTokenAmount`)}
           margin="normal"
-          required
           fullWidth
         />
       </TokenGroup>
@@ -80,7 +79,6 @@ export default ({
               <a href="#">More Info</a>
             </Tooltip>
           }
-          required
           fullWidth
         />
       </TokenGroup>

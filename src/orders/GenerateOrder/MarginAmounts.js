@@ -26,7 +26,7 @@ export default ({
     <SectionLabel>Margin Amounts</SectionLabel>
     <div style={{ textAlign: `center` }}>
       <FormControl>
-        <InputLabel>Initial Margin Amount *</InputLabel>
+        <InputLabel>Initial Margin Amount</InputLabel>
         <Input
           value={initialMarginAmount}
           type="number"
@@ -43,7 +43,7 @@ export default ({
         </FormHelperText>
       </FormControl>
       <FormControl>
-        <InputLabel>Liquidation Margin Amount *</InputLabel>
+        <InputLabel>Liquidation Margin Amount</InputLabel>
         <Input
           value={liquidationMarginAmount}
           type="number"

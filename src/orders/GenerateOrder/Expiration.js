@@ -6,12 +6,9 @@ import Section, { SectionLabel } from "../../common/FormSection";
 export default ({ expirationDate, setExpirationDate }) => (
   <Section>
     <SectionLabel>Expiration Date and Time</SectionLabel>
-
-    {/* TODO - datapicker -> expirationUnixTimestampSec */}
     <InputLabel>Expiration Date</InputLabel>
     <DateTimePicker
       disablePast
-      helperText="Required"
       value={expirationDate}
       onChange={setExpirationDate}
       InputProps={{

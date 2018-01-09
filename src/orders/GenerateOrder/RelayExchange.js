@@ -37,7 +37,6 @@ export default ({
           label="Relay/Exchange Address"
           margin="normal"
           fullWidth
-          required
         />
         <TextField
           type="number"
@@ -45,7 +44,6 @@ export default ({
           onChange={setStateForInput(`lenderRelayFee`)}
           label="Lender Relay Fee"
           margin="normal"
-          required
         />
         <TextField
           type="number"
@@ -53,7 +51,6 @@ export default ({
           onChange={setStateForInput(`traderRelayFee`)}
           label="Trader Relay Fee"
           margin="normal"
-          required
         />
       </Fragment>
     )}
