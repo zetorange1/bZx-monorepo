@@ -8,16 +8,16 @@ import * as Web3 from 'web3';
 //import {ZeroEx} from '0x.js';
 import * as BigNumber from 'bignumber.js';
 
-import { assert } from '../node_modules/0x.js/lib/src/utils/assert.js';
+import { assert } from '0x.js/lib/src/utils/assert.js';
 import { schemas, SchemaValidator } from './schemas/b0x_json_schemas.js' 
-import { utils } from '../node_modules/0x.js/lib/src/utils/utils.js'
-import { signatureUtils } from '../node_modules/0x.js/lib/src/utils/signature_utils.js'
+import { utils } from '0x.js/lib/src/utils/utils.js'
+import { signatureUtils } from '0x.js/lib/src/utils/signature_utils.js'
 
 import * as ethABI from 'ethereumjs-abi'
 import * as ethUtil from 'ethereumjs-util'
 
 var _ = require('lodash')
-var types_1 = require('../node_modules/0x.js/lib/src/types.js')
+var types_1 = require('0x.js/lib/src/types.js')
 /*var __assign = (this && this.__assign) || Object.assign || function (t) {
   for (var s, i = 1, n = arguments.length; i < n; i++) {
     s = arguments[i];
