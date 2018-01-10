@@ -22,13 +22,13 @@ var _bignumber = require('bignumber.js');
 
 var BigNumber = _interopRequireWildcard(_bignumber);
 
-var _assert = require('../node_modules/0x.js/lib/src/utils/assert.js');
+var _assert = require('0x.js/lib/src/utils/assert.js');
 
 var _b0x_json_schemas = require('./schemas/b0x_json_schemas.js');
 
-var _utils = require('../node_modules/0x.js/lib/src/utils/utils.js');
+var _utils = require('0x.js/lib/src/utils/utils.js');
 
-var _signature_utils = require('../node_modules/0x.js/lib/src/utils/signature_utils.js');
+var _signature_utils = require('0x.js/lib/src/utils/signature_utils.js');
 
 var _ethereumjsAbi = require('ethereumjs-abi');
 
@@ -43,7 +43,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var _ = require('lodash');
-var types_1 = require('../node_modules/0x.js/lib/src/types.js');
+var types_1 = require('0x.js/lib/src/types.js');
 /*var __assign = (this && this.__assign) || Object.assign || function (t) {
   for (var s, i = 1, n = arguments.length; i < n; i++) {
     s = arguments[i];
