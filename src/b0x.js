@@ -75,7 +75,11 @@ export class B0xJS { //extends ZeroEx {
     //this.b0x_contract = new b0x_contract(...)
   }*/
 
-  doesConformToSchema = function (variableName, value, schema) {
+  constructor() {
+    this.getLendOrderHashHex = this.getLendOrderHashHex.bind(this)
+  }
+
+  doesConformToSchema(variableName, value, schema) {
     var schemaValidator = new SchemaValidator();
     var validationResult = schemaValidator.validate(value, schema);
     var hasValidationErrors = validationResult.errors.length > 0;
@@ -83,7 +87,7 @@ export class B0xJS { //extends ZeroEx {
     assert.assert(!hasValidationErrors, msg);
   };
 
-  getLendOrderHashHex = function (order) {
+  getLendOrderHashHex(order) {
     this.doesConformToSchema('lendOrder', order, schemas.lendOrderSchema);
     var orderParams = [
       { value: order.b0x, type: types_1.SolidityTypes.Address },
