@@ -66,7 +66,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
   return ethUtil.setLengthRight(item, 32);
 }; */
 
-export class B0xJS { // extends ZeroEx {
+export default class B0xJS { // extends ZeroEx {
   /* constructor(provider, config) {
     // note: super points to node_modules\0x.js\lib\src\0x.js ZeroEx constructor
     super(provider, config);
