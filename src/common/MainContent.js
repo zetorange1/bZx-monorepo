@@ -57,6 +57,7 @@ export const Tab = styled.div`
     p.active &&
     css`
       color: black;
+      font-weight: 700;
       box-shadow: ${SHADOWS.dark};
       background-color: ${COLORS.white};
       cursor: unset;

@@ -26,6 +26,11 @@ const Title = styled.div`
   line-height: 1;
 `;
 
+const MoreInfo = styled.span`
+  text-decoration: underline;
+  cursor: pointer;
+`;
+
 export default ({
   role,
   // state setters
@@ -72,11 +77,8 @@ export default ({
           onChange={setStateForInput(`interestAmount`)}
           margin="normal"
           helperText={
-            <Tooltip
-              id="tooltip-icon"
-              title="This amount is prorated if the lend order is closed early by the trader, or if the trader's loan is liquidated."
-            >
-              <a href="#">More Info</a>
+            <Tooltip title="This amount is prorated if the lend order is closed early by the trader, or if the trader's loan is liquidated.">
+              <MoreInfo>More Info</MoreInfo>
             </Tooltip>
           }
           fullWidth

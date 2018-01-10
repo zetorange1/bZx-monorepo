@@ -1,13 +1,7 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import styled from "styled-components";
-import {
-  ImgLogo,
-  Logo,
-  HorizontalNav,
-  VerticalNav,
-  NavLink
-} from "./NavComponents";
+import { ImgLogo, HorizontalNav, VerticalNav, NavLink } from "./NavComponents";
 
 const HamburgerBtn = styled.i.attrs({
   className: `material-icons`
@@ -78,7 +72,6 @@ class NavContent extends React.Component {
   render() {
     return (
       <Fragment>
-        {/* <Logo>B0X</Logo> */}
         <a href="https://b0x.network/">
           <ImgLogo src="https://b0x.network/img/site-logo.svg" />
         </a>

@@ -57,7 +57,7 @@ export default class MyDocument extends Document {
             href="https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css"
           />
           <link
-            href="https://fonts.googleapis.com/css?family=Raleway"
+            href="https://fonts.googleapis.com/css?family=Raleway:400,700"
             rel="stylesheet"
           />
           <link

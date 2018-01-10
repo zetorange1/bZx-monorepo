@@ -14,6 +14,13 @@ const theme = createMuiTheme({
     fontFamily: `"Raleway", sans-serif`
     // `-apple-system,system-ui,BlinkMacSystemFont,` +
     // `"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif`
+  },
+  overrides: {
+    MuiTooltip: {
+      tooltip: {
+        fontSize: `0.75rem !important`
+      }
+    }
   }
 });
 
