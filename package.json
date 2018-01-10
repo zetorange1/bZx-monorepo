@@ -1,0 +1,13 @@
+{
+  "name": "b0x.js",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/b0x.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "0x.js": "^0.29.0",
+    "bignumber.js": "^5.0.0"
+  }
+}
