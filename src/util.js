@@ -1,1 +1,2 @@
-export const secretNum = 1234
+export const secretNum = 1234;
+
