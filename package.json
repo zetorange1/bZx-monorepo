@@ -7,13 +7,17 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
+    "tester": "babel-node tester/b0x_tester.js",
     "build": "webpack --config webpack.config.js"
   },
   "dependencies": {
     "0x.js": "^0.29.0",
-    "bignumber.js": "^5.0.0"
+    "bignumber.js": "^5.0.0",
+    "web3": "^1.0.0-beta.27"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.0",
     "eslint": "^4.15.0",
     "eslint-config-airbnb": "^16.1.0",
     "eslint-plugin-import": "^2.8.0",
