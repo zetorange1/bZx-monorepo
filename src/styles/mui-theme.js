@@ -11,9 +11,9 @@ const theme = createMuiTheme({
     }
   },
   typography: {
-    fontFamily:
-      `-apple-system,system-ui,BlinkMacSystemFont,` +
-      `"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif`
+    fontFamily: `"Raleway", sans-serif`
+    // `-apple-system,system-ui,BlinkMacSystemFont,` +
+    // `"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif`
   }
 });
 

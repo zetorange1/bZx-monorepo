@@ -81,7 +81,6 @@ const CoinLabel = styled.div`
   color: rgba(0, 0, 0, 0.54);
   padding: 0;
   font-size: 12px;
-  line-height: 1;
 `;
 
 const COINS = {

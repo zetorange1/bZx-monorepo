@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import MuiDivider from "material-ui/Divider";
+import { COLORS } from "../styles/constants";
 
 const Section = styled.div`
   display: flex;
@@ -10,11 +11,9 @@ export default Section;
 
 export const SectionLabel = styled.div`
   align-self: flex-start;
-  color: rgba(0, 0, 0, 0.54);
+  color: ${COLORS.blue};
   margin-bottom: 12px;
   font-size: 24px;
-  font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
   line-height: 1;
 `;
 

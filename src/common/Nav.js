@@ -6,6 +6,7 @@ const Container = styled.nav`
   background-color: #fafafa;
   height: ${DIMENSIONS.mobileNavHeight};
   margin-top: 32px;
+  margin-bottom: 32px;
 
   /* center the inner container */
   display: flex;
