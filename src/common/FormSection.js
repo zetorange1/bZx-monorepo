@@ -12,7 +12,7 @@ export default Section;
 export const SectionLabel = styled.div`
   align-self: flex-start;
   color: ${COLORS.blue};
-  margin-bottom: 12px;
+  margin-bottom: 24px;
   font-size: 24px;
   line-height: 1;
 `;

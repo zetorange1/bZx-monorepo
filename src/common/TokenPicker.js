@@ -2,6 +2,7 @@ import styled from "styled-components";
 import Dialog, { DialogTitle, DialogActions } from "material-ui/Dialog";
 import Button from "material-ui/Button";
 import { SHADOWS } from "../styles/constants";
+import { TOKENS } from "./tokens";
 
 const Container = styled.div`
   text-align: center;
@@ -83,26 +84,8 @@ const CoinLabel = styled.div`
   font-size: 12px;
 `;
 
-const COINS = {
-  WETH: {
-    label: `Ether Token`,
-    address: `WETH_SM_ADDRESS_HERE`,
-    iconUrl: `https://files.coinmarketcap.com/static/img/coins/128x128/ethereum.png`
-  },
-  ZRX: {
-    label: `0x Protocol Token`,
-    address: `ZRX_SM_ADDRESS_HERE`,
-    iconUrl: `https://files.coinmarketcap.com/static/img/coins/128x128/0x.png`
-  },
-  MKR: {
-    label: `MakerDAO`,
-    address: `MKR_SM_ADDRESS_HERE`,
-    iconUrl: `https://files.coinmarketcap.com/static/img/coins/128x128/maker.png`
-  }
-};
-
 export default class TokenPicker extends React.Component {
-  state = { showDialog: false, coins: COINS };
+  state = { showDialog: false, coins: TOKENS };
 
   toggleDialog = () => this.setState(p => ({ showDialog: !p.showDialog }));
 
