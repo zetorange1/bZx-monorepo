@@ -35,6 +35,7 @@ export const compileObject = state => {
   };
 };
 
+// TODO - actually get the salt
 export const addSalt = obj => {
   // const salt = getLendOrderSalt();
   const salt = `my_salt_here`;
@@ -44,6 +45,7 @@ export const addSalt = obj => {
   };
 };
 
+// TODO - actually get signature
 export const signOrder = obj => {
   // const signature = getSignature();
   const signature = {

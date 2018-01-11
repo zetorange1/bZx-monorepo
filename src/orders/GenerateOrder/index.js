@@ -1,4 +1,3 @@
-import { Fragment } from "react";
 import moment from "moment";
 // import { B0xJS } from "b0x.js"; // eslint-disable-line import/no-extraneous-dependencies
 
@@ -12,7 +11,6 @@ import Submission from "./Submission";
 import Result from "./Result";
 
 import validateInputs from "./validate";
-// eslint-disable-next-line no-unused-vars
 import { compileObject, addSalt, signOrder, getHash } from "./utils";
 
 export default class GenerateOrder extends React.Component {
@@ -69,8 +67,7 @@ export default class GenerateOrder extends React.Component {
       const orderHash = getHash(signedOrderObject); // 4. get a hash for the signed object
       this.setState({ orderHash, signedOrderObject });
     } else {
-      // eslint-disable-next-line no-undef
-      alert(verificationResult.errorMsg);
+      alert(verificationResult.errorMsg); // eslint-disable-line no-undef
     }
   };
 
