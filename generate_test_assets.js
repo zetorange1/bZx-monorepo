@@ -91,12 +91,12 @@ var outHTML = `
 Listening on b0x.network:8545
 
 Smart Contracts
-===============
-B0x :: `+addresses["B0x"]+` <a href="B0x.abi.json" target="_blank">abi</a>
-B0xVault :: `+addresses["B0xVault"]+` <a href="B0xVault.abi.json" target="_blank">abi</a>
-LOANToken :: `+addresses["LOANToken"]+` <a href="LOANToken.abi.json" target="_blank">abi</a>
-TOMToken :: `+addresses["TOMToken"]+` <a href="TOMToken.abi.json" target="_blank">abi</a>
-BEANToken :: `+addresses["BEANToken"]+` <a href="BEANToken.abi.json" target="_blank">abi</a>
+==================
+B0x :: `+addresses["B0x"]+` <a href="abi/B0x.abi.json" target="_blank">abi</a>
+B0xVault :: `+addresses["B0xVault"]+` <a href="abi/B0xVault.abi.json" target="_blank">abi</a>
+LOANToken :: `+addresses["LOANToken"]+` <a href="abi/LOANToken.abi.json" target="_blank">abi</a>
+TOMToken :: `+addresses["TOMToken"]+` <a href="abi/TOMToken.abi.json" target="_blank">abi</a>
+BEANToken :: `+addresses["BEANToken"]+` <a href="abi/BEANToken.abi.json" target="_blank">abi</a>
 
 ZRXToken :: 0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3
 EtherToken :: 0x48BaCB9266a570d521063EF5dD96e61686DbE788
