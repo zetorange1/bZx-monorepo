@@ -36,8 +36,8 @@ export const compileObject = state => {
 };
 
 export const addSalt = obj => {
-  // eslint-disable-next-line no-undef
-  const salt = getLendOrderSalt();
+  // const salt = getLendOrderSalt();
+  const salt = `my_salt_here`;
   return {
     ...obj,
     salt
@@ -45,10 +45,19 @@ export const addSalt = obj => {
 };
 
 export const signOrder = obj => {
-  // eslint-disable-next-line no-undef
-  const signature = getSignature();
+  // const signature = getSignature();
+  const signature = {
+    v: 27,
+    r: `0x_temp`,
+    s: `0x_temp`,
+    hash: `0x_temp`
+  };
   return {
     ...obj,
     signature
   };
 };
+
+// TODO - actually get the hash
+export const getHash = () =>
+  `0xa0443e64b09e95208424ec3bf7c1b543b841de766877a8b76e25d76b6b42b970`;

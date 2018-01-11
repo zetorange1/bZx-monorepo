@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import moment from "moment";
 // import { B0xJS } from "b0x.js"; // eslint-disable-line import/no-extraneous-dependencies
 
@@ -8,6 +9,7 @@ import MarginAmountsSection from "./MarginAmounts";
 import ExpirationSection from "./Expiration";
 import RelayExchangeSection from "./RelayExchange";
 import Submission from "./Submission";
+import Result from "./Result";
 
 import validateInputs from "./validate";
 // eslint-disable-next-line no-unused-vars
@@ -62,15 +64,10 @@ export default class GenerateOrder extends React.Component {
     this.setState({ orderHash: null, signedOrderObject: null });
     if (isValid) {
       const orderObject = compileObject(this.state); // 1. compile the order object from state
-
-      // for debugging
-      console.log(orderObject);
-      this.setState({ signedOrderObject: orderObject });
-
-      // const saltedOrderObj = addSalt(orderObject); // 2. compute and add salt to the order object
-      // const signedOrderObject = signOrder(saltedOrderObj); // 3. sign order w/ maker's private key
-      // const orderHash = getHash(signedOrderObject); // 4. get a hash for the signed object
-      // this.setState({ orderHash, signedOrderObject });
+      const saltedOrderObj = addSalt(orderObject); // 2. compute and add salt to the order object
+      const signedOrderObject = signOrder(saltedOrderObj); // 3. sign order w/ maker's private key
+      const orderHash = getHash(signedOrderObject); // 4. get a hash for the signed object
+      this.setState({ orderHash, signedOrderObject });
     } else {
       // eslint-disable-next-line no-undef
       alert(verificationResult.errorMsg);
@@ -128,11 +125,12 @@ export default class GenerateOrder extends React.Component {
 
         <Divider />
 
-        <Submission hash={this.state.orderHash} onSubmit={this.handleSubmit} />
+        <Submission onSubmit={this.handleSubmit} />
 
-        {this.state.signedOrderObject ? (
-          <pre>{JSON.stringify(this.state.signedOrderObject, null, 4)}</pre>
-        ) : null}
+        <Result
+          orderHash={this.state.orderHash}
+          signedOrderObject={this.state.signedOrderObject}
+        />
       </div>
     );
   }
