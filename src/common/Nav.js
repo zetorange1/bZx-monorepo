@@ -1,11 +1,12 @@
 import styled from "styled-components";
 import NavContent from "./NavContent";
-import { DIMENSIONS, SHADOWS } from "./STYLE";
+import { DIMENSIONS, SHADOWS } from "../styles/constants";
 
 const Container = styled.nav`
-  background: white;
+  background-color: #fafafa;
   height: ${DIMENSIONS.mobileNavHeight};
   margin-top: 32px;
+  margin-bottom: 32px;
 
   /* center the inner container */
   display: flex;
@@ -13,6 +14,7 @@ const Container = styled.nav`
 
   /* make navbar fixed at the top on mobile */
   @media screen and (max-width: 600px) {
+    background-color: white;
     margin-top: 0;
     position: fixed;
     top: 0;

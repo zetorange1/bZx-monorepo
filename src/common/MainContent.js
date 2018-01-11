@@ -1,5 +1,5 @@
 import styled, { css } from "styled-components";
-import { COLORS, SHADOWS } from "./STYLE";
+import { COLORS, SHADOWS } from "../styles/constants";
 
 export const Card = styled.div`
   min-height: 600px;
@@ -57,6 +57,7 @@ export const Tab = styled.div`
     p.active &&
     css`
       color: black;
+      font-weight: 700;
       box-shadow: ${SHADOWS.dark};
       background-color: ${COLORS.white};
       cursor: unset;
@@ -69,11 +70,15 @@ export const Tab = styled.div`
 `;
 
 export const Content = styled.div`
-  padding: 12px;
+  padding: 28px;
   background-color: ${COLORS.white};
   z-index: 1;
   position: relative;
   flex: 1;
+
+  @media screen and (max-width: 600px) {
+    padding: 12px;
+  }
 `;
 
 export const ContentContainer = styled.div`

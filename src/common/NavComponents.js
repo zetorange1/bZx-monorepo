@@ -1,5 +1,9 @@
 import styled from "styled-components";
-import { COLORS } from "./STYLE";
+import { COLORS } from "../styles/constants";
+
+export const ImgLogo = styled.img`
+  height: 32px;
+`;
 
 export const Logo = styled.div`
   font-weight: 700;
@@ -35,10 +39,11 @@ export const VerticalNav = styled.div`
 `;
 
 export const NavLink = styled.a`
+  color: ${COLORS.gray};
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 2px;
-  font-size: 12px;
+  font-size: 14px;
 
   &:hover,
   &:active,

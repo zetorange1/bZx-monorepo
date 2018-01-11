@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { COLORS, DIMENSIONS } from "./STYLE";
+import { COLORS, DIMENSIONS } from "../styles/constants";
 
 const Container = styled.footer`
   height: 60px;
