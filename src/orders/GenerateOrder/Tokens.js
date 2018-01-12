@@ -85,7 +85,7 @@ export default ({
         />
       </TokenGroup>
 
-      {role === `lender` && (
+      {role === `trader` && (
         <TokenGroup>
           <Title>Margin Token</Title>
           <TokenPicker
