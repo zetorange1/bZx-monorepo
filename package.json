@@ -9,11 +9,13 @@
     "lint:fix": "eslint src --fix",
     "tester": "babel-node tester/b0x_tester.js",
     "dev": "webpack --watch --config webpack.config.js",
-    "build": "webpack --config webpack.config.js"
+    "build": "webpack --config webpack.config.js",
+	"postinstall": "postinstall-build dist --script build"
   },
   "dependencies": {
     "0x.js": "^0.29.0",
     "bignumber.js": "^5.0.0",
+    "postinstall-build": "^5.0.1",
     "web3": "^1.0.0-beta.27"
   },
   "devDependencies": {
