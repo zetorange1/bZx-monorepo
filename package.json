@@ -10,7 +10,7 @@
     "tester": "babel-node tester/b0x_tester.js",
     "dev": "webpack --watch --config webpack.config.js",
     "build": "webpack --config webpack.config.js",
-	"postinstall": "postinstall-build dist --script build"
+    "postinstall": "postinstall-build dist --script build"
   },
   "dependencies": {
     "0x.js": "^0.29.0",
