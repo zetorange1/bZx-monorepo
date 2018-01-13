@@ -1,8 +1,56 @@
+import styled from "styled-components";
+import Typography from "material-ui/Typography";
+import MuiButton from "material-ui/Button";
+import { SectionLabel } from "../common/FormSection";
+
+const TextArea = styled.textarea`
+  margin: 12px 0;
+`;
+
+const Button = styled(MuiButton)`
+  display: block !important;
+`;
+
 export default class FillOrder extends React.Component {
-  state = {};
+  state = { value: null, showOrderInfo: false };
+
+  reset = () => this.setState({ showOrderInfo: false });
+
+  handleChange = e => this.setState({ value: e.target.value });
+
+  handleSubmit = () => {
+    // TODO - make sure the pasted in JSON is valid
+    // TODO - take the JSON and render its info
+    this.setState({ showOrderInfo: true });
+  };
 
   render() {
-    return <div>Fill order stuff here</div>;
+    const { showOrderInfo } = this.state;
+    if (showOrderInfo) {
+      return (
+        <div>
+          <SectionLabel>Fill an order</SectionLabel>
+          <Typography>Review order info:</Typography>
+        </div>
+      );
+    }
+    return (
+      <div>
+        <SectionLabel>Fill an order</SectionLabel>
+        <Typography>Paste your JSON order below:</Typography>
+        <TextArea
+          name=""
+          id=""
+          cols="30"
+          rows="10"
+          value={this.state.value}
+          onChange={this.handleChange}
+        />
+        <Button raised color="primary" onClick={this.handleSubmit}>
+          Get Order Info
+        </Button>
+      </div>
+    );
   }
 }
 
