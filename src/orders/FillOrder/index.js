@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import Typography from "material-ui/Typography";
 import MuiButton from "material-ui/Button";
-import { SectionLabel } from "../common/FormSection";
+import { SectionLabel } from "../../common/FormSection";
 
 const TextArea = styled.textarea`
   margin: 12px 0;
