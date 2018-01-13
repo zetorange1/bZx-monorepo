@@ -7,6 +7,13 @@ const TextArea = styled.textarea`
   margin: 12px 0;
 `;
 
+const BackLink = styled(Typography)`
+  display: inline-block !important;
+  margin: 12px 0 !important;
+  text-decoration: underline;
+  cursor: pointer;
+`;
+
 const Button = styled(MuiButton)`
   display: block !important;
 `;
@@ -30,6 +37,7 @@ export default class FillOrder extends React.Component {
       return (
         <div>
           <SectionLabel>Fill an order</SectionLabel>
+          <BackLink onClick={this.reset}>Go Back</BackLink>
           <Typography>Review order info:</Typography>
         </div>
       );
