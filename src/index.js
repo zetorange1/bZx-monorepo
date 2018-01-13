@@ -1,9 +1,4 @@
-import ethABI from 'ethereumjs-abi';
-import ethUtil from 'ethereumjs-util';
-import _ from 'lodash';
-
 import { assert } from '0x.js/lib/src/utils/assert';
-import zeroExTypes from '0x.js/lib/src/types';
 import { schemas, SchemaValidator } from './schemas/b0x_json_schemas';
 
 import * as utils from './utils';
@@ -26,26 +21,7 @@ export default class B0xJS {
 
   static getLendOrderHashHex(order) {
     this.doesConformToSchema('lendOrder', order, schemas.lendOrderSchema);
-    const orderParams = [
-      { value: order.b0x, type: zeroExTypes.SolidityTypes.Address },
-      { value: order.maker, type: zeroExTypes.SolidityTypes.Address },
-      { value: order.lendTokenAddress, type: zeroExTypes.SolidityTypes.Address },
-      { value: order.interestTokenAddress, type: zeroExTypes.SolidityTypes.Address },
-      { value: order.marginTokenAddress, type: zeroExTypes.SolidityTypes.Address },
-      { value: order.feeRecipientAddress, type: zeroExTypes.SolidityTypes.Address },
-      { value: utils.bigNumberToBN(order.lendTokenAmount), type: zeroExTypes.SolidityTypes.Uint256 },
-      { value: utils.bigNumberToBN(order.interestAmount), type: zeroExTypes.SolidityTypes.Uint256 },
-      { value: utils.bigNumberToBN(order.initialMarginAmount), type: zeroExTypes.SolidityTypes.Uint256 },
-      { value: utils.bigNumberToBN(order.liquidationMarginAmount), type: zeroExTypes.SolidityTypes.Uint256 },
-      { value: utils.bigNumberToBN(order.lenderRelayFee), type: zeroExTypes.SolidityTypes.Uint256 },
-      { value: utils.bigNumberToBN(order.traderRelayFee), type: zeroExTypes.SolidityTypes.Uint256 },
-      { value: utils.bigNumberToBN(order.expirationUnixTimestampSec), type: zeroExTypes.SolidityTypes.Uint256 },
-      { value: utils.bigNumberToBN(order.salt), type: zeroExTypes.SolidityTypes.Uint256 },
-    ];
-    const types = _.map(orderParams, o => o.type);
-    const values = _.map(orderParams, o => o.value);
-    const hashBuff = ethABI.soliditySHA3(types, values);
-    const orderHashHex = ethUtil.bufferToHex(hashBuff);
+    const orderHashHex = utils.getLendOrderHashHex(order);
     return orderHashHex;
   }
 }
