@@ -11,6 +11,10 @@ export default class B0xJS {
     console.log(props);
   }
 
+  // WARNING - this method is not supposed to be here,
+  // in the original ZeroEx source code, it is a function
+  // from the utils/assert library. We should move this out
+  // so as to not pollute this file
   static doesConformToSchema(variableName, value, schema) {
     const schemaValidator = new SchemaValidator();
     const validationResult = schemaValidator.validate(value, schema);
