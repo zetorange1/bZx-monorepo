@@ -1,4 +1,4 @@
-import { generatePseudoRandomSalt } from "b0x.js";  // eslint-disable-line
+import B0xJS from "b0x.js";  // eslint-disable-line
 import { getTokenInfo } from ".././../common/tokens";
 
 export const compileObject = state => {
@@ -37,7 +37,7 @@ export const compileObject = state => {
 };
 
 export const addSalt = obj => {
-  const salt = generatePseudoRandomSalt();
+  const salt = B0xJS.generatePseudoRandomSalt();
   return {
     ...obj,
     salt
