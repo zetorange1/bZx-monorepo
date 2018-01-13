@@ -1,7 +1,6 @@
 /*
 
-  Copyright 2017 Tom Bean
-  Parts copyright 2017 ZeroEx Intl.
+  Copyright 2018 b0x, LLC
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -20,30 +19,12 @@
 pragma solidity ^0.4.9;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import './B0xOwnable.sol';
 
 import './interfaces/EIP20.sol';
 
-contract B0xVault is Ownable {
+contract B0xVault is B0xOwnable {
     using SafeMath for uint256;
-
-    modifier onlyAuthorized {
-        require(authorized[msg.sender]);
-        _;
-    }
-
-    modifier targetAuthorized(address target) {
-        require(authorized[target]);
-        _;
-    }
-
-    modifier targetNotAuthorized(address target) {
-        require(!authorized[target]);
-        _;
-    }
-
-    mapping (address => bool) public authorized;
-    address[] public authorities;
 
     event LogErrorText(string errorTxt, uint errorValue);
 
@@ -58,16 +39,15 @@ contract B0xVault is Ownable {
     mapping (address => mapping (address => uint)) public funding; // mapping of token addresses to mapping of accounts to funding
     mapping (address => mapping (address => uint)) public interest; // mapping of token addresses to mapping of accounts to interest
 
-
-    event LogAuthorizedAddressAdded(address indexed target, address indexed caller);
-    event LogAuthorizedAddressRemoved(address indexed target, address indexed caller);
-
     /*
      * Public functions
      */
 
+    // Only the owner (b0x contract) can directly deposit ether
+    function() public payable onlyOwner {}
+
     // note: this overrides current approval amount
-    function setTokenApproval(address token_, address user_, uint amount_) public onlyAuthorized returns (bool) { 
+    function setTokenApproval(address token_, address user_, uint amount_) public onlyOwner returns (bool) { 
         require(token_ != address(0));
 
         uint allowance = EIP20(token_).allowance(this, user_);
@@ -83,21 +63,21 @@ contract B0xVault is Ownable {
         return true;
     }
 
-    /*function depositEtherMargin(address user_) public onlyAuthorized payable returns (uint) {        
+    /*function depositEtherMargin(address user_) public onlyOwner payable returns (uint) {        
         marginWallet[0][user_] = marginWallet[0][user_].add(msg.value);
         return marginWallet[0][user_];
     }
-    function depositEtherFunding(address user_) public onlyAuthorized payable returns (uint) {
+    function depositEtherFunding(address user_) public onlyOwner payable returns (uint) {
         fundingWallet[0][user_] = fundingWallet[0][user_].add(msg.value);
         return fundingWallet[0][user_];
     }*/
-    /*function depositTokenMargin(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {        
+    /*function depositTokenMargin(address token_, address user_, uint amount_) public onlyOwner returns (uint) {        
         require(token_ != address(0));
         
         marginWallet[token_][user_] = marginWallet[token_][user_].add(amount_);
         return marginWallet[token_][user_];
     }
-    function depositTokenFunding(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {        
+    function depositTokenFunding(address token_, address user_, uint amount_) public onlyOwner returns (uint) {        
         require(token_ != address(0));
         
         fundingWallet[token_][user_] = fundingWallet[token_][user_].add(amount_);
@@ -105,26 +85,26 @@ contract B0xVault is Ownable {
     }*/
 
 
-    /*function withdrawEtherMargin(address user_, uint amount_) public onlyAuthorized returns (uint) {
+    /*function withdrawEtherMargin(address user_, uint amount_) public onlyOwner returns (uint) {
         marginWallet[0][user_] = marginWallet[0][user_].sub(amount_);
         require(user_.call.value(amount_)());
          // or? if (!user_.send(amount)) revert();
         return marginWallet[0][user_];
     }
-    function withdrawEtherFunding(address user_, uint amount_) public onlyAuthorized returns (uint) {
+    function withdrawEtherFunding(address user_, uint amount_) public onlyOwner returns (uint) {
         fundingWallet[0][user_] = fundingWallet[0][user_].sub(amount_);
         require(user_.call.value(amount_)());
          // or? if (!user_.send(amount)) revert();
         return fundingWallet[0][user_];
     }*/
-    /*function withdrawTokenMargin(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {
+    /*function withdrawTokenMargin(address token_, address user_, uint amount_) public onlyOwner returns (uint) {
         require(token_ != address(0));
         
         marginWallet[token_][user_] = marginWallet[token_][user_].sub(amount_);
         require(EIP20(token_).transfer(user_, amount_));
         return marginWallet[token_][user_]; 
     }
-    function withdrawTokenFunding(address token_, address user_, uint amount_) public onlyAuthorized returns (uint) {
+    function withdrawTokenFunding(address token_, address user_, uint amount_) public onlyOwner returns (uint) {
         require(token_ != address(0));
         
         fundingWallet[token_][user_] = fundingWallet[token_][user_].sub(amount_);
@@ -132,14 +112,14 @@ contract B0xVault is Ownable {
         return fundingWallet[token_][user_]; 
     }*/
 
-    /*function transferOutTokenMargin(address token_, address from_, address to_, uint amount_) public onlyAuthorized returns (bool) {
+    /*function transferOutTokenMargin(address token_, address from_, address to_, uint amount_) public onlyOwner returns (bool) {
         require(token_ != address(0));
         
         marginWallet[token_][from_] = marginWallet[token_][from_].sub(amount_);
         require(EIP20(token_).transfer(to_, amount_));
         return true; 
     }
-    function transferOutTokenFunding(address token_, address from_, address to_, uint amount_) public onlyAuthorized returns (bool) {
+    function transferOutTokenFunding(address token_, address from_, address to_, uint amount_) public onlyOwner returns (bool) {
         require(token_ != address(0));
         
         fundingWallet[token_][from_] = fundingWallet[token_][from_].sub(amount_);
@@ -168,38 +148,12 @@ contract B0xVault is Ownable {
         return usedInterest[token_][user_];
     }*/
 
-    function addAuthorizedAddress(address target)
-        public
-        onlyOwner
-        targetNotAuthorized(target)
-    {
-        authorized[target] = true;
-        authorities.push(target);
-        LogAuthorizedAddressAdded(target, msg.sender);
-    }
-
-    function removeAuthorizedAddress(address target)
-        public
-        onlyOwner
-        targetAuthorized(target)
-    {
-        delete authorized[target];
-        for (uint i = 0; i < authorities.length; i++) {
-            if (authorities[i] == target) {
-                authorities[i] = authorities[authorities.length - 1];
-                authorities.length -= 1;
-                break;
-            }
-        }
-        LogAuthorizedAddressRemoved(target, msg.sender);
-    }
-
     function storeMargin(
         address token,
         address user,
         uint value)
         public
-        onlyAuthorized
+        onlyOwner
         returns (bool)
     {
         margin[token][user] = margin[token][user].add(value);
@@ -214,7 +168,7 @@ contract B0xVault is Ownable {
         address user,
         uint value)
         public
-        onlyAuthorized
+        onlyOwner
         returns (bool)
     {
         funding[token][user] = funding[token][user].add(value);
@@ -229,7 +183,7 @@ contract B0xVault is Ownable {
         address user,
         uint value)
         public
-        onlyAuthorized
+        onlyOwner
         returns (bool)
     {
         interest[token][user] = interest[token][user].add(value);
@@ -245,7 +199,7 @@ contract B0xVault is Ownable {
         address to,        
         uint value)
         public
-        onlyAuthorized
+        onlyOwner
         returns (bool)
     {
         margin[token][user] = margin[token][user].sub(value);
@@ -261,7 +215,7 @@ contract B0xVault is Ownable {
         address to,        
         uint value)
         public
-        onlyAuthorized
+        onlyOwner
         returns (bool)
     {
         funding[token][user] = funding[token][user].sub(value);
@@ -271,17 +225,21 @@ contract B0xVault is Ownable {
         return true;
     }
 
+
+    // note: feeAmount is retained by the vault
     function sendInterest(
         address token,
         address user,
         address to,        
-        uint value)
+        uint value,
+        uint feeAmount)
         public
-        onlyAuthorized
+        onlyOwner
         returns (bool)
     {
         interest[token][user] = interest[token][user].sub(value);
-        if (!EIP20(token).transfer(to, value))
+
+        if (!EIP20(token).transfer(to, value.sub(feeAmount)))
             revert();
 
         return true;
@@ -293,7 +251,7 @@ contract B0xVault is Ownable {
         address to,        
         uint value)
         public
-        onlyAuthorized
+        onlyOwner
         returns (bool)
     {
         if (!EIP20(token).transferFrom(user, to, value))
@@ -302,13 +260,6 @@ contract B0xVault is Ownable {
         return true;
     }
 
-    function getAuthorizedAddresses()
-        public
-        constant
-        returns (address[])
-    {
-        return authorities;
-    }
 }
 
 /*

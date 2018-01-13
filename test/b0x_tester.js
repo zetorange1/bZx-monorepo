@@ -9,7 +9,8 @@ web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545")) // :95
 
 
 import { B0xJS } from 'b0x.js'
-
+//import { generatePseudoRandomSalt } from "b0x.js";
+//import * as brokerjs from "b0x.js";
 
 import { ZeroEx } from '0x.js';
 //const zeroEx = new ZeroEx(new Web3.providers.HttpProvider("http://localhost:8545"));
@@ -19,6 +20,7 @@ let B0xVault = artifacts.require("./B0xVault.sol");
 let KyberWrapper = artifacts.require("./KyberWrapper.sol");
 let B0xSol = artifacts.require("./B0x.sol");
 let LOANToken = artifacts.require("./LOANToken.sol");
+let SugarToken = artifacts.require("./SugarToken.sol");
 let ERC20 = artifacts.require("./ERC20.sol"); // for testing with any ERC20 token
 
 let TomToken = artifacts.require("./TomToken.sol");
@@ -81,6 +83,7 @@ contract('B0xTest', function(accounts) {
   var broker;
   var kyber;
   var loan_token;
+  var sugar_token;
   var tom_token;
   var bean_token;
   var brokerjs;
@@ -103,8 +106,10 @@ contract('B0xTest', function(accounts) {
     new Promise((resolve, reject) => {
       console.log("before balance: "+web3.eth.getBalance(accounts[0]));
       const gasPrice = new BigNumber(web3.toWei(2, 'gwei'));
-      brokerjs = new B0xJS(web3.currentProvider, { gasPrice });
+      //brokerjs = new B0xJS(web3.currentProvider, { gasPrice });
+      brokerjs = new B0xJS();
       resolve(brokerjs);
+      //resolve(true);
     });
   });
 
@@ -113,6 +118,8 @@ contract('B0xTest', function(accounts) {
       (loan_token = await LOANToken.new()),
       (vault = await B0xVault.new()),
       (kyber = await KyberWrapper.new()),
+      (sugar_token = await SugarToken.new()),
+      
       (tom_token = await TomToken.new()),
       (bean_token = await BeanToken.new())
     ]);
@@ -223,10 +230,10 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should add B0x as authorized address for B0xVault", function(done) {
-    vault.addAuthorizedAddress(broker.address).then(function() {
-      vault.getAuthorizedAddresses.call().then(function(authorities) {
-        assert.equal(authorities[0], broker.address, "B0x contract should be the authorized address");
+  it("should add B0x as owner for B0xVault", function(done) {
+    vault.transferOwnership(broker.address).then(function() {
+      vault.owner.call().then(function(owner) {
+        assert.equal(owner, broker.address, "B0x contract should be the owner");
         done();
       });
     }, function(error) {
@@ -235,11 +242,24 @@ contract('B0xTest', function(accounts) {
       done();
     });
   });
-  
-  it("should add B0x as authorized address for KyberWrapper", function(done) {
-    kyber.addAuthorizedAddress(broker.address).then(function() {
-      kyber.getAuthorizedAddresses.call().then(function(authorities) {
-        assert.equal(authorities[0], broker.address, "B0x contract should be the authorized address");
+
+  it("should add B0x as owner for SugarToken", function(done) {
+    sugar_token.transferOwnership(broker.address).then(function() {
+      sugar_token.owner.call().then(function(owner) {
+        assert.equal(owner, broker.address, "B0x contract should be the owner");
+        done();
+      });
+    }, function(error) {
+      console.error(error);
+      assert.equal(true, false);
+      done();
+    });
+  });
+
+  it("should add B0x as the owner for KyberWrapper", function(done) {
+    kyber.transferOwnership(broker.address).then(function() {
+      kyber.owner.call().then(function(owner) {
+        assert.equal(owner, broker.address, "B0x contract should be the owner");
         done();
       });
     }, function(error) {
@@ -507,6 +527,29 @@ contract('B0xTest', function(accounts) {
   });
   */
 
+  
+  /*it("should sugar_token", function(done) {
+
+    sugar_token.depositTo(
+      accounts[8],
+      {from: accounts[2], value: web3.toWei(5, "ether").toString()}).then(function(tx) {
+        sugar_token.depositTo(
+          accounts[8],
+          {from: accounts[2], value: web3.toWei(5, "ether").toString()}).then(function(tx) {
+            sugar_token.currentValue.call().then(function(currentValue) {
+              console.log("current value: "+currentValue);
+              sugar_token.totalValue.call().then(function(totalValue) {
+                console.log("total value: "+totalValue);
+                
+                assert.isOk(true);
+                done();
+              });
+            });
+          });
+        });
+    
+  });*/
+  
   it("should generate lendOrderHash (as lender)", function(done) {
     var salt = generatePseudoRandomSalt().toString();
     salt = salt.substring(0,salt.length-10);

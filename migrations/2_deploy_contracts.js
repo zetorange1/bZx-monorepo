@@ -1,6 +1,7 @@
 var LOANToken = artifacts.require("./LOANToken.sol");
 var TOMToken = artifacts.require("./TOMToken.sol");
 var BEANToken = artifacts.require("./BEANToken.sol");
+var SugarToken = artifacts.require("./SugarToken.sol");
 var B0xVault = artifacts.require("./B0xVault.sol");
 var KyberWrapper = artifacts.require("./KyberWrapper.sol");
 //var B0xPool = artifacts.require("./B0xPool.sol");
@@ -58,11 +59,13 @@ module.exports = function(deployer, network, accounts) {
 
 						return deployer.deploy(B0x, LOANToken.address, B0xVault.address, KyberWrapper.address, contracts0x["Exchange"], contracts0x["ZRXToken"]).then(function() {
 							B0xVault.deployed().then(function(instance) {
-								instance.addAuthorizedAddress(B0x.address);
+								instance.transferOwnership(B0x.address);
 							});
 							KyberWrapper.deployed().then(function(instance) {
-								instance.addAuthorizedAddress(B0x.address);
+								instance.transferOwnership(B0x.address);
 							});
+
+							return deployer.deploy(SugarToken);
 						});
 					});
 				});

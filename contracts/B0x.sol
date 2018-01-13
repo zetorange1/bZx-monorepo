@@ -1,6 +1,6 @@
 /*
 
-  Copyright 2017 Tom Bean
+  Copyright 2018 b0x, LLC
   Parts copyright 2017 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +22,18 @@ pragma solidity ^0.4.9;
 // helpers
 //import './helpers/Ownable.sol';
 
+import './B0xTypes.sol';
 import './B0xVault.sol';
+
+// interfaces
+import './interfaces/Liquidation_Oracle_Interface.sol';
 import './interfaces/Exchange0x_Interface.sol';
 
 // SIMULATIONS (TO BE REMOVED PRIOR TO MAINNET DEPLOYMENT)
 //import './simulations/ERC20_AlwaysOwned.sol';
 import './simulations/KyberWrapper.sol';
 
-contract B0x is Ownable {
+contract B0x is Ownable, B0xTypes {
     using SafeMath for uint256;
 
     // Error Codes
@@ -51,40 +55,7 @@ contract B0x is Ownable {
     address public EXCHANGE0X_CONTRACT;
     address public ZRX_TOKEN_CONTRACT;
 
-    struct LendOrder {
-        address maker;
-        address lendTokenAddress;
-        address interestTokenAddress;
-        address marginTokenAddress;
-        address feeRecipientAddress;
-        uint lendTokenAmount;
-        uint interestAmount;
-        uint initialMarginAmount;
-        uint liquidationMarginAmount;
-        uint lenderRelayFee;
-        uint traderRelayFee;
-        uint expirationUnixTimestampSec;
-        bytes32 orderHash;
-    }
 
-    struct FilledOrder {
-        address lender;
-        uint marginTokenAmountFilled;
-        uint lendTokenAmountFilled;
-        uint filledUnixTimestampSec;
-    }
-
-    struct Trade {
-        address tradeTokenAddress;
-        uint tradeTokenAmountFilled;
-        uint filledUnixTimestampSec;
-        bool active;
-    }
-
-    struct RateData {
-        uint marginToLendRate;
-        uint tradeToMarginRate;
-    }
 
     mapping (bytes32 => uint) public filled; // mapping of orderHash to lendTokenAmount filled
     mapping (bytes32 => uint) public cancelled; // mapping of orderHash to lendTokenAmount cancelled
@@ -99,13 +70,14 @@ contract B0x is Ownable {
 
     bool DEBUG = true;
 
-    event LogFill(
+    /*event LogFill(
         address indexed trader,
         address indexed lender,
         address indexed feeRecipientAddress,
         address lendTokenAddress,
         address interestTokenAddress,
         address marginTokenAddress,
+        address oracleAddress,
         uint lendTokenAmountFilled,
         uint interestAmount,
         uint initialMarginAmount,
@@ -115,7 +87,7 @@ contract B0x is Ownable {
         uint expirationUnixTimestampSec,
         //bytes32 indexed tokens, // keccak256(makerToken, takerToken), allows subscribing to a token pair
         bytes32 orderHash
-    );
+    );*/
 
     /*event LogCancel(
         address indexed maker,
@@ -142,93 +114,6 @@ contract B0x is Ownable {
         KYBER_CONTRACT = _kyber;
         EXCHANGE0X_CONTRACT = _0xExchange;
         ZRX_TOKEN_CONTRACT = _zrxToken;
-    }
-
-    function closeTrade(
-        bytes32 lendOrderHash)
-        public
-        returns (bool tradeSuccess)
-    {
-        return liquidateTrade(lendOrderHash, msg.sender);
-    }
-
-    function liquidateTrade(
-        bytes32 lendOrderHash,
-        address trader)
-        public
-        returns (bool tradeSuccess)
-    {
-        Trade memory activeTrade = trades[lendOrderHash][trader];
-        if (!activeTrade.active) {
-            LogErrorText("error: trade not found or not active", 0, lendOrderHash);
-            return boolOrRevert(false);
-        }
-        
-        if (trader != msg.sender) {
-            uint liquidationLevel = getLiquidationLevel(lendOrderHash, trader);
-            if (liquidationLevel > 100) {
-                LogErrorText("error: margin above liquidation level", liquidationLevel, lendOrderHash);
-                return boolOrRevert(false);
-            }
-        }
-
-        
-        
-        /*
-        OrderAddresses memory orderAddresses = openTradeAddresses[orderHash];
-        OrderValues memory orderValues = openTradeValues[orderHash];
-        
-        uint tradeAmount = openTrades[orderHash];
-
-        //closedOrders[orderHash] = true;
-*/
-        return true;
-    }
-
-    function getLiquidationLevel(
-        bytes32 lendOrderHash,
-        address trader)
-        internal
-        view
-        returns (uint level)
-    {
-        LendOrder memory lendOrder = orders[lendOrderHash];
-        if (lendOrder.orderHash != lendOrderHash) {
-            //LogErrorText("error: invalid lend order", 0, lendOrderHash);
-            return intOrRevert(999);
-        }
-
-        FilledOrder memory filledOrder = orderFills[lendOrderHash][trader];
-        if (filledOrder.lendTokenAmountFilled == 0) {
-            //LogErrorText("error: filled order not found for specified lendOrder and trader", 0, lendOrderHash);
-            return intOrRevert(999);
-        }
-
-        Trade memory activeTrade = trades[lendOrderHash][trader];
-        if (!activeTrade.active) {
-            //LogErrorText("error: trade not found or not active", 0, lendOrderHash);
-            return intOrRevert(999);
-        }
-
-        RateData memory rateData = _getRateData(
-            lendOrder.lendTokenAddress,
-            lendOrder.marginTokenAddress,
-            activeTrade.tradeTokenAddress
-        );
-        if (rateData.marginToLendRate == 0) {
-            //LogErrorText("error: conversion rate from marginToken to lendToken is 0 or not found", 0, lendOrderHash);
-            return intOrRevert(999);
-        }
-        if (rateData.tradeToMarginRate == 0) {
-            //LogErrorText("error: conversion rate from tradeToken to marginToken is 0 or not found", 0, lendOrderHash);
-            return intOrRevert(999);
-        }
-
-        uint currentMarginPercent = (activeTrade.tradeTokenAmountFilled / 
-                        (B0xVault(VAULT_CONTRACT).marginBalanceOf(lendOrder.marginTokenAddress, trader) * rateData.tradeToMarginRate)) * 100;
-        
-        // a level <= 100 means the order should be liquidated        
-        level = currentMarginPercent - lendOrder.liquidationMarginAmount + 100;
     }
 
     function set0xExchange(
@@ -278,13 +163,13 @@ contract B0x is Ownable {
             return intOrRevert(0);
         }
 
-        uint liquidationLevel = getLiquidationLevel(lendOrderHash, msg.sender);
-        if (liquidationLevel <= 100) {
+        uint marginRatio = Liquidation_Oracle_Interface(lendOrder.oracleAddress).getMarginRatio(lendOrderHash, msg.sender);
+        if (marginRatio <= 100) {
             // todo: trigger order liquidation!
             LogErrorText("error: lendOrder has been liquidated!", 0, lendOrderHash);
             return intOrRevert(0);
-        } else if (liquidationLevel < 110) {
-            LogErrorText("error: liquidation Level too low!", 0, lendOrderHash);
+        } else if (marginRatio < 110) {
+            LogErrorText("error: marginRatiomarginRatio too low!", 0, lendOrderHash);
             return intOrRevert(0);
         }
 
@@ -377,6 +262,8 @@ contract B0x is Ownable {
         interestPaidSoFar = interestPaid[lendOrderHash][trader];
     }
 
+
+
     function payInterest(
         bytes32 lendOrderHash,
         address trader)
@@ -397,12 +284,13 @@ contract B0x is Ownable {
 
         uint amountToPay = totalAmountAccrued.sub(interestPaidSoFar);
         interestPaid[lendOrderHash][trader] = totalAmountAccrued; // since this function will pay all remaining accured interest
-        
+
         if (! B0xVault(VAULT_CONTRACT).sendInterest(
             interestTokenAddress,
             trader,
             lender,
-            amountToPay
+            amountToPay,
+            Liquidation_Oracle_Interface(orders[lendOrderHash].oracleAddress).interestFeeRate()
         )) {
             LogErrorText("error: unable to pay interest!!", amountToPay, lendOrderHash);
             return intOrRevert(0);
@@ -423,7 +311,7 @@ contract B0x is Ownable {
     /// @dev Traders can take a portion of the total coin being lended (lendTokenAmountFilled).
     /// @dev Traders also specifiy the token that will fill the margin requirement if they are taking the order.
     function takeLendOrderAsTrader(
-        address[5] orderAddresses,
+        address[6] orderAddresses,
         uint[8] orderValues,
         address marginTokenAddressFilled,
         uint lendTokenAmountFilled,
@@ -439,6 +327,7 @@ contract B0x is Ownable {
             interestTokenAddress: orderAddresses[2],
             marginTokenAddress: marginTokenAddressFilled,
             feeRecipientAddress: orderAddresses[4],
+            oracleAddress: orderAddresses[5],
             lendTokenAmount: orderValues[0],
             interestAmount: orderValues[1],
             initialMarginAmount: orderValues[2],
@@ -463,13 +352,14 @@ contract B0x is Ownable {
                 lendTokenAmountFilled
             );
             
-            LogFill(
+            /*LogFill(
                 msg.sender,
                 lendOrder.maker,
                 lendOrder.feeRecipientAddress,
                 lendOrder.lendTokenAddress,
                 lendOrder.interestTokenAddress,
                 marginTokenAddressFilled,
+                lendOrder.oracleAddress,
                 lendTokenAmountFilled,
                 lendOrder.interestAmount,
                 lendOrder.initialMarginAmount,
@@ -479,7 +369,7 @@ contract B0x is Ownable {
                 lendOrder.expirationUnixTimestampSec,
                 //keccak256(lendOrder.makerToken, lendOrder.takerToken),
                 lendOrder.orderHash
-            );
+            );*/
 
             return lendTokenAmountFilled;
         }
@@ -498,7 +388,7 @@ contract B0x is Ownable {
     /// @dev Lenders have to fill the entire desired amount the trader wants to borrow.
     /// @dev This makes lendTokenAmountFilled = lendOrder.lendTokenAmount.
     function takeLendOrderAsLender(
-        address[5] orderAddresses,
+        address[6] orderAddresses,
         uint[8] orderValues,
         uint8 v,
         bytes32 r,
@@ -512,6 +402,7 @@ contract B0x is Ownable {
             interestTokenAddress: orderAddresses[2],
             marginTokenAddress: orderAddresses[3],
             feeRecipientAddress: orderAddresses[4],
+            oracleAddress: orderAddresses[5],
             lendTokenAmount: orderValues[0],
             interestAmount: orderValues[1],
             initialMarginAmount: orderValues[2],
@@ -536,13 +427,14 @@ contract B0x is Ownable {
                 lendOrder.lendTokenAmount
             );
             
-            LogFill(
+            /*LogFill(
                 lendOrder.maker,
                 msg.sender,
                 lendOrder.feeRecipientAddress,
                 lendOrder.lendTokenAddress,
                 lendOrder.interestTokenAddress,
                 lendOrder.marginTokenAddress,
+                lendOrder.oracleAddress,
                 lendTokenAmountFilled,
                 lendOrder.interestAmount,
                 lendOrder.initialMarginAmount,
@@ -552,7 +444,7 @@ contract B0x is Ownable {
                 lendOrder.expirationUnixTimestampSec,
                 //keccak256(lendOrder.makerToken, lendOrder.takerToken),
                 lendOrder.orderHash
-            );
+            );*/
 
             return lendTokenAmountFilled;
         }
@@ -571,7 +463,7 @@ contract B0x is Ownable {
     /// @param orderValues Array of order's lendTokenAmount, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
     /// @return Keccak-256 hash of lendOrder.
     function getLendOrderHash(
-        address[5] orderAddresses, 
+        address[6] orderAddresses, 
         uint[8] orderValues)
         public
         view
@@ -579,11 +471,14 @@ contract B0x is Ownable {
     {
         return(keccak256(
             address(this),
-            orderAddresses[0],  // maker
+            orderAddresses,
+            orderValues
+            /*orderAddresses[0],  // maker
             orderAddresses[1],  // lendTokenAddress
             orderAddresses[2],  // interestTokenAddress
             orderAddresses[3],  // marginTokenAddress
             orderAddresses[4],  // feeRecipientAddress
+            orderAddresses[5],  // oracleAddress
             orderValues[0],    // lendTokenAmount
             orderValues[1],    // interestAmount
             orderValues[2],    // initialMarginAmount
@@ -591,7 +486,7 @@ contract B0x is Ownable {
             orderValues[4],    // lenderRelayFee
             orderValues[5],    // traderRelayFee
             orderValues[6],    // expirationUnixTimestampSec
-            orderValues[7]     // salt
+            orderValues[7]     // salt*/
         ));
     }
 
