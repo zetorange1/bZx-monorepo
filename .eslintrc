@@ -8,6 +8,7 @@
   "rules": {
     "react/jsx-filename-extension": 0,
     "react/prop-types": 0,
+    "react/no-did-mount-set-state": 0,
     "quotes": ["error", "backtick"],
     "no-return-assign": "error",
     "jsx-a11y/anchor-is-valid": 1,

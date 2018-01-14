@@ -1,5 +1,4 @@
 import moment from "moment";
-// import { B0xJS } from "b0x.js"; // eslint-disable-line import/no-extraneous-dependencies
 
 import { Divider } from "../../common/FormSection";
 import RoleSection from "./Role";

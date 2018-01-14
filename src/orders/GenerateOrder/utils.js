@@ -1,4 +1,4 @@
-import { generatePseudoRandomSalt } from "b0x.js";  // eslint-disable-line
+import B0xJS from "b0x.js";  // eslint-disable-line
 import { getTokenInfo } from ".././../common/tokens";
 
 export const compileObject = state => {
@@ -19,25 +19,25 @@ export const compileObject = state => {
     marginToken,
 
     // token amounts
-    lendTokenAmount: state.lendTokenAmount,
-    interestAmount: state.interestAmount,
+    lendTokenAmount: state.lendTokenAmount.toString(),
+    interestAmount: state.interestAmount.toString(),
 
     // margin amounts
-    initialMarginAmount: state.initialMarginAmount,
-    liquidationMarginAmount: state.liquidationMarginAmount,
+    initialMarginAmount: state.initialMarginAmount.toString(),
+    liquidationMarginAmount: state.liquidationMarginAmount.toString(),
 
     // expiration date/time
-    expirationUnixTimestampSec: state.expirationDate.unix(),
+    expirationUnixTimestampSec: state.expirationDate.unix().toString(),
 
     // relay/exchange settings
     feeRecipientAddress: sendToRelayExchange ? state.feeRecipientAddress : ``,
-    lenderRelayFee: sendToRelayExchange ? state.lenderRelayFee : 0,
-    traderRelayFee: sendToRelayExchange ? state.traderRelayFee : 0
+    lenderRelayFee: (sendToRelayExchange ? state.lenderRelayFee : 0).toString(),
+    traderRelayFee: (sendToRelayExchange ? state.traderRelayFee : 0).toString()
   };
 };
 
 export const addSalt = obj => {
-  const salt = generatePseudoRandomSalt();
+  const salt = B0xJS.generatePseudoRandomSalt();
   return {
     ...obj,
     salt
@@ -60,5 +60,9 @@ export const signOrder = obj => {
 };
 
 // TODO - actually get the hash
-export const getHash = () =>
-  `0xa0443e64b09e95208424ec3bf7c1b543b841de766877a8b76e25d76b6b42b970`;
+// eslint-disable-next-line no-unused-vars, arrow-body-style
+export const getHash = obj => {
+  // const hash = B0xJS.getLendOrderHashHex(obj);
+  // return hash;
+  return `0xa0443e64b09e95208424ec3bf7c1b543b841de766877a8b76e25d76b6b42b970`;
+};
