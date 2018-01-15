@@ -5,6 +5,7 @@ import RoleSection from "./Role";
 import TokensSection from "./Tokens";
 import MarginAmountsSection from "./MarginAmounts";
 import ExpirationSection from "./Expiration";
+import OracleSection from "./Oracle";
 import RelayExchangeSection from "./RelayExchange";
 import Submission from "./Submission";
 import Result from "./Result";
@@ -32,6 +33,10 @@ export default class GenerateOrder extends React.Component {
     // expiration date/time
     expirationDate: moment(),
 
+    // oracle
+    useB0xOracle: true,
+    oracleAddress: `b0x_oracle_address`,
+
     // relay/exchange settings
     sendToRelayExchange: false,
     feeRecipientAddress: ``,
@@ -53,6 +58,14 @@ export default class GenerateOrder extends React.Component {
 
   setRelayCheckbox = (e, value) =>
     this.setState({ sendToRelayExchange: value });
+
+  setUseB0xCheckbox = (e, value) => {
+    console.log(`hey`);
+    if (value) {
+      this.setState({ oracleAddress: `b0x_oracle_address` });
+    }
+    this.setState({ useB0xOracle: value });
+  };
 
   /* Submission handler */
 
@@ -104,6 +117,15 @@ export default class GenerateOrder extends React.Component {
         <ExpirationSection
           setExpirationDate={this.setStateFor(`expirationDate`)}
           expirationDate={this.state.expirationDate}
+        />
+
+        <Divider />
+
+        <OracleSection
+          oracleAddress={this.state.oracleAddress}
+          setOracleAddress={this.setStateForInput(`oracleAddress`)}
+          useB0xCheckbox={this.state.useB0xOracle}
+          setUseB0xCheckbox={this.setUseB0xCheckbox}
         />
 
         <Divider />

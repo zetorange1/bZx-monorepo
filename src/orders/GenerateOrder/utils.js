@@ -29,6 +29,9 @@ export const compileObject = state => {
     // expiration date/time
     expirationUnixTimestampSec: state.expirationDate.unix().toString(),
 
+    // oracle
+    oracleAddress: state.oracleAddress,
+
     // relay/exchange settings
     feeRecipientAddress: sendToRelayExchange ? state.feeRecipientAddress : ``,
     lenderRelayFee: (sendToRelayExchange ? state.lenderRelayFee : 0).toString(),
