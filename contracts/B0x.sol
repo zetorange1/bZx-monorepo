@@ -26,7 +26,7 @@ import './Upgradeable.sol';
 import './B0xTypes.sol';
 import './B0xVault.sol';
 
-//import './B0xOracle.sol';
+import './B0xOracle.sol';
 
 // interfaces
 import './interfaces/Liquidation_Oracle_Interface.sol';
@@ -56,6 +56,7 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
     //uint constant PRECISION = (10**18);
 
     address public LOAN_TOKEN_CONTRACT;
+    address public SUGAR_TOKEN_CONTRACT;
     address public VAULT_CONTRACT;
     address public ORACLE_CONTRACT;
     address public EXCHANGE0X_CONTRACT;
@@ -138,8 +139,9 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
         revert();
     }
 
-    function B0x(address _loanToken, address _vault, address _oracle, address _0xExchange, address _zrxToken) public {
+    function B0x(address _loanToken, address _sugarToken, address _vault, address _oracle, address _0xExchange, address _zrxToken) public {
         LOAN_TOKEN_CONTRACT = _loanToken;
+        SUGAR_TOKEN_CONTRACT = _sugarToken;
         VAULT_CONTRACT = _vault;
         ORACLE_CONTRACT = _oracle;
         EXCHANGE0X_CONTRACT = _0xExchange;
@@ -771,6 +773,39 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
         totalInterestRequired = getPartialAmount(lendTokenAmountFilled, lendOrder.lendTokenAmount, (lendOrder.expirationUnixTimestampSec.sub(block.timestamp) / 86400).mul(lendOrder.interestAmount));
     }
 
+    function getLendOrder (
+        bytes32 lendOrderHash
+    )
+        public
+        view
+        returns (address[6],uint[7])
+    {
+        LendOrder memory lendOrder = orders[lendOrderHash];
+        if (lendOrder.orderHash != lendOrderHash) {
+            //LogErrorText("error: invalid lend order", 0, lendOrderHash);
+            voidOrRevert();
+        }
+
+        return (
+            [
+                lendOrder.maker,
+                lendOrder.lendTokenAddress,
+                lendOrder.interestTokenAddress,
+                lendOrder.marginTokenAddress,
+                lendOrder.feeRecipientAddress,
+                lendOrder.oracleAddress
+            ],
+            [
+                lendOrder.lendTokenAmount,
+                lendOrder.interestAmount,
+                lendOrder.initialMarginAmount,
+                lendOrder.liquidationMarginAmount,
+                lendOrder.lenderRelayFee,
+                lendOrder.traderRelayFee,
+                lendOrder.expirationUnixTimestampSec
+            ]
+        );
+    }
 
     /*
      * Helper Functions
@@ -873,7 +908,7 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
         wasNotUpgraded
     {
         B0xVault(VAULT_CONTRACT).transferOwnership(newContract);
-        //B0xOracle(ORACLE_CONTRACT).transferOwnership(newContract);
+        B0xOracle(ORACLE_CONTRACT).transferOwnership(newContract);
 
         setUpgraded(newContract);
     }

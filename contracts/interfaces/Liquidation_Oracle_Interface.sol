@@ -1,8 +1,6 @@
 pragma solidity ^0.4.9;
 
-import '../B0xTypes.sol';
-
-contract Liquidation_Oracle_Interface is B0xTypes {
+contract Liquidation_Oracle_Interface {
     
     // Percentage of interest retained as fee
     // Must be between 0 and 100

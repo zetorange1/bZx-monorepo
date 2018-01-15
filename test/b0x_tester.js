@@ -10,7 +10,7 @@ web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545")) // :95
 
 import { B0xJS } from 'b0x.js'
 //import { generatePseudoRandomSalt } from "b0x.js";
-//import * as brokerjs from "b0x.js";
+//import * as b0xjs from "b0x.js";
 
 import { ZeroEx } from '0x.js';
 //const zeroEx = new ZeroEx(new Web3.providers.HttpProvider("http://localhost:8545"));
@@ -18,6 +18,7 @@ import { ZeroEx } from '0x.js';
 
 let B0xVault = artifacts.require("./B0xVault.sol");
 let KyberWrapper = artifacts.require("./KyberWrapper.sol");
+let B0xOracle = artifacts.require("./B0xOracle.sol");
 let B0xSol = artifacts.require("./B0x.sol");
 let LOANToken = artifacts.require("./LOANToken.sol");
 let SugarToken = artifacts.require("./SugarToken.sol");
@@ -80,13 +81,14 @@ let account_privatekeys = [
 
 contract('B0xTest', function(accounts) {
   var vault;
-  var broker;
+  var b0x;
   var kyber;
+  var oracle;
   var loan_token;
   var sugar_token;
   var tom_token;
   var bean_token;
-  var brokerjs;
+  var b0xjs;
 
   var zrx_token;
   var exchange_0x;
@@ -106,9 +108,9 @@ contract('B0xTest', function(accounts) {
     new Promise((resolve, reject) => {
       console.log("before balance: "+web3.eth.getBalance(accounts[0]));
       const gasPrice = new BigNumber(web3.toWei(2, 'gwei'));
-      //brokerjs = new B0xJS(web3.currentProvider, { gasPrice });
-      brokerjs = new B0xJS();
-      resolve(brokerjs);
+      //b0xjs = new B0xJS(web3.currentProvider, { gasPrice });
+      b0xjs = new B0xJS();
+      resolve(b0xjs);
       //resolve(true);
     });
   });
@@ -125,9 +127,13 @@ contract('B0xTest', function(accounts) {
     ]);
   
     await Promise.all([
-      (broker = await B0xSol.new(loan_token.address,vault.address,kyber.address,contracts0x["Exchange"],contracts0x["ZRXToken"])),
+      (b0x = await B0xSol.new(loan_token.address,vault.address,kyber.address,contracts0x["Exchange"],contracts0x["ZRXToken"])),
       tom_token.transfer(accounts[1], web3.toWei(2000000, "ether")),
       bean_token.transfer(accounts[2], web3.toWei(2000000, "ether"))
+    ]);
+
+    await Promise.all([
+      (oracle = await B0xOracle.new(b0x.address, vault.address, kyber.address))
     ]);
   });
 
@@ -139,7 +145,7 @@ contract('B0xTest', function(accounts) {
 
   /*
   //setup event listener
-  var event = broker.LogErrorText(function(error, result) {
+  var event = b0x.LogErrorText(function(error, result) {
       if (!error)
           console.log(result);
   });
@@ -164,9 +170,9 @@ contract('B0xTest', function(accounts) {
 
   it("should retrieve deployed B0x contract", function(done) {
     B0xSol.deployed().then(function(instance) {
-      broker = instance;
-      //console.log(broker.address);
-      assert.isOk(broker);
+      b0x = instance;
+      //console.log(b0x.address);
+      assert.isOk(b0x);
       done();
     });
   });
@@ -231,9 +237,9 @@ contract('B0xTest', function(accounts) {
   });
 
   it("should add B0x as owner for B0xVault", function(done) {
-    vault.transferOwnership(broker.address).then(function() {
+    vault.transferOwnership(b0x.address).then(function() {
       vault.owner.call().then(function(owner) {
-        assert.equal(owner, broker.address, "B0x contract should be the owner");
+        assert.equal(owner, b0x.address, "B0x contract should be the owner");
         done();
       });
     }, function(error) {
@@ -244,9 +250,9 @@ contract('B0xTest', function(accounts) {
   });
 
   it("should add B0x as owner for SugarToken", function(done) {
-    sugar_token.transferOwnership(broker.address).then(function() {
+    sugar_token.transferOwnership(b0x.address).then(function() {
       sugar_token.owner.call().then(function(owner) {
-        assert.equal(owner, broker.address, "B0x contract should be the owner");
+        assert.equal(owner, b0x.address, "B0x contract should be the owner");
         done();
       });
     }, function(error) {
@@ -257,9 +263,9 @@ contract('B0xTest', function(accounts) {
   });
 
   it("should add B0x as the owner for KyberWrapper", function(done) {
-    kyber.transferOwnership(broker.address).then(function() {
+    kyber.transferOwnership(b0x.address).then(function() {
       kyber.owner.call().then(function(owner) {
-        assert.equal(owner, broker.address, "B0x contract should be the owner");
+        assert.equal(owner, b0x.address, "B0x contract should be the owner");
         done();
       });
     }, function(error) {
@@ -273,7 +279,7 @@ contract('B0xTest', function(accounts) {
   it("should deposit ether margin", function(done) {
     //var beforeWalletBalance = getWeiBalance(accounts[0]);
     vault.marginBalanceOf.call(0, accounts[0]).then(function(beforeBalance) {
-      broker.depositEtherMargin({from: accounts[0], to: broker.address, value: testDepositAmount}).then(function(tx) {
+      b0x.depositEtherMargin({from: accounts[0], to: b0x.address, value: testDepositAmount}).then(function(tx) {
         vault.marginBalanceOf.call(0, accounts[0]).then(function(afterBalance) {
           //var totalGas = new BigNumber(tx.receipt.cumulativeGasUsed) * web3.eth.gasPrice.toNumber();
           assert.equal(afterBalance.toNumber(), beforeBalance.add(testDepositAmount).toNumber(), "afterBalance should equal beforeBalance + testDepositAmount");
@@ -290,7 +296,7 @@ contract('B0xTest', function(accounts) {
 
   it("should withdraw ether margin", function(done) {
     vault.marginBalanceOf.call(0, accounts[0]).then(function(beforeBalance) {
-      broker.withdrawEtherMargin(testDepositAmount, {from: accounts[0]}).then(function() {
+      b0x.withdrawEtherMargin(testDepositAmount, {from: accounts[0]}).then(function() {
         vault.marginBalanceOf.call(0, accounts[0]).then(function(afterBalance) {
           assert.equal(afterBalance.toNumber(), beforeBalance.sub(testDepositAmount).toNumber(), "afterBalance should equal beforeBalance - testDepositAmount");
           done();
@@ -305,7 +311,7 @@ contract('B0xTest', function(accounts) {
 
   it("should deposit ether funding", function(done) {
     vault.fundingBalanceOf.call(0, accounts[0]).then(function(beforeBalance) {
-      broker.depositEtherFunding({from: accounts[0], to: broker.address, value: testDepositAmount}).then(function() {
+      b0x.depositEtherFunding({from: accounts[0], to: b0x.address, value: testDepositAmount}).then(function() {
         vault.fundingBalanceOf.call(0, accounts[0]).then(function(afterBalance) {
           assert.equal(afterBalance.toNumber(), beforeBalance.add(testDepositAmount).toNumber(), "afterBalance should equal beforeBalance + testDepositAmount");
           done();
@@ -320,7 +326,7 @@ contract('B0xTest', function(accounts) {
 
   it("should withdraw ether funding", function(done) {
     vault.fundingBalanceOf.call(0, accounts[0]).then(function(beforeBalance) {
-      broker.withdrawEtherFunding(testDepositAmount, {from: accounts[0]}).then(function() {
+      b0x.withdrawEtherFunding(testDepositAmount, {from: accounts[0]}).then(function() {
         vault.fundingBalanceOf.call(0, accounts[0]).then(function(afterBalance) {
           assert.equal(afterBalance.toNumber(), beforeBalance.sub(testDepositAmount).toNumber(), "afterBalance should equal beforeBalance - testDepositAmount");
           done();
@@ -337,8 +343,8 @@ contract('B0xTest', function(accounts) {
 
   it("should approve LOAN Token transfer", function(done) {
     let tmp_loan = new ERC20(loan_token.address);
-    tmp_loan.approve(broker.address, testDepositAmount*2, {from: accounts[0]}).then(function(tx) {
-      tmp_loan.allowance.call(accounts[0], broker.address).then(function(allowance) {
+    tmp_loan.approve(b0x.address, testDepositAmount*2, {from: accounts[0]}).then(function(tx) {
+      tmp_loan.allowance.call(accounts[0], b0x.address).then(function(allowance) {
         assert.equal(allowance, testDepositAmount*2, "allowance should equal testDepositAmount");
         done();
       });
@@ -353,7 +359,7 @@ contract('B0xTest', function(accounts) {
   
   it("should deposit LOAN Token margin", function(done) {
     vault.marginBalanceOf.call(loan_token.address, accounts[0]).then(function(beforeBalance) {
-      broker.depositTokenMargin(loan_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
+      b0x.depositTokenMargin(loan_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
         vault.marginBalanceOf.call(loan_token.address, accounts[0]).then(function(afterBalance) {
           assert.equal(afterBalance.toNumber(), beforeBalance.add(testDepositAmount).toNumber(), "afterBalance should equal beforeBalance + testDepositAmount");
           done();
@@ -368,7 +374,7 @@ contract('B0xTest', function(accounts) {
 
   it("should withdraw LOAN Token margin", function(done) {
     loan_token.balanceOf.call(accounts[0]).then(function(beforeBalance) {
-      broker.withdrawTokenMargin(loan_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
+      b0x.withdrawTokenMargin(loan_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
         loan_token.balanceOf.call(accounts[0]).then(function(afterBalance) {
           assert.equal(afterBalance.toNumber(), beforeBalance.add(testDepositAmount).toNumber(), "afterBalance should equal beforeBalance + testDepositAmount");
           done();
@@ -383,7 +389,7 @@ contract('B0xTest', function(accounts) {
 
   it("should deposit LOAN Token funding", function(done) {
     vault.fundingBalanceOf.call(loan_token.address, accounts[0]).then(function(beforeBalance) {
-      broker.depositTokenFunding(loan_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
+      b0x.depositTokenFunding(loan_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
         vault.fundingBalanceOf.call(loan_token.address, accounts[0]).then(function(afterBalance) {
           assert.equal(afterBalance.toNumber(), beforeBalance.add(testDepositAmount).toNumber(), "afterBalance should equal beforeBalance + testDepositAmount");
           done();
@@ -398,7 +404,7 @@ contract('B0xTest', function(accounts) {
 
   it("should withdraw LOAN Token funding", function(done) {
     loan_token.balanceOf.call(accounts[0]).then(function(beforeBalance) {
-      broker.withdrawTokenFunding(loan_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
+      b0x.withdrawTokenFunding(loan_token.address, testDepositAmount, {from: accounts[0]}).then(function() {
         loan_token.balanceOf.call(accounts[0]).then(function(afterBalance) {
           assert.equal(afterBalance.toNumber(), beforeBalance.add(testDepositAmount).toNumber(), "afterBalance should equal beforeBalance + testDepositAmount");
           done();
@@ -419,18 +425,18 @@ contract('B0xTest', function(accounts) {
     loan_token.transfer(accounts[1], amount, {from: accounts[0]}).then(function(result) {
       loan_token.approve(vault.address, amount, {from: accounts[1]}).then(function(tx) {
   */
-        /*loan_token.allowance.call(accounts[1],broker.address).then(function(allowance) {
+        /*loan_token.allowance.call(accounts[1],b0x.address).then(function(allowance) {
           console.log("allowance: "+allowance);
         });*/
         
         /*vault.fundingBalanceOf.call(loan_token.address, accounts[1]).then(function(beforeBalance) {
           //console.log("beforeBalance: "+beforeBalance);
-          broker.depositTokenFunding(loan_token.address, amount, {from: accounts[1]}).then(function() {
+          b0x.depositTokenFunding(loan_token.address, amount, {from: accounts[1]}).then(function() {
             vault.fundingBalanceOf.call(loan_token.address, accounts[1]).then(function(afterBalance) {
               
               //vault.getAuthorizedAddresses.call().then(function(addrs) {
               //  console.log(addrs);
-              //  console.log(broker.address);
+              //  console.log(b0x.address);
               //});
 
               assert.equal(afterBalance.toNumber(), beforeBalance.add(amount).toNumber(), "afterBalance should equal beforeBalance + 100000");
@@ -466,7 +472,7 @@ contract('B0xTest', function(accounts) {
   */
         
         /*vault.marginBalanceOf.call(loan_token.address, accounts[2]).then(function(beforeBalance) {
-          broker.depositTokenMargin(loan_token.address, amount, {from: accounts[2]}).then(function() {
+          b0x.depositTokenMargin(loan_token.address, amount, {from: accounts[2]}).then(function() {
             vault.marginBalanceOf.call(loan_token.address, accounts[2]).then(function(afterBalance) {
               assert.equal(afterBalance.toNumber(), beforeBalance.add(amount).toNumber(), "afterBalance should equal beforeBalance + 100000");
               done();
@@ -496,7 +502,7 @@ contract('B0xTest', function(accounts) {
       var tx1 = await tom_token.approve(vault.address, amount, {from: accounts[1]});
       assert.isOk(tx1.receipt);
       //console.log(tx1.receipt);
-      //var tx2 = await broker.depositTokenFunding.call(tom_token.address, amount, {from: accounts[1]});
+      //var tx2 = await b0x.depositTokenFunding.call(tom_token.address, amount, {from: accounts[1]});
       //console.log(tx2);
       //assert.isOk(true);
       //assert.isOk(tx2.receipt);
@@ -516,7 +522,7 @@ contract('B0xTest', function(accounts) {
       var tx1 = await bean_token.approve(vault.address, amount, {from: accounts[1]});
       assert.isOk(tx1.receipt);
       //console.log(tx1.receipt);
-      //var tx2 = await broker.depositTokenFunding.call(bean_token.address, amount, {from: accounts[1]});
+      //var tx2 = await b0x.depositTokenFunding.call(bean_token.address, amount, {from: accounts[1]});
       //console.log(tx2);
       //assert.isOk(true);
       //assert.isOk(tx2.receipt);
@@ -555,7 +561,7 @@ contract('B0xTest', function(accounts) {
     salt = salt.substring(0,salt.length-10);
   
     orderParams = {
-      "b0x": broker.address, 
+      "b0x": b0x.address, 
       "maker": accounts[1], // lender
       "lendTokenAddress": tom_token.address,
       "interestTokenAddress": bean_token.address, 
@@ -571,12 +577,12 @@ contract('B0xTest', function(accounts) {
       "salt": salt
     };
     console.log(orderParams);
-    let expectedHash = brokerjs.getLendOrderHashHex(orderParams);
+    let expectedHash = b0xjs.getLendOrderHashHex(orderParams);
     console.log("js hash: "+expectedHash);
     //console.log(salt);
     //console.log(expirationUnixTimestampSec);
     //console.log(orderParams);
-    broker.getLendOrderHash.call(
+    b0x.getLendOrderHash.call(
       [
         orderParams["maker"],
         orderParams["lendTokenAddress"],
@@ -630,7 +636,7 @@ contract('B0xTest', function(accounts) {
       "s": "0x"+signedOrderHash.substring(66,130)
     };
 
-    broker.isValidSignature.call(
+    b0x.isValidSignature.call(
       accounts[1], // lender
       sample_orderhash,
       ECSignature["v"],
@@ -648,7 +654,7 @@ contract('B0xTest', function(accounts) {
 
   /*it("should send sample kyber for LOAN", function(done) {
     var expectedPrice = web3.toWei("0.00025998", "ether");
-    broker.testSendPriceUpdate(
+    b0x.testSendPriceUpdate(
       loan_token.address, 
       expectedPrice,
       {from: accounts[0]}).then(function(tx) {
@@ -674,7 +680,7 @@ contract('B0xTest', function(accounts) {
 
   it("should send sample kyber for BEAN", function(done) {
     var expectedPrice = web3.toWei("1.2", "ether");
-    broker.testSendPriceUpdate(
+    b0x.testSendPriceUpdate(
       bean_token.address, 
       expectedPrice,
       {from: accounts[0]}).then(function(tx) {
@@ -695,14 +701,14 @@ contract('B0xTest', function(accounts) {
 
   it("should send sample kyber for Tom", function(done) {
     var expectedPrice = web3.toWei((0.32+0.75)/2, "ether");
-    broker.testSendPriceUpdate(
+    b0x.testSendPriceUpdate(
       tom_token.address, 
       web3.toWei(0.32, "ether"), // simulate price from one source
       {from: accounts[0]}).then(function(tx) {
         //console.log(tx);
         kyber.getTokenPrice(tom_token.address).then(function(currentPrice) {
           //console.log(currentPrice.toString());
-          broker.testSendPriceUpdate(
+          b0x.testSendPriceUpdate(
             tom_token.address, 
             web3.toWei(0.75, "ether"), // simulate price from another source
             {from: accounts[7]}).then(function(tx) {
@@ -731,7 +737,7 @@ contract('B0xTest', function(accounts) {
   });*/
 
   it("should take sample lender order as trader", function(done) {
-    broker.takeLendOrderAsTrader(
+    b0x.takeLendOrderAsTrader(
       [
         orderParams["maker"],
         orderParams["lendTokenAddress"],
@@ -774,7 +780,7 @@ contract('B0xTest', function(accounts) {
   it("should send ZRX Token to trader, then approve b0x to transfer for trader for taking 0x trades", function(done) {
     var amount = web3.toWei(10000, "ether");
     zrx_token.transfer(accounts[2], amount, {from: accounts[0]}).then(function(tx) {
-      zrx_token.approve(broker.address, amount, {from: accounts[0]}).then(function(tx) {
+      zrx_token.approve(b0x.address, amount, {from: accounts[0]}).then(function(tx) {
         assert.isOk(tx.receipt);
         done();
       }, function(error) {
@@ -869,7 +875,7 @@ contract('B0xTest', function(accounts) {
   });
 
   it("should open 0x trade with borrowed funds", function(done) {
-    broker.open0xTrade(
+    b0x.open0xTrade(
       sample_orderhash,      
       [
         OrderParams_0x["maker"],

@@ -6,13 +6,14 @@ import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
 import './B0x.sol';
 import './B0xVault.sol';
+import './B0xTypes.sol';
 
 import './interfaces/Liquidation_Oracle_Interface.sol';
 import './interfaces/EIP20.sol';
 
 import './simulations/KyberWrapper.sol';
 
-contract B0xOracle is Ownable, Liquidation_Oracle_Interface {
+contract B0xOracle is Ownable, B0xTypes, Liquidation_Oracle_Interface {
     using SafeMath for uint256;
     
     // Percentage of interest retained as fee
@@ -95,12 +96,12 @@ contract B0xOracle is Ownable, Liquidation_Oracle_Interface {
         view
         returns (uint level)
     {
-        /*LendOrder memory lendOrder = LendOrderStruct(lendOrderHash);
+        LendOrder memory lendOrder = LendOrderStruct(lendOrderHash);
         if (lendOrder.orderHash != lendOrderHash) {
             //LogErrorText("error: invalid lend order", 0, lendOrderHash);
             //return intOrRevert(999);
             return 999;
-        }*/
+        }
 
         FilledOrder memory filledOrder = FilledOrderStruct(lendOrderHash, trader);
         if (filledOrder.lendTokenAmountFilled == 0) {
@@ -181,16 +182,15 @@ contract B0xOracle is Ownable, Liquidation_Oracle_Interface {
 
     // helpers
 
-    /*function LendOrderStruct (
+    function LendOrderStruct (
         bytes32 lendOrderHash
     )
         internal
         view
         returns (LendOrder)
     {
-        var (v1,v2,v3,v4,v5,v6,v7,v8,v9,) = B0x(B0X_CONTRACT).orders(lendOrderHash);
+        var (addrs,uints) = B0x(B0X_CONTRACT).getLendOrder(lendOrderHash);
         
-        return;
         return LendOrder({
             maker: addrs[0],
             lendTokenAddress: addrs[1],
@@ -207,7 +207,7 @@ contract B0xOracle is Ownable, Liquidation_Oracle_Interface {
             expirationUnixTimestampSec: uints[6],
             orderHash: lendOrderHash
         });
-    }*/
+    }
     
     function TradeStruct (
         bytes32 lendOrderHash,

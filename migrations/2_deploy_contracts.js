@@ -4,7 +4,7 @@ var BEANToken = artifacts.require("./BEANToken.sol");
 var SugarToken = artifacts.require("./SugarToken.sol");
 var B0xVault = artifacts.require("./B0xVault.sol");
 var KyberWrapper = artifacts.require("./KyberWrapper.sol");
-//var B0xPool = artifacts.require("./B0xPool.sol");
+var B0xOracle = artifacts.require("./B0xOracle.sol");
 var B0x = artifacts.require("./B0x.sol");
 
 //const Web3 = require('web3');
@@ -39,34 +39,34 @@ let contracts0x = {
 
 module.exports = function(deployer, network, accounts) {
 
-	deployer.deploy(LOANToken).then(function() {
-		LOANToken.deployed().then(function(instance) {
-			instance.transfer(accounts[1], web3.toWei(100000, "ether"));
-			instance.transfer(accounts[2], web3.toWei(100000, "ether"));
+	deployer.deploy(TOMToken).then(function() {
+		TOMToken.deployed().then(function(instance) {
+			instance.transfer(accounts[1], web3.toWei(2000000, "ether"));
 		});
-		
-		return deployer.deploy(B0xVault).then(function() {
-			return deployer.deploy(KyberWrapper).then(function() {
-				return deployer.deploy(TOMToken).then(function() {
-					TOMToken.deployed().then(function(instance) {
-						instance.transfer(accounts[1], web3.toWei(2000000, "ether"));
-					});
-					
-					return deployer.deploy(BEANToken).then(function() {
-						BEANToken.deployed().then(function(instance) {
-							instance.transfer(accounts[2], web3.toWei(2000000, "ether"));
+	});
+	deployer.deploy(BEANToken).then(function() {
+		BEANToken.deployed().then(function(instance) {
+			instance.transfer(accounts[2], web3.toWei(2000000, "ether"));
+		});
+	});
+
+	deployer.deploy(LOANToken).then(function() {
+		return deployer.deploy(SugarToken).then(function() {
+			return deployer.deploy(B0xVault).then(function() {
+				return deployer.deploy(KyberWrapper).then(function() {
+					return deployer.deploy(B0x, LOANToken.address, SugarToken.address, B0xVault.address, KyberWrapper.address, contracts0x["Exchange"], contracts0x["ZRXToken"]).then(function() {
+						B0xVault.deployed().then(function(instance) {
+							instance.transferOwnership(B0x.address);
+						});
+						KyberWrapper.deployed().then(function(instance) {
+							instance.transferOwnership(B0x.address);
+						});
+						LOANToken.deployed().then(function(instance) {
+							instance.transfer(accounts[1], web3.toWei(100000, "ether"));
+							instance.transfer(accounts[2], web3.toWei(100000, "ether"));
 						});
 
-						return deployer.deploy(B0x, LOANToken.address, B0xVault.address, KyberWrapper.address, contracts0x["Exchange"], contracts0x["ZRXToken"]).then(function() {
-							B0xVault.deployed().then(function(instance) {
-								instance.transferOwnership(B0x.address);
-							});
-							KyberWrapper.deployed().then(function(instance) {
-								instance.transferOwnership(B0x.address);
-							});
-
-							return deployer.deploy(SugarToken);
-						});
+						return deployer.deploy(B0xOracle, B0x.address, B0xVault.address, KyberWrapper.address);
 					});
 				});
 			});
