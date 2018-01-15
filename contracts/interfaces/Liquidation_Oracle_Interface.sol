@@ -1,10 +1,18 @@
 pragma solidity ^0.4.9;
 
-contract Liquidation_Oracle_Interface {
+import '../B0xTypes.sol';
+
+contract Liquidation_Oracle_Interface is B0xTypes {
     
     // Percentage of interest retained as fee
     // Must be between 0 and 100
     uint8 public interestFeeRate;
+
+    // Address of the b0x contract
+    address public B0X_CONTRACT;
+
+    // Address of the b0x vault contract.
+    address public VAULT_CONTRACT;
 
     // A trader calls this to close their own trade at any time
     function closeTrade(
@@ -36,4 +44,12 @@ contract Liquidation_Oracle_Interface {
         public
         view
         returns (bool);
+
+    function getRateData(
+        address lendTokenAddress,
+        address marginTokenAddress,
+        address tradeTokenAddress)
+        public 
+        view 
+        returns (uint marginToLendRate, uint tradeToMarginRate);
 }

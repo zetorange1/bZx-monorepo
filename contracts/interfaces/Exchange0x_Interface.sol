@@ -1,6 +1,9 @@
 pragma solidity ^0.4.9;
 
 contract Exchange0x_Interface {
+
+    address public ZRX_TOKEN_CONTRACT;
+
     function fillOrder(
           address[5] orderAddresses,
           uint[6] orderValues,

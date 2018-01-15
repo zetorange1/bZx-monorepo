@@ -33,8 +33,8 @@ contract B0xTypes {
         bool active;
     }
 
-    struct RateData {
+    /*struct RateData {
         uint marginToLendRate;
         uint tradeToMarginRate;
-    }
+    }*/
 }

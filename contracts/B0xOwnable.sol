@@ -8,6 +8,7 @@ contract B0xOwnable is Ownable {
 
     event B0xOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
+    // modifier reverts if b0xContractAddress isn't set
     modifier onlyB0x() {
         require(b0xContractAddress != address(0));
         require(msg.sender == b0xContractAddress);

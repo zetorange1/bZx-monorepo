@@ -18,12 +18,15 @@
 */
 
 pragma solidity ^0.4.9;
+//pragma experimental ABIEncoderV2;
 
-// helpers
-//import './helpers/Ownable.sol';
+
+import './Upgradeable.sol';
 
 import './B0xTypes.sol';
 import './B0xVault.sol';
+
+//import './B0xOracle.sol';
 
 // interfaces
 import './interfaces/Liquidation_Oracle_Interface.sol';
@@ -31,9 +34,12 @@ import './interfaces/Exchange0x_Interface.sol';
 
 // SIMULATIONS (TO BE REMOVED PRIOR TO MAINNET DEPLOYMENT)
 //import './simulations/ERC20_AlwaysOwned.sol';
-import './simulations/KyberWrapper.sol';
 
-contract B0x is Ownable, B0xTypes {
+// to help prevent reentrancy attacks
+import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
+
+
+contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
     using SafeMath for uint256;
 
     // Error Codes
@@ -51,10 +57,9 @@ contract B0x is Ownable, B0xTypes {
 
     address public LOAN_TOKEN_CONTRACT;
     address public VAULT_CONTRACT;
-    address public KYBER_CONTRACT;
+    address public ORACLE_CONTRACT;
     address public EXCHANGE0X_CONTRACT;
     address public ZRX_TOKEN_CONTRACT;
-
 
 
     mapping (bytes32 => uint) public filled; // mapping of orderHash to lendTokenAmount filled
@@ -68,7 +73,7 @@ contract B0x is Ownable, B0xTypes {
     mapping (address => bytes32) public orderList;
     mapping (address => bytes32) public tradeList;
 
-    bool DEBUG = true;
+    bool private DEBUG = true;
 
     /*event LogFill(
         address indexed trader,
@@ -103,34 +108,66 @@ contract B0x is Ownable, B0xTypes {
     //event LogError(uint8 indexed errorId, bytes32 indexed orderHash);
     event LogErrorText(string errorTxt, uint errorValue, bytes32 indexed orderHash);
 
+    uint public gasPriceEMA = 20;
+    uint[] public gasPrices = [20,20,20,20,20];
+    uint emaPeriods = 10;
+    function updateGasPriceEMA() internal {
+        // ref: https://www.investopedia.com/ask/answers/122314/what-exponential-moving-average-ema-formula-and-how-ema-calculated.asp
+        
+        uint previousEMA = gasPriceEMA;
+
+        // update gasPrices array while calculating SMA
+        uint sum;
+        for (uint i = 0; i < gasPrices.length-1; i++) {
+            gasPrices[i] = gasPrices[i+1];
+            sum += gasPrices[i];
+        }
+        gasPrices[gasPrices.length-1] = tx.gasprice;
+        sum += tx.gasprice;
+
+        uint SMA = sum.div(gasPrices.length);
+        
+        // calculating the weighting multiplier:
+        uint wm = 2 / (gasPrices.length + 1) * 100;
+
+        // calculate new EMA
+        gasPriceEMA = ((tx.gasprice-previousEMA) * wm / 100) + previousEMA;
+    }
 
     function() public {
         revert();
     }
 
-    function B0x(address _loanToken, address _vault, address _kyber, address _0xExchange, address _zrxToken) public {
+    function B0x(address _loanToken, address _vault, address _oracle, address _0xExchange, address _zrxToken) public {
         LOAN_TOKEN_CONTRACT = _loanToken;
         VAULT_CONTRACT = _vault;
-        KYBER_CONTRACT = _kyber;
+        ORACLE_CONTRACT = _oracle;
         EXCHANGE0X_CONTRACT = _0xExchange;
         ZRX_TOKEN_CONTRACT = _zrxToken;
     }
 
-    function set0xExchange(
-        address _0xExchange)
+    /*function getOrderParts (
+        bytes32 lendOrderHash
+    )
         public
-        onlyOwner
+        view
+        returns (
+        address[6] addrs,
+        uint[7] uints
+    )
     {
-        EXCHANGE0X_CONTRACT = _0xExchange;
-    }
+        LendOrder memory lendOrder = orders[lendOrderHash];
+        if (lendOrder.orderHash != lendOrderHash) {
+            LogErrorText("error: invalid lend order", 0, lendOrderHash);
+            return;
+        }
 
-    function setZRXToken(
-        address _zrxToken)
-        public
-        onlyOwner
-    {
-        ZRX_TOKEN_CONTRACT = _zrxToken;
-    }
+        addrs = [lendOrder.maker,lendOrder.lendTokenAddress,lendOrder.interestTokenAddress,lendOrder.marginTokenAddress,lendOrder.feeRecipientAddress,lendOrder.oracleAddress];
+        uints = [lendOrder.lendTokenAmount,lendOrder.interestAmount,lendOrder.initialMarginAmount,lendOrder.liquidationMarginAmount,lendOrder.lenderRelayFee,lendOrder.traderRelayFee,lendOrder.expirationUnixTimestampSec];
+    
+        return(addrs,uints);
+    }*/
+
 
 /*
     /// @param orderAddresses Array of order's maker, taker, makerToken, takerToken, and feeRecipient.
@@ -545,36 +582,6 @@ contract B0x is Ownable, B0xTypes {
     */
    
 
-    function _getRateData(
-        address lendTokenAddress,
-        address marginTokenAddress,
-        address tradeTokenAddress)
-        internal 
-        view 
-        returns (RateData)
-    {   
-        uint lendTokenDecimals = getDecimals(EIP20(lendTokenAddress));
-        uint marginTokenDecimals = getDecimals(EIP20(marginTokenAddress));
-        uint tradeTokenDecimals;
-
-        if (tradeTokenAddress != address(0)) {
-            tradeTokenDecimals = getDecimals(EIP20(tradeTokenAddress));
-
-            return (RateData({
-                marginToLendRate: (KyberWrapper(KYBER_CONTRACT).getKyberPrice(marginTokenAddress, lendTokenAddress)
-                                     * (10**lendTokenDecimals)) / (10**marginTokenDecimals),
-                tradeToMarginRate: (KyberWrapper(KYBER_CONTRACT).getKyberPrice(tradeTokenAddress, marginTokenAddress)
-                                     * (10**marginTokenDecimals)) / (10**tradeTokenDecimals)
-            }));
-        } else {
-            return (RateData({
-                marginToLendRate: (KyberWrapper(KYBER_CONTRACT).getKyberPrice(marginTokenAddress, lendTokenAddress)
-                                     * (10**lendTokenDecimals)) / (10**marginTokenDecimals),
-                tradeToMarginRate: 0
-            }));
-        }
-    }
-
     function _verifyLendOrder(
         LendOrder lendOrder,
         uint lendTokenAmountFilled,
@@ -653,17 +660,17 @@ contract B0x is Ownable, B0xTypes {
             return intOrRevert(0);
         }
 
-        RateData memory rateData = _getRateData(
+        var (marginToLendRate,) = Liquidation_Oracle_Interface(lendOrder.oracleAddress).getRateData(
             lendOrder.lendTokenAddress,
             lendOrder.marginTokenAddress,
             0
         );
-        if (rateData.marginToLendRate == 0) {
+        if (marginToLendRate == 0) {
             LogErrorText("error: conversion rate from marginToken to lendToken is 0 or not found", 0, lendOrder.orderHash);
             return intOrRevert(0);
         }
 
-        uint marginTokenAmountFilled = _initialMargin(lendOrder.initialMarginAmount, rateData.marginToLendRate, lendTokenAmountFilled);
+        uint marginTokenAmountFilled = _initialMargin(lendOrder.initialMarginAmount, marginToLendRate, lendTokenAmountFilled);
 
         uint paidTraderFee;
         uint paidLenderFee;
@@ -764,13 +771,10 @@ contract B0x is Ownable, B0xTypes {
         totalInterestRequired = getPartialAmount(lendTokenAmountFilled, lendOrder.lendTokenAmount, (lendOrder.expirationUnixTimestampSec.sub(block.timestamp) / 86400).mul(lendOrder.interestAmount));
     }
 
-    function getDecimals(EIP20 token) 
-        internal
-        view 
-        returns(uint)
-    {
-        return token.decimals();
-    }
+
+    /*
+     * Helper Functions
+     */
 
     function voidOrRevert() 
         internal
@@ -804,6 +808,119 @@ contract B0x is Ownable, B0xTypes {
         }
 
         return retVal;
+    }
+
+
+    /*
+     * Lifecycle Related Functions
+     */
+
+    function set0xExchange (
+        address _0xExchange
+    )
+        public
+        onlyOwner
+    {
+        EXCHANGE0X_CONTRACT = _0xExchange;
+    }
+
+    function setZRXToken (
+        address _zrxToken
+    )
+        public
+        onlyOwner
+    {
+        ZRX_TOKEN_CONTRACT = _zrxToken;
+    }
+
+
+    /**
+    * @dev Reclaim all EIP20 compatible tokens
+    * @param tokens List of addresses of EIP20 token contracts.
+    */    
+    function reclaimTokens (
+        EIP20[] tokens
+    ) 
+        external 
+        nonReentrant 
+        onlyOwner
+    {
+        _reclaimTokens(tokens, msg.sender);
+    }
+
+    /**
+    * @dev Reclaim any Ether in this contract.
+    * @dev This contract does not accept ether directly, but it is impossible to prevent receiving ether
+    * @dev in all situations.
+    */    
+    function reclaimEther()
+        external
+        onlyOwner
+    {
+        require(msg.sender.send(this.balance));
+    }
+    
+    /**
+    * @dev Upgrade to a new version of the b0x contract
+    * @param newContract Address of new b0x contract.
+    */   
+    function upgrade (
+        address newContract
+    )
+        external
+        nonReentrant
+        onlyOwner
+        wasNotUpgraded
+    {
+        B0xVault(VAULT_CONTRACT).transferOwnership(newContract);
+        //B0xOracle(ORACLE_CONTRACT).transferOwnership(newContract);
+
+        setUpgraded(newContract);
+    }
+    
+    function destroy (
+        EIP20[] tokens
+    )
+        external
+        nonReentrant
+        onlyOwner
+    {
+        _destroyAndSend(tokens, msg.sender);
+    }
+    function destroyAndSend (
+        EIP20[] tokens,
+        address recipient
+    ) 
+        external
+        nonReentrant
+        onlyOwner
+    {
+        _destroyAndSend(tokens, recipient);
+    }
+
+    // private function to reclaim tokens
+    function _reclaimTokens (
+        EIP20[] tokens,
+        address recipient
+    ) 
+        private
+    {
+        for(uint256 i = 0; i < tokens.length; i++) {
+            uint256 balance = tokens[i].balanceOf(this);
+            tokens[i].transfer(recipient, balance);
+        }
+    }
+
+    // private function to destroy contract
+    function _destroyAndSend (
+        EIP20[] tokens,
+        address recipient
+    ) 
+        private
+        wasUpgraded
+    {
+        _reclaimTokens(tokens, recipient);
+        selfdestruct(recipient);
     }
 
 }

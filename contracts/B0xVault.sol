@@ -44,10 +44,10 @@ contract B0xVault is B0xOwnable {
      */
 
     // Only the owner (b0x contract) can directly deposit ether
-    function() public payable onlyOwner {}
+    function() public payable onlyB0x {}
 
     // note: this overrides current approval amount
-    function setTokenApproval(address token_, address user_, uint amount_) public onlyOwner returns (bool) { 
+    function setTokenApproval(address token_, address user_, uint amount_) public onlyB0x returns (bool) { 
         require(token_ != address(0));
 
         uint allowance = EIP20(token_).allowance(this, user_);
@@ -63,21 +63,21 @@ contract B0xVault is B0xOwnable {
         return true;
     }
 
-    /*function depositEtherMargin(address user_) public onlyOwner payable returns (uint) {        
+    /*function depositEtherMargin(address user_) public onlyB0x payable returns (uint) {        
         marginWallet[0][user_] = marginWallet[0][user_].add(msg.value);
         return marginWallet[0][user_];
     }
-    function depositEtherFunding(address user_) public onlyOwner payable returns (uint) {
+    function depositEtherFunding(address user_) public onlyB0x payable returns (uint) {
         fundingWallet[0][user_] = fundingWallet[0][user_].add(msg.value);
         return fundingWallet[0][user_];
     }*/
-    /*function depositTokenMargin(address token_, address user_, uint amount_) public onlyOwner returns (uint) {        
+    /*function depositTokenMargin(address token_, address user_, uint amount_) public onlyB0x returns (uint) {        
         require(token_ != address(0));
         
         marginWallet[token_][user_] = marginWallet[token_][user_].add(amount_);
         return marginWallet[token_][user_];
     }
-    function depositTokenFunding(address token_, address user_, uint amount_) public onlyOwner returns (uint) {        
+    function depositTokenFunding(address token_, address user_, uint amount_) public onlyB0x returns (uint) {        
         require(token_ != address(0));
         
         fundingWallet[token_][user_] = fundingWallet[token_][user_].add(amount_);
@@ -85,26 +85,26 @@ contract B0xVault is B0xOwnable {
     }*/
 
 
-    /*function withdrawEtherMargin(address user_, uint amount_) public onlyOwner returns (uint) {
+    /*function withdrawEtherMargin(address user_, uint amount_) public onlyB0x returns (uint) {
         marginWallet[0][user_] = marginWallet[0][user_].sub(amount_);
         require(user_.call.value(amount_)());
          // or? if (!user_.send(amount)) revert();
         return marginWallet[0][user_];
     }
-    function withdrawEtherFunding(address user_, uint amount_) public onlyOwner returns (uint) {
+    function withdrawEtherFunding(address user_, uint amount_) public onlyB0x returns (uint) {
         fundingWallet[0][user_] = fundingWallet[0][user_].sub(amount_);
         require(user_.call.value(amount_)());
          // or? if (!user_.send(amount)) revert();
         return fundingWallet[0][user_];
     }*/
-    /*function withdrawTokenMargin(address token_, address user_, uint amount_) public onlyOwner returns (uint) {
+    /*function withdrawTokenMargin(address token_, address user_, uint amount_) public onlyB0x returns (uint) {
         require(token_ != address(0));
         
         marginWallet[token_][user_] = marginWallet[token_][user_].sub(amount_);
         require(EIP20(token_).transfer(user_, amount_));
         return marginWallet[token_][user_]; 
     }
-    function withdrawTokenFunding(address token_, address user_, uint amount_) public onlyOwner returns (uint) {
+    function withdrawTokenFunding(address token_, address user_, uint amount_) public onlyB0x returns (uint) {
         require(token_ != address(0));
         
         fundingWallet[token_][user_] = fundingWallet[token_][user_].sub(amount_);
@@ -112,14 +112,14 @@ contract B0xVault is B0xOwnable {
         return fundingWallet[token_][user_]; 
     }*/
 
-    /*function transferOutTokenMargin(address token_, address from_, address to_, uint amount_) public onlyOwner returns (bool) {
+    /*function transferOutTokenMargin(address token_, address from_, address to_, uint amount_) public onlyB0x returns (bool) {
         require(token_ != address(0));
         
         marginWallet[token_][from_] = marginWallet[token_][from_].sub(amount_);
         require(EIP20(token_).transfer(to_, amount_));
         return true; 
     }
-    function transferOutTokenFunding(address token_, address from_, address to_, uint amount_) public onlyOwner returns (bool) {
+    function transferOutTokenFunding(address token_, address from_, address to_, uint amount_) public onlyB0x returns (bool) {
         require(token_ != address(0));
         
         fundingWallet[token_][from_] = fundingWallet[token_][from_].sub(amount_);
@@ -153,7 +153,7 @@ contract B0xVault is B0xOwnable {
         address user,
         uint value)
         public
-        onlyOwner
+        onlyB0x
         returns (bool)
     {
         margin[token][user] = margin[token][user].add(value);
@@ -168,7 +168,7 @@ contract B0xVault is B0xOwnable {
         address user,
         uint value)
         public
-        onlyOwner
+        onlyB0x
         returns (bool)
     {
         funding[token][user] = funding[token][user].add(value);
@@ -183,7 +183,7 @@ contract B0xVault is B0xOwnable {
         address user,
         uint value)
         public
-        onlyOwner
+        onlyB0x
         returns (bool)
     {
         interest[token][user] = interest[token][user].add(value);
@@ -199,7 +199,7 @@ contract B0xVault is B0xOwnable {
         address to,        
         uint value)
         public
-        onlyOwner
+        onlyB0x
         returns (bool)
     {
         margin[token][user] = margin[token][user].sub(value);
@@ -215,7 +215,7 @@ contract B0xVault is B0xOwnable {
         address to,        
         uint value)
         public
-        onlyOwner
+        onlyB0x
         returns (bool)
     {
         funding[token][user] = funding[token][user].sub(value);
@@ -234,7 +234,7 @@ contract B0xVault is B0xOwnable {
         uint value,
         uint feeAmount)
         public
-        onlyOwner
+        onlyB0x
         returns (bool)
     {
         interest[token][user] = interest[token][user].sub(value);
@@ -251,7 +251,7 @@ contract B0xVault is B0xOwnable {
         address to,        
         uint value)
         public
-        onlyOwner
+        onlyB0x
         returns (bool)
     {
         if (!EIP20(token).transferFrom(user, to, value))
