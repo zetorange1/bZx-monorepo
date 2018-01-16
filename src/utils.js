@@ -31,6 +31,7 @@ export const getLendOrderHashHex = (order) => {
     { value: order.interestTokenAddress, type: zeroExTypes.SolidityTypes.Address },
     { value: order.marginTokenAddress, type: zeroExTypes.SolidityTypes.Address },
     { value: order.feeRecipientAddress, type: zeroExTypes.SolidityTypes.Address },
+	{ value: order.oracleAddress, type: zeroExTypes.SolidityTypes.Address },
     { value: bigNumberToBN(order.lendTokenAmount), type: zeroExTypes.SolidityTypes.Uint256 },
     { value: bigNumberToBN(order.interestAmount), type: zeroExTypes.SolidityTypes.Uint256 },
     { value: bigNumberToBN(order.initialMarginAmount), type: zeroExTypes.SolidityTypes.Uint256 },

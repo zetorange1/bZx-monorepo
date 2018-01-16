@@ -9,6 +9,7 @@ exports.lendOrderSchema = {
     interestTokenAddress: { $ref: '/Address' },
     marginTokenAddress: { $ref: '/Address' },
     feeRecipientAddress: { $ref: '/Address' },
+	oracleAddress: { $ref: '/Address' },
     lendTokenAmount: { $ref: '/Number' },
     interestAmount: { $ref: '/Number' },
     initialMarginAmount: { $ref: '/Number' },
@@ -19,7 +20,7 @@ exports.lendOrderSchema = {
     salt: { $ref: '/Number' },
   },
   required: [
-    'b0x', 'maker', 'lendTokenAddress', 'interestTokenAddress', 'marginTokenAddress', 'feeRecipientAddress',
+    'b0x', 'maker', 'lendTokenAddress', 'interestTokenAddress', 'marginTokenAddress', 'feeRecipientAddress', 'oracleAddress',
     'lendTokenAmount', 'interestAmount', 'initialMarginAmount', 'liquidationMarginAmount',
     'lenderRelayFee', 'traderRelayFee', 'expirationUnixTimestampSec', 'salt',
   ],
