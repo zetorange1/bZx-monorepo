@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import { SectionLabel } from "../../common/FormSection";
 import TextField from "material-ui/TextField";
+import { SectionLabel } from "../../common/FormSection";
 
 import TokenPicker from "../../common/TokenPicker";
 
