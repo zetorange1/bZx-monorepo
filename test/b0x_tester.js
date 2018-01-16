@@ -8,7 +8,7 @@ const Web3 = require('web3');
 web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545")) // :9545
 
 
-import { B0xJS } from 'b0x.js'
+import B0xJS from 'b0x.js'
 //import { generatePseudoRandomSalt } from "b0x.js";
 //import * as b0xjs from "b0x.js";
 
@@ -88,7 +88,7 @@ contract('B0xTest', function(accounts) {
   var sugar_token;
   var tom_token;
   var bean_token;
-  var b0xjs;
+  //var b0xjs;
 
   var zrx_token;
   var exchange_0x;
@@ -109,9 +109,9 @@ contract('B0xTest', function(accounts) {
       console.log("before balance: "+web3.eth.getBalance(accounts[0]));
       const gasPrice = new BigNumber(web3.toWei(2, 'gwei'));
       //b0xjs = new B0xJS(web3.currentProvider, { gasPrice });
-      b0xjs = new B0xJS();
-      resolve(b0xjs);
-      //resolve(true);
+      //b0xjs = new B0xJS();
+      //resolve(b0xjs);
+      resolve(true);
     });
   });
 
@@ -567,6 +567,7 @@ contract('B0xTest', function(accounts) {
       "interestTokenAddress": bean_token.address, 
       "marginTokenAddress": bean_token.address,
       "feeRecipientAddress": accounts[9], 
+      "oracleAddress": oracle.address, 
       "lendTokenAmount": web3.toWei(1000000, "ether").toString(), 
       "interestAmount": web3.toWei(2, "ether").toString(), // 2 token units per day
       "initialMarginAmount": "50", // 50% 
@@ -577,8 +578,8 @@ contract('B0xTest', function(accounts) {
       "salt": salt
     };
     console.log(orderParams);
-    let expectedHash = b0xjs.getLendOrderHashHex(orderParams);
-    console.log("js hash: "+expectedHash);
+    let expectedHash = B0xJS.getLendOrderHashHex(orderParams);
+    //console.log("js hash: "+expectedHash);
     //console.log(salt);
     //console.log(expirationUnixTimestampSec);
     //console.log(orderParams);
@@ -588,7 +589,8 @@ contract('B0xTest', function(accounts) {
         orderParams["lendTokenAddress"],
         orderParams["interestTokenAddress"],
         orderParams["marginTokenAddress"],
-        orderParams["feeRecipientAddress"]
+        orderParams["feeRecipientAddress"],
+        orderParams["oracleAddress"]
       ],
       [
         new BN(orderParams["lendTokenAmount"]),
@@ -600,7 +602,7 @@ contract('B0xTest', function(accounts) {
         new BN(orderParams["expirationUnixTimestampSec"]),
         new BN(orderParams["salt"])
     ]).then(function(orderHash) {
-      console.log("sol hash: "+orderHash);
+      //console.log("sol hash: "+orderHash);
       sample_orderhash = orderHash;
       assert.equal(orderHash, expectedHash, "expectedHash should equal returned lendOrderHash");
       done();
@@ -743,7 +745,8 @@ contract('B0xTest', function(accounts) {
         orderParams["lendTokenAddress"],
         orderParams["interestTokenAddress"],
         orderParams["marginTokenAddress"],
-        orderParams["feeRecipientAddress"]
+        orderParams["feeRecipientAddress"],
+        orderParams["oracleAddress"]
       ],
       [
         new BN(orderParams["lendTokenAmount"]),

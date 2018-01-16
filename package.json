@@ -13,8 +13,7 @@
     "babel-preset-stage-3": "^6.24.1"
   },
   "dependencies": {
-    "0x.js": "^0.29.2",
-    "b0x.js": "git+https://github.com/tomcbean/b0x.js.git#0db9012bbaba5e201dc20a55effdb350368fb5ad",
+    "b0x.js": "git+https://github.com/tomcbean/b0x.js.git",
     "rimraf": "^2.6.2",
     "zeppelin-solidity": "^1.5.0"
   },
