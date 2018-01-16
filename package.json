@@ -9,8 +9,7 @@
     "lint:fix": "eslint src --fix",
     "tester": "babel-node tester/b0x_tester.js",
     "dev": "webpack --watch --config webpack.config.js",
-    "build": "webpack --config webpack.config.js",
-    "postinstall": "postinstall-build dist --script build"
+    "build": "webpack --config webpack.config.js"
   },
   "dependencies": {
     "0x.js": "^0.29.0",
@@ -19,7 +18,6 @@
     "ethereumjs-abi": "^0.6.5",
     "ethereumjs-util": "^5.1.3",
     "lodash": "^4.17.4",
-    "postinstall-build": "^5.0.1",
     "web3": "^1.0.0-beta.27"
   },
   "devDependencies": {
