@@ -1,74 +1,21 @@
-import styled from "styled-components";
-import Typography from "material-ui/Typography";
-import MuiButton from "material-ui/Button";
-import { SectionLabel } from "../../common/FormSection";
-import OrderInfo from "./OrderInfo";
+import Button from "material-ui/Button";
 
-const TextArea = styled.textarea`
-  margin: 12px 0;
-  width: 100%;
-  max-width: 480px;
-  font-family: monospace;
-`;
+import Tokens from "./Tokens";
+import Amounts from "./Amounts";
+import Expiration from "./Expiration";
+import Inputs from "./Inputs";
 
-const BackLink = styled(Typography)`
-  display: inline-block !important;
-  margin-bottom: 12px !important;
-  text-decoration: underline;
-  cursor: pointer;
-`;
-
-const Button = styled(MuiButton)`
-  display: block !important;
-`;
-
-export default class FillOrder extends React.Component {
-  state = { value: null, showOrderInfo: true };
-
-  reset = () => this.setState({ showOrderInfo: false });
-
-  handleChange = e => this.setState({ value: e.target.value });
-
-  handleSubmit = () => {
-    // TODO - make sure the pasted in JSON is valid
-    // TODO - take the JSON and render its info
-    this.setState({ showOrderInfo: true });
-  };
-
-  render() {
-    const { showOrderInfo } = this.state;
-    if (showOrderInfo) {
-      return (
-        <div>
-          <BackLink onClick={this.reset}>Go Back</BackLink>
-          <SectionLabel>Order info</SectionLabel>
-          <OrderInfo />
-        </div>
-      );
-    }
-    return (
-      <div>
-        <SectionLabel>Fill an order</SectionLabel>
-        <Typography>Paste your JSON order below:</Typography>
-        <TextArea
-          name=""
-          id=""
-          cols="30"
-          rows="10"
-          value={this.state.value}
-          onChange={this.handleChange}
-        />
-        <Button raised color="primary" onClick={this.handleSubmit}>
-          Get Order Info
-        </Button>
-      </div>
-    );
-  }
-}
-
-// - Provide something like this: https://0xproject.com/portal/fill
-// - Accepts a json object (see above) generated in the previous menu. It passes the parameters to our smart contract for validation and acceptance
-// - There should also be an API endpoint associated with this that accepts the json object in a POST for orders to be taken without using the UI
+export default () => (
+  <div>
+    <Tokens />
+    <Amounts />
+    <Expiration />
+    <Inputs />
+    <Button raised color="primary">
+      Fill Order
+    </Button>
+  </div>
+);
 
 // -related functions in b0x smart contract:
 //  - when the loan (order) is filled by the trader:

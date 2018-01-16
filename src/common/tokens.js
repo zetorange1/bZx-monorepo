@@ -28,3 +28,14 @@ export const getTokenInfo = address => {
   }));
   return tokenArray.filter(token => token.address === address)[0];
 };
+
+export const getTokenInfoWithIcon = address => {
+  const tokenArray = Object.entries(TOKENS).map(([symbol, data]) => ({
+    name: data.label,
+    symbol,
+    decimals: data.decimals,
+    address: data.address,
+    iconUrl: data.iconUrl
+  }));
+  return tokenArray.filter(token => token.address === address)[0];
+};
