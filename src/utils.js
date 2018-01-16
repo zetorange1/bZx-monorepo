@@ -1,10 +1,11 @@
 import BigNumber from 'bignumber.js';
 import BN from 'bn.js';
-import ethABI from 'ethereumjs-abi';
-import ethUtil from 'ethereumjs-util';
+// import ethABI from 'ethereumjs-abi';
+// import ethUtil from 'ethereumjs-util';
+import Web3Utils from 'web3-utils';
 import _ from 'lodash';
 
-import { SolidityTypes } from './types';
+// import { SolidityTypes } from './types';
 
 export const noop = () => {
 
@@ -24,26 +25,28 @@ export const generatePseudoRandomSalt = () => {
 };
 
 export const getLendOrderHashHex = (order) => {
-  const orderParams = [
-    { value: order.b0x, type: SolidityTypes.Address },
-    { value: order.maker, type: SolidityTypes.Address },
-    { value: order.lendTokenAddress, type: SolidityTypes.Address },
-    { value: order.interestTokenAddress, type: SolidityTypes.Address },
-    { value: order.marginTokenAddress, type: SolidityTypes.Address },
-    { value: order.feeRecipientAddress, type: SolidityTypes.Address },
-    { value: order.oracleAddress, type: SolidityTypes.Address },
-    { value: bigNumberToBN(order.lendTokenAmount), type: SolidityTypes.Uint256 },
-    { value: bigNumberToBN(order.interestAmount), type: SolidityTypes.Uint256 },
-    { value: bigNumberToBN(order.initialMarginAmount), type: SolidityTypes.Uint256 },
-    { value: bigNumberToBN(order.liquidationMarginAmount), type: SolidityTypes.Uint256 },
-    { value: bigNumberToBN(order.lenderRelayFee), type: SolidityTypes.Uint256 },
-    { value: bigNumberToBN(order.traderRelayFee), type: SolidityTypes.Uint256 },
-    { value: bigNumberToBN(order.expirationUnixTimestampSec), type: SolidityTypes.Uint256 },
-    { value: bigNumberToBN(order.salt), type: SolidityTypes.Uint256 },
+  const orderAddrs = [
+    order.maker,
+    order.lendTokenAddress,
+    order.interestTokenAddress,
+    order.marginTokenAddress,
+    order.feeRecipientAddress,
+    order.oracleAddress,
   ];
-  const types = _.map(orderParams, o => o.type);
-  const values = _.map(orderParams, o => o.value);
-  const hashBuff = ethABI.soliditySHA3(types, values);
-  const orderHashHex = ethUtil.bufferToHex(hashBuff);
+  const orderUints = [
+    bigNumberToBN(order.lendTokenAmount),
+    bigNumberToBN(order.interestAmount),
+    bigNumberToBN(order.initialMarginAmount),
+    bigNumberToBN(order.liquidationMarginAmount),
+    bigNumberToBN(order.lenderRelayFee),
+    bigNumberToBN(order.traderRelayFee),
+    bigNumberToBN(order.expirationUnixTimestampSec),
+    bigNumberToBN(order.salt),
+  ];
+  const orderHashHex = Web3Utils.soliditySha3(
+    { t: 'address', v: order.b0x },
+    { t: 'address[6]', v: orderAddrs },
+    { t: 'uint256[8]', v: orderUints },
+  );
   return orderHashHex;
 };
