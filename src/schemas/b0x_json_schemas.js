@@ -1,4 +1,3 @@
-Object.defineProperty(exports, '__esModule', { value: true });
 
 const jsonschema_1 = require('jsonschema');
 const _ = require('lodash');

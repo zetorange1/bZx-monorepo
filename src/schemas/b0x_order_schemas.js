@@ -1,4 +1,3 @@
-Object.defineProperty(exports, '__esModule', { value: true });
 
 exports.lendOrderSchema = {
   id: '/lendOrder',
@@ -9,7 +8,7 @@ exports.lendOrderSchema = {
     interestTokenAddress: { $ref: '/Address' },
     marginTokenAddress: { $ref: '/Address' },
     feeRecipientAddress: { $ref: '/Address' },
-	oracleAddress: { $ref: '/Address' },
+	  oracleAddress: { $ref: '/Address' },
     lendTokenAmount: { $ref: '/Number' },
     interestAmount: { $ref: '/Number' },
     initialMarginAmount: { $ref: '/Number' },

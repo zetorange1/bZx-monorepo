@@ -4,7 +4,7 @@ import ethABI from 'ethereumjs-abi';
 import ethUtil from 'ethereumjs-util';
 import _ from 'lodash';
 
-import zeroExTypes from '0x.js/lib/src/types';
+import { SolidityTypes } from './types';
 
 export const noop = () => {
 
@@ -25,21 +25,21 @@ export const generatePseudoRandomSalt = () => {
 
 export const getLendOrderHashHex = (order) => {
   const orderParams = [
-    { value: order.b0x, type: zeroExTypes.SolidityTypes.Address },
-    { value: order.maker, type: zeroExTypes.SolidityTypes.Address },
-    { value: order.lendTokenAddress, type: zeroExTypes.SolidityTypes.Address },
-    { value: order.interestTokenAddress, type: zeroExTypes.SolidityTypes.Address },
-    { value: order.marginTokenAddress, type: zeroExTypes.SolidityTypes.Address },
-    { value: order.feeRecipientAddress, type: zeroExTypes.SolidityTypes.Address },
-	{ value: order.oracleAddress, type: zeroExTypes.SolidityTypes.Address },
-    { value: bigNumberToBN(order.lendTokenAmount), type: zeroExTypes.SolidityTypes.Uint256 },
-    { value: bigNumberToBN(order.interestAmount), type: zeroExTypes.SolidityTypes.Uint256 },
-    { value: bigNumberToBN(order.initialMarginAmount), type: zeroExTypes.SolidityTypes.Uint256 },
-    { value: bigNumberToBN(order.liquidationMarginAmount), type: zeroExTypes.SolidityTypes.Uint256 },
-    { value: bigNumberToBN(order.lenderRelayFee), type: zeroExTypes.SolidityTypes.Uint256 },
-    { value: bigNumberToBN(order.traderRelayFee), type: zeroExTypes.SolidityTypes.Uint256 },
-    { value: bigNumberToBN(order.expirationUnixTimestampSec), type: zeroExTypes.SolidityTypes.Uint256 },
-    { value: bigNumberToBN(order.salt), type: zeroExTypes.SolidityTypes.Uint256 },
+    { value: order.b0x, type: SolidityTypes.Address },
+    { value: order.maker, type: SolidityTypes.Address },
+    { value: order.lendTokenAddress, type: SolidityTypes.Address },
+    { value: order.interestTokenAddress, type: SolidityTypes.Address },
+    { value: order.marginTokenAddress, type: SolidityTypes.Address },
+    { value: order.feeRecipientAddress, type: SolidityTypes.Address },
+    { value: order.oracleAddress, type: SolidityTypes.Address },
+    { value: bigNumberToBN(order.lendTokenAmount), type: SolidityTypes.Uint256 },
+    { value: bigNumberToBN(order.interestAmount), type: SolidityTypes.Uint256 },
+    { value: bigNumberToBN(order.initialMarginAmount), type: SolidityTypes.Uint256 },
+    { value: bigNumberToBN(order.liquidationMarginAmount), type: SolidityTypes.Uint256 },
+    { value: bigNumberToBN(order.lenderRelayFee), type: SolidityTypes.Uint256 },
+    { value: bigNumberToBN(order.traderRelayFee), type: SolidityTypes.Uint256 },
+    { value: bigNumberToBN(order.expirationUnixTimestampSec), type: SolidityTypes.Uint256 },
+    { value: bigNumberToBN(order.salt), type: SolidityTypes.Uint256 },
   ];
   const types = _.map(orderParams, o => o.type);
   const values = _.map(orderParams, o => o.value);
