@@ -47,6 +47,7 @@ class Orders extends React.Component {
           </Header>
           <Content>
             <Web3Container
+              // eslint-disable-next-line
               render={({ web3 }) => (
                 <Fragment>
                   <ContentContainer show={activeTab === `GEN_ORDER`}>
