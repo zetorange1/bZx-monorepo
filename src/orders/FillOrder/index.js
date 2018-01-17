@@ -3,6 +3,7 @@ import Typography from "material-ui/Typography";
 import MuiButton from "material-ui/Button";
 import { SectionLabel } from "../../common/FormSection";
 import OrderInfo from "./OrderInfo";
+import { validateJSONOrder } from "./utils";
 
 const TextArea = styled.textarea`
   margin: 12px 0;
@@ -30,19 +31,24 @@ export default class FillOrder extends React.Component {
   handleChange = e => this.setState({ value: e.target.value });
 
   handleSubmit = () => {
-    // TODO - make sure the pasted in JSON is valid
-    // TODO - take the JSON and render its info
-    this.setState({ showOrderInfo: true });
+    const JSONOrder = JSON.parse(this.state.value);
+    const validOrder = validateJSONOrder(JSONOrder);
+    if (validOrder) {
+      console.log(JSONOrder);
+      this.setState({ showOrderInfo: true });
+    } else {
+      alert(`Please check your JSON input.`);
+    }
   };
 
   render() {
-    const { showOrderInfo } = this.state;
+    const { showOrderInfo, value } = this.state;
     if (showOrderInfo) {
       return (
         <div>
           <BackLink onClick={this.reset}>Go Back</BackLink>
           <SectionLabel>Order info</SectionLabel>
-          <OrderInfo />
+          <OrderInfo order={JSON.parse(value)} />
         </div>
       );
     }
@@ -55,7 +61,7 @@ export default class FillOrder extends React.Component {
           id=""
           cols="30"
           rows="10"
-          value={this.state.value}
+          value={value}
           onChange={this.handleChange}
         />
         <Button raised color="primary" onClick={this.handleSubmit}>

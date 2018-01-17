@@ -27,8 +27,8 @@ export default class GenerateOrder extends React.Component {
     interestAmount: 41,
 
     // margin amounts
-    initialMarginAmount: 42,
-    liquidationMarginAmount: 43,
+    initialMarginAmount: 40,
+    liquidationMarginAmount: 20,
 
     // expiration date/time
     expirationDate: moment(),

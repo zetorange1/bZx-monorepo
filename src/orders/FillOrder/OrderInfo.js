@@ -6,6 +6,8 @@ import Amounts from "./Amounts";
 import Expiration from "./Expiration";
 import Inputs from "./Inputs";
 
+import { validateFillOrder, submitFillOrder } from "./utils";
+
 const Submission = styled.div`
   text-align: center;
   margin-bottom: 24px;
@@ -25,11 +27,23 @@ export default class OrderInfo extends React.Component {
   setStateFor = key => value => this.setState({ [key]: value });
 
   handleSubmit = () => {
-    // TODO - validate inputs
-    // TODO - submit order
+    const { order } = this.props;
+    const { fillOrderAmount, marginTokenAddress } = this.state;
+    const isFillOrderValid = validateFillOrder(
+      order,
+      fillOrderAmount,
+      marginTokenAddress
+    );
+    if (isFillOrderValid) {
+      submitFillOrder(order, fillOrderAmount, marginTokenAddress);
+    } else {
+      alert(`There is something wrong with your order`);
+    }
   };
 
   render() {
+    // const { order } = this.props;
+    // TODO - determine if the order was made by a lender or trader
     return (
       <div>
         <Tokens />
