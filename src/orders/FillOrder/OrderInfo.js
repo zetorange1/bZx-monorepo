@@ -1,3 +1,4 @@
+import styled from "styled-components";
 import Button from "material-ui/Button";
 
 import Tokens from "./Tokens";
@@ -5,17 +6,50 @@ import Amounts from "./Amounts";
 import Expiration from "./Expiration";
 import Inputs from "./Inputs";
 
-export default () => (
-  <div>
-    <Tokens />
-    <Amounts />
-    <Expiration />
-    <Inputs />
-    <Button raised color="primary">
-      Fill Order
-    </Button>
-  </div>
-);
+const Submission = styled.div`
+  text-align: center;
+  margin-bottom: 24px;
+`;
+
+const SubmitBtn = styled(Button)`
+  width: 100%;
+  max-width: 480px;
+`;
+
+export default class OrderInfo extends React.Component {
+  state = {
+    fillOrderAmount: 0,
+    marginTokenAddress: `WETH_SM_ADDRESS_HERE`
+  };
+
+  setStateFor = key => value => this.setState({ [key]: value });
+
+  handleSubmit = () => {
+    // TODO - validate inputs
+    // TODO - submit order
+  };
+
+  render() {
+    return (
+      <div>
+        <Tokens />
+        <Amounts />
+        <Expiration />
+        <Inputs
+          fillOrderAmount={this.state.fillOrderAmount}
+          marginTokenAddress={this.state.marginTokenAddress}
+          setFillOrderAmount={this.setStateFor(`fillOrderAmount`)}
+          setMarginTokenAddress={this.setStateFor(`marginTokenAddress`)}
+        />
+        <Submission>
+          <SubmitBtn raised color="primary" onClick={this.handleSubmit}>
+            Fill Order
+          </SubmitBtn>
+        </Submission>
+      </div>
+    );
+  }
+}
 
 // -related functions in b0x smart contract:
 //  - when the loan (order) is filled by the trader:

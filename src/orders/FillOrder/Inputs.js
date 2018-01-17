@@ -27,20 +27,29 @@ const Title = styled.div`
   line-height: 1;
 `;
 
-export default () => (
+export default ({
+  fillOrderAmount,
+  marginTokenAddress,
+  setFillOrderAmount,
+  setMarginTokenAddress
+}) => (
   <Fragment>
     <SectionLabel>Fill order options</SectionLabel>
     <Container>
       <DataContainer>
         <Title>Margin Token</Title>
-        <TokenPicker value="WETH_SM_ADDRESS_HERE" setAddress={() => {}} />
+        <TokenPicker
+          value={marginTokenAddress}
+          setAddress={setMarginTokenAddress}
+        />
       </DataContainer>
       <DataContainer>
         <Title>Amount to Fill</Title>
         <TextField
           type="number"
           label="Lending amount"
-          value="24"
+          value={fillOrderAmount}
+          onChange={e => setFillOrderAmount(e.target.value)}
           margin="normal"
           fullWidth
         />
