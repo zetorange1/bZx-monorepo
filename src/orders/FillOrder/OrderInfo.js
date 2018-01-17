@@ -53,8 +53,15 @@ export default class OrderInfo extends React.Component {
           interestAmount={order.interestAmount}
           marginTokenAddress={order.marginToken.address}
         />
-        <Amounts />
-        <Expiration />
+        <Amounts
+          initialMarginAmount={order.initialMarginAmount}
+          liquidationMarginAmount={order.liquidationMarginAmount}
+          lenderRelayFee={order.lenderRelayFee}
+          traderRelayFee={order.traderRelayFee}
+        />
+        <Expiration
+          expirationUnixTimestampSec={order.expirationUnixTimestampSec}
+        />
         {order.role === `lender` && (
           <Inputs
             fillOrderAmount={this.state.fillOrderAmount}

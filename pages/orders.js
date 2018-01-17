@@ -20,7 +20,7 @@ const TABS = [
 ];
 
 class Orders extends React.Component {
-  state = { activeTab: `FILL_ORDER` };
+  state = { activeTab: `GEN_ORDER` };
 
   changeTab = tabId => this.setState({ activeTab: tabId });
 

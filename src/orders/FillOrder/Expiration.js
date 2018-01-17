@@ -20,13 +20,16 @@ const Title = styled.div`
   line-height: 1;
 `;
 
-export default () => (
-  <Fragment>
-    <Container>
-      <DataContainer>
-        <Title>Expires</Title>
-        <div>December 31st, 2019</div>
-      </DataContainer>
-    </Container>
-  </Fragment>
-);
+export default ({ expirationUnixTimestampSec }) => {
+  const expiryDate = new Date(expirationUnixTimestampSec * 1000);
+  return (
+    <Fragment>
+      <Container>
+        <DataContainer>
+          <Title>Expires</Title>
+          <div>{expiryDate.toString()}</div>
+        </DataContainer>
+      </Container>
+    </Fragment>
+  );
+};

@@ -22,24 +22,29 @@ const Title = styled.div`
   line-height: 1;
 `;
 
-export default () => (
+export default ({
+  initialMarginAmount,
+  liquidationMarginAmount,
+  lenderRelayFee,
+  traderRelayFee
+}) => (
   <Fragment>
     <Container>
       <DataContainer>
         <Title>Initial Margin Amount</Title>
-        <div>40%</div>
+        <div>{initialMarginAmount}%</div>
       </DataContainer>
       <DataContainer>
         <Title>Liquidation Margin Amount</Title>
-        <div>20%</div>
+        <div>{liquidationMarginAmount}%</div>
       </DataContainer>
       <DataContainer>
         <Title>Lender Relay Fee</Title>
-        <div>10%</div>
+        <div>{lenderRelayFee}%</div>
       </DataContainer>
       <DataContainer>
         <Title>Trader Relay Fee</Title>
-        <div>10%</div>
+        <div>{traderRelayFee}%</div>
       </DataContainer>
     </Container>
   </Fragment>
