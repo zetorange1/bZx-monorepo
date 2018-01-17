@@ -1,6 +1,5 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-// import Typography from "material-ui/Typography";
 import { getTokenInfoWithIcon } from "../../common/tokens";
 
 const Container = styled.div`
@@ -8,7 +7,7 @@ const Container = styled.div`
   width: 100%;
   padding: 24px 0;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
 `;
 
 const TokenContainer = styled.div`
@@ -47,34 +46,43 @@ const CoinAmount = styled.div`
   margin-top: 12px;
 `;
 
-export default () => {
-  const lendingToken = getTokenInfoWithIcon(`WETH_SM_ADDRESS_HERE`);
-  const interestToken = getTokenInfoWithIcon(`ZRX_SM_ADDRESS_HERE`);
-  const marginToken = getTokenInfoWithIcon(`MKR_SM_ADDRESS_HERE`);
+export default ({
+  role,
+  lendTokenAddress,
+  lendTokenAmount,
+  interestTokenAddress,
+  interestAmount,
+  marginTokenAddress
+}) => {
+  const lendingToken = getTokenInfoWithIcon(lendTokenAddress);
+  const interestToken = getTokenInfoWithIcon(interestTokenAddress);
+  const marginToken = getTokenInfoWithIcon(marginTokenAddress);
   return (
     <Fragment>
-      {/* <Typography type="title" gutterBottom>
-        Tokens
-      </Typography> */}
       <Container>
         <TokenContainer>
           <Title>Lending Token</Title>
           <CoinIcon src={lendingToken.iconUrl} />
-          <CoinLabel>{lendingToken.label}</CoinLabel>
-          <CoinAmount>10 {lendingToken.symbol}</CoinAmount>
+          <CoinLabel>{lendingToken.name}</CoinLabel>
+          <CoinAmount>
+            {lendTokenAmount} {lendingToken.symbol}
+          </CoinAmount>
         </TokenContainer>
         <TokenContainer>
           <Title>Interest Token</Title>
           <CoinIcon src={interestToken.iconUrl} />
-          <CoinLabel>{interestToken.label}</CoinLabel>
-          <CoinAmount>10 {interestToken.symbol}</CoinAmount>
+          <CoinLabel>{interestToken.name}</CoinLabel>
+          <CoinAmount>
+            {interestAmount} {interestToken.symbol}
+          </CoinAmount>
         </TokenContainer>
-        <TokenContainer>
-          <Title>Margin Token</Title>
-          <CoinIcon src={marginToken.iconUrl} />
-          <CoinLabel>{marginToken.label}</CoinLabel>
-          <CoinAmount>10 {marginToken.symbol}</CoinAmount>
-        </TokenContainer>
+        {role === `lender` && (
+          <TokenContainer>
+            <Title>Margin Token</Title>
+            <CoinIcon src={marginToken.iconUrl} />
+            <CoinLabel>{marginToken.name}</CoinLabel>
+          </TokenContainer>
+        )}
       </Container>
     </Fragment>
   );

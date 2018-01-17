@@ -45,7 +45,14 @@ export default class OrderInfo extends React.Component {
     const { order } = this.props;
     return (
       <div>
-        <Tokens />
+        <Tokens
+          role={order.role}
+          lendTokenAddress={order.lendToken.address}
+          lendTokenAmount={order.lendTokenAmount}
+          interestTokenAddress={order.interestToken.address}
+          interestAmount={order.interestAmount}
+          marginTokenAddress={order.marginToken.address}
+        />
         <Amounts />
         <Expiration />
         {order.role === `lender` && (
