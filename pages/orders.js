@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import withRoot from "../lib/material-ui/withRoot";
 import Layout from "../src/common/Layout";
 import {
@@ -12,6 +13,7 @@ import {
 import GenerateOrder from "../src/orders/GenerateOrder";
 import FillOrder from "../src/orders/FillOrder";
 import Balances from "../src/orders/Balances";
+import Web3Container from "../src/web3/Web3Container";
 
 const TABS = [
   { id: `GEN_ORDER`, label: `Generate Order` },
@@ -44,15 +46,21 @@ class Orders extends React.Component {
             </TabGroup>
           </Header>
           <Content>
-            <ContentContainer show={activeTab === `GEN_ORDER`}>
-              <GenerateOrder />
-            </ContentContainer>
-            <ContentContainer show={activeTab === `FILL_ORDER`}>
-              <FillOrder />
-            </ContentContainer>
-            <ContentContainer show={activeTab === `BALANCES`}>
-              <Balances />
-            </ContentContainer>
+            <Web3Container
+              render={({ web3 }) => (
+                <Fragment>
+                  <ContentContainer show={activeTab === `GEN_ORDER`}>
+                    <GenerateOrder />
+                  </ContentContainer>
+                  <ContentContainer show={activeTab === `FILL_ORDER`}>
+                    <FillOrder />
+                  </ContentContainer>
+                  <ContentContainer show={activeTab === `BALANCES`}>
+                    <Balances />
+                  </ContentContainer>
+                </Fragment>
+              )}
+            />
           </Content>
         </Card>
       </Layout>

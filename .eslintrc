@@ -15,6 +15,7 @@
     "linebreak-style": 0
   },
   "globals": {
-    "React": true
+    "React": true,
+    "alert": true
   }
 }
