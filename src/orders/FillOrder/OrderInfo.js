@@ -42,19 +42,20 @@ export default class OrderInfo extends React.Component {
   };
 
   render() {
-    // const { order } = this.props;
-    // TODO - determine if the order was made by a lender or trader
+    const { order } = this.props;
     return (
       <div>
         <Tokens />
         <Amounts />
         <Expiration />
-        <Inputs
-          fillOrderAmount={this.state.fillOrderAmount}
-          marginTokenAddress={this.state.marginTokenAddress}
-          setFillOrderAmount={this.setStateFor(`fillOrderAmount`)}
-          setMarginTokenAddress={this.setStateFor(`marginTokenAddress`)}
-        />
+        {order.role === `lender` && (
+          <Inputs
+            fillOrderAmount={this.state.fillOrderAmount}
+            marginTokenAddress={this.state.marginTokenAddress}
+            setFillOrderAmount={this.setStateFor(`fillOrderAmount`)}
+            setMarginTokenAddress={this.setStateFor(`marginTokenAddress`)}
+          />
+        )}
         <Submission>
           <SubmitBtn raised color="primary" onClick={this.handleSubmit}>
             Fill Order
