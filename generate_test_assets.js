@@ -22,11 +22,13 @@ var addresses = {
 	"B0x": "unknown",
 	"B0xVault": "unknown",
 	"LOANToken": "unknown",
+	"SugarToken": "unknown",
+	"B0xOracle": "unknown",
 	"TOMToken": "unknown",
 	"BEANToken": "unknown",
 };
 
-["B0x","B0xVault","LOANToken","TOMToken","BEANToken"].forEach(function(item, index) {
+["B0x","B0xVault","LOANToken","SugarToken","B0xOracle","TOMToken","BEANToken"].forEach(function(item, index) {
 	var contents = fs.readFileSync("./build/contracts/"+item+".json");
 	var jsonContent = JSON.parse(contents);
 
@@ -64,6 +66,8 @@ var abiIndex = `
 <a href="B0x.abi.json">B0x ABI</a>
 <a href="B0xVault.abi.json">B0xVault ABI</a>
 <a href="LOANToken.abi.json">LOANToken ABI</a>
+<a href="SugarToken.abi.json">SugarToken ABI</a>
+<a href="B0xOracle.abi.json">B0xOracle ABI</a>
 <a href="TOMToken.abi.json">TOMToken ABI</a>
 <a href="BEANToken.abi.json">BEANToken ABI</a>
 		</font>
@@ -94,7 +98,9 @@ Smart Contracts
 ==================
 B0x :: `+addresses["B0x"]+` <a href="abi/B0x.abi.json" target="_blank">abi</a>
 B0xVault :: `+addresses["B0xVault"]+` <a href="abi/B0xVault.abi.json" target="_blank">abi</a>
+B0xOracle :: `+addresses["B0xOracle"]+` <a href="abi/B0xOracle.abi.json" target="_blank">abi</a>
 LOANToken :: `+addresses["LOANToken"]+` <a href="abi/LOANToken.abi.json" target="_blank">abi</a>
+SugarToken :: `+addresses["SugarToken"]+` <a href="abi/SugarToken.abi.json" target="_blank">abi</a>
 TOMToken :: `+addresses["TOMToken"]+` <a href="abi/TOMToken.abi.json" target="_blank">abi</a>
 BEANToken :: `+addresses["BEANToken"]+` <a href="abi/BEANToken.abi.json" target="_blank">abi</a>
 

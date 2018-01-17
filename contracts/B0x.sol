@@ -597,8 +597,14 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
             LogErrorText("error: invalid taker", 0, lendOrder.orderHash);
             return boolOrRevert(false);
         }
-        if (! (lendOrder.lendTokenAddress > 0 && lendOrder.lendTokenAmount > 0)) {
-            LogErrorText("error: invalid token params", 0, lendOrder.orderHash);
+        if (lendOrder.lendTokenAddress == address(0) 
+            || lendOrder.interestTokenAddress == address(0)
+            || lendOrder.marginTokenAddress == address(0)) {
+            LogErrorText("error: one or more token addresses are missing from the order", 0, lendOrder.orderHash);
+            return boolOrRevert(false);
+        }
+        if (lendOrder.oracleAddress == address(0)) {
+            LogErrorText("error: must include an oracleAddress", 0, lendOrder.orderHash);
             return boolOrRevert(false);
         }
         if (block.timestamp >= lendOrder.expirationUnixTimestampSec) {

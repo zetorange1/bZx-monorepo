@@ -56,7 +56,7 @@ module.exports = function(deployer, network, accounts) {
 				return deployer.deploy(KyberWrapper).then(function() {
 					return deployer.deploy(B0x, LOANToken.address, SugarToken.address, B0xVault.address, KyberWrapper.address, contracts0x["Exchange"], contracts0x["ZRXToken"]).then(function() {
 						B0xVault.deployed().then(function(instance) {
-							instance.transferOwnership(B0x.address);
+							instance.setB0xOwner(B0x.address);
 						});
 						KyberWrapper.deployed().then(function(instance) {
 							instance.transferOwnership(B0x.address);

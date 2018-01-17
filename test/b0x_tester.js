@@ -115,7 +115,7 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  before('deploy all contracts', async function () {
+  /*before('deploy all contracts', async function () {
     await Promise.all([
       (loan_token = await LOANToken.new()),
       (vault = await B0xVault.new()),
@@ -135,6 +135,64 @@ contract('B0xTest', function(accounts) {
     await Promise.all([
       (oracle = await B0xOracle.new(b0x.address, vault.address, kyber.address))
     ]);
+  });
+  
+  it("should add B0x as owner for B0xVault", function(done) {
+    vault.setB0xOwner(b0x.address).then(function() {
+      vault.b0xContractAddress.call().then(function(owner) {
+        assert.equal(owner, b0x.address, "B0x contract should be the owner");
+        done();
+      });
+    }, function(error) {
+      console.error(error);
+      assert.equal(true, false);
+      done();
+    });
+  });
+
+  it("should add B0x as owner for SugarToken", function(done) {
+    sugar_token.transferOwnership(b0x.address).then(function() {
+      sugar_token.owner.call().then(function(owner) {
+        assert.equal(owner, b0x.address, "B0x contract should be the owner");
+        done();
+      });
+    }, function(error) {
+      console.error(error);
+      assert.equal(true, false);
+      done();
+    });
+  });
+
+  it("should add B0x as the owner for KyberWrapper", function(done) {
+    kyber.transferOwnership(b0x.address).then(function() {
+      kyber.owner.call().then(function(owner) {
+        assert.equal(owner, b0x.address, "B0x contract should be the owner");
+        done();
+      });
+    }, function(error) {
+      console.error(error);
+      assert.equal(true, false);
+      done();
+    });
+  });
+  
+  */
+
+  before('retrieve all deployed contracts', async function () {
+    await Promise.all([
+      (loan_token = await LOANToken.deployed()),
+      (vault = await B0xVault.deployed()),
+      (kyber = await KyberWrapper.deployed()),
+      (sugar_token = await SugarToken.deployed()),
+      
+      (tom_token = await TomToken.deployed()),
+      (bean_token = await BeanToken.deployed()),
+
+      (b0x = await B0xSol.deployed()),
+
+      (oracle = await B0xOracle.deployed()),
+    ]);
+
   });
 
   after(function() {
@@ -236,44 +294,6 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should add B0x as owner for B0xVault", function(done) {
-    vault.transferOwnership(b0x.address).then(function() {
-      vault.owner.call().then(function(owner) {
-        assert.equal(owner, b0x.address, "B0x contract should be the owner");
-        done();
-      });
-    }, function(error) {
-      console.error(error);
-      assert.equal(true, false);
-      done();
-    });
-  });
-
-  it("should add B0x as owner for SugarToken", function(done) {
-    sugar_token.transferOwnership(b0x.address).then(function() {
-      sugar_token.owner.call().then(function(owner) {
-        assert.equal(owner, b0x.address, "B0x contract should be the owner");
-        done();
-      });
-    }, function(error) {
-      console.error(error);
-      assert.equal(true, false);
-      done();
-    });
-  });
-
-  it("should add B0x as the owner for KyberWrapper", function(done) {
-    kyber.transferOwnership(b0x.address).then(function() {
-      kyber.owner.call().then(function(owner) {
-        assert.equal(owner, b0x.address, "B0x contract should be the owner");
-        done();
-      });
-    }, function(error) {
-      console.error(error);
-      assert.equal(true, false);
-      done();
-    });
-  });
   
 /*
   it("should deposit ether margin", function(done) {
@@ -772,11 +792,11 @@ contract('B0xTest', function(accounts) {
           console.log(tx);
         assert.isOk(tx);
         done();
-    }, function(error) {
-      console.error(error);
-      assert.isOk(false);
-      done();
-    });
+      }, function(error) {
+        console.error(error);
+        assert.isOk(false);
+        done();
+      });
   });
 
 
