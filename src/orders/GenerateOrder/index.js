@@ -44,7 +44,7 @@ export default class GenerateOrder extends React.Component {
     traderRelayFee: 0,
 
     orderHash: `0x_temp_order_hash`,
-    signedOrderObject: null
+    finalOrder: null
   };
 
   /* State setters */
@@ -71,13 +71,14 @@ export default class GenerateOrder extends React.Component {
 
   handleSubmit = () => {
     const isValid = validateInputs(this.state);
-    this.setState({ orderHash: null, signedOrderObject: null });
+    this.setState({ orderHash: null, finalOrder: null });
     if (isValid) {
       const orderObject = compileObject(this.state); // 1. compile the order object from state
       const saltedOrderObj = addSalt(orderObject); // 2. compute and add salt to the order object
       const signedOrderObject = signOrder(saltedOrderObj); // 3. sign order w/ maker's private key
       const orderHash = getHash(signedOrderObject); // 4. get a hash for the signed object
-      this.setState({ orderHash, signedOrderObject });
+      const finalOrder = { ...signedOrderObject, role: this.state.role };
+      this.setState({ orderHash, finalOrder });
     } else {
       alert(verificationResult.errorMsg); // eslint-disable-line no-undef
     }
@@ -147,7 +148,7 @@ export default class GenerateOrder extends React.Component {
 
         <Result
           orderHash={this.state.orderHash}
-          signedOrderObject={this.state.signedOrderObject}
+          signedOrderObject={this.state.finalOrder}
         />
       </div>
     );
