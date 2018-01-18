@@ -28,7 +28,7 @@ contract B0xVault is B0xOwnable {
 
     event LogErrorText(string errorTxt, uint errorValue);
 
-    // in the below mappings, token=0 means Ether
+
 /*
     mapping (address => mapping (address => uint)) public marginWallet; // mapping of token addresses to mapping of accounts to margin trading wallet balance available for usage
     mapping (address => mapping (address => uint)) public fundingWallet; // mapping of token addresses to mapping of accounts to margin funding wallet balances

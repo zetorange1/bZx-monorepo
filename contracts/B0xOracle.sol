@@ -4,7 +4,7 @@ pragma solidity ^0.4.9;
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
-import './B0x.sol';
+import './GasRefunder.sol';
 import './B0xVault.sol';
 import './B0xTypes.sol';
 
@@ -13,7 +13,19 @@ import './interfaces/EIP20.sol';
 
 import './simulations/KyberWrapper.sol';
 
-contract B0xOracle is Ownable, B0xTypes, Liquidation_Oracle_Interface {
+/*
+TODO:
+B0xOracle liquidation should be called from B0x
+(B0xOracle must be B0xOwned)
+
+ for when B0x does need to be called, use non-ABI call solution
+
+ also: fix GasRefunder.. from solidity doc:
+ Symbols introduced in the modifier are not visible in the function (as they might change by overriding).!!!
+*/
+import './B0x.sol';/// <--- maybe get rid of this
+
+contract B0xOracle is Ownable, B0xTypes, GasRefunder, Liquidation_Oracle_Interface {
     using SafeMath for uint256;
     
     // Percentage of interest retained as fee
@@ -51,32 +63,39 @@ contract B0xOracle is Ownable, B0xTypes, Liquidation_Oracle_Interface {
         public
         returns (bool tradeSuccess)
     {
-        return liquidateTrade(lendOrderHash, msg.sender);
+        Trade memory activeTrade = TradeStruct(lendOrderHash, msg.sender);
+        if (!activeTrade.active) {
+            //LogErrorText("error: trade not found or not active", 0, lendOrderHash);
+            //return boolOrRevert(false);
+            return false;
+        }
+
+        return true;
     }
 
     function liquidateTrade(
         bytes32 lendOrderHash,
         address trader)
         public
+        refundsGas(B0x(B0X_CONTRACT).emaValue()) // refunds based on collected gas price EMA
         returns (bool tradeSuccess)
     {
+        // traders should call closeTrade to close their own trades
+        require(trader != msg.sender);
+        
         Trade memory activeTrade = TradeStruct(lendOrderHash, trader);
         if (!activeTrade.active) {
             //LogErrorText("error: trade not found or not active", 0, lendOrderHash);
             //return boolOrRevert(false);
             return false;
         }
-        
-        if (trader != msg.sender) {
-            uint liquidationLevel = getMarginRatio(lendOrderHash, trader);
-            if (liquidationLevel > 100) {
-                //LogErrorText("error: margin above liquidation level", liquidationLevel, lendOrderHash);
-                //return boolOrRevert(false);
-                return false;
-            }
-        }
 
-        
+        uint liquidationLevel = getMarginRatio(lendOrderHash, trader);
+        if (liquidationLevel > 100) {
+            //LogErrorText("error: margin above liquidation level", liquidationLevel, lendOrderHash);
+            //return boolOrRevert(false);
+            return false;
+        }
         
         /*
         OrderAddresses memory orderAddresses = openTradeAddresses[orderHash];
@@ -88,6 +107,7 @@ contract B0xOracle is Ownable, B0xTypes, Liquidation_Oracle_Interface {
 */
         return true;
     }
+
 
     function getMarginRatio(
         bytes32 lendOrderHash,

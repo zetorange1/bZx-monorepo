@@ -22,6 +22,7 @@ pragma solidity ^0.4.9;
 
 
 import './Upgradeable.sol';
+import './GasRefunder.sol';
 
 import './B0xTypes.sol';
 import './B0xVault.sol';
@@ -39,7 +40,7 @@ import './interfaces/Exchange0x_Interface.sol';
 import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
 
 
-contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
+contract B0x is ReentrancyGuard, Upgradeable, GasRefunder, B0xTypes {
     using SafeMath for uint256;
 
     // Error Codes
@@ -54,6 +55,7 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
     uint16 constant public EXTERNAL_QUERY_GAS_LIMIT = 4999; // Changes to state require at least 5000 gas
 
     //uint constant PRECISION = (10**18);
+
 
     address public LOAN_TOKEN_CONTRACT;
     address public SUGAR_TOKEN_CONTRACT;
@@ -109,67 +111,30 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
     //event LogError(uint8 indexed errorId, bytes32 indexed orderHash);
     event LogErrorText(string errorTxt, uint errorValue, bytes32 indexed orderHash);
 
-    uint public gasPriceEMA = 20;
-    uint[] public gasPrices = [20,20,20,20,20];
-    uint emaPeriods = 10;
-    function updateGasPriceEMA() internal {
-        // ref: https://www.investopedia.com/ask/answers/122314/what-exponential-moving-average-ema-formula-and-how-ema-calculated.asp
-        
-        uint previousEMA = gasPriceEMA;
-
-        // update gasPrices array while calculating SMA
-        uint sum;
-        for (uint i = 0; i < gasPrices.length-1; i++) {
-            gasPrices[i] = gasPrices[i+1];
-            sum += gasPrices[i];
-        }
-        gasPrices[gasPrices.length-1] = tx.gasprice;
-        sum += tx.gasprice;
-
-        uint SMA = sum.div(gasPrices.length);
-        
-        // calculating the weighting multiplier:
-        uint wm = 2 / (gasPrices.length + 1) * 100;
-
-        // calculate new EMA
-        gasPriceEMA = ((tx.gasprice-previousEMA) * wm / 100) + previousEMA;
-    }
 
     function() public {
         revert();
     }
 
-    function B0x(address _loanToken, address _sugarToken, address _vault, address _oracle, address _0xExchange, address _zrxToken) public {
+    function B0x(
+        address _loanToken, 
+        address _sugarToken, 
+        address _vault, 
+        address _oracle, 
+        address _0xExchange, 
+        address _zrxToken) 
+        public {
         LOAN_TOKEN_CONTRACT = _loanToken;
         SUGAR_TOKEN_CONTRACT = _sugarToken;
         VAULT_CONTRACT = _vault;
         ORACLE_CONTRACT = _oracle;
         EXCHANGE0X_CONTRACT = _0xExchange;
         ZRX_TOKEN_CONTRACT = _zrxToken;
+
+        // settings for GasRefunder
+        emaValue = 20 * 10**9; // set an initial price average for gas (20 gwei)
+        emaPeriods = 10; // set periods to use for EMA calculation
     }
-
-    /*function getOrderParts (
-        bytes32 lendOrderHash
-    )
-        public
-        view
-        returns (
-        address[6] addrs,
-        uint[7] uints
-    )
-    {
-        LendOrder memory lendOrder = orders[lendOrderHash];
-        if (lendOrder.orderHash != lendOrderHash) {
-            LogErrorText("error: invalid lend order", 0, lendOrderHash);
-            return;
-        }
-
-        addrs = [lendOrder.maker,lendOrder.lendTokenAddress,lendOrder.interestTokenAddress,lendOrder.marginTokenAddress,lendOrder.feeRecipientAddress,lendOrder.oracleAddress];
-        uints = [lendOrder.lendTokenAmount,lendOrder.interestAmount,lendOrder.initialMarginAmount,lendOrder.liquidationMarginAmount,lendOrder.lenderRelayFee,lendOrder.traderRelayFee,lendOrder.expirationUnixTimestampSec];
-    
-        return(addrs,uints);
-    }*/
-
 
 /*
     /// @param orderAddresses Array of order's maker, taker, makerToken, takerToken, and feeRecipient.
@@ -180,14 +145,38 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
     /// @param r ECDSA signature parameters r.
     /// @param s ECDSA signature parameters s.
 */
-    function open0xTrade(
+    
+   function open0xTrade(
         bytes32 lendOrderHash,
         address[5] orderAddresses0x,
         uint[6] orderValues0x,
         uint8 v,
         bytes32 r,
         bytes32 s)
-        public
+        external
+        nonReentrant
+        refundsGas(emaValue) // refunds based on collected gas price EMA
+        returns (uint) {
+        
+        updateEMA(tx.gasprice);
+
+        return _open0xTrade(
+            lendOrderHash,
+            orderAddresses0x,
+            orderValues0x,
+            v,
+            r,
+            s);
+    }
+    
+    function _open0xTrade(
+        bytes32 lendOrderHash,
+        address[5] orderAddresses0x,
+        uint[6] orderValues0x,
+        uint8 v,
+        bytes32 r,
+        bytes32 s)
+        internal
         returns (uint)
     {
         LendOrder memory lendOrder = orders[lendOrderHash];
@@ -306,9 +295,12 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
     function payInterest(
         bytes32 lendOrderHash,
         address trader)
-        public
+        external
+        nonReentrant
         returns (uint)
     {
+        updateEMA(tx.gasprice);
+        
         address lender;
         address interestTokenAddress;
         uint totalAmountAccrued;
@@ -357,9 +349,13 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
         uint8 v,
         bytes32 r,
         bytes32 s)
-        public
+        external
+        nonReentrant
+        refundsGas(emaValue) // refunds based on collected gas price EMA
         returns (uint)
-    {
+    {        
+        updateEMA(tx.gasprice);
+        
         LendOrder memory lendOrder = LendOrder({
             maker: orderAddresses[0],
             lendTokenAddress: orderAddresses[1],
@@ -384,7 +380,7 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
             r,
             s
         )) {
-            lendTokenAmountFilled = _takeLendOrder(
+                uint actualLendFill = _takeLendOrder(
                 lendOrder,
                 msg.sender,
                 lendOrder.maker,
@@ -399,7 +395,7 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
                 lendOrder.interestTokenAddress,
                 marginTokenAddressFilled,
                 lendOrder.oracleAddress,
-                lendTokenAmountFilled,
+                actualLendFill,
                 lendOrder.interestAmount,
                 lendOrder.initialMarginAmount,
                 lendOrder.liquidationMarginAmount,
@@ -410,7 +406,7 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
                 lendOrder.orderHash
             );*/
 
-            return lendTokenAmountFilled;
+            return actualLendFill;
         }
         else {
             return 0;
@@ -432,9 +428,13 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
         uint8 v,
         bytes32 r,
         bytes32 s)
-        public
+        external
+        nonReentrant
+        refundsGas(emaValue) // refunds based on collected gas price EMA
         returns (uint)
     {
+        updateEMA(tx.gasprice);
+        
         LendOrder memory lendOrder = LendOrder({
             maker: orderAddresses[0],
             lendTokenAddress: orderAddresses[1],
@@ -459,7 +459,7 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
             r,
             s
         )) {
-            uint lendTokenAmountFilled = _takeLendOrder(
+            uint actualLendFill = _takeLendOrder(
                 lendOrder,
                 lendOrder.maker,
                 msg.sender,
@@ -474,7 +474,7 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
                 lendOrder.interestTokenAddress,
                 lendOrder.marginTokenAddress,
                 lendOrder.oracleAddress,
-                lendTokenAmountFilled,
+                actualLendFill,
                 lendOrder.interestAmount,
                 lendOrder.initialMarginAmount,
                 lendOrder.liquidationMarginAmount,
@@ -485,7 +485,7 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
                 lendOrder.orderHash
             );*/
 
-            return lendTokenAmountFilled;
+            return actualLendFill;
         }
         else {
             return 0;
@@ -529,6 +529,60 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
         ));
     }
 
+    /// @dev Calculates the sum of values already filled and cancelled for a given lendOrder.
+    /// @param orderHash The Keccak-256 hash of the given lendOrder.
+    /// @return Sum of values already filled and cancelled.
+    function getUnavailableLendTokenAmount(bytes32 orderHash)
+        public
+        view
+        returns (uint)
+    {
+        return filled[orderHash].add(cancelled[orderHash]);
+    }
+
+
+    /*
+    * View functions
+    */
+   
+    function getLendOrder (
+        bytes32 lendOrderHash
+    )
+        public
+        view
+        returns (address[6],uint[7])
+    {
+        LendOrder memory lendOrder = orders[lendOrderHash];
+        if (lendOrder.orderHash != lendOrderHash) {
+            //LogErrorText("error: invalid lend order", 0, lendOrderHash);
+            voidOrRevert();
+        }
+
+        return (
+            [
+                lendOrder.maker,
+                lendOrder.lendTokenAddress,
+                lendOrder.interestTokenAddress,
+                lendOrder.marginTokenAddress,
+                lendOrder.feeRecipientAddress,
+                lendOrder.oracleAddress
+            ],
+            [
+                lendOrder.lendTokenAmount,
+                lendOrder.interestAmount,
+                lendOrder.initialMarginAmount,
+                lendOrder.liquidationMarginAmount,
+                lendOrder.lenderRelayFee,
+                lendOrder.traderRelayFee,
+                lendOrder.expirationUnixTimestampSec
+            ]
+        );
+    }
+
+    /*
+    * Pure functions
+    */
+
     /// @dev Verifies that an order signature is valid.
     /// @param signer address of signer.
     /// @param hash Signed Keccak-256 hash.
@@ -567,22 +621,9 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
         return SafeMath.div(SafeMath.mul(numerator, target), denominator);
     }
 
-    /// @dev Calculates the sum of values already filled and cancelled for a given lendOrder.
-    /// @param orderHash The Keccak-256 hash of the given lendOrder.
-    /// @return Sum of values already filled and cancelled.
-    function getUnavailableLendTokenAmount(bytes32 orderHash)
-        public
-        view
-        returns (uint)
-    {
-        return filled[orderHash].add(cancelled[orderHash]);
-    }
-
-
     /*
     * Internal functions
     */
-   
 
     function _verifyLendOrder(
         LendOrder lendOrder,
@@ -762,11 +803,6 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
         returns (uint marginTokenAmountFilled)
     {
         marginTokenAmountFilled = (lendTokenAmountFilled * marginToLendRate * initialMarginAmount / 100);// / PRECISION;
-
-        /*marginTokenAmountFilled = (
-                                     (lendTokenAmountFilled * rateData.lendTokenPrice * lendOrder.initialMarginAmount / 100) // initial margin required
-                                   + (lendOrder.expirationUnixTimestampSec.sub(block.timestamp) / 86400 * lendOrder.interestAmount * lendTokenAmountFilled / lendOrder.lendTokenAmount) // total interest required if loan is kept until order expiration
-        ) / rateData.marginTokenPrice;*/
     }
     
     function _totalInterestRequired(
@@ -779,39 +815,6 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
         totalInterestRequired = getPartialAmount(lendTokenAmountFilled, lendOrder.lendTokenAmount, (lendOrder.expirationUnixTimestampSec.sub(block.timestamp) / 86400).mul(lendOrder.interestAmount));
     }
 
-    function getLendOrder (
-        bytes32 lendOrderHash
-    )
-        public
-        view
-        returns (address[6],uint[7])
-    {
-        LendOrder memory lendOrder = orders[lendOrderHash];
-        if (lendOrder.orderHash != lendOrderHash) {
-            //LogErrorText("error: invalid lend order", 0, lendOrderHash);
-            voidOrRevert();
-        }
-
-        return (
-            [
-                lendOrder.maker,
-                lendOrder.lendTokenAddress,
-                lendOrder.interestTokenAddress,
-                lendOrder.marginTokenAddress,
-                lendOrder.feeRecipientAddress,
-                lendOrder.oracleAddress
-            ],
-            [
-                lendOrder.lendTokenAmount,
-                lendOrder.interestAmount,
-                lendOrder.initialMarginAmount,
-                lendOrder.liquidationMarginAmount,
-                lendOrder.lenderRelayFee,
-                lendOrder.traderRelayFee,
-                lendOrder.expirationUnixTimestampSec
-            ]
-        );
-    }
 
     /*
      * Helper Functions
@@ -851,29 +854,23 @@ contract B0x is ReentrancyGuard, Upgradeable, B0xTypes {
         return retVal;
     }
 
-
     /*
-     * Lifecycle Related Functions
+     * Owner only functions
      */
 
     function set0xExchange (
-        address _0xExchange
-    )
+        address _0xExchange)
         public
-        onlyOwner
-    {
+        onlyOwner {
         EXCHANGE0X_CONTRACT = _0xExchange;
     }
 
     function setZRXToken (
-        address _zrxToken
-    )
+        address _zrxToken)
         public
-        onlyOwner
-    {
+        onlyOwner {
         ZRX_TOKEN_CONTRACT = _zrxToken;
     }
-
 
     /**
     * @dev Reclaim all EIP20 compatible tokens

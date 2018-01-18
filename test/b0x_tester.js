@@ -191,6 +191,9 @@ contract('B0xTest', function(accounts) {
       (b0x = await B0xSol.deployed()),
 
       (oracle = await B0xOracle.deployed()),
+
+      (zrx_token = await ERC20.at(contracts0x["ZRXToken"])),
+      (exchange_0x = await Exchange0x.at(contracts0x["Exchange"])),
     ]);
 
   });
@@ -271,15 +274,15 @@ contract('B0xTest', function(accounts) {
     });
   });
   */
-  
-  it("should retrieve deployed ZRXToken contract", function(done) {
+
+  /*it("should retrieve deployed ZRXToken contract", function(done) {
     ERC20.at(contracts0x["ZRXToken"]).then(function(instance) {
       zrx_token = instance;
       //console.log(zrx_token);
-      /*zrx_token.totalSupply.call().then(function(totalSupply) {
-        console.log(totalSupply);
-        done();
-      });*/
+      //zrx_token.totalSupply.call().then(function(totalSupply) {
+      //  console.log(totalSupply);
+      //  done();
+      //});
       assert.isOk(zrx_token);
       done();
     });
@@ -292,7 +295,7 @@ contract('B0xTest', function(accounts) {
       assert.isOk(exchange_0x);
       done();
     });
-  });
+  });*/
 
   
 /*

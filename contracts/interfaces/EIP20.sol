@@ -12,7 +12,7 @@ pragma solidity ^0.4.11;
     string public symbol;
 }*/
 
-// Testing only! Please remove below and use above for production!
+// Testing only! Please remove below and use above for non-dev environments!
 import '../simulations/ERC20_AlwaysOwned.sol';
 contract EIP20 is ERC20_AlwaysOwned {}
 
