@@ -22,6 +22,7 @@ pragma solidity ^0.4.9;
 
 
 import './Upgradeable.sol';
+import './EMACollector.sol';
 import './GasRefunder.sol';
 
 import './B0xTypes.sol';
@@ -40,7 +41,7 @@ import './interfaces/Exchange0x_Interface.sol';
 import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
 
 
-contract B0x is ReentrancyGuard, Upgradeable, GasRefunder, B0xTypes {
+contract B0x is ReentrancyGuard, Upgradeable, EMACollector, GasRefunder, B0xTypes {
     using SafeMath for uint256;
 
     // Error Codes
@@ -112,18 +113,18 @@ contract B0x is ReentrancyGuard, Upgradeable, GasRefunder, B0xTypes {
     event LogErrorText(string errorTxt, uint errorValue, bytes32 indexed orderHash);
 
 
-    function() public {
-        revert();
-    }
+    function() public payable onlyOwner {}
 
-    function B0x(
+    function B0x (
         address _loanToken, 
         address _sugarToken, 
         address _vault, 
         address _oracle, 
         address _0xExchange, 
         address _zrxToken) 
-        public {
+        public 
+        payable {
+
         LOAN_TOKEN_CONTRACT = _loanToken;
         SUGAR_TOKEN_CONTRACT = _sugarToken;
         VAULT_CONTRACT = _vault;
@@ -131,9 +132,12 @@ contract B0x is ReentrancyGuard, Upgradeable, GasRefunder, B0xTypes {
         EXCHANGE0X_CONTRACT = _0xExchange;
         ZRX_TOKEN_CONTRACT = _zrxToken;
 
-        // settings for GasRefunder
-        emaValue = 20 * 10**9; // set an initial price average for gas (20 gwei)
+        // settings for EMACollector
+        emaValue = 20 * 10**9 wei; // set an initial price average for gas (20 gwei)
         emaPeriods = 10; // set periods to use for EMA calculation
+
+        // settings for GasRefunder
+        throwOnGasRefundFail = false; // don't revert state if there's a failure with the gas refund
     }
 
 /*
@@ -156,9 +160,8 @@ contract B0x is ReentrancyGuard, Upgradeable, GasRefunder, B0xTypes {
         external
         nonReentrant
         refundsGas(emaValue) // refunds based on collected gas price EMA
+        updatesEMA(tx.gasprice)
         returns (uint) {
-        
-        updateEMA(tx.gasprice);
 
         return _open0xTrade(
             lendOrderHash,
@@ -169,157 +172,44 @@ contract B0x is ReentrancyGuard, Upgradeable, GasRefunder, B0xTypes {
             s);
     }
     
-    function _open0xTrade(
-        bytes32 lendOrderHash,
-        address[5] orderAddresses0x,
-        uint[6] orderValues0x,
-        uint8 v,
-        bytes32 r,
-        bytes32 s)
-        internal
-        returns (uint)
-    {
-        LendOrder memory lendOrder = orders[lendOrderHash];
-        if (lendOrder.orderHash != lendOrderHash) {
-            LogErrorText("error: invalid lend order", 0, lendOrderHash);
-            return intOrRevert(0);
-        }
-
-        FilledOrder memory filledOrder = orderFills[lendOrderHash][msg.sender];
-        if (filledOrder.lendTokenAmountFilled == 0) {
-            LogErrorText("error: filled order not found", 0, lendOrderHash);
-            return intOrRevert(0);
-        }
-
-        uint marginRatio = Liquidation_Oracle_Interface(lendOrder.oracleAddress).getMarginRatio(lendOrderHash, msg.sender);
-        if (marginRatio <= 100) {
-            // todo: trigger order liquidation!
-            LogErrorText("error: lendOrder has been liquidated!", 0, lendOrderHash);
-            return intOrRevert(0);
-        } else if (marginRatio < 110) {
-            LogErrorText("error: marginRatiomarginRatio too low!", 0, lendOrderHash);
-            return intOrRevert(0);
-        }
-
-        if (orderAddresses0x[4] != address(0) && // feeRecipient
-                orderValues0x[1] > 0 // takerTokenAmount
-        ) {
-            if (!EIP20(ZRX_TOKEN_CONTRACT).transferFrom(msg.sender, this, orderValues0x[1])) {
-                LogErrorText("error: b0x can't transfer ZRX from trader", 0, lendOrderHash);
-                return intOrRevert(0);
-            }
-        }
-
-        // 0x order will fail if filledOrder.lendTokenAmountFilled is too high
-        uint filledTakerTokenAmount = Exchange0x_Interface(EXCHANGE0X_CONTRACT).fillOrder(
-            orderAddresses0x,
-            orderValues0x,
-            filledOrder.lendTokenAmountFilled,
-            true,
-            v,
-            r,
-            s);
-        if (filledTakerTokenAmount == 0) {
-            LogErrorText("error: 0x order failed!", 0, lendOrderHash);
-            return intOrRevert(0);
-        }
-
-        uint filledMakerTokenAmount = getPartialAmount(
-            filledTakerTokenAmount,
-            orderValues0x[1], // takerTokenAmount
-            orderValues0x[0] // makerTokenAmount
-        );
-
-/*trades
-
-    struct Trade {
-        address tradeTokenAddress;
-        uint tradeTokenAmountFilled;
-        uint filledUnixTimestampSec;
-        bool active;
-    }
-
-    
-        Trade storage filledOrder = trades[lendOrder.orderHash][trader];
-        filledOrder.lender = lender;
-        filledOrder.marginTokenAmountFilled = marginTokenAmountFilled;
-        filledOrder.lendTokenAmountFilled = lendTokenAmountFilled;
-        filledOrder.filledUnixTimestampSec = block.timestamp;
-
-        trades[lendOrder.orderHash][trader] = Trade({
-            
-        })
-*/
-        LogErrorText("0x order: filledTakerTokenAmount", filledTakerTokenAmount, lendOrderHash);
-        LogErrorText("0x order: filledMakerTokenAmount", filledMakerTokenAmount, lendOrderHash);
-        LogErrorText("success taking 0x trade!", 0, lendOrderHash);
-
-        return filledMakerTokenAmount;
-    }
-
     function getInterest(
         bytes32 lendOrderHash,
         address trader)
         public
         view
-        returns (address lender, address interestTokenAddress, uint totalAmountAccrued, uint interestPaidSoFar)
-    {
-        LendOrder memory lendOrder = orders[lendOrderHash];
-        if (lendOrder.orderHash != lendOrderHash) {
-            //LogErrorText("error: invalid lend order", 0, lendOrderHash);
-            voidOrRevert(); return;
-        }
+        returns (address lender, address interestTokenAddress, uint totalAmountAccrued, uint interestPaidSoFar) {
 
-        FilledOrder memory filledOrder = orderFills[lendOrderHash][trader];
-        if (filledOrder.lendTokenAmountFilled == 0) {
-            //LogErrorText("error: filled order not found for specified lendOrder and trader", 0, lendOrderHash);
-            voidOrRevert(); return;
-        }
-        
-        uint interestTime = block.timestamp;
-        if (interestTime > lendOrder.expirationUnixTimestampSec) {
-            //LogErrorText("notice: lendOrder has expired", 0, lendOrderHash);
-            interestTime = lendOrder.expirationUnixTimestampSec;
-        }
-        
-        lender = filledOrder.lender;
-        interestTokenAddress = lendOrder.interestTokenAddress;
-
-        totalAmountAccrued = interestTime.sub(filledOrder.filledUnixTimestampSec) / 86400 * lendOrder.interestAmount * filledOrder.lendTokenAmountFilled / lendOrder.lendTokenAmount;
-
-        interestPaidSoFar = interestPaid[lendOrderHash][trader];
+        InterestData memory interestData = _getInterest(lendOrderHash,trader);
+        return (
+            interestData.lender,
+            interestData.interestTokenAddress,
+            interestData.totalAmountAccrued,
+            interestData.interestPaidSoFar
+        );
     }
-
-
 
     function payInterest(
         bytes32 lendOrderHash,
         address trader)
         external
         nonReentrant
+        updatesEMA(tx.gasprice)
         returns (uint)
     {
-        updateEMA(tx.gasprice);
-        
-        address lender;
-        address interestTokenAddress;
-        uint totalAmountAccrued;
-        uint interestPaidSoFar;
+        InterestData memory interestData = _getInterest(lendOrderHash,trader);
 
-        (lender, interestTokenAddress, totalAmountAccrued, interestPaidSoFar) = getInterest(lendOrderHash, trader);
-
-        if (interestPaidSoFar >= totalAmountAccrued) {
+        if (interestData.interestPaidSoFar >= interestData.totalAmountAccrued) {
             LogErrorText("warning: nothing left to pay for this lendOrderHash and trader", 0, lendOrderHash);
             return intOrRevert(0);
         }
 
-        uint amountToPay = totalAmountAccrued.sub(interestPaidSoFar);
-        interestPaid[lendOrderHash][trader] = totalAmountAccrued; // since this function will pay all remaining accured interest
+        uint amountToPay = interestData.totalAmountAccrued.sub(interestData.interestPaidSoFar);
+        interestPaid[lendOrderHash][trader] = interestData.totalAmountAccrued; // since this function will pay all remaining accured interest
 
         if (! B0xVault(VAULT_CONTRACT).sendInterest(
-            interestTokenAddress,
+            interestData.interestTokenAddress,
             trader,
-            lender,
+            interestData.lender,
             amountToPay,
             Liquidation_Oracle_Interface(orders[lendOrderHash].oracleAddress).interestFeeRate()
         )) {
@@ -349,68 +239,52 @@ contract B0x is ReentrancyGuard, Upgradeable, GasRefunder, B0xTypes {
         uint8 v,
         bytes32 r,
         bytes32 s)
-        external
+        public
         nonReentrant
         refundsGas(emaValue) // refunds based on collected gas price EMA
-        returns (uint)
-    {        
-        updateEMA(tx.gasprice);
-        
-        LendOrder memory lendOrder = LendOrder({
-            maker: orderAddresses[0],
-            lendTokenAddress: orderAddresses[1],
-            interestTokenAddress: orderAddresses[2],
-            marginTokenAddress: marginTokenAddressFilled,
-            feeRecipientAddress: orderAddresses[4],
-            oracleAddress: orderAddresses[5],
-            lendTokenAmount: orderValues[0],
-            interestAmount: orderValues[1],
-            initialMarginAmount: orderValues[2],
-            liquidationMarginAmount: orderValues[3],
-            lenderRelayFee: orderValues[4],
-            traderRelayFee: orderValues[5],
-            expirationUnixTimestampSec: orderValues[6],
-            orderHash: getLendOrderHash(orderAddresses, orderValues)
-        });
+        updatesEMA(tx.gasprice)
+        returns (uint) {
 
-        if (_verifyLendOrder(
-            lendOrder,
-            lendTokenAmountFilled,
+        LendOrder memory lendOrder = _buildLendOrder(orderAddresses, orderValues, marginTokenAddressFilled);
+
+        if(! isValidSignature(
+            lendOrder.maker,
+            lendOrder.orderHash,
             v,
             r,
             s
         )) {
-                uint actualLendFill = _takeLendOrder(
-                lendOrder,
-                msg.sender,
-                lendOrder.maker,
-                lendTokenAmountFilled
-            );
-            
-            /*LogFill(
-                msg.sender,
-                lendOrder.maker,
-                lendOrder.feeRecipientAddress,
-                lendOrder.lendTokenAddress,
-                lendOrder.interestTokenAddress,
-                marginTokenAddressFilled,
-                lendOrder.oracleAddress,
-                actualLendFill,
-                lendOrder.interestAmount,
-                lendOrder.initialMarginAmount,
-                lendOrder.liquidationMarginAmount,
-                lendOrder.lenderRelayFee,
-                lendOrder.traderRelayFee,
-                lendOrder.expirationUnixTimestampSec,
-                //keccak256(lendOrder.makerToken, lendOrder.takerToken),
-                lendOrder.orderHash
-            );*/
+            LogErrorText("error: invalid signiture", 0, lendOrder.orderHash);
+            return intOrRevert(0);
+        }
+        
+        uint actualLendFill = _takeLendOrder(
+            lendOrder,
+            msg.sender, // trader
+            lendOrder.maker, // lender
+            lendTokenAmountFilled
+        );
 
-            return actualLendFill;
-        }
-        else {
-            return 0;
-        }
+        /*LogFill(
+            msg.sender, // trader
+            lendOrder.maker, // lender
+            lendOrder.feeRecipientAddress,
+            lendOrder.lendTokenAddress,
+            lendOrder.interestTokenAddress,
+            marginTokenAddressFilled,
+            lendOrder.oracleAddress,
+            actualLendFill,
+            lendOrder.interestAmount,
+            lendOrder.initialMarginAmount,
+            lendOrder.liquidationMarginAmount,
+            lendOrder.lenderRelayFee,
+            lendOrder.traderRelayFee,
+            lendOrder.expirationUnixTimestampSec,
+            //keccak256(lendOrder.makerToken, lendOrder.takerToken),
+            lendOrder.orderHash
+        );*/
+
+        return actualLendFill;
     }
 
     /// @dev Takes the order as lender
@@ -431,68 +305,52 @@ contract B0x is ReentrancyGuard, Upgradeable, GasRefunder, B0xTypes {
         external
         nonReentrant
         refundsGas(emaValue) // refunds based on collected gas price EMA
-        returns (uint)
-    {
-        updateEMA(tx.gasprice);
-        
-        LendOrder memory lendOrder = LendOrder({
-            maker: orderAddresses[0],
-            lendTokenAddress: orderAddresses[1],
-            interestTokenAddress: orderAddresses[2],
-            marginTokenAddress: orderAddresses[3],
-            feeRecipientAddress: orderAddresses[4],
-            oracleAddress: orderAddresses[5],
-            lendTokenAmount: orderValues[0],
-            interestAmount: orderValues[1],
-            initialMarginAmount: orderValues[2],
-            liquidationMarginAmount: orderValues[3],
-            lenderRelayFee: orderValues[4],
-            traderRelayFee: orderValues[5],
-            expirationUnixTimestampSec: orderValues[6],
-            orderHash: getLendOrderHash(orderAddresses, orderValues)
-        });
+        updatesEMA(tx.gasprice)
+        returns (uint) {
 
-        if (_verifyLendOrder(
-            lendOrder,
-            lendOrder.lendTokenAmount,
+        LendOrder memory lendOrder = _buildLendOrder(orderAddresses, orderValues, orderAddresses[3]);
+
+        if(! isValidSignature(
+            lendOrder.maker,
+            lendOrder.orderHash,
             v,
             r,
             s
         )) {
-            uint actualLendFill = _takeLendOrder(
-                lendOrder,
-                lendOrder.maker,
-                msg.sender,
-                lendOrder.lendTokenAmount
-            );
-            
-            /*LogFill(
-                lendOrder.maker,
-                msg.sender,
-                lendOrder.feeRecipientAddress,
-                lendOrder.lendTokenAddress,
-                lendOrder.interestTokenAddress,
-                lendOrder.marginTokenAddress,
-                lendOrder.oracleAddress,
-                actualLendFill,
-                lendOrder.interestAmount,
-                lendOrder.initialMarginAmount,
-                lendOrder.liquidationMarginAmount,
-                lendOrder.lenderRelayFee,
-                lendOrder.traderRelayFee,
-                lendOrder.expirationUnixTimestampSec,
-                //keccak256(lendOrder.makerToken, lendOrder.takerToken),
-                lendOrder.orderHash
-            );*/
+            LogErrorText("error: invalid signiture", 0, lendOrder.orderHash);
+            return intOrRevert(0);
+        }
+        
+        uint actualLendFill = _takeLendOrder(
+            lendOrder,
+            lendOrder.maker, // trader
+            msg.sender, // lender
+            lendOrder.lendTokenAmount
+        );
 
-            return actualLendFill;
-        }
-        else {
-            return 0;
-        }
+        /*LogFill(
+            lendOrder.maker, // trader
+            msg.sender, // lender
+            lendOrder.feeRecipientAddress,
+            lendOrder.lendTokenAddress,
+            lendOrder.interestTokenAddress,
+            lendOrder.marginTokenAddress,
+            lendOrder.oracleAddress,
+            actualLendFill,
+            lendOrder.interestAmount,
+            lendOrder.initialMarginAmount,
+            lendOrder.liquidationMarginAmount,
+            lendOrder.lenderRelayFee,
+            lendOrder.traderRelayFee,
+            lendOrder.expirationUnixTimestampSec,
+            //keccak256(lendOrder.makerToken, lendOrder.takerToken),
+            lendOrder.orderHash
+        );*/
+
+        return actualLendFill;
     }
 
-    
+
     /*
     * Constant public functions
     */
@@ -625,12 +483,34 @@ contract B0x is ReentrancyGuard, Upgradeable, GasRefunder, B0xTypes {
     * Internal functions
     */
 
+    function _buildLendOrder(
+        address[6] orderAddresses,
+        uint[8] orderValues,
+        address marginTokenAddressFilled) 
+        internal
+        returns (LendOrder) {
+
+        return LendOrder({
+            maker: orderAddresses[0],
+            lendTokenAddress: orderAddresses[1],
+            interestTokenAddress: orderAddresses[2],
+            marginTokenAddress: marginTokenAddressFilled,
+            feeRecipientAddress: orderAddresses[4],
+            oracleAddress: orderAddresses[5],
+            lendTokenAmount: orderValues[0],
+            interestAmount: orderValues[1],
+            initialMarginAmount: orderValues[2],
+            liquidationMarginAmount: orderValues[3],
+            lenderRelayFee: orderValues[4],
+            traderRelayFee: orderValues[5],
+            expirationUnixTimestampSec: orderValues[6],
+            orderHash: getLendOrderHash(orderAddresses, orderValues)
+        });
+    }
+
     function _verifyLendOrder(
         LendOrder lendOrder,
-        uint lendTokenAmountFilled,
-        uint8 v,
-        bytes32 r,
-        bytes32 s)
+        uint lendTokenAmountFilled)
         internal
         returns (bool)
     {
@@ -651,16 +531,6 @@ contract B0x is ReentrancyGuard, Upgradeable, GasRefunder, B0xTypes {
         if (block.timestamp >= lendOrder.expirationUnixTimestampSec) {
             //LogError(uint8(Errors.ORDER_EXPIRED), 0, lendOrder.orderHash);
             LogErrorText("error: lendOrder has expired", 0, lendOrder.orderHash);
-            return boolOrRevert(false);
-        }
-        if(! isValidSignature(
-            lendOrder.maker,
-            lendOrder.orderHash,
-            v,
-            r,
-            s
-        )) {
-            LogErrorText("error: invalid signiture", 0, lendOrder.orderHash);
             return boolOrRevert(false);
         }
 
@@ -697,8 +567,13 @@ contract B0x is ReentrancyGuard, Upgradeable, GasRefunder, B0xTypes {
         address lender,
         uint lendTokenAmountFilled)
         internal
-        returns (uint)
-    {
+        returns (uint) {
+
+        if (!_verifyLendOrder(lendOrder, lendTokenAmountFilled)) {
+            LogErrorText("error: lendOrder did not pass validation!", 0, lendOrder.orderHash);
+            return intOrRevert(0);
+        }
+        
         // a trader can only fill a portion or all of a lendOrder once
         // todo: explain reason in the whitepaper:
         //      - avoids complex interest payments for parts of an order filled at different times by the same trader
@@ -790,9 +665,132 @@ contract B0x is ReentrancyGuard, Upgradeable, GasRefunder, B0xTypes {
         }
 
         LogErrorText("success!", 0, lendOrder.orderHash);
-
+        
         return lendTokenAmountFilled;
     }
+
+    function _getInterest(
+        bytes32 lendOrderHash,
+        address trader)
+        internal
+        view
+        returns (InterestData interestData)
+    {
+        LendOrder memory lendOrder = orders[lendOrderHash];
+        if (lendOrder.orderHash != lendOrderHash) {
+            //LogErrorText("error: invalid lend order", 0, lendOrderHash);
+            voidOrRevert(); return;
+        }
+
+        FilledOrder memory filledOrder = orderFills[lendOrderHash][trader];
+        if (filledOrder.lendTokenAmountFilled == 0) {
+            //LogErrorText("error: filled order not found for specified lendOrder and trader", 0, lendOrderHash);
+            voidOrRevert(); return;
+        }
+        
+        uint interestTime = block.timestamp;
+        if (interestTime > lendOrder.expirationUnixTimestampSec) {
+            //LogErrorText("notice: lendOrder has expired", 0, lendOrderHash);
+            interestTime = lendOrder.expirationUnixTimestampSec;
+        }
+
+        interestData = InterestData({
+            lender: filledOrder.lender,
+            interestTokenAddress: lendOrder.interestTokenAddress,
+            totalAmountAccrued: interestTime.sub(filledOrder.filledUnixTimestampSec) / 86400 * lendOrder.interestAmount * filledOrder.lendTokenAmountFilled / lendOrder.lendTokenAmount,
+            interestPaidSoFar: interestPaid[lendOrderHash][trader]
+        });
+    }
+
+    function _open0xTrade(
+        bytes32 lendOrderHash,
+        address[5] orderAddresses0x,
+        uint[6] orderValues0x,
+        uint8 v,
+        bytes32 r,
+        bytes32 s)
+        internal
+        returns (uint)
+    {
+        LendOrder memory lendOrder = orders[lendOrderHash];
+        if (lendOrder.orderHash != lendOrderHash) {
+            LogErrorText("error: invalid lend order", 0, lendOrderHash);
+            return intOrRevert(0);
+        }
+
+        FilledOrder memory filledOrder = orderFills[lendOrderHash][msg.sender];
+        if (filledOrder.lendTokenAmountFilled == 0) {
+            LogErrorText("error: filled order not found", 0, lendOrderHash);
+            return intOrRevert(0);
+        }
+
+        uint marginRatio = Liquidation_Oracle_Interface(lendOrder.oracleAddress).getMarginRatio(lendOrderHash, msg.sender);
+        if (marginRatio <= 100) {
+            // todo: trigger order liquidation!
+            LogErrorText("error: lendOrder has been liquidated!", 0, lendOrderHash);
+            return intOrRevert(0);
+        } else if (marginRatio < 110) {
+            LogErrorText("error: marginRatiomarginRatio too low!", 0, lendOrderHash);
+            return intOrRevert(0);
+        }
+
+        if (orderAddresses0x[4] != address(0) && // feeRecipient
+                orderValues0x[1] > 0 // takerTokenAmount
+        ) {
+            if (!EIP20(ZRX_TOKEN_CONTRACT).transferFrom(msg.sender, this, orderValues0x[1])) {
+                LogErrorText("error: b0x can't transfer ZRX from trader", 0, lendOrderHash);
+                return intOrRevert(0);
+            }
+        }
+
+        // 0x order will fail if filledOrder.lendTokenAmountFilled is too high
+        uint filledTakerTokenAmount = Exchange0x_Interface(EXCHANGE0X_CONTRACT).fillOrder(
+            orderAddresses0x,
+            orderValues0x,
+            filledOrder.lendTokenAmountFilled,
+            true,
+            v,
+            r,
+            s);
+        if (filledTakerTokenAmount == 0) {
+            LogErrorText("error: 0x order failed!", 0, lendOrderHash);
+            return intOrRevert(0);
+        }
+
+        uint filledMakerTokenAmount = getPartialAmount(
+            filledTakerTokenAmount,
+            orderValues0x[1], // takerTokenAmount
+            orderValues0x[0] // makerTokenAmount
+        );
+
+/*trades
+
+    struct Trade {
+        address tradeTokenAddress;
+        uint tradeTokenAmountFilled;
+        uint filledUnixTimestampSec;
+        bool active;
+    }
+
+    
+        Trade storage filledOrder = trades[lendOrder.orderHash][trader];
+        filledOrder.lender = lender;
+        filledOrder.marginTokenAmountFilled = marginTokenAmountFilled;
+        filledOrder.lendTokenAmountFilled = lendTokenAmountFilled;
+        filledOrder.filledUnixTimestampSec = block.timestamp;
+
+        trades[lendOrder.orderHash][trader] = Trade({
+            
+        })
+*/
+        LogErrorText("0x order: filledTakerTokenAmount", filledTakerTokenAmount, lendOrderHash);
+        LogErrorText("0x order: filledMakerTokenAmount", filledMakerTokenAmount, lendOrderHash);
+        LogErrorText("success taking 0x trade!", 0, lendOrderHash);
+
+        return filledMakerTokenAmount;
+    }
+
+
 
     function _initialMargin(
         uint initialMarginAmount,
@@ -871,6 +869,14 @@ contract B0x is ReentrancyGuard, Upgradeable, GasRefunder, B0xTypes {
         onlyOwner {
         ZRX_TOKEN_CONTRACT = _zrxToken;
     }
+
+    /*function setEMAPeriods (
+        uint8 _newEMAPeriods)
+        public
+        onlyOwner {
+        require(_newEMAPeriods > 1 && _newEMAPeriods != emaPeriods);
+        emaPeriods = _newEMAPeriods;
+    }*/
 
     /**
     * @dev Reclaim all EIP20 compatible tokens

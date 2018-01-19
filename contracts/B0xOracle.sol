@@ -13,6 +13,7 @@ import './interfaces/EIP20.sol';
 
 import './simulations/KyberWrapper.sol';
 
+
 /*
 TODO:
 B0xOracle liquidation should be called from B0x
@@ -23,9 +24,9 @@ B0xOracle liquidation should be called from B0x
  also: fix GasRefunder.. from solidity doc:
  Symbols introduced in the modifier are not visible in the function (as they might change by overriding).!!!
 */
-import './B0x.sol';/// <--- maybe get rid of this
+import './B0x_Interface.sol';/// <--- maybe get rid of this
 
-contract B0xOracle is Ownable, B0xTypes, GasRefunder, Liquidation_Oracle_Interface {
+contract B0xOracle is Ownable, GasRefunder, B0xTypes, Liquidation_Oracle_Interface {
     using SafeMath for uint256;
     
     // Percentage of interest retained as fee
@@ -37,14 +38,6 @@ contract B0xOracle is Ownable, B0xTypes, GasRefunder, Liquidation_Oracle_Interfa
     address public VAULT_CONTRACT;
     address public KYBER_CONTRACT;
 
-    /*
-    TODO: tracking gas expenses for later refund:
-
-    uint gas_remaining = msg.gas;
-    //irrelevant code....
-    uint refund = (gas_remaining - msg.gas) * tx.gasprice;
-
-    */
 
     function B0xOracle (
         address _b0x_contract,
@@ -56,6 +49,9 @@ contract B0xOracle is Ownable, B0xTypes, GasRefunder, Liquidation_Oracle_Interfa
         B0X_CONTRACT = _b0x_contract;
         VAULT_CONTRACT = _vault_contract;
         KYBER_CONTRACT = _kyber_contract;
+
+        // settings for GasRefunder
+        throwOnGasRefundFail = false; // don't revert state if there's a failure with the gas refund
     }
 
     function closeTrade(
@@ -77,7 +73,7 @@ contract B0xOracle is Ownable, B0xTypes, GasRefunder, Liquidation_Oracle_Interfa
         bytes32 lendOrderHash,
         address trader)
         public
-        refundsGas(B0x(B0X_CONTRACT).emaValue()) // refunds based on collected gas price EMA
+        //refundsGas(B0x_Interface(B0X_CONTRACT).emaValue()) // refunds based on collected gas price EMA
         returns (bool tradeSuccess)
     {
         // traders should call closeTrade to close their own trades
@@ -209,7 +205,7 @@ contract B0xOracle is Ownable, B0xTypes, GasRefunder, Liquidation_Oracle_Interfa
         view
         returns (LendOrder)
     {
-        var (addrs,uints) = B0x(B0X_CONTRACT).getLendOrder(lendOrderHash);
+        var (addrs,uints) = B0x_Interface(B0X_CONTRACT).getLendOrder(lendOrderHash);
         
         return LendOrder({
             maker: addrs[0],
@@ -237,7 +233,7 @@ contract B0xOracle is Ownable, B0xTypes, GasRefunder, Liquidation_Oracle_Interfa
         view
         returns (Trade)
     {
-        var (v1,v2,v3,v4) = B0x(B0X_CONTRACT).trades(lendOrderHash, trader);
+        var (v1,v2,v3,v4) = B0x_Interface(B0X_CONTRACT).trades(lendOrderHash, trader);
         return Trade(v1,v2,v3,v4);
     }
     
@@ -249,7 +245,7 @@ contract B0xOracle is Ownable, B0xTypes, GasRefunder, Liquidation_Oracle_Interfa
         view
         returns (FilledOrder)
     {
-        var (v1,v2,v3,v4) = B0x(B0X_CONTRACT).orderFills(lendOrderHash, trader);
+        var (v1,v2,v3,v4) = B0x_Interface(B0X_CONTRACT).orderFills(lendOrderHash, trader);
         return FilledOrder(v1,v2,v3,v4);
     }
 

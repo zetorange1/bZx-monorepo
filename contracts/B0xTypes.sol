@@ -33,6 +33,13 @@ contract B0xTypes {
         bool active;
     }
 
+    struct InterestData {
+        address lender;
+        address interestTokenAddress;
+        uint totalAmountAccrued;
+        uint interestPaidSoFar;
+    }
+
     /*struct RateData {
         uint marginToLendRate;
         uint tradeToMarginRate;

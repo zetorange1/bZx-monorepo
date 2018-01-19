@@ -20,13 +20,13 @@ module.exports = {
       host: "localhost",
       port: 8546
     }
-  }/*,
+  },
   solc: {
     optimizer: {
       enabled: true,
       runs: 200
     }
-  }*/
+  }
 };
 /*module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>

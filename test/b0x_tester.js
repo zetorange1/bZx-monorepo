@@ -32,6 +32,9 @@ let expected_LOANTokenTotalSupply = web3.toWei(20000000, "ether"); // 20MM LOAN
 
 let Exchange0x = artifacts.require("./Exchange0x_Interface.sol");
 
+let currentGasPrice = 20000000000; // 20 gwei
+let currentEthPrice = 1000; // USD
+
 /*
 ZRXToken.sol: 0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3
 EtherToken.sol: 0x48BaCB9266a570d521063EF5dD96e61686DbE788
@@ -127,7 +130,8 @@ contract('B0xTest', function(accounts) {
     ]);
   
     await Promise.all([
-      (b0x = await B0xSol.new(loan_token.address,vault.address,kyber.address,contracts0x["Exchange"],contracts0x["ZRXToken"])),
+      (b0x = await B0xSol.new(loan_token.address,vault.address,kyber.address,contracts0x["Exchange"],contracts0x["ZRXToken"],
+                  {from: accounts[0], value: web3.toWei(10, "ether")})),
       tom_token.transfer(accounts[1], web3.toWei(2000000, "ether")),
       bean_token.transfer(accounts[2], web3.toWei(2000000, "ether"))
     ]);
@@ -683,10 +687,7 @@ contract('B0xTest', function(accounts) {
       loan_token.address, 
       expectedPrice,
       {from: accounts[0]}).then(function(tx) {
-        *//*if (tx.logs[0] !== undefined)
-          console.log(tx.logs[0].args);
-        else
-          console.log(tx);*//*
+        console.log(txPrettyPrint(tx,"should send sample kyber for LOAN"));
         
         kyber.getTokenPrice(loan_token.address).then(function(currentPrice) {
           assert.equal(currentPrice, expectedPrice, "expectedPrice should equal returned currentPrice");
@@ -786,13 +787,8 @@ contract('B0xTest', function(accounts) {
       ECSignature["v"],
       ECSignature["r"],
       ECSignature["s"],
-      {from: accounts[2]}).then(function(tx) {
-        if (tx.logs !== undefined) {
-          for (var i=0; i < tx.logs.length; i++) {
-            console.log(tx.logs[i].args);
-          }
-        } else
-          console.log(tx);
+      {from: accounts[2], gas: 5000000, gasPrice: 10000000000}).then(function(tx) {
+        console.log(txPrettyPrint(tx,"should take sample lender order as trader"));
         assert.isOk(tx);
         done();
       }, function(error) {
@@ -922,12 +918,7 @@ contract('B0xTest', function(accounts) {
       ECSignature_0x["r"],
       ECSignature_0x["s"],
       {from: accounts[2]}).then(function(tx) {
-        if (tx.logs !== undefined) {
-          for (var i=0; i < tx.logs.length; i++) {
-            console.log(tx.logs[i].args);
-          }
-        } else
-          console.log(tx);
+        console.log(txPrettyPrint(tx,"should open 0x trade with borrowed funds"));
         assert.isOk(tx);
         done();
     }, function(error, tx) {
@@ -937,7 +928,37 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  
+
+  function txPrettyPrint(tx, desc) {
+    var ret = desc + "\n";
+    if (tx.tx === undefined) {
+      ret = ret + JSON.stringify(tx);
+    } else {
+      ret = ret + "  tx: "+tx.tx+"\n";
+
+      if (tx.receipt !== undefined) {
+        ret = ret + "  blockNumber: "+tx.receipt.blockNumber+"\n";
+        ret = ret + "  gasUsed: "+tx.receipt.gasUsed+" -> x"+currentGasPrice+" = "+(tx.receipt.gasUsed*currentGasPrice)+" ("+(tx.receipt.gasUsed*currentGasPrice/1e18*currentEthPrice).toFixed(2)+"USD @ "+currentEthPrice+"ETH/USD)\n";
+        ret = ret + "  cumulativeGasUsed: "+tx.receipt.cumulativeGasUsed+" -> x"+currentGasPrice+" = "+(tx.receipt.cumulativeGasUsed*currentGasPrice)+" ("+(tx.receipt.cumulativeGasUsed*currentGasPrice/1e18*currentEthPrice).toFixed(2)+"USD @ "+currentEthPrice+"ETH/USD)\n";
+        ret = ret + "  status: "+tx.receipt.status+"\n";
+      }
+      if (tx.logs !== undefined) {
+        ret = ret + "  LOGS --> "+"\n";
+        for (var i=0; i < tx.logs.length; i++) {
+          ret = ret + "  "+i+": "+tx.logs[i].event+" "+JSON.stringify(tx.logs[i].args);
+          if (tx.logs[i].event == "GasRefund") {
+            ret = ret + " -> Refund: "+(tx.logs[i].args.refundAmount/1e18*currentEthPrice).toFixed(2)+"USD @ "+currentEthPrice+"ETH/USD)\n";
+          }
+          else {
+            ret = ret + "\n";
+          }
+          
+          
+        }
+      }
+    }
+    return ret;
+  }
 
   function printBalances(accounts) {
     accounts.forEach(function(ac, i) {

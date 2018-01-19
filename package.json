@@ -24,6 +24,7 @@
     "blockchain:stop": "pkill -9 -f ganache-cli || true",
     "build": "rimraf ./build/contracts/* && truffle compile",
     "build:deploy": "rimraf ./build/contracts/* && truffle compile && npm run migrate:reset",
+    "rebuild:deploy": "truffle compile && npm run migrate:reset",
     "create_assets": "node generate_test_assets.js",
     "migrate": "truffle migrate",
     "migrate:reset": "truffle migrate --reset",
