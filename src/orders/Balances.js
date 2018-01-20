@@ -1,8 +1,20 @@
+import Section, { SectionLabel, Divider } from "../common/FormSection";
+
 export default class Balances extends React.Component {
   state = {};
 
   render() {
-    return <div>Balances stuff here</div>;
+    return (
+      <div>
+        <Section>
+          <SectionLabel>Ether</SectionLabel>
+        </Section>
+        <Divider />
+        <Section>
+          <SectionLabel>Tokens</SectionLabel>
+        </Section>
+      </div>
+    );
   }
 }
 
