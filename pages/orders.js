@@ -13,12 +13,14 @@ import {
 import GenerateOrder from "../src/orders/GenerateOrder";
 import FillOrder from "../src/orders/FillOrder";
 import Balances from "../src/orders/Balances";
+import OrderHistory from "../src/orders/OrderHistory";
 import Web3Container from "../src/web3/Web3Container";
 
 const TABS = [
   { id: `GEN_ORDER`, label: `Generate Order` },
   { id: `FILL_ORDER`, label: `Fill Order` },
-  { id: `BALANCES`, label: `Balances` }
+  { id: `BALANCES`, label: `Balances` },
+  { id: `ORDER_HISTORY`, label: `Order History` }
 ];
 
 class Orders extends React.Component {
@@ -58,6 +60,9 @@ class Orders extends React.Component {
                   </ContentContainer>
                   <ContentContainer show={activeTab === `BALANCES`}>
                     <Balances />
+                  </ContentContainer>
+                  <ContentContainer show={activeTab === `ORDER_HISTORY`}>
+                    <OrderHistory />
                   </ContentContainer>
                 </Fragment>
               )}
