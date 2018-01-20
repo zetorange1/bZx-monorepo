@@ -268,7 +268,7 @@
           "type": "uint256[8]"
         },
         {
-          "name": "marginTokenAddressFilled",
+          "name": "collateralTokenAddressFilled",
           "type": "address"
         },
         {
@@ -318,7 +318,7 @@
           "type": "address"
         },
         {
-          "name": "marginTokenAmountFilled",
+          "name": "collateralTokenAmountFilled",
           "type": "uint256"
         },
         {
@@ -491,7 +491,7 @@
           "type": "address"
         },
         {
-          "name": "marginTokenAddress",
+          "name": "collateralTokenAddress",
           "type": "address"
         },
         {
@@ -760,7 +760,7 @@
         },
         {
           "indexed": false,
-          "name": "marginTokenAddress",
+          "name": "collateralTokenAddress",
           "type": "address"
         },
         {

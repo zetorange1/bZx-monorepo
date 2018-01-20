@@ -29,7 +29,7 @@ export const getLendOrderHashHex = (order) => {
     order.maker,
     order.lendTokenAddress,
     order.interestTokenAddress,
-    order.marginTokenAddress,
+    order.collateralTokenAddress,
     order.feeRecipientAddress,
     order.oracleAddress,
   ];

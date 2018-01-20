@@ -51044,7 +51044,7 @@ exports.lendOrderSchema = {
     maker: { $ref: '/Address' },
     lendTokenAddress: { $ref: '/Address' },
     interestTokenAddress: { $ref: '/Address' },
-    marginTokenAddress: { $ref: '/Address' },
+    collateralTokenAddress: { $ref: '/Address' },
     feeRecipientAddress: { $ref: '/Address' },
     oracleAddress: { $ref: '/Address' },
     lendTokenAmount: { $ref: '/Number' },
@@ -51056,7 +51056,7 @@ exports.lendOrderSchema = {
     expirationUnixTimestampSec: { $ref: '/Number' },
     salt: { $ref: '/Number' }
   },
-  required: ['b0x', 'maker', 'lendTokenAddress', 'interestTokenAddress', 'marginTokenAddress', 'feeRecipientAddress', 'oracleAddress', 'lendTokenAmount', 'interestAmount', 'initialMarginAmount', 'liquidationMarginAmount', 'lenderRelayFee', 'traderRelayFee', 'expirationUnixTimestampSec', 'salt'],
+  required: ['b0x', 'maker', 'lendTokenAddress', 'interestTokenAddress', 'collateralTokenAddress', 'feeRecipientAddress', 'oracleAddress', 'lendTokenAmount', 'interestAmount', 'initialMarginAmount', 'liquidationMarginAmount', 'lenderRelayFee', 'traderRelayFee', 'expirationUnixTimestampSec', 'salt'],
   type: 'object'
 };
 exports.signedLendOrderSchema = {
@@ -51121,7 +51121,7 @@ var generatePseudoRandomSalt = exports.generatePseudoRandomSalt = function gener
 };
 
 var getLendOrderHashHex = exports.getLendOrderHashHex = function getLendOrderHashHex(order) {
-  var orderAddrs = [order.maker, order.lendTokenAddress, order.interestTokenAddress, order.marginTokenAddress, order.feeRecipientAddress, order.oracleAddress];
+  var orderAddrs = [order.maker, order.lendTokenAddress, order.interestTokenAddress, order.collateralTokenAddress, order.feeRecipientAddress, order.oracleAddress];
   var orderUints = [bigNumberToBN(order.lendTokenAmount), bigNumberToBN(order.interestAmount), bigNumberToBN(order.initialMarginAmount), bigNumberToBN(order.liquidationMarginAmount), bigNumberToBN(order.lenderRelayFee), bigNumberToBN(order.traderRelayFee), bigNumberToBN(order.expirationUnixTimestampSec), bigNumberToBN(order.salt)];
   var orderHashHex = _web3Utils2.default.soliditySha3({ t: 'address', v: order.b0x }, { t: 'address[6]', v: orderAddrs }, { t: 'uint256[8]', v: orderUints });
   return orderHashHex;
