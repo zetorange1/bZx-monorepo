@@ -1,20 +1,3 @@
-/*
-
-  Copyright 2018 b0x, LLC
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-
-*/
 
 pragma solidity ^0.4.9;
 
@@ -216,8 +199,7 @@ contract B0xVault is B0xOwnable {
         uint value)
         public
         onlyB0x
-        returns (bool)
-    {
+        returns (bool) {
         funding[token][user] = funding[token][user].sub(value);
         if (!EIP20(token).transfer(to, value))
             revert();
@@ -226,20 +208,23 @@ contract B0xVault is B0xOwnable {
     }
 
 
-    // note: feeAmount is retained by the vault
-    function sendInterest(
+    // Interest payment distributions are the responsibility of the Oracle used for the lendOrder.
+    // This function can only be called by b0x, to transfer interest to the Oracle for further processing.
+    function sendInterestToOracle(
+        address fromUser,
         address token,
-        address user,
-        address to,        
-        uint value,
-        uint feeAmount)
+        address oracleAddress,
+        uint tokenAmount)
         public
         onlyB0x
-        returns (bool)
-    {
-        interest[token][user] = interest[token][user].sub(value);
+        returns (bool) {
 
-        if (!EIP20(token).transfer(to, value.sub(feeAmount)))
+        if (tokenAmount == 0)
+            return false;
+
+        interest[token][fromUser] = interest[token][fromUser].sub(tokenAmount);
+
+        if (!EIP20(token).transfer(oracleAddress, tokenAmount))
             revert();
 
         return true;

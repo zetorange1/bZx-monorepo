@@ -6,7 +6,7 @@ contract B0xTypes {
         address maker;
         address lendTokenAddress;
         address interestTokenAddress;
-        address marginTokenAddress;
+        address collateralTokenAddress;
         address feeRecipientAddress;
         address oracleAddress;
         uint lendTokenAmount;
@@ -21,14 +21,15 @@ contract B0xTypes {
 
     struct FilledOrder {
         address lender;
-        uint marginTokenAmountFilled;
+        uint collateralTokenAddressAmountFilled;
         uint lendTokenAmountFilled;
         uint filledUnixTimestampSec;
     }
 
     struct Trade {
         address tradeTokenAddress;
-        uint tradeTokenAmountFilled;
+        uint tradeTokenAmount;
+        uint lendTokenUsedAmount;
         uint filledUnixTimestampSec;
         bool active;
     }

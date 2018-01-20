@@ -54,8 +54,7 @@ module.exports = function(deployer, network, accounts) {
 		return deployer.deploy(SugarToken).then(function() {
 			return deployer.deploy(B0xVault).then(function() {
 				return deployer.deploy(KyberWrapper).then(function() {
-					return deployer.deploy(B0x, LOANToken.address, SugarToken.address, B0xVault.address, KyberWrapper.address, contracts0x["Exchange"], contracts0x["ZRXToken"],
-											{from: accounts[0], value: web3.toWei(10, "ether")}).then(function() {
+					return deployer.deploy(B0x, LOANToken.address, SugarToken.address, B0xVault.address, KyberWrapper.address, contracts0x["Exchange"], contracts0x["ZRXToken"]).then(function() {
 						B0xVault.deployed().then(function(instance) {
 							instance.setB0xOwner(B0x.address);
 						});
@@ -67,7 +66,8 @@ module.exports = function(deployer, network, accounts) {
 							instance.transfer(accounts[2], web3.toWei(100000, "ether"));
 						});
 
-						return deployer.deploy(B0xOracle, B0x.address, B0xVault.address, KyberWrapper.address);
+						return deployer.deploy(B0xOracle, B0x.address, B0xVault.address, KyberWrapper.address
+												,{from: accounts[0], value: web3.toWei(10, "ether")});
 					});
 				});
 			});

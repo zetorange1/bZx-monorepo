@@ -4,11 +4,12 @@ pragma solidity ^0.4.9;
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
+import './EMACollector.sol';
 import './GasRefunder.sol';
 import './B0xVault.sol';
 import './B0xTypes.sol';
 
-import './interfaces/Liquidation_Oracle_Interface.sol';
+import './interfaces/B0x_Oracle_Interface.sol';
 import './interfaces/EIP20.sol';
 
 import './simulations/KyberWrapper.sol';
@@ -26,7 +27,7 @@ B0xOracle liquidation should be called from B0x
 */
 import './B0x_Interface.sol';/// <--- maybe get rid of this
 
-contract B0xOracle is Ownable, GasRefunder, B0xTypes, Liquidation_Oracle_Interface {
+contract B0xOracle is Ownable, EMACollector, GasRefunder, B0xTypes, B0x_Oracle_Interface {
     using SafeMath for uint256;
     
     // Percentage of interest retained as fee
@@ -38,6 +39,7 @@ contract B0xOracle is Ownable, GasRefunder, B0xTypes, Liquidation_Oracle_Interfa
     address public VAULT_CONTRACT;
     address public KYBER_CONTRACT;
 
+    function() public payable onlyOwner {}
 
     function B0xOracle (
         address _b0x_contract,
@@ -45,14 +47,54 @@ contract B0xOracle is Ownable, GasRefunder, B0xTypes, Liquidation_Oracle_Interfa
         address _kyber_contract
     ) 
         public
-    {
+        payable {
         B0X_CONTRACT = _b0x_contract;
         VAULT_CONTRACT = _vault_contract;
         KYBER_CONTRACT = _kyber_contract;
 
+
+        // settings for EMACollector
+        emaValue = 20 * 10**9 wei; // set an initial price average for gas (20 gwei)
+        emaPeriods = 10; // set periods to use for EMA calculation
+
         // settings for GasRefunder
         throwOnGasRefundFail = false; // don't revert state if there's a failure with the gas refund
     }
+
+    function orderIsTaken(
+        bytes32 lendOrderHash,
+        uint gasUsed)
+        public
+        refundsGas(emaValue, gasUsed) // refunds based on collected gas price EMA
+        updatesEMA(tx.gasprice) {
+
+        return;
+    }
+
+    function tradeIsOpened(
+        bytes32 lendOrderHash,
+        address trader,
+        address tradeTokenAddress,
+        uint tradeTokenAmount,
+        uint gasUsed)
+        public
+        updatesEMA(tx.gasprice) {
+
+        return;
+    }
+
+    function interestIsPaid(
+        bytes32 lendOrderHash,
+        address trader, // trader
+        address interestTokenAddress,
+        uint amount,
+        uint gasUsed)
+        public
+        updatesEMA(tx.gasprice) {
+
+    }
+
+
 
     function closeTrade(
         bytes32 lendOrderHash)
@@ -112,6 +154,11 @@ contract B0xOracle is Ownable, GasRefunder, B0xTypes, Liquidation_Oracle_Interfa
         view
         returns (uint level)
     {
+        level = 200;
+
+        /*
+        TODO: how will I change this section?
+        
         LendOrder memory lendOrder = LendOrderStruct(lendOrderHash);
         if (lendOrder.orderHash != lendOrderHash) {
             //LogErrorText("error: invalid lend order", 0, lendOrderHash);
@@ -135,27 +182,29 @@ contract B0xOracle is Ownable, GasRefunder, B0xTypes, Liquidation_Oracle_Interfa
 
         var (marginToLendRate, tradeToMarginRate) = getRateData(
             activeTrade.tradeTokenAddress,//lendOrder.lendTokenAddress,
-            activeTrade.tradeTokenAddress,//lendOrder.marginTokenAddress,
+            activeTrade.tradeTokenAddress,//lendOrder.collateralTokenAddress,
             activeTrade.tradeTokenAddress
         );
         if (marginToLendRate == 0) {
-            //LogErrorText("error: conversion rate from marginToken to lendToken is 0 or not found", 0, lendOrderHash);
+            //LogErrorText("error: conversion rate from collateralTokenAddress to lendToken is 0 or not found", 0, lendOrderHash);
             //return intOrRevert(999);
             return 999;
         }
         if (tradeToMarginRate == 0) {
-            //LogErrorText("error: conversion rate from tradeToken to marginToken is 0 or not found", 0, lendOrderHash);
+            //LogErrorText("error: conversion rate from tradeToken to collateralTokenAddress is 0 or not found", 0, lendOrderHash);
             //return intOrRevert(999);
             return 999;
         }
 
         uint currentMarginPercent = (activeTrade.tradeTokenAmountFilled / 
-                        //(B0xVault(VAULT_CONTRACT).marginBalanceOf(lendOrder.marginTokenAddress, trader) * tradeToMarginRate)) * 100;
+                        //(B0xVault(VAULT_CONTRACT).marginBalanceOf(lendOrder.collateralTokenAddress, trader) * tradeToMarginRate)) * 100;
                         (B0xVault(VAULT_CONTRACT).marginBalanceOf(activeTrade.tradeTokenAddress, trader) * tradeToMarginRate)) * 100;
         
         // a level <= 100 means the order should be liquidated        
         //level = currentMarginPercent - lendOrder.liquidationMarginAmount + 100;
         level = currentMarginPercent - 5 + 100;
+
+        */
     }
 
     function shouldLiquidate(
@@ -170,27 +219,27 @@ contract B0xOracle is Ownable, GasRefunder, B0xTypes, Liquidation_Oracle_Interfa
 
     function getRateData(
         address lendTokenAddress,
-        address marginTokenAddress,
+        address collateralTokenAddress,
         address tradeTokenAddress)
         public 
         view 
         returns (uint marginToLendRate, uint tradeToMarginRate)
     {   
         uint lendTokenDecimals = getDecimals(EIP20(lendTokenAddress));
-        uint marginTokenDecimals = getDecimals(EIP20(marginTokenAddress));
+        uint collateralTokenAddressDecimals = getDecimals(EIP20(collateralTokenAddress));
         uint tradeTokenDecimals;
 
         if (tradeTokenAddress != address(0)) {
             tradeTokenDecimals = getDecimals(EIP20(tradeTokenAddress));
 
-            marginToLendRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(marginTokenAddress, lendTokenAddress)
-                                     * (10**lendTokenDecimals)) / (10**marginTokenDecimals);
+            marginToLendRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, lendTokenAddress)
+                                     * (10**lendTokenDecimals)) / (10**collateralTokenAddressDecimals);
             
-            tradeToMarginRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(tradeTokenAddress, marginTokenAddress)
-                                     * (10**marginTokenDecimals)) / (10**tradeTokenDecimals);
+            tradeToMarginRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(tradeTokenAddress, collateralTokenAddress)
+                                     * (10**collateralTokenAddressDecimals)) / (10**tradeTokenDecimals);
         } else {
-            marginToLendRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(marginTokenAddress, lendTokenAddress)
-                                     * (10**lendTokenDecimals)) / (10**marginTokenDecimals);
+            marginToLendRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, lendTokenAddress)
+                                     * (10**lendTokenDecimals)) / (10**collateralTokenAddressDecimals);
 
             tradeToMarginRate = 0;
         }
@@ -211,7 +260,7 @@ contract B0xOracle is Ownable, GasRefunder, B0xTypes, Liquidation_Oracle_Interfa
             maker: addrs[0],
             lendTokenAddress: addrs[1],
             interestTokenAddress: addrs[2],
-            marginTokenAddress: addrs[3],
+            collateralTokenAddress: addrs[3],
             feeRecipientAddress: addrs[4],
             oracleAddress: addrs[5],
             lendTokenAmount: uints[0],
@@ -233,8 +282,8 @@ contract B0xOracle is Ownable, GasRefunder, B0xTypes, Liquidation_Oracle_Interfa
         view
         returns (Trade)
     {
-        var (v1,v2,v3,v4) = B0x_Interface(B0X_CONTRACT).trades(lendOrderHash, trader);
-        return Trade(v1,v2,v3,v4);
+        var (v1,v2,v3,v4,v5) = B0x_Interface(B0X_CONTRACT).trades(lendOrderHash, trader);
+        return Trade(v1,v2,v3,v4,v5);
     }
     
     function FilledOrderStruct (
@@ -282,5 +331,13 @@ contract B0xOracle is Ownable, GasRefunder, B0xTypes, Liquidation_Oracle_Interfa
     {
         require(newAddress != VAULT_CONTRACT && newAddress != address(0));
         VAULT_CONTRACT = newAddress;
+    }
+
+    function setEMAPeriods (
+        uint8 _newEMAPeriods)
+        public
+        onlyOwner {
+        require(_newEMAPeriods > 1 && _newEMAPeriods != emaPeriods);
+        emaPeriods = _newEMAPeriods;
     }
 }
