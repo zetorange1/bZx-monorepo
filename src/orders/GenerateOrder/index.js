@@ -5,6 +5,7 @@ import RoleSection from "./Role";
 import TokensSection from "./Tokens";
 import MarginAmountsSection from "./MarginAmounts";
 import ExpirationSection from "./Expiration";
+import OracleSection from "./Oracle";
 import RelayExchangeSection from "./RelayExchange";
 import Submission from "./Submission";
 import Result from "./Result";
@@ -26,11 +27,15 @@ export default class GenerateOrder extends React.Component {
     interestAmount: 41,
 
     // margin amounts
-    initialMarginAmount: 42,
-    liquidationMarginAmount: 43,
+    initialMarginAmount: 40,
+    liquidationMarginAmount: 20,
 
     // expiration date/time
     expirationDate: moment(),
+
+    // oracle
+    useB0xOracle: true,
+    oracleAddress: `b0x_oracle_address`,
 
     // relay/exchange settings
     sendToRelayExchange: false,
@@ -39,7 +44,7 @@ export default class GenerateOrder extends React.Component {
     traderRelayFee: 0,
 
     orderHash: `0x_temp_order_hash`,
-    signedOrderObject: null
+    finalOrder: null
   };
 
   /* State setters */
@@ -54,17 +59,26 @@ export default class GenerateOrder extends React.Component {
   setRelayCheckbox = (e, value) =>
     this.setState({ sendToRelayExchange: value });
 
+  setUseB0xCheckbox = (e, value) => {
+    console.log(`hey`);
+    if (value) {
+      this.setState({ oracleAddress: `b0x_oracle_address` });
+    }
+    this.setState({ useB0xOracle: value });
+  };
+
   /* Submission handler */
 
   handleSubmit = () => {
     const isValid = validateInputs(this.state);
-    this.setState({ orderHash: null, signedOrderObject: null });
+    this.setState({ orderHash: null, finalOrder: null });
     if (isValid) {
       const orderObject = compileObject(this.state); // 1. compile the order object from state
       const saltedOrderObj = addSalt(orderObject); // 2. compute and add salt to the order object
       const signedOrderObject = signOrder(saltedOrderObj); // 3. sign order w/ maker's private key
       const orderHash = getHash(signedOrderObject); // 4. get a hash for the signed object
-      this.setState({ orderHash, signedOrderObject });
+      const finalOrder = { ...signedOrderObject, role: this.state.role };
+      this.setState({ orderHash, finalOrder });
     } else {
       alert(verificationResult.errorMsg); // eslint-disable-line no-undef
     }
@@ -108,6 +122,15 @@ export default class GenerateOrder extends React.Component {
 
         <Divider />
 
+        <OracleSection
+          oracleAddress={this.state.oracleAddress}
+          setOracleAddress={this.setStateForInput(`oracleAddress`)}
+          useB0xCheckbox={this.state.useB0xOracle}
+          setUseB0xCheckbox={this.setUseB0xCheckbox}
+        />
+
+        <Divider />
+
         <RelayExchangeSection
           // state setters
           setStateForInput={this.setStateForInput}
@@ -125,7 +148,7 @@ export default class GenerateOrder extends React.Component {
 
         <Result
           orderHash={this.state.orderHash}
-          signedOrderObject={this.state.signedOrderObject}
+          signedOrderObject={this.state.finalOrder}
         />
       </div>
     );

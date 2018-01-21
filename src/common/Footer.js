@@ -8,7 +8,7 @@ const Container = styled.footer`
 
   /* colors */
   color: ${COLORS.white};
-  background: ${COLORS.blue};
+  background: ${COLORS.gray};
 
   /* make footer stick to the bottom */
   grid-row-start: 3;

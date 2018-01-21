@@ -12,7 +12,7 @@ export const Card = styled.div`
   position: relative;
   z-index: 0;
 
-  @media screen and (min-width: 600px) {
+  @media screen and (min-width: 1024px) {
     margin-bottom: 24px;
   }
 `;
