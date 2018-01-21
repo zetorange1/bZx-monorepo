@@ -1,6 +1,8 @@
-import Section, { SectionLabel, Divider } from "../../common/FormSection";
+import { Divider } from "../../common/FormSection";
 
-import EtherSection from "./Ether";
+import Ether from "./Ether";
+import TrackedTokens from "./TrackedTokens";
+import AddToken from "./AddToken";
 
 export default class Balances extends React.Component {
   state = {};
@@ -8,24 +10,11 @@ export default class Balances extends React.Component {
   render() {
     return (
       <div>
-        <EtherSection />
+        <Ether />
         <Divider />
-        <Section>
-          <SectionLabel>Tracked tokens</SectionLabel>
-          <div>
-            <p>TODO — show list of tokens currently tracked</p>
-          </div>
-        </Section>
+        <TrackedTokens />
         <Divider />
-        <Section>
-          <SectionLabel>Add new tracked token</SectionLabel>
-          <div>
-            <p>
-              TODO — show a token picker with list of tokens not currently
-              tracked
-            </p>
-          </div>
-        </Section>
+        <AddToken />
       </div>
     );
   }
