@@ -34611,10 +34611,10 @@ var B0xJS = function () {
       _assert.assert.assert(!hasValidationErrors, msg);
     }
   }, {
-    key: 'getLendOrderHashHex',
-    value: function getLendOrderHashHex(order) {
-      this.doesConformToSchema('lendOrder', order, _b0x_json_schemas.schemas.lendOrderSchema);
-      var orderHashHex = utils.getLendOrderHashHex(order);
+    key: 'getLoanOrderHashHex',
+    value: function getLoanOrderHashHex(order) {
+      this.doesConformToSchema('loanOrder', order, _b0x_json_schemas.schemas.loanOrderSchema);
+      var orderHashHex = utils.getLoanOrderHashHex(order);
       return orderHashHex;
     }
   }]);
@@ -50999,8 +50999,8 @@ exports.schemas = {
   addressSchema: basic_type_schemas_1.addressSchema,
   ecSignatureSchema: ec_signature_schema_1.ecSignatureSchema,
   ecSignatureParameterSchema: ec_signature_schema_1.ecSignatureParameterSchema,
-  lendOrderSchema: order_schemas_1.lendOrderSchema,
-  signedLendOrderSchema: order_schemas_1.signedLendOrderSchema
+  loanOrderSchema: order_schemas_1.loanOrderSchema,
+  signedLoanOrderSchema: order_schemas_1.signedLoanOrderSchema
 };
 
 var SchemaValidator = function () {
@@ -51037,8 +51037,8 @@ exports.SchemaValidator = SchemaValidator;
 "use strict";
 
 
-exports.lendOrderSchema = {
-  id: '/lendOrder',
+exports.loanOrderSchema = {
+  id: '/loanOrder',
   properties: {
     b0x: { $ref: '/Address' },
     maker: { $ref: '/Address' },
@@ -51059,9 +51059,9 @@ exports.lendOrderSchema = {
   required: ['b0x', 'maker', 'lendTokenAddress', 'interestTokenAddress', 'collateralTokenAddress', 'feeRecipientAddress', 'oracleAddress', 'lendTokenAmount', 'interestAmount', 'initialMarginAmount', 'liquidationMarginAmount', 'lenderRelayFee', 'traderRelayFee', 'expirationUnixTimestampSec', 'salt'],
   type: 'object'
 };
-exports.signedLendOrderSchema = {
-  id: '/signedLendOrder',
-  allOf: [{ $ref: '/lendOrder' }, {
+exports.signedLoanOrderSchema = {
+  id: '/signedLoanOrder',
+  allOf: [{ $ref: '/loanOrder' }, {
     properties: {
       ecSignature: { $ref: '/ECSignature' }
     },
@@ -51079,7 +51079,7 @@ exports.signedLendOrderSchema = {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.getLendOrderHashHex = exports.generatePseudoRandomSalt = exports.bigNumberToBN = exports.noop = undefined;
+exports.getLoanOrderHashHex = exports.generatePseudoRandomSalt = exports.bigNumberToBN = exports.noop = undefined;
 
 var _bignumber = __webpack_require__(158);
 
@@ -51120,7 +51120,7 @@ var generatePseudoRandomSalt = exports.generatePseudoRandomSalt = function gener
   return salt;
 };
 
-var getLendOrderHashHex = exports.getLendOrderHashHex = function getLendOrderHashHex(order) {
+var getLoanOrderHashHex = exports.getLoanOrderHashHex = function getLoanOrderHashHex(order) {
   var orderAddrs = [order.maker, order.lendTokenAddress, order.interestTokenAddress, order.collateralTokenAddress, order.feeRecipientAddress, order.oracleAddress];
   var orderUints = [bigNumberToBN(order.lendTokenAmount), bigNumberToBN(order.interestAmount), bigNumberToBN(order.initialMarginAmount), bigNumberToBN(order.liquidationMarginAmount), bigNumberToBN(order.lenderRelayFee), bigNumberToBN(order.traderRelayFee), bigNumberToBN(order.expirationUnixTimestampSec), bigNumberToBN(order.salt)];
   var orderHashHex = _web3Utils2.default.soliditySha3({ t: 'address', v: order.b0x }, { t: 'address[6]', v: orderAddrs }, { t: 'uint256[8]', v: orderUints });

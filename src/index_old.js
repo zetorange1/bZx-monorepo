@@ -75,7 +75,7 @@ export default class B0xJS { // extends ZeroEx {
   } */
 
   constructor() {
-    this.getLendOrderHashHex = this.getLendOrderHashHex.bind(this);
+    this.getLoanOrderHashHex = this.getLoanOrderHashHex.bind(this);
   }
 
   doesConformToSchema(variableName, value, schema) {
@@ -86,8 +86,8 @@ export default class B0xJS { // extends ZeroEx {
     assert.assert(!hasValidationErrors, msg);
   }
 
-  getLendOrderHashHex(order) {
-    this.doesConformToSchema('lendOrder', order, schemas.lendOrderSchema);
+  getLoanOrderHashHex(order) {
+    this.doesConformToSchema('loanOrder', order, schemas.loanOrderSchema);
     const orderParams = [
       { value: order.b0x, type: types_1.SolidityTypes.Address },
       { value: order.maker, type: types_1.SolidityTypes.Address },
@@ -117,7 +117,7 @@ export default class B0xJS { // extends ZeroEx {
     There may be an easier way to implement this than below
 
 
-    signLendOrderHashAsync = function (orderHash, signerAddress) {
+    signLoanOrderHashAsync = function (orderHash, signerAddress) {
     return ZeroEx.prototype.__awaiter(this, void 0, void 0, function () {
       var msgHashHex, nodeVersion, isParityNode, isTestRpc, orderHashBuff, msgHashBuff, signature, validVParamValues, ecSignatureVRS, isValidVRSSignature, ecSignatureRSV, isValidRSVSignature;
       return __generator(this, function (_a) {

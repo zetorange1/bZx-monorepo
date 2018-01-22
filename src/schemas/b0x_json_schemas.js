@@ -13,8 +13,8 @@ exports.schemas = {
   addressSchema: basic_type_schemas_1.addressSchema,
   ecSignatureSchema: ec_signature_schema_1.ecSignatureSchema,
   ecSignatureParameterSchema: ec_signature_schema_1.ecSignatureParameterSchema,
-  lendOrderSchema: order_schemas_1.lendOrderSchema,
-  signedLendOrderSchema: order_schemas_1.signedLendOrderSchema,
+  loanOrderSchema: order_schemas_1.loanOrderSchema,
+  signedLoanOrderSchema: order_schemas_1.signedLoanOrderSchema,
 };
 
 const SchemaValidator = (function () {

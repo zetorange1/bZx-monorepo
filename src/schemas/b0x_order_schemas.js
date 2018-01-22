@@ -1,6 +1,6 @@
 
-exports.lendOrderSchema = {
-  id: '/lendOrder',
+exports.loanOrderSchema = {
+  id: '/loanOrder',
   properties: {
     b0x: { $ref: '/Address' },
     maker: { $ref: '/Address' },
@@ -25,10 +25,10 @@ exports.lendOrderSchema = {
   ],
   type: 'object',
 };
-exports.signedLendOrderSchema = {
-  id: '/signedLendOrder',
+exports.signedLoanOrderSchema = {
+  id: '/signedLoanOrder',
   allOf: [
-    { $ref: '/lendOrder' },
+    { $ref: '/loanOrder' },
     {
       properties: {
         ecSignature: { $ref: '/ECSignature' },

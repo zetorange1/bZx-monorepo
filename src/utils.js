@@ -24,7 +24,7 @@ export const generatePseudoRandomSalt = () => {
   return salt;
 };
 
-export const getLendOrderHashHex = (order) => {
+export const getLoanOrderHashHex = (order) => {
   const orderAddrs = [
     order.maker,
     order.lendTokenAddress,

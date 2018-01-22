@@ -23,9 +23,9 @@ export default class B0xJS {
     assert.assert(!hasValidationErrors, msg);
   }
 
-  static getLendOrderHashHex(order) {
-    this.doesConformToSchema('lendOrder', order, schemas.lendOrderSchema);
-    const orderHashHex = utils.getLendOrderHashHex(order);
+  static getLoanOrderHashHex(order) {
+    this.doesConformToSchema('loanOrder', order, schemas.loanOrderSchema);
+    const orderHashHex = utils.getLoanOrderHashHex(order);
     return orderHashHex;
   }
 }

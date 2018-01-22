@@ -507,7 +507,7 @@ contract('B0xTest', function(accounts) {
   });
   */
 
-  it("should generate lendOrderHash (as lender)", function(done) {
+  it("should generate loanOrderHash (as lender)", function(done) {
     var salt = generatePseudoRandomSalt().toString();
     salt = salt.substring(0,salt.length-10);
 
@@ -528,12 +528,12 @@ contract('B0xTest', function(accounts) {
       "salt": salt
     };
     console.log(orderParams);
-    let expectedHash = brokerjs.getLendOrderHashHex(orderParams);
+    let expectedHash = brokerjs.getLoanOrderHashHex(orderParams);
     console.log("js hash: "+expectedHash);
     //console.log(salt);
     //console.log(expirationUnixTimestampSec);
     //console.log(orderParams);
-    broker.getLendOrderHash.call(
+    broker.getLoanOrderHash.call(
       [
         orderParams["maker"],
         orderParams["lendTokenAddress"],
@@ -553,7 +553,7 @@ contract('B0xTest', function(accounts) {
     ]).then(function(orderHash) {
       console.log("sol hash: "+orderHash);
       sample_orderhash = orderHash;
-      assert.equal(orderHash, expectedHash, "expectedHash should equal returned lendOrderHash");
+      assert.equal(orderHash, expectedHash, "expectedHash should equal returned loanOrderHash");
       done();
     }, function(error) {
       console.error(error);
@@ -688,7 +688,7 @@ contract('B0xTest', function(accounts) {
   });*/
 
   it("should take sample lender order as trader", function(done) {
-    broker.takeLendOrderAsTrader(
+    broker.takeLoanOrderAsTrader(
       [
         orderParams["maker"],
         orderParams["lendTokenAddress"],
