@@ -91,11 +91,11 @@ export default class B0xJS { // extends ZeroEx {
     const orderParams = [
       { value: order.b0x, type: types_1.SolidityTypes.Address },
       { value: order.maker, type: types_1.SolidityTypes.Address },
-      { value: order.lendTokenAddress, type: types_1.SolidityTypes.Address },
+      { value: order.loanTokenAddress, type: types_1.SolidityTypes.Address },
       { value: order.interestTokenAddress, type: types_1.SolidityTypes.Address },
       { value: order.collateralTokenAddress, type: types_1.SolidityTypes.Address },
       { value: order.feeRecipientAddress, type: types_1.SolidityTypes.Address },
-      { value: utils.bigNumberToBN(order.lendTokenAmount), type: types_1.SolidityTypes.Uint256 },
+      { value: utils.bigNumberToBN(order.loanTokenAmount), type: types_1.SolidityTypes.Uint256 },
       { value: utils.bigNumberToBN(order.interestAmount), type: types_1.SolidityTypes.Uint256 },
       { value: utils.bigNumberToBN(order.initialMarginAmount), type: types_1.SolidityTypes.Uint256 },
       { value: utils.bigNumberToBN(order.liquidationMarginAmount), type: types_1.SolidityTypes.Uint256 },

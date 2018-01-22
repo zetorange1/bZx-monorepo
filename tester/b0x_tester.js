@@ -514,11 +514,11 @@ contract('B0xTest', function(accounts) {
     orderParams = {
       "b0x": broker.address,
       "maker": accounts[1], // lender
-      "lendTokenAddress": tom_token.address,
+      "loanTokenAddress": tom_token.address,
       "interestTokenAddress": bean_token.address,
       "collateralTokenAddress": bean_token.address,
       "feeRecipientAddress": accounts[9],
-      "lendTokenAmount": web3.toWei(1000000, "ether").toString(),
+      "loanTokenAmount": web3.toWei(1000000, "ether").toString(),
       "interestAmount": web3.toWei(2, "ether").toString(), // 2 token units per day
       "initialMarginAmount": "50", // 50%
       "liquidationMarginAmount": "25", // 25%
@@ -536,13 +536,13 @@ contract('B0xTest', function(accounts) {
     broker.getLoanOrderHash.call(
       [
         orderParams["maker"],
-        orderParams["lendTokenAddress"],
+        orderParams["loanTokenAddress"],
         orderParams["interestTokenAddress"],
         orderParams["collateralTokenAddress"],
         orderParams["feeRecipientAddress"]
       ],
       [
-        new BN(orderParams["lendTokenAmount"]),
+        new BN(orderParams["loanTokenAmount"]),
         new BN(orderParams["interestAmount"]),
         new BN(orderParams["initialMarginAmount"]),
         new BN(orderParams["liquidationMarginAmount"]),
@@ -691,13 +691,13 @@ contract('B0xTest', function(accounts) {
     broker.takeLoanOrderAsTrader(
       [
         orderParams["maker"],
-        orderParams["lendTokenAddress"],
+        orderParams["loanTokenAddress"],
         orderParams["interestTokenAddress"],
         orderParams["collateralTokenAddress"],
         orderParams["feeRecipientAddress"]
       ],
       [
-        new BN(orderParams["lendTokenAmount"]),
+        new BN(orderParams["loanTokenAmount"]),
         new BN(orderParams["interestAmount"]),
         new BN(orderParams["initialMarginAmount"]),
         new BN(orderParams["liquidationMarginAmount"]),

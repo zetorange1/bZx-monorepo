@@ -272,7 +272,7 @@
           "type": "address"
         },
         {
-          "name": "lendTokenAmountFilled",
+          "name": "loanTokenAmountFilled",
           "type": "uint256"
         },
         {
@@ -322,7 +322,7 @@
           "type": "uint256"
         },
         {
-          "name": "lendTokenAmountFilled",
+          "name": "loanTokenAmountFilled",
           "type": "uint256"
         },
         {
@@ -483,7 +483,7 @@
           "type": "address"
         },
         {
-          "name": "lendTokenAddress",
+          "name": "loanTokenAddress",
           "type": "address"
         },
         {
@@ -499,7 +499,7 @@
           "type": "address"
         },
         {
-          "name": "lendTokenAmount",
+          "name": "loanTokenAmount",
           "type": "uint256"
         },
         {
@@ -608,7 +608,7 @@
           "type": "bytes32"
         }
       ],
-      "name": "getUnavailableLendTokenAmount",
+      "name": "getUnavailableLoanTokenAmount",
       "outputs": [
         {
           "name": "",
@@ -750,7 +750,7 @@
         },
         {
           "indexed": false,
-          "name": "lendTokenAddress",
+          "name": "loanTokenAddress",
           "type": "address"
         },
         {
@@ -765,7 +765,7 @@
         },
         {
           "indexed": false,
-          "name": "lendTokenAmountFilled",
+          "name": "loanTokenAmountFilled",
           "type": "uint256"
         },
         {
