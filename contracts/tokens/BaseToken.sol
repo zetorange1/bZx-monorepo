@@ -1,8 +1,9 @@
 pragma solidity ^0.4.4;
 
-import './UnlimitedAllowanceToken.sol';
+//import './UnlimitedAllowanceToken.sol';
+import '../simulations/ERC20_AlwaysOwned.sol'; // Testing only! Please remove below and use above for production!
 
-contract BaseToken is UnlimitedAllowanceToken {
+contract BaseToken is ERC20_AlwaysOwned {
     string public name;
     uint8 public decimals;
     string public symbol;

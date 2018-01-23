@@ -767,7 +767,7 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
             return intOrRevert(0);
         }
 
-        uint collateralTokenAddressAmountFilled = _initialMargin(loanOrder.initialMarginAmount, marginToLendRate, loanTokenAmountFilled);
+        uint collateralTokenAmountFilled = _initialMargin(loanOrder.initialMarginAmount, marginToLendRate, loanTokenAmountFilled);
 
         uint paidTraderFee;
         uint paidLenderFee;
@@ -777,7 +777,7 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
         orderList[trader].push(loanOrder.orderHash);
 
         loan.lender = lender;
-        loan.collateralTokenAddressAmountFilled = collateralTokenAddressAmountFilled;
+        loan.collateralTokenAmountFilled = collateralTokenAmountFilled;
         loan.loanTokenAmountFilled = loanTokenAmountFilled;
         loan.filledUnixTimestampSec = block.timestamp;
         loan.listPosition = orderList[trader].length-1;
@@ -787,7 +787,7 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
         if (! B0xVault(VAULT_CONTRACT).storeMargin(
             loanOrder.collateralTokenAddress,
             trader,
-            collateralTokenAddressAmountFilled
+            collateralTokenAmountFilled
         )) {
             LogErrorText("error: unable to transfer enough collateralTokenAddress", 0, loanOrder.orderHash);
             return intOrRevert(loanTokenAmountFilled);
@@ -929,9 +929,9 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
         uint loanTokenAmountFilled)
         internal
         pure
-        returns (uint collateralTokenAddressAmountFilled)
+        returns (uint collateralTokenAmountFilled)
     {
-        collateralTokenAddressAmountFilled = (loanTokenAmountFilled * marginToLendRate * initialMarginAmount / 100);// / PRECISION;
+        collateralTokenAmountFilled = (loanTokenAmountFilled * marginToLendRate * initialMarginAmount / 100);// / PRECISION;
     }
     
     function _totalInterestRequired(

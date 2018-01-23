@@ -21,7 +21,7 @@ contract B0xTypes {
 
     struct Loan {
         address lender;
-        uint collateralTokenAddressAmountFilled;
+        uint collateralTokenAmountFilled;
         uint loanTokenAmountFilled;
         uint filledUnixTimestampSec;
         uint listPosition;
