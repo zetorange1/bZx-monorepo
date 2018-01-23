@@ -2,14 +2,14 @@ pragma solidity ^0.4.9;
 
 contract B0xTypes {
     
-    struct LendOrder {
+    struct LoanOrder {
         address maker;
-        address lendTokenAddress;
+        address loanTokenAddress;
         address interestTokenAddress;
         address collateralTokenAddress;
         address feeRecipientAddress;
         address oracleAddress;
-        uint lendTokenAmount;
+        uint loanTokenAmount;
         uint interestAmount;
         uint initialMarginAmount;
         uint liquidationMarginAmount;
@@ -19,18 +19,21 @@ contract B0xTypes {
         bytes32 orderHash;
     }
 
-    struct FilledOrder {
+    struct Loan {
         address lender;
         uint collateralTokenAddressAmountFilled;
-        uint lendTokenAmountFilled;
+        uint loanTokenAmountFilled;
         uint filledUnixTimestampSec;
+        uint listPosition;
+        bool active;
     }
 
     struct Trade {
         address tradeTokenAddress;
         uint tradeTokenAmount;
-        uint lendTokenUsedAmount;
+        uint loanTokenUsedAmount;
         uint filledUnixTimestampSec;
+        uint listPosition;
         bool active;
     }
 

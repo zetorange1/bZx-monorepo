@@ -11,13 +11,6 @@ contract B0xVault is B0xOwnable {
 
     event LogErrorText(string errorTxt, uint errorValue);
 
-
-/*
-    mapping (address => mapping (address => uint)) public marginWallet; // mapping of token addresses to mapping of accounts to margin trading wallet balance available for usage
-    mapping (address => mapping (address => uint)) public fundingWallet; // mapping of token addresses to mapping of accounts to margin funding wallet balances
-    mapping (address => mapping (address => uint)) public usedMargin; // mapping of token addresses to mapping of accounts to margin in use
-    mapping (address => mapping (address => uint)) public usedFunding; // mapping of token addresses to mapping of accounts to funding in use
- */
     mapping (address => mapping (address => uint)) public margin; // mapping of token addresses to mapping of accounts to margin
     mapping (address => mapping (address => uint)) public funding; // mapping of token addresses to mapping of accounts to funding
     mapping (address => mapping (address => uint)) public interest; // mapping of token addresses to mapping of accounts to interest
@@ -29,107 +22,17 @@ contract B0xVault is B0xOwnable {
     // Only the owner (b0x contract) can directly deposit ether
     function() public payable onlyB0x {}
 
-    // note: this overrides current approval amount
-    function setTokenApproval(address token_, address user_, uint amount_) public onlyB0x returns (bool) { 
-        require(token_ != address(0));
-
-        uint allowance = EIP20(token_).allowance(this, user_);
-        if (allowance == amount_) {
-            return true;
-        }
-
-        if (allowance != 0) {
-            require(EIP20(token_).approve(user_, 0)); // required to change approval
-        }
-        require(EIP20(token_).approve(user_, amount_));
-
-        return true;
-    }
-
-    /*function depositEtherMargin(address user_) public onlyB0x payable returns (uint) {        
-        marginWallet[0][user_] = marginWallet[0][user_].add(msg.value);
-        return marginWallet[0][user_];
-    }
-    function depositEtherFunding(address user_) public onlyB0x payable returns (uint) {
-        fundingWallet[0][user_] = fundingWallet[0][user_].add(msg.value);
-        return fundingWallet[0][user_];
-    }*/
-    /*function depositTokenMargin(address token_, address user_, uint amount_) public onlyB0x returns (uint) {        
-        require(token_ != address(0));
-        
-        marginWallet[token_][user_] = marginWallet[token_][user_].add(amount_);
-        return marginWallet[token_][user_];
-    }
-    function depositTokenFunding(address token_, address user_, uint amount_) public onlyB0x returns (uint) {        
-        require(token_ != address(0));
-        
-        fundingWallet[token_][user_] = fundingWallet[token_][user_].add(amount_);
-        return fundingWallet[token_][user_];
-    }*/
-
-
-    /*function withdrawEtherMargin(address user_, uint amount_) public onlyB0x returns (uint) {
-        marginWallet[0][user_] = marginWallet[0][user_].sub(amount_);
-        require(user_.call.value(amount_)());
-         // or? if (!user_.send(amount)) revert();
-        return marginWallet[0][user_];
-    }
-    function withdrawEtherFunding(address user_, uint amount_) public onlyB0x returns (uint) {
-        fundingWallet[0][user_] = fundingWallet[0][user_].sub(amount_);
-        require(user_.call.value(amount_)());
-         // or? if (!user_.send(amount)) revert();
-        return fundingWallet[0][user_];
-    }*/
-    /*function withdrawTokenMargin(address token_, address user_, uint amount_) public onlyB0x returns (uint) {
-        require(token_ != address(0));
-        
-        marginWallet[token_][user_] = marginWallet[token_][user_].sub(amount_);
-        require(EIP20(token_).transfer(user_, amount_));
-        return marginWallet[token_][user_]; 
-    }
-    function withdrawTokenFunding(address token_, address user_, uint amount_) public onlyB0x returns (uint) {
-        require(token_ != address(0));
-        
-        fundingWallet[token_][user_] = fundingWallet[token_][user_].sub(amount_);
-        require(EIP20(token_).transfer(user_, amount_));
-        return fundingWallet[token_][user_]; 
-    }*/
-
-    /*function transferOutTokenMargin(address token_, address from_, address to_, uint amount_) public onlyB0x returns (bool) {
-        require(token_ != address(0));
-        
-        marginWallet[token_][from_] = marginWallet[token_][from_].sub(amount_);
-        require(EIP20(token_).transfer(to_, amount_));
-        return true; 
-    }
-    function transferOutTokenFunding(address token_, address from_, address to_, uint amount_) public onlyB0x returns (bool) {
-        require(token_ != address(0));
-        
-        fundingWallet[token_][from_] = fundingWallet[token_][from_].sub(amount_);
-        require(EIP20(token_).transfer(to_, amount_));
-        return true; 
-    }*/
-
     function marginBalanceOf(address token_, address user_) public constant returns (uint balance) {
         return margin[token_][user_];
     }
-    /*function usedMarginBalanceOf(address token_, address user_) public constant returns (uint balance) {
-        return usedMargin[token_][user_];
-    }*/
 
     function fundingBalanceOf(address token_, address user_) public constant returns (uint balance) {
         return funding[token_][user_];
     }
-    /*function usedFundingBalanceOf(address token_, address user_) public constant returns (uint balance) {
-        return usedFunding[token_][user_];
-    }*/
 
     function interestBalanceOf(address token_, address user_) public constant returns (uint balance) {
         return interest[token_][user_];
     }
-    /*function usedInterestBalanceOf(address token_, address user_) public constant returns (uint balance) {
-        return usedInterest[token_][user_];
-    }*/
 
     function storeMargin(
         address token,
@@ -207,8 +110,7 @@ contract B0xVault is B0xOwnable {
         return true;
     }
 
-
-    // Interest payment distributions are the responsibility of the Oracle used for the lendOrder.
+    // Interest payment distributions are the responsibility of the Oracle used for the loanOrder.
     // This function can only be called by b0x, to transfer interest to the Oracle for further processing.
     function sendInterestToOracle(
         address fromUser,
@@ -230,16 +132,16 @@ contract B0xVault is B0xOwnable {
         return true;
     }
 
-    function ensureTokenAndPayValue(
+    function transferFrom(
         address token,
-        address user,
+        address from,
         address to,        
         uint value)
         public
         onlyB0x
         returns (bool)
     {
-        if (!EIP20(token).transferFrom(user, to, value))
+        if (!EIP20(token).transferFrom(from, to, value))
             revert();
 
         return true;
@@ -248,17 +150,6 @@ contract B0xVault is B0xOwnable {
 }
 
 /*
-    function transferTokenViaVault(
-        address token,
-        address from,
-        address to,
-        uint amount)
-        internal
-        returns (bool)
-    {
-        return B0xVault(VAULT_CONTRACT).transferFrom(token, from, to, amount);
-    }
-
     /// @dev Get token balance of an address.
     /// @param token Address of token.
     /// @param owner Address of owner.
@@ -282,7 +173,4 @@ contract B0xVault is B0xOwnable {
     {
         return EIP20(token).allowance.gas(EXTERNAL_QUERY_GAS_LIMIT)(owner, VAULT_CONTRACT); // Limit gas to prevent reentrancy
     }
-
-
-
 */

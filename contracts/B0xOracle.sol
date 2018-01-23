@@ -2,15 +2,16 @@ pragma solidity ^0.4.9;
 //pragma experimental ABIEncoderV2;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import './B0xOwnable.sol';
 
 import './EMACollector.sol';
 import './GasRefunder.sol';
 import './B0xVault.sol';
 import './B0xTypes.sol';
+import './Helpers.sol';
 
-import './interfaces/B0x_Oracle_Interface.sol';
 import './interfaces/EIP20.sol';
+import './interfaces/B0x_Oracle_Interface.sol';
 
 import './simulations/KyberWrapper.sol';
 
@@ -25,30 +26,26 @@ B0xOracle liquidation should be called from B0x
  also: fix GasRefunder.. from solidity doc:
  Symbols introduced in the modifier are not visible in the function (as they might change by overriding).!!!
 */
-import './B0x_Interface.sol';/// <--- maybe get rid of this
+//import './B0x_Interface.sol';/// <--- maybe get rid of this
 
-contract B0xOracle is Ownable, EMACollector, GasRefunder, B0xTypes, B0x_Oracle_Interface {
+contract B0xOracle is B0x_Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Helpers, B0xOwnable {
     using SafeMath for uint256;
     
     // Percentage of interest retained as fee
     // Must be between 0 and 100
     uint8 public interestFeeRate = 10;
 
-    address public B0X_CONTRACT;
-
-    address public VAULT_CONTRACT;
     address public KYBER_CONTRACT;
 
-    function() public payable onlyOwner {}
+    // Only the owner (b0x contract) can directly deposit ether
+    function() public payable {}
 
-    function B0xOracle (
-        address _b0x_contract,
+    function B0xOracle(
         address _vault_contract,
-        address _kyber_contract
-    ) 
+        address _kyber_contract) 
         public
-        payable {
-        B0X_CONTRACT = _b0x_contract;
+        payable
+    {
         VAULT_CONTRACT = _vault_contract;
         KYBER_CONTRACT = _kyber_contract;
 
@@ -56,54 +53,59 @@ contract B0xOracle is Ownable, EMACollector, GasRefunder, B0xTypes, B0x_Oracle_I
         // settings for EMACollector
         emaValue = 20 * 10**9 wei; // set an initial price average for gas (20 gwei)
         emaPeriods = 10; // set periods to use for EMA calculation
-
-        // settings for GasRefunder
-        throwOnGasRefundFail = false; // don't revert state if there's a failure with the gas refund
     }
 
     function orderIsTaken(
-        bytes32 lendOrderHash,
+        address taker,
+        bytes32 loanOrderHash,
         uint gasUsed)
         public
-        refundsGas(emaValue, gasUsed) // refunds based on collected gas price EMA
+        onlyB0x
+        refundsGas(taker, emaValue, gasUsed) // refunds based on collected gas price EMA
         updatesEMA(tx.gasprice) {
 
         return;
     }
 
     function tradeIsOpened(
-        bytes32 lendOrderHash,
+        bytes32 loanOrderHash,
         address trader,
         address tradeTokenAddress,
         uint tradeTokenAmount,
         uint gasUsed)
         public
+        onlyB0x
         updatesEMA(tx.gasprice) {
 
         return;
     }
 
     function interestIsPaid(
-        bytes32 lendOrderHash,
-        address trader, // trader
+        bytes32 loanOrderHash,
+        address trader,
         address interestTokenAddress,
-        uint amount,
+        uint amountOwed,
         uint gasUsed)
         public
+        onlyB0x
         updatesEMA(tx.gasprice) {
+
+        // interestFeeRate is only editable by ower
+        //uint interestFee = amountOwed * interestFeeRate / 100;
+
 
     }
 
 
-
     function closeTrade(
-        bytes32 lendOrderHash)
+        bytes32 loanOrderHash)
         public
+        onlyB0x
         returns (bool tradeSuccess)
     {
-        Trade memory activeTrade = TradeStruct(lendOrderHash, msg.sender);
+        Trade memory activeTrade = TradeStruct(loanOrderHash, msg.sender);
         if (!activeTrade.active) {
-            //LogErrorText("error: trade not found or not active", 0, lendOrderHash);
+            //LogErrorText("error: trade not found or not active", 0, loanOrderHash);
             //return boolOrRevert(false);
             return false;
         }
@@ -112,25 +114,26 @@ contract B0xOracle is Ownable, EMACollector, GasRefunder, B0xTypes, B0x_Oracle_I
     }
 
     function liquidateTrade(
-        bytes32 lendOrderHash,
+        bytes32 loanOrderHash,
         address trader)
         public
-        //refundsGas(B0x_Interface(B0X_CONTRACT).emaValue()) // refunds based on collected gas price EMA
+        onlyB0x
+        //refundsGas(taker, emaValue, gasUsed) // refunds based on collected gas price EMA
         returns (bool tradeSuccess)
     {
         // traders should call closeTrade to close their own trades
         require(trader != msg.sender);
         
-        Trade memory activeTrade = TradeStruct(lendOrderHash, trader);
+        Trade memory activeTrade = TradeStruct(loanOrderHash, trader);
         if (!activeTrade.active) {
-            //LogErrorText("error: trade not found or not active", 0, lendOrderHash);
+            //LogErrorText("error: trade not found or not active", 0, loanOrderHash);
             //return boolOrRevert(false);
             return false;
         }
 
-        uint liquidationLevel = getMarginRatio(lendOrderHash, trader);
+        uint liquidationLevel = getMarginRatio(loanOrderHash, trader);
         if (liquidationLevel > 100) {
-            //LogErrorText("error: margin above liquidation level", liquidationLevel, lendOrderHash);
+            //LogErrorText("error: margin above liquidation level", liquidationLevel, loanOrderHash);
             //return boolOrRevert(false);
             return false;
         }
@@ -148,98 +151,96 @@ contract B0xOracle is Ownable, EMACollector, GasRefunder, B0xTypes, B0x_Oracle_I
 
 
     function getMarginRatio(
-        bytes32 lendOrderHash,
+        bytes32 loanOrderHash,
         address trader)
         public
         view
         returns (uint level)
     {
         level = 200;
-
         /*
-        TODO: how will I change this section?
+        TODO: convert the strunct fuction to build from the raw bytes
         
-        LendOrder memory lendOrder = LendOrderStruct(lendOrderHash);
-        if (lendOrder.orderHash != lendOrderHash) {
-            //LogErrorText("error: invalid lend order", 0, lendOrderHash);
+        LoanOrder memory loanOrder = LoanOrderStruct(loanOrderHash);
+        if (loanOrder.orderHash != loanOrderHash) {
+            //LogErrorText("error: invalid lend order", 0, loanOrderHash);
             //return intOrRevert(999);
             return 999;
         }
 
-        FilledOrder memory filledOrder = FilledOrderStruct(lendOrderHash, trader);
-        if (filledOrder.lendTokenAmountFilled == 0) {
-            //LogErrorText("error: filled order not found for specified lendOrder and trader", 0, lendOrderHash);
+        Loan memory loan = LoanStruct(loanOrderHash, trader);
+        if (loan.loanTokenAmountFilled == 0) {
+            //LogErrorText("error: loan not found for specified loanOrder and trader", 0, loanOrderHash);
             //return intOrRevert(999);
             return 999;
         }
 
-        Trade memory activeTrade = TradeStruct(lendOrderHash, trader);
+        Trade memory activeTrade = TradeStruct(loanOrderHash, trader);
         if (!activeTrade.active) {
-            //LogErrorText("error: trade not found or not active", 0, lendOrderHash);
+            //LogErrorText("error: trade not found or not active", 0, loanOrderHash);
             //return intOrRevert(999);
             return 999;
         }
 
         var (marginToLendRate, tradeToMarginRate) = getRateData(
-            activeTrade.tradeTokenAddress,//lendOrder.lendTokenAddress,
-            activeTrade.tradeTokenAddress,//lendOrder.collateralTokenAddress,
+            activeTrade.tradeTokenAddress,//loanOrder.loanTokenAddress,
+            activeTrade.tradeTokenAddress,//loanOrder.collateralTokenAddress,
             activeTrade.tradeTokenAddress
         );
         if (marginToLendRate == 0) {
-            //LogErrorText("error: conversion rate from collateralTokenAddress to lendToken is 0 or not found", 0, lendOrderHash);
+            //LogErrorText("error: conversion rate from collateralTokenAddress to loanToken is 0 or not found", 0, loanOrderHash);
             //return intOrRevert(999);
             return 999;
         }
         if (tradeToMarginRate == 0) {
-            //LogErrorText("error: conversion rate from tradeToken to collateralTokenAddress is 0 or not found", 0, lendOrderHash);
+            //LogErrorText("error: conversion rate from tradeToken to collateralTokenAddress is 0 or not found", 0, loanOrderHash);
             //return intOrRevert(999);
             return 999;
         }
 
         uint currentMarginPercent = (activeTrade.tradeTokenAmountFilled / 
-                        //(B0xVault(VAULT_CONTRACT).marginBalanceOf(lendOrder.collateralTokenAddress, trader) * tradeToMarginRate)) * 100;
+                        //(B0xVault(VAULT_CONTRACT).marginBalanceOf(loanOrder.collateralTokenAddress, trader) * tradeToMarginRate)) * 100;
                         (B0xVault(VAULT_CONTRACT).marginBalanceOf(activeTrade.tradeTokenAddress, trader) * tradeToMarginRate)) * 100;
         
         // a level <= 100 means the order should be liquidated        
-        //level = currentMarginPercent - lendOrder.liquidationMarginAmount + 100;
+        //level = currentMarginPercent - loanOrder.liquidationMarginAmount + 100;
         level = currentMarginPercent - 5 + 100;
-
         */
     }
 
     function shouldLiquidate(
-        bytes32 lendOrderHash,
+        bytes32 loanOrderHash,
         address trader)
         public
         view
         returns (bool)
     {
-        return (getMarginRatio(lendOrderHash, trader) <= 100);
+        return (getMarginRatio(loanOrderHash, trader) <= 100);
     }
 
     function getRateData(
-        address lendTokenAddress,
+        address loanTokenAddress,
         address collateralTokenAddress,
         address tradeTokenAddress)
         public 
         view 
         returns (uint marginToLendRate, uint tradeToMarginRate)
     {   
-        uint lendTokenDecimals = getDecimals(EIP20(lendTokenAddress));
+        uint loanTokenDecimals = getDecimals(EIP20(loanTokenAddress));
         uint collateralTokenAddressDecimals = getDecimals(EIP20(collateralTokenAddress));
         uint tradeTokenDecimals;
 
         if (tradeTokenAddress != address(0)) {
             tradeTokenDecimals = getDecimals(EIP20(tradeTokenAddress));
 
-            marginToLendRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, lendTokenAddress)
-                                     * (10**lendTokenDecimals)) / (10**collateralTokenAddressDecimals);
+            marginToLendRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, loanTokenAddress)
+                                     * (10**loanTokenDecimals)) / (10**collateralTokenAddressDecimals);
             
             tradeToMarginRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(tradeTokenAddress, collateralTokenAddress)
                                      * (10**collateralTokenAddressDecimals)) / (10**tradeTokenDecimals);
         } else {
-            marginToLendRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, lendTokenAddress)
-                                     * (10**lendTokenDecimals)) / (10**collateralTokenAddressDecimals);
+            marginToLendRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, loanTokenAddress)
+                                     * (10**loanTokenDecimals)) / (10**collateralTokenAddressDecimals);
 
             tradeToMarginRate = 0;
         }
@@ -247,55 +248,60 @@ contract B0xOracle is Ownable, EMACollector, GasRefunder, B0xTypes, B0x_Oracle_I
 
     // helpers
 
-    function LendOrderStruct (
-        bytes32 lendOrderHash
+    function LoanOrderStruct (
+        bytes32 loanOrderHash
     )
         internal
         view
-        returns (LendOrder)
+        returns (LoanOrder)
     {
-        var (addrs,uints) = B0x_Interface(B0X_CONTRACT).getLendOrder(lendOrderHash);
+        return;
+        /*
+        var (addrs,uints) = B0x_Interface(B0X_CONTRACT).getLoanOrder(loanOrderHash);
         
-        return LendOrder({
+        return LoanOrder({
             maker: addrs[0],
-            lendTokenAddress: addrs[1],
+            loanTokenAddress: addrs[1],
             interestTokenAddress: addrs[2],
             collateralTokenAddress: addrs[3],
             feeRecipientAddress: addrs[4],
             oracleAddress: addrs[5],
-            lendTokenAmount: uints[0],
+            loanTokenAmount: uints[0],
             interestAmount: uints[1],
             initialMarginAmount: uints[2],
             liquidationMarginAmount: uints[3],
             lenderRelayFee: uints[4],
             traderRelayFee: uints[5],
             expirationUnixTimestampSec: uints[6],
-            orderHash: lendOrderHash
-        });
+            orderHash: loanOrderHash
+        });*/
     }
     
     function TradeStruct (
-        bytes32 lendOrderHash,
+        bytes32 loanOrderHash,
         address trader
     )
         internal
         view
         returns (Trade)
     {
-        var (v1,v2,v3,v4,v5) = B0x_Interface(B0X_CONTRACT).trades(lendOrderHash, trader);
-        return Trade(v1,v2,v3,v4,v5);
+        return;
+        /*
+        var (v1,v2,v3,v4,v5,v6) = B0x_Interface(B0X_CONTRACT).trades(loanOrderHash, trader);
+        return Trade(v1,v2,v3,v4,v5,v6);*/
     }
     
-    function FilledOrderStruct (
-        bytes32 lendOrderHash,
+    function LoanStruct (
+        bytes32 loanOrderHash,
         address trader
     )
         internal
         view
-        returns (FilledOrder)
+        returns (Loan)
     {
-        var (v1,v2,v3,v4) = B0x_Interface(B0X_CONTRACT).orderFills(lendOrderHash, trader);
-        return FilledOrder(v1,v2,v3,v4);
+        return;
+        /*var (v1,v2,v3,v4,v5,v6) = B0x_Interface(B0X_CONTRACT).loans(loanOrderHash, trader);
+        return Loan(v1,v2,v3,v4,v5,v6);*/
     }
 
     function getDecimals(EIP20 token) 
@@ -309,25 +315,25 @@ contract B0xOracle is Ownable, EMACollector, GasRefunder, B0xTypes, B0x_Oracle_I
     function setInterestFeeRate(
         uint8 newRate) 
         public
-        onlyOwner
+        onlyB0x
     {
         require(newRate >= 0 && newRate <= 100);
         interestFeeRate = newRate;
     }
 
-    function setB0xContractAddress(
+    /*function setB0xContractAddress(
         address newAddress) 
         public
-        onlyOwner
+        onlyB0x
     {
         require(newAddress != B0X_CONTRACT && newAddress != address(0));
         B0X_CONTRACT = newAddress;
-    }
+    }*/
 
     function setVaultContractAddress(
         address newAddress) 
         public
-        onlyOwner
+        onlyB0x
     {
         require(newAddress != VAULT_CONTRACT && newAddress != address(0));
         VAULT_CONTRACT = newAddress;
@@ -336,7 +342,7 @@ contract B0xOracle is Ownable, EMACollector, GasRefunder, B0xTypes, B0x_Oracle_I
     function setEMAPeriods (
         uint8 _newEMAPeriods)
         public
-        onlyOwner {
+        onlyB0x {
         require(_newEMAPeriods > 1 && _newEMAPeriods != emaPeriods);
         emaPeriods = _newEMAPeriods;
     }

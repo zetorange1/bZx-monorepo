@@ -25,10 +25,10 @@ contract B0x_Interface is B0xTypes {
     
     uint public emaValue;
 
-    mapping (bytes32 => uint) public filled; // mapping of orderHash to lendTokenAmount filled
-    mapping (bytes32 => uint) public cancelled; // mapping of orderHash to lendTokenAmount cancelled
-    mapping (bytes32 => LendOrder) public orders; // mapping of orderHash to taken lendOrders
-    mapping (bytes32 => mapping (address => FilledOrder)) public orderFills; // mapping of orderHash to mapping of traders to lendOrder fills
+    mapping (bytes32 => uint) public filled; // mapping of orderHash to loanTokenAmount filled
+    mapping (bytes32 => uint) public cancelled; // mapping of orderHash to loanTokenAmount cancelled
+    mapping (bytes32 => LoanOrder) public orders; // mapping of orderHash to taken loanOrders
+    mapping (bytes32 => mapping (address => Loan)) public loans; // mapping of orderHash to mapping of traders to loanOrder fills
     mapping (bytes32 => mapping (address => Trade)) public trades; // mapping of orderHash to mapping of traders to active trades
 
     mapping (bytes32 => mapping (address => uint)) public interestPaid; // mapping of orderHash to mapping of traders to amount of interest paid so far to a lender
@@ -36,13 +36,11 @@ contract B0x_Interface is B0xTypes {
     mapping (address => bytes32) public orderList;
     mapping (address => bytes32) public tradeList;
 
-    function getLendOrder (
-        bytes32 lendOrderHash
+    function getLoanOrder (
+        bytes32 loanOrderHash
     )
         public
         view
         returns (address[6],uint[7]);
 
 }
-
-    

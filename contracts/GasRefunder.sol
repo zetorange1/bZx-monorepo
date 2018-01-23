@@ -2,53 +2,65 @@ pragma solidity ^0.4.18;
 
 contract GasRefunder {
 
-    // If true, uses the safer transfer method, which throws on failure, rather than send, which returns false.
+    // If true, uses the "transfer" method, which throws on failure, reverting state.
+    // If false, a failed "send" won't throw, and fails silently.
     // Note that a throw will prevent a GasRefund event.
-    bool public throwOnGasRefundFail = true;
+    bool public throwOnGasRefundFail = false;
 
-    event GasRefund(uint gasUsed, uint currentGasPrice, uint refundAmount, bool refundSuccess);
+    // Refund this percentage of the calculated gas
+    uint8 public refundPercent = 80;
 
-    modifier refundsGas(uint gasPrice, uint gasUsed) {
-        require(gasPrice > 0);
+    event GasRefund(address payer, uint gasUsed, uint currentGasPrice, uint refundAmount, bool refundSuccess);
+
+    modifier refundsGas(address payer, uint gasPrice, uint gasUsed) {
 
         _; // modified function body inserted here
-        
+
         sendGasRefund(
-            gasPrice,
-            gasUsed
+            payer,
+            gasUsed,
+            gasPrice
         );
     }
 
-    modifier refundsGasAfterCollection(uint gasPrice) {
+    modifier refundsGasAfterCollection(address payer, uint gasPrice) {
         uint startingGas = msg.gas;
-        require(gasPrice > 0);
 
         _; // modified function body inserted here
         
         sendGasRefund(
-            gasPrice,
-            startingGas
+            payer,
+            startingGas,
+            gasPrice
         );
     }
 
     function sendGasRefund(
-        uint gasPrice,
-        uint gasUsed)
+        address payer,
+        uint gasUsed,
+        uint gasPrice)
         internal {
 
-        gasUsed = gasUsed - msg.gas;
-        uint refundAmount = gasUsed * gasPrice;// +
-                                //21000; // estimated value transfer cost
+        if (gasUsed == 0 || gasPrice == 0)
+            return;
+
+        gasUsed = gasUsed - msg.gas
+                    - 10000; // the GasTracker zeros out persistent storage when finished
+                    //+ 21000; // estimated value transfer cost
+
+        uint refundAmount = gasUsed * gasPrice * refundPercent / 100;
+                                
 
         if (throwOnGasRefundFail) {
-            msg.sender.transfer(refundAmount);
+            payer.transfer(refundAmount);
         }
         else {
             GasRefund(
+                payer,
                 gasUsed,
                 gasPrice,
                 refundAmount,
-                msg.sender.send(refundAmount)
+                payer.send(refundAmount)
             );
         }
     }

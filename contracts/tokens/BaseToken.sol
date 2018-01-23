@@ -1,9 +1,8 @@
 pragma solidity ^0.4.4;
 
-//import 'zeppelin-solidity/contracts/token/StandardToken.sol';
-import '../simulations/ERC20_AlwaysOwned.sol'; // Testing only! Please remove below and use above for production!
+import './UnlimitedAllowanceToken.sol';
 
-contract BaseToken is ERC20_AlwaysOwned {
+contract BaseToken is UnlimitedAllowanceToken {
     string public name;
     uint8 public decimals;
     string public symbol;

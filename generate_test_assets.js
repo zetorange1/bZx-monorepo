@@ -6,7 +6,7 @@ if (!fs.existsSync("./html_public_test")) {
 	proceed();
 } else {
 	var rimraf = require('rimraf');
-	rimraf('./html_public_test', function () { 
+	rimraf('./html_public_test', function () {
 		//console.log('done');
 		fs.mkdirSync("./html_public_test");
 		proceed();
@@ -21,14 +21,14 @@ if (!fs.existsSync("./html_public_test/abi")) {
 var addresses = {
 	"B0x": "unknown",
 	"B0xVault": "unknown",
-	"LOANToken": "unknown",
+	"B0XToken": "unknown",
 	"SugarToken": "unknown",
 	"B0xOracle": "unknown",
 	"TOMToken": "unknown",
 	"BEANToken": "unknown",
 };
 
-["B0x","B0xVault","LOANToken","SugarToken","B0xOracle","TOMToken","BEANToken"].forEach(function(item, index) {
+["B0x","B0xVault","B0XToken","SugarToken","B0xOracle","TOMToken","BEANToken"].forEach(function(item, index) {
 	var contents = fs.readFileSync("./build/contracts/"+item+".json");
 	var jsonContent = JSON.parse(contents);
 
@@ -65,7 +65,7 @@ var abiIndex = `
 		<font size="4" face="Courier New">
 <a href="B0x.abi.json">B0x ABI</a>
 <a href="B0xVault.abi.json">B0xVault ABI</a>
-<a href="LOANToken.abi.json">LOANToken ABI</a>
+<a href="B0XToken.abi.json">B0XToken ABI</a>
 <a href="SugarToken.abi.json">SugarToken ABI</a>
 <a href="B0xOracle.abi.json">B0xOracle ABI</a>
 <a href="TOMToken.abi.json">TOMToken ABI</a>
@@ -99,7 +99,7 @@ Smart Contracts
 B0x :: `+addresses["B0x"]+` <a href="abi/B0x.abi.json" target="_blank">abi</a>
 B0xVault :: `+addresses["B0xVault"]+` <a href="abi/B0xVault.abi.json" target="_blank">abi</a>
 B0xOracle :: `+addresses["B0xOracle"]+` <a href="abi/B0xOracle.abi.json" target="_blank">abi</a>
-LOANToken :: `+addresses["LOANToken"]+` <a href="abi/LOANToken.abi.json" target="_blank">abi</a>
+B0XToken :: `+addresses["B0XToken"]+` <a href="abi/B0XToken.abi.json" target="_blank">abi</a>
 SugarToken :: `+addresses["SugarToken"]+` <a href="abi/SugarToken.abi.json" target="_blank">abi</a>
 TOMToken :: `+addresses["TOMToken"]+` <a href="abi/TOMToken.abi.json" target="_blank">abi</a>
 BEANToken :: `+addresses["BEANToken"]+` <a href="abi/BEANToken.abi.json" target="_blank">abi</a>
@@ -108,7 +108,7 @@ ZRXToken :: 0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3
 EtherToken :: 0x48BaCB9266a570d521063EF5dD96e61686DbE788
 TokenRegistry :: 0x0B1ba0af832d7C05fD64161E0Db78E85978E8082
 
-		
+
 Available Accounts
 ==================
 (0) 0x5409ed021d9299bf6814279a6a1411a7e866a631
