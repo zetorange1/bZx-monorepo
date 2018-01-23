@@ -4,8 +4,7 @@ pragma solidity ^0.4.9;
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
-//import '../interfaces/EIP20.sol';
-import './ERC20_AlwaysOwned.sol';
+import '../interfaces/EIP20.sol';
 
 contract KyberWrapper is Ownable {
     using SafeMath for uint256;
@@ -16,8 +15,9 @@ contract KyberWrapper is Ownable {
      * Public functions
      */
 
-    // note: this is intentionally not a constant function to ease testing
-    // this function creates bogus rates to simulate price changes
+    // NOTE: this is intentionally not a view function to ease testing
+    // This function creates bogus rates to simulate price changes
+    // TODO: connect to KyberNetwork.getPrice
     function getKyberPrice(
         address source,
         address dest)
@@ -38,16 +38,46 @@ contract KyberWrapper is Ownable {
         
         rate = pairConversionRate[pair];
     }
+    
+    // This function simulates a trade with Kyber
+    // TODO: connect to KyberNetwork.trade
+    function tradeOnKyber(
+        address sourceAddress,
+        address destAddress,
+        uint sourceAmount)
+        public
+        returns (uint destTokenAmount)
+    {
+        uint sourceDecimals = getDecimals(EIP20(sourceAddress));
+        uint destDecimals = getDecimals(EIP20(destAddress));
+
+        uint rate = (getKyberPrice(sourceAddress, destAddress) * (10**destDecimals)) / (10**sourceDecimals);
+
 /*
-    fuction tradeOnKyber()
+        
+        function trade(ERC20 sourceToken,
+            uint sourceAmount,
+            ERC20 destToken,
+            address destAddress,
+            bool validate )
+    }
 trade( ERC20 sourceToken,
                     uint sourceAmount,
                     ERC20 destToken,
                     address destAddress,
                     bool validate ) payable returns(bool) {
 */
+    }
     /*
      * Public constant functions
      */
 
+
+    function getDecimals(EIP20 token) 
+        internal
+        view 
+        returns(uint)
+    {
+        return token.decimals();
+    }
 }

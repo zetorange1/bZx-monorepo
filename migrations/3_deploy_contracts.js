@@ -1,7 +1,5 @@
 
 var b0xToken = artifacts.require("./b0xToken.sol");
-var TOMToken = artifacts.require("./TOMToken.sol");
-var BEANToken = artifacts.require("./BEANToken.sol");
 var B0xVault = artifacts.require("./B0xVault.sol");
 var KyberWrapper = artifacts.require("./KyberWrapper.sol");
 var B0xOracle = artifacts.require("./B0xOracle.sol");
@@ -41,43 +39,26 @@ module.exports = function(deployer, network, accounts) {
 
 	console.log("before balance: "+web3.eth.getBalance(accounts[0]));
 
-	deployer.deploy(TOMToken).then(function() {
-		TOMToken.deployed().then(function(instance) {
-			instance.transfer(accounts[1], web3.toWei(2000000, "ether"));
-		});
-	});
-	deployer.deploy(BEANToken).then(function() {
-		BEANToken.deployed().then(function(instance) {
-			instance.transfer(accounts[2], web3.toWei(2000000, "ether"));
-		});
-	});
-//contracts0x["ZRXToken"]
-	deployer.deploy(b0xToken).then(function() {
-		return deployer.deploy(B0xVault).then(function() {
-			return deployer.deploy(KyberWrapper).then(function() {
-				return deployer.deploy(B0x, b0xToken.address, B0xVault.address, contracts0x["Exchange"]).then(function() {
-					B0xVault.deployed().then(function(instance) {
-						instance.setB0xOwner(B0x.address);
-					});
-					KyberWrapper.deployed().then(function(instance) {
-						instance.transferOwnership(B0x.address);
-					});
-					b0xToken.deployed().then(function(instance) {
-						instance.transfer(accounts[1], web3.toWei(100000, "ether"));
-						instance.transfer(accounts[2], web3.toWei(100000, "ether"));
-					});
+	return deployer.deploy(B0xVault).then(function() {
+		return deployer.deploy(KyberWrapper).then(function() {
+			return deployer.deploy(B0x, b0xToken.address, B0xVault.address, contracts0x["Exchange"]).then(function() {
+				B0xVault.deployed().then(function(instance) {
+					instance.setB0xOwner(B0x.address);
+				});
+				KyberWrapper.deployed().then(function(instance) {
+					instance.transferOwnership(B0x.address);
+				});
 
-					return deployer.deploy(B0xOracle, B0xVault.address, KyberWrapper.address
-						,{from: accounts[0], value: web3.toWei(1, "ether")}).then(function(instance) {
-							B0xOracle.deployed().then(function(instance) {
-								instance.setB0xOwner(B0x.address);
-								console.log("after balance: "+web3.eth.getBalance(accounts[0]));
-								return;
-							});
-					});
+
+				return deployer.deploy(B0xOracle, B0xVault.address, KyberWrapper.address
+					,{from: accounts[0], value: web3.toWei(1, "ether")}).then(function(instance) {
+						B0xOracle.deployed().then(function(instance) {
+							instance.setB0xOwner(B0x.address);
+							console.log("after balance: "+web3.eth.getBalance(accounts[0]));
+							return;
+						});
 				});
 			});
 		});
 	});
-
 }

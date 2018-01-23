@@ -2,10 +2,10 @@ pragma solidity ^0.4.9;
 //pragma experimental ABIEncoderV2;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import './B0xOwnable.sol';
+import './modifiers/B0xOwnable.sol';
 
-import './EMACollector.sol';
-import './GasRefunder.sol';
+import './modifiers/EMACollector.sol';
+import './modifiers/GasRefunder.sol';
 import './B0xVault.sol';
 import './B0xTypes.sol';
 import './Helpers.sol';
@@ -137,7 +137,30 @@ contract B0xOracle is B0x_Oracle_Interface, EMACollector, GasRefunder, B0xTypes,
             //return boolOrRevert(false);
             return false;
         }
+        /*
+        function _sellTradeToken()
+            internal
+            returns (bool tradeSuccess)
+        {
+            
         
+        // record trade in b0x
+        tradeList[msg.sender].push(loanOrder.orderHash);
+
+        Trade storage openTrade = trades[loanOrder.orderHash][msg.sender];
+        openTrade.tradeTokenAddress = tradeTokenAddress;
+        openTrade.tradeTokenAmount = tradeTokenAmount;
+        openTrade.loanTokenUsedAmount = loanTokenUsedAmount;
+        openTrade.filledUnixTimestampSec = block.timestamp;
+        openTrade.listPosition = tradeList[msg.sender].length-1;
+        openTrade.active = true;
+
+        //##here -> TODO: when trades close mark active = false and remove orderHas from tradeList
+
+
+        }
+
+*/
         /*
         OrderAddresses memory orderAddresses = openTradeAddresses[orderHash];
         OrderValues memory orderValues = openTradeValues[orderHash];
@@ -182,25 +205,25 @@ contract B0xOracle is B0x_Oracle_Interface, EMACollector, GasRefunder, B0xTypes,
             return 999;
         }
 
-        var (marginToLendRate, tradeToMarginRate) = getRateData(
+        var (collateralToLendRate, tradeToCollateralRate) = getRateData(
             activeTrade.tradeTokenAddress,//loanOrder.loanTokenAddress,
             activeTrade.tradeTokenAddress,//loanOrder.collateralTokenAddress,
             activeTrade.tradeTokenAddress
         );
-        if (marginToLendRate == 0) {
+        if (collateralToLendRate == 0) {
             //LogErrorText("error: conversion rate from collateralTokenAddress to loanToken is 0 or not found", 0, loanOrderHash);
             //return intOrRevert(999);
             return 999;
         }
-        if (tradeToMarginRate == 0) {
+        if (tradeToCollateralRate == 0) {
             //LogErrorText("error: conversion rate from tradeToken to collateralTokenAddress is 0 or not found", 0, loanOrderHash);
             //return intOrRevert(999);
             return 999;
         }
 
         uint currentMarginPercent = (activeTrade.tradeTokenAmountFilled / 
-                        //(B0xVault(VAULT_CONTRACT).marginBalanceOf(loanOrder.collateralTokenAddress, trader) * tradeToMarginRate)) * 100;
-                        (B0xVault(VAULT_CONTRACT).marginBalanceOf(activeTrade.tradeTokenAddress, trader) * tradeToMarginRate)) * 100;
+                        //(B0xVault(VAULT_CONTRACT).marginBalanceOf(loanOrder.collateralTokenAddress, trader) * tradeToCollateralRate)) * 100;
+                        (B0xVault(VAULT_CONTRACT).marginBalanceOf(activeTrade.tradeTokenAddress, trader) * tradeToCollateralRate)) * 100;
         
         // a level <= 100 means the order should be liquidated        
         //level = currentMarginPercent - loanOrder.liquidationMarginAmount + 100;
@@ -224,25 +247,25 @@ contract B0xOracle is B0x_Oracle_Interface, EMACollector, GasRefunder, B0xTypes,
         address tradeTokenAddress)
         public 
         view 
-        returns (uint marginToLendRate, uint tradeToMarginRate)
+        returns (uint collateralToLendRate, uint tradeToCollateralRate)
     {   
         uint loanTokenDecimals = getDecimals(EIP20(loanTokenAddress));
-        uint collateralTokenAddressDecimals = getDecimals(EIP20(collateralTokenAddress));
+        uint collateralTokenDecimals = getDecimals(EIP20(collateralTokenAddress));
         uint tradeTokenDecimals;
 
         if (tradeTokenAddress != address(0)) {
             tradeTokenDecimals = getDecimals(EIP20(tradeTokenAddress));
 
-            marginToLendRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, loanTokenAddress)
-                                     * (10**loanTokenDecimals)) / (10**collateralTokenAddressDecimals);
+            collateralToLendRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, loanTokenAddress)
+                                     * (10**loanTokenDecimals)) / (10**collateralTokenDecimals);
             
-            tradeToMarginRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(tradeTokenAddress, collateralTokenAddress)
-                                     * (10**collateralTokenAddressDecimals)) / (10**tradeTokenDecimals);
+            tradeToCollateralRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(tradeTokenAddress, collateralTokenAddress)
+                                     * (10**collateralTokenDecimals)) / (10**tradeTokenDecimals);
         } else {
-            marginToLendRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, loanTokenAddress)
-                                     * (10**loanTokenDecimals)) / (10**collateralTokenAddressDecimals);
+            collateralToLendRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, loanTokenAddress)
+                                     * (10**loanTokenDecimals)) / (10**collateralTokenDecimals);
 
-            tradeToMarginRate = 0;
+            tradeToCollateralRate = 0;
         }
     }
 

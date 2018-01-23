@@ -2,8 +2,8 @@
 pragma solidity ^0.4.9;
 
 
-import './Upgradeable.sol';
-import './GasTracker.sol';
+import './modifiers/Upgradeable.sol';
+import './modifiers/GasTracker.sol';
 import './Helpers.sol';
 
 import './B0xTypes.sol';
@@ -120,7 +120,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Helpers, B0xTypes {
     /// @dev Takes the order as trader
     /// @param orderAddresses Array of order's maker, loanTokenAddress, interestTokenAddress collateralTokenAddress, and feeRecipientAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
-    /// @param collateralTokenAddressFilled Desired address of the collateralTokenAddress the trader wants to use.
+    /// @param collateralTokenFilled Desired address of the collateralTokenAddress the trader wants to use.
     /// @param loanTokenAmountFilled Desired amount of loanToken the trader wants to borrow.
     /// @param signature ECDSA signature in raw bytes (rsv).
     /// @return Total amount of loanToken borrowed (uint).
@@ -129,7 +129,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Helpers, B0xTypes {
     function takeLoanOrderAsTrader(
         address[6] orderAddresses,
         uint[8] orderValues,
-        address collateralTokenAddressFilled,
+        address collateralTokenFilled,
         uint loanTokenAmountFilled,
         bytes signature)
         external
@@ -137,7 +137,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Helpers, B0xTypes {
         tracksGas
         returns (uint) {
 
-        LoanOrder memory loanOrder = _buildLoanOrder(orderAddresses, orderValues, collateralTokenAddressFilled);
+        LoanOrder memory loanOrder = _buildLoanOrder(orderAddresses, orderValues, collateralTokenFilled);
 
         if(! isValidSignature(
             loanOrder.maker,
@@ -161,7 +161,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Helpers, B0xTypes {
             loanOrder.feeRecipientAddress,
             loanOrder.loanTokenAddress,
             loanOrder.interestTokenAddress,
-            collateralTokenAddressFilled,
+            collateralTokenFilled,
             loanOrder.oracleAddress,
             loanOrder.orderHash
         );
@@ -318,7 +318,6 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
         openTrade.listPosition = tradeList[msg.sender].length-1;
         openTrade.active = true;
 
-        //##here -> TODO: when trades close mark active = false and remove orderHas from tradeList
 
         LogErrorText("0x order: loanTokenUsedAmount", loanTokenUsedAmount, loanOrder.orderHash);
         LogErrorText("0x order: tradeTokenAmount", tradeTokenAmount, loanOrder.orderHash);
@@ -639,7 +638,7 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
     function _buildLoanOrder(
         address[6] orderAddresses,
         uint[8] orderValues,
-        address collateralTokenAddressFilled) 
+        address collateralTokenFilled) 
         internal
         view
         returns (LoanOrder) {
@@ -648,7 +647,7 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
             maker: orderAddresses[0],
             loanTokenAddress: orderAddresses[1],
             interestTokenAddress: orderAddresses[2],
-            collateralTokenAddress: collateralTokenAddressFilled,
+            collateralTokenAddress: collateralTokenFilled,
             feeRecipientAddress: orderAddresses[4],
             oracleAddress: orderAddresses[5],
             loanTokenAmount: orderValues[0],
@@ -757,17 +756,17 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
             return intOrRevert(0);
         }
 
-        var (marginToLendRate,) = B0x_Oracle_Interface(loanOrder.oracleAddress).getRateData(
+        var (collateralToLendRate,) = B0x_Oracle_Interface(loanOrder.oracleAddress).getRateData(
             loanOrder.loanTokenAddress,
             loanOrder.collateralTokenAddress,
             0
         );
-        if (marginToLendRate == 0) {
+        if (collateralToLendRate == 0) {
             LogErrorText("error: conversion rate from collateralTokenAddress to loanToken is 0 or not found", 0, loanOrder.orderHash);
             return intOrRevert(0);
         }
 
-        uint collateralTokenAmountFilled = _initialMargin(loanOrder.initialMarginAmount, marginToLendRate, loanTokenAmountFilled);
+        uint collateralTokenAmountFilled = _initialMargin(loanOrder.initialMarginAmount, collateralToLendRate, loanTokenAmountFilled);
 
         uint paidTraderFee;
         uint paidLenderFee;
@@ -925,13 +924,13 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
 
     function _initialMargin(
         uint initialMarginAmount,
-        uint marginToLendRate,
+        uint collateralToLendRate,
         uint loanTokenAmountFilled)
         internal
         pure
         returns (uint collateralTokenAmountFilled)
     {
-        collateralTokenAmountFilled = (loanTokenAmountFilled * marginToLendRate * initialMarginAmount / 100);// / PRECISION;
+        collateralTokenAmountFilled = (loanTokenAmountFilled * collateralToLendRate * initialMarginAmount / 100);// / PRECISION;
     }
     
     function _totalInterestRequired(

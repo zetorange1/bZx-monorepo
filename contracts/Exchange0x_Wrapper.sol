@@ -4,7 +4,7 @@ import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import './interfaces/Exchange0x_Wrapper_Interface.sol';
 import './interfaces/Exchange0x_Interface.sol';
 import './interfaces/EIP20.sol';
-import './B0xOwnable.sol';
+import './modifiers/B0xOwnable.sol';
 import './Helpers.sol';
 
 

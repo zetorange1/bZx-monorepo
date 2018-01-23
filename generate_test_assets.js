@@ -18,17 +18,27 @@ if (!fs.existsSync("./html_public_test/abi")) {
     fs.mkdirSync("./html_public_test/abi");
 }
 
+
+
 var addresses = {
 	"B0x": "unknown",
 	"B0xVault": "unknown",
-	"B0XToken": "unknown",
-	"SugarToken": "unknown",
 	"B0xOracle": "unknown",
-	"TOMToken": "unknown",
-	"BEANToken": "unknown",
+	"b0xToken": "unknown",
+
+	"TestToken0": "unknown",
+	"TestToken1": "unknown",
+	"TestToken2": "unknown",
+	"TestToken3": "unknown",
+	"TestToken4": "unknown",
+	"TestToken5": "unknown",
+	"TestToken6": "unknown",
+	"TestToken7": "unknown",
+	"TestToken8": "unknown",
+	"TestToken9": "unknown",
 };
 
-["B0x","B0xVault","B0XToken","SugarToken","B0xOracle","TOMToken","BEANToken"].forEach(function(item, index) {
+Object.keys(addresses).forEach(function(item, index) {
 	var contents = fs.readFileSync("./build/contracts/"+item+".json");
 	var jsonContent = JSON.parse(contents);
 
@@ -63,13 +73,15 @@ var abiIndex = `
 	<body>
 		<pre style="white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word;">
 		<font size="4" face="Courier New">
-<a href="B0x.abi.json">B0x ABI</a>
-<a href="B0xVault.abi.json">B0xVault ABI</a>
-<a href="B0XToken.abi.json">B0XToken ABI</a>
-<a href="SugarToken.abi.json">SugarToken ABI</a>
-<a href="B0xOracle.abi.json">B0xOracle ABI</a>
-<a href="TOMToken.abi.json">TOMToken ABI</a>
-<a href="BEANToken.abi.json">BEANToken ABI</a>
+<a href="../">..</a>
+`;
+
+Object.keys(addresses).forEach(function(item, index) {
+	abiIndex += `<a href="`+item+`.abi.json">`+item+` ABI</a>
+`;
+});
+
+abiIndex += `
 		</font>
 		</pre>
 	</body>
@@ -96,13 +108,14 @@ Listening on b0x.network:8545
 
 Smart Contracts
 ==================
-B0x :: `+addresses["B0x"]+` <a href="abi/B0x.abi.json" target="_blank">abi</a>
-B0xVault :: `+addresses["B0xVault"]+` <a href="abi/B0xVault.abi.json" target="_blank">abi</a>
-B0xOracle :: `+addresses["B0xOracle"]+` <a href="abi/B0xOracle.abi.json" target="_blank">abi</a>
-B0XToken :: `+addresses["B0XToken"]+` <a href="abi/B0XToken.abi.json" target="_blank">abi</a>
-SugarToken :: `+addresses["SugarToken"]+` <a href="abi/SugarToken.abi.json" target="_blank">abi</a>
-TOMToken :: `+addresses["TOMToken"]+` <a href="abi/TOMToken.abi.json" target="_blank">abi</a>
-BEANToken :: `+addresses["BEANToken"]+` <a href="abi/BEANToken.abi.json" target="_blank">abi</a>
+`;
+
+Object.keys(addresses).forEach(function(item, index) {
+	outHTML += item+` :: `+addresses[item]+` <a href="abi/`+item+`.abi.json" target="_blank">abi</a>
+`;
+});
+
+outHTML += `
 
 ZRXToken :: 0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3
 EtherToken :: 0x48BaCB9266a570d521063EF5dD96e61686DbE788

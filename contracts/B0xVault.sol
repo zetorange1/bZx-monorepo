@@ -2,7 +2,7 @@
 pragma solidity ^0.4.9;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import './B0xOwnable.sol';
+import './modifiers/B0xOwnable.sol';
 
 import './interfaces/EIP20.sol';
 

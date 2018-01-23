@@ -26,6 +26,8 @@ let ERC20 = artifacts.require("./ERC20.sol"); // for testing with any ERC20 toke
 let TomToken = artifacts.require("./TomToken.sol");
 let BeanToken = artifacts.require("./BeanToken.sol");
 
+let BaseToken = artifacts.require("./BaseToken.sol");
+
 let testDepositAmount = web3.toWei(0.001, "ether");
 let expected_b0xTokenTotalSupply = web3.toWei(20000000, "ether"); // 20MM B0X
 
@@ -90,6 +92,8 @@ contract('B0xTest', function(accounts) {
   var tom_token;
   var bean_token;
   //var b0xjs;
+
+  var test_tokens = [];
 
   var gasRefundEvent;
   var tx_obj;
@@ -190,9 +194,6 @@ contract('B0xTest', function(accounts) {
       (vault = await B0xVault.deployed()),
       (kyber = await KyberWrapper.deployed()),
 
-      (tom_token = await TomToken.deployed()),
-      (bean_token = await BeanToken.deployed()),
-
       (b0x = await B0xSol.deployed()),
 
       (oracle = await B0xOracle.deployed()),
@@ -201,6 +202,18 @@ contract('B0xTest', function(accounts) {
       (exchange_0x = await Exchange0x.at(contracts0x["Exchange"])),
     ]);
 
+  });
+
+  before('deploy ten test token', async function () {
+    for (var i = 0; i < 10; i++) {
+      test_tokens[i] = await BaseToken.new(
+        10000000000000000000000000,
+        "Test Token "+i, 
+        18, 
+        "TEST"+i
+      );
+      console.log("Test Token "+i+" created: "+test_tokens[i].address);
+    }
   });
 
   before('watch GasRefunder event', function () {
