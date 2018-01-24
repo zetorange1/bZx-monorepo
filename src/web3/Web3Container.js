@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { ZeroEx } from "0x.js";
 import getWeb3 from "./getWeb3";
 import GetMetaMask from "./GetMetaMask";
 
@@ -14,19 +15,20 @@ const LoadingContainer = styled.div`
 `;
 
 export default class Web3Container extends React.Component {
-  state = { loading: true, web3: null };
+  state = { loading: true, web3: null, zeroEx: null };
 
   async componentDidMount() {
     const web3 = await getWeb3();
-    this.setState({ loading: false, web3 });
+    const zeroEx = new ZeroEx(web3.currentProvider, { networkId: 1 });
+    this.setState({ loading: false, web3, zeroEx });
   }
 
   render() {
-    const { loading, web3 } = this.state;
+    const { loading, web3, zeroEx } = this.state;
     const { render } = this.props;
     if (loading) {
       return <LoadingContainer>Loading Web3...</LoadingContainer>;
     }
-    return web3 ? render({ web3 }) : <GetMetaMask />;
+    return web3 ? render({ web3, zeroEx }) : <GetMetaMask />;
   }
 }
