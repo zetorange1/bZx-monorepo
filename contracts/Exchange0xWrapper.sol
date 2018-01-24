@@ -1,21 +1,22 @@
 pragma solidity ^0.4.18;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import './interfaces/Exchange0x_Wrapper_Interface.sol';
+import './interfaces/Exchange0xWrapper_Interface.sol';
 import './interfaces/Exchange0x_Interface.sol';
 import './interfaces/EIP20.sol';
 import './modifiers/B0xOwnable.sol';
 import './Helpers.sol';
 
 
-contract Exchange0x_Wrapper is Exchange0x_Wrapper_Interface, Helpers, B0xOwnable {
+contract Exchange0xWrapper is Exchange0xWrapper_Interface, Helpers, B0xOwnable {
     using SafeMath for uint256;
 
     address public VAULT_CONTRACT;
     address public ZRX_TOKEN_CONTRACT;
     address public EXCHANGE_CONTRACT;
 
-    event LogErrorText(string errorTxt, uint errorValue, bytes32 indexed orderHash);
+    event LogErrorUint(string errorTxt, uint errorValue, bytes32 indexed orderHash);
+    event LogErrorAddr(string errorTxt, address errorAddr, bytes32 indexed orderHash);
 
     // Only the owner (b0x contract) can directly deposit ether
     function() 
@@ -23,7 +24,7 @@ contract Exchange0x_Wrapper is Exchange0x_Wrapper_Interface, Helpers, B0xOwnable
         revert();
     }
 
-    function Exchange0x_Wrapper(
+    function Exchange0xWrapper(
         address _vault,
         address _exchange, 
         address _zrxToken) 
@@ -54,6 +55,21 @@ contract Exchange0x_Wrapper is Exchange0x_Wrapper_Interface, Helpers, B0xOwnable
         var (orderAddresses0x, orderValues0x) = getOrderValuesFromData(orderData0x);
 
     /*
+        LogErrorAddr("maker", orderAddresses0x[0], loanOrderHash);
+        LogErrorAddr("taker", orderAddresses0x[1], loanOrderHash);
+        LogErrorAddr("makerToken", orderAddresses0x[2], loanOrderHash);
+        LogErrorAddr("takerToken", orderAddresses0x[3], loanOrderHash);
+        LogErrorAddr("feeRecipient", orderAddresses0x[4], loanOrderHash);
+        LogErrorUint("makerTokenAmount", orderValues0x[0], loanOrderHash);
+        LogErrorUint("takerTokenAmount", orderValues0x[1], loanOrderHash);
+        LogErrorUint("makerFee", orderValues0x[2], loanOrderHash);
+        LogErrorUint("takerFee", orderValues0x[3], loanOrderHash);
+        LogErrorUint("expirationTimestampInSec", orderValues0x[4], loanOrderHash);
+        LogErrorUint("salt", orderValues0x[5], loanOrderHash);
+    */
+
+
+    /*
         orderAddresses0x[0], // maker
         orderAddresses0x[1], // taker
         orderAddresses0x[2], // makerToken
@@ -74,8 +90,8 @@ contract Exchange0x_Wrapper is Exchange0x_Wrapper_Interface, Helpers, B0xOwnable
             orderValues0x,
             signature);
 
-        if (tradeTokenAmount == 0) {
-            LogErrorText("error: 0x trade did not fill!", 0, loanOrderHash);
+        if (loanTokenUsedAmount == 0) {
+            LogErrorUint("error: 0x trade did not fill!", 0, loanOrderHash);
             voidOrRevert(); return;
         }
 
@@ -95,11 +111,7 @@ contract Exchange0x_Wrapper is Exchange0x_Wrapper_Interface, Helpers, B0xOwnable
                 revert();
         }
 
-        return (
-            orderAddresses0x[2], // makerToken (aka tradeTokenAddress)
-            tradeTokenAmount,
-            loanTokenUsedAmount
-        );
+        tradeTokenAddress = orderAddresses0x[2]; // makerToken (aka tradeTokenAddress)
     }
 
    function _take0xTrade(
@@ -115,7 +127,7 @@ contract Exchange0x_Wrapper is Exchange0x_Wrapper_Interface, Helpers, B0xOwnable
                 orderValues0x[3] > 0 // takerFee
         ) {
             if (!EIP20(ZRX_TOKEN_CONTRACT).transferFrom(msg.sender, this, orderValues0x[3])) {
-                LogErrorText("error: b0x can't transfer ZRX from trader", 0, loanOrderHash);
+                LogErrorUint("error: b0x can't transfer ZRX from trader", 0, loanOrderHash);
                 return intOrRevert(0);
             }
         }
@@ -127,12 +139,12 @@ contract Exchange0x_Wrapper is Exchange0x_Wrapper_Interface, Helpers, B0xOwnable
             orderAddresses0x,
             orderValues0x,
             loanTokenAmountToUse,
-            true,
+            true, // shouldThrowOnInsufficientBalanceOrAllowance
             v,
             r,
             s);
         if (loanTokenUsedAmount == 0) {
-            LogErrorText("error: 0x order failed!", 0, loanOrderHash);
+            LogErrorUint("error: 0x order failed!", 0, loanOrderHash);
             return intOrRevert(0);
         }
 
@@ -159,6 +171,17 @@ contract Exchange0x_Wrapper is Exchange0x_Wrapper_Interface, Helpers, B0xOwnable
         uint expirationTimestampInSec;
         uint salt;
         assembly {
+            /*maker := mload(orderData0x)
+            taker := mload(add(orderData0x, 32))
+            makerToken := mload(add(orderData0x, 64))
+            takerToken := mload(add(orderData0x, 96))
+            feeRecipient := mload(add(orderData0x, 128))
+            makerTokenAmount := mload(add(orderData0x, 160))
+            takerTokenAmount := mload(add(orderData0x, 192))
+            makerFee := mload(add(orderData0x, 224))
+            takerFee := mload(add(orderData0x, 256))
+            expirationTimestampInSec := mload(add(orderData0x, 288))
+            salt := mload(add(orderData0x, 320))*/
             maker := mload(add(orderData0x, 32))
             taker := mload(add(orderData0x, 64))
             makerToken := mload(add(orderData0x, 96))

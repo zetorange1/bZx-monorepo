@@ -1,5 +1,6 @@
 const BigNumber = require('bignumber.js');
 const BN = require('bn.js');
+const ethABI = require('ethereumjs-abi');
 const ethUtil = require('ethereumjs-util');
 const Web3 = require('web3');
 
@@ -7,6 +8,7 @@ const Web3 = require('web3');
 //let web3 = new Web3(provider);
 web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545")) // :9545
 
+import Web3Utils from 'web3-utils';
 
 import B0xJS from 'b0x.js'
 //import { generatePseudoRandomSalt } from "b0x.js";
@@ -17,14 +19,12 @@ import { ZeroEx } from '0x.js';
 
 
 let B0xVault = artifacts.require("./B0xVault.sol");
+let Exchange0xWrapper = artifacts.require("./Exchange0xWrapper.sol");
 let KyberWrapper = artifacts.require("./KyberWrapper.sol");
 let B0xOracle = artifacts.require("./B0xOracle.sol");
 let B0xSol = artifacts.require("./B0x.sol");
 let b0xToken = artifacts.require("./b0xToken.sol");
 let ERC20 = artifacts.require("./ERC20.sol"); // for testing with any ERC20 token
-
-let TomToken = artifacts.require("./TomToken.sol");
-let BeanToken = artifacts.require("./BeanToken.sol");
 
 let BaseToken = artifacts.require("./BaseToken.sol");
 
@@ -89,13 +89,15 @@ contract('B0xTest', function(accounts) {
   var kyber;
   var oracle;
   var b0x_token;
-  var tom_token;
-  var bean_token;
+  var exchange0x_wrapper;
   //var b0xjs;
 
   var test_tokens = [];
 
   var gasRefundEvent;
+  var logErrorTextEvent;
+  var logErrorEvent0x;
+
   var tx_obj;
 
   var zrx_token;
@@ -110,13 +112,14 @@ contract('B0xTest', function(accounts) {
 
   var OrderParams_0x;
   var OrderHash_0x;
+  var ECSignature_0x_raw;
   var ECSignature_0x;
 
   //printBalances(accounts);
 
   before(function() {
     new Promise((resolve, reject) => {
-      console.log("before balance: "+web3.eth.getBalance(accounts[0]));
+      console.log("b0x_tester :: before balance: "+web3.eth.getBalance(accounts[0]));
       const gasPrice = new BigNumber(web3.toWei(2, 'gwei'));
       //b0xjs = new B0xJS(web3.currentProvider, { gasPrice });
       //b0xjs = new B0xJS();
@@ -130,15 +133,10 @@ contract('B0xTest', function(accounts) {
       (b0x_token = await b0xToken.new()),
       (vault = await B0xVault.new()),
       (kyber = await KyberWrapper.new()),
-
-      (tom_token = await TomToken.new()),
-      (bean_token = await BeanToken.new())
     ]);
 
     await Promise.all([
       (b0x = await B0xSol.new(b0x_token.address,vault.address,kyber.address,contracts0x["Exchange"],contracts0x["ZRXToken"])),
-      tom_token.transfer(accounts[1], web3.toWei(2000000, "ether")),
-      bean_token.transfer(accounts[2], web3.toWei(2000000, "ether"))
     ]);
 
     await Promise.all([
@@ -188,15 +186,17 @@ contract('B0xTest', function(accounts) {
 
   */
 
+
+
   before('retrieve all deployed contracts', async function () {
     await Promise.all([
       (b0x_token = await b0xToken.deployed()),
       (vault = await B0xVault.deployed()),
-      (kyber = await KyberWrapper.deployed()),
-
+      (exchange0x_wrapper = await Exchange0xWrapper.deployed()),
       (b0x = await B0xSol.deployed()),
 
       (oracle = await B0xOracle.deployed()),
+      (kyber = await KyberWrapper.deployed()),
 
       (zrx_token = await ERC20.at(contracts0x["ZRXToken"])),
       (exchange_0x = await Exchange0x.at(contracts0x["Exchange"])),
@@ -204,7 +204,21 @@ contract('B0xTest', function(accounts) {
 
   });
 
-  before('deploy ten test token', async function () {
+  before('update Exchange contract to the deployed version', async function () {
+    contracts0x["Exchange"] = await exchange0x_wrapper.EXCHANGE_CONTRACT.call();
+  });
+
+  before('retrieve all deployed test tokens', async function () {
+    for (var i = 0; i < 10; i++) {
+      test_tokens[i] = await artifacts.require("./"+"TestToken"+i+".sol").deployed();
+      console.log("Test Token "+i+" retrieved: "+test_tokens[i].address);
+    }
+  });
+
+
+
+
+  /*before('deploy ten test tokens', async function () {
     for (var i = 0; i < 10; i++) {
       test_tokens[i] = await BaseToken.new(
         10000000000000000000000000,
@@ -214,15 +228,17 @@ contract('B0xTest', function(accounts) {
       );
       console.log("Test Token "+i+" created: "+test_tokens[i].address);
     }
-  });
+  });*/
 
-  before('watch GasRefunder event', function () {
+  before('watch events', function () {
     gasRefundEvent = oracle.GasRefund();
+    logErrorTextEvent = exchange0x_wrapper.LogErrorAddr();
+    logErrorEvent0x = exchange_0x.LogError();
   });
 
   after(function() {
     new Promise((resolve, reject) => {
-      console.log("after balance: "+web3.eth.getBalance(accounts[0]));
+      console.log("b0x_tester :: after balance: "+web3.eth.getBalance(accounts[0]));
     });
   });
 
@@ -268,21 +284,6 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should retrieve deployed TomToken contract", function(done) {
-    TomToken.deployed().then(function(instance) {
-      tom_token = instance;
-      assert.isOk(tom_token);
-      done();
-    });
-  });
-
-  it("should retrieve deployed BeanToken contract", function(done) {
-    BeanToken.deployed().then(function(instance) {
-      bean_token = instance;
-      assert.isOk(bean_token);
-      done();
-    });
-  });
   */
 
   /*it("should verify total b0xToken supply", function(done) {
@@ -538,46 +539,25 @@ contract('B0xTest', function(accounts) {
     });
   }); */
 
-  // not needed since tom_token is ERC20_AlwaysOwned
-  /*
-  it("should approve vault to transfer Tom Token (for lender)", async function() {
-    var amount = web3.toWei(1000000, "ether");
-    try
-    {
-      var tx1 = await tom_token.approve(vault.address, amount, {from: accounts[1]});
-      assert.isOk(tx1.receipt);
-      //console.log(tx1.receipt);
-      //var tx2 = await b0x.depositTokenFunding.call(tom_token.address, amount, {from: accounts[1]});
-      //console.log(tx2);
-      //assert.isOk(true);
-      //assert.isOk(tx2.receipt);
-    } catch (error) {
-      console.error(error);
-      assert.isOk(false);
-    }
-  });
-  */
 
-  // not needed since bean_token is ERC20_AlwaysOwned
-  /*
-  it("should approve vault to transfer Tom Token (for lender)", async function() {
-    var amount = web3.toWei(2000000, "ether");
-    try
-    {
-      var tx1 = await bean_token.approve(vault.address, amount, {from: accounts[1]});
-      assert.isOk(tx1.receipt);
-      //console.log(tx1.receipt);
-      //var tx2 = await b0x.depositTokenFunding.call(bean_token.address, amount, {from: accounts[1]});
-      //console.log(tx2);
-      //assert.isOk(true);
-      //assert.isOk(tx2.receipt);
-    } catch (error) {
+  /*it("b0x", function(done) {
+    b0x.EXCHANGE0X_WRAPPER_CONTRACT.call().then(function(value) {
+      console.log(value);
+      done();
+    }, function(error) {
       console.error(error);
-      assert.isOk(false);
-    }
+      done();
+    });
   });
-  */
-
+  it("exchangeWrapper", function(done) {
+    exchange0x_wrapper.EXCHANGE_CONTRACT.call().then(function(value) {
+      console.log(value);
+      done();
+    }, function(error) {
+      console.error(error);
+      done();
+    });
+  });*/
 
 
   it("should generate loanOrderHash (as lender)", function(done) {
@@ -587,9 +567,9 @@ contract('B0xTest', function(accounts) {
     orderParams = {
       "b0x": b0x.address,
       "maker": accounts[1], // lender
-      "loanTokenAddress": tom_token.address,
-      "interestTokenAddress": bean_token.address,
-      "collateralTokenAddress": bean_token.address,
+      "loanTokenAddress": test_tokens[0].address,
+      "interestTokenAddress": test_tokens[1].address,
+      "collateralTokenAddress": test_tokens[2].address,
       "feeRecipientAddress": accounts[9],
       "oracleAddress": oracle.address,
       "loanTokenAmount": web3.toWei(1000000, "ether").toString(),
@@ -698,13 +678,13 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should send sample kyber for BEAN", function(done) {
+  it("should send sample kyber prices for Test Token 1", function(done) {
     var expectedPrice = web3.toWei("1.2", "ether");
     b0x.testSendPriceUpdate(
-      bean_token.address,
+      test_tokens[1].address,
       expectedPrice,
       {from: accounts[0]}).then(function(tx) {
-        kyber.getTokenPrice(bean_token.address).then(function(currentPrice) {
+        kyber.getTokenPrice(test_tokens[1].address).then(function(currentPrice) {
           assert.equal(currentPrice, expectedPrice, "expectedPrice should equal returned currentPrice");
           done();
         }, function(error) {
@@ -719,21 +699,21 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should send sample kyber for Tom", function(done) {
+  it("should send sample kyber prices for Test Token 0", function(done) {
     var expectedPrice = web3.toWei((0.32+0.75)/2, "ether");
     b0x.testSendPriceUpdate(
-      tom_token.address,
+      test_tokens[0].address,
       web3.toWei(0.32, "ether"), // simulate price from one source
       {from: accounts[0]}).then(function(tx) {
         //console.log(tx);
-        kyber.getTokenPrice(tom_token.address).then(function(currentPrice) {
+        kyber.getTokenPrice(test_tokens[0].address).then(function(currentPrice) {
           //console.log(currentPrice.toString());
           b0x.testSendPriceUpdate(
-            tom_token.address,
+            test_tokens[0].address,
             web3.toWei(0.75, "ether"), // simulate price from another source
             {from: accounts[7]}).then(function(tx) {
               //console.log(tx);
-              kyber.getTokenPrice(tom_token.address).then(function(currentPrice) {
+              kyber.getTokenPrice(test_tokens[0].address).then(function(currentPrice) {
                 currentPrice = currentPrice.toString();
                 //console.log(currentPrice);
                 assert.equal(currentPrice, expectedPrice, "expectedPrice should equal returned currentPrice");
@@ -835,13 +815,13 @@ contract('B0xTest', function(accounts) {
       "feeRecipient": "0x0000000000000000000000000000000000000000", //"0x1230000000000000000000000000000000000000",
       "maker": accounts[7],
       "makerFee": web3.toWei(0.002, "ether").toString(),
-      "makerTokenAddress": bean_token.address,
+      "makerTokenAddress": test_tokens[7].address,
       "makerTokenAmount": web3.toWei(100, "ether").toString(),
       "salt": salt,
       "taker": "0x0000000000000000000000000000000000000000",
       "takerFee": web3.toWei(0.0013, "ether").toString(),
-      "takerTokenAddress": tom_token.address,
-      "takerTokenAmount": web3.toWei(2.1, "ether").toString(),
+      "takerTokenAddress": test_tokens[0].address,
+      "takerTokenAmount": web3.toWei(20.1, "ether").toString(),
     };
     console.log(OrderParams_0x);
 
@@ -851,7 +831,6 @@ contract('B0xTest', function(accounts) {
   });
 
   it("should sign and verify 0x order", function(done) {
-    var signedOrderHash;
     const nodeVersion = web3.version.node;
     const isParityNode = _.includes(nodeVersion, 'Parity');
     const isTestRpc = _.includes(nodeVersion, 'TestRPC');
@@ -860,19 +839,19 @@ contract('B0xTest', function(accounts) {
 
     if (isParityNode || isTestRpc) {
       // Parity and TestRpc nodes add the personalMessage prefix itself
-      signedOrderHash = web3.eth.sign(accounts[7], OrderHash_0x);
+      ECSignature_0x_raw = web3.eth.sign(accounts[7], OrderHash_0x);
     }
     else {
       var orderHashBuff = ethUtil.toBuffer(OrderHash_0x);
       var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
       var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
-      signedOrderHash = web3.eth.sign(accounts[7], msgHashHex);
+      ECSignature_0x_raw = web3.eth.sign(accounts[7], msgHashHex);
     }
 
     ECSignature_0x = {
-      "v": parseInt(signedOrderHash.substring(130,132))+27,
-      "r": "0x"+signedOrderHash.substring(2,66),
-      "s": "0x"+signedOrderHash.substring(66,130)
+      "v": parseInt(ECSignature_0x_raw.substring(130,132))+27,
+      "r": "0x"+ECSignature_0x_raw.substring(2,66),
+      "s": "0x"+ECSignature_0x_raw.substring(66,130)
     };
 
     exchange_0x.isValidSignature.call(
@@ -892,38 +871,45 @@ contract('B0xTest', function(accounts) {
   });
 
   it("should open 0x trade with borrowed funds", function(done) {
+    
+    var types = ['bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32'];
+    var values = [
+      Web3Utils.padLeft(OrderParams_0x["maker"], 64),
+      Web3Utils.padLeft(OrderParams_0x["taker"], 64),
+      Web3Utils.padLeft(OrderParams_0x["makerTokenAddress"], 64),
+      Web3Utils.padLeft(OrderParams_0x["takerTokenAddress"], 64),
+      Web3Utils.padLeft(OrderParams_0x["feeRecipient"], 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x["makerTokenAmount"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x["takerTokenAmount"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x["makerFee"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x["takerFee"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x["expirationUnixTimestampSec"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x["salt"]), 64)
+    ];
+
+    //console.log(values);
+    var hashBuff = ethABI.solidityPack(types, values)
+    //console.log(hashBuff);
+    var sample_order_tightlypacked = ethUtil.bufferToHex(hashBuff);
+    //console.log(sample_order_tightlypacked);
+    
+    var textEvents;
     b0x.open0xTrade(
       sample_orderhash,
-      [
-        OrderParams_0x["maker"],
-        OrderParams_0x["taker"],
-        OrderParams_0x["makerTokenAddress"],
-        OrderParams_0x["takerTokenAddress"],
-        OrderParams_0x["feeRecipient"]
-      ],
-      [
-        new BN(OrderParams_0x["makerTokenAmount"]),
-        new BN(OrderParams_0x["takerTokenAmount"]),
-        new BN(OrderParams_0x["makerFee"]),
-        new BN(OrderParams_0x["takerFee"]),
-        new BN(OrderParams_0x["expirationUnixTimestampSec"]),
-        new BN(OrderParams_0x["salt"])
-      ],
-      ECSignature_0x["v"],
-      ECSignature_0x["r"],
-      ECSignature_0x["s"],
+      sample_order_tightlypacked,
+      ECSignature_0x_raw,
       {from: accounts[2]}).then(function(tx) {
         tx_obj = tx;
-        return gasRefundEvent.get();
+        return logErrorTextEvent.get();
       }).then(function(caughtEvents) {
         console.log(txPrettyPrint(tx_obj,"should open 0x trade with borrowed funds",caughtEvents));
         assert.isOk(tx_obj);
         done();
-    }, function(error, tx) {
-      console.error(error);
-      assert.isOk(false);
-      done();
-    });
+      }, function(error) {
+        console.error(error);
+        assert.isOk(false);
+        done();
+      });
   });
 
 

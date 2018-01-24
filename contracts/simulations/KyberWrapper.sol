@@ -46,6 +46,7 @@ contract KyberWrapper is Ownable {
         address destAddress,
         uint sourceAmount)
         public
+        onlyOwner
         returns (uint destTokenAmount)
     {
         uint sourceDecimals = getDecimals(EIP20(sourceAddress));

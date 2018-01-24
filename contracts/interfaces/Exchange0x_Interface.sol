@@ -4,6 +4,8 @@ contract Exchange0x_Interface {
 
     address public ZRX_TOKEN_CONTRACT;
 
+    event LogError(uint8 indexed errorId, bytes32 indexed orderHash);
+
     function fillOrder(
           address[5] orderAddresses,
           uint[6] orderValues,

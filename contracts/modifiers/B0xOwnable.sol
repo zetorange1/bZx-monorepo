@@ -13,7 +13,6 @@ contract B0xOwnable is Ownable {
 
     // modifier reverts if b0xContractAddress isn't set
     modifier onlyB0x() {
-        require(b0xContractAddress != address(0));
         require(msg.sender == b0xContractAddress);
         _;
     }

@@ -26,6 +26,7 @@ contract Helpers {
 
         return retVal;
     }
+
     function boolOrRevert(bool retVal) 
         internal
         view 

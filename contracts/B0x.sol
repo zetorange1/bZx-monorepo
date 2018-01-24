@@ -13,7 +13,7 @@ import './B0xOracle.sol';
 
 // interfaces
 import './interfaces/B0x_Oracle_Interface.sol';
-import './interfaces/Exchange0x_Wrapper_Interface.sol';
+import './interfaces/Exchange0xWrapper_Interface.sol';
 
 // SIMULATIONS (TO BE REMOVED PRIOR TO MAINNET DEPLOYMENT)
 //import './simulations/ERC20_AlwaysOwned.sol';
@@ -60,25 +60,26 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Helpers, B0xTypes {
 
 
 
-    event LoanOrderFilledAddresses(
+    event LoanOrderTakenAddresses(
+        bytes32 loanOrderHash,
         address indexed trader,
         address indexed lender,
         address indexed feeRecipientAddress,
         address loanTokenAddress,
         address interestTokenAddress,
         address collateralTokenAddress,
-        address oracleAddress,
-        bytes32 orderHash
+        address oracleAddress
     );
-    event LoanOrderFilledAmounts(
+
+    event LoanOrderTakenAmounts(
+        bytes32 loanOrderHash,
         uint loanTokenAmountFilled,
         uint interestAmount,
         uint initialMarginAmount,
         uint liquidationMarginAmount,
         uint lenderRelayFee,
         uint traderRelayFee,
-        uint expirationUnixTimestampSec,
-        bytes32 orderHash
+        uint expirationUnixTimestampSec
     );
 
     /*event LogCancel(
@@ -88,8 +89,16 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Helpers, B0xTypes {
         address takerToken,
         uint cancelledMakerTokenAmount,
         uint cancelledLoanTokenAmount,
-        bytes32 orderHash
+        bytes32 loanOrderHash
     );*/
+
+    event TradeOpenedOn0x(
+        bytes32 loanOrderHash,
+        address trader,
+        address tradeTokenAddress,
+        uint tradeTokenAmount,
+        uint loanTokenUsedAmount
+    );
 
     //event LogError(uint8 indexed errorId, bytes32 indexed orderHash);
     event LogErrorText(string errorTxt, uint errorValue, bytes32 indexed orderHash);
@@ -155,34 +164,34 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Helpers, B0xTypes {
             loanTokenAmountFilled
         );
 
-        LoanOrderFilledAddresses(
+        LoanOrderTakenAddresses(
+            loanOrder.orderHash,
             msg.sender, // trader
             loanOrder.maker, // lender
             loanOrder.feeRecipientAddress,
             loanOrder.loanTokenAddress,
             loanOrder.interestTokenAddress,
             collateralTokenFilled,
-            loanOrder.oracleAddress,
-            loanOrder.orderHash
+            loanOrder.oracleAddress
         );
-        LoanOrderFilledAmounts(
+        LoanOrderTakenAmounts(
+            loanOrder.orderHash,
             actualLendFill,
             loanOrder.interestAmount,
             loanOrder.initialMarginAmount,
             loanOrder.liquidationMarginAmount,
             loanOrder.lenderRelayFee,
             loanOrder.traderRelayFee,
-            loanOrder.expirationUnixTimestampSec,
-            loanOrder.orderHash
+            loanOrder.expirationUnixTimestampSec
         );
 
-        /*if (actualLendFill > 0) {
+        if (actualLendFill > 0) {
             B0x_Oracle_Interface(loanOrder.oracleAddress).orderIsTaken(
                 msg.sender,
                 loanOrder.orderHash,
                 gasUsed // initial used gas, collected in modifier
             );
-        }*/
+        }
 
         return actualLendFill;
     }
@@ -221,34 +230,34 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Helpers, B0xTypes {
             loanOrder.loanTokenAmount
         );
 
-        LoanOrderFilledAddresses(
+        LoanOrderTakenAddresses(
+            loanOrder.orderHash,
             loanOrder.maker, // trader
             msg.sender, // lender
             loanOrder.feeRecipientAddress,
             loanOrder.loanTokenAddress,
             loanOrder.interestTokenAddress,
             loanOrder.collateralTokenAddress,
-            loanOrder.oracleAddress,
-            loanOrder.orderHash
+            loanOrder.oracleAddress
         );
-        LoanOrderFilledAmounts(
+        LoanOrderTakenAmounts(
+            loanOrder.orderHash,
             actualLendFill,
             loanOrder.interestAmount,
             loanOrder.initialMarginAmount,
             loanOrder.liquidationMarginAmount,
             loanOrder.lenderRelayFee,
             loanOrder.traderRelayFee,
-            loanOrder.expirationUnixTimestampSec,
-            loanOrder.orderHash
+            loanOrder.expirationUnixTimestampSec
         );
 
-        /*if (actualLendFill > 0) {
+        if (actualLendFill > 0) {
             B0x_Oracle_Interface(loanOrder.oracleAddress).orderIsTaken(
                 msg.sender,
                 loanOrder.orderHash,
                 gasUsed // initial used gas, collected in modifier
             );
-        }*/
+        }
 
         return actualLendFill;
     }
@@ -287,7 +296,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Helpers, B0xTypes {
             loan.loanTokenAmountFilled))
             revert();
 
-        var (tradeTokenAddress, tradeTokenAmount, loanTokenUsedAmount) = Exchange0x_Wrapper_Interface(EXCHANGE0X_WRAPPER_CONTRACT).take0xTrade(
+        var (tradeTokenAddress, tradeTokenAmount, loanTokenUsedAmount) = Exchange0xWrapper_Interface(EXCHANGE0X_WRAPPER_CONTRACT).take0xTrade(
             loanOrderHash,
             loanOrder.oracleAddress,
             loan.loanTokenAmountFilled,
@@ -318,11 +327,13 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
         openTrade.listPosition = tradeList[msg.sender].length-1;
         openTrade.active = true;
 
-
-        LogErrorText("0x order: loanTokenUsedAmount", loanTokenUsedAmount, loanOrder.orderHash);
-        LogErrorText("0x order: tradeTokenAmount", tradeTokenAmount, loanOrder.orderHash);
-        LogErrorText("success taking 0x trade!", 0, loanOrder.orderHash);
-    
+        TradeOpenedOn0x(
+            loanOrderHash,
+            msg.sender,
+            tradeTokenAddress,
+            tradeTokenAmount,
+            loanTokenUsedAmount
+        );
 
         B0x_Oracle_Interface(loanOrder.oracleAddress).tradeIsOpened(
             loanOrderHash,
