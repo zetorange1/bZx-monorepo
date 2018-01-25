@@ -1,5 +1,5 @@
 
-var b0xToken = artifacts.require("./b0xToken.sol");
+var B0xToken = artifacts.require("./B0xToken.sol");
 
 var BaseToken = artifacts.require("./BaseToken.sol");
 
@@ -10,8 +10,8 @@ module.exports = function(deployer, network, accounts) {
 
 	console.log("migrations :: before balance: "+web3.eth.getBalance(accounts[0]));
 
-	deployer.deploy(b0xToken).then(function() {
-		b0xToken.deployed().then(function(instance) {
+	deployer.deploy(B0xToken).then(function() {
+		B0xToken.deployed().then(function(instance) {
 			instance.transfer(accounts[1], web3.toWei(100000, "ether"));
 			instance.transfer(accounts[2], web3.toWei(100000, "ether"));
 		});

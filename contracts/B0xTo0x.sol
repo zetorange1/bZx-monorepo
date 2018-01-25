@@ -1,14 +1,15 @@
-pragma solidity ^0.4.18;
+
+pragma solidity 0.4.18;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import './interfaces/Exchange0xWrapper_Interface.sol';
-import './interfaces/Exchange0x_Interface.sol';
-import './interfaces/EIP20.sol';
+import './interfaces/B0xTo0x_Interface.sol';
+import './interfaces/Exchange_Interface.sol';
+import './tokens/EIP20.sol';
 import './modifiers/B0xOwnable.sol';
-import './Helpers.sol';
+import './shared/Helpers.sol';
 
 
-contract Exchange0xWrapper is Exchange0xWrapper_Interface, Helpers, B0xOwnable {
+contract B0xTo0x is B0xTo0x_Interface, Helpers, B0xOwnable {
     using SafeMath for uint256;
 
     address public VAULT_CONTRACT;
@@ -24,7 +25,7 @@ contract Exchange0xWrapper is Exchange0xWrapper_Interface, Helpers, B0xOwnable {
         revert();
     }
 
-    function Exchange0xWrapper(
+    function B0xTo0x(
         address _vault,
         address _exchange, 
         address _zrxToken) 
@@ -135,7 +136,7 @@ contract Exchange0xWrapper is Exchange0xWrapper_Interface, Helpers, B0xOwnable {
         var (v, r, s) = getSignatureParts(signature);
 
         // 0x order will fail if loanTokenAmountToUse is too high
-        uint loanTokenUsedAmount = Exchange0x_Interface(EXCHANGE_CONTRACT).fillOrder(
+        uint loanTokenUsedAmount = Exchange_Interface(EXCHANGE_CONTRACT).fillOrder(
             orderAddresses0x,
             orderValues0x,
             loanTokenAmountToUse,

@@ -1,19 +1,20 @@
-pragma solidity ^0.4.9;
-//pragma experimental ABIEncoderV2;
+
+pragma solidity 0.4.18;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import './modifiers/B0xOwnable.sol';
 
-import './modifiers/EMACollector.sol';
-import './modifiers/GasRefunder.sol';
-import './B0xVault.sol';
-import './B0xTypes.sol';
-import './Helpers.sol';
+import '../modifiers/B0xOwnable.sol';
 
-import './interfaces/EIP20.sol';
-import './interfaces/B0x_Oracle_Interface.sol';
+import '../modifiers/EMACollector.sol';
+import '../modifiers/GasRefunder.sol';
+import '../B0xVault.sol';
+import '../shared/B0xTypes.sol';
+import '../shared/Helpers.sol';
 
-import './simulations/KyberWrapper.sol';
+import '../tokens/EIP20.sol';
+import '../interfaces/Oracle_Interface.sol';
+
+import './B0xToKyber.sol';
 
 
 /*
@@ -28,7 +29,7 @@ B0xOracle liquidation should be called from B0x
 */
 //import './B0x_Interface.sol';/// <--- maybe get rid of this
 
-contract B0xOracle is B0x_Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Helpers, B0xOwnable {
+contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Helpers, B0xOwnable {
     using SafeMath for uint256;
     
     // Percentage of interest retained as fee
@@ -256,13 +257,13 @@ contract B0xOracle is B0x_Oracle_Interface, EMACollector, GasRefunder, B0xTypes,
         if (tradeTokenAddress != address(0)) {
             tradeTokenDecimals = getDecimals(EIP20(tradeTokenAddress));
 
-            collateralToLendRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, loanTokenAddress)
+            collateralToLendRate = (B0xToKyber(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, loanTokenAddress)
                                      * (10**loanTokenDecimals)) / (10**collateralTokenDecimals);
             
-            tradeToCollateralRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(tradeTokenAddress, collateralTokenAddress)
+            tradeToCollateralRate = (B0xToKyber(KYBER_CONTRACT).getKyberPrice(tradeTokenAddress, collateralTokenAddress)
                                      * (10**collateralTokenDecimals)) / (10**tradeTokenDecimals);
         } else {
-            collateralToLendRate = (KyberWrapper(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, loanTokenAddress)
+            collateralToLendRate = (B0xToKyber(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, loanTokenAddress)
                                      * (10**loanTokenDecimals)) / (10**collateralTokenDecimals);
 
             tradeToCollateralRate = 0;

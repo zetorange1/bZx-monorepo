@@ -6,15 +6,15 @@ var B0x = artifacts.require("./B0x.sol");
 
 // owned by B0x (B0xOwnable)
 var B0xVault = artifacts.require("./B0xVault.sol");
-var Exchange0xWrapper = artifacts.require("./Exchange0xWrapper.sol");
+var B0xTo0x = artifacts.require("./B0xTo0x.sol");
 var B0xOracle = artifacts.require("./B0xOracle.sol");
 
 // owned by B0xOracle (Ownable)
-var KyberWrapper = artifacts.require("./KyberWrapper.sol");
+var B0xToKyber = artifacts.require("./B0xToKyber.sol");
 
 // the actual 0xProject Exchange contract that has been redeployed to the test network
 // remove this prior to public deployment
-var Exchange0x = artifacts.require("./0xProject/Exchange.sol");
+var Exchange0x = artifacts.require("./Exchange.sol");
 
 /*let testWallets = [
     "0x5409ED021D9299bf6814279A6A1411A7e866A631",
@@ -43,22 +43,22 @@ module.exports = function(deployer, network, accounts) {
 	//console.log("before balance: "+web3.eth.getBalance(accounts[0]));
 
 	return deployer.deploy(B0xVault).then(function() {
-		return deployer.deploy(KyberWrapper).then(function() {
-			return deployer.deploy(Exchange0xWrapper, B0xVault.address, Exchange0x.address, contracts0x["ZRXToken"]).then(function() {
-				return deployer.deploy(B0x, b0xToken.address, B0xVault.address, Exchange0xWrapper.address).then(function() {
+		return deployer.deploy(B0xToKyber).then(function() {
+			return deployer.deploy(B0xTo0x, B0xVault.address, Exchange0x.address, contracts0x["ZRXToken"]).then(function() {
+				return deployer.deploy(B0x, b0xToken.address, B0xVault.address, B0xTo0x.address).then(function() {
 
 					B0xVault.deployed().then(function(instance) {
 						instance.setB0xOwner(B0x.address);
 					});
 
-					Exchange0xWrapper.deployed().then(function(instance) {
+					B0xTo0x.deployed().then(function(instance) {
 						instance.setB0xOwner(B0x.address);
 					});
 
-					return deployer.deploy(B0xOracle, B0xVault.address, KyberWrapper.address
+					return deployer.deploy(B0xOracle, B0xVault.address, B0xToKyber.address
 						,{from: accounts[0], value: web3.toWei(1, "ether")}).then(function() { // seeds B0xOracle with 1 Ether
 
-							KyberWrapper.deployed().then(function(instance) {
+							B0xToKyber.deployed().then(function(instance) {
 								instance.transferOwnership(B0xOracle.address);
 							});
 
@@ -68,9 +68,9 @@ module.exports = function(deployer, network, accounts) {
 								console.log("migrations :: after balance: "+web3.eth.getBalance(accounts[0]));
 								
 								console.log("B0xVault: "+B0xVault.address);
-								console.log("KyberWrapper: "+KyberWrapper.address);
-								console.log("Exchange0x: "+Exchange0x.address);
-								console.log("Exchange0xWrapper: "+Exchange0xWrapper.address);
+								console.log("B0xToKyber: "+B0xToKyber.address);
+								console.log("Exchange(0xProject): "+Exchange0x.address);
+								console.log("B0xTo0x: "+B0xTo0x.address);
 								console.log("B0x: "+B0x.address);
 								console.log("B0xOracle: "+B0xOracle.address);
 

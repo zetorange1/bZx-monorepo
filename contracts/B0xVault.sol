@@ -1,10 +1,10 @@
 
-pragma solidity ^0.4.9;
+pragma solidity 0.4.18;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import './modifiers/B0xOwnable.sol';
 
-import './interfaces/EIP20.sol';
+import './tokens/EIP20.sol';
 
 contract B0xVault is B0xOwnable {
     using SafeMath for uint256;

@@ -1,19 +1,18 @@
 
-pragma solidity ^0.4.9;
-
+pragma solidity 0.4.18;
 
 import './modifiers/Upgradeable.sol';
 import './modifiers/GasTracker.sol';
-import './Helpers.sol';
+import './shared/Helpers.sol';
 
-import './B0xTypes.sol';
+import './shared/B0xTypes.sol';
 import './B0xVault.sol';
 
-import './B0xOracle.sol';
+import './oracle/B0xOracle.sol';
 
 // interfaces
-import './interfaces/B0x_Oracle_Interface.sol';
-import './interfaces/Exchange0xWrapper_Interface.sol';
+import './interfaces/Oracle_Interface.sol';
+import './interfaces/B0xTo0x_Interface.sol';
 
 // SIMULATIONS (TO BE REMOVED PRIOR TO MAINNET DEPLOYMENT)
 //import './simulations/ERC20_AlwaysOwned.sol';
@@ -43,7 +42,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Helpers, B0xTypes {
     address public B0X_TOKEN_CONTRACT;
     address public VAULT_CONTRACT;
     address public ORACLE_CONTRACT;
-    address public EXCHANGE0X_WRAPPER_CONTRACT;
+    address public B0XTO0X;
 
 
     mapping (bytes32 => uint) public filled; // mapping of orderHash to loanTokenAmount filled
@@ -119,7 +118,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Helpers, B0xTypes {
 
         B0X_TOKEN_CONTRACT = _b0xToken;
         VAULT_CONTRACT = _vault;
-        EXCHANGE0X_WRAPPER_CONTRACT = _exchange0xWrapper;
+        B0XTO0X = _exchange0xWrapper;
 
         // for testing only!
         DEBUG_MODE = true;
@@ -186,7 +185,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Helpers, B0xTypes {
         );
 
         if (actualLendFill > 0) {
-            B0x_Oracle_Interface(loanOrder.oracleAddress).orderIsTaken(
+            Oracle_Interface(loanOrder.oracleAddress).orderIsTaken(
                 msg.sender,
                 loanOrder.orderHash,
                 gasUsed // initial used gas, collected in modifier
@@ -252,7 +251,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Helpers, B0xTypes {
         );
 
         if (actualLendFill > 0) {
-            B0x_Oracle_Interface(loanOrder.oracleAddress).orderIsTaken(
+            Oracle_Interface(loanOrder.oracleAddress).orderIsTaken(
                 msg.sender,
                 loanOrder.orderHash,
                 gasUsed // initial used gas, collected in modifier
@@ -283,7 +282,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Helpers, B0xTypes {
             return intOrRevert(0);
         }
 
-        if (B0x_Oracle_Interface(loanOrder.oracleAddress).getMarginRatio(loanOrderHash, msg.sender) < 110) {
+        if (Oracle_Interface(loanOrder.oracleAddress).getMarginRatio(loanOrderHash, msg.sender) < 110) {
             LogErrorText("error: marginRatiomarginRatio too low!", 0, loanOrderHash);
             return intOrRevert(0);
         }
@@ -292,11 +291,11 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Helpers, B0xTypes {
         if (! B0xVault(VAULT_CONTRACT).transferFrom(
             loanOrder.loanTokenAddress,
             loan.lender,
-            EXCHANGE0X_WRAPPER_CONTRACT,
+            B0XTO0X,
             loan.loanTokenAmountFilled))
             revert();
 
-        var (tradeTokenAddress, tradeTokenAmount, loanTokenUsedAmount) = Exchange0xWrapper_Interface(EXCHANGE0X_WRAPPER_CONTRACT).take0xTrade(
+        var (tradeTokenAddress, tradeTokenAmount, loanTokenUsedAmount) = B0xTo0x_Interface(B0XTO0X).take0xTrade(
             loanOrderHash,
             loanOrder.oracleAddress,
             loan.loanTokenAmountFilled,
@@ -335,7 +334,7 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
             loanTokenUsedAmount
         );
 
-        B0x_Oracle_Interface(loanOrder.oracleAddress).tradeIsOpened(
+        Oracle_Interface(loanOrder.oracleAddress).tradeIsOpened(
             loanOrderHash,
             msg.sender, // trader
             tradeTokenAddress,
@@ -382,7 +381,7 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
         }
 
         // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
-        /*B0x_Oracle_Interface(loanOrder.oracleAddress).interestIsPaid(
+        /*Oracle_Interface(loanOrder.oracleAddress).interestIsPaid(
             loanOrderHash,
             trader, // trader
             interestData.interestTokenAddress,
@@ -418,7 +417,7 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
         );*/
 
         /*if (tradeSuccess) {
-            B0x_Oracle_Interface(loanOrder.oracleAddress).tradeIsClosed(
+            Oracle_Interface(loanOrder.oracleAddress).tradeIsClosed(
                 loanOrderHash,
                 msg.sender, // trader
                 gasUsed // initial used gas, collected in modifier
@@ -455,7 +454,7 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
         );*/
 
         /*if (tradeSuccess) {
-            B0x_Oracle_Interface(loanOrder.oracleAddress).tradeIsClosed(
+            Oracle_Interface(loanOrder.oracleAddress).tradeIsClosed(
                 loanOrderHash,
                 msg.sender, // trader
                 gasUsed // initial used gas, collected in modifier
@@ -767,7 +766,7 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
             return intOrRevert(0);
         }
 
-        var (collateralToLendRate,) = B0x_Oracle_Interface(loanOrder.oracleAddress).getRateData(
+        var (collateralToLendRate,) = Oracle_Interface(loanOrder.oracleAddress).getRateData(
             loanOrder.loanTokenAddress,
             loanOrder.collateralTokenAddress,
             0
@@ -872,7 +871,7 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
             return intOrRevert(0);
         }
 
-        uint marginRatio = B0x_Oracle_Interface(loanOrder.oracleAddress).getMarginRatio(loanOrder.orderHash, msg.sender);
+        uint marginRatio = Oracle_Interface(loanOrder.oracleAddress).getMarginRatio(loanOrder.orderHash, msg.sender);
         if (marginRatio < 110) {
             LogErrorText("error: marginRatiomarginRatio too low!", 0, loanOrder.orderHash);
             return intOrRevert(0);
@@ -964,7 +963,7 @@ orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
         address _exchange0xWrapper)
         public
         onlyOwner {
-        EXCHANGE0X_WRAPPER_CONTRACT = _exchange0xWrapper;
+        B0XTO0X = _exchange0xWrapper;
     }
 
     /**

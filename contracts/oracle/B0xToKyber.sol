@@ -1,12 +1,12 @@
 
-pragma solidity ^0.4.9;
+pragma solidity 0.4.18;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
-import '../interfaces/EIP20.sol';
+import '../tokens/EIP20.sol';
 
-contract KyberWrapper is Ownable {
+contract B0xToKyber is Ownable {
     using SafeMath for uint256;
 
     mapping(bytes32 => uint) pairConversionRate;

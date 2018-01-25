@@ -17,21 +17,19 @@ import B0xJS from 'b0x.js'
 import { ZeroEx } from '0x.js';
 //const zeroEx = new ZeroEx(new Web3.providers.HttpProvider("http://localhost:8545"));
 
-
 let B0xVault = artifacts.require("./B0xVault.sol");
-let Exchange0xWrapper = artifacts.require("./Exchange0xWrapper.sol");
-let KyberWrapper = artifacts.require("./KyberWrapper.sol");
+let B0xTo0x = artifacts.require("./B0xTo0x.sol");
 let B0xOracle = artifacts.require("./B0xOracle.sol");
 let B0xSol = artifacts.require("./B0x.sol");
-let b0xToken = artifacts.require("./b0xToken.sol");
+let B0xToken = artifacts.require("./B0xToken.sol");
 let ERC20 = artifacts.require("./ERC20.sol"); // for testing with any ERC20 token
 
 let BaseToken = artifacts.require("./BaseToken.sol");
 
 let testDepositAmount = web3.toWei(0.001, "ether");
-let expected_b0xTokenTotalSupply = web3.toWei(20000000, "ether"); // 20MM B0X
+let expected_B0xTokenTotalSupply = web3.toWei(20000000, "ether"); // 20MM B0X
 
-let Exchange0x = artifacts.require("./Exchange0x_Interface.sol");
+let Exchange0x = artifacts.require("./Exchange_Interface.sol");
 
 let currentGasPrice = 20000000000; // 20 gwei
 let currentEthPrice = 1000; // USD
@@ -130,9 +128,8 @@ contract('B0xTest', function(accounts) {
 
   /*before('deploy all contracts', async function () {
     await Promise.all([
-      (b0x_token = await b0xToken.new()),
+      (b0x_token = await B0xToken.new()),
       (vault = await B0xVault.new()),
-      (kyber = await KyberWrapper.new()),
     ]);
 
     await Promise.all([
@@ -148,19 +145,6 @@ contract('B0xTest', function(accounts) {
   it("should add B0x as owner for B0xVault", function(done) {
     vault.setB0xOwner(b0x.address).then(function() {
       vault.b0xContractAddress.call().then(function(owner) {
-        assert.equal(owner, b0x.address, "B0x contract should be the owner");
-        done();
-      });
-    }, function(error) {
-      console.error(error);
-      assert.equal(true, false);
-      done();
-    });
-  });
-
-  it("should add B0x as the owner for KyberWrapper", function(done) {
-    kyber.transferOwnership(b0x.address).then(function() {
-      kyber.owner.call().then(function(owner) {
         assert.equal(owner, b0x.address, "B0x contract should be the owner");
         done();
       });
@@ -190,13 +174,12 @@ contract('B0xTest', function(accounts) {
 
   before('retrieve all deployed contracts', async function () {
     await Promise.all([
-      (b0x_token = await b0xToken.deployed()),
+      (b0x_token = await B0xToken.deployed()),
       (vault = await B0xVault.deployed()),
-      (exchange0x_wrapper = await Exchange0xWrapper.deployed()),
+      (exchange0x_wrapper = await B0xTo0x.deployed()),
       (b0x = await B0xSol.deployed()),
 
       (oracle = await B0xOracle.deployed()),
-      (kyber = await KyberWrapper.deployed()),
 
       (zrx_token = await ERC20.at(contracts0x["ZRXToken"])),
       (exchange_0x = await Exchange0x.at(contracts0x["Exchange"])),
@@ -259,14 +242,6 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should retrieve deployed KyberWrapper contract", function(done) {
-    KyberWrapper.deployed().then(function(instance) {
-      kyber = instance;
-      assert.isOk(vault);
-      done();
-    });
-  });
-
   it("should retrieve deployed B0x contract", function(done) {
     B0xSol.deployed().then(function(instance) {
       b0x = instance;
@@ -276,8 +251,8 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should deploy b0xToken contract", function(done) {
-    b0xToken.deployed().then(function(instance) {
+  it("should deploy B0xToken contract", function(done) {
+    B0xToken.deployed().then(function(instance) {
       b0x_token = instance;
       assert.isOk(b0x_token);
       done();
@@ -286,9 +261,9 @@ contract('B0xTest', function(accounts) {
 
   */
 
-  /*it("should verify total b0xToken supply", function(done) {
+  /*it("should verify total B0xToken supply", function(done) {
     b0x_token.totalSupply.call().then(function(totalSupply) {
-      assert.equal(totalSupply.toNumber(), expected_b0xTokenTotalSupply, "totalSupply should equal b0xTokenTotalSupply");
+      assert.equal(totalSupply.toNumber(), expected_B0xTokenTotalSupply, "totalSupply should equal B0xTokenTotalSupply");
       done();
     }, function(error) {
       console.error(error);
@@ -466,7 +441,7 @@ contract('B0xTest', function(accounts) {
 
   // not needed since b0x_token is ERC20_AlwaysOwned
   /*
-  it("should transfer b0xToken to accounts[1] and accounts[1] approve vault for transfer (for lender)", function(done) {
+  it("should transfer B0xToken to accounts[1] and accounts[1] approve vault for transfer (for lender)", function(done) {
     var amount = web3.toWei(100000, "ether");
     b0x_token.transfer(accounts[1], amount, {from: accounts[0]}).then(function(result) {
       b0x_token.approve(vault.address, amount, {from: accounts[1]}).then(function(tx) {
@@ -507,7 +482,7 @@ contract('B0xTest', function(accounts) {
 
   // not needed since b0x_token is ERC20_AlwaysOwned
   /*
-  it("should transfer b0xToken to accounts[2] and accounts[2] approve vault for transfer (for trader)", function(done) {
+  it("should transfer B0xToken to accounts[2] and accounts[2] approve vault for transfer (for trader)", function(done) {
     var amount = web3.toWei(100000, "ether");
     b0x_token.transfer(accounts[2], amount, {from: accounts[0]}).then(function(result) {
       b0x_token.approve(vault.address, amount, {from: accounts[2]}).then(function(tx) {

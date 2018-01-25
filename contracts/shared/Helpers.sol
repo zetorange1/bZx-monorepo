@@ -1,4 +1,5 @@
-pragma solidity ^0.4.9;
+
+pragma solidity 0.4.18;
 
 contract Helpers {
     

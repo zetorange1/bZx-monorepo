@@ -17,10 +17,11 @@
 
 */
 
-pragma solidity ^0.4.11;
+pragma solidity 0.4.18;
 
-import '../interfaces/EIP20.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+
+import '../tokens/EIP20.sol';
 
 /// @title TokenTransferProxy - Transfers tokens on behalf of contracts that have been approved via decentralized governance.
 /// @author Amir Bandeali - <amir@0xProject.com>, Will Warren - <will@0xProject.com>

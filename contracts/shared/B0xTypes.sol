@@ -1,4 +1,5 @@
-pragma solidity ^0.4.9;
+
+pragma solidity 0.4.18;
 
 contract B0xTypes {
     
@@ -43,9 +44,4 @@ contract B0xTypes {
         uint totalAmountAccrued;
         uint interestPaidSoFar;
     }
-
-    /*struct RateData {
-        uint marginToLendRate;
-        uint tradeToMarginRate;
-    }*/
 }

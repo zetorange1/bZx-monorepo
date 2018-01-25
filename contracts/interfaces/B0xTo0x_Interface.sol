@@ -1,6 +1,7 @@
-pragma solidity ^0.4.18;
 
-contract Exchange0xWrapper_Interface {
+pragma solidity 0.4.18;
+
+contract B0xTo0x_Interface {
 
    function take0xTrade(
         bytes32 loanOrderHash, // b0x will only pass in a valid loanOrderHash, so no check needed

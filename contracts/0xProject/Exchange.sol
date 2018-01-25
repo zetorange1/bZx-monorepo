@@ -17,16 +17,18 @@
 
 */
 
-pragma solidity ^0.4.11;
+pragma solidity 0.4.18;
 
-import "./TokenTransferProxy.sol";
-import '../interfaces/EIP20.sol';
 import 'zeppelin-solidity/contracts/math/Math.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
+import "./TokenTransferProxy.sol";
+import '../interfaces/Exchange_Interface.sol';
+import '../tokens/EIP20.sol';
+
 /// @title Exchange - Facilitates exchange of ERC20 tokens.
 /// @author Amir Bandeali - <amir@0xProject.com>, Will Warren - <will@0xProject.com>
-contract Exchange {
+contract Exchange is Exchange_Interface {
 
     // Error Codes
     enum Errors {

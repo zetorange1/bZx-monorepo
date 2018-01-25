@@ -1,6 +1,6 @@
 
-var Exchange0x = artifacts.require("./0xProject/Exchange.sol");
-var TokenTransferProxy = artifacts.require("./0xProject/TokenTransferProxy.sol");
+var Exchange0x = artifacts.require("./Exchange.sol");
+var TokenTransferProxy = artifacts.require("./TokenTransferProxy.sol");
 
 let contracts0x = {
 	"ZRXToken": "0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3",

@@ -1,4 +1,5 @@
-pragma solidity ^0.4.11;
+
+pragma solidity 0.4.18;
 
 //import 'zeppelin-solidity/contracts/token/ERC20.sol';
 
@@ -13,6 +14,6 @@ pragma solidity ^0.4.11;
 }*/
 
 // Testing only! Please remove below and use above for non-dev environments!
-import '../simulations/ERC20_AlwaysOwned.sol';
+import './fake/ERC20_AlwaysOwned.sol';
 contract EIP20 is ERC20_AlwaysOwned {}
 

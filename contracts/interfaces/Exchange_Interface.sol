@@ -1,6 +1,9 @@
-pragma solidity ^0.4.9;
 
-contract Exchange0x_Interface {
+pragma solidity 0.4.18;
+
+// Interface to the 0xProject Exchange contract
+
+contract Exchange_Interface {
 
     address public ZRX_TOKEN_CONTRACT;
 

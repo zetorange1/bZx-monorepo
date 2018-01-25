@@ -19,12 +19,11 @@ if (!fs.existsSync("./html_public_test/abi")) {
 }
 
 
-
 var addresses = {
 	"B0x": "unknown",
 	"B0xVault": "unknown",
 	"B0xOracle": "unknown",
-	"b0xToken": "unknown",
+	"B0xToken": "unknown",
 
 	"TestToken0": "unknown",
 	"TestToken1": "unknown",
