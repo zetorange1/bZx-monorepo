@@ -17,7 +17,7 @@ contract B0xTypes {
         uint lenderRelayFee;
         uint traderRelayFee;
         uint expirationUnixTimestampSec;
-        bytes32 orderHash;
+        bytes32 loanOrderHash;
     }
 
     struct Loan {

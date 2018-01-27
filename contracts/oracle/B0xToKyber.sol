@@ -18,7 +18,7 @@ contract B0xToKyber is Ownable {
     // NOTE: this is intentionally not a view function to ease testing
     // This function creates bogus rates to simulate price changes
     // TODO: connect to KyberNetwork.getPrice
-    function getKyberPrice(
+    function getKyberRate(
         address source,
         address dest)
         public
@@ -52,8 +52,9 @@ contract B0xToKyber is Ownable {
         uint sourceDecimals = getDecimals(EIP20(sourceAddress));
         uint destDecimals = getDecimals(EIP20(destAddress));
 
-        uint rate = (getKyberPrice(sourceAddress, destAddress) * (10**destDecimals)) / (10**sourceDecimals);
+        uint rate = (getKyberRate(sourceAddress, destAddress) * (10**destDecimals)) / (10**sourceDecimals);
 
+        //destTokenAmount = 
 /*
         
         function trade(ERC20 sourceToken,

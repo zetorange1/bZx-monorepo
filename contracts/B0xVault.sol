@@ -11,7 +11,7 @@ contract B0xVault is B0xOwnable {
 
     event LogErrorText(string errorTxt, uint errorValue);
 
-    mapping (address => mapping (address => uint)) public margin; // mapping of token addresses to mapping of accounts to margin
+    mapping (address => mapping (address => uint)) public collateral; // mapping of token addresses to mapping of accounts to collateral
     mapping (address => mapping (address => uint)) public funding; // mapping of token addresses to mapping of accounts to funding
     mapping (address => mapping (address => uint)) public interest; // mapping of token addresses to mapping of accounts to interest
 
@@ -22,8 +22,8 @@ contract B0xVault is B0xOwnable {
     // Only the owner (b0x contract) can directly deposit ether
     function() public payable onlyB0x {}
 
-    function marginBalanceOf(address token_, address user_) public constant returns (uint balance) {
-        return margin[token_][user_];
+    function collateralBalanceOf(address token_, address user_) public constant returns (uint balance) {
+        return collateral[token_][user_];
     }
 
     function fundingBalanceOf(address token_, address user_) public constant returns (uint balance) {
@@ -34,7 +34,7 @@ contract B0xVault is B0xOwnable {
         return interest[token_][user_];
     }
 
-    function storeMargin(
+    function depositCollateral(
         address token,
         address user,
         uint value)
@@ -42,14 +42,14 @@ contract B0xVault is B0xOwnable {
         onlyB0x
         returns (bool)
     {
-        margin[token][user] = margin[token][user].add(value);
+        collateral[token][user] = collateral[token][user].add(value);
         if (!EIP20(token).transferFrom(user, this, value))
             revert();
 
         return true;
     }
 
-    function storeFunding(
+    function depositFunding(
         address token,
         address user,
         uint value)
@@ -64,7 +64,7 @@ contract B0xVault is B0xOwnable {
         return true;
     }
 
-    function storeInterest(
+    function depositInterest(
         address token,
         address user,
         uint value)
@@ -79,41 +79,39 @@ contract B0xVault is B0xOwnable {
         return true;
     }
 
-    function sendMargin(
+    function withdrawCollateral(
         address token,
         address user,
-        address to,        
         uint value)
         public
         onlyB0x
         returns (bool)
     {
-        margin[token][user] = margin[token][user].sub(value);
-        if (!EIP20(token).transfer(to, value))
+        collateral[token][user] = collateral[token][user].sub(value);
+        if (!EIP20(token).transfer(user, value))
             revert();
 
         return true;
     }
     
-    function sendFunding(
+    function withdrawFunding(
         address token,
         address user,
-        address to,        
         uint value)
         public
         onlyB0x
         returns (bool) {
         funding[token][user] = funding[token][user].sub(value);
-        if (!EIP20(token).transfer(to, value))
+        if (!EIP20(token).transfer(user, value))
             revert();
 
         return true;
     }
 
     // Interest payment distributions are the responsibility of the Oracle used for the loanOrder.
-    // This function can only be called by b0x, to transfer interest to the Oracle for further processing.
+    // This function can only be called by b0x to transfer interest to the Oracle for further processing.
     function sendInterestToOracle(
-        address fromUser,
+        address user,
         address token,
         address oracleAddress,
         uint tokenAmount)
@@ -124,7 +122,7 @@ contract B0xVault is B0xOwnable {
         if (tokenAmount == 0)
             return false;
 
-        interest[token][fromUser] = interest[token][fromUser].sub(tokenAmount);
+        interest[token][user] = interest[token][user].sub(tokenAmount);
 
         if (!EIP20(token).transfer(oracleAddress, tokenAmount))
             revert();

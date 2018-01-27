@@ -48,11 +48,11 @@ module.exports = function(deployer, network, accounts) {
 				return deployer.deploy(B0x, b0xToken.address, B0xVault.address, B0xTo0x.address).then(function() {
 
 					B0xVault.deployed().then(function(instance) {
-						instance.setB0xOwner(B0x.address);
+						instance.transferB0xOwnership(B0x.address);
 					});
 
 					B0xTo0x.deployed().then(function(instance) {
-						instance.setB0xOwner(B0x.address);
+						instance.transferB0xOwnership(B0x.address);
 					});
 
 					return deployer.deploy(B0xOracle, B0xVault.address, B0xToKyber.address
@@ -63,7 +63,7 @@ module.exports = function(deployer, network, accounts) {
 							});
 
 							B0xOracle.deployed().then(function(instance) {
-								instance.setB0xOwner(B0x.address);
+								instance.transferB0xOwnership(B0x.address);
 								
 								console.log("migrations :: after balance: "+web3.eth.getBalance(accounts[0]));
 								

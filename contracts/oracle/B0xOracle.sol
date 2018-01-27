@@ -36,6 +36,10 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Hel
     // Must be between 0 and 100
     uint8 public interestFeeRate = 10;
 
+    // The max percentage amount above the liquidation level that will trigger a liquidation of positions
+    uint8 liquidationThreshold = 10;
+
+    address public VAULT_CONTRACT;
     address public KYBER_CONTRACT;
 
     // Only the owner (b0x contract) can directly deposit ether
@@ -56,19 +60,17 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Hel
         emaPeriods = 10; // set periods to use for EMA calculation
     }
 
-    function orderIsTaken(
+
+    function didTakeOrder(
         address taker,
         bytes32 loanOrderHash,
         uint gasUsed)
         public
         onlyB0x
         refundsGas(taker, emaValue, gasUsed) // refunds based on collected gas price EMA
-        updatesEMA(tx.gasprice) {
+        updatesEMA(tx.gasprice) {}
 
-        return;
-    }
-
-    function tradeIsOpened(
+    function didOpenTrade(
         bytes32 loanOrderHash,
         address trader,
         address tradeTokenAddress,
@@ -76,14 +78,12 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Hel
         uint gasUsed)
         public
         onlyB0x
-        updatesEMA(tx.gasprice) {
+        updatesEMA(tx.gasprice) {}
 
-        return;
-    }
-
-    function interestIsPaid(
+    function didPayInterest(
         bytes32 loanOrderHash,
         address trader,
+        address lender,
         address interestTokenAddress,
         uint amountOwed,
         uint gasUsed)
@@ -92,10 +92,40 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Hel
         updatesEMA(tx.gasprice) {
 
         // interestFeeRate is only editable by ower
-        //uint interestFee = amountOwed * interestFeeRate / 100;
+        uint interestFee = amountOwed * interestFeeRate / 100;
 
-
+        // Transfers the interest to the lender, less the interest fee.
+        // The fee is retained by the oracle.
+        if (!EIP20(interestTokenAddress).transfer(lender, amountOwed.sub(interestFee)))
+            revert();
     }
+
+    function didCloseTrade(
+        bytes32 loanOrderHash,
+        address trader,
+        bool isLiquidation,
+        uint gasUsed)
+        public
+        onlyB0x
+        updatesEMA(tx.gasprice) {}
+
+    function didDepositCollateral(
+        address taker,
+        bytes32 loanOrderHash,
+        uint gasUsed)
+        public
+        onlyB0x
+        updatesEMA(tx.gasprice) {}
+
+    function didChangeCollateral(
+        address taker,
+        bytes32 loanOrderHash,
+        uint gasUsed)
+        public
+        onlyB0x
+        updatesEMA(tx.gasprice) {}
+
+
 
 
     function closeTrade(
@@ -132,9 +162,10 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Hel
             return false;
         }
 
-        uint liquidationLevel = getMarginRatio(loanOrderHash, trader);
-        if (liquidationLevel > 100) {
-            //LogErrorText("error: margin above liquidation level", liquidationLevel, loanOrderHash);
+        
+        uint marginRatio = getMarginRatio(loanOrderHash, trader);
+        if (marginRatio > 100) {
+            //LogErrorText("error: margin above liquidation level", marginRatio, loanOrderHash);
             //return boolOrRevert(false);
             return false;
         }
@@ -174,6 +205,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Hel
     }
 
 
+    // Should return a ratio of currentMarginAmount / liquidationMarginAmount
     function getMarginRatio(
         bytes32 loanOrderHash,
         address trader)
@@ -181,13 +213,20 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Hel
         view
         returns (uint level)
     {
-        level = 200;
+        return 200;
+
+        /*LoanOrder memory loanOrder = getLoanOrder(loanOrderHash);
+        if (loanOrder.orderHash != loanOrderHash) {
+            //LogErrorText("error: invalid loan order", 0, loanOrderHash);
+            //return intOrRevert(999);
+            return 999;
+        }*/
         /*
         TODO: convert the strunct fuction to build from the raw bytes
         
         LoanOrder memory loanOrder = LoanOrderStruct(loanOrderHash);
         if (loanOrder.orderHash != loanOrderHash) {
-            //LogErrorText("error: invalid lend order", 0, loanOrderHash);
+            //LogErrorText("error: invalid loan order", 0, loanOrderHash);
             //return intOrRevert(999);
             return 999;
         }
@@ -206,7 +245,11 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Hel
             return 999;
         }
 
-        var (collateralToLendRate, tradeToCollateralRate) = getRateData(
+        uint collateralToLendRate = getTokenPrice(
+            activeTrade.tradeTokenAddress,//loanOrder.loanTokenAddress,
+            activeTrade.tradeTokenAddress,//loanOrder.collateralTokenAddress
+        );
+        var (collateralToLendRate, tradeToCollateralRate) = getTokenPrice(
             activeTrade.tradeTokenAddress,//loanOrder.loanTokenAddress,
             activeTrade.tradeTokenAddress,//loanOrder.collateralTokenAddress,
             activeTrade.tradeTokenAddress
@@ -232,6 +275,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Hel
         */
     }
 
+
     function shouldLiquidate(
         bytes32 loanOrderHash,
         address trader)
@@ -239,38 +283,39 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Hel
         view
         returns (bool)
     {
-        return (getMarginRatio(loanOrderHash, trader) <= 100);
+        return (getMarginRatio(loanOrderHash, trader) <= (100+uint(liquidationThreshold)));
     }
 
-    function getRateData(
-        address loanTokenAddress,
-        address collateralTokenAddress,
-        address tradeTokenAddress)
-        public 
+    function getTokenPrice(
+        address sourceTokenAddress,
+        address destTokenAddress)
+        public
         view 
-        returns (uint collateralToLendRate, uint tradeToCollateralRate)
+        returns (uint rate)
     {   
-        uint loanTokenDecimals = getDecimals(EIP20(loanTokenAddress));
-        uint collateralTokenDecimals = getDecimals(EIP20(collateralTokenAddress));
-        uint tradeTokenDecimals;
-
-        if (tradeTokenAddress != address(0)) {
-            tradeTokenDecimals = getDecimals(EIP20(tradeTokenAddress));
-
-            collateralToLendRate = (B0xToKyber(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, loanTokenAddress)
-                                     * (10**loanTokenDecimals)) / (10**collateralTokenDecimals);
-            
-            tradeToCollateralRate = (B0xToKyber(KYBER_CONTRACT).getKyberPrice(tradeTokenAddress, collateralTokenAddress)
-                                     * (10**collateralTokenDecimals)) / (10**tradeTokenDecimals);
-        } else {
-            collateralToLendRate = (B0xToKyber(KYBER_CONTRACT).getKyberPrice(collateralTokenAddress, loanTokenAddress)
-                                     * (10**loanTokenDecimals)) / (10**collateralTokenDecimals);
-
-            tradeToCollateralRate = 0;
-        }
+        /*uint sourceTokenDecimals = getDecimals(EIP20(sourceTokenAddress));
+        uint destTokenDecimals = getDecimals(EIP20(destTokenAddress));*/
+        
+        rate = B0xToKyber(KYBER_CONTRACT).getKyberRate(sourceTokenAddress, destTokenAddress);
+                                // * (10**destTokenDecimals)) / (10**sourceTokenDecimals);
     }
 
     // helpers
+
+    function getLoanOrderBytes (
+        bytes32 loanOrderHash
+    )
+        internal
+        view
+        returns (LoanOrder)
+    {
+        return;
+
+        //todo: get rid of this, instead pass in loan order bytes
+
+        //B0x_Interface(B0X_CONTRACT).getLoanOrder(loanOrderHash);
+    }
+
 
     function LoanOrderStruct (
         bytes32 loanOrderHash
@@ -328,27 +373,36 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Hel
         return Loan(v1,v2,v3,v4,v5,v6);*/
     }
 
-    function getDecimals(EIP20 token) 
+    /*function getDecimals(EIP20 token) 
         internal
         view 
         returns(uint)
     {
         return token.decimals();
-    }
+    }*/
 
     function setInterestFeeRate(
         uint8 newRate) 
         public
-        onlyB0x
+        onlyOwner
     {
-        require(newRate >= 0 && newRate <= 100);
+        require(newRate != interestFeeRate && newRate >= 0 && newRate <= 100);
         interestFeeRate = newRate;
+    }
+
+    function setLiquidationThreshold(
+        uint8 newValue) 
+        public
+        onlyOwner
+    {
+        require(newValue != liquidationThreshold);
+        liquidationThreshold = newValue;
     }
 
     /*function setB0xContractAddress(
         address newAddress) 
         public
-        onlyB0x
+        onlyOwner
     {
         require(newAddress != B0X_CONTRACT && newAddress != address(0));
         B0X_CONTRACT = newAddress;
@@ -357,7 +411,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Hel
     function setVaultContractAddress(
         address newAddress) 
         public
-        onlyB0x
+        onlyOwner
     {
         require(newAddress != VAULT_CONTRACT && newAddress != address(0));
         VAULT_CONTRACT = newAddress;
@@ -366,7 +420,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Hel
     function setEMAPeriods (
         uint8 _newEMAPeriods)
         public
-        onlyB0x {
+        onlyOwner {
         require(_newEMAPeriods > 1 && _newEMAPeriods != emaPeriods);
         emaPeriods = _newEMAPeriods;
     }

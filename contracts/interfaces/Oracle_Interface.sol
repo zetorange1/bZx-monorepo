@@ -1,16 +1,13 @@
 
 pragma solidity 0.4.18;
 
-contract Oracle_Interface {
-
-    // Address of the b0x vault contract.
-    address public VAULT_CONTRACT;
+interface Oracle_Interface {
 
     // Called by b0x automatically, but can be called outside b0x
     // Appropriate security logic (ex: ownerOnly) should be put in place if appropriate
     // loanOrderHash is provided and can be used to reference the order in b0x.
     // gasUsed can be provided for optional gas refunds.
-    function orderIsTaken(
+    function didTakeOrder(
         address taker,
         bytes32 loanOrderHash,
         uint gasUsed)
@@ -21,7 +18,7 @@ contract Oracle_Interface {
     // loanOrderHash is provided and can be used to reference the order in b0x.
     // Details of the trade are provided.
     // usedGas can be provided for optional gas refunds.
-    function tradeIsOpened(
+    function didOpenTrade(
         bytes32 loanOrderHash,
         address trader,
         address tradeTokenAddress,
@@ -33,15 +30,46 @@ contract Oracle_Interface {
     // Appropriate security logic (ex: ownerOnly) should be put in place if appropriate
     // loanOrderHash is provided and can be used to reference the order in b0x.
     // usedGas can be provided for optional gas refunds.
-    function interestIsPaid(
+    function didPayInterest(
         bytes32 loanOrderHash,
-        address trader, // trader
+        address trader,
+        address lender,
         address interestTokenAddress,
         uint amount,
         uint gasUsed)
         public;
 
+    // Called by b0x automatically, but can be called outside b0x
+    // Appropriate security logic (ex: ownerOnly) should be put in place if appropriate
+    // loanOrderHash is provided and can be used to reference the order in b0x.
+    // isLiquidation is True if the trade was liquidated by a 3rd party, or False if closed by the trader.
+    // usedGas can be provided for optional gas refunds.
+    function didCloseTrade(
+        bytes32 loanOrderHash,
+        address trader,
+        bool isLiquidation,
+        uint gasUsed)
+        public;
 
+    // Called by b0x automatically, but can be called outside b0x
+    // Appropriate security logic (ex: ownerOnly) should be put in place if appropriate
+    // loanOrderHash is provided and can be used to reference the order in b0x.
+    // gasUsed can be provided for optional gas refunds.
+    function didDepositCollateral(
+        address taker,
+        bytes32 loanOrderHash,
+        uint gasUsed)
+        public;
+
+    // Called by b0x automatically, but can be called outside b0x
+    // Appropriate security logic (ex: ownerOnly) should be put in place if appropriate
+    // loanOrderHash is provided and can be used to reference the order in b0x.
+    // gasUsed can be provided for optional gas refunds.
+    function didChangeCollateral(
+        address taker,
+        bytes32 loanOrderHash,
+        uint gasUsed)
+        public;
 
 
 
@@ -59,18 +87,7 @@ contract Oracle_Interface {
         public
         returns (bool);
 
-
-
-    // Should return a ratio of currentMarginAmount / liquidationMarginAmount
-    function getMarginRatio(
-        bytes32 loanOrderHash,
-        address trader)
-        public
-        view
-        returns (uint);
-
-    // Returns True is the trade should be liquidated
-    // Note: This can make use of the getMarginRatio() function, but it doesn't have to
+    // Returns True is the trade should be liquidated immediately
     function shouldLiquidate(
         bytes32 loanOrderHash,
         address trader)
@@ -78,11 +95,10 @@ contract Oracle_Interface {
         view
         returns (bool);
 
-    function getRateData(
-        address loanTokenAddress,
-        address collateralTokenAddress,
-        address tradeTokenAddress)
-        public 
+    function getTokenPrice(
+        address sourceTokenAddress,
+        address destTokenAddress)
+        public
         view 
-        returns (uint marginToLendRate, uint tradeToMarginRate);
+        returns (uint rate);
 }
