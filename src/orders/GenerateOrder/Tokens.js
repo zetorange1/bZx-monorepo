@@ -2,7 +2,7 @@ import styled from "styled-components";
 import TextField from "material-ui/TextField";
 import Tooltip from "material-ui/Tooltip";
 
-import TokenPicker from "../../common/TokenPicker2";
+import TokenPicker from "../../common/TokenPicker";
 import Section, { SectionLabel } from "../../common/FormSection";
 
 const Content = styled.div`

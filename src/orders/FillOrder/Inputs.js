@@ -3,7 +3,7 @@ import styled from "styled-components";
 import TextField from "material-ui/TextField";
 import { SectionLabel } from "../../common/FormSection";
 
-import TokenPicker from "../../common/TokenPicker2";
+import TokenPicker from "../../common/TokenPicker";
 
 const Container = styled.div`
   display: flex;

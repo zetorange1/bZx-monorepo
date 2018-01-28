@@ -2,7 +2,7 @@ import styled from "styled-components";
 import Dialog, { DialogTitle, DialogActions } from "material-ui/Dialog";
 import Button from "material-ui/Button";
 import { SHADOWS } from "../styles/constants";
-import { TOKENS } from "./tokens";
+import { getIconURL } from "./tokens";
 
 const Container = styled.div`
   text-align: center;
@@ -85,37 +85,39 @@ const CoinLabel = styled.div`
 `;
 
 export default class TokenPicker extends React.Component {
-  state = { showDialog: false, coins: TOKENS };
+  state = { showDialog: false };
 
   toggleDialog = () => this.setState(p => ({ showDialog: !p.showDialog }));
 
-  selectCoin = address => () => {
+  selectToken = address => () => {
     this.props.setAddress(address);
     this.toggleDialog();
   };
 
   render() {
-    const { value } = this.props;
-    const { showDialog, coins } = this.state;
-    const coinsArray = Object.entries(coins).map(x => ({ key: x[0], ...x[1] }));
-    const selectedCoin = coinsArray.filter(coin => coin.address === value)[0];
+    const { value, tokens } = this.props;
+    const { showDialog } = this.state;
+    if (!tokens) {
+      return null;
+    }
+    const selectedToken = tokens.filter(t => t.address === value)[0];
     return (
       <Container>
         <TokenButton onClick={this.toggleDialog}>
-          <CoinIcon src={selectedCoin.iconUrl} />
-          <CoinLabel>{selectedCoin.label}</CoinLabel>
+          <CoinIcon src={getIconURL(selectedToken)} />
+          <CoinLabel>{selectedToken.name}</CoinLabel>
         </TokenButton>
         <Dialog open={showDialog} onClose={this.toggleDialog}>
           <DialogTitle id="alert-dialog-title">Select Token</DialogTitle>
           <DialogContent>
-            {coinsArray.map(coin => (
+            {tokens.map(t => (
               <Coin
-                key={coin.key}
-                active={value === coin.address}
-                onClick={this.selectCoin(coin.address)}
+                key={t.symbol}
+                active={value === t.address}
+                onClick={this.selectToken(t.address)}
               >
-                <CoinIcon src={coin.iconUrl} />
-                <CoinLabel>{coin.label}</CoinLabel>
+                <CoinIcon src={getIconURL(t)} />
+                <CoinLabel>{t.name}</CoinLabel>
               </Coin>
             ))}
           </DialogContent>
