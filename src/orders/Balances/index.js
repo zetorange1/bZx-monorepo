@@ -14,7 +14,7 @@ export default class Balances extends React.Component {
         <Divider />
         <TrackedTokens />
         <Divider />
-        <AddToken />
+        <AddToken tokens={this.props.tokens} />
       </div>
     );
   }

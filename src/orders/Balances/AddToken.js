@@ -2,7 +2,7 @@ import styled from "styled-components";
 // import Typography from "material-ui/Typography";
 import Button from "material-ui/Button";
 import Section, { SectionLabel } from "../../common/FormSection";
-import TokenPicker from "../../common/TokenPicker";
+import TokenPicker from "../../common/TokenPicker2";
 
 const Container = styled.div`
   display: flex;
@@ -14,11 +14,15 @@ const Container = styled.div`
   }
 `;
 
-export default () => (
+export default ({ tokens }) => (
   <Section>
     <SectionLabel>Add new tracked token</SectionLabel>
     <Container>
-      <TokenPicker setAddress={() => {}} value="WETH_SM_ADDRESS_HERE" />
+      <TokenPicker
+        tokens={tokens}
+        setAddress={() => {}}
+        value={tokens[0].address}
+      />
       <Button raised color="primary">
         Add Token
       </Button>

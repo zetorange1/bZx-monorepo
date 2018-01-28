@@ -19,6 +19,13 @@ export const TOKENS = {
   }
 };
 
+export const getIconURL = ({ symbol }) => {
+  if (TOKENS[symbol]) {
+    return TOKENS[symbol].iconUrl;
+  }
+  return `https://files.coinmarketcap.com/static/img/coins/128x128/bitcoin.png`;
+};
+
 export const getTokenInfo = address => {
   const tokenArray = Object.entries(TOKENS).map(([symbol, data]) => ({
     name: data.label,
