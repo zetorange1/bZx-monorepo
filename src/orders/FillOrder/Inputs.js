@@ -3,7 +3,7 @@ import styled from "styled-components";
 import TextField from "material-ui/TextField";
 import { SectionLabel } from "../../common/FormSection";
 
-import TokenPicker from "../../common/TokenPicker";
+import TokenPicker from "../../common/TokenPicker2";
 
 const Container = styled.div`
   display: flex;
@@ -28,6 +28,7 @@ const Title = styled.div`
 `;
 
 export default ({
+  tokens,
   fillOrderAmount,
   marginTokenAddress,
   setFillOrderAmount,
@@ -39,6 +40,7 @@ export default ({
       <DataContainer>
         <Title>Margin Token</Title>
         <TokenPicker
+          tokens={tokens}
           value={marginTokenAddress}
           setAddress={setMarginTokenAddress}
         />

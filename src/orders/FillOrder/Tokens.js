@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import { getTokenInfoWithIcon } from "../../common/tokens";
+import { getIconURL } from "../../common/tokens";
 
 const Container = styled.div`
   display: flex;
@@ -47,6 +47,7 @@ const CoinAmount = styled.div`
 `;
 
 export default ({
+  tokens,
   role,
   lendTokenAddress,
   lendTokenAmount,
@@ -54,15 +55,16 @@ export default ({
   interestAmount,
   marginTokenAddress
 }) => {
-  const lendingToken = getTokenInfoWithIcon(lendTokenAddress);
-  const interestToken = getTokenInfoWithIcon(interestTokenAddress);
-  const marginToken = getTokenInfoWithIcon(marginTokenAddress);
+  const getTokenInfo = address => tokens.filter(t => t.address === address)[0];
+  const lendingToken = getTokenInfo(lendTokenAddress);
+  const interestToken = getTokenInfo(interestTokenAddress);
+  const marginToken = getTokenInfo(marginTokenAddress);
   return (
     <Fragment>
       <Container>
         <TokenContainer>
           <Title>Lending Token</Title>
-          <CoinIcon src={lendingToken.iconUrl} />
+          <CoinIcon src={getIconURL(lendingToken)} />
           <CoinLabel>{lendingToken.name}</CoinLabel>
           <CoinAmount>
             {lendTokenAmount} {lendingToken.symbol}
@@ -70,16 +72,16 @@ export default ({
         </TokenContainer>
         <TokenContainer>
           <Title>Interest Token</Title>
-          <CoinIcon src={interestToken.iconUrl} />
+          <CoinIcon src={getIconURL(interestToken)} />
           <CoinLabel>{interestToken.name}</CoinLabel>
           <CoinAmount>
             {interestAmount} {interestToken.symbol}
           </CoinAmount>
         </TokenContainer>
-        {role === `lender` && (
+        {role === `trader` && (
           <TokenContainer>
             <Title>Margin Token</Title>
-            <CoinIcon src={marginToken.iconUrl} />
+            <CoinIcon src={getIconURL(marginToken)} />
             <CoinLabel>{marginToken.name}</CoinLabel>
           </TokenContainer>
         )}
