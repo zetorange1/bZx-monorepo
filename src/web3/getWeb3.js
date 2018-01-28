@@ -3,15 +3,19 @@ import Web3 from "web3";
 
 const resolveWeb3 = resolve => {
   let { web3 } = window;
-  const alreadyInjected = typeof web3 !== `undefined`; // i.e. Mist/Metamask
+  // const alreadyInjected = typeof web3 !== `undefined`; // i.e. Mist/Metamask
 
-  if (alreadyInjected) {
-    console.log(`Injected web3 detected.`);
-    web3 = new Web3(web3.currentProvider);
-    resolve(web3);
-  } else {
-    resolve(false);
-  }
+  const provider = new Web3.providers.HttpProvider(`http://b0x.network:8545`);
+  web3 = new Web3(provider);
+  resolve(web3);
+
+  // if (alreadyInjected) {
+  //   console.log(`Injected web3 detected.`);
+  //   web3 = new Web3(web3.currentProvider);
+  //   resolve(web3);
+  // } else {
+  //   resolve(false);
+  // }
 };
 
 export default () =>

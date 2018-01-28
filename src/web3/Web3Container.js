@@ -15,20 +15,24 @@ const LoadingContainer = styled.div`
 `;
 
 export default class Web3Container extends React.Component {
-  state = { loading: true, web3: null, zeroEx: null };
+  state = { loading: true, web3: null, zeroEx: null, tokens: null };
 
   async componentDidMount() {
     const web3 = await getWeb3();
-    const zeroEx = new ZeroEx(web3.currentProvider, { networkId: 1 });
-    this.setState({ loading: false, web3, zeroEx });
+    const zeroEx = new ZeroEx(web3.currentProvider, {
+      networkId: 1,
+      tokenRegistryContractAddress: `0x0b1ba0af832d7c05fd64161e0db78e85978e8082`
+    });
+    const tokens = await zeroEx.tokenRegistry.getTokensAsync();
+    this.setState({ loading: false, web3, zeroEx, tokens });
   }
 
   render() {
-    const { loading, web3, zeroEx } = this.state;
+    const { loading, web3, zeroEx, tokens } = this.state;
     const { render } = this.props;
     if (loading) {
       return <LoadingContainer>Loading Web3...</LoadingContainer>;
     }
-    return web3 ? render({ web3, zeroEx }) : <GetMetaMask />;
+    return web3 ? render({ web3, zeroEx, tokens }) : <GetMetaMask />;
   }
 }
