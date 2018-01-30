@@ -21,7 +21,7 @@ const SubmitBtn = styled(Button)`
 export default class OrderInfo extends React.Component {
   state = {
     fillOrderAmount: 0,
-    marginTokenAddress: `WETH_SM_ADDRESS_HERE`
+    marginTokenAddress: this.props.tokens[0].address
   };
 
   setStateFor = key => value => this.setState({ [key]: value });
@@ -42,10 +42,11 @@ export default class OrderInfo extends React.Component {
   };
 
   render() {
-    const { order } = this.props;
+    const { order, tokens } = this.props;
     return (
       <div>
         <Tokens
+          tokens={tokens}
           role={order.role}
           lendTokenAddress={order.lendToken.address}
           lendTokenAmount={order.lendTokenAmount}
@@ -64,6 +65,7 @@ export default class OrderInfo extends React.Component {
         />
         {order.role === `lender` && (
           <Inputs
+            tokens={tokens}
             fillOrderAmount={this.state.fillOrderAmount}
             marginTokenAddress={this.state.marginTokenAddress}
             setFillOrderAmount={this.setStateFor(`fillOrderAmount`)}

@@ -32,6 +32,7 @@ const MoreInfo = styled.span`
 `;
 
 export default ({
+  tokens,
   role,
   // state setters
   setStateForAddress,
@@ -50,6 +51,7 @@ export default ({
       <TokenGroup>
         <Title>Lending Token</Title>
         <TokenPicker
+          tokens={tokens}
           setAddress={setStateForAddress(`lendTokenAddress`)}
           value={lendTokenAddress}
         />
@@ -66,6 +68,7 @@ export default ({
       <TokenGroup>
         <Title>Interest Token</Title>
         <TokenPicker
+          tokens={tokens}
           setAddress={setStateForAddress(`interestTokenAddress`)}
           value={interestTokenAddress}
         />
@@ -89,6 +92,7 @@ export default ({
         <TokenGroup>
           <Title>Margin Token</Title>
           <TokenPicker
+            tokens={tokens}
             setAddress={setStateForAddress(`marginTokenAddress`)}
             value={marginTokenAddress}
           />

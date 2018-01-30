@@ -28,6 +28,7 @@ const Title = styled.div`
 `;
 
 export default ({
+  tokens,
   fillOrderAmount,
   marginTokenAddress,
   setFillOrderAmount,
@@ -39,6 +40,7 @@ export default ({
       <DataContainer>
         <Title>Margin Token</Title>
         <TokenPicker
+          tokens={tokens}
           value={marginTokenAddress}
           setAddress={setMarginTokenAddress}
         />

@@ -18,9 +18,9 @@ export default class GenerateOrder extends React.Component {
     role: `lender`,
 
     // token addresses
-    lendTokenAddress: `WETH_SM_ADDRESS_HERE`,
-    interestTokenAddress: `ZRX_SM_ADDRESS_HERE`,
-    marginTokenAddress: `MKR_SM_ADDRESS_HERE`,
+    lendTokenAddress: this.props.tokens[0].address,
+    interestTokenAddress: this.props.tokens[0].address,
+    marginTokenAddress: this.props.tokens[0].address,
 
     // token amounts
     lendTokenAmount: 40,
@@ -73,7 +73,7 @@ export default class GenerateOrder extends React.Component {
     const isValid = validateInputs(this.state);
     this.setState({ orderHash: null, finalOrder: null });
     if (isValid) {
-      const orderObject = compileObject(this.state); // 1. compile the order object from state
+      const orderObject = compileObject(this.state, this.props.tokens); // 1. compile the order object from state
       const saltedOrderObj = addSalt(orderObject); // 2. compute and add salt to the order object
       const signedOrderObject = signOrder(saltedOrderObj); // 3. sign order w/ maker's private key
       const orderHash = getHash(signedOrderObject); // 4. get a hash for the signed object
@@ -92,6 +92,7 @@ export default class GenerateOrder extends React.Component {
         <Divider />
 
         <TokensSection
+          tokens={this.props.tokens}
           role={this.state.role}
           // state setters
           setStateForAddress={this.setStateFor}

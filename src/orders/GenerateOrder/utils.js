@@ -1,7 +1,7 @@
 import B0xJS from "b0x.js";  // eslint-disable-line
-import { getTokenInfo } from ".././../common/tokens";
 
-export const compileObject = state => {
+export const compileObject = (state, tokens) => {
+  const getTokenInfo = address => tokens.filter(t => t.address === address)[0];
   const lendToken = getTokenInfo(state.lendTokenAddress);
   const interestToken = getTokenInfo(state.interestTokenAddress);
   const marginToken = getTokenInfo(state.marginTokenAddress);
