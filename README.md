@@ -2,6 +2,14 @@
 
 Frontend portal for the b0x network.
 
+<p align="center">
+  <img alt="gen_order" src="static/gen_order_screen.png" width="480">
+</p>
+
+<p align="center">
+  <img alt="gen_order" src="static/balances_screen.png" width="480">
+</p>
+
 ## Development Setup
 
 1. Link the `b0x.js` library as per instructions below.
