@@ -40,12 +40,24 @@ const Content = styled.div`
   align-items: center;
 `;
 
+const Alert = styled.div`
+  color: white;
+  background: red;
+  padding: 12px;
+  box-shadow: ${SHADOWS.light};
+`;
+
 const Nav = () => (
-  <Container>
-    <Content>
-      <NavContent />
-    </Content>
-  </Container>
+  <div>
+    <Alert>
+      Warning: this portal is still under <em>heavy</em> development.
+    </Alert>
+    <Container>
+      <Content>
+        <NavContent />
+      </Content>
+    </Container>
+  </div>
 );
 
 export default Nav;
