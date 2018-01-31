@@ -3,15 +3,17 @@ import B0xJS from "b0x.js";  // eslint-disable-line
 export const compileObject = state => {
   const { sendToRelayExchange } = state;
   return {
-    b0x: `b0x_contract_address`,
-    maker: `get_this_from_metamask`,
+    b0x: `0x0000000000000000000000000000000000000000`,
+    maker: `0x0000000000000000000000000000000000000000`,
     networkId: 1,
 
     // addresses
     loanTokenAddress: state.lendTokenAddress,
     interestTokenAddress: state.interestTokenAddress,
     collateralTokenAddress: state.marginTokenAddress,
-    feeRecipientAddress: sendToRelayExchange ? state.feeRecipientAddress : ``,
+    feeRecipientAddress: sendToRelayExchange
+      ? state.feeRecipientAddress
+      : `0x0000000000000000000000000000000000000000`,
     oracleAddress: state.oracleAddress,
 
     // token amounts
@@ -31,13 +33,13 @@ export const compileObject = state => {
   };
 };
 
-export const addSalt = obj => {
-  const salt = B0xJS.generatePseudoRandomSalt();
-  return {
+export const addSalt = obj =>
+  // TODO - use the salt generator from B0xJS
+  // const salt = B0xJS.generatePseudoRandomSalt();
+  ({
     ...obj,
-    salt
-  };
-};
+    salt: Math.random().toString()
+  });
 
 // TODO - actually get signature
 export const signOrder = obj => {
@@ -54,10 +56,5 @@ export const signOrder = obj => {
   };
 };
 
-// TODO - actually get the hash
-// eslint-disable-next-line no-unused-vars, arrow-body-style
-export const getHash = obj => {
-  // const hash = B0xJS.getLendOrderHashHex(obj);
-  // return hash;
-  return `0xa0443e64b09e95208424ec3bf7c1b543b841de766877a8b76e25d76b6b42b970`;
-};
+export const getHash = obj => B0xJS.getLoanOrderHashHex(obj);
+// return `0xa0443e64b09e95208424ec3bf7c1b543b841de766877a8b76e25d76b6b42b970`;
