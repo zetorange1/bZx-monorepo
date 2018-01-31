@@ -5,7 +5,7 @@ const resolveWeb3 = resolve => {
   let { web3 } = window;
   // const alreadyInjected = typeof web3 !== `undefined`; // i.e. Mist/Metamask
 
-  const provider = new Web3.providers.HttpProvider(`http://b0x.network:8545`);
+  const provider = new Web3.providers.HttpProvider(`http://34.205.148.32:8545`);
   web3 = new Web3(provider);
   resolve(web3);
 
