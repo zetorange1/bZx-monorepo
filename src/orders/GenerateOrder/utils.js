@@ -1,13 +1,7 @@
 import B0xJS from "b0x.js";  // eslint-disable-line
 
-export const compileObject = (state, tokens) => {
-  const getTokenInfo = address => tokens.filter(t => t.address === address)[0];
-  const lendToken = getTokenInfo(state.lendTokenAddress);
-  const interestToken = getTokenInfo(state.interestTokenAddress);
-  const marginToken = getTokenInfo(state.marginTokenAddress);
-
+export const compileObject = state => {
   const { sendToRelayExchange } = state;
-
   return {
     b0x: `b0x_contract_address`,
     maker: `get_this_from_metamask`,
