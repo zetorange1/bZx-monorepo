@@ -21,21 +21,21 @@ const SubmitBtn = styled(Button)`
 export default class OrderInfo extends React.Component {
   state = {
     fillOrderAmount: 0,
-    marginTokenAddress: this.props.tokens[0].address
+    collateralTokenAddress: this.props.tokens[0].address
   };
 
   setStateFor = key => value => this.setState({ [key]: value });
 
   handleSubmit = () => {
     const { order } = this.props;
-    const { fillOrderAmount, marginTokenAddress } = this.state;
+    const { fillOrderAmount, collateralTokenAddress } = this.state;
     const isFillOrderValid = validateFillOrder(
       order,
       fillOrderAmount,
-      marginTokenAddress
+      collateralTokenAddress
     );
     if (isFillOrderValid) {
-      submitFillOrder(order, fillOrderAmount, marginTokenAddress);
+      submitFillOrder(order, fillOrderAmount, collateralTokenAddress);
     } else {
       alert(`There is something wrong with your order`);
     }
@@ -48,11 +48,11 @@ export default class OrderInfo extends React.Component {
         <Tokens
           tokens={tokens}
           role={order.role}
-          lendTokenAddress={order.lendToken.address}
-          lendTokenAmount={order.lendTokenAmount}
-          interestTokenAddress={order.interestToken.address}
+          lendTokenAddress={order.loanTokenAddress}
+          lendTokenAmount={order.loanTokenAmount}
+          interestTokenAddress={order.interestTokenAddress}
           interestAmount={order.interestAmount}
-          marginTokenAddress={order.marginToken.address}
+          collateralTokenAddress={order.collateralTokenAddress}
         />
         <Amounts
           initialMarginAmount={order.initialMarginAmount}
@@ -67,9 +67,11 @@ export default class OrderInfo extends React.Component {
           <Inputs
             tokens={tokens}
             fillOrderAmount={this.state.fillOrderAmount}
-            marginTokenAddress={this.state.marginTokenAddress}
+            collateralTokenAddress={this.state.collateralTokenAddress}
             setFillOrderAmount={this.setStateFor(`fillOrderAmount`)}
-            setMarginTokenAddress={this.setStateFor(`marginTokenAddress`)}
+            setcollateralTokenAddress={this.setStateFor(
+              `collateralTokenAddress`
+            )}
           />
         )}
         <Submission>
@@ -85,9 +87,9 @@ export default class OrderInfo extends React.Component {
 // -related functions in b0x smart contract:
 //  - when the loan (order) is filled by the trader:
 //   /// @dev Takes the order as trader
-//   /// @param orderAddresses Array of order's maker, lendTokenAddress, interestTokenAddress marginTokenAddress, and feeRecipientAddress.
+//   /// @param orderAddresses Array of order's maker, lendTokenAddress, interestTokenAddress collateralTokenAddress, and feeRecipientAddress.
 //   /// @param orderValues Array of order's lendTokenAmount, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
-//   /// @param marginTokenAddressFilled Desired address of the marginToken the trader wants to use.
+//   /// @param collateralTokenAddressFilled Desired address of the marginToken the trader wants to use.
 //   /// @param lendTokenAmountFilled Desired amount of lendToken the trader wants to borrow.
 //   /// @param v ECDSA signature parameter v.
 //   /// @param r ECDSA signature parameters r.
@@ -98,7 +100,7 @@ export default class OrderInfo extends React.Component {
 //   function takeLendOrderAsTrader(
 //      address[5] orderAddresses,
 //      uint[8] orderValues,
-//      address marginTokenAddressFilled,
+//      address collateralTokenAddressFilled,
 //      uint lendTokenAmountFilled,
 //      uint8 v,
 //      bytes32 r,
@@ -108,7 +110,7 @@ export default class OrderInfo extends React.Component {
 
 //  - when the loan (order) is filled by the lender:
 //   /// @dev Takes the order as lender
-//   /// @param orderAddresses Array of order's maker, lendTokenAddress, interestTokenAddress marginTokenAddress, and feeRecipientAddress.
+//   /// @param orderAddresses Array of order's maker, lendTokenAddress, interestTokenAddress collateralTokenAddress, and feeRecipientAddress.
 //   /// @param orderValues Array of order's lendTokenAmount, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
 //   /// @param v ECDSA signature parameter v.
 //   /// @param r ECDSA signature parameters r.
