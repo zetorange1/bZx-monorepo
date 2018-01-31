@@ -5,8 +5,7 @@ module.exports = {
       "/orders": { page: `/orders` },
       "/trading": { page: `/trading` },
       "/lending": { page: `/lending` },
-      "/bounties": { page: `/bounties` },
-      "/mui-test": { page: `/mui-test` }
+      "/bounties": { page: `/bounties` }
     };
   }
 };

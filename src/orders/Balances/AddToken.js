@@ -14,18 +14,27 @@ const Container = styled.div`
   }
 `;
 
-export default ({ tokens }) => (
-  <Section>
-    <SectionLabel>Add new tracked token</SectionLabel>
-    <Container>
-      <TokenPicker
-        tokens={tokens}
-        setAddress={() => {}}
-        value={tokens[0].address}
-      />
-      <Button raised color="primary">
-        Add Token
-      </Button>
-    </Container>
-  </Section>
-);
+export default class AddToken extends React.Component {
+  state = { tokenAddress: this.props.tokens[0].address };
+
+  setTokenAddress = addr => this.setState({ tokenAddress: addr });
+
+  render() {
+    const { tokens } = this.props;
+    return (
+      <Section>
+        <SectionLabel>Add new tracked token</SectionLabel>
+        <Container>
+          <TokenPicker
+            tokens={tokens}
+            setAddress={this.setTokenAddress}
+            value={this.state.tokenAddress}
+          />
+          <Button raised color="primary">
+            Add Token
+          </Button>
+        </Container>
+      </Section>
+    );
+  }
+}

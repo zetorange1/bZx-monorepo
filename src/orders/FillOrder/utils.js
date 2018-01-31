@@ -1,8 +1,6 @@
-// TODO - validate JSON order
-export const validateJSONOrder = order => {
-  console.log(`validating JSON order`, order);
-  return true;
-};
+import B0xJS from "b0x.js";  // eslint-disable-line
+
+export const getOrderHash = order => B0xJS.getLoanOrderHashHex(order);
 
 // TODO - validate fill order submission
 export const validateFillOrder = (

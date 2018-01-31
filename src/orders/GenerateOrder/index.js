@@ -35,11 +35,11 @@ export default class GenerateOrder extends React.Component {
 
     // oracle
     useB0xOracle: true,
-    oracleAddress: `b0x_oracle_address`,
+    oracleAddress: `0x0000000000000000000000000000000000000000`,
 
     // relay/exchange settings
     sendToRelayExchange: false,
-    feeRecipientAddress: ``,
+    feeRecipientAddress: `0x0000000000000000000000000000000000000000`,
     lenderRelayFee: 0,
     traderRelayFee: 0,
 
@@ -60,9 +60,10 @@ export default class GenerateOrder extends React.Component {
     this.setState({ sendToRelayExchange: value });
 
   setUseB0xCheckbox = (e, value) => {
-    console.log(`hey`);
     if (value) {
-      this.setState({ oracleAddress: `b0x_oracle_address` });
+      this.setState({
+        oracleAddress: `0x0000000000000000000000000000000000000000`
+      });
     }
     this.setState({ useB0xOracle: value });
   };

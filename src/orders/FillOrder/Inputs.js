@@ -30,9 +30,9 @@ const Title = styled.div`
 export default ({
   tokens,
   fillOrderAmount,
-  marginTokenAddress,
+  collateralTokenAddress,
   setFillOrderAmount,
-  setMarginTokenAddress
+  setCollateralTokenAddress
 }) => (
   <Fragment>
     <SectionLabel>Fill order options</SectionLabel>
@@ -41,8 +41,8 @@ export default ({
         <Title>Margin Token</Title>
         <TokenPicker
           tokens={tokens}
-          value={marginTokenAddress}
-          setAddress={setMarginTokenAddress}
+          value={collateralTokenAddress}
+          setAddress={setCollateralTokenAddress}
         />
       </DataContainer>
       <DataContainer>

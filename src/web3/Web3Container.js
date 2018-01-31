@@ -24,6 +24,14 @@ export default class Web3Container extends React.Component {
       tokenRegistryContractAddress: `0x0b1ba0af832d7c05fd64161e0db78e85978e8082`
     });
     const tokens = await zeroEx.tokenRegistry.getTokensAsync();
+    // const tokens = [
+    //   {
+    //     name: `test`,
+    //     address: `0x0000000000000000000000000000000000000000`,
+    //     decimals: 18,
+    //     symbol: `TEST`
+    //   }
+    // ];
     this.setState({ loading: false, web3, zeroEx, tokens });
   }
 

@@ -29,6 +29,6 @@ const Content = styled.div`
 
 export default () => (
   <Container>
-    <Content>Footer stuff here</Content>
+    <Content>{/* footer content here */}</Content>
   </Container>
 );
