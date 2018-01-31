@@ -7,7 +7,7 @@ Frontend portal for the b0x network.
 </p>
 
 <p align="center">
-  <img alt="gen_order" src="static/balances_screen.png" width="480">
+  <img alt="balances" src="static/balances_screen.png" width="480">
 </p>
 
 ## Development Setup
