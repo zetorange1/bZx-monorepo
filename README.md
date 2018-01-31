@@ -2,6 +2,10 @@
 
 Frontend portal for the b0x network.
 
+__Note:__ This project is still under *heavy* construction.
+
+Screenshots:
+
 <p align="center">
   <img alt="gen_order" src="static/gen_order_screen.png" width="480">
 </p>
