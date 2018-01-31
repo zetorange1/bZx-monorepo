@@ -38,4 +38,4 @@ Your settings for optimal developer experience (DX) should include:
 
 1. Ensure dependencies are installed: `npm install`.
 2. Ensure that pages to be exported are specified in `next.config.js`.
-3. Type `npm run build` and your static output will be located in the `/portal` directory.
+3. Type `npm run build` and your static output will be located in the `/dist` directory.
