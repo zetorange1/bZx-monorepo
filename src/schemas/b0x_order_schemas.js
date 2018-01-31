@@ -8,7 +8,7 @@ exports.loanOrderSchema = {
     interestTokenAddress: { $ref: '/Address' },
     collateralTokenAddress: { $ref: '/Address' },
     feeRecipientAddress: { $ref: '/Address' },
-	  oracleAddress: { $ref: '/Address' },
+    oracleAddress: { $ref: '/Address' },
     loanTokenAmount: { $ref: '/Number' },
     interestAmount: { $ref: '/Number' },
     initialMarginAmount: { $ref: '/Number' },
