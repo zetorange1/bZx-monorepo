@@ -9,7 +9,7 @@
     "build": "next build && next export -o dist",
     "lint": "eslint lib pages src",
     "lint:fix": "eslint lib pages src --fix",
-    "prepush": "npm run lint && npm run test"
+    "prepush": "npm run lint"
   },
   "jest": {
     "testPathIgnorePatterns": [
