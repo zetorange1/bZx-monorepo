@@ -1,12 +1,24 @@
-# b0x_portal
+# b0x Portal
 
-Frontend portal for b0x
+Frontend portal for the b0x network.
 
 ## Development Setup
 
-Run `npm install` at the project root.
+1. Link the `b0x.js` library as per instructions below.
 
-Run `npm run dev` to start up the development server.
+2. Run `npm install` at the project root.
+
+3. Run `npm run dev` to start up the development server.
+
+### Link b0x.js
+
+This portal depends on b0x.js, which is a javascript library for interfacing with the b0x network.
+
+In order to interface with the development version of this library, you'll need to link it with `npm link`.
+
+1. Navigate to the `b0x.js` repository, and type `npm link` in the command line.
+
+2. Navigate back to this repository, and type `npm link b0x.js` to link the module for this project.
 
 ### Visual Studio Code
 
@@ -26,4 +38,4 @@ Your settings for optimal developer experience (DX) should include:
 
 1. Ensure dependencies are installed: `npm install`.
 2. Ensure that pages to be exported are specified in `next.config.js`.
-2. Type `npm run build` and your static output will be located in the `/portal` directory.
+3. Type `npm run build` and your static output will be located in the `/portal` directory.
