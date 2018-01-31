@@ -3,7 +3,7 @@ import Typography from "material-ui/Typography";
 import MuiButton from "material-ui/Button";
 import { SectionLabel } from "../../common/FormSection";
 import OrderInfo from "./OrderInfo";
-import { validateJSONOrder } from "./utils";
+import { getOrderHash } from "./utils";
 
 const TextArea = styled.textarea`
   margin: 12px 0;
@@ -32,9 +32,8 @@ export default class FillOrder extends React.Component {
 
   handleSubmit = () => {
     const JSONOrder = JSON.parse(this.state.value);
-    const validOrder = validateJSONOrder(JSONOrder);
-    if (validOrder) {
-      console.log(JSONOrder);
+    const hex = getOrderHash(JSONOrder);
+    if (hex) {
       this.setState({ showOrderInfo: true });
     } else {
       alert(`Please check your JSON input.`);
