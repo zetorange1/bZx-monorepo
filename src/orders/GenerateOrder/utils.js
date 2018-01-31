@@ -9,33 +9,31 @@ export const compileObject = (state, tokens) => {
   const { sendToRelayExchange } = state;
 
   return {
-    makerAddress: `get_this_from_metamask`,
-    b0xContract: `b0x_contract_address`,
+    b0x: `b0x_contract_address`,
+    maker: `get_this_from_metamask`,
     networkId: 1,
 
-    // token data
-    lendToken,
-    interestToken,
-    marginToken,
+    // addresses
+    loanTokenAddress: state.lendTokenAddress,
+    interestTokenAddress: state.interestTokenAddress,
+    collateralTokenAddress: state.marginTokenAddress,
+    feeRecipientAddress: sendToRelayExchange ? state.feeRecipientAddress : ``,
+    oracleAddress: state.oracleAddress,
 
     // token amounts
-    lendTokenAmount: state.lendTokenAmount.toString(),
+    loanTokenAmount: state.lendTokenAmount.toString(),
     interestAmount: state.interestAmount.toString(),
 
     // margin amounts
     initialMarginAmount: state.initialMarginAmount.toString(),
     liquidationMarginAmount: state.liquidationMarginAmount.toString(),
 
-    // expiration date/time
-    expirationUnixTimestampSec: state.expirationDate.unix().toString(),
-
-    // oracle
-    oracleAddress: state.oracleAddress,
-
-    // relay/exchange settings
-    feeRecipientAddress: sendToRelayExchange ? state.feeRecipientAddress : ``,
+    // relay fees
     lenderRelayFee: (sendToRelayExchange ? state.lenderRelayFee : 0).toString(),
-    traderRelayFee: (sendToRelayExchange ? state.traderRelayFee : 0).toString()
+    traderRelayFee: (sendToRelayExchange ? state.traderRelayFee : 0).toString(),
+
+    // expiration date/time
+    expirationUnixTimestampSec: state.expirationDate.unix().toString()
   };
 };
 
