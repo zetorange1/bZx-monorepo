@@ -1,59 +1,93 @@
 
-pragma solidity 0.4.18;
+pragma solidity ^0.4.19;
+
+import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
 contract GasRefunder {
+    using SafeMath for uint256;
 
     // If true, uses the "transfer" method, which throws on failure, reverting state.
     // If false, a failed "send" won't throw, and fails silently.
     // Note that a throw will prevent a GasRefund event.
     bool public throwOnGasRefundFail = false;
 
-    // Refund this percentage of the calculated gas
-    uint8 public refundPercent = 80;
+    struct GasData {
+        address payer;
+        uint gasUsed;
+        bool isPaid;
+    }
 
     event GasRefund(address payer, uint gasUsed, uint currentGasPrice, uint refundAmount, bool refundSuccess);
 
-    modifier refundsGas(address payer, uint gasPrice, uint gasUsed) {
-
+    modifier refundsGas(address payer, uint gasPrice, uint gasUsed, uint percentMultiplier)
+    {
         _; // modified function body inserted here
 
-        sendGasRefund(
+        calculateAndSendRefund(
             payer,
             gasUsed,
-            gasPrice
+            gasPrice,
+            percentMultiplier
         );
     }
 
-    modifier refundsGasAfterCollection(address payer, uint gasPrice) {
+    modifier refundsGasAfterCollection(address payer, uint gasPrice, uint percentMultiplier)
+    {
         uint startingGas = msg.gas;
 
         _; // modified function body inserted here
         
-        sendGasRefund(
+        calculateAndSendRefund(
             payer,
             startingGas,
-            gasPrice
+            gasPrice,
+            percentMultiplier
         );
     }
 
-    function sendGasRefund(
+    function calculateAndSendRefund(
         address payer,
         uint gasUsed,
-        uint gasPrice)
-        internal {
+        uint gasPrice,
+        uint percentMultiplier)
+        internal
+    {
 
         if (gasUsed == 0 || gasPrice == 0)
             return;
 
-        gasUsed = gasUsed - msg.gas
-                    - 10000; // the GasTracker zeros out persistent storage when finished
-                    //+ 21000; // estimated value transfer cost
+        gasUsed = gasUsed - msg.gas;
 
-        uint refundAmount = gasUsed * gasPrice * refundPercent / 100;
-                                
+        sendRefund(
+            payer,
+            gasUsed,
+            gasPrice,
+            percentMultiplier
+        );
+    }
+
+    function sendRefund(
+        address payer,
+        uint gasUsed,
+        uint gasPrice,
+        uint percentMultiplier)
+        internal
+        returns (bool)
+    {
+        if (percentMultiplier == 0) // 0 percentMultiplier not allowed
+            percentMultiplier = 100;
+        
+        uint refundAmount = gasUsed.mul(gasPrice).mul(percentMultiplier).div(100);
 
         if (throwOnGasRefundFail) {
             payer.transfer(refundAmount);
+            GasRefund(
+                payer,
+                gasUsed,
+                gasPrice,
+                refundAmount,
+                true
+            );
         }
         else {
             GasRefund(
@@ -64,6 +98,8 @@ contract GasRefunder {
                 payer.send(refundAmount)
             );
         }
+
+        return true;
     }
 
 }

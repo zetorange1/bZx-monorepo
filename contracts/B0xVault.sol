@@ -1,5 +1,5 @@
 
-pragma solidity 0.4.18;
+pragma solidity ^0.4.19;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import './modifiers/B0xOwnable.sol';
@@ -144,31 +144,5 @@ contract B0xVault is B0xOwnable {
 
         return true;
     }
-
 }
 
-/*
-    /// @dev Get token balance of an address.
-    /// @param token Address of token.
-    /// @param owner Address of owner.
-    /// @return Token balance of owner.
-    function getBalance(address token, address owner)
-        internal
-        constant  // The called token contract may attempt to change state, but will not be able to due to an added gas limit.
-        returns (uint)
-    {
-        return EIP20(token).balanceOf.gas(EXTERNAL_QUERY_GAS_LIMIT)(owner); // Limit gas to prevent reentrancy
-    }
-
-    /// @dev Get allowance of token given to TokenTransferProxy by an address.
-    /// @param token Address of token.
-    /// @param owner Address of owner.
-    /// @return Allowance of token given to TokenTransferProxy by owner.
-    function getAllowance(address token, address owner)
-        internal
-        constant  // The called token contract may attempt to change state, but will not be able to due to an added gas limit.
-        returns (uint)
-    {
-        return EIP20(token).allowance.gas(EXTERNAL_QUERY_GAS_LIMIT)(owner, VAULT_CONTRACT); // Limit gas to prevent reentrancy
-    }
-*/

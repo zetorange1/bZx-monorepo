@@ -4,6 +4,7 @@ const ethABI = require('ethereumjs-abi');
 const ethUtil = require('ethereumjs-util');
 const Web3 = require('web3');
 
+
 //var provider = TestRPC.provider();
 //let web3 = new Web3(provider);
 web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545")) // :9545
@@ -17,19 +18,19 @@ import B0xJS from 'b0x.js'
 import { ZeroEx } from '0x.js';
 //const zeroEx = new ZeroEx(new Web3.providers.HttpProvider("http://localhost:8545"));
 
-let B0xVault = artifacts.require("./B0xVault.sol");
-let B0xTo0x = artifacts.require("./B0xTo0x.sol");
-let B0xOracle = artifacts.require("./B0xOracle.sol");
-let B0xSol = artifacts.require("./B0x.sol");
-let B0xToken = artifacts.require("./B0xToken.sol");
-let ERC20 = artifacts.require("./ERC20.sol"); // for testing with any ERC20 token
+let B0xVault = artifacts.require("B0xVault");
+let B0xTo0x = artifacts.require("B0xTo0x");
+let B0xOracle = artifacts.require("B0xOracle");
+let B0xSol = artifacts.require("B0x");
+let B0xToken = artifacts.require("B0xToken");
+let ERC20 = artifacts.require("ERC20"); // for testing with any ERC20 token
 
-let BaseToken = artifacts.require("./BaseToken.sol");
+let BaseToken = artifacts.require("BaseToken");
 
 let testDepositAmount = web3.toWei(0.001, "ether");
 let expected_B0xTokenTotalSupply = web3.toWei(20000000, "ether"); // 20MM B0X
 
-let Exchange0x = artifacts.require("./Exchange_Interface.sol");
+let Exchange0x = artifacts.require("Exchange_Interface");
 
 let currentGasPrice = 20000000000; // 20 gwei
 let currentEthPrice = 1000; // USD
@@ -68,6 +69,8 @@ let contracts0x = {
 	"TokenTransferProxy": "0x871DD7C2B4b25E1Aa18728e9D5f2Af4C4e431f5c"
 };
 
+let KyberContractAddress = "0x0000000000000000000000000000000000000000";
+
 let account_privatekeys = [
   "f2f48ee19680706196e2e339e5da3491186e0c4c5030670656b0e0164837257d",
   "5d862464fe9303452126c8bc94274b8c5f9874cbd219789b3eb2128075a76f72",
@@ -81,10 +84,10 @@ let account_privatekeys = [
   "23cb7121166b9a2f93ae0b7c05bde02eae50d64449b2cbb42bc84e9d38d6cc89"
 ];
 
+
 contract('B0xTest', function(accounts) {
   var vault;
   var b0x;
-  var kyber;
   var oracle;
   var b0x_token;
   var exchange0x_wrapper;
@@ -102,8 +105,8 @@ contract('B0xTest', function(accounts) {
   var exchange_0x;
   //var 0x_token_registry;
 
-  var orderParams;
-  var sample_orderhash;
+  var OrderParams_b0x;
+  var OrderHash_b0x;
   var ECSignature_raw;
   var ECSignature;
 
@@ -193,7 +196,7 @@ contract('B0xTest', function(accounts) {
 
   before('retrieve all deployed test tokens', async function () {
     for (var i = 0; i < 10; i++) {
-      test_tokens[i] = await artifacts.require("./"+"TestToken"+i+".sol").deployed();
+      test_tokens[i] = await artifacts.require("TestToken"+i).deployed();
       console.log("Test Token "+i+" retrieved: "+test_tokens[i].address);
     }
   });
@@ -539,7 +542,7 @@ contract('B0xTest', function(accounts) {
     var salt = generatePseudoRandomSalt().toString();
     salt = salt.substring(0,salt.length-10);
 
-    orderParams = {
+    OrderParams_b0x = {
       "b0x": b0x.address,
       "maker": accounts[1], // lender
       "loanTokenAddress": test_tokens[0].address,
@@ -556,33 +559,33 @@ contract('B0xTest', function(accounts) {
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
       "salt": salt
     };
-    console.log(orderParams);
-    let expectedHash = B0xJS.getLoanOrderHashHex(orderParams);
+    console.log(OrderParams_b0x);
+    let expectedHash = B0xJS.getLoanOrderHashHex(OrderParams_b0x);
     //console.log("js hash: "+expectedHash);
     //console.log(salt);
     //console.log(expirationUnixTimestampSec);
-    //console.log(orderParams);
+    //console.log(OrderParams_b0x);
     b0x.getLoanOrderHash.call(
       [
-        orderParams["maker"],
-        orderParams["loanTokenAddress"],
-        orderParams["interestTokenAddress"],
-        orderParams["collateralTokenAddress"],
-        orderParams["feeRecipientAddress"],
-        orderParams["oracleAddress"]
+        OrderParams_b0x["maker"],
+        OrderParams_b0x["loanTokenAddress"],
+        OrderParams_b0x["interestTokenAddress"],
+        OrderParams_b0x["collateralTokenAddress"],
+        OrderParams_b0x["feeRecipientAddress"],
+        OrderParams_b0x["oracleAddress"]
       ],
       [
-        new BN(orderParams["loanTokenAmount"]),
-        new BN(orderParams["interestAmount"]),
-        new BN(orderParams["initialMarginAmount"]),
-        new BN(orderParams["liquidationMarginAmount"]),
-        new BN(orderParams["lenderRelayFee"]),
-        new BN(orderParams["traderRelayFee"]),
-        new BN(orderParams["expirationUnixTimestampSec"]),
-        new BN(orderParams["salt"])
+        new BN(OrderParams_b0x["loanTokenAmount"]),
+        new BN(OrderParams_b0x["interestAmount"]),
+        new BN(OrderParams_b0x["initialMarginAmount"]),
+        new BN(OrderParams_b0x["liquidationMarginAmount"]),
+        new BN(OrderParams_b0x["lenderRelayFee"]),
+        new BN(OrderParams_b0x["traderRelayFee"]),
+        new BN(OrderParams_b0x["expirationUnixTimestampSec"]),
+        new BN(OrderParams_b0x["salt"])
     ]).then(function(orderHash) {
       //console.log("sol hash: "+orderHash);
-      sample_orderhash = orderHash;
+      OrderHash_b0x = orderHash;
       assert.equal(orderHash, expectedHash, "expectedHash should equal returned loanOrderHash");
       done();
     }, function(error) {
@@ -601,10 +604,10 @@ contract('B0xTest', function(accounts) {
 
     if (isParityNode || isTestRpc) {
       // Parity and TestRpc nodes add the personalMessage prefix itself
-      ECSignature_raw = web3.eth.sign(accounts[1], sample_orderhash);
+      ECSignature_raw = web3.eth.sign(accounts[1], OrderHash_b0x);
     }
     else {
-      var orderHashBuff = ethUtil.toBuffer(sample_orderhash);
+      var orderHashBuff = ethUtil.toBuffer(OrderHash_b0x);
       var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
       var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
       ECSignature_raw = web3.eth.sign(accounts[1], msgHashHex);
@@ -618,7 +621,7 @@ contract('B0xTest', function(accounts) {
 
     b0x.isValidSignature.call(
       accounts[1], // lender
-      sample_orderhash,
+      OrderHash_b0x,
       ECSignature_raw
     ).then(function(result) {
       assert.isOk(result);
@@ -714,22 +717,22 @@ contract('B0xTest', function(accounts) {
   it("should take sample lender order as trader", function(done) {
     b0x.takeLoanOrderAsTrader(
       [
-        orderParams["maker"],
-        orderParams["loanTokenAddress"],
-        orderParams["interestTokenAddress"],
-        orderParams["collateralTokenAddress"],
-        orderParams["feeRecipientAddress"],
-        orderParams["oracleAddress"]
+        OrderParams_b0x["maker"],
+        OrderParams_b0x["loanTokenAddress"],
+        OrderParams_b0x["interestTokenAddress"],
+        OrderParams_b0x["collateralTokenAddress"],
+        OrderParams_b0x["feeRecipientAddress"],
+        OrderParams_b0x["oracleAddress"]
       ],
       [
-        new BN(orderParams["loanTokenAmount"]),
-        new BN(orderParams["interestAmount"]),
-        new BN(orderParams["initialMarginAmount"]),
-        new BN(orderParams["liquidationMarginAmount"]),
-        new BN(orderParams["lenderRelayFee"]),
-        new BN(orderParams["traderRelayFee"]),
-        new BN(orderParams["expirationUnixTimestampSec"]),
-        new BN(orderParams["salt"])
+        new BN(OrderParams_b0x["loanTokenAmount"]),
+        new BN(OrderParams_b0x["interestAmount"]),
+        new BN(OrderParams_b0x["initialMarginAmount"]),
+        new BN(OrderParams_b0x["liquidationMarginAmount"]),
+        new BN(OrderParams_b0x["lenderRelayFee"]),
+        new BN(OrderParams_b0x["traderRelayFee"]),
+        new BN(OrderParams_b0x["expirationUnixTimestampSec"]),
+        new BN(OrderParams_b0x["salt"])
       ],
       b0x_token.address,
       web3.toWei(12.3, "ether"),
@@ -870,7 +873,7 @@ contract('B0xTest', function(accounts) {
     
     var textEvents;
     b0x.open0xTrade(
-      sample_orderhash,
+      OrderHash_b0x,
       sample_order_tightlypacked,
       ECSignature_0x_raw,
       {from: accounts[2]}).then(function(tx) {
@@ -886,6 +889,128 @@ contract('B0xTest', function(accounts) {
         done();
       });
   });
+
+
+
+  it("should test LoanOrder bytes", function(done) {
+    b0x.getLoanOrderByteData.call(
+      OrderHash_b0x,
+      {from: accounts[2], gas: 5000000, gasPrice: 8000000000}).then(function(bts) {
+        console.log(bts);
+        b0x.getLoanOrderLog(
+          bts,
+          {from: accounts[2], gas: 5000000, gasPrice: 10000000000}).then(function(tx) {
+            tx_obj = tx;
+            return gasRefundEvent.get();
+          }).then(function(caughtEvents) {
+            console.log(txPrettyPrint(tx_obj,"should test LoanOrder bytes",caughtEvents));
+            assert.isOk(tx_obj);
+            done();
+          }, function(error) {
+            console.error(error);
+            assert.isOk(false);
+            done();
+          });
+      });
+  });
+
+
+  it("should test Loan bytes", function(done) {
+    b0x.getLoanByteData.call(
+      OrderHash_b0x,
+      accounts[2],
+      {from: accounts[2], gas: 5000000, gasPrice: 8000000000}).then(function(bts) {
+        console.log(bts);
+        b0x.getLoanLog(
+          bts,
+          {from: accounts[2], gas: 5000000, gasPrice: 10000000000}).then(function(tx) {
+            tx_obj = tx;
+            return gasRefundEvent.get();
+          }).then(function(caughtEvents) {
+            console.log(txPrettyPrint(tx_obj,"should test LoanOrder bytes",caughtEvents));
+            assert.isOk(tx_obj);
+            done();
+          }, function(error) {
+            console.error(error);
+            assert.isOk(false);
+            done();
+          });
+      });
+  });
+
+
+  it("should test Trade bytes", function(done) {
+    b0x.getTradeByteData.call(
+      OrderHash_b0x,
+      accounts[2],
+      {from: accounts[2], gas: 5000000, gasPrice: 8000000000}).then(function(bts) {
+        console.log(bts);
+        b0x.getTradeLog(
+          bts,
+          {from: accounts[2], gas: 5000000, gasPrice: 10000000000}).then(function(tx) {
+            tx_obj = tx;
+            return gasRefundEvent.get();
+          }).then(function(caughtEvents) {
+            console.log(txPrettyPrint(tx_obj,"should test Trade bytes",caughtEvents));
+            assert.isOk(tx_obj);
+            done();
+          }, function(error) {
+            console.error(error);
+            assert.isOk(false);
+            done();
+          });
+      });
+  });
+
+
+
+
+/*
+  it("should test Loan bytes", function(done) {
+    b0x.getLoanByteData.call(
+      OrderHash_b0x,
+      accounts[2],
+      {from: accounts[2], gas: 5000000, gasPrice: 200000000000}).then(function(bts) {
+        console.log(bts);
+        b0x.getLoanFromBytes.call(
+          bts,
+          {from: accounts[2], gas: 5000000, gasPrice: 10000000000}).then(function(obj) {
+            console.log(obj);
+            assert.isOk(true);
+            done();
+          }, function(error) {
+            console.error(error);
+            assert.isOk(false);
+            done();
+          });
+      });
+  });
+*/
+/*
+  it("should test Trade bytes", function(done) {
+    b0x.getTradeByteData.call(
+      OrderHash_b0x,
+      accounts[2],
+      {from: accounts[2], gas: 5000000, gasPrice: 200000000000}).then(function(bts) {
+        console.log(bts);
+        
+        b0x.getTradeLog(
+          bts,
+          {from: accounts[2], gas: 5000000, gasPrice: 10000000000}).then(function(tx) {
+            tx_obj = tx;
+            return gasRefundEvent.get();
+          }).then(function(caughtEvents) {
+            console.log(txPrettyPrint(tx_obj,"should test Trade bytes",caughtEvents));
+            assert.isOk(tx_obj);
+            done();
+          }, function(error) {
+            console.error(error);
+            assert.isOk(false);
+            done();
+          });
+      });
+  });
+*/
 
 
   function txPrettyPrint(tx, desc, events) {

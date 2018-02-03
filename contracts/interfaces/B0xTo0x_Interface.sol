@@ -1,5 +1,5 @@
 
-pragma solidity 0.4.18;
+pragma solidity ^0.4.19;
 
 interface B0xTo0x_Interface {
 

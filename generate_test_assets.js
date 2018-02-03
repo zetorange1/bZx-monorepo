@@ -24,6 +24,7 @@ var addresses = {
 	"B0xVault": "unknown",
 	"B0xOracle": "unknown",
 	"B0xToken": "unknown",
+	"OracleRegistry": "unknown",
 
 	"TestToken0": "unknown",
 	"TestToken1": "unknown",

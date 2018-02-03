@@ -17,7 +17,7 @@
 
 */
 
-pragma solidity 0.4.18;
+pragma solidity ^0.4.19;
 
 import 'zeppelin-solidity/contracts/math/Math.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
@@ -89,7 +89,7 @@ contract Exchange is Exchange_Interface {
         bytes32 orderHash;
     }
 
-    function Exchange(address _zrxToken, address _tokenTransferProxy) {
+    function Exchange(address _zrxToken, address _tokenTransferProxy) public {
         ZRX_TOKEN_CONTRACT = _zrxToken;
         TOKEN_TRANSFER_PROXY_CONTRACT = _tokenTransferProxy;
     }
@@ -480,7 +480,7 @@ contract Exchange is Exchange_Interface {
     /// @return Rounding error is present.
     function isRoundingError(uint numerator, uint denominator, uint target)
         public
-        constant
+        pure
         returns (bool)
     {
         uint remainder = mulmod(target, numerator, denominator);
@@ -500,7 +500,7 @@ contract Exchange is Exchange_Interface {
     /// @return Partial value of target.
     function getPartialAmount(uint numerator, uint denominator, uint target)
         public
-        constant
+        pure
         returns (uint)
     {
         return SafeMath.div(SafeMath.mul(numerator, target), denominator);

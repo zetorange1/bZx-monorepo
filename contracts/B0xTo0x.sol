@@ -1,15 +1,15 @@
 
-pragma solidity 0.4.18;
+pragma solidity ^0.4.19;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import './interfaces/B0xTo0x_Interface.sol';
 import './interfaces/Exchange_Interface.sol';
 import './tokens/EIP20.sol';
 import './modifiers/B0xOwnable.sol';
-import './shared/Helpers.sol';
+import './shared/Debugger.sol';
 
 
-contract B0xTo0x is B0xTo0x_Interface, Helpers, B0xOwnable {
+contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
     using SafeMath for uint256;
 
     address public VAULT_CONTRACT;
@@ -84,7 +84,7 @@ contract B0xTo0x is B0xTo0x_Interface, Helpers, B0xOwnable {
         orderValues0x[5]     // salt
     */
 
-        loanTokenUsedAmount = _take0xTrade(
+        loanTokenUsedAmount = take0xTrade(
             loanOrderHash,
             loanTokenAmountToUse,
             orderAddresses0x,
@@ -115,7 +115,7 @@ contract B0xTo0x is B0xTo0x_Interface, Helpers, B0xOwnable {
         tradeTokenAddress = orderAddresses0x[2]; // makerToken (aka tradeTokenAddress)
     }
 
-   function _take0xTrade(
+   function take0xTrade(
         bytes32 loanOrderHash,
         uint loanTokenAmountToUse,
         address[5] orderAddresses0x,
@@ -172,17 +172,6 @@ contract B0xTo0x is B0xTo0x_Interface, Helpers, B0xOwnable {
         uint expirationTimestampInSec;
         uint salt;
         assembly {
-            /*maker := mload(orderData0x)
-            taker := mload(add(orderData0x, 32))
-            makerToken := mload(add(orderData0x, 64))
-            takerToken := mload(add(orderData0x, 96))
-            feeRecipient := mload(add(orderData0x, 128))
-            makerTokenAmount := mload(add(orderData0x, 160))
-            takerTokenAmount := mload(add(orderData0x, 192))
-            makerFee := mload(add(orderData0x, 224))
-            takerFee := mload(add(orderData0x, 256))
-            expirationTimestampInSec := mload(add(orderData0x, 288))
-            salt := mload(add(orderData0x, 320))*/
             maker := mload(add(orderData0x, 32))
             taker := mload(add(orderData0x, 64))
             makerToken := mload(add(orderData0x, 96))

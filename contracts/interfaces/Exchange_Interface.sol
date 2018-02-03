@@ -1,11 +1,9 @@
 
-pragma solidity 0.4.18;
+pragma solidity ^0.4.19;
 
 // Interface to the 0xProject Exchange contract
 
-contract Exchange_Interface {
-
-    address public ZRX_TOKEN_CONTRACT;
+interface Exchange_Interface {
 
     event LogError(uint8 indexed errorId, bytes32 indexed orderHash);
 

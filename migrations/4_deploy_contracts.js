@@ -8,9 +8,7 @@ var B0x = artifacts.require("./B0x.sol");
 var B0xVault = artifacts.require("./B0xVault.sol");
 var B0xTo0x = artifacts.require("./B0xTo0x.sol");
 var B0xOracle = artifacts.require("./B0xOracle.sol");
-
-// owned by B0xOracle (Ownable)
-var B0xToKyber = artifacts.require("./B0xToKyber.sol");
+var OracleRegistry = artifacts.require("./OracleRegistry.sol");
 
 // the actual 0xProject Exchange contract that has been redeployed to the test network
 // remove this prior to public deployment
@@ -38,28 +36,32 @@ let contracts0x = {
 	"TokenTransferProxy": "0x871DD7C2B4b25E1Aa18728e9D5f2Af4C4e431f5c"
 };
 
+let KyberContractAddress = "0x0000000000000000000000000000000000000000";
+
 module.exports = function(deployer, network, accounts) {
 
 	//console.log("before balance: "+web3.eth.getBalance(accounts[0]));
 
 	return deployer.deploy(B0xVault).then(function() {
-		return deployer.deploy(B0xToKyber).then(function() {
-			return deployer.deploy(B0xTo0x, B0xVault.address, Exchange0x.address, contracts0x["ZRXToken"]).then(function() {
-				return deployer.deploy(B0x, b0xToken.address, B0xVault.address, B0xTo0x.address).then(function() {
+		return deployer.deploy(B0xTo0x, B0xVault.address, Exchange0x.address, contracts0x["ZRXToken"]).then(function() {
+			return deployer.deploy(B0x, b0xToken.address, B0xVault.address, B0xTo0x.address).then(function() {
 
-					B0xVault.deployed().then(function(instance) {
-						instance.transferB0xOwnership(B0x.address);
-					});
+				B0xVault.deployed().then(function(instance) {
+					instance.transferB0xOwnership(B0x.address);
+				});
 
-					B0xTo0x.deployed().then(function(instance) {
-						instance.transferB0xOwnership(B0x.address);
-					});
+				B0xTo0x.deployed().then(function(instance) {
+					instance.transferB0xOwnership(B0x.address);
+				});
 
-					return deployer.deploy(B0xOracle, B0xVault.address, B0xToKyber.address
+				return deployer.deploy(OracleRegistry).then(function() {
+					return deployer.deploy(B0xOracle, B0xVault.address, KyberContractAddress
 						,{from: accounts[0], value: web3.toWei(1, "ether")}).then(function() { // seeds B0xOracle with 1 Ether
-
-							B0xToKyber.deployed().then(function(instance) {
-								instance.transferOwnership(B0xOracle.address);
+						
+							OracleRegistry.deployed().then(function(instance) {
+								instance.addOracle(B0xOracle.address,"b0xOracle");
+								
+								return;
 							});
 
 							B0xOracle.deployed().then(function(instance) {
@@ -68,7 +70,6 @@ module.exports = function(deployer, network, accounts) {
 								console.log("migrations :: after balance: "+web3.eth.getBalance(accounts[0]));
 								
 								console.log("B0xVault: "+B0xVault.address);
-								console.log("B0xToKyber: "+B0xToKyber.address);
 								console.log("Exchange(0xProject): "+Exchange0x.address);
 								console.log("B0xTo0x: "+B0xTo0x.address);
 								console.log("B0x: "+B0x.address);

@@ -1,5 +1,5 @@
 
-pragma solidity 0.4.18;
+pragma solidity ^0.4.19;
 
 interface Oracle_Interface {
 
@@ -11,7 +11,8 @@ interface Oracle_Interface {
         address taker,
         bytes32 loanOrderHash,
         uint gasUsed)
-        public;
+        public
+        returns (bool);
 
     // Called by b0x automatically, but can be called outside b0x
     // Appropriate security logic (ex: ownerOnly) should be put in place if appropriate
@@ -24,7 +25,8 @@ interface Oracle_Interface {
         address tradeTokenAddress,
         uint tradeTokenAmount,
         uint gasUsed)
-        public;
+        public
+        returns (bool);
 
     // Called by b0x to tell the oracle that interest has been sent to the oracle
     // Appropriate security logic (ex: ownerOnly) should be put in place if appropriate
@@ -37,7 +39,8 @@ interface Oracle_Interface {
         address interestTokenAddress,
         uint amount,
         uint gasUsed)
-        public;
+        public
+        returns (bool);
 
     // Called by b0x automatically, but can be called outside b0x
     // Appropriate security logic (ex: ownerOnly) should be put in place if appropriate
@@ -49,7 +52,8 @@ interface Oracle_Interface {
         address trader,
         bool isLiquidation,
         uint gasUsed)
-        public;
+        public
+        returns (bool);
 
     // Called by b0x automatically, but can be called outside b0x
     // Appropriate security logic (ex: ownerOnly) should be put in place if appropriate
@@ -59,7 +63,8 @@ interface Oracle_Interface {
         address taker,
         bytes32 loanOrderHash,
         uint gasUsed)
-        public;
+        public
+        returns (bool);
 
     // Called by b0x automatically, but can be called outside b0x
     // Appropriate security logic (ex: ownerOnly) should be put in place if appropriate
@@ -69,15 +74,19 @@ interface Oracle_Interface {
         address taker,
         bytes32 loanOrderHash,
         uint gasUsed)
-        public;
-
-
-
-    // A trader calls this to close their own trade at any time
-    function closeTrade(
-        bytes32 loanOrderHash)
         public
         returns (bool);
+
+    // Called by b0x automatically, but can be called outside b0x
+    // Appropriate security logic (ex: ownerOnly) should be put in place if appropriate    
+    // This attmpts to trade the token using some on-chain method
+    // b0x will only call this if the proper conditions are met for the trade
+    function doSingleTrade(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint sourceTokenAmount)
+        public
+        returns (uint);
 
     // Anyone can call this to liquidate the trade.
     // Logic should be added to check if the trade meets the requirments for liquidation.
@@ -95,10 +104,17 @@ interface Oracle_Interface {
         view
         returns (bool);
 
-    function getTokenPrice(
+    function getTradeRate(
         address sourceTokenAddress,
         address destTokenAddress)
         public
         view 
-        returns (uint rate);
+        returns (uint);
+
+    function isTradeSupported(
+        address sourceTokenAddress,
+        address destTokenAddress)
+        public
+        view 
+        returns (bool);
 }
