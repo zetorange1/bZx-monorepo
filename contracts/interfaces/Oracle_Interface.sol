@@ -82,19 +82,14 @@ interface Oracle_Interface {
     // This attmpts to trade the token using some on-chain method
     // b0x will only call this if the proper conditions are met for the trade
     function doSingleTrade(
+        bytes32 loanOrderHash,
+        address trader,
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount)
+        uint sourceTokenAmount,
+        bool isLiquidation)
         public
         returns (uint);
-
-    // Anyone can call this to liquidate the trade.
-    // Logic should be added to check if the trade meets the requirments for liquidation.
-    function liquidateTrade(
-        bytes32 loanOrderHash,
-        address trader)
-        public
-        returns (bool);
 
     // Returns True is the trade should be liquidated immediately
     function shouldLiquidate(

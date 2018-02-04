@@ -198,18 +198,26 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     }
 
     function doSingleTrade(
+        bytes32 loanOrderHash,
+        address trader,
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount)
+        uint sourceTokenAmount,
+        bool isLiquidation)
         public
         onlyB0x
         returns (uint destTokenAmount)
     {
+        if (isLiquidation && !shouldLiquidate(loanOrderHash, trader)) {
+            revert();
+        }
+        
         // temporary simulated trade for demo
         uint tradeRate = getTradeRate(sourceTokenAddress, destTokenAddress);
         destTokenAmount = sourceTokenAmount.mul(tradeRate);
-        if (!EIP20(destTokenAddress).transfer(b0xContractAddress, destTokenAmount))
+        if (!EIP20(destTokenAddress).transfer(b0xContractAddress, destTokenAmount)) {
             revert();
+        }
 
         // when Kyber is live we'll use the below code instead of the above
         /*destTokenAmount = tradeOnKyber(
@@ -335,7 +343,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         view
         returns (uint level)
     {
-        return 200;
+        level = 200;
 
         /*liquidationMarginAmount
         tradeTokenAddress;

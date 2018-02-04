@@ -1073,17 +1073,13 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             return boolOrRevert(false);
         }
 
-        if (isLiquidation) {
-            if (!Oracle_Interface(loanOrder.oracleAddress).shouldLiquidate(loanOrderHash, trader)) {
-                debugLog("error: account above liquidation level! (loanOrderHash)", loanOrderHash);
-                return boolOrRevert(false);
-            }
-        }
-
         uint loanTokenAmountReceived = Oracle_Interface(loanOrder.oracleAddress).doSingleTrade(
+            loanOrderHash,
+            trader,
             activeTrade.tradeTokenAddress,
             loanOrder.loanTokenAddress,
-            activeTrade.tradeTokenAmount
+            activeTrade.tradeTokenAmount,
+            isLiquidation
         );
 
         // TODO: Checks to make sure all of the tradeToken was sold
