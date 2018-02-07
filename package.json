@@ -7,7 +7,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "tester": "babel-node tester/b0x_tester.js",
     "dev": "webpack --watch --config webpack.config.js",
     "build": "webpack --config webpack.config.js"
   },
