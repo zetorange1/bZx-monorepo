@@ -49,25 +49,25 @@ const CoinAmount = styled.div`
 export default ({
   tokens,
   role,
-  lendTokenAddress,
-  lendTokenAmount,
+  loanTokenAddress,
+  loanTokenAmount,
   interestTokenAddress,
   interestAmount,
-  marginTokenAddress
+  collateralTokenAddress
 }) => {
   const getTokenInfo = address => tokens.filter(t => t.address === address)[0];
-  const lendingToken = getTokenInfo(lendTokenAddress);
+  const loanToken = getTokenInfo(loanTokenAddress);
   const interestToken = getTokenInfo(interestTokenAddress);
-  const marginToken = getTokenInfo(marginTokenAddress);
+  const collateralToken = getTokenInfo(collateralTokenAddress);
   return (
     <Fragment>
       <Container>
         <TokenContainer>
-          <Title>Lending Token</Title>
-          <CoinIcon src={getIconURL(lendingToken)} />
-          <CoinLabel>{lendingToken.name}</CoinLabel>
+          <Title>Loan Token</Title>
+          <CoinIcon src={getIconURL(loanToken)} />
+          <CoinLabel>{loanToken.name}</CoinLabel>
           <CoinAmount>
-            {lendTokenAmount} {lendingToken.symbol}
+            {loanTokenAmount} {loanToken.symbol}
           </CoinAmount>
         </TokenContainer>
         <TokenContainer>
@@ -80,9 +80,9 @@ export default ({
         </TokenContainer>
         {role === `trader` && (
           <TokenContainer>
-            <Title>Margin Token</Title>
-            <CoinIcon src={getIconURL(marginToken)} />
-            <CoinLabel>{marginToken.name}</CoinLabel>
+            <Title>Collateral Token</Title>
+            <CoinIcon src={getIconURL(collateralToken)} />
+            <CoinLabel>{collateralToken.name}</CoinLabel>
           </TokenContainer>
         )}
       </Container>
