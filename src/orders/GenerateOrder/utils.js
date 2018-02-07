@@ -8,16 +8,16 @@ export const compileObject = state => {
     networkId: 1,
 
     // addresses
-    loanTokenAddress: state.lendTokenAddress,
+    loanTokenAddress: state.loanTokenAddress,
     interestTokenAddress: state.interestTokenAddress,
-    collateralTokenAddress: state.marginTokenAddress,
+    collateralTokenAddress: state.collateralTokenAddress,
     feeRecipientAddress: sendToRelayExchange
       ? state.feeRecipientAddress
       : `0x0000000000000000000000000000000000000000`,
     oracleAddress: state.oracleAddress,
 
     // token amounts
-    loanTokenAmount: state.lendTokenAmount.toString(),
+    loanTokenAmount: state.loanTokenAmount.toString(),
     interestAmount: state.interestAmount.toString(),
 
     // margin amounts

@@ -48,8 +48,8 @@ export default class OrderInfo extends React.Component {
         <Tokens
           tokens={tokens}
           role={order.role}
-          lendTokenAddress={order.loanTokenAddress}
-          lendTokenAmount={order.loanTokenAmount}
+          loanTokenAddress={order.loanTokenAddress}
+          loanTokenAmount={order.loanTokenAmount}
           interestTokenAddress={order.interestTokenAddress}
           interestAmount={order.interestAmount}
           collateralTokenAddress={order.collateralTokenAddress}
@@ -69,7 +69,7 @@ export default class OrderInfo extends React.Component {
             fillOrderAmount={this.state.fillOrderAmount}
             collateralTokenAddress={this.state.collateralTokenAddress}
             setFillOrderAmount={this.setStateFor(`fillOrderAmount`)}
-            setcollateralTokenAddress={this.setStateFor(
+            setCollateralTokenAddress={this.setStateFor(
               `collateralTokenAddress`
             )}
           />

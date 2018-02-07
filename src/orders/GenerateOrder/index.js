@@ -18,12 +18,12 @@ export default class GenerateOrder extends React.Component {
     role: `lender`,
 
     // token addresses
-    lendTokenAddress: this.props.tokens[0].address,
+    loanTokenAddress: this.props.tokens[0].address,
     interestTokenAddress: this.props.tokens[0].address,
-    marginTokenAddress: this.props.tokens[0].address,
+    collateralTokenAddress: this.props.tokens[0].address,
 
     // token amounts
-    lendTokenAmount: 40,
+    loanTokenAmount: 40,
     interestAmount: 41,
 
     // margin amounts
@@ -99,11 +99,11 @@ export default class GenerateOrder extends React.Component {
           setStateForAddress={this.setStateFor}
           setStateForInput={this.setStateForInput}
           // address states
-          lendTokenAddress={this.state.lendTokenAddress}
+          loanTokenAddress={this.state.loanTokenAddress}
           interestTokenAddress={this.state.interestTokenAddress}
-          marginTokenAddress={this.state.marginTokenAddress}
+          collateralTokenAddress={this.state.collateralTokenAddress}
           // token amounts
-          lendTokenAmount={this.state.lendTokenAmount}
+          loanTokenAmount={this.state.loanTokenAmount}
           interestAmount={this.state.interestAmount}
         />
 

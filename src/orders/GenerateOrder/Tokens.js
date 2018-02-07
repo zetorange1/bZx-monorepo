@@ -38,28 +38,28 @@ export default ({
   setStateForAddress,
   setStateForInput,
   // address states
-  lendTokenAddress,
+  loanTokenAddress,
   interestTokenAddress,
-  marginTokenAddress,
+  collateralTokenAddress,
   // amount states
-  lendTokenAmount,
+  loanTokenAmount,
   interestAmount
 }) => (
   <Section>
     <SectionLabel>Tokens and Token Amounts</SectionLabel>
     <Content>
       <TokenGroup>
-        <Title>Lending Token</Title>
+        <Title>Loan Token</Title>
         <TokenPicker
           tokens={tokens}
-          setAddress={setStateForAddress(`lendTokenAddress`)}
-          value={lendTokenAddress}
+          setAddress={setStateForAddress(`loanTokenAddress`)}
+          value={loanTokenAddress}
         />
         <TextField
           type="number"
-          label="Lend token amount"
-          value={lendTokenAmount}
-          onChange={setStateForInput(`lendTokenAmount`)}
+          label="Loan token amount"
+          value={loanTokenAmount}
+          onChange={setStateForInput(`loanTokenAmount`)}
           margin="normal"
           fullWidth
         />
@@ -90,11 +90,11 @@ export default ({
 
       {role === `trader` && (
         <TokenGroup>
-          <Title>Margin Token</Title>
+          <Title>Collateral Token</Title>
           <TokenPicker
             tokens={tokens}
-            setAddress={setStateForAddress(`marginTokenAddress`)}
-            value={marginTokenAddress}
+            setAddress={setStateForAddress(`collateralTokenAddress`)}
+            value={collateralTokenAddress}
           />
         </TokenGroup>
       )}
