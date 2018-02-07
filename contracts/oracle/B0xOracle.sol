@@ -45,25 +45,25 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
 
     // Percentage of interest retained as fee
     // This will always be between 0 and 100
-    uint8 public interestFeePercent = 10;
+    uint public interestFeePercent = 10;
 
     // Percentage of liquidation level that will trigger a liquidation of positions
     // This can never be less than 100
-    uint8 public liquidationThresholdPercent = 110;
+    uint public liquidationThresholdPercent = 110;
 
     // Percentage of gas refund paid to non-bounty hunters
-    uint8 public gasRewardPercent = 90;
+    uint public gasRewardPercent = 90;
 
     // Percentage of gas refund paid to bounty hunters after successfully liquidating a trade
-    uint8 public bountyRewardPercent = 110;
+    uint public bountyRewardPercent = 110;
 
     address public VAULT_CONTRACT;
     address public KYBER_CONTRACT;
 
     mapping (bytes32 => GasData[]) public gasRefunds; // // mapping of loanOrderHash to array of GasData
 
-    // Only the owner (b0x contract) can directly deposit ether
-    function() public payable {}
+    // Only the owner can directly deposit ether
+    function() public payable onlyOwner {}
 
     function B0xOracle(
         address _vault_contract,
@@ -197,7 +197,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         return true;
     }
 
-    function doSingleTrade(
+    function verifyAndDoTrade(
         bytes32 loanOrderHash,
         address trader,
         address sourceTokenAddress,
@@ -334,7 +334,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     }*/
 
 
-    // Should return a ratio of currentMarginAmount / liquidationMarginAmount for this particular loan/trade
+    // Should return a ratio of currentMarginAmount / maintenanceMarginAmount for this particular loan/trade
     // TODO: implement this
     function getMarginRatio(
         bytes32 /* loanOrderHash */,
@@ -345,7 +345,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     {
         level = 200;
 
-        /*liquidationMarginAmount
+        /*maintenanceMarginAmount
         tradeTokenAddress;
         tradeTokenAmount;
         collateralTokenAddress
@@ -398,7 +398,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     }
 
     function setInterestFeePercent(
-        uint8 newRate) 
+        uint newRate) 
         public
         onlyOwner
     {
@@ -407,7 +407,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     }
 
     function setLiquidationThresholdPercent(
-        uint8 newValue) 
+        uint newValue) 
         public
         onlyOwner
     {
@@ -416,7 +416,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     }
 
     function setGasRewardPercent(
-        uint8 newValue) 
+        uint newValue) 
         public
         onlyOwner
     {
@@ -425,7 +425,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     }
 
     function setBountyRewardPercent(
-        uint8 newValue) 
+        uint newValue) 
         public
         onlyOwner
     {
@@ -452,7 +452,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     }
 
     function setEMAPeriods (
-        uint8 _newEMAPeriods)
+        uint _newEMAPeriods)
         public
         onlyOwner {
         require(_newEMAPeriods > 1 && _newEMAPeriods != emaPeriods);

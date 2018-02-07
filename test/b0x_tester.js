@@ -208,8 +208,8 @@ contract('B0xTest', function(accounts) {
     for (var i = 0; i < 10; i++) {
       test_tokens[i] = await BaseToken.new(
         10000000000000000000000000,
-        "Test Token "+i, 
-        18, 
+        "Test Token "+i,
+        18,
         "TEST"+i
       );
       console.log("Test Token "+i+" created: "+test_tokens[i].address);
@@ -543,8 +543,8 @@ contract('B0xTest', function(accounts) {
     salt = salt.substring(0,salt.length-10);
 
     OrderParams_b0x = {
-      "b0x": b0x.address,
-      "maker": accounts[1], // lender
+      "b0xAddress": b0x.address,
+      "makerAddress": accounts[1], // lender
       "loanTokenAddress": test_tokens[0].address,
       "interestTokenAddress": test_tokens[1].address,
       "collateralTokenAddress": test_tokens[2].address,
@@ -553,7 +553,7 @@ contract('B0xTest', function(accounts) {
       "loanTokenAmount": web3.toWei(1000000, "ether").toString(),
       "interestAmount": web3.toWei(2, "ether").toString(), // 2 token units per day
       "initialMarginAmount": "50", // 50%
-      "liquidationMarginAmount": "25", // 25%
+      "maintenanceMarginAmount": "25", // 25%
       "lenderRelayFee": web3.toWei(0.001, "ether").toString(),
       "traderRelayFee": web3.toWei(0.0015, "ether").toString(),
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
@@ -561,13 +561,13 @@ contract('B0xTest', function(accounts) {
     };
     console.log(OrderParams_b0x);
     let expectedHash = B0xJS.getLoanOrderHashHex(OrderParams_b0x);
-    //console.log("js hash: "+expectedHash);
+    console.log("js hash: "+expectedHash);
     //console.log(salt);
     //console.log(expirationUnixTimestampSec);
     //console.log(OrderParams_b0x);
     b0x.getLoanOrderHash.call(
       [
-        OrderParams_b0x["maker"],
+        OrderParams_b0x["makerAddress"],
         OrderParams_b0x["loanTokenAddress"],
         OrderParams_b0x["interestTokenAddress"],
         OrderParams_b0x["collateralTokenAddress"],
@@ -578,13 +578,13 @@ contract('B0xTest', function(accounts) {
         new BN(OrderParams_b0x["loanTokenAmount"]),
         new BN(OrderParams_b0x["interestAmount"]),
         new BN(OrderParams_b0x["initialMarginAmount"]),
-        new BN(OrderParams_b0x["liquidationMarginAmount"]),
+        new BN(OrderParams_b0x["maintenanceMarginAmount"]),
         new BN(OrderParams_b0x["lenderRelayFee"]),
         new BN(OrderParams_b0x["traderRelayFee"]),
         new BN(OrderParams_b0x["expirationUnixTimestampSec"]),
         new BN(OrderParams_b0x["salt"])
     ]).then(function(orderHash) {
-      //console.log("sol hash: "+orderHash);
+      console.log("sol hash: "+orderHash);
       OrderHash_b0x = orderHash;
       assert.equal(orderHash, expectedHash, "expectedHash should equal returned loanOrderHash");
       done();
@@ -717,7 +717,7 @@ contract('B0xTest', function(accounts) {
   it("should take sample lender order as trader", function(done) {
     b0x.takeLoanOrderAsTrader(
       [
-        OrderParams_b0x["maker"],
+        OrderParams_b0x["makerAddress"],
         OrderParams_b0x["loanTokenAddress"],
         OrderParams_b0x["interestTokenAddress"],
         OrderParams_b0x["collateralTokenAddress"],
@@ -728,7 +728,7 @@ contract('B0xTest', function(accounts) {
         new BN(OrderParams_b0x["loanTokenAmount"]),
         new BN(OrderParams_b0x["interestAmount"]),
         new BN(OrderParams_b0x["initialMarginAmount"]),
-        new BN(OrderParams_b0x["liquidationMarginAmount"]),
+        new BN(OrderParams_b0x["maintenanceMarginAmount"]),
         new BN(OrderParams_b0x["lenderRelayFee"]),
         new BN(OrderParams_b0x["traderRelayFee"]),
         new BN(OrderParams_b0x["expirationUnixTimestampSec"]),
@@ -849,7 +849,7 @@ contract('B0xTest', function(accounts) {
   });
 
   it("should open 0x trade with borrowed funds", function(done) {
-    
+
     var types = ['bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32'];
     var values = [
       Web3Utils.padLeft(OrderParams_0x["maker"], 64),
@@ -870,7 +870,7 @@ contract('B0xTest', function(accounts) {
     //console.log(hashBuff);
     var sample_order_tightlypacked = ethUtil.bufferToHex(hashBuff);
     //console.log(sample_order_tightlypacked);
-    
+
     var textEvents;
     b0x.open0xTrade(
       OrderHash_b0x,
@@ -993,7 +993,7 @@ contract('B0xTest', function(accounts) {
       accounts[2],
       {from: accounts[2], gas: 5000000, gasPrice: 200000000000}).then(function(bts) {
         console.log(bts);
-        
+
         b0x.getTradeLog(
           bts,
           {from: accounts[2], gas: 5000000, gasPrice: 10000000000}).then(function(tx) {

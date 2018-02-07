@@ -79,9 +79,8 @@ interface Oracle_Interface {
 
     // Called by b0x automatically, but can be called outside b0x
     // Appropriate security logic (ex: ownerOnly) should be put in place if appropriate    
-    // This attmpts to trade the token using some on-chain method
-    // b0x will only call this if the proper conditions are met for the trade
-    function doSingleTrade(
+    // This attmpts to trade the token using some on-chain method if the conditions for trading are met
+    function verifyAndDoTrade(
         bytes32 loanOrderHash,
         address trader,
         address sourceTokenAddress,

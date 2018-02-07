@@ -8,7 +8,7 @@ contract EMACollector {
     //using SafeMath for uint256;
 
     uint public emaValue; // the last ema calculated
-    uint8 public emaPeriods; // averaging periods for EMA calculation
+    uint public emaPeriods; // averaging periods for EMA calculation
 
     event EMAUpdated(uint newEMA);
 

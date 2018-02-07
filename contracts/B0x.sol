@@ -69,7 +69,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         uint loanTokenAmountFilled,
         uint interestAmount,
         uint initialMarginAmount,
-        uint liquidationMarginAmount,
+        uint maintenanceMarginAmount,
         uint lenderRelayFee,
         uint traderRelayFee,
         uint expirationUnixTimestampSec
@@ -104,7 +104,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
 
     /// @dev Takes the order as trader
     /// @param orderAddresses Array of order's maker, loanTokenAddress, interestTokenAddress collateralTokenAddress, and feeRecipientAddress.
-    /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
+    /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
     /// @param collateralTokenFilled Desired address of the collateralTokenAddress the trader wants to use.
     /// @param loanTokenAmountFilled Desired amount of loanToken the trader wants to borrow.
     /// @param signature ECDSA signature in raw bytes (rsv).
@@ -157,7 +157,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             actualLendFill,
             loanOrder.interestAmount,
             loanOrder.initialMarginAmount,
-            loanOrder.liquidationMarginAmount,
+            loanOrder.maintenanceMarginAmount,
             loanOrder.lenderRelayFee,
             loanOrder.traderRelayFee,
             loanOrder.expirationUnixTimestampSec
@@ -181,7 +181,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
 
     /// @dev Takes the order as lender
     /// @param orderAddresses Array of order's maker, loanTokenAddress, interestTokenAddress collateralTokenAddress, and feeRecipientAddress.
-    /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
+    /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
     /// @param signature ECDSA signature in raw bytes (rsv).
     /// @return Total amount of loanToken borrowed (uint).
     /// @dev Lenders have to fill the entire desired amount the trader wants to borrow.
@@ -229,7 +229,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             actualLendFill,
             loanOrder.interestAmount,
             loanOrder.initialMarginAmount,
-            loanOrder.liquidationMarginAmount,
+            loanOrder.maintenanceMarginAmount,
             loanOrder.lenderRelayFee,
             loanOrder.traderRelayFee,
             loanOrder.expirationUnixTimestampSec
@@ -575,7 +575,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
 
     /// @dev Calculates Keccak-256 hash of order with specified parameters.
     /// @param orderAddresses Array of order's maker, loanTokenAddress, interestTokenAddress collateralTokenAddress, and feeRecipientAddress.
-    /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, liquidationMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
+    /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, and salt
     /// @return Keccak-256 hash of loanOrder.
     function getLoanOrderHash(
         address[6] orderAddresses, 
@@ -641,7 +641,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                 loanOrder.loanTokenAmount,
                 loanOrder.interestAmount,
                 loanOrder.initialMarginAmount,
-                loanOrder.liquidationMarginAmount,
+                loanOrder.maintenanceMarginAmount,
                 loanOrder.lenderRelayFee,
                 loanOrder.traderRelayFee,
                 loanOrder.expirationUnixTimestampSec,
@@ -746,7 +746,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             loanOrder.loanTokenAmount,
             loanOrder.interestAmount,
             loanOrder.initialMarginAmount,
-            loanOrder.liquidationMarginAmount,
+            loanOrder.maintenanceMarginAmount,
             loanOrder.lenderRelayFee,
             loanOrder.traderRelayFee,
             loanOrder.expirationUnixTimestampSec,
@@ -928,7 +928,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             return boolOrRevert(false);
         }
 
-        if(! (loanOrder.liquidationMarginAmount >= 0 && loanOrder.liquidationMarginAmount < loanOrder.initialMarginAmount && loanOrder.initialMarginAmount <= 100)) {
+        if(! (loanOrder.maintenanceMarginAmount >= 0 && loanOrder.maintenanceMarginAmount < loanOrder.initialMarginAmount && loanOrder.initialMarginAmount <= 100)) {
             debugLog("error: valid margin parameters (loanOrderHash)", loanOrder.loanOrderHash);
             return boolOrRevert(false);
         }
@@ -1073,7 +1073,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             return boolOrRevert(false);
         }
 
-        uint loanTokenAmountReceived = Oracle_Interface(loanOrder.oracleAddress).doSingleTrade(
+        uint loanTokenAmountReceived = Oracle_Interface(loanOrder.oracleAddress).verifyAndDoTrade(
             loanOrderHash,
             trader,
             activeTrade.tradeTokenAddress,

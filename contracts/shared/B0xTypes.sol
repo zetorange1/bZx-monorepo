@@ -13,7 +13,7 @@ contract B0xTypes {
         uint loanTokenAmount;
         uint interestAmount;
         uint initialMarginAmount;
-        uint liquidationMarginAmount;
+        uint maintenanceMarginAmount;
         uint lenderRelayFee;
         uint traderRelayFee;
         uint expirationUnixTimestampSec;
@@ -56,7 +56,7 @@ contract B0xTypes {
         uint loanTokenAmount,
         uint interestAmount,
         uint initialMarginAmount,
-        uint liquidationMarginAmount,
+        uint maintenanceMarginAmount,
         uint lenderRelayFee,
         uint traderRelayFee,
         uint expirationUnixTimestampSec,
@@ -295,7 +295,7 @@ contract B0xTypes {
             loanTokenAmount: uints[0],
             interestAmount: uints[1],
             initialMarginAmount: uints[2],
-            liquidationMarginAmount: uints[3],
+            maintenanceMarginAmount: uints[3],
             lenderRelayFee: uints[4],
             traderRelayFee: uints[5],
             expirationUnixTimestampSec: uints[6],
