@@ -51040,8 +51040,8 @@ exports.SchemaValidator = SchemaValidator;
 exports.loanOrderSchema = {
   id: '/loanOrder',
   properties: {
-    b0x: { $ref: '/Address' },
-    maker: { $ref: '/Address' },
+    b0xAddress: { $ref: '/Address' },
+    makerAddress: { $ref: '/Address' },
     loanTokenAddress: { $ref: '/Address' },
     interestTokenAddress: { $ref: '/Address' },
     collateralTokenAddress: { $ref: '/Address' },
@@ -51050,13 +51050,13 @@ exports.loanOrderSchema = {
     loanTokenAmount: { $ref: '/Number' },
     interestAmount: { $ref: '/Number' },
     initialMarginAmount: { $ref: '/Number' },
-    liquidationMarginAmount: { $ref: '/Number' },
+    maintenanceMarginAmount: { $ref: '/Number' },
     lenderRelayFee: { $ref: '/Number' },
     traderRelayFee: { $ref: '/Number' },
     expirationUnixTimestampSec: { $ref: '/Number' },
     salt: { $ref: '/Number' }
   },
-  required: ['b0x', 'maker', 'loanTokenAddress', 'interestTokenAddress', 'collateralTokenAddress', 'feeRecipientAddress', 'oracleAddress', 'loanTokenAmount', 'interestAmount', 'initialMarginAmount', 'liquidationMarginAmount', 'lenderRelayFee', 'traderRelayFee', 'expirationUnixTimestampSec', 'salt'],
+  required: ['b0xAddress', 'makerAddress', 'loanTokenAddress', 'interestTokenAddress', 'collateralTokenAddress', 'feeRecipientAddress', 'oracleAddress', 'loanTokenAmount', 'interestAmount', 'initialMarginAmount', 'maintenanceMarginAmount', 'lenderRelayFee', 'traderRelayFee', 'expirationUnixTimestampSec', 'salt'],
   type: 'object'
 };
 exports.signedLoanOrderSchema = {
@@ -51121,8 +51121,8 @@ var generatePseudoRandomSalt = exports.generatePseudoRandomSalt = function gener
 };
 
 var getLoanOrderHashHex = exports.getLoanOrderHashHex = function getLoanOrderHashHex(order) {
-  var orderAddrs = [order.maker, order.loanTokenAddress, order.interestTokenAddress, order.collateralTokenAddress, order.feeRecipientAddress, order.oracleAddress];
-  var orderUints = [bigNumberToBN(order.loanTokenAmount), bigNumberToBN(order.interestAmount), bigNumberToBN(order.initialMarginAmount), bigNumberToBN(order.liquidationMarginAmount), bigNumberToBN(order.lenderRelayFee), bigNumberToBN(order.traderRelayFee), bigNumberToBN(order.expirationUnixTimestampSec), bigNumberToBN(order.salt)];
+  var orderAddrs = [order.makerAddress, order.loanTokenAddress, order.interestTokenAddress, order.collateralTokenAddress, order.feeRecipientAddress, order.oracleAddress];
+  var orderUints = [bigNumberToBN(order.loanTokenAmount), bigNumberToBN(order.interestAmount), bigNumberToBN(order.initialMarginAmount), bigNumberToBN(order.maintenanceMarginAmount), bigNumberToBN(order.lenderRelayFee), bigNumberToBN(order.traderRelayFee), bigNumberToBN(order.expirationUnixTimestampSec), bigNumberToBN(order.salt)];
   var orderHashHex = _web3Utils2.default.soliditySha3({ t: 'address', v: order.b0x }, { t: 'address[6]', v: orderAddrs }, { t: 'uint256[8]', v: orderUints });
   return orderHashHex;
 };

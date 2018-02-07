@@ -26,7 +26,7 @@ export const generatePseudoRandomSalt = () => {
 
 export const getLoanOrderHashHex = (order) => {
   const orderAddrs = [
-    order.maker,
+    order.makerAddress,
     order.loanTokenAddress,
     order.interestTokenAddress,
     order.collateralTokenAddress,
@@ -37,7 +37,7 @@ export const getLoanOrderHashHex = (order) => {
     bigNumberToBN(order.loanTokenAmount),
     bigNumberToBN(order.interestAmount),
     bigNumberToBN(order.initialMarginAmount),
-    bigNumberToBN(order.liquidationMarginAmount),
+    bigNumberToBN(order.maintenanceMarginAmount),
     bigNumberToBN(order.lenderRelayFee),
     bigNumberToBN(order.traderRelayFee),
     bigNumberToBN(order.expirationUnixTimestampSec),

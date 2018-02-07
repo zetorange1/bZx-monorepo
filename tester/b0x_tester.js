@@ -521,7 +521,7 @@ contract('B0xTest', function(accounts) {
       "loanTokenAmount": web3.toWei(1000000, "ether").toString(),
       "interestAmount": web3.toWei(2, "ether").toString(), // 2 token units per day
       "initialMarginAmount": "50", // 50%
-      "liquidationMarginAmount": "25", // 25%
+      "maintenanceMarginAmount": "25", // 25%
       "lenderRelayFee": web3.toWei(0.001, "ether").toString(),
       "traderRelayFee": web3.toWei(0.0015, "ether").toString(),
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
@@ -545,7 +545,7 @@ contract('B0xTest', function(accounts) {
         new BN(orderParams["loanTokenAmount"]),
         new BN(orderParams["interestAmount"]),
         new BN(orderParams["initialMarginAmount"]),
-        new BN(orderParams["liquidationMarginAmount"]),
+        new BN(orderParams["maintenanceMarginAmount"]),
         new BN(orderParams["lenderRelayFee"]),
         new BN(orderParams["traderRelayFee"]),
         new BN(orderParams["expirationUnixTimestampSec"]),
@@ -700,7 +700,7 @@ contract('B0xTest', function(accounts) {
         new BN(orderParams["loanTokenAmount"]),
         new BN(orderParams["interestAmount"]),
         new BN(orderParams["initialMarginAmount"]),
-        new BN(orderParams["liquidationMarginAmount"]),
+        new BN(orderParams["maintenanceMarginAmount"]),
         new BN(orderParams["lenderRelayFee"]),
         new BN(orderParams["traderRelayFee"]),
         new BN(orderParams["expirationUnixTimestampSec"]),
