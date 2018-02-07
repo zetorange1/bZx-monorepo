@@ -51123,7 +51123,7 @@ var generatePseudoRandomSalt = exports.generatePseudoRandomSalt = function gener
 var getLoanOrderHashHex = exports.getLoanOrderHashHex = function getLoanOrderHashHex(order) {
   var orderAddrs = [order.makerAddress, order.loanTokenAddress, order.interestTokenAddress, order.collateralTokenAddress, order.feeRecipientAddress, order.oracleAddress];
   var orderUints = [bigNumberToBN(order.loanTokenAmount), bigNumberToBN(order.interestAmount), bigNumberToBN(order.initialMarginAmount), bigNumberToBN(order.maintenanceMarginAmount), bigNumberToBN(order.lenderRelayFee), bigNumberToBN(order.traderRelayFee), bigNumberToBN(order.expirationUnixTimestampSec), bigNumberToBN(order.salt)];
-  var orderHashHex = _web3Utils2.default.soliditySha3({ t: 'address', v: order.b0x }, { t: 'address[6]', v: orderAddrs }, { t: 'uint256[8]', v: orderUints });
+  var orderHashHex = _web3Utils2.default.soliditySha3({ t: 'address', v: order.b0xAddress }, { t: 'address[6]', v: orderAddrs }, { t: 'uint256[8]', v: orderUints });
   return orderHashHex;
 };
 
