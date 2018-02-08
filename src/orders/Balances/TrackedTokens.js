@@ -1,34 +1,32 @@
 import styled from "styled-components";
-// import Typography from "material-ui/Typography";
 import Section, { SectionLabel } from "../../common/FormSection";
-import { getTokenInfoWithIcon } from "../../common/tokens";
 import TrackedTokenItem from "./TrackedTokenItem";
-import { getTrackedTokens } from "./utils";
+import { getIconURL } from "../../common/tokens";
 
 const Container = styled.div`
   width: 100%;
   max-width: 480px;
 `;
 
-export default class TrackedTokens extends React.Component {
-  state = { trackedTokens: [] };
+const TrackedTokens = ({ tokens, trackedTokens, updateTrackedTokens }) => {
+  const tokenData = tokens.filter(t => trackedTokens.includes(t.address));
+  const tokenDataWithIcon = tokenData.map(t => ({
+    ...t,
+    iconUrl: getIconURL(t)
+  }));
+  return (
+    <Section>
+      <SectionLabel>Tracked tokens</SectionLabel>
+      <Container>
+        {tokenDataWithIcon.map(token => (
+          <TrackedTokenItem
+            token={token}
+            updateTrackedTokens={updateTrackedTokens}
+          />
+        ))}
+      </Container>
+    </Section>
+  );
+};
 
-  componentDidMount() {
-    const tokens = getTrackedTokens();
-    this.setState({ trackedTokens: tokens });
-  }
-
-  render() {
-    const tokenData = this.state.trackedTokens
-      .map(getTokenInfoWithIcon)
-      .map(t => ({ ...t, amount: 10 }));
-    return (
-      <Section>
-        <SectionLabel>Tracked tokens</SectionLabel>
-        <Container>
-          {tokenData.map(token => <TrackedTokenItem token={token} />)}
-        </Container>
-      </Section>
-    );
-  }
-}
+export default TrackedTokens;

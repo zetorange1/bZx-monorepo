@@ -12,6 +12,7 @@ import Dialog, {
   DialogTitle
 } from "material-ui/Dialog";
 import { COLORS } from "../../styles/constants";
+import { removeTrackedToken } from "../../common/trackedTokens";
 
 const Container = styled.div`
   display: flex;
@@ -65,6 +66,11 @@ export default class TrackedTokenItems extends React.Component {
     // TODO - send actual tokens
   };
 
+  handleRemoveToken = () => {
+    removeTrackedToken(this.props.token.address);
+    this.props.updateTrackedTokens();
+  };
+
   render() {
     const { name, symbol, iconUrl, amount } = this.props.token;
     return (
@@ -83,7 +89,7 @@ export default class TrackedTokenItems extends React.Component {
           <Button raised color="primary" onClick={this.toggleSendDialog}>
             Send
           </Button>
-          <IconButton>
+          <IconButton onClick={this.handleRemoveToken}>
             <Icon>close</Icon>
           </IconButton>
         </ButtonGroup>

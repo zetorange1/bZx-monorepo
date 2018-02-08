@@ -15,6 +15,7 @@ import FillOrder from "../src/orders/FillOrder";
 import Balances from "../src/orders/Balances";
 import OrderHistory from "../src/orders/OrderHistory";
 import Web3Container from "../src/web3/Web3Container";
+import { getTrackedTokens } from "../src/common/trackedTokens";
 
 const TABS = [
   { id: `GEN_ORDER`, label: `Generate Order` },
@@ -24,12 +25,17 @@ const TABS = [
 ];
 
 class Orders extends React.Component {
-  state = { activeTab: `BALANCES` };
+  state = { activeTab: `BALANCES`, trackedTokens: [] };
+
+  componentDidMount = () => this.updateTrackedTokens();
+
+  updateTrackedTokens = () =>
+    this.setState({ trackedTokens: getTrackedTokens() });
 
   changeTab = tabId => this.setState({ activeTab: tabId });
 
   render() {
-    const { activeTab } = this.state;
+    const { activeTab, trackedTokens } = this.state;
     return (
       <Layout>
         <Card>
@@ -59,7 +65,11 @@ class Orders extends React.Component {
                     <FillOrder tokens={tokens} />
                   </ContentContainer>
                   <ContentContainer show={activeTab === `BALANCES`}>
-                    <Balances tokens={tokens} />
+                    <Balances
+                      tokens={tokens}
+                      trackedTokens={trackedTokens}
+                      updateTrackedTokens={this.updateTrackedTokens}
+                    />
                   </ContentContainer>
                   <ContentContainer show={activeTab === `ORDER_HISTORY`}>
                     <OrderHistory />
