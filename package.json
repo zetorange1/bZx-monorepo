@@ -10,12 +10,13 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
-    "babel-preset-stage-3": "^6.24.1"
+    "babel-preset-stage-3": "^6.24.1",
+    "web3-utils": "1.0.0-beta.29"
   },
   "dependencies": {
     "b0x.js": "git+https://github.com/b0xNetwork/b0x.js.git",
     "rimraf": "^2.6.2",
-    "zeppelin-solidity": "^1.5.0"
+    "zeppelin-solidity": "1.6.0"
   },
   "scripts": {
     "blockchain": "./restart_blockchain.sh",

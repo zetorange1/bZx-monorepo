@@ -1,7 +1,7 @@
 
 pragma solidity ^0.4.19;
 
-import 'zeppelin-solidity/contracts/token/StandardToken.sol';
+import 'zeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
 
 
 /**
@@ -35,7 +35,7 @@ contract ERC20_AlwaysOwned is StandardToken {
 
     function balanceOf(address _owner) public constant returns (uint256 balance) {
         if (_owner == address(0)) {} // to silence warning
-        return totalSupply;
+        return totalSupply();
     }
 
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
@@ -50,7 +50,7 @@ contract ERC20_AlwaysOwned is StandardToken {
 
     function allowance(address _owner, address _spender) public constant returns (uint256 remaining) {
         if (_owner == address(0) || _spender == address(0)) {} // to silence warning
-        return totalSupply;
+        return totalSupply();
     }
 
 }
