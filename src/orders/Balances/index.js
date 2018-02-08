@@ -12,9 +12,17 @@ export default class Balances extends React.Component {
       <div>
         <Ether />
         <Divider />
-        <TrackedTokens />
+        <TrackedTokens
+          tokens={this.props.tokens}
+          trackedTokens={this.props.trackedTokens}
+          updateTrackedTokens={this.props.updateTrackedTokens}
+        />
         <Divider />
-        <AddToken tokens={this.props.tokens} />
+        <AddToken
+          tokens={this.props.tokens}
+          trackedTokens={this.props.trackedTokens}
+          updateTrackedTokens={this.props.updateTrackedTokens}
+        />
       </div>
     );
   }

@@ -42,7 +42,7 @@ export const getTokenInfoWithIcon = address => {
     symbol,
     decimals: data.decimals,
     address: data.address,
-    iconUrl: data.iconUrl
+    iconUrl: getIconURL({ symbol })
   }));
   return tokenArray.filter(token => token.address === address)[0];
 };

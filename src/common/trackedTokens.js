@@ -1,20 +1,22 @@
 /* globals localStorage */
 
 export const getTrackedTokens = () => {
-  const res = localStorage.getItem(`tracked_tokens`);
-  return res && res.length > 0 ? res : [];
+  const res = localStorage.getItem(`trackedTokens`);
+  const tokens = JSON.parse(res);
+  return tokens && tokens.length > 0 ? tokens : [];
 };
 
 export const addTrackedToken = addr => {
   const existingTokens = getTrackedTokens();
   const alreadyExists = existingTokens.includes(addr);
   if (!alreadyExists) {
-    localStorage.setItem(`tracked_tokens`, [...existingTokens, addr]);
+    const newTrackedTokens = [...existingTokens, addr];
+    localStorage.setItem(`trackedTokens`, JSON.stringify(newTrackedTokens));
   }
 };
 
 export const removeTrackedToken = addr => {
   const existingTokens = getTrackedTokens();
   const newTrackedTokens = existingTokens.filter(x => x !== addr);
-  localStorage.setItem(`tracked_tokens`, newTrackedTokens);
+  localStorage.setItem(`trackedTokens`, JSON.stringify(newTrackedTokens));
 };

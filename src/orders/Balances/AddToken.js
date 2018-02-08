@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Button from "material-ui/Button";
 import Section, { SectionLabel } from "../../common/FormSection";
 import TokenPicker from "../../common/TokenPicker";
+import { addTrackedToken } from "../../common/trackedTokens";
 
 const Container = styled.div`
   display: flex;
@@ -19,6 +20,11 @@ export default class AddToken extends React.Component {
 
   setTokenAddress = addr => this.setState({ tokenAddress: addr });
 
+  handleAddTrackedToken = () => {
+    addTrackedToken(this.state.tokenAddress);
+    this.props.updateTrackedTokens();
+  };
+
   render() {
     const { tokens } = this.props;
     return (
@@ -30,7 +36,7 @@ export default class AddToken extends React.Component {
             setAddress={this.setTokenAddress}
             value={this.state.tokenAddress}
           />
-          <Button raised color="primary">
+          <Button raised color="primary" onClick={this.handleAddTrackedToken}>
             Add Token
           </Button>
         </Container>
