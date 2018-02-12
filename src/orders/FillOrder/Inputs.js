@@ -43,7 +43,7 @@ export default ({
       <SectionLabel>Fill order options</SectionLabel>
       <Container>
         <DataContainer>
-          <Title>Margin Token</Title>
+          <Title>Collateral Token</Title>
           <TokenPicker
             tokens={tokens}
             value={collateralTokenAddress}
