@@ -33,10 +33,11 @@ export default ({
   tokens,
   fillOrderAmount,
   collateralTokenAddress,
+  loanTokenAddress,
   setFillOrderAmount,
   setCollateralTokenAddress
 }) => {
-  const symbol = getSymbol(tokens, collateralTokenAddress);
+  const symbol = getSymbol(tokens, loanTokenAddress);
   return (
     <Fragment>
       <SectionLabel>Fill order options</SectionLabel>
