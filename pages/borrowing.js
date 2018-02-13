@@ -1,5 +1,7 @@
 import Layout from "../src/common/Layout";
 import { Card, Header, HeaderTitle, Content } from "../src/common/MainContent";
+import { Divider } from "../src/common/FormSection";
+import PageContent from "../src/borrowing";
 
 export default class Trading extends React.Component {
   state = { activeTab: undefined };
@@ -17,6 +19,8 @@ export default class Trading extends React.Component {
           <Content>
             This section will allow a trader (borrower) to manage active loans
             and view closed loans.
+            <Divider />
+            <PageContent />
           </Content>
         </Card>
       </Layout>
