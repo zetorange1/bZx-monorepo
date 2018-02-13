@@ -1,7 +1,9 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import TextField from "material-ui/TextField";
+import Input, { InputLabel, InputAdornment } from "material-ui/Input";
+import { FormControl } from "material-ui/Form";
 import { SectionLabel } from "../../common/FormSection";
+import { getSymbol } from "../../common/tokens";
 
 import TokenPicker from "../../common/TokenPicker";
 
@@ -31,34 +33,41 @@ export default ({
   tokens,
   fillOrderAmount,
   collateralTokenAddress,
+  loanTokenAddress,
   setFillOrderAmount,
   setCollateralTokenAddress
-}) => (
-  <Fragment>
-    <SectionLabel>Fill order options</SectionLabel>
-    <Container>
-      <DataContainer>
-        <Title>Margin Token</Title>
-        <TokenPicker
-          tokens={tokens}
-          value={collateralTokenAddress}
-          setAddress={setCollateralTokenAddress}
-        />
-      </DataContainer>
-      <DataContainer>
-        <Title>Amount to Fill</Title>
-        <TextField
-          type="number"
-          label="Lending amount"
-          value={fillOrderAmount}
-          onChange={e => setFillOrderAmount(e.target.value)}
-          margin="normal"
-          fullWidth
-        />
-      </DataContainer>
-    </Container>
-  </Fragment>
-);
+}) => {
+  const symbol = getSymbol(tokens, loanTokenAddress);
+  return (
+    <Fragment>
+      <SectionLabel>Fill order options</SectionLabel>
+      <Container>
+        <DataContainer>
+          <Title>Collateral Token</Title>
+          <TokenPicker
+            tokens={tokens}
+            value={collateralTokenAddress}
+            setAddress={setCollateralTokenAddress}
+          />
+        </DataContainer>
+        <DataContainer>
+          <Title>Amount to Fill</Title>
+          <FormControl>
+            <InputLabel>Loan amount</InputLabel>
+            <Input
+              type="number"
+              value={fillOrderAmount}
+              onChange={e => setFillOrderAmount(e.target.value)}
+              endAdornment={
+                <InputAdornment position="end">{symbol}</InputAdornment>
+              }
+            />
+          </FormControl>
+        </DataContainer>
+      </Container>
+    </Fragment>
+  );
+};
 
 // marginTokenAddressFilled
 // lendTokenAmountFilled

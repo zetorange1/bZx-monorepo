@@ -1,9 +1,11 @@
 import styled from "styled-components";
-import TextField from "material-ui/TextField";
 import Tooltip from "material-ui/Tooltip";
+import Input, { InputLabel, InputAdornment } from "material-ui/Input";
+import { FormControl, FormHelperText } from "material-ui/Form";
 
 import TokenPicker from "../../common/TokenPicker";
 import Section, { SectionLabel } from "../../common/FormSection";
+import { getSymbol } from "../../common/tokens";
 
 const Content = styled.div`
   display: flex;
@@ -55,14 +57,19 @@ export default ({
           setAddress={setStateForAddress(`loanTokenAddress`)}
           value={loanTokenAddress}
         />
-        <TextField
-          type="number"
-          label="Loan token amount"
-          value={loanTokenAmount}
-          onChange={setStateForInput(`loanTokenAmount`)}
-          margin="normal"
-          fullWidth
-        />
+        <FormControl margin="normal" fullWidth>
+          <InputLabel>Loan token amount</InputLabel>
+          <Input
+            value={loanTokenAmount}
+            type="number"
+            onChange={setStateForInput(`loanTokenAmount`)}
+            endAdornment={
+              <InputAdornment position="end">
+                {getSymbol(tokens, loanTokenAddress)}
+              </InputAdornment>
+            }
+          />
+        </FormControl>
       </TokenGroup>
 
       <TokenGroup>
@@ -72,20 +79,24 @@ export default ({
           setAddress={setStateForAddress(`interestTokenAddress`)}
           value={interestTokenAddress}
         />
-        <TextField
-          type="number"
-          id="interestAmount"
-          label="Interest amount (paid per day)"
-          value={interestAmount}
-          onChange={setStateForInput(`interestAmount`)}
-          margin="normal"
-          helperText={
+        <FormControl margin="normal" fullWidth>
+          <InputLabel>Interest amount (paid per day)</InputLabel>
+          <Input
+            value={interestAmount}
+            type="number"
+            onChange={setStateForInput(`interestAmount`)}
+            endAdornment={
+              <InputAdornment position="end">
+                {getSymbol(tokens, interestTokenAddress)}
+              </InputAdornment>
+            }
+          />
+          <FormHelperText>
             <Tooltip title="This amount is prorated if the lend order is closed early by the trader, or if the trader's loan is liquidated.">
               <MoreInfo>More Info</MoreInfo>
             </Tooltip>
-          }
-          fullWidth
-        />
+          </FormHelperText>
+        </FormControl>
       </TokenGroup>
 
       {role === `trader` && (

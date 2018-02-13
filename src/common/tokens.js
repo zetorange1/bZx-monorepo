@@ -19,6 +19,11 @@ export const TOKENS = {
   }
 };
 
+export const getSymbol = (tokens, address) => {
+  const tokenData = tokens.filter(t => t.address === address)[0];
+  return tokenData.symbol;
+};
+
 export const getIconURL = ({ symbol }) => {
   if (TOKENS[symbol]) {
     return TOKENS[symbol].iconUrl;
