@@ -8,10 +8,9 @@ import 'zeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
 * @title FAKE ERC20 token
 *
 * @dev FAKE ERC20 token where all accounts contain the total supply of the coin (a paradox).
-* @dev Note this is only for testing purposes and should never be deployed to mainnet!
+* @dev Note this is only to facilitate easier testing and should only be used in a private dev network!
 */
 contract ERC20_AlwaysOwned is StandardToken {
-    using SafeMath for uint256;
 
     string public name;
     uint8 public decimals;

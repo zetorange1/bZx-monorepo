@@ -14,6 +14,6 @@ pragma solidity ^0.4.19;
 }*/
 
 // Testing only! Please remove below and use above for non-dev environments!
-import './fake/ERC20_AlwaysOwned.sol';
-contract EIP20 is ERC20_AlwaysOwned {}
+import './fake/ERC827_AlwaysOwned.sol';
+contract EIP20 is ERC827_AlwaysOwned {}
 

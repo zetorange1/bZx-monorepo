@@ -18,9 +18,9 @@
 
 pragma solidity ^0.4.19;
 
-import 'zeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
+import 'zeppelin-solidity/contracts/token/ERC827/ERC827Token.sol';
 
-contract UnlimitedAllowanceToken is StandardToken {
+contract UnlimitedAllowanceToken is ERC827Token {
 
     uint constant MAX_UINT = 2**256 - 1;
     

@@ -3,10 +3,10 @@ pragma solidity ^0.4.19;
 
 import './BaseToken.sol';
 
-// 20 million tokens (18 decimal places), 20 * 10**24
+// 1 billion tokens (18 decimal places)
 contract B0xToken is BaseToken(
-	20000000000000000000000000,
-	"b0x Token", 
-	18, 
+	1000000000000000000000000000,
+	"b0x Protocol Token", 
+	18,
 	"B0X"
 ) {}

@@ -1,5 +1,5 @@
 
-var b0xToken = artifacts.require("./b0xToken.sol");
+var B0xToken = artifacts.require("./B0xToken.sol");
 
 // owned by msg.sender (Ownable)
 var B0x = artifacts.require("./B0x.sol");
@@ -44,7 +44,7 @@ module.exports = function(deployer, network, accounts) {
 
 	return deployer.deploy(B0xVault).then(function() {
 		return deployer.deploy(B0xTo0x, B0xVault.address, Exchange0x.address, contracts0x["ZRXToken"]).then(function() {
-			return deployer.deploy(B0x, b0xToken.address, B0xVault.address, B0xTo0x.address).then(function() {
+			return deployer.deploy(B0x, B0xToken.address, B0xVault.address, B0xTo0x.address).then(function() {
 
 				B0xVault.deployed().then(function(instance) {
 					instance.transferB0xOwnership(B0x.address);
