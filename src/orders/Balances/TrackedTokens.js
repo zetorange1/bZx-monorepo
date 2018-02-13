@@ -20,6 +20,7 @@ const TrackedTokens = ({ tokens, trackedTokens, updateTrackedTokens }) => {
       <Container>
         {tokenDataWithIcon.map(token => (
           <TrackedTokenItem
+            key={token.address}
             token={token}
             updateTrackedTokens={updateTrackedTokens}
           />
