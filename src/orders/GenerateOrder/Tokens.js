@@ -91,7 +91,7 @@ export default ({
               </InputAdornment>
             }
           />
-          <FormHelperText>
+          <FormHelperText component="div">
             <Tooltip title="This amount is prorated if the lend order is closed early by the trader, or if the trader's loan is liquidated.">
               <MoreInfo>More Info</MoreInfo>
             </Tooltip>
