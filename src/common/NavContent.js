@@ -79,8 +79,8 @@ class NavContent extends React.Component {
           <Link href="/orders">
             <NavLink>Orders</NavLink>
           </Link>
-          <Link href="/trading">
-            <NavLink>Trading</NavLink>
+          <Link href="/borrowing">
+            <NavLink>Borrowing</NavLink>
           </Link>
           <Link href="/lending">
             <NavLink>Lending</NavLink>
@@ -96,8 +96,8 @@ class NavContent extends React.Component {
             <Link href="/orders">
               <NavLink>Orders</NavLink>
             </Link>
-            <Link href="/trading">
-              <NavLink>Trading</NavLink>
+            <Link href="/borrowing">
+              <NavLink>Borrowing</NavLink>
             </Link>
             <Link href="/lending">
               <NavLink>Lending</NavLink>

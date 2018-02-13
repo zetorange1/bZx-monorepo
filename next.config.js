@@ -3,7 +3,7 @@ module.exports = {
     return {
       "/": { page: `/` },
       "/orders": { page: `/orders` },
-      "/trading": { page: `/trading` },
+      "/borrowing": { page: `/borrowing` },
       "/lending": { page: `/lending` },
       "/bounties": { page: `/bounties` }
     };
