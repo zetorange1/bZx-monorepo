@@ -3,8 +3,8 @@ import B0xJS from "b0x.js";  // eslint-disable-line
 export const compileObject = state => {
   const { sendToRelayExchange } = state;
   return {
-    b0x: `0x0000000000000000000000000000000000000000`,
-    maker: `0x0000000000000000000000000000000000000000`,
+    b0xAddress: `0x0000000000000000000000000000000000000000`,
+    makerAddress: `0x0000000000000000000000000000000000000000`,
     networkId: 1,
 
     // addresses
@@ -22,7 +22,7 @@ export const compileObject = state => {
 
     // margin amounts
     initialMarginAmount: state.initialMarginAmount.toString(),
-    liquidationMarginAmount: state.liquidationMarginAmount.toString(),
+    maintenanceMarginAmount: state.liquidationMarginAmount.toString(),
 
     // relay fees
     lenderRelayFee: (sendToRelayExchange ? state.lenderRelayFee : 0).toString(),
