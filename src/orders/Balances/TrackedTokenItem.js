@@ -83,10 +83,14 @@ export default class TrackedTokenItems extends React.Component {
           {amount} {symbol}
         </BalanceAmount>
         <ButtonGroup>
-          <Button raised onClick={() => {}}>
+          <Button variant="raised" onClick={() => {}}>
             Approve
           </Button>
-          <Button raised color="primary" onClick={this.toggleSendDialog}>
+          <Button
+            variant="raised"
+            color="primary"
+            onClick={this.toggleSendDialog}
+          >
             Send
           </Button>
           <IconButton onClick={this.handleRemoveToken}>

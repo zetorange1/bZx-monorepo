@@ -76,7 +76,11 @@ export default class OrderInfo extends React.Component {
           />
         )}
         <Submission>
-          <SubmitBtn raised color="primary" onClick={this.handleSubmit}>
+          <SubmitBtn
+            variant="raised"
+            color="primary"
+            onClick={this.handleSubmit}
+          >
             Fill Order
           </SubmitBtn>
         </Submission>

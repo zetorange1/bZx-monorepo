@@ -9,7 +9,7 @@ const Button = styled(MuiButton)`
 
 const Submission = ({ onSubmit }) => (
   <Section>
-    <Button raised color="primary" onClick={onSubmit}>
+    <Button variant="raised" color="primary" onClick={onSubmit}>
       Sign Order
     </Button>
   </Section>

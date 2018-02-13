@@ -36,7 +36,11 @@ export default class AddToken extends React.Component {
             setAddress={this.setTokenAddress}
             value={this.state.tokenAddress}
           />
-          <Button raised color="primary" onClick={this.handleAddTrackedToken}>
+          <Button
+            variant="raised"
+            color="primary"
+            onClick={this.handleAddTrackedToken}
+          >
             Add Token
           </Button>
         </Container>

@@ -63,7 +63,7 @@ export default class FillOrder extends React.Component {
           value={value}
           onChange={this.handleChange}
         />
-        <Button raised color="primary" onClick={this.handleSubmit}>
+        <Button variant="raised" color="primary" onClick={this.handleSubmit}>
           Get Order Info
         </Button>
       </div>
