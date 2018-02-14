@@ -1,11 +1,68 @@
-export default () => <div>Open Loan</div>;
+import styled from "styled-components";
+import MuiCard, { CardActions, CardContent } from "material-ui/Card";
+import Icon from "material-ui/Icon";
+import IconButton from "material-ui/IconButton";
+import Collapse from "material-ui/transitions/Collapse";
 
-// - the lendOrderHash (from PART 1) tied to this loan
-// - the lender address (lender)
-// - the amount of margin token they put up as collateral (marginTokenAmountFilled)
-// - the amount of lend token they are borrowing for the loan (lendTokenAmountFilled)
-// - the amount of interest they've paid the lender so far for the loan (interestPaidSoFar)
-// - the date/time the loan started (filledUnixTimestampSec)
+import { COLORS } from "../styles/constants";
+
+const Card = styled(MuiCard)`
+  width: 100%;
+  margin-bottom: 24px;
+`;
+
+const Hash = styled.div`
+  font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 20ch;
+`;
+
+const Label = styled.div`
+  font-weight: 600;
+  color: ${COLORS.gray};
+`;
+
+export default class OpenLoan extends React.Component {
+  state = { expanded: false };
+
+  handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
+
+  render() {
+    return (
+      <Card>
+        <CardContent>
+          <Label>Order #</Label>
+          <Hash>0x0000000000000000000000000000000000000000</Hash>
+
+          <Label>Lender</Label>
+          <Hash>0x0000000000000000000000000000000000000000</Hash>
+
+          <Label>Amount Staked as Collateral</Label>
+          <div>`collateralTokenAmountFilled`</div>
+
+          <Label>Amount Borrowed</Label>
+          <div>`loanTokenAmountFilled`</div>
+
+          <Label>Interest Paid</Label>
+          <div>`interestPaidSoFar`</div>
+
+          <Label>Loan Start Date and Time</Label>
+          <div>`filledUnixTimestampSec`</div>
+        </CardContent>
+        <CardActions>
+          <IconButton onClick={this.handleExpandClick}>
+            <Icon>keyboard_arrow_down</Icon>
+          </IconButton>
+        </CardActions>
+        <Collapse in={this.state.expanded} timeout="auto" unmountOnExit>
+          <CardContent>More Info Here</CardContent>
+        </Collapse>
+      </Card>
+    );
+  }
+}
 
 // - if a 0x trade is not open from funds from the loan, provide something like this: https://0xproject.com/portal/fill
 //   - a trader finds 0x trades from any source, and drops the 0x Order JSON here (note this is a 0x JSON from 0xProject and not to be confused with "LEND ORDER JSON" for b0x)
