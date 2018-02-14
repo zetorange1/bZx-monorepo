@@ -12,11 +12,15 @@
     "dev": "webpack --watch --config webpack.config.js",
     "build": "webpack --config webpack.config.js"
   },
-  "pre-commit": ["prettier:pre-commit"],
+  "pre-commit": [
+    "prettier:pre-commit"
+  ],
   "dependencies": {
     "0x.js": "^0.29.0",
+    "@0xproject/json-schemas": "^0.7.11",
     "bignumber.js": "^5.0.0",
     "bn.js": "^4.11.8",
+    "jsonschema": "^1.2.2",
     "lodash": "^4.17.4",
     "web3-utils": "^1.0.0-beta.29"
   },
