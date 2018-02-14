@@ -1,7 +1,7 @@
-import { assert } from '0x.js/lib/src/utils/assert';
-import { schemas, SchemaValidator } from './schemas/b0x_json_schemas';
+import { assert } from "0x.js/lib/src/utils/assert";
+import { schemas, SchemaValidator } from "./schemas/b0x_json_schemas";
 
-import * as utils from './utils';
+import * as utils from "./utils";
 
 export default class B0xJS {
   static generatePseudoRandomSalt = utils.generatePseudoRandomSalt;
@@ -19,12 +19,18 @@ export default class B0xJS {
     const schemaValidator = new SchemaValidator();
     const validationResult = schemaValidator.validate(value, schema);
     const hasValidationErrors = validationResult.errors.length > 0;
-    const msg = `Expected ${variableName} to conform to schema ${schema.id}\nEncountered: ${JSON.stringify(value, null, '\t')}\nValidation errors: ${validationResult.errors.join(', ')}`;
+    const msg = `Expected ${variableName} to conform to schema ${
+      schema.id
+    }\nEncountered: ${JSON.stringify(
+      value,
+      null,
+      "\t"
+    )}\nValidation errors: ${validationResult.errors.join(", ")}`;
     assert.assert(!hasValidationErrors, msg);
   }
 
   static getLoanOrderHashHex(order) {
-    this.doesConformToSchema('loanOrder', order, schemas.loanOrderSchema);
+    this.doesConformToSchema("loanOrder", order, schemas.loanOrderSchema);
     const orderHashHex = utils.getLoanOrderHashHex(order);
     return orderHashHex;
   }

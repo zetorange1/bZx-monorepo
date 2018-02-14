@@ -7,13 +7,20 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
+    "prettier:fix": "prettier --write 'src/**/*.js'",
+    "prettier:pre-commit": "./scripts/pre-commit-prettier.sh",
     "dev": "webpack --watch --config webpack.config.js",
     "build": "webpack --config webpack.config.js"
   },
+  "pre-commit": [
+    "prettier:pre-commit"
+  ],
   "dependencies": {
     "0x.js": "^0.29.0",
+    "@0xproject/json-schemas": "^0.7.11",
     "bignumber.js": "^5.0.0",
     "bn.js": "^4.11.8",
+    "jsonschema": "^1.2.2",
     "lodash": "^4.17.4",
     "web3-utils": "^1.0.0-beta.29"
   },
@@ -27,9 +34,13 @@
     "babel-preset-stage-3": "^6.24.1",
     "eslint": "^4.15.0",
     "eslint-config-airbnb": "^16.1.0",
+    "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-prettier": "^2.6.0",
     "eslint-plugin-react": "^7.5.1",
+    "pre-commit": "^1.2.2",
+    "prettier": "^1.10.2",
     "webpack": "^3.10.0"
   }
 }
