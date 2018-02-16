@@ -165,8 +165,8 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
 
         if (actualLendFill > 0) {
             if(! Oracle_Interface(loanOrder.oracleAddress).didTakeOrder(
-                msg.sender,
                 loanOrder.loanOrderHash,
+                msg.sender,
                 gasUsed // initial used gas, collected in modifier
             )) {
                 debugLog("error: didTakeOrder oracle call failed! (loanOrderHash)", loanOrder.loanOrderHash);
@@ -237,8 +237,8 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
 
         if (actualLendFill > 0) {
             if(! Oracle_Interface(loanOrder.oracleAddress).didTakeOrder(
-                msg.sender,
                 loanOrder.loanOrderHash,
+                msg.sender,
                 gasUsed // initial used gas, collected in modifier
             )) {
                 debugLog("error: didTakeOrder oracle call failed! (loanOrderHash)", loanOrder.loanOrderHash);
@@ -433,8 +433,8 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         loan.collateralTokenAmountFilled = loan.collateralTokenAmountFilled.add(depositAmount);
 
         if(! Oracle_Interface(loanOrder.oracleAddress).didDepositCollateral(
-            msg.sender,
             loanOrder.loanOrderHash,
+            msg.sender,
             gasUsed // initial used gas, collected in modifier
         )) {
             debugLog("error: didDepositCollateral oracle call failed! (loanOrderHash)", loanOrder.loanOrderHash);
@@ -504,8 +504,8 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         loan.collateralTokenAmountFilled = collateralTokenAmountFilled;
 
         if(! Oracle_Interface(loanOrder.oracleAddress).didChangeCollateral(
-            msg.sender,
             loanOrder.loanOrderHash,
+            msg.sender,
             gasUsed // initial used gas, collected in modifier
         )) {
             debugLog("error: didChangeCollateral oracle call failed! (loanOrderHash)", loanOrder.loanOrderHash);

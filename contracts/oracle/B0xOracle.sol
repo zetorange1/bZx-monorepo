@@ -83,8 +83,8 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     // standard functions
 
     function didTakeOrder(
-        address taker,
         bytes32 loanOrderHash,
+        address taker,
         uint gasUsed)
         public
         onlyB0x
@@ -174,8 +174,8 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     }
 
     function didDepositCollateral(
-        address /* taker */,
         bytes32 /* loanOrderHash */,
+        address /* borrower */,
         uint /* gasUsed */)
         public
         onlyB0x
@@ -186,8 +186,8 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     }
 
     function didChangeCollateral(
-        address /* taker */,
         bytes32 /* loanOrderHash */,
+        address /* borrower */,
         uint /* gasUsed */)
         public
         onlyB0x

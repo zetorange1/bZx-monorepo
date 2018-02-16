@@ -210,6 +210,7 @@ contract OracleRegistry is Ownable {
     function strConcat(
         string _a,
         string _b)
+        internal
         pure
         returns (string)
     {

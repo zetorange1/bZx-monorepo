@@ -59,7 +59,7 @@ interface Oracle_Interface {
     /// @param trader The trader
     /// @param lender The lender
     /// @param interestTokenAddress The token that will be paid for interest
-    /// @param amount The amount interest to pay
+    /// @param amountOwed The amount interest to pay
     /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
     /// @return Successful execution of the function
     function didPayInterest(
@@ -67,7 +67,7 @@ interface Oracle_Interface {
         address trader,
         address lender,
         address interestTokenAddress,
-        uint amount,
+        uint amountOwed,
         uint gasUsed)
         public
         returns (bool);
@@ -76,13 +76,13 @@ interface Oracle_Interface {
     /// @dev Called by b0x after a trade is closed by liquidation, or early
     /// @dev by the borrower
     /// @param loanOrderHash A unique hash representing the loan order.
-    /// @param trader The trader
+    /// @param tradeCloser The user that liquidated the trade
     /// @param isLiquidation A boolean indicating if this trade was the result of a liquidation
     /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
     /// @return Successful execution of the function
     function didCloseTrade(
         bytes32 loanOrderHash,
-        address trader,
+        address tradeCloser,
         bool isLiquidation,
         uint gasUsed)
         public
