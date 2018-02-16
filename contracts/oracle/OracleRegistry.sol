@@ -135,7 +135,7 @@ contract OracleRegistry is Ownable {
     /// @dev Provides a registered oracle's address when given the oracle name.
     /// @param _name Name of registered oracle.
     /// @return Oracle's address.
-    function getOracleAddressByName(string _name) public constant returns (address) {
+    function getOracleAddressByName(string _name) public view returns (address) {
         return oracleByName[_name];
     }
 
@@ -144,7 +144,7 @@ contract OracleRegistry is Ownable {
     /// @return Oracle metadata.
     function getOracleMetaData(address _oracle)
         public
-        constant
+        view
         returns (
             address,  //oracleAddress
             string   //name
@@ -162,7 +162,7 @@ contract OracleRegistry is Ownable {
     /// @return Oracle metadata.
     function getOracleByName(string _name)
         public
-        constant
+        view
         returns (
             address,  //oracleAddress
             string   //name
@@ -176,9 +176,53 @@ contract OracleRegistry is Ownable {
     /// @return Array of oracle addresses.
     function getOracleAddresses()
         public
-        constant
+        view
         returns (address[])
     {
         return oracleAddresses;
+    }
+
+    /// @dev Returns an array of oracle addresses, an array with the length of each oracle name, and a concatenated string oracle names
+    /// @return Array of oracle names, array of name lengths, concatenated string of all names
+    function getOracleList()
+        public
+        view
+        returns (address[], uint[], string)
+    {
+        if (oracleAddresses.length == 0)
+            return;
+
+        address[] memory addresses = oracleAddresses;
+        uint[] memory nameLengths = new uint[](oracleAddresses.length);
+        string memory allStrings;
+        
+        for (uint i = 0; i < oracleAddresses.length; i++) {
+            string memory tmp = oracles[oracleAddresses[i]].name;
+            nameLengths[i] = bytes(tmp).length;
+            allStrings = strConcat(allStrings, tmp);
+        }
+
+        return (addresses, nameLengths, allStrings);
+    }
+
+    /// @dev Concatenates two strings
+    /// @return concatenated string
+    function strConcat(
+        string _a,
+        string _b)
+        pure
+        returns (string)
+    {
+        bytes memory _ba = bytes(_a);
+        bytes memory _bb = bytes(_b);
+        string memory ab = new string(_ba.length + _bb.length);
+        bytes memory bab = bytes(ab);
+        uint k = 0;
+        for (uint i = 0; i < _ba.length; i++)
+            bab[k++] = _ba[i];
+        for (i = 0; i < _bb.length; i++)
+            bab[k++] = _bb[i];
+        
+        return string(bab);
     }
 }
