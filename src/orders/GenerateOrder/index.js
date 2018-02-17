@@ -74,11 +74,19 @@ export default class GenerateOrder extends React.Component {
     const isValid = validateInputs(this.state);
     this.setState({ orderHash: null, finalOrder: null });
     if (isValid) {
-      const orderObject = compileObject(this.state, this.props.tokens); // 1. compile the order object from state
-      const saltedOrderObj = addSalt(orderObject); // 2. compute and add salt to the order object
-      const signedOrderObject = signOrder(saltedOrderObj); // 3. sign order w/ maker's private key
-      const orderHash = getHash(signedOrderObject); // 4. get a hash for the signed object
-      const finalOrder = { ...signedOrderObject, role: this.state.role };
+      const orderObject = compileObject(this.state, this.props.tokens);
+      const saltedOrderObj = addSalt(orderObject);
+      const orderHash = getHash(saltedOrderObj);
+      const signature = signOrder(
+        orderHash,
+        this.props.accounts,
+        this.props.b0x
+      );
+      const finalOrder = {
+        ...saltedOrderObj,
+        role: this.state.role,
+        signature
+      };
       this.setState({ orderHash, finalOrder });
     } else {
       alert(verificationResult.errorMsg); // eslint-disable-line no-undef
