@@ -26,7 +26,6 @@ export default class Web3Container extends React.Component {
   };
 
   async componentDidMount() {
-    debugger; // eslint-disable-line
     const web3 = await getWeb3();
     const zeroEx = new ZeroEx(web3.currentProvider, {
       networkId: 1,
