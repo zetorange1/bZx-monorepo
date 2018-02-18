@@ -2,10 +2,13 @@
 import Web3 from "web3";
 
 const resolveWeb3 = resolve => {
+  console.log(`HELLO`);
   let { web3 } = window;
   // const alreadyInjected = typeof web3 !== `undefined`; // i.e. Mist/Metamask
 
-  const provider = new Web3.providers.HttpProvider(`http://34.205.148.32:8545`);
+  const provider = new Web3.providers.HttpProvider(
+    `https://testnet.b0x.network/`
+  );
   web3 = new Web3(provider);
   resolve(web3);
 
