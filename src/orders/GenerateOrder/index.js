@@ -70,14 +70,14 @@ export default class GenerateOrder extends React.Component {
 
   /* Submission handler */
 
-  handleSubmit = () => {
+  handleSubmit = async () => {
     const isValid = validateInputs(this.state);
     this.setState({ orderHash: null, finalOrder: null });
     if (isValid) {
       const orderObject = compileObject(this.state, this.props.tokens);
       const saltedOrderObj = addSalt(orderObject);
       const orderHash = getHash(saltedOrderObj);
-      const signature = signOrder(
+      const signature = await signOrder(
         orderHash,
         this.props.accounts,
         this.props.b0x

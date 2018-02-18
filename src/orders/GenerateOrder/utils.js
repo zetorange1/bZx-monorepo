@@ -43,7 +43,12 @@ export const addSalt = obj =>
 
 // TODO - actually get signature
 export const signOrder = async (orderHash, accounts, b0x) => {
-  const signature = await b0x.signOrderHashAsync(orderHash, accounts[0], false);
+  const signature = await b0x.signOrderHashAsync(
+    orderHash,
+    accounts[0].toLowerCase(),
+    false
+  );
+  console.log(`signature`, signature);
   return signature;
 };
 

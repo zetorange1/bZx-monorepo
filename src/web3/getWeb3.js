@@ -2,7 +2,6 @@
 import Web3 from "web3";
 
 const resolveWeb3 = resolve => {
-  console.log(`HELLO`);
   let { web3 } = window;
   // const alreadyInjected = typeof web3 !== `undefined`; // i.e. Mist/Metamask
 
