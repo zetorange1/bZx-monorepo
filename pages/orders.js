@@ -56,10 +56,14 @@ class Orders extends React.Component {
           <Content>
             <Web3Container
               // eslint-disable-next-line
-              render={({ web3, zeroEx, tokens }) => (
+              render={({ web3, zeroEx, tokens, b0x, accounts }) => (
                 <Fragment>
                   <ContentContainer show={activeTab === `GEN_ORDER`}>
-                    <GenerateOrder tokens={tokens} />
+                    <GenerateOrder
+                      tokens={tokens}
+                      b0x={b0x}
+                      accounts={accounts}
+                    />
                   </ContentContainer>
                   <ContentContainer show={activeTab === `FILL_ORDER`}>
                     <FillOrder tokens={tokens} />
