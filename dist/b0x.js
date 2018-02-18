@@ -61376,7 +61376,7 @@ Adds the callback and sets up the methods, to iterate over the results.
       /* 158 */
       /***/ function(module, exports) {
         module.exports = {
-          _args: [["elliptic@6.4.0", "/Users/liadrian/Dev/b0x/b0x.js"]],
+          _args: [["elliptic@6.4.0", "/Users/hl/development/b0x.js"]],
           _from: "elliptic@6.4.0",
           _id: "elliptic@6.4.0",
           _inBundle: false,
@@ -61401,7 +61401,7 @@ Adds the callback and sets up the methods, to iterate over the results.
           ],
           _resolved: "https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz",
           _spec: "6.4.0",
-          _where: "/Users/liadrian/Dev/b0x/b0x.js",
+          _where: "/Users/hl/development/b0x.js",
           author: { name: "Fedor Indutny", email: "fedor@indutny.com" },
           bugs: { url: "https://github.com/indutny/elliptic/issues" },
           dependencies: {
