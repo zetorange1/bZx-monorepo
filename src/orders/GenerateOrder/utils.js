@@ -48,7 +48,6 @@ export const signOrder = async (orderHash, accounts, b0x) => {
     accounts[0].toLowerCase(),
     false
   );
-  console.log(`signature`, signature);
   return signature;
 };
 
