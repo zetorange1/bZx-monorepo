@@ -12,9 +12,7 @@
     "dev": "webpack --watch --config webpack.config.js",
     "build": "webpack --config webpack.config.js"
   },
-  "pre-commit": [
-    "prettier:pre-commit"
-  ],
+  "pre-commit": ["prettier:pre-commit", "lint"],
   "dependencies": {
     "0x.js": "^0.29.0",
     "@0xproject/json-schemas": "^0.7.11",
