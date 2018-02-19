@@ -2,6 +2,7 @@
 
 const Web3 = require("web3");
 const B0xJS = require("../dist/b0x").default;
+const sigUtil = require("eth-sig-util");
 
 const networkUrl = "https://testnet.b0x.network";
 const provider = new Web3.providers.HttpProvider(networkUrl);
@@ -35,17 +36,22 @@ test("signOrderHashAsync signs properly", async () => {
 
     // expiration date/time
     expirationUnixTimestampSec: "1519061340",
-    salt: "0.20194295639299797",
-    role: "lender"
+    salt: "0.2019429563929979"
   };
 
   const [signerAddress] = await b0xJS.web3.eth.getAccounts();
+
   const orderHash = B0xJS.getLoanOrderHashHex(order);
   const signature = await b0xJS.signOrderHashAsync(orderHash, signerAddress);
 
-  const recoveredAccount = await b0xJS.web3.eth.accounts.recover(
-    orderHash,
-    signature
-  );
-  expect(recoveredAccount).toBe(signerAddress);
+  // Not sure why this doesn't work
+  // const recoveredAccount = await b0xJS.web3.eth.accounts.recover(
+  //   orderHash,
+  //   signature
+  // );
+  const recoveredAccount = sigUtil.recoverPersonalSignature({
+    data: orderHash,
+    sig: signature
+  });
+  expect(recoveredAccount).toBe(signerAddress.toLowerCase());
 });
