@@ -8,8 +8,6 @@ const provider = new Web3.providers.HttpProvider(networkUrl);
 
 const b0xJS = new B0xJS(provider);
 
-const { assert } = require("0x.js/lib/src/utils/assert");
-
 test("signOrderHashAsync signs properly", async () => {
   const order = {
     b0xAddress: "0x0000000000000000000000000000000000000000",
@@ -43,9 +41,11 @@ test("signOrderHashAsync signs properly", async () => {
 
   const [signerAddress] = await b0xJS.web3.eth.getAccounts();
   const orderHash = B0xJS.getLoanOrderHashHex(order);
-  const signature = b0xJS.signOrderHashAsync(orderHash, signerAddress);
+  const signature = await b0xJS.signOrderHashAsync(orderHash, signerAddress);
 
-  expect(
-    assert.isValidSignature(orderHash, signature, signerAddress)
-  ).not.toThrow();
+  const recoveredAccount = await b0xJS.web3.eth.accounts.recover(
+    orderHash,
+    signature
+  );
+  expect(recoveredAccount).toBe(signerAddress);
 });
