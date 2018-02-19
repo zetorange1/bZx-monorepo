@@ -1,15 +1,12 @@
-import BigNumber from 'bignumber.js';
-import BN from 'bn.js';
+import BigNumber from "bignumber.js";
+import BN from "bn.js";
 // import ethABI from 'ethereumjs-abi';
 // import ethUtil from 'ethereumjs-util';
-import Web3Utils from 'web3-utils';
-import _ from 'lodash';
+import Web3Utils from "web3-utils";
 
 // import { SolidityTypes } from './types';
 
-export const noop = () => {
-
-};
+export const noop = () => {};
 
 export const bigNumberToBN = value => new BN(value.toString(), 10);
 
@@ -24,14 +21,14 @@ export const generatePseudoRandomSalt = () => {
   return salt;
 };
 
-export const getLoanOrderHashHex = (order) => {
+export const getLoanOrderHashHex = order => {
   const orderAddrs = [
     order.makerAddress,
     order.loanTokenAddress,
     order.interestTokenAddress,
     order.collateralTokenAddress,
     order.feeRecipientAddress,
-    order.oracleAddress,
+    order.oracleAddress
   ];
   const orderUints = [
     bigNumberToBN(order.loanTokenAmount),
@@ -41,12 +38,12 @@ export const getLoanOrderHashHex = (order) => {
     bigNumberToBN(order.lenderRelayFee),
     bigNumberToBN(order.traderRelayFee),
     bigNumberToBN(order.expirationUnixTimestampSec),
-    bigNumberToBN(order.salt),
+    bigNumberToBN(order.salt)
   ];
   const orderHashHex = Web3Utils.soliditySha3(
-    { t: 'address', v: order.b0xAddress },
-    { t: 'address[6]', v: orderAddrs },
-    { t: 'uint256[8]', v: orderUints },
+    { t: "address", v: order.b0xAddress },
+    { t: "address[6]", v: orderAddrs },
+    { t: "uint256[8]", v: orderUints }
   );
   return orderHashHex;
 };

@@ -61397,7 +61397,9 @@ Adds the callback and sets up the methods, to iterate over the results.
             "/browserify-sign",
             "/create-ecdh",
             "/eth-lib",
-            "/secp256k1"
+            "/secp256k1",
+            "/web3-eth-accounts/eth-lib",
+            "/web3-eth-accounts/web3-utils/eth-lib"
           ],
           _resolved: "https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz",
           _spec: "6.4.0",
@@ -79774,20 +79776,15 @@ Check if the current connection is still valid.
 
         var _web3Utils2 = _interopRequireDefault(_web3Utils);
 
-        var _lodash = __webpack_require__(10);
-
-        var _lodash2 = _interopRequireDefault(_lodash);
-
         function _interopRequireDefault(obj) {
           return obj && obj.__esModule ? obj : { default: obj };
         }
 
         // import { SolidityTypes } from './types';
 
+        const noop = (exports.noop = () => {});
         // import ethABI from 'ethereumjs-abi';
         // import ethUtil from 'ethereumjs-util';
-        const noop = (exports.noop = () => {});
-
         const bigNumberToBN = (exports.bigNumberToBN = value =>
           new _bn2.default(value.toString(), 10));
 
