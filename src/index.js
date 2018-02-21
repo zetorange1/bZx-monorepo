@@ -1,8 +1,13 @@
 import { assert } from "0x.js/lib/src/utils/assert";
 import * as ethUtil from "ethereumjs-util";
-import Web3 from "web3";
 import { schemas, SchemaValidator } from "./schemas/b0x_json_schemas";
 import * as utils from "./utils";
+
+let Web3 = null;
+if (typeof window !== "undefined") {
+  // eslint-disable-next-line global-require
+  Web3 = require("web3");
+}
 
 export default class B0xJS {
   static generatePseudoRandomSalt = utils.generatePseudoRandomSalt;
@@ -43,16 +48,13 @@ export default class B0xJS {
     shouldAddPersonalMessagePrefix
   ) {
     assert.isHexString("orderHash", orderHash);
-
     let msgHashHex = orderHash;
     if (shouldAddPersonalMessagePrefix) {
       const orderHashBuff = ethUtil.toBuffer(orderHash);
       const msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
       msgHashHex = ethUtil.bufferToHex(msgHashBuff);
     }
-
     const signature = await this.web3.eth.sign(msgHashHex, signerAddress);
-
     return signature;
   }
 }
