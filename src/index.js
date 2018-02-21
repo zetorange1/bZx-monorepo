@@ -1,8 +1,13 @@
 import { assert } from "0x.js/lib/src/utils/assert";
-import { Web3Wrapper } from "@0xproject/web3-wrapper";
 import * as ethUtil from "ethereumjs-util";
 import { schemas, SchemaValidator } from "./schemas/b0x_json_schemas";
 import * as utils from "./utils";
+
+let Web3 = null;
+if (typeof window !== "undefined") {
+  // eslint-disable-next-line global-require
+  Web3 = require("web3");
+}
 
 export default class B0xJS {
   static generatePseudoRandomSalt = utils.generatePseudoRandomSalt;
@@ -10,7 +15,7 @@ export default class B0xJS {
 
   constructor(provider) {
     assert.isWeb3Provider("provider", provider);
-    this._web3Wrapper = new Web3Wrapper(provider);
+    this.web3 = new Web3(provider);
   }
 
   // WARNING - this method is not supposed to be here,
@@ -43,24 +48,13 @@ export default class B0xJS {
     shouldAddPersonalMessagePrefix
   ) {
     assert.isHexString("orderHash", orderHash);
-    await assert.isSenderAddressAsync(
-      "signerAddress",
-      signerAddress,
-      this._web3Wrapper
-    );
-
     let msgHashHex = orderHash;
     if (shouldAddPersonalMessagePrefix) {
       const orderHashBuff = ethUtil.toBuffer(orderHash);
       const msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
       msgHashHex = ethUtil.bufferToHex(msgHashBuff);
     }
-
-    const signature = await this._web3Wrapper.signTransactionAsync(
-      signerAddress,
-      msgHashHex
-    );
-
+    const signature = await this.web3.eth.sign(msgHashHex, signerAddress);
     return signature;
   }
 }
