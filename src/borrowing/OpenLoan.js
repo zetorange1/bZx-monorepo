@@ -78,6 +78,38 @@ export default class OpenLoan extends React.Component {
     const tradeTokenSymbol = `SYM`;
 
     const loanOpenedDate = new Date(filledUnixTimestampSec * 1000);
+    if (this.props.hideDetails) {
+      return (
+        <Card>
+          <CardContent>
+            <DataPointContainer>
+              <Label>Order # </Label>
+              <DataPoint>
+                <Hash href="#" target="_blank" rel="noopener noreferrer">
+                  0x0000000000000000000000000000000000000000
+                </Hash>
+              </DataPoint>
+            </DataPointContainer>
+
+            <DataPointContainer>
+              <Label>Lender </Label>
+              <DataPoint>
+                <Hash href="#" target="_blank" rel="noopener noreferrer">
+                  0x0000000000000000000000000000000000000000
+                </Hash>
+              </DataPoint>
+            </DataPointContainer>
+
+            <UpperRight>
+              <Label>Loan Opened</Label>
+              <div title={loanOpenedDate.toUTCString()}>
+                {loanOpenedDate.toLocaleString()}
+              </div>
+            </UpperRight>
+          </CardContent>
+        </Card>
+      );
+    }
     return (
       <Card>
         <CardContent>
