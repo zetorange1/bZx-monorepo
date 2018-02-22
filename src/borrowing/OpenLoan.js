@@ -141,14 +141,14 @@ export default class OpenLoan extends React.Component {
           <hr />
 
           <DataPointContainer>
-            <Label>Amount Staked as Collateral</Label>
+            <Label>Collateral</Label>
             <DataPoint>
               {collateralTokenAmountFilled} {collateralTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
-            <Label>Amount Borrowed</Label>
+            <Label>Borrowed</Label>
             <DataPoint>
               {loanTokenAmountFilled} {loanTokenSymbol}
             </DataPoint>
