@@ -73,6 +73,10 @@ export default class OpenLoan extends React.Component {
     const interestTokenSymbol = `SYM`;
     const filledUnixTimestampSec = 1519283349;
 
+    const { zeroExTradeOpened } = this.props;
+    const tradeTokenAmountFilled = 123;
+    const tradeTokenSymbol = `SYM`;
+
     const loanOpenedDate = new Date(filledUnixTimestampSec * 1000);
     return (
       <Card>
@@ -129,8 +133,16 @@ export default class OpenLoan extends React.Component {
         <CardActions>
           <DataPointContainer style={{ marginLeft: `12px` }}>
             <Label>0x trade opened</Label>
-            <DataPoint>false</DataPoint>
+            <DataPoint>{Boolean(zeroExTradeOpened).toString()}</DataPoint>
           </DataPointContainer>
+          {zeroExTradeOpened && (
+            <DataPointContainer style={{ marginLeft: `12px` }}>
+              <Label>Trade Amount</Label>
+              <DataPoint>
+                {tradeTokenAmountFilled} {tradeTokenSymbol}
+              </DataPoint>
+            </DataPointContainer>
+          )}
           <Button
             style={{ marginLeft: `auto` }}
             onClick={this.handleExpandClick}
@@ -146,13 +158,24 @@ export default class OpenLoan extends React.Component {
           </IconButton>
         </CardActions>
         <Collapse in={this.state.expanded} timeout="auto" unmountOnExit>
-          <CardContent>
-            <p>Paste in a 0x order here to open a trade with loaned funds:</p>
-            <Textarea />
-            <Button variant="raised" color="primary">
-              Open a 0x trade
-            </Button>
-          </CardContent>
+          {zeroExTradeOpened ? (
+            <CardContent>
+              <Button variant="raised" color="primary">
+                Close trade with Kyber market order
+              </Button>
+              <p>Or, you may paste in a 0x order object:</p>
+              <Textarea />
+              <Button variant="raised">Close with 0x counter-trade</Button>
+            </CardContent>
+          ) : (
+            <CardContent>
+              <p>Paste in a 0x order here to open a trade with loaned funds:</p>
+              <Textarea />
+              <Button variant="raised" color="primary">
+                Open a 0x trade
+              </Button>
+            </CardContent>
+          )}
         </Collapse>
       </Card>
     );
