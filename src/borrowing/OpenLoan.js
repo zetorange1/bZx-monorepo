@@ -3,6 +3,7 @@ import MuiCard, {
   CardActions,
   CardContent as MuiCardContent
 } from "material-ui/Card";
+import Button from "material-ui/Button";
 import Icon from "material-ui/Icon";
 import IconButton from "material-ui/IconButton";
 import Collapse from "material-ui/transitions/Collapse";
@@ -46,6 +47,16 @@ const UpperRight = styled.div`
   position: absolute;
   top: 16px;
   right: 16px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+`;
+
+const Textarea = styled.textarea`
+  width: 100%;
+  height: 120px;
+  margin-bottom: 16px;
 `;
 
 export default class OpenLoan extends React.Component {
@@ -62,7 +73,7 @@ export default class OpenLoan extends React.Component {
     const interestTokenSymbol = `SYM`;
     const filledUnixTimestampSec = 1519283349;
 
-    const dateString = new Date(filledUnixTimestampSec * 1000).toDateString();
+    const loanOpenedDate = new Date(filledUnixTimestampSec * 1000);
     return (
       <Card>
         <CardContent>
@@ -83,6 +94,13 @@ export default class OpenLoan extends React.Component {
               </Hash>
             </DataPoint>
           </DataPointContainer>
+
+          <UpperRight>
+            <Label>Loan Opened</Label>
+            <div title={loanOpenedDate.toUTCString()}>
+              {loanOpenedDate.toLocaleString()}
+            </div>
+          </UpperRight>
 
           <hr />
 
@@ -106,19 +124,35 @@ export default class OpenLoan extends React.Component {
               {interestPaidSoFar} {interestTokenSymbol}
             </DataPoint>
           </DataPointContainer>
-
-          <UpperRight>
-            <Label>Loan Start Date and Time</Label>
-            <div>{dateString}</div>
-          </UpperRight>
         </CardContent>
+
         <CardActions>
+          <DataPointContainer style={{ marginLeft: `12px` }}>
+            <Label>0x trade opened</Label>
+            <DataPoint>false</DataPoint>
+          </DataPointContainer>
+          <Button
+            style={{ marginLeft: `auto` }}
+            onClick={this.handleExpandClick}
+          >
+            Manage 0x trade
+          </Button>
           <IconButton onClick={this.handleExpandClick}>
-            <Icon>keyboard_arrow_down</Icon>
+            <Icon>
+              {this.state.expanded
+                ? `keyboard_arrow_up`
+                : `keyboard_arrow_down`}
+            </Icon>
           </IconButton>
         </CardActions>
         <Collapse in={this.state.expanded} timeout="auto" unmountOnExit>
-          <CardContent>More Info Here</CardContent>
+          <CardContent>
+            <p>Paste in a 0x order here to open a trade with loaned funds:</p>
+            <Textarea />
+            <Button variant="raised" color="primary">
+              Open a 0x trade
+            </Button>
+          </CardContent>
         </Collapse>
       </Card>
     );
