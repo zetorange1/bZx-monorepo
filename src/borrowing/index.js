@@ -10,6 +10,7 @@ export default () => (
   <div>
     <Section>
       <SectionLabel>Open Loans</SectionLabel>
+      {openLoans.map(x => <OpenLoan key={x.id} zeroExTradeOpened />)}
       {openLoans.map(x => <OpenLoan key={x.id} />)}
     </Section>
     <Section>
