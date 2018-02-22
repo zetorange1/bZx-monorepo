@@ -1,17 +1,35 @@
 import styled from "styled-components";
-import MuiCard, { CardActions, CardContent } from "material-ui/Card";
+import MuiCard, {
+  CardActions,
+  CardContent as MuiCardContent
+} from "material-ui/Card";
 import Icon from "material-ui/Icon";
 import IconButton from "material-ui/IconButton";
 import Collapse from "material-ui/transitions/Collapse";
 
 import { COLORS } from "../styles/constants";
 
+const CardContent = styled(MuiCardContent)`
+  position: relative;
+`;
+
 const Card = styled(MuiCard)`
   width: 100%;
   margin-bottom: 24px;
 `;
 
-const Hash = styled.div`
+const DataPointContainer = styled.div`
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+`;
+
+const DataPoint = styled.span`
+  margin-left: 16px;
+`;
+
+const Hash = styled.a`
+  display: inline-block;
   font-family: monospace;
   white-space: nowrap;
   overflow: hidden;
@@ -19,9 +37,15 @@ const Hash = styled.div`
   max-width: 20ch;
 `;
 
-const Label = styled.div`
+const Label = styled.span`
   font-weight: 600;
   color: ${COLORS.gray};
+`;
+
+const UpperRight = styled.div`
+  position: absolute;
+  top: 16px;
+  right: 16px;
 `;
 
 export default class OpenLoan extends React.Component {
@@ -30,26 +54,63 @@ export default class OpenLoan extends React.Component {
   handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
 
   render() {
+    const collateralTokenAmountFilled = 6.25;
+    const collateralTokenSymbol = `SYM`;
+    const loanTokenAmountFilled = 12;
+    const loanTokenSymbol = `SYM`;
+    const interestPaidSoFar = 0.0002;
+    const interestTokenSymbol = `SYM`;
+    const filledUnixTimestampSec = 1519283349;
+
+    const dateString = new Date(filledUnixTimestampSec * 1000).toDateString();
     return (
       <Card>
         <CardContent>
-          <Label>Order #</Label>
-          <Hash>0x0000000000000000000000000000000000000000</Hash>
+          <DataPointContainer>
+            <Label>Order # </Label>
+            <DataPoint>
+              <Hash href="#" target="_blank" rel="noopener noreferrer">
+                0x0000000000000000000000000000000000000000
+              </Hash>
+            </DataPoint>
+          </DataPointContainer>
 
-          <Label>Lender</Label>
-          <Hash>0x0000000000000000000000000000000000000000</Hash>
+          <DataPointContainer>
+            <Label>Lender </Label>
+            <DataPoint>
+              <Hash href="#" target="_blank" rel="noopener noreferrer">
+                0x0000000000000000000000000000000000000000
+              </Hash>
+            </DataPoint>
+          </DataPointContainer>
 
-          <Label>Amount Staked as Collateral</Label>
-          <div>`collateralTokenAmountFilled`</div>
+          <hr />
 
-          <Label>Amount Borrowed</Label>
-          <div>`loanTokenAmountFilled`</div>
+          <DataPointContainer>
+            <Label>Amount Staked as Collateral</Label>
+            <DataPoint>
+              {collateralTokenAmountFilled} {collateralTokenSymbol}
+            </DataPoint>
+          </DataPointContainer>
 
-          <Label>Interest Paid</Label>
-          <div>`interestPaidSoFar`</div>
+          <DataPointContainer>
+            <Label>Amount Borrowed</Label>
+            <DataPoint>
+              {loanTokenAmountFilled} {loanTokenSymbol}
+            </DataPoint>
+          </DataPointContainer>
 
-          <Label>Loan Start Date and Time</Label>
-          <div>`filledUnixTimestampSec`</div>
+          <DataPointContainer>
+            <Label>Interest Paid</Label>
+            <DataPoint>
+              {interestPaidSoFar} {interestTokenSymbol}
+            </DataPoint>
+          </DataPointContainer>
+
+          <UpperRight>
+            <Label>Loan Start Date and Time</Label>
+            <div>{dateString}</div>
+          </UpperRight>
         </CardContent>
         <CardActions>
           <IconButton onClick={this.handleExpandClick}>
