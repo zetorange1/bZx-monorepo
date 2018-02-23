@@ -8,6 +8,8 @@ import Icon from "material-ui/Icon";
 import IconButton from "material-ui/IconButton";
 import Collapse from "material-ui/transitions/Collapse";
 
+import MutationsMenu from './MutationsMenu'
+
 import { COLORS } from "../styles/constants";
 
 const CardContent = styled(MuiCardContent)`
@@ -51,6 +53,12 @@ const UpperRight = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+`;
+
+const LowerUpperRight = styled.div`
+  position: absolute;
+  top: 72px;
+  right: 16px;
 `;
 
 const Textarea = styled.textarea`
@@ -160,6 +168,10 @@ export default class OpenLoan extends React.Component {
               {interestPaidSoFar} {interestTokenSymbol}
             </DataPoint>
           </DataPointContainer>
+
+          <LowerUpperRight>
+            <MutationsMenu />
+          </LowerUpperRight>
         </CardContent>
 
         <CardActions>
