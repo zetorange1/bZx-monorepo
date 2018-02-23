@@ -8,7 +8,7 @@ import Icon from "material-ui/Icon";
 import IconButton from "material-ui/IconButton";
 import Collapse from "material-ui/transitions/Collapse";
 
-import MutationsMenu from './MutationsMenu'
+import CollateralOptions from "./CollateralOptions";
 
 import { COLORS } from "../styles/constants";
 
@@ -170,7 +170,7 @@ export default class OpenLoan extends React.Component {
           </DataPointContainer>
 
           <LowerUpperRight>
-            <MutationsMenu />
+            <CollateralOptions />
           </LowerUpperRight>
         </CardContent>
 
