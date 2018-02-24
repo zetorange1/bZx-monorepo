@@ -94,9 +94,31 @@ describe("setAllowance", () => {
       tokenAddress: Addresses.TEST_TOKENS[0],
       ownerAddress: Addresses.ACCOUNTS[0],
       spenderAddress: Addresses.B0x,
-      amountInBaseUnits: new BigNumber(100)
+      amountInBaseUnits: new BigNumber(1)
     });
 
     assert.isHexString("txHash", txHash);
+  });
+});
+
+describe("getAllowance", () => {
+  test("returns allowance", async () => {
+    const res = await b0xJS.getAllowance({
+      tokenAddress: Addresses.TEST_TOKENS[0],
+      ownerAddress: Addresses.ACCOUNTS[0],
+      spenderAddress: Addresses.B0x
+    });
+
+    expect(res).toBe(1);
+  });
+});
+
+describe("getBalance", () => {
+  test("returns BigNumber balance", async () => {
+    const balance = await b0xJS.getBalance({
+      tokenAddress: Addresses.TEST_TOKENS[0],
+      ownerAddress: Addresses.ACCOUNTS[0]
+    });
+    expect(balance).toBeInstanceOf(BigNumber);
   });
 });

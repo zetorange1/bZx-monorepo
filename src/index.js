@@ -1,4 +1,5 @@
 import { assert } from "0x.js/lib/src/utils/assert";
+import BigNumber from "bignumber.js";
 import * as ethUtil from "ethereumjs-util";
 import { schemas, SchemaValidator } from "./schemas/b0x_json_schemas";
 import * as utils from "./utils";
@@ -84,5 +85,34 @@ export default class B0xJS {
         gasPrice: txOpts.gasPrice
       });
     return receipt.transactionHash;
+  };
+
+  getAllowance = async ({ tokenAddress, ownerAddress, spenderAddress }) => {
+    assert.isETHAddressHex("ownerAddress", ownerAddress);
+    assert.isETHAddressHex("spenderAddress", spenderAddress);
+    assert.isETHAddressHex("tokenAddress", tokenAddress);
+
+    const tokenContract = await utils.getTokenContract(
+      this.web3,
+      erc20Json,
+      tokenAddress
+    );
+    const receipt = await tokenContract.methods
+      .allowance(ownerAddress, spenderAddress)
+      .call();
+    return receipt;
+  };
+
+  getBalance = async ({ tokenAddress, ownerAddress }) => {
+    assert.isETHAddressHex("ownerAddress", ownerAddress);
+    assert.isETHAddressHex("tokenAddress", tokenAddress);
+
+    const tokenContract = await utils.getTokenContract(
+      this.web3,
+      erc20Json,
+      tokenAddress
+    );
+    const balance = await tokenContract.methods.balanceOf(ownerAddress).call();
+    return new BigNumber(balance);
   };
 }
