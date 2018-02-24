@@ -37,6 +37,8 @@ let contracts0x = {
 };
 
 let KyberContractAddress = "0x0000000000000000000000000000000000000000";
+//let KyberContractAddress = "0x0a56d8a49E71da8d7F9C65F95063dB48A3C9560B"; // Ropsten (https://ropsten.kyber.network)
+//let KyberContractAddress = "0x964f35fae36d75b1e72770e244f6595b68508cf5"; // Mainnet (https://kyber.network)
 
 module.exports = function(deployer, network, accounts) {
 

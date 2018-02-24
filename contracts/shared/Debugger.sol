@@ -7,6 +7,8 @@ contract Debugger {
     
     event DebugLog(string logMessage, uint logValue, address logAddress, bytes32 logData);
 
+    event DebugLine(uint lineNumber);
+
     function debugLog(
         string logMsg)
         internal
@@ -76,7 +78,7 @@ contract Debugger {
     }
 
 
-    function voidOrRevert() 
+    function voidOrRevert(uint lineno) 
         internal
         view
     {
@@ -84,10 +86,11 @@ contract Debugger {
             revert();
         }
 
+        DebugLine(lineno);
         return;
     }
     
-    function intOrRevert(uint retVal) 
+    function intOrRevert(uint retVal, uint lineno) 
         internal
         view 
         returns (uint)
@@ -96,10 +99,11 @@ contract Debugger {
             revert();
         }
 
+        DebugLine(lineno);
         return retVal;
     }
 
-    function boolOrRevert(bool retVal) 
+    function boolOrRevert(bool retVal, uint lineno) 
         internal
         view 
         returns (bool)
@@ -108,6 +112,7 @@ contract Debugger {
             revert();
         }
 
+        DebugLine(lineno);
         return retVal;
     }
 }

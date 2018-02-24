@@ -92,8 +92,8 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             signature);
 
         if (loanTokenUsedAmount == 0) {
-            LogErrorUint("error: 0x trade did not fill!", 0, loanOrderHash);
-            voidOrRevert(); return;
+            //LogErrorUint("error: 0x trade did not fill!", 0, loanOrderHash);
+            voidOrRevert(96); return;
         }
 
         tradeTokenAmount = getPartialAmount(
@@ -128,8 +128,8 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
                 orderValues0x[3] > 0 // takerFee
         ) {
             if (!EIP20(ZRX_TOKEN_CONTRACT).transferFrom(msg.sender, this, orderValues0x[3])) {
-                LogErrorUint("error: b0x can't transfer ZRX from trader", 0, loanOrderHash);
-                return intOrRevert(0);
+                //LogErrorUint("error: b0x can't transfer ZRX from trader", 0, loanOrderHash);
+                return intOrRevert(0,132);
             }
         }
 
@@ -145,8 +145,8 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             r,
             s);
         if (loanTokenUsedAmount == 0) {
-            LogErrorUint("error: 0x order failed!", 0, loanOrderHash);
-            return intOrRevert(0);
+            //LogErrorUint("error: 0x order failed!", 0, loanOrderHash);
+            return intOrRevert(0,149);
         }
 
         return loanTokenUsedAmount;

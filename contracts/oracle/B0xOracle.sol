@@ -13,7 +13,7 @@ import '../shared/Debugger.sol';
 
 import '../tokens/EIP20.sol';
 import '../interfaces/Oracle_Interface.sol';
-
+import '../interfaces/KyberNetwork_Interface.sol';
 
 // used for getting data from b0x
 contract B0xInterface {
@@ -41,7 +41,9 @@ contract B0xInterface {
 contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Debugger, B0xOwnable {
     using SafeMath for uint256;
 
-    //uint constant MAX_UINT = 2**256 - 1;
+    uint constant MAX_UINT = 2**256 - 1;
+
+    address constant KYBER_ETH_TOKEN_ADDRESS = 0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
 
     // Percentage of interest retained as fee
     // This will always be between 0 and 100
@@ -73,7 +75,6 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     {
         VAULT_CONTRACT = _vault_contract;
         KYBER_CONTRACT = _kyber_contract;
-
 
         // settings for EMACollector
         emaValue = 20 * 10**9 wei; // set an initial price average for gas (20 gwei)
@@ -212,20 +213,35 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
             revert();
         }
         
-        // temporary simulated trade for demo
-        uint tradeRate = getTradeRate(sourceTokenAddress, destTokenAddress);
-        destTokenAmount = sourceTokenAmount.mul(tradeRate);
-        if (!EIP20(destTokenAddress).transfer(b0xContractAddress, destTokenAmount)) {
-            revert();
+        if (KYBER_CONTRACT == address(0)) {
+            uint tradeRate = getTradeRate(sourceTokenAddress, destTokenAddress);
+            destTokenAmount = sourceTokenAmount.mul(tradeRate);
+            if (!EIP20(destTokenAddress).transfer(b0xContractAddress, destTokenAmount)) {
+                revert();
+            }
         }
+        else {
+            uint destEtherAmount = KyberNetwork_Interface(KYBER_CONTRACT).trade(
+                sourceTokenAddress,
+                sourceTokenAmount,
+                KYBER_ETH_TOKEN_ADDRESS,
+                this, // B0xOracle receives the Ether proceeds
+                MAX_UINT, // no limit on the dest amount 
+                0, // no min coversation rate
+                this
+            );
 
-        // when Kyber is live we'll use the below code instead of the above
-        /*destTokenAmount = tradeOnKyber(
-            sourceTokenAddress,
-            destTokenAddress,
-            sourceTokenAmount,
-            b0xContractAddress // b0x contract receives the recieves the destToken
-        );*/
+            destTokenAmount = KyberNetwork_Interface(KYBER_CONTRACT).trade
+                .value(destEtherAmount)( // send Ether along 
+                KYBER_ETH_TOKEN_ADDRESS,
+                destEtherAmount,
+                destTokenAddress,
+                b0xContractAddress, // b0x recieves the destToken
+                MAX_UINT, // no limit to the amount of tokens we can buy
+                0, // no min coversation rate
+                this
+            );
+        }
     }
 
 
@@ -251,87 +267,30 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     }
 
     function getTradeRate(
-        address /* sourceTokenAddress */,
-        address /* destTokenAddress */)
-        public
-        view 
-        returns (uint rate)
-    {   
-        // temporary simulated rate for demo
-        rate = (uint(block.blockhash(block.number-1)) % 100 + 1) * 10**16;
-
-        /*bytes32 pair = keccak256(sourceTokenAddress, destTokenAddress);
-
-        if (pairConversionRate[pair] == 0) {
-            pairConversionRate[pair] = (uint(block.blockhash(block.number-1)) % 100 + 1) * 10**16;
-        } else {
-            if (uint(block.blockhash(block.number-1)) % 2 == 0) {
-                pairConversionRate[pair] = pairConversionRate[pair].sub(pairConversionRate[pair]/100);
-            } else {
-                pairConversionRate[pair] = pairConversionRate[pair].add(pairConversionRate[pair]/100);
-            }
-        }
-        
-        rate = pairConversionRate[pair];*/
-
-        
-        // when Kyber is live we'll use the below code instead of the above
-        /*
-        rate = findBestRateOnKyber(
-            address sourceTokenAddress,
-            address destTokenAddress);
-        */
-    }
-
-    /*
-     * Kyber.network interaction functions
-     * Note: Note used for internal testnet
-     */
-
-    // Note: This function is necessary because the KyberNetwork contract method for finding best rate is internal to that contract.
-    /*function findBestRateOnKyber(
         address sourceTokenAddress,
         address destTokenAddress)
         public
         view 
         returns (uint rate)
-    {
-        uint bestRate;
-        //uint bestReserveBalance = 0;
-        uint numReserves = KyberNetwork_Interface(KYBER_CONTRACT).getNumReserves();
-
-        for(uint i = 0 ; i < numReserves ; i++) {
-            var (rate,expBlock,balance) = KyberNetwork_Interface(KYBER_CONTRACT).getRate(sourceTokenAddress, destTokenAddress, i);
-
-            if((expBlock >= block.number) && (balance > 0) && (rate > bestRate)) {
-                bestRate = rate;
-                //bestReserveBalance = balance;
-            }
+    {   
+        if (KYBER_CONTRACT == address(0)) {
+            rate = (uint(block.blockhash(block.number-1)) % 100 + 1) * 10**16;
         }
-
-        //reserveBalance = bestReserveBalance;
-        rate = bestRate;
+        else {
+            var (, sourceToEther) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+                sourceTokenAddress, 
+                KYBER_ETH_TOKEN_ADDRESS, 
+                0
+            );
+            var (, etherToDest) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+                KYBER_ETH_TOKEN_ADDRESS, 
+                destTokenAddress, 
+                0
+            );
+            
+            rate = sourceToEther.mul(etherToDest);
+        }
     }
-
-    function tradeOnKyber(
-        address sourceTokenAddress,
-        address destTokenAddress,
-        uint sourceTokenAmount,
-        address destAddress
-        )
-        internal
-        returns (uint destTokenAmount)
-    {
-        destTokenAmount = KyberNetwork_Interface(KYBER_CONTRACT).trade(
-            sourceTokenAddress,
-            sourceTokenAmount,
-            destTokenAddress,
-            destAddress, // this address recieves the destToken
-            MAX_UINT, // no limit to the amount of tokens we can buy
-            0, // no min coversation rate
-            true // throws on failure
-        );
-    }*/
 
 
     // Should return a ratio of currentMarginAmount / maintenanceMarginAmount for this particular loan/trade
