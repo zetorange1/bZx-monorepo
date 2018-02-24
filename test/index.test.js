@@ -1,11 +1,13 @@
 /* globals test, expect, describe */
 import Web3 from "web3";
+import BigNumber from "bignumber.js";
 import sigUtil from "eth-sig-util";
 import B0xJS from "../src";
 import erc20Json from "../src/contracts/ERC20.json";
 import * as utils from "../src/utils";
 import * as constants from "../src/constants";
 import * as Errors from "../src/constants/errors";
+import * as Addresses from "./constants/addresses";
 
 const networkUrl = "https://testnet.b0x.network";
 const provider = new Web3.providers.HttpProvider(networkUrl);
@@ -79,5 +81,18 @@ describe("getTokenContract", () => {
     await expect(
       utils.getTokenContract(b0xJS.web3, erc20Json, constants.ZERO_ADDRESS)
     ).rejects.toThrow(Errors.ContractDoesNotExist);
+  });
+});
+
+describe("setAllowance", () => {
+  test("interacts with blockchain", async () => {
+    await expect(
+      b0xJS.setAllowance({
+        tokenAddress: Addresses.TEST_TOKENS[0],
+        ownerAddress: Addresses.ACCOUNTS[0],
+        spenderAddress: Addresses.B0x,
+        amountInBaseUnits: new BigNumber(100)
+      })
+    ).resolves.toBe(1);
   });
 });

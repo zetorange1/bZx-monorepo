@@ -59,7 +59,7 @@ export default class B0xJS {
     return signature;
   }
 
-  static setAllowance = async ({
+  setAllowance = async ({
     tokenAddress,
     ownerAddress,
     spenderAddress,
@@ -76,15 +76,13 @@ export default class B0xJS {
       erc20Json,
       tokenAddress
     );
-    const txHash = await tokenContract.methods.approve.send(
-      spenderAddress,
-      amountInBaseUnits,
-      {
+    const txHash = await tokenContract.methods
+      .approve(spenderAddress, amountInBaseUnits)
+      .send({
         from: ownerAddress,
         gas: txOpts.gasLimit,
         gasPrice: txOpts.gasPrice
-      }
-    );
+      });
     return txHash;
   };
 }
