@@ -72,6 +72,7 @@ contract B0xTypes {
         bool active
     );
 
+    uint constant MAX_UINT = 2**256 - 1;
 
     function getLoanOrderFromBytes(
         bytes loanOrderData)

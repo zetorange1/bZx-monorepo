@@ -41,8 +41,6 @@ contract B0xInterface {
 contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Debugger, B0xOwnable {
     using SafeMath for uint256;
 
-    uint constant MAX_UINT = 2**256 - 1;
-
     address constant KYBER_ETH_TOKEN_ADDRESS = 0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
 
     // Percentage of interest retained as fee
@@ -244,8 +242,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         }
     }
 
-
-
+    // TODO
     function shouldLiquidate(
         bytes32 loanOrderHash,
         address trader)
@@ -253,7 +250,17 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         view
         returns (bool)
     {
-        return (getMarginRatio(loanOrderHash, trader) <= (uint(liquidationThresholdPercent)));
+        return true;
+        /*
+        LoanOrder memory loanOrder = getLoanOrder(loanOrderHash);
+        
+        if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
+            return true;
+        }
+        else {
+            return (_getMarginRatio(loanOrder, trader) <= (uint(liquidationThresholdPercent)));
+        }
+        */
     }
 
     function isTradeSupported(
@@ -292,9 +299,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         }
     }
 
-
-    // Should return a ratio of currentMarginAmount / maintenanceMarginAmount for this particular loan/trade
-    // TODO: implement this
+    // TODO
     function getMarginRatio(
         bytes32 /* loanOrderHash */,
         address /* trader */)
@@ -303,12 +308,36 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         returns (uint level)
     {
         level = 200;
+        /*LoanOrder memory loanOrder = getLoanOrder(loanOrderHash);
+        Loan memory loan = getLoan(loanOrderHash, trader);
 
-        /*maintenanceMarginAmount
-        tradeTokenAddress;
-        tradeTokenAmount;
-        collateralTokenAddress
-        collateralTokenAmountFilled*/
+        level = _getMarginRatio(
+            trader,
+            tradeTokenAddress,
+            tradeTokenAmount,
+            loanOrder.loanTokenAddress,
+            loanOrder.collateralTokenAddress,
+            loan.collateralTokenAmountFilled,
+            loan.loanTokenAmountFilled
+            loanOrder.maintenanceMarginAmount
+        );*/
+    }
+
+
+    // Should return a ratio of currentMarginAmount / maintenanceMarginAmount for this particular loan/trade
+    // TODO
+    function _getMarginRatio(
+        address /* trader */,
+        address /* collateralTokenAddress */,
+        address /* tradeTokenAddress */,
+        uint /* collateralTokenAmountFilled */,
+        uint /* tradeTokenAmount */,
+        uint /* maintenanceMarginAmount */)
+        internal
+        view
+        returns (uint level)
+    {
+        level = 200;
     }
 
     function getLoanOrder (
