@@ -72,9 +72,12 @@ describe("getTokenContract", () => {
     const tokenContract = await utils.getTokenContract(
       b0xJS.web3,
       erc20Json,
-      "0xc98e260cbf7041cc2c42d7e055fb4350df22dd68"
+      Addresses.TEST_TOKENS[0]
     );
     expect(tokenContract).toBeInstanceOf(b0xJS.web3.eth.Contract);
+    expect(tokenContract.options.address.toLowerCase()).toBe(
+      Addresses.TEST_TOKENS[0].toLowerCase()
+    );
   });
 
   test("throws error on incorrect address", async () => {
