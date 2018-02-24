@@ -2,6 +2,7 @@ import { assert } from "0x.js/lib/src/utils/assert";
 import * as ethUtil from "ethereumjs-util";
 import { schemas, SchemaValidator } from "./schemas/b0x_json_schemas";
 import * as utils from "./utils";
+import erc20Json from "./contracts/ERC20.json";
 
 let Web3 = null;
 if (typeof window !== "undefined") {
@@ -57,4 +58,33 @@ export default class B0xJS {
     const signature = await this.web3.eth.sign(msgHashHex, signerAddress);
     return signature;
   }
+
+  static setAllowance = async ({
+    tokenAddress,
+    ownerAddress,
+    spenderAddress,
+    amountInBaseUnits,
+    txOpts = {}
+  }) => {
+    assert.isETHAddressHex("ownerAddress", ownerAddress);
+    assert.isETHAddressHex("spenderAddress", spenderAddress);
+    assert.isETHAddressHex("tokenAddress", tokenAddress);
+    assert.isValidBaseUnitAmount("amountInBaseUnits", amountInBaseUnits);
+
+    const tokenContract = await utils.getTokenContract(
+      this.web3,
+      erc20Json,
+      tokenAddress
+    );
+    const txHash = await tokenContract.methods.approve.send(
+      spenderAddress,
+      amountInBaseUnits,
+      {
+        from: ownerAddress,
+        gas: txOpts.gasLimit,
+        gasPrice: txOpts.gasPrice
+      }
+    );
+    return txHash;
+  };
 }

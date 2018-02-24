@@ -1,7 +1,11 @@
-/* globals test, expect */
+/* globals test, expect, describe */
 import Web3 from "web3";
 import sigUtil from "eth-sig-util";
 import B0xJS from "../src";
+import erc20Json from "../src/contracts/ERC20.json";
+import * as utils from "../src/utils";
+import * as constants from "../src/constants";
+import * as Errors from "../src/constants/errors";
 
 const networkUrl = "https://testnet.b0x.network";
 const provider = new Web3.providers.HttpProvider(networkUrl);
@@ -59,4 +63,21 @@ test("generatePseudoRandomSalt generates proper salt", () => {
   const salt = B0xJS.generatePseudoRandomSalt();
   expect(salt.gte(0)).toBe(true);
   expect(salt.lt(1)).toBe(true);
+});
+
+describe("getTokenContract", () => {
+  test("creates web3 contract instance", async () => {
+    const tokenContract = await utils.getTokenContract(
+      b0xJS.web3,
+      erc20Json,
+      "0xc98e260cbf7041cc2c42d7e055fb4350df22dd68"
+    );
+    expect(tokenContract).toBeInstanceOf(b0xJS.web3.eth.Contract);
+  });
+
+  test("throws error on incorrect address", async () => {
+    await expect(
+      utils.getTokenContract(b0xJS.web3, erc20Json, constants.ZERO_ADDRESS)
+    ).rejects.toThrow(Errors.ContractDoesNotExist);
+  });
 });
