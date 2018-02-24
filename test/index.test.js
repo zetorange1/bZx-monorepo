@@ -88,6 +88,18 @@ describe("getTokenContract", () => {
   });
 });
 
+describe("getAllowance", () => {
+  test("returns allowance", async () => {
+    const res = await b0xJS.getAllowance({
+      tokenAddress: Addresses.TEST_TOKENS[0],
+      ownerAddress: Addresses.ACCOUNTS[0],
+      spenderAddress: Addresses.B0x
+    });
+
+    expect(res).toBeInstanceOf(BigNumber);
+  });
+});
+
 describe("setAllowance", () => {
   const ALLOWANCE_AMOUNT = new BigNumber(436);
 
@@ -119,18 +131,6 @@ describe("setAllowance", () => {
     });
 
     expect(expectedAllowance).toEqual(allowance);
-  });
-});
-
-describe("getAllowance", () => {
-  test("returns allowance", async () => {
-    const res = await b0xJS.getAllowance({
-      tokenAddress: Addresses.TEST_TOKENS[0],
-      ownerAddress: Addresses.ACCOUNTS[0],
-      spenderAddress: Addresses.B0x
-    });
-
-    expect(res).toBeInstanceOf(BigNumber);
   });
 });
 
