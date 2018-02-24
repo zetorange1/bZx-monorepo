@@ -76,13 +76,13 @@ export default class B0xJS {
       erc20Json,
       tokenAddress
     );
-    const txHash = await tokenContract.methods
+    const receipt = await tokenContract.methods
       .approve(spenderAddress, amountInBaseUnits)
       .send({
         from: ownerAddress,
         gas: txOpts.gasLimit,
         gasPrice: txOpts.gasPrice
       });
-    return txHash;
+    return receipt.transactionHash;
   };
 }

@@ -12,12 +12,10 @@
     "dev": "webpack --watch --config webpack.config.js",
     "build": "webpack --config webpack.config.js"
   },
-  "pre-commit": [
-    "prettier:pre-commit",
-    "lint"
-  ],
+  "pre-commit": ["prettier:pre-commit", "lint"],
   "dependencies": {
     "0x.js": "^0.29.0",
+    "@0xproject/assert": "0.0.20",
     "@0xproject/json-schemas": "^0.7.11",
     "@0xproject/types": "^0.2.3",
     "@0xproject/web3-wrapper": "^0.1.14",

@@ -2,6 +2,7 @@
 import Web3 from "web3";
 import BigNumber from "bignumber.js";
 import sigUtil from "eth-sig-util";
+import { assert } from "@0xproject/assert";
 import B0xJS from "../src";
 import erc20Json from "../src/contracts/ERC20.json";
 import * as utils from "../src/utils";
@@ -88,14 +89,14 @@ describe("getTokenContract", () => {
 });
 
 describe("setAllowance", () => {
-  test("interacts with blockchain", async () => {
-    await expect(
-      b0xJS.setAllowance({
-        tokenAddress: Addresses.TEST_TOKENS[0],
-        ownerAddress: Addresses.ACCOUNTS[0],
-        spenderAddress: Addresses.B0x,
-        amountInBaseUnits: new BigNumber(100)
-      })
-    ).resolves.toBe(1);
+  test("receives transaction hash", async () => {
+    const txHash = await b0xJS.setAllowance({
+      tokenAddress: Addresses.TEST_TOKENS[0],
+      ownerAddress: Addresses.ACCOUNTS[0],
+      spenderAddress: Addresses.B0x,
+      amountInBaseUnits: new BigNumber(100)
+    });
+
+    assert.isHexString("txHash", txHash);
   });
 });
