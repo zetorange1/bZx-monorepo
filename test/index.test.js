@@ -1,8 +1,7 @@
 /* globals test, expect */
-
-const Web3 = require("web3");
-const B0xJS = require("../dist/b0x").default;
-const sigUtil = require("eth-sig-util");
+import Web3 from "web3";
+import sigUtil from "eth-sig-util";
+import B0xJS from "../src";
 
 const networkUrl = "https://testnet.b0x.network";
 const provider = new Web3.providers.HttpProvider(networkUrl);
@@ -54,4 +53,9 @@ test("signOrderHashAsync signs properly", async () => {
     sig: signature
   });
   expect(recoveredAccount).toBe(signerAddress.toLowerCase());
+});
+
+test("generatePseudoRandomSalt generates proper salt", () => {
+  const salt = B0xJS.generatePseudoRandomSalt();
+  expect(salt).toBe(1);
 });

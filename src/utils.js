@@ -16,9 +16,10 @@ export const generatePseudoRandomSalt = () => {
   // Source: https://mikemcl.github.io/bignumber.js/#random
   const MAX_DIGITS_IN_UNSIGNED_256_INT = 78;
   const randomNumber = BigNumber.random(MAX_DIGITS_IN_UNSIGNED_256_INT);
-  const factor = new BigNumber(10).pow(MAX_DIGITS_IN_UNSIGNED_256_INT - 1);
-  const salt = randomNumber.times(factor).round();
-  return salt;
+  // const factor = new BigNumber(10).pow(MAX_DIGITS_IN_UNSIGNED_256_INT - 1);
+  // const salt = randomNumber.times(factor).round();
+  // return salt;
+  return randomNumber;
 };
 
 export const getLoanOrderHashHex = order => {
