@@ -89,15 +89,36 @@ describe("getTokenContract", () => {
 });
 
 describe("setAllowance", () => {
-  test("receives transaction hash", async () => {
+  const ALLOWANCE_AMOUNT = new BigNumber(436);
+
+  test("should output transaction hash", async () => {
     const txHash = await b0xJS.setAllowance({
       tokenAddress: Addresses.TEST_TOKENS[0],
       ownerAddress: Addresses.ACCOUNTS[0],
       spenderAddress: Addresses.B0x,
-      amountInBaseUnits: new BigNumber(1)
+      amountInBaseUnits: ALLOWANCE_AMOUNT
     });
 
     assert.isHexString("txHash", txHash);
+  });
+
+  test("should set spender's allowance", async () => {
+    const expectedAllowance = ALLOWANCE_AMOUNT;
+
+    await b0xJS.setAllowance({
+      tokenAddress: Addresses.TEST_TOKENS[0],
+      ownerAddress: Addresses.ACCOUNTS[0],
+      spenderAddress: Addresses.B0x,
+      amountInBaseUnits: ALLOWANCE_AMOUNT
+    });
+
+    const allowance = await b0xJS.getAllowance({
+      tokenAddress: Addresses.TEST_TOKENS[0],
+      ownerAddress: Addresses.ACCOUNTS[0],
+      spenderAddress: Addresses.B0x
+    });
+
+    expect(expectedAllowance).toEqual(allowance);
   });
 });
 
@@ -109,7 +130,7 @@ describe("getAllowance", () => {
       spenderAddress: Addresses.B0x
     });
 
-    expect(res).toBe(1);
+    expect(res).toBeInstanceOf(BigNumber);
   });
 });
 

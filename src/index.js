@@ -97,10 +97,10 @@ export default class B0xJS {
       erc20Json,
       tokenAddress
     );
-    const receipt = await tokenContract.methods
+    const allowance = await tokenContract.methods
       .allowance(ownerAddress, spenderAddress)
       .call();
-    return receipt;
+    return new BigNumber(allowance);
   };
 
   getBalance = async ({ tokenAddress, ownerAddress }) => {
