@@ -135,11 +135,12 @@ describe("setAllowance", () => {
 });
 
 describe("getBalance", () => {
-  test("returns BigNumber balance", async () => {
+  test("should return token balance", async () => {
     const balance = await b0xJS.getBalance({
       tokenAddress: Addresses.TEST_TOKENS[0],
-      ownerAddress: Addresses.ACCOUNTS[0]
+      ownerAddress: Addresses.ACCOUNTS[10]
     });
-    expect(balance).toBeInstanceOf(BigNumber);
+
+    expect(balance).toEqual(new BigNumber(0));
   });
 });
