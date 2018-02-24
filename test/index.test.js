@@ -141,6 +141,6 @@ describe("getBalance", () => {
       ownerAddress: Addresses.ACCOUNTS[10]
     });
 
-    expect(balance).toEqual(new BigNumber(0));
+    expect(balance).toEqual(new BigNumber("1e+25"));
   });
 });
