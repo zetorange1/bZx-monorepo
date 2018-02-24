@@ -57,5 +57,6 @@ test("signOrderHashAsync signs properly", async () => {
 
 test("generatePseudoRandomSalt generates proper salt", () => {
   const salt = B0xJS.generatePseudoRandomSalt();
-  expect(salt).toBe(1);
+  expect(salt.gte(0)).toBe(true);
+  expect(salt.lt(1)).toBe(true);
 });
