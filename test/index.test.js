@@ -130,7 +130,7 @@ describe("setAllowance", () => {
       spenderAddress: Addresses.B0x
     });
 
-    expect(expectedAllowance).toEqual(allowance);
+    expect(allowance).toEqual(expectedAllowance);
   });
 });
 
