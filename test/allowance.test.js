@@ -79,9 +79,9 @@ describe("allowance", () => {
   describe("getAllowance", () => {
     test("should return allowance", async () => {
       const res = await b0xJS.getAllowance({
-        tokenAddress: Addresses.TEST_TOKENS[9],
-        ownerAddress: Addresses.ACCOUNTS[0],
-        spenderAddress: Addresses.B0x
+        tokenAddress,
+        ownerAddress,
+        spenderAddress
       });
 
       expect(res).toEqual(new BigNumber(0));
