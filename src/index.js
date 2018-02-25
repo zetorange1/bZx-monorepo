@@ -5,6 +5,7 @@ import * as ethUtil from "ethereumjs-util";
 import { schemas, SchemaValidator } from "./schemas/b0x_json_schemas";
 import * as utils from "./utils";
 import erc20Json from "./contracts/ERC20.json";
+import * as allowance from "./allowance";
 
 let Web3 = null;
 if (typeof window !== "undefined") {
@@ -67,27 +68,14 @@ export default class B0xJS {
     spenderAddress,
     amountInBaseUnits,
     txOpts = {}
-  }) => {
-    assert.isETHAddressHex("ownerAddress", ownerAddress);
-    assert.isETHAddressHex("spenderAddress", spenderAddress);
-    assert.isETHAddressHex("tokenAddress", tokenAddress);
-    assert.isValidBaseUnitAmount("amountInBaseUnits", amountInBaseUnits);
-
-    const tokenContract = await utils.getTokenContract(
-      this.web3,
-      erc20Json,
-      tokenAddress
-    );
-    const receipt = await tokenContract.methods
-      .approve(spenderAddress, amountInBaseUnits)
-      .send({
-        from: ownerAddress,
-        gas: txOpts.gasLimit,
-        gasPrice: txOpts.gasPrice
-      });
-
-    return receipt.transactionHash;
-  };
+  }) =>
+    allowance.setAllowance(this.web3, {
+      tokenAddress,
+      ownerAddress,
+      spenderAddress,
+      amountInBaseUnits,
+      txOpts
+    });
 
   setAllowanceUnlimited = async props =>
     this.setAllowance({
@@ -95,21 +83,12 @@ export default class B0xJS {
       amountInBaseUnits: constants.UNLIMITED_ALLOWANCE_IN_BASE_UNITS
     });
 
-  getAllowance = async ({ tokenAddress, ownerAddress, spenderAddress }) => {
-    assert.isETHAddressHex("ownerAddress", ownerAddress);
-    assert.isETHAddressHex("spenderAddress", spenderAddress);
-    assert.isETHAddressHex("tokenAddress", tokenAddress);
-
-    const tokenContract = await utils.getTokenContract(
-      this.web3,
-      erc20Json,
-      tokenAddress
-    );
-    const allowance = await tokenContract.methods
-      .allowance(ownerAddress, spenderAddress)
-      .call();
-    return new BigNumber(allowance);
-  };
+  getAllowance = async ({ tokenAddress, ownerAddress, spenderAddress }) =>
+    allowance.getAllowance(this.web3, {
+      tokenAddress,
+      ownerAddress,
+      spenderAddress
+    });
 
   getBalance = async ({ tokenAddress, ownerAddress }) => {
     assert.isETHAddressHex("ownerAddress", ownerAddress);
