@@ -1,7 +1,11 @@
 import { assert } from "0x.js/lib/src/utils/assert";
+import { constants } from "0x.js/lib/src/utils/constants";
+import { BigNumber } from "@0xproject/utils";
 import * as ethUtil from "ethereumjs-util";
 import { schemas, SchemaValidator } from "./schemas/b0x_json_schemas";
 import * as utils from "./utils";
+import erc20Json from "./contracts/ERC20.abi.json";
+import * as allowance from "./allowance";
 
 let Web3 = null;
 if (typeof window !== "undefined") {
@@ -57,4 +61,45 @@ export default class B0xJS {
     const signature = await this.web3.eth.sign(msgHashHex, signerAddress);
     return signature;
   }
+
+  setAllowance = async ({
+    tokenAddress,
+    ownerAddress,
+    spenderAddress,
+    amountInBaseUnits,
+    txOpts = {}
+  }) =>
+    allowance.setAllowance(this.web3, {
+      tokenAddress,
+      ownerAddress,
+      spenderAddress,
+      amountInBaseUnits,
+      txOpts
+    });
+
+  setAllowanceUnlimited = async props =>
+    this.setAllowance({
+      ...props,
+      amountInBaseUnits: constants.UNLIMITED_ALLOWANCE_IN_BASE_UNITS
+    });
+
+  getAllowance = async ({ tokenAddress, ownerAddress, spenderAddress }) =>
+    allowance.getAllowance(this.web3, {
+      tokenAddress,
+      ownerAddress,
+      spenderAddress
+    });
+
+  getBalance = async ({ tokenAddress, ownerAddress }) => {
+    assert.isETHAddressHex("ownerAddress", ownerAddress);
+    assert.isETHAddressHex("tokenAddress", tokenAddress);
+
+    const tokenContract = await utils.getTokenContract(
+      this.web3,
+      erc20Json,
+      tokenAddress
+    );
+    const balance = await tokenContract.methods.balanceOf(ownerAddress).call();
+    return new BigNumber(balance);
+  };
 }

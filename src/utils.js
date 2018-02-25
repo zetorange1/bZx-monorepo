@@ -1,10 +1,7 @@
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
-// import ethABI from 'ethereumjs-abi';
-// import ethUtil from 'ethereumjs-util';
 import Web3Utils from "web3-utils";
-
-// import { SolidityTypes } from './types';
+import * as Errors from "./constants/errors";
 
 export const noop = () => {};
 
@@ -44,4 +41,19 @@ export const getLoanOrderHashHex = order => {
     { t: "uint256[8]", v: orderUints }
   );
   return orderHashHex;
+};
+
+export const doesContractExistAtAddress = async (web3, address) => {
+  const code = await web3.eth.getCode(address);
+  // Regex matches 0x0, 0x00, 0x in order to accommodate poorly implemented clients
+  const codeIsEmpty = /^0x0{0,40}$/i.test(code);
+  return !codeIsEmpty;
+};
+
+export const getTokenContract = async (web3, jsonInterface, tokenAddress) => {
+  const contractExists = await doesContractExistAtAddress(web3, tokenAddress);
+  if (!contractExists) throw new Error(Errors.ContractDoesNotExist);
+
+  const contract = new web3.eth.Contract(jsonInterface.abi, tokenAddress);
+  return contract;
 };
