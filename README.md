@@ -2,6 +2,8 @@
 
 Javascript library for b0x. Allows for interaction with b0x smart contracts on the Ethereum blockchain.
 
+__Note:__ This project is still under *heavy* construction.
+
 # Development
 
 1. Run `npm install` to install dependencies.
