@@ -1,4 +1,5 @@
 import { assert } from "0x.js/lib/src/utils/assert";
+import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import * as ethUtil from "ethereumjs-util";
 import { schemas, SchemaValidator } from "./schemas/b0x_json_schemas";
@@ -87,6 +88,12 @@ export default class B0xJS {
 
     return receipt.transactionHash;
   };
+
+  setAllowanceUnlimited = async props =>
+    this.setAllowance({
+      ...props,
+      amountInBaseUnits: constants.UNLIMITED_ALLOWANCE_IN_BASE_UNITS
+    });
 
   getAllowance = async ({ tokenAddress, ownerAddress, spenderAddress }) => {
     assert.isETHAddressHex("ownerAddress", ownerAddress);

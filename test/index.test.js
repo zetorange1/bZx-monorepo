@@ -107,11 +107,10 @@ describe("getAllowance", () => {
   });
 });
 
-describe("setAllowance", () => {
+describe("allowance", () => {
   const tokenAddress = Addresses.TEST_TOKENS[0];
   const ownerAddress = Addresses.ACCOUNTS[0];
   const spenderAddress = Addresses.B0x;
-  const ALLOWANCE_AMOUNT = new BigNumber(436);
 
   const resetAllowance = async () => {
     await b0xJS.setAllowance({
@@ -125,34 +124,58 @@ describe("setAllowance", () => {
   beforeEach(resetAllowance);
   afterEach(resetAllowance);
 
-  test("should output transaction hash", async () => {
-    const txHash = await b0xJS.setAllowance({
-      tokenAddress,
-      ownerAddress,
-      spenderAddress,
-      amountInBaseUnits: ALLOWANCE_AMOUNT
+  describe("setAllowance", () => {
+    const ALLOWANCE_AMOUNT = new BigNumber(436);
+
+    test("should output transaction hash", async () => {
+      const txHash = await b0xJS.setAllowance({
+        tokenAddress,
+        ownerAddress,
+        spenderAddress,
+        amountInBaseUnits: ALLOWANCE_AMOUNT
+      });
+
+      assert.isHexString("txHash", txHash);
     });
 
-    assert.isHexString("txHash", txHash);
+    test("should set spender's allowance", async () => {
+      const expectedAllowance = ALLOWANCE_AMOUNT;
+
+      await b0xJS.setAllowance({
+        tokenAddress,
+        ownerAddress,
+        spenderAddress,
+        amountInBaseUnits: ALLOWANCE_AMOUNT
+      });
+
+      const allowance = await b0xJS.getAllowance({
+        tokenAddress,
+        ownerAddress,
+        spenderAddress
+      });
+
+      expect(allowance).toEqual(expectedAllowance);
+    });
   });
 
-  test("should set spender's allowance", async () => {
-    const expectedAllowance = ALLOWANCE_AMOUNT;
+  describe("setAllowanceUnlimited", () => {
+    test("should set spender's allowance to maximum value of uint", async () => {
+      const expectedAllowance = constants.UNLIMITED_ALLOWANCE_IN_BASE_UNITS;
 
-    await b0xJS.setAllowance({
-      tokenAddress,
-      ownerAddress,
-      spenderAddress,
-      amountInBaseUnits: ALLOWANCE_AMOUNT
+      await b0xJS.setAllowanceUnlimited({
+        tokenAddress,
+        ownerAddress,
+        spenderAddress
+      });
+
+      const allowance = await b0xJS.getAllowance({
+        tokenAddress,
+        ownerAddress,
+        spenderAddress
+      });
+
+      expect(allowance).toEqual(expectedAllowance);
     });
-
-    const allowance = await b0xJS.getAllowance({
-      tokenAddress,
-      ownerAddress,
-      spenderAddress
-    });
-
-    expect(allowance).toEqual(expectedAllowance);
   });
 });
 
