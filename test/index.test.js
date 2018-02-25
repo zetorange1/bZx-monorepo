@@ -3,7 +3,7 @@ import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import sigUtil from "eth-sig-util";
 import B0xJS from "../src";
-import erc20Json from "../src/contracts/ERC20.abi.json";
+import erc20Abi from "../src/contracts/ERC20.abi.json";
 import * as utils from "../src/utils";
 import * as Errors from "../src/constants/errors";
 import * as Addresses from "./constants/addresses";
@@ -45,11 +45,11 @@ describe("generatePseudoRandomSalt", () => {
   });
 });
 
-describe("getTokenContract", () => {
+describe("getContractInstance", () => {
   test("should create web3 contract instance", async () => {
-    const tokenContract = await utils.getTokenContract(
+    const tokenContract = await utils.getContractInstance(
       b0xJS.web3,
-      erc20Json,
+      erc20Abi,
       Addresses.TEST_TOKENS[0]
     );
     expect(tokenContract).toBeInstanceOf(b0xJS.web3.eth.Contract);
@@ -60,7 +60,7 @@ describe("getTokenContract", () => {
 
   test("should throw error on incorrect address", async () => {
     await expect(
-      utils.getTokenContract(b0xJS.web3, erc20Json, constants.NULL_ADDRESS)
+      utils.getContractInstance(b0xJS.web3, erc20Abi, constants.NULL_ADDRESS)
     ).rejects.toThrow(Errors.ContractDoesNotExist);
   });
 });
