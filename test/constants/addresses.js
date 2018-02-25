@@ -24,3 +24,4 @@ export const ACCOUNTS = [
   "0x6a7d785ffa5d340b5c468e0725e1df8f41b768a8"
 ];
 export const B0x = "0x04758f1f88a9cea9bdef16d75f44c2f07a255e14";
+export const OracleRegistry = "0x20d1e83d9147ff9beca315d4e67c71063653a714";

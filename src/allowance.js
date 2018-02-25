@@ -1,7 +1,7 @@
 import { assert } from "0x.js/lib/src/utils/assert";
 import { BigNumber } from "@0xproject/utils";
 import * as utils from "./utils";
-import erc20Json from "./contracts/ERC20.abi.json";
+import erc20Abi from "./contracts/ERC20.abi.json";
 
 export const setAllowance = async (
   web3,
@@ -12,9 +12,9 @@ export const setAllowance = async (
   assert.isETHAddressHex("tokenAddress", tokenAddress);
   assert.isValidBaseUnitAmount("amountInBaseUnits", amountInBaseUnits);
 
-  const tokenContract = await utils.getTokenContract(
+  const tokenContract = await utils.getContractInstance(
     web3,
-    erc20Json,
+    erc20Abi,
     tokenAddress
   );
   const receipt = await tokenContract.methods
@@ -36,9 +36,9 @@ export const getAllowance = async (
   assert.isETHAddressHex("spenderAddress", spenderAddress);
   assert.isETHAddressHex("tokenAddress", tokenAddress);
 
-  const tokenContract = await utils.getTokenContract(
+  const tokenContract = await utils.getContractInstance(
     web3,
-    erc20Json,
+    erc20Abi,
     tokenAddress
   );
   const allowanceValue = await tokenContract.methods
