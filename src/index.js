@@ -84,6 +84,7 @@ export default class B0xJS {
         gas: txOpts.gasLimit,
         gasPrice: txOpts.gasPrice
       });
+
     return receipt.transactionHash;
   };
 
