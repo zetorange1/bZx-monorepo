@@ -1,4 +1,5 @@
-import BigNumber from "bignumber.js";
+import { BigNumber } from "@0xproject/utils";
+import { constants } from "0x.js/lib/src/utils/constants";
 import BN from "bn.js";
 import Web3Utils from "web3-utils";
 import * as Errors from "./constants/errors";
@@ -11,8 +12,13 @@ export const generatePseudoRandomSalt = () => {
   // BigNumber.random returns a pseudo-random number between 0 & 1
   // with a passed in number of decimal places.
   // Source: https://mikemcl.github.io/bignumber.js/#random
-  const MAX_DIGITS_IN_UNSIGNED_256_INT = 76;
-  const salt = BigNumber.random(MAX_DIGITS_IN_UNSIGNED_256_INT);
+  const randomNumber = BigNumber.random(
+    constants.MAX_DIGITS_IN_UNSIGNED_256_INT
+  );
+  const factor = new BigNumber(10).pow(
+    constants.MAX_DIGITS_IN_UNSIGNED_256_INT - 1
+  );
+  const salt = randomNumber.times(factor).round();
   return salt;
 };
 

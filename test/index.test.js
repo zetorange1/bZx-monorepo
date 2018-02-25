@@ -31,10 +31,17 @@ describe("signOrderHashAsync", () => {
 });
 
 describe("generatePseudoRandomSalt", () => {
-  test("should generate proper salt", () => {
+  test("should generate different salts", () => {
+    expect(B0xJS.generatePseudoRandomSalt()).not.toEqual(
+      B0xJS.generatePseudoRandomSalt()
+    );
+  });
+
+  test("should generate salt in range [0..2^256)", () => {
     const salt = B0xJS.generatePseudoRandomSalt();
-    expect(salt.gte(0)).toBe(true);
-    expect(salt.lt(1)).toBe(true);
+    expect(salt.greaterThanOrEqualTo(0)).toBe(true);
+    const twoPow256 = new BigNumber(2).pow(256);
+    expect(salt.lessThan(twoPow256)).toBe(true);
   });
 });
 
