@@ -3,7 +3,7 @@ import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import sigUtil from "eth-sig-util";
 import B0xJS from "../src";
-import erc20Json from "../src/contracts/ERC20.json";
+import erc20Json from "../src/contracts/ERC20.abi.json";
 import * as utils from "../src/utils";
 import * as Errors from "../src/constants/errors";
 import * as Addresses from "./constants/addresses";
