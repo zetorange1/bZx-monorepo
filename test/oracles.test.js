@@ -14,7 +14,7 @@ describe("oracles", () => {
 
   test("cleanOracleNames", () => {
     const oracleNames = oracles.cleanOracleNames({
-      oracleNameLengths: ["9", "10", "13"],
+      oracleNameLengths: testOracleNames.map(name => name.length),
       oracleNamesAllConcat: testOracleNames.join("")
     });
 
