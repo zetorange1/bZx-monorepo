@@ -6,6 +6,7 @@ import { schemas, SchemaValidator } from "./schemas/b0x_json_schemas";
 import * as utils from "./utils";
 import erc20Abi from "./contracts/ERC20.abi.json";
 import * as allowance from "./allowance";
+import * as oracles from "./oracles";
 
 let Web3 = null;
 if (typeof window !== "undefined") {
@@ -102,4 +103,6 @@ export default class B0xJS {
     const balance = await tokenContract.methods.balanceOf(ownerAddress).call();
     return new BigNumber(balance);
   };
+
+  getOracleList = async () => oracles.getOracleList(this.web3);
 }
