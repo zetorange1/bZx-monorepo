@@ -1,4 +1,4 @@
-/* globals test, expect, describe, jest, beforeEach */
+/* globals test, expect, describe, jest, beforeEach, afterEach */
 import Web3 from "web3";
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
@@ -110,22 +110,26 @@ describe("getAllowance", () => {
 describe("setAllowance", () => {
   const tokenAddress = Addresses.TEST_TOKENS[0];
   const ownerAddress = Addresses.ACCOUNTS[0];
+  const spenderAddress = Addresses.B0x;
   const ALLOWANCE_AMOUNT = new BigNumber(436);
 
-  beforeEach(async () => {
+  const resetAllowance = async () => {
     await b0xJS.setAllowance({
       tokenAddress,
       ownerAddress,
-      spenderAddress: Addresses.B0x,
+      spenderAddress,
       amountInBaseUnits: new BigNumber(0)
     });
-  });
+  };
+
+  beforeEach(resetAllowance);
+  afterEach(resetAllowance);
 
   test("should output transaction hash", async () => {
     const txHash = await b0xJS.setAllowance({
-      tokenAddress: Addresses.TEST_TOKENS[0],
-      ownerAddress: Addresses.ACCOUNTS[0],
-      spenderAddress: Addresses.B0x,
+      tokenAddress,
+      ownerAddress,
+      spenderAddress,
       amountInBaseUnits: ALLOWANCE_AMOUNT
     });
 
@@ -136,16 +140,16 @@ describe("setAllowance", () => {
     const expectedAllowance = ALLOWANCE_AMOUNT;
 
     await b0xJS.setAllowance({
-      tokenAddress: Addresses.TEST_TOKENS[0],
-      ownerAddress: Addresses.ACCOUNTS[0],
-      spenderAddress: Addresses.B0x,
+      tokenAddress,
+      ownerAddress,
+      spenderAddress,
       amountInBaseUnits: ALLOWANCE_AMOUNT
     });
 
     const allowance = await b0xJS.getAllowance({
-      tokenAddress: Addresses.TEST_TOKENS[0],
-      ownerAddress: Addresses.ACCOUNTS[0],
-      spenderAddress: Addresses.B0x
+      tokenAddress,
+      ownerAddress,
+      spenderAddress
     });
 
     expect(allowance).toEqual(expectedAllowance);
