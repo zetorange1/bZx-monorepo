@@ -21,6 +21,7 @@
     "@0xproject/assert": "0.0.20",
     "@0xproject/json-schemas": "^0.7.11",
     "@0xproject/types": "^0.2.3",
+    "@0xproject/utils": "^0.3.4",
     "@0xproject/web3-wrapper": "^0.1.14",
     "bignumber.js": "^5.0.0",
     "bn.js": "^4.11.8",

@@ -1,5 +1,5 @@
 import { assert } from "0x.js/lib/src/utils/assert";
-import BigNumber from "bignumber.js";
+import { BigNumber } from "@0xproject/utils";
 import * as ethUtil from "ethereumjs-util";
 import { schemas, SchemaValidator } from "./schemas/b0x_json_schemas";
 import * as utils from "./utils";
