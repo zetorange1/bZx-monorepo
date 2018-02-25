@@ -1,7 +1,8 @@
-/* globals test, expect, describe */
+/* globals test, expect, describe, jest */
 import Web3 from "web3";
 import BigNumber from "bignumber.js";
 import sigUtil from "eth-sig-util";
+import moment from "moment";
 import { assert } from "@0xproject/assert";
 import B0xJS from "../src";
 import erc20Json from "../src/contracts/ERC20.json";
@@ -9,6 +10,8 @@ import * as utils from "../src/utils";
 import * as constants from "../src/constants";
 import * as Errors from "../src/constants/errors";
 import * as Addresses from "./constants/addresses";
+
+jest.setTimeout(moment.duration(10, "seconds").asMilliseconds());
 
 const networkUrl = "https://testnet.b0x.network";
 const provider = new Web3.providers.HttpProvider(networkUrl);
