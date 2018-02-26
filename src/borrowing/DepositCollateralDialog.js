@@ -24,11 +24,11 @@ export default class DepositCollateralDialog extends React.Component {
               onChange={this.setAmount}
               endAdornment={<InputAdornment position="end">SYM</InputAdornment>}
             />
-            <br />
-            <Button variant="raised" color="primary">
-              Deposit
-            </Button>
           </FormControl>
+          <br />
+          <Button variant="raised" color="primary" fullWidth>
+            Deposit
+          </Button>
         </DialogContent>
       </Dialog>
     );
