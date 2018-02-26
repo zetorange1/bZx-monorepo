@@ -4,6 +4,7 @@
   "private": true,
   "devDependencies": {
     "0x-smart-contracts": "git+https://github.com/0xProject/contracts.git",
+    "0x.js": "^0.32.4",
     "@0xproject/types": "^0.2.0",
     "babel": "^6.23.0",
     "babel-cli": "^6.26.0",
@@ -17,6 +18,7 @@
   "dependencies": {
     "b0x.js": "git+https://github.com/b0xNetwork/b0x.js.git",
     "rimraf": "^2.6.2",
+    "truffle-hdwallet-provider": "0.0.3",
     "zeppelin-solidity": "1.6.0"
   },
   "scripts": {
@@ -28,11 +30,12 @@
     "build:deploy": "rimraf ./build/contracts/* && truffle compile && npm run migrate:reset && npm run create_assets",
     "rebuild:deploy": "truffle compile && npm run migrate:reset",
     "create_assets": "node generate_test_assets.js",
+    "update_linenos": "python ./updateDebugLineNos.py",
     "migrate": "truffle migrate",
     "migrate:reset": "truffle migrate --reset",
     "network": "npm run network:deploy && npm run network:run",
     "network:deploy": "rimraf ./test_network/* && ziptool --unzip ./78fe8dd.zip -o ./test_network",
     "network:run": "ganache-cli --networkId 50 -p 8545 --db ./test_network -m \"concert load couple harbor equip island argue ramp clarify fence smart topic\"",
-    "test": "truffle test"
+    "test": "truffle test ./test/endtoend.js"
   }
 }

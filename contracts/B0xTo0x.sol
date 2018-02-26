@@ -13,8 +13,9 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
     using SafeMath for uint256;
 
     address public VAULT_CONTRACT;
-    address public ZRX_TOKEN_CONTRACT;
     address public EXCHANGE_CONTRACT;
+    address public ZRX_TOKEN_CONTRACT;
+    address public TOKEN_TRANSFER_PROXY_CONTRACT;
 
     event LogErrorUint(string errorTxt, uint errorValue, bytes32 indexed orderHash);
     event LogErrorAddr(string errorTxt, address errorAddr, bytes32 indexed orderHash);
@@ -28,12 +29,14 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
     function B0xTo0x(
         address _vault,
         address _exchange, 
-        address _zrxToken) 
+        address _zrxToken,
+        address _proxy) 
         public 
     {
         VAULT_CONTRACT = _vault;
         EXCHANGE_CONTRACT = _exchange;
         ZRX_TOKEN_CONTRACT = _zrxToken;
+        TOKEN_TRANSFER_PROXY_CONTRACT = _proxy;
 
         // for testing only!
         DEBUG_MODE = true;
@@ -41,10 +44,10 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
 
    function take0xTrade(
         bytes32 loanOrderHash, // b0x will only pass in a valid loanOrderHash, so no check needed
+        address trader,
         address oracleAddress,
         uint loanTokenAmountToUse,
-        bytes orderData0x, // 0x order arguments converted to hex, padded to 32 bytes, and concatenated
-        bytes signature)
+        bytes orderData0x) // 0x order arguments and converted to hex, padded to 32 bytes, concatenated, and appended to the ECDSA
         public
         onlyB0x
         returns (
@@ -53,7 +56,7 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             uint loanTokenUsedAmount)
     {
         // address[5], uint[6], uint8, bytes32, bytes32
-        var (orderAddresses0x, orderValues0x) = getOrderValuesFromData(orderData0x);
+        var (orderAddresses0x, orderValues0x, signature) = getOrderValuesFromData(orderData0x);
 
     /*
         LogErrorAddr("maker", orderAddresses0x[0], loanOrderHash);
@@ -69,7 +72,6 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         LogErrorUint("salt", orderValues0x[5], loanOrderHash);
     */
 
-
     /*
         orderAddresses0x[0], // maker
         orderAddresses0x[1], // taker
@@ -84,8 +86,9 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         orderValues0x[5]     // salt
     */
 
-        loanTokenUsedAmount = take0xTrade(
+        loanTokenUsedAmount = _take0xTrade(
             loanOrderHash,
+            trader,
             loanTokenAmountToUse,
             orderAddresses0x,
             orderValues0x,
@@ -115,8 +118,9 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         tradeTokenAddress = orderAddresses0x[2]; // makerToken (aka tradeTokenAddress)
     }
 
-   function take0xTrade(
+   function _take0xTrade(
         bytes32 loanOrderHash,
+        address trader,
         uint loanTokenAmountToUse,
         address[5] orderAddresses0x,
         uint[6] orderValues0x,
@@ -127,7 +131,8 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         if (orderAddresses0x[4] != address(0) && // feeRecipient
                 orderValues0x[3] > 0 // takerFee
         ) {
-            if (!EIP20(ZRX_TOKEN_CONTRACT).transferFrom(msg.sender, this, orderValues0x[3])) {
+            // The 0x TokenTransferProxy already has unlimited transfer allowance for ZRX from this contract
+            if (!EIP20(ZRX_TOKEN_CONTRACT).transferFrom(trader, this, orderValues0x[3])) {
                 //LogErrorUint("error: b0x can't transfer ZRX from trader", 0, loanOrderHash);
                 return intOrRevert(0,132);
             }
@@ -135,12 +140,20 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
 
         var (v, r, s) = getSignatureParts(signature);
 
+        // Increase the allowance for 0x Exchange Proxy to transfer the loanToken needed for the 0x trade
+        // orderAddresses0x[3] ->  takerToken/loanToken
+        if (!EIP20(orderAddresses0x[3]).approve(
+            TOKEN_TRANSFER_PROXY_CONTRACT, 
+            EIP20(orderAddresses0x[3]).allowance(this, TOKEN_TRANSFER_PROXY_CONTRACT).add(loanTokenAmountToUse))) {
+            revert();
+        }
+
         // 0x order will fail if loanTokenAmountToUse is too high
         uint loanTokenUsedAmount = Exchange_Interface(EXCHANGE_CONTRACT).fillOrder(
             orderAddresses0x,
             orderValues0x,
             loanTokenAmountToUse,
-            true, // shouldThrowOnInsufficientBalanceOrAllowance
+            false, // shouldThrowOnInsufficientBalanceOrAllowance
             v,
             r,
             s);
@@ -158,7 +171,8 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         pure
         returns (
             address[5] orderAddresses,
-            uint[6] orderValues) 
+            uint[6] orderValues,
+            bytes signature) 
     {
         address maker;
         address taker;
@@ -183,6 +197,7 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             takerFee := mload(add(orderData0x, 288))
             expirationTimestampInSec := mload(add(orderData0x, 320))
             salt := mload(add(orderData0x, 352))
+            signature := mload(add(orderData0x, 384))
         }
         orderAddresses = [
             maker,
@@ -237,21 +252,46 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
     function setVault (
         address _vault)
         public
-        onlyOwner {
+        onlyOwner
+    {
         VAULT_CONTRACT = _vault;
     }
 
     function set0xExchange (
         address _exchange)
         public
-        onlyOwner {
+        onlyOwner
+    {
         EXCHANGE_CONTRACT = _exchange;
     }
 
     function setZRXToken (
         address _zrxToken)
         public
-        onlyOwner {
+        onlyOwner
+    {
         ZRX_TOKEN_CONTRACT = _zrxToken;
+    }
+
+    function set0xTokenProxy (
+        address _proxy)
+        public
+        onlyOwner
+    {
+        TOKEN_TRANSFER_PROXY_CONTRACT = _proxy;
+    }
+
+    function approveFor (
+        address token,
+        address spender,        
+        uint value)
+        public
+        onlyOwner
+        returns (bool)
+    {
+        if (!EIP20(token).approve(spender, value))
+            revert();
+
+        return true;
     }
 }

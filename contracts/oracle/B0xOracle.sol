@@ -213,7 +213,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         
         if (KYBER_CONTRACT == address(0)) {
             uint tradeRate = getTradeRate(sourceTokenAddress, destTokenAddress);
-            destTokenAmount = sourceTokenAmount.mul(tradeRate);
+            destTokenAmount = sourceTokenAmount.mul(tradeRate).div(10**18);
             if (!EIP20(destTokenAddress).transfer(b0xContractAddress, destTokenAmount)) {
                 revert();
             }
@@ -250,7 +250,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         view
         returns (bool)
     {
-        return true;
+        return false;
         /*
         LoanOrder memory loanOrder = getLoanOrder(loanOrderHash);
         
@@ -281,7 +281,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         returns (uint rate)
     {   
         if (KYBER_CONTRACT == address(0)) {
-            rate = (uint(block.blockhash(block.number-1)) % 100 + 1) * 10**16;
+            rate = (uint(block.blockhash(block.number-1)) % 100 + 1).mul(10**18);
         }
         else {
             var (, sourceToEther) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
@@ -295,7 +295,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
                 0
             );
             
-            rate = sourceToEther.mul(etherToDest);
+            rate = sourceToEther.mul(etherToDest).div(10**18);
         }
     }
 

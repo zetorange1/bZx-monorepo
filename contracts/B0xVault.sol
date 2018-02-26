@@ -19,18 +19,36 @@ contract B0xVault is B0xOwnable {
      * Public functions
      */
 
-    // Only the owner (b0x contract) can directly deposit ether
+    // Only the owner/b0x contract can directly deposit ether
     function() public payable onlyB0x {}
 
-    function collateralBalanceOf(address token_, address user_) public constant returns (uint balance) {
+    function collateralBalanceOf(
+        address token_,
+        address user_)
+        public
+        constant
+        returns (uint balance)
+    {
         return collateral[token_][user_];
     }
 
-    function fundingBalanceOf(address token_, address user_) public constant returns (uint balance) {
+    function fundingBalanceOf(
+        address token_,
+        address user_)
+        public
+        constant
+        returns (uint balance)
+    {
         return funding[token_][user_];
     }
 
-    function interestBalanceOf(address token_, address user_) public constant returns (uint balance) {
+    function interestBalanceOf(
+        address token_,
+        address user_)
+        public
+        constant
+        returns (uint balance)
+    {
         return interest[token_][user_];
     }
 
@@ -100,7 +118,8 @@ contract B0xVault is B0xOwnable {
         uint value)
         public
         onlyB0x
-        returns (bool) {
+        returns (bool)
+    {
         funding[token][user] = funding[token][user].sub(value);
         if (!EIP20(token).transfer(user, value))
             revert();
@@ -117,8 +136,8 @@ contract B0xVault is B0xOwnable {
         uint tokenAmount)
         public
         onlyB0x
-        returns (bool) {
-
+        returns (bool)
+    {
         if (tokenAmount == 0)
             return false;
 

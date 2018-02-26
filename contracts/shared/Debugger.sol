@@ -3,7 +3,7 @@ pragma solidity ^0.4.19;
 
 contract Debugger {
     
-    bool public DEBUG_MODE = false;
+    bool public DEBUG_MODE = true;
     
     event DebugLog(string logMessage, uint logValue, address logAddress, bytes32 logData);
 
@@ -80,7 +80,6 @@ contract Debugger {
 
     function voidOrRevert(uint lineno) 
         internal
-        view
     {
         if (!DEBUG_MODE) {
             revert();
@@ -91,8 +90,7 @@ contract Debugger {
     }
     
     function intOrRevert(uint retVal, uint lineno) 
-        internal
-        view 
+        internal 
         returns (uint)
     {
         if (!DEBUG_MODE) {
@@ -104,8 +102,7 @@ contract Debugger {
     }
 
     function boolOrRevert(bool retVal, uint lineno) 
-        internal
-        view 
+        internal 
         returns (bool)
     {
         if (!DEBUG_MODE) {
