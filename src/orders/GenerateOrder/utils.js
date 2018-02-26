@@ -33,13 +33,13 @@ export const compileObject = state => {
   };
 };
 
-export const addSalt = obj =>
-  // TODO - use the salt generator from B0xJS
-  // const salt = B0xJS.generatePseudoRandomSalt();
-  ({
+export const addSalt = obj => {
+  const salt = B0xJS.generatePseudoRandomSalt();
+  return {
     ...obj,
-    salt: Math.random().toString()
-  });
+    salt
+  };
+};
 
 // TODO - actually get signature
 export const signOrder = async (orderHash, accounts, b0x) => {
