@@ -11,7 +11,7 @@ export default class ChangeCollateralDialog extends React.Component {
   render() {
     return (
       <Dialog open={this.props.open} onClose={this.props.onClose}>
-        <DialogTitle>Change Collateral Dialog</DialogTitle>
+        <DialogTitle>Change Collateral</DialogTitle>
         <DialogContent>
           <Section>
             <SectionLabel>1. Choose your new collateral token</SectionLabel>
