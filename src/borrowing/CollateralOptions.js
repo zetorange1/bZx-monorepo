@@ -65,6 +65,7 @@ export default class CollateralOptions extends React.Component {
         <ChangeCollateralDialog
           open={this.state.showChangeCollateralDialog}
           onClose={this.closeDialog(`showChangeCollateralDialog`)}
+          tokens={this.props.tokens}
         />
         <DepositCollateralDialog
           open={this.state.showDepositCollateralDialog}

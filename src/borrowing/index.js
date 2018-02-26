@@ -6,12 +6,14 @@ const openLoans = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }];
 
 const closedLoans = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }];
 
-export default () => (
+export default ({ tokens }) => (
   <div>
     <Section>
       <SectionLabel>Open Loans</SectionLabel>
-      {openLoans.map(x => <OpenLoan key={x.id} zeroExTradeOpened />)}
-      {openLoans.map(x => <OpenLoan key={x.id} />)}
+      {openLoans.map(x => (
+        <OpenLoan key={x.id} tokens={tokens} zeroExTradeOpened />
+      ))}
+      {openLoans.map(x => <OpenLoan key={x.id} tokens={tokens} />)}
     </Section>
     <Section>
       <SectionLabel>Closed Loans</SectionLabel>

@@ -170,7 +170,7 @@ export default class OpenLoan extends React.Component {
           </DataPointContainer>
 
           <LowerUpperRight>
-            <CollateralOptions />
+            <CollateralOptions tokens={this.props.tokens} />
           </LowerUpperRight>
         </CardContent>
 
