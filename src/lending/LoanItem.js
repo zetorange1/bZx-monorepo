@@ -46,10 +46,21 @@ const UpperRight = styled.div`
   align-items: flex-end;
 `;
 
+const WithdrawLink = styled.a`
+  cursor: pointer;
+  text-decoration: underline;
+  margin-left: 12px;
+`;
+
 export default class LoanItem extends React.Component {
   state = { expanded: false };
 
   handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
+
+  withdrawInterest = () => {
+    // do stuff to initiate interest withdrawal here
+    alert(`withdraw interest`);
+  };
 
   render() {
     const collateralTokenAmountFilled = 6.25;
@@ -76,7 +87,7 @@ export default class LoanItem extends React.Component {
           </DataPointContainer>
 
           <DataPointContainer>
-            <Label>Lender </Label>
+            <Label>Borrower </Label>
             <DataPoint>
               <Hash href="#" target="_blank" rel="noopener noreferrer">
                 0x0000000000000000000000000000000000000000
@@ -84,12 +95,21 @@ export default class LoanItem extends React.Component {
             </DataPoint>
           </DataPointContainer>
 
-          <UpperRight>
-            <Label>Loan Closed</Label>
-            <div title={loanClosedDate.toUTCString()}>
-              {loanClosedDate.toLocaleString()}
-            </div>
-          </UpperRight>
+          {this.props.closed ? (
+            <UpperRight>
+              <Label>Loan Closed</Label>
+              <div title={loanClosedDate.toUTCString()}>
+                {loanClosedDate.toLocaleString()}
+              </div>
+            </UpperRight>
+          ) : (
+            <UpperRight>
+              <Label>Loan Opened</Label>
+              <div title={loanOpenedDate.toUTCString()}>
+                {loanOpenedDate.toLocaleString()}
+              </div>
+            </UpperRight>
+          )}
 
           <hr />
 
@@ -107,19 +127,35 @@ export default class LoanItem extends React.Component {
             </DataPoint>
           </DataPointContainer>
 
+          <br />
+
           <DataPointContainer>
-            <Label>Interest Paid</Label>
+            <Label>Total Interest Paid</Label>
             <DataPoint>
               {interestPaidSoFar} {interestTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
-            <Label>Loan Opened</Label>
-            <DataPoint title={loanOpenedDate.toUTCString()}>
-              {loanOpenedDate.toLocaleString()}
+            <Label>Interest held in b0x</Label>
+            <DataPoint>
+              {interestPaidSoFar} {interestTokenSymbol}
             </DataPoint>
+            <WithdrawLink href="#" onClick={this.withdrawInterest}>
+              withdraw
+            </WithdrawLink>
           </DataPointContainer>
+
+          {this.props.closed && <br />}
+
+          {this.props.closed && (
+            <DataPointContainer>
+              <Label>Loan Opened</Label>
+              <DataPoint title={loanOpenedDate.toUTCString()}>
+                {loanOpenedDate.toLocaleString()}
+              </DataPoint>
+            </DataPointContainer>
+          )}
         </CardContent>
       </Card>
     );

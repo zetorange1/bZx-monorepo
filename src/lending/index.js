@@ -14,7 +14,7 @@ export default () => (
     <Divider />
     <Section>
       <SectionLabel>Closed Loans</SectionLabel>
-      {closedLoans.map(x => <LoanItem key={x.id} />)}
+      {closedLoans.map(x => <LoanItem key={x.id} closed />)}
     </Section>
   </div>
 );
