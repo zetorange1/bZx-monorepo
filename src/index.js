@@ -1,4 +1,4 @@
-import { assert } from "0x.js/lib/src/utils/assert";
+import { assert } from "@0xproject/assert";
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import * as ethUtil from "ethereumjs-util";
