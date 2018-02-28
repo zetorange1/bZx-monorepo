@@ -1,4 +1,5 @@
 import { map, mapAccum, pipe, zipWith } from "ramda";
+import { assert } from "@0xproject/assert";
 import makeDebug from "debug";
 import * as utils from "./utils";
 import oracleRegistryAbi from "./contracts/OracleRegistry.abi.json";
@@ -82,6 +83,10 @@ export const isTradeSupported = async (
   web3,
   { sourceTokenAddress, destTokenAddress, oracleAddress }
 ) => {
+  assert.isETHAddressHex("sourceTokenAddress", sourceTokenAddress);
+  assert.isETHAddressHex("destTokenAddress", destTokenAddress);
+  assert.isETHAddressHex("oracleAddress", oracleAddress);
+
   const oracleContract = await utils.getContractInstance(
     web3,
     oracleAbi,
