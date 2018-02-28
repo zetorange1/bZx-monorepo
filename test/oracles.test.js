@@ -43,4 +43,33 @@ describe("oracles", () => {
       expect(oracleList).toEqual(expected);
     });
   });
+
+  describe("isTradeSupported", async () => {
+    test("should return true for pair of supported tokens", async () => {
+      const supportedPair = [
+        addresses.TEST_TOKENS[0],
+        addresses.TEST_TOKENS[1]
+      ];
+      const oracleAddress = addresses.B0xOracle;
+      const isSupported = await b0xJS.isTradeSupported({
+        sourceTokenAddress: supportedPair[0],
+        destTokenAddress: supportedPair[1],
+        oracleAddress
+      });
+      expect(isSupported).toBe(true);
+    });
+    test("should return false for pair of unsupported tokens", async () => {
+      const unsupportedPair = [
+        addresses.TEST_TOKENS[0],
+        addresses.TEST_TOKENS[1]
+      ];
+      const oracleAddress = addresses.B0xOracle;
+      const isSupported = await b0xJS.isTradeSupported({
+        sourceTokenAddress: unsupportedPair[0],
+        destTokenAddress: unsupportedPair[1],
+        oracleAddress
+      });
+      expect(isSupported).toBe(false);
+    });
+  });
 });

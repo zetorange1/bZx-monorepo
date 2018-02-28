@@ -105,4 +105,6 @@ export default class B0xJS {
   };
 
   getOracleList = async () => oracles.getOracleList(this.web3);
+  isTradeSupported = async (...props) =>
+    oracles.isTradeSupported(this.web3, ...props);
 }
