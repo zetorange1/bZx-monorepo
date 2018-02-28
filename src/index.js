@@ -63,20 +63,8 @@ export default class B0xJS {
     return signature;
   }
 
-  setAllowance = async ({
-    tokenAddress,
-    ownerAddress,
-    spenderAddress,
-    amountInBaseUnits,
-    txOpts = {}
-  }) =>
-    allowance.setAllowance(this.web3, {
-      tokenAddress,
-      ownerAddress,
-      spenderAddress,
-      amountInBaseUnits,
-      txOpts
-    });
+  setAllowance = async (...props) =>
+    allowance.setAllowance(this.web3, ...props);
 
   setAllowanceUnlimited = async props =>
     this.setAllowance({
