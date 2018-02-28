@@ -1,5 +1,7 @@
 import Layout from "../src/common/Layout";
 import { Card, Header, HeaderTitle, Content } from "../src/common/MainContent";
+import { Divider } from "../src/common/FormSection";
+import PageContent from "../src/lending";
 
 export default class Lending extends React.Component {
   state = { activeTab: undefined };
@@ -14,7 +16,12 @@ export default class Lending extends React.Component {
           <Header>
             <HeaderTitle>Lending</HeaderTitle>
           </Header>
-          <Content>Page Content Here</Content>
+          <Content>
+            This section will allow a lender to manage active loans and view
+            closed loans.
+            <Divider />
+            <PageContent />
+          </Content>
         </Card>
       </Layout>
     );
