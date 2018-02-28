@@ -4,6 +4,7 @@ import { constants } from "0x.js/lib/src/utils/constants";
 import BN from "bn.js";
 import Web3Utils from "web3-utils";
 import * as Errors from "./constants/errors";
+import { SchemaValidator } from "./schemas/b0x_json_schemas";
 
 export const noop = () => {};
 
@@ -64,4 +65,18 @@ export const getContractInstance = async (web3, abi, address) => {
 
   const contract = new web3.eth.Contract(abi, address);
   return contract;
+};
+
+export const doesConformToSchema = (variableName, value, schema) => {
+  const schemaValidator = new SchemaValidator();
+  const validationResult = schemaValidator.validate(value, schema);
+  const hasValidationErrors = validationResult.errors.length > 0;
+  const msg = `Expected ${variableName} to conform to schema ${
+    schema.id
+  }\nEncountered: ${JSON.stringify(
+    value,
+    null,
+    "\t"
+  )}\nValidation errors: ${validationResult.errors.join(", ")}`;
+  assert.assert(!hasValidationErrors, msg);
 };
