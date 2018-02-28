@@ -1,4 +1,5 @@
 import { BigNumber } from "@0xproject/utils";
+import { assert } from "@0xproject/assert";
 import { constants } from "0x.js/lib/src/utils/constants";
 import BN from "bn.js";
 import Web3Utils from "web3-utils";
@@ -57,6 +58,7 @@ export const doesContractExistAtAddress = async (web3, address) => {
 };
 
 export const getContractInstance = async (web3, abi, address) => {
+  assert.isETHAddressHex("address", address);
   const contractExists = await doesContractExistAtAddress(web3, address);
   if (!contractExists) throw new Error(Errors.ContractDoesNotExist);
 
