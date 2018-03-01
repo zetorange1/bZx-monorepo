@@ -5,10 +5,6 @@ const resolveWeb3 = resolve => {
   let { web3 } = window;
   const alreadyInjected = typeof web3 !== `undefined`; // i.e. Mist/Metamask
 
-  // const provider = new Web3.providers.HttpProvider(`https://testnet.b0x.network`);
-  web3 = new Web3(web3.currentProvider);
-  resolve(web3);
-
   if (alreadyInjected) {
     console.log(`Injected web3 detected.`);
     web3 = new Web3(web3.currentProvider);

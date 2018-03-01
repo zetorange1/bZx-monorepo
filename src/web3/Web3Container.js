@@ -27,6 +27,10 @@ export default class Web3Container extends React.Component {
 
   async componentDidMount() {
     const web3 = await getWeb3();
+    if (!web3) {
+      this.setState({ loading: false });
+      return;
+    }
     const zeroEx = new ZeroEx(web3.currentProvider, {
       networkId: 1,
       tokenRegistryContractAddress: `0x0b1ba0af832d7c05fd64161e0db78e85978e8082`
