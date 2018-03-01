@@ -4,7 +4,9 @@ export const permaTokens = [`WETH_SM_ADDRESS_HERE`, `ZRX_SM_ADDRESS_HERE`];
 
 export const getTrackedTokens = () => {
   const storedTokens = localStorage.getItem(`trackedTokens`);
-  return storedTokens ? [...permaTokens, ...storedTokens] : permaTokens;
+  return storedTokens
+    ? [...permaTokens, ...JSON.parse(storedTokens)]
+    : permaTokens;
 };
 
 export const addTrackedToken = tokenAddress => {

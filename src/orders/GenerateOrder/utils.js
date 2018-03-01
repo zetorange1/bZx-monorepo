@@ -42,7 +42,6 @@ export const addSalt = obj => {
   };
 };
 
-// TODO - actually get signature
 export const signOrder = async (orderHash, accounts, b0x) => {
   const signature = await b0x.signOrderHashAsync(
     orderHash,
@@ -53,4 +52,3 @@ export const signOrder = async (orderHash, accounts, b0x) => {
 };
 
 export const getHash = obj => B0xJS.getLoanOrderHashHex(obj);
-// return `0xa0443e64b09e95208424ec3bf7c1b543b841de766877a8b76e25d76b6b42b970`;
