@@ -1,11 +1,12 @@
 import B0xJS from "b0x.js";  // eslint-disable-line
+import getNetworkId from "../../web3/getNetworkId";
 
-export const compileObject = state => {
+export const compileObject = async (web3, state, account) => {
   const { sendToRelayExchange } = state;
   return {
     b0xAddress: `0x0000000000000000000000000000000000000000`,
-    makerAddress: `0x0000000000000000000000000000000000000000`,
-    networkId: 1,
+    makerAddress: account.toLowerCase(),
+    networkId: await getNetworkId(web3),
 
     // addresses
     loanTokenAddress: state.loanTokenAddress,
