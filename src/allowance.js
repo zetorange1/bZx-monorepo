@@ -1,4 +1,4 @@
-import { assert } from "0x.js/lib/src/utils/assert";
+import { assert } from "@0xproject/assert";
 import { BigNumber } from "@0xproject/utils";
 import * as utils from "./utils";
 import erc20Abi from "./contracts/ERC20.abi.json";

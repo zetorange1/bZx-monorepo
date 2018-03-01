@@ -43,4 +43,16 @@ describe("oracles", () => {
       expect(oracleList).toEqual(expected);
     });
   });
+
+  describe("isTradeSupported", async () => {
+    test("should return true for pair of supported tokens", async () => {
+      const oracleAddress = addresses.B0xOracle;
+      const isSupported = await b0xJS.isTradeSupported({
+        sourceTokenAddress: addresses.ZRXToken,
+        destTokenAddress: addresses.EtherToken,
+        oracleAddress
+      });
+      expect(isSupported).toBe(true);
+    });
+  });
 });

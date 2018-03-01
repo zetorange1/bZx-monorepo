@@ -1,7 +1,9 @@
 import { map, mapAccum, pipe, zipWith } from "ramda";
+import { assert } from "@0xproject/assert";
 import * as utils from "./utils";
 import oracleRegistryAbi from "./contracts/OracleRegistry.abi.json";
 import * as addresses from "../test/constants/addresses";
+import oracleAbi from "./contracts/B0xOracle.abi.json";
 
 export const getOracleListRaw = async web3 => {
   const ORACLE_ADDRESSES = 0;
@@ -72,4 +74,33 @@ export const getOracleList = async web3 => {
   });
 
   return formatOracleList({ oracleAddresses, oracleNames });
+};
+
+export const isTradeSupported = async (
+  web3,
+  { sourceTokenAddress, destTokenAddress, oracleAddress }
+) => {
+  assert.isETHAddressHex("sourceTokenAddress", sourceTokenAddress);
+  assert.isETHAddressHex("destTokenAddress", destTokenAddress);
+  assert.isETHAddressHex("oracleAddress", oracleAddress);
+
+  const oracleContract = await utils.getContractInstance(
+    web3,
+    oracleAbi,
+    oracleAddress
+  );
+
+  const queriesP = Promise.all([
+    oracleContract.methods
+      .isTradeSupported(sourceTokenAddress, destTokenAddress)
+      .call(),
+    oracleContract.methods
+      .isTradeSupported(destTokenAddress, sourceTokenAddress)
+      .call()
+  ]);
+
+  const [isSupportedForward, isSupportedReverse] = await queriesP;
+  const isSupported = isSupportedForward && isSupportedReverse;
+
+  return isSupported;
 };

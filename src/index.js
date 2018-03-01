@@ -1,8 +1,8 @@
-import { assert } from "0x.js/lib/src/utils/assert";
+import { assert } from "@0xproject/assert";
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import * as ethUtil from "ethereumjs-util";
-import { schemas, SchemaValidator } from "./schemas/b0x_json_schemas";
+import { schemas } from "./schemas/b0x_json_schemas";
 import * as utils from "./utils";
 import erc20Abi from "./contracts/ERC20.abi.json";
 import * as allowance from "./allowance";
@@ -23,26 +23,8 @@ export default class B0xJS {
     this.web3 = new Web3(provider);
   }
 
-  // WARNING - this method is not supposed to be here,
-  // in the original ZeroEx source code, it is a function
-  // from the utils/assert library. We should move this out
-  // so as to not pollute this file
-  static doesConformToSchema(variableName, value, schema) {
-    const schemaValidator = new SchemaValidator();
-    const validationResult = schemaValidator.validate(value, schema);
-    const hasValidationErrors = validationResult.errors.length > 0;
-    const msg = `Expected ${variableName} to conform to schema ${
-      schema.id
-    }\nEncountered: ${JSON.stringify(
-      value,
-      null,
-      "\t"
-    )}\nValidation errors: ${validationResult.errors.join(", ")}`;
-    assert.assert(!hasValidationErrors, msg);
-  }
-
   static getLoanOrderHashHex(order) {
-    this.doesConformToSchema("loanOrder", order, schemas.loanOrderSchema);
+    utils.doesConformToSchema("loanOrder", order, schemas.loanOrderSchema);
     const orderHashHex = utils.getLoanOrderHashHex(order);
     return orderHashHex;
   }
@@ -63,20 +45,8 @@ export default class B0xJS {
     return signature;
   }
 
-  setAllowance = async ({
-    tokenAddress,
-    ownerAddress,
-    spenderAddress,
-    amountInBaseUnits,
-    txOpts = {}
-  }) =>
-    allowance.setAllowance(this.web3, {
-      tokenAddress,
-      ownerAddress,
-      spenderAddress,
-      amountInBaseUnits,
-      txOpts
-    });
+  setAllowance = async (...props) =>
+    allowance.setAllowance(this.web3, ...props);
 
   setAllowanceUnlimited = async props =>
     this.setAllowance({
@@ -105,4 +75,6 @@ export default class B0xJS {
   };
 
   getOracleList = async () => oracles.getOracleList(this.web3);
+  isTradeSupported = async (...props) =>
+    oracles.isTradeSupported(this.web3, ...props);
 }
