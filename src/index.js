@@ -7,6 +7,7 @@ import * as utils from "./utils";
 import erc20Abi from "./contracts/ERC20.abi.json";
 import * as allowance from "./allowance";
 import * as oracles from "./oracles";
+import * as fill from "./fill";
 
 let Web3 = null;
 if (typeof window !== "undefined") {
@@ -77,4 +78,7 @@ export default class B0xJS {
   getOracleList = async () => oracles.getOracleList(this.web3);
   isTradeSupported = async (...props) =>
     oracles.isTradeSupported(this.web3, ...props);
+
+  takeLoanOrderAsLender = async (...props) =>
+    fill.takeLoanOrderAsLender(this.web3, ...props);
 }
