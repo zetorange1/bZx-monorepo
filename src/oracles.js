@@ -1,12 +1,9 @@
 import { map, mapAccum, pipe, zipWith } from "ramda";
 import { assert } from "@0xproject/assert";
-import makeDebug from "debug";
 import * as utils from "./utils";
 import oracleRegistryAbi from "./contracts/OracleRegistry.abi.json";
 import * as addresses from "../test/constants/addresses";
 import oracleAbi from "./contracts/B0xOracle.abi.json";
-
-const debug = makeDebug("b0x:src/oracles");
 
 export const getOracleListRaw = async web3 => {
   const ORACLE_ADDRESSES = 0;
@@ -93,10 +90,7 @@ export const isTradeSupported = async (
     oracleAddress
   );
 
-  const res = await oracleContract.methods
+  return oracleContract.methods
     .isTradeSupported(sourceTokenAddress, destTokenAddress)
     .call();
-  debug("isTradeSupported", res);
-
-  return false;
 };
