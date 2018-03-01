@@ -1,14 +1,16 @@
+import * as addresses from "./addresses";
+
 export default {
-  b0xAddress: "0x0000000000000000000000000000000000000000",
-  makerAddress: "0x0000000000000000000000000000000000000000",
+  b0xAddress: addresses.B0x,
+  makerAddress: addresses.ACCOUNTS[0],
   networkId: 1,
 
   // addresses
-  loanTokenAddress: "0x25b8fe1de9daf8ba351890744ff28cf7dfa8f5e3",
-  interestTokenAddress: "0x25b8fe1de9daf8ba351890744ff28cf7dfa8f5e3",
-  collateralTokenAddress: "0x25b8fe1de9daf8ba351890744ff28cf7dfa8f5e3",
-  feeRecipientAddress: "0x0000000000000000000000000000000000000000",
-  oracleAddress: "0x0000000000000000000000000000000000000000",
+  loanTokenAddress: addresses.ZRXToken,
+  interestTokenAddress: addresses.ZRXToken,
+  collateralTokenAddress: addresses.ZRXToken,
+  feeRecipientAddress: addresses.ACCOUNTS[0],
+  oracleAddress: addresses.B0xOracle,
 
   // token amounts
   loanTokenAmount: "40",
@@ -23,6 +25,6 @@ export default {
   traderRelayFee: "0",
 
   // expiration date/time
-  expirationUnixTimestampSec: "1519061340",
-  salt: "0.2019429563929979"
+  expirationUnixTimestampSec: "2519061340",
+  salt: "2019429563929979"
 };
