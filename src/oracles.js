@@ -90,7 +90,17 @@ export const isTradeSupported = async (
     oracleAddress
   );
 
-  return oracleContract.methods
-    .isTradeSupported(sourceTokenAddress, destTokenAddress)
-    .call();
+  const queriesP = Promise.all([
+    oracleContract.methods
+      .isTradeSupported(sourceTokenAddress, destTokenAddress)
+      .call(),
+    oracleContract.methods
+      .isTradeSupported(sourceTokenAddress, destTokenAddress)
+      .call()
+  ]);
+
+  const [isSupportedForward, isSupportedReverse] = await queriesP;
+  const isSupported = isSupportedForward && isSupportedReverse;
+
+  return isSupported;
 };

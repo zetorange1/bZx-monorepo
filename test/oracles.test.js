@@ -48,36 +48,12 @@ describe("oracles", () => {
     test("should return true for pair of supported tokens", async () => {
       const supportedPair = [addresses.ZRXToken, addresses.EtherToken];
       const oracleAddress = addresses.B0xOracle;
-
-      const queriesP = Promise.all([
-        b0xJS.isTradeSupported({
-          sourceTokenAddress: supportedPair[0],
-          destTokenAddress: supportedPair[1],
-          oracleAddress
-        }),
-        b0xJS.isTradeSupported({
-          sourceTokenAddress: supportedPair[1],
-          destTokenAddress: supportedPair[0],
-          oracleAddress
-        })
-      ]);
-
-      const [isSupportedForward, isSupportedReverse] = await queriesP;
-      const isSupported = isSupportedForward && isSupportedReverse;
-      expect(isSupported).toBe(true);
-    });
-    test("should return false for pair of unsupported tokens", async () => {
-      const unsupportedPair = [
-        addresses.TEST_TOKENS[0],
-        addresses.TEST_TOKENS[1]
-      ];
-      const oracleAddress = addresses.B0xOracle;
       const isSupported = await b0xJS.isTradeSupported({
-        sourceTokenAddress: unsupportedPair[0],
-        destTokenAddress: unsupportedPair[1],
+        sourceTokenAddress: supportedPair[1],
+        destTokenAddress: supportedPair[0],
         oracleAddress
       });
-      expect(isSupported).toBe(false);
+      expect(isSupported).toBe(true);
     });
   });
 });
