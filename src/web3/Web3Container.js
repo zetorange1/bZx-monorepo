@@ -34,6 +34,9 @@ export default class Web3Container extends React.Component {
     const tokens = await zeroEx.tokenRegistry.getTokensAsync();
     const b0x = new B0xJS(web3.currentProvider);
     const accounts = await web3.eth.getAccounts();
+    if (!accounts[0]) {
+      alert(`Please unlock your MetaMask account, and then refresh the page.`);
+    }
     this.setState({ loading: false, web3, zeroEx, tokens, b0x, accounts });
   }
 
