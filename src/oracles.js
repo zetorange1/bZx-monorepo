@@ -95,7 +95,7 @@ export const isTradeSupported = async (
       .isTradeSupported(sourceTokenAddress, destTokenAddress)
       .call(),
     oracleContract.methods
-      .isTradeSupported(sourceTokenAddress, destTokenAddress)
+      .isTradeSupported(destTokenAddress, sourceTokenAddress)
       .call()
   ]);
 
