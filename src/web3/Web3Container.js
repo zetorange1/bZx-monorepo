@@ -31,11 +31,25 @@ export default class Web3Container extends React.Component {
       networkId: 1,
       tokenRegistryContractAddress: `0x0b1ba0af832d7c05fd64161e0db78e85978e8082`
     });
-    const tokens = await zeroEx.tokenRegistry.getTokensAsync();
     const b0x = new B0xJS(web3.currentProvider);
+
+    // Get tokens from the token registry
+    let tokens;
+    try {
+      tokens = await zeroEx.tokenRegistry.getTokensAsync();
+    } catch (err) {
+      alert(
+        `You may be on the wrong network, please check MetaMask and refresh the page.`
+      );
+      console.error(err);
+      return;
+    }
+
+    // Get accounts
     const accounts = await web3.eth.getAccounts();
     if (!accounts[0]) {
       alert(`Please unlock your MetaMask account, and then refresh the page.`);
+      return;
     }
     this.setState({ loading: false, web3, zeroEx, tokens, b0x, accounts });
   }
