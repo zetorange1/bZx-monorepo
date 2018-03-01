@@ -30,16 +30,16 @@ export const takeLoanOrderAsLender = async (
     addresses.B0x
   );
 
-  const orderAddresses = {
+  const orderAddresses = [
     makerAddress,
     loanTokenAddress,
     interestTokenAddress,
     collateralTokenAddress,
     feeRecipientAddress,
     oracleAddress
-  };
+  ];
 
-  const orderValues = {
+  const orderValues = [
     loanTokenAmount,
     interestAmount,
     initialMarginAmount,
@@ -48,9 +48,9 @@ export const takeLoanOrderAsLender = async (
     traderRelayFee,
     expirationUnixTimestampSec,
     salt
-  };
+  ];
 
-  b0xContract.methods
+  return b0xContract.methods
     .takeLoanOrderAsLender(orderAddresses, orderValues, signature)
     .send();
 };
