@@ -46,11 +46,10 @@ describe("oracles", () => {
 
   describe("isTradeSupported", async () => {
     test("should return true for pair of supported tokens", async () => {
-      const supportedPair = [addresses.ZRXToken, addresses.EtherToken];
       const oracleAddress = addresses.B0xOracle;
       const isSupported = await b0xJS.isTradeSupported({
-        sourceTokenAddress: supportedPair[1],
-        destTokenAddress: supportedPair[0],
+        sourceTokenAddress: addresses.ZRXToken,
+        destTokenAddress: addresses.EtherToken,
         oracleAddress
       });
       expect(isSupported).toBe(true);
