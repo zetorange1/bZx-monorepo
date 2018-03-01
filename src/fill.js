@@ -2,28 +2,7 @@ import * as utils from "./utils";
 import b0xAbi from "./contracts/B0x.abi.json";
 import * as addresses from "../test/constants/addresses";
 
-export const takeLoanOrderAsLender = async (
-  web3,
-  {
-    // order addresses
-    makerAddress,
-    loanTokenAddress,
-    interestTokenAddress,
-    collateralTokenAddress,
-    feeRecipientAddress,
-    oracleAddress,
-    // order values
-    loanTokenAmount,
-    interestAmount,
-    initialMarginAmount,
-    maintenanceMarginAmount,
-    lenderRelayFee,
-    traderRelayFee,
-    expirationUnixTimestampSec,
-    salt,
-    signature
-  }
-) => {
+export const takeLoanOrderAsLender = async (web3, order, txOpts) => {
   const b0xContract = await utils.getContractInstance(
     web3,
     b0xAbi,
@@ -31,26 +10,30 @@ export const takeLoanOrderAsLender = async (
   );
 
   const orderAddresses = [
-    makerAddress,
-    loanTokenAddress,
-    interestTokenAddress,
-    collateralTokenAddress,
-    feeRecipientAddress,
-    oracleAddress
+    order.makerAddress,
+    order.loanTokenAddress,
+    order.interestTokenAddress,
+    order.collateralTokenAddress,
+    order.feeRecipientAddress,
+    order.oracleAddress
   ];
 
   const orderValues = [
-    loanTokenAmount,
-    interestAmount,
-    initialMarginAmount,
-    maintenanceMarginAmount,
-    lenderRelayFee,
-    traderRelayFee,
-    expirationUnixTimestampSec,
-    salt
+    order.loanTokenAmount,
+    order.interestAmount,
+    order.initialMarginAmount,
+    order.maintenanceMarginAmount,
+    order.lenderRelayFee,
+    order.traderRelayFee,
+    order.expirationUnixTimestampSec,
+    order.salt
   ];
 
   return b0xContract.methods
-    .takeLoanOrderAsLender(orderAddresses, orderValues, signature)
-    .send();
+    .takeLoanOrderAsLender(orderAddresses, orderValues, order.signature)
+    .send({
+      from: txOpts.from,
+      gas: txOpts.gas,
+      gasPrice: txOpts.gasPrice
+    });
 };

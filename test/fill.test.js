@@ -14,8 +14,11 @@ describe("filling orders", () => {
         orderHashHex,
         signerAddress
       );
-      const res = await b0xJS.takeLoanOrderAsLender({ ...order, signature });
-      console.log(res);
+      const res = await b0xJS.takeLoanOrderAsLender(
+        { ...order, signature },
+        { from: signerAddress, gas: 100000 }
+      );
+      console.log(JSON.stringify(res));
     });
   });
 });
