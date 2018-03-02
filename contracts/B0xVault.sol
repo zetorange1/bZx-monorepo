@@ -62,7 +62,8 @@ contract B0xVault is B0xOwnable {
     {
         collateral[token][user] = collateral[token][user].add(value);
         if (!EIP20(token).transferFrom(user, this, value))
-            revert();
+            //revert();
+            return true;
 
         return true;
     }

@@ -37,13 +37,9 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         EXCHANGE_CONTRACT = _exchange;
         ZRX_TOKEN_CONTRACT = _zrxToken;
         TOKEN_TRANSFER_PROXY_CONTRACT = _proxy;
-
-        // for testing only!
-        DEBUG_MODE = true;
     }
 
    function take0xTrade(
-        bytes32 loanOrderHash, // b0x will only pass in a valid loanOrderHash, so no check needed
         address trader,
         address oracleAddress,
         uint loanTokenAmountToUse,
@@ -87,7 +83,6 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
     */
 
         loanTokenUsedAmount = _take0xTrade(
-            loanOrderHash,
             trader,
             loanTokenAmountToUse,
             orderAddresses0x,
@@ -95,7 +90,7 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             signature);
 
         if (loanTokenUsedAmount == 0) {
-            //LogErrorUint("error: 0x trade did not fill!", 0, loanOrderHash);
+            //LogErrorUint("error: 0x trade did not fill!", 0, 0x0);
             voidOrRevert(96); return;
         }
 
@@ -119,7 +114,6 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
     }
 
    function _take0xTrade(
-        bytes32 loanOrderHash,
         address trader,
         uint loanTokenAmountToUse,
         address[5] orderAddresses0x,
@@ -133,7 +127,7 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         ) {
             // The 0x TokenTransferProxy already has unlimited transfer allowance for ZRX from this contract
             if (!EIP20(ZRX_TOKEN_CONTRACT).transferFrom(trader, this, orderValues0x[3])) {
-                //LogErrorUint("error: b0x can't transfer ZRX from trader", 0, loanOrderHash);
+                //LogErrorUint("error: b0x can't transfer ZRX from trader", 0, 0x0);
                 return intOrRevert(0,132);
             }
         }
@@ -153,12 +147,12 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             orderAddresses0x,
             orderValues0x,
             loanTokenAmountToUse,
-            false, // shouldThrowOnInsufficientBalanceOrAllowance
+            true, // shouldThrowOnInsufficientBalanceOrAllowance
             v,
             r,
             s);
         if (loanTokenUsedAmount == 0) {
-            //LogErrorUint("error: 0x order failed!", 0, loanOrderHash);
+            //LogErrorUint("error: 0x order failed!", 0, 0x0);
             return intOrRevert(0,149);
         }
 
@@ -293,5 +287,14 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             revert();
 
         return true;
+    }
+
+    function toggleDebugMode (
+        bool _toggle)
+        public
+        onlyOwner
+    {
+        if (DEBUG_MODE != _toggle)
+            DEBUG_MODE = _toggle;
     }
 }

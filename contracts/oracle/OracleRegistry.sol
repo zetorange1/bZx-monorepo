@@ -128,14 +128,25 @@ contract OracleRegistry is Ownable {
         oracle.name = _name;
     }
 
-    /*
-     * Web3 call functions
-     */
+
+
+    /// @dev Checks if an oracle exists in the registry
+    /// @param _oracle Address of registered oracle.
+    /// @return True if exists, False otherwise.
+    function hasOracle(address _oracle)
+        public
+        view
+        returns (bool) {
+        return (oracles[_oracle].oracle == _oracle);
+    }
 
     /// @dev Provides a registered oracle's address when given the oracle name.
     /// @param _name Name of registered oracle.
     /// @return Oracle's address.
-    function getOracleAddressByName(string _name) public view returns (address) {
+    function getOracleAddressByName(string _name)
+        public
+        view
+        returns (address) {
         return oracleByName[_name];
     }
 
@@ -165,7 +176,7 @@ contract OracleRegistry is Ownable {
         view
         returns (
             address,  //oracleAddress
-            string   //name
+            string    //name
         )
     {
         address _oracle = oracleByName[_name];
@@ -182,7 +193,7 @@ contract OracleRegistry is Ownable {
         return oracleAddresses;
     }
 
-    /// @dev Returns an array of oracle addresses, an array with the length of each oracle name, and a concatenated string oracle names
+    /// @dev Returns an array of oracle addresses, an array with the length of each oracle name, and a concatenated string of oracle names
     /// @return Array of oracle names, array of name lengths, concatenated string of all names
     function getOracleList()
         public

@@ -72,6 +72,17 @@ contract B0xTypes {
         bool active
     );
 
+    // for debugging, remove later
+    event MarginCalc(
+        address exposureTokenAddress,
+        address collateralTokenAddress,
+        address oracleAddress,
+        uint exposureTokenAmount,
+        uint collateralTokenAmount,
+        uint marginAmount,
+        uint otherAmount
+    );
+
     uint constant MAX_UINT = 2**256 - 1;
 
     function getLoanOrderFromBytes(

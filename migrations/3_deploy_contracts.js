@@ -39,22 +39,22 @@ module.exports = function(deployer, network, accounts) {
 
 	return deployer.deploy(B0xVault).then(function() {
 		return deployer.deploy(B0xTo0x, B0xVault.address, config["protocol"][network]["ZeroEx"]["Exchange"], config["protocol"][network]["ZeroEx"]["ZRXToken"], config["protocol"][network]["ZeroEx"]["TokenTransferProxy"]).then(function() {
-			return deployer.deploy(B0x, b0xTokenAddress, B0xVault.address, B0xTo0x.address).then(function() {
+			return deployer.deploy(OracleRegistry).then(function() {
+				return deployer.deploy(B0x, b0xTokenAddress, B0xVault.address, OracleRegistry.address, B0xTo0x.address).then(function() {
 
-				B0xVault.deployed().then(function(instance) {
-					instance.transferB0xOwnership(B0x.address);
-				});
-
-				B0xTo0x.deployed().then(function(instance) {
-					instance.transferB0xOwnership(B0x.address).then(function() {
-						instance.approveFor(
-							config["protocol"][network]["ZeroEx"]["ZRXToken"],
-							config["protocol"][network]["ZeroEx"]["TokenTransferProxy"],
-							MAX_UINT);
+					B0xVault.deployed().then(function(instance) {
+						instance.transferB0xOwnership(B0x.address);
 					});
-				});
 
-				return deployer.deploy(OracleRegistry).then(function() {
+					B0xTo0x.deployed().then(function(instance) {
+						instance.transferB0xOwnership(B0x.address).then(function() {
+							instance.approveFor(
+								config["protocol"][network]["ZeroEx"]["ZRXToken"],
+								config["protocol"][network]["ZeroEx"]["TokenTransferProxy"],
+								MAX_UINT);
+						});
+					});
+				
 					return deployer.deploy(B0xOracle, B0xVault.address, config["protocol"][network]["KyberContractAddress"]
 						,{from: accounts[0], value: web3.toWei(1, "ether")}).then(function() { // seeds B0xOracle with 1 Ether
 						

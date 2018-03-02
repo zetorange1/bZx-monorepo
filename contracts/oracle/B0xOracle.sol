@@ -196,21 +196,169 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         return true;
     }
 
-    function verifyAndDoTrade(
-        bytes32 loanOrderHash,
-        address trader,
-        address sourceTokenAddress,
-        address destTokenAddress,
-        uint sourceTokenAmount,
-        bool isLiquidation)
+    function didCloseLoan(
+        bytes32 /* loanOrderHash */,
+        uint /* gasUsed */)
+        public
+        onlyB0x
+        updatesEMA(tx.gasprice)
+        returns (bool)
+    {
+        return true;
+    }
+
+    function doTrade(
+        address sourceTokenAddress, // typically tradeToken
+        address destTokenAddress,   // typically loanToken
+        uint sourceTokenAmount)
         public
         onlyB0x
         returns (uint destTokenAmount)
     {
-        if (isLiquidation && !shouldLiquidate(loanOrderHash, trader)) {
-            revert();
+        destTokenAmount = _doTrade(
+            sourceTokenAddress,
+            destTokenAddress,
+            sourceTokenAmount);
+    }
+
+    function verifyAndDoTrade(
+        address sourceTokenAddress, // typically tradeToken
+        address destTokenAddress,   // typically loanToken
+        address collateralTokenAddress,
+        uint sourceTokenAmount,
+        uint collateralTokenAmount,
+        uint maintenanceMarginAmount)
+        public
+        onlyB0x
+        returns (uint destTokenAmount)
+    {
+        if (!shouldLiquidate(
+            0x0,
+            0x0,
+            sourceTokenAddress,
+            collateralTokenAddress,
+            sourceTokenAmount,
+            collateralTokenAmount,
+            maintenanceMarginAmount)) {
+            return 0;
         }
         
+        destTokenAmount = _doTrade(
+            sourceTokenAddress,
+            destTokenAddress,
+            sourceTokenAmount);
+    }
+
+
+    /*
+    * Public View functions
+    */
+
+    function shouldLiquidate(
+        bytes32 /* loanOrderHash */,
+        address /* trader */,
+        address exposureTokenAddress,
+        address collateralTokenAddress,
+        uint exposureTokenAmount,
+        uint collateralTokenAmount,
+        uint maintenanceMarginAmount)
+        public
+        view
+        returns (bool)
+    {
+        return (getMarginRatio(
+                exposureTokenAddress,
+                collateralTokenAddress,
+                exposureTokenAmount,
+                collateralTokenAmount,
+                maintenanceMarginAmount) <= (uint(liquidationThresholdPercent)));
+    } 
+
+    function isTradeSupported(
+        address sourceTokenAddress,
+        address destTokenAddress)
+        public
+        view 
+        returns (bool)
+    {
+        return (getTradeRate(sourceTokenAddress, destTokenAddress) > 0);
+    }
+
+    function getTradeRate(
+        address sourceTokenAddress,
+        address destTokenAddress)
+        public
+        view 
+        returns (uint rate)
+    {   
+        if (KYBER_CONTRACT == address(0)) {
+            rate = (uint(block.blockhash(block.number-1)) % 100 + 1).mul(10**18);
+        }
+        else {
+            var (, sourceToEther) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+                sourceTokenAddress, 
+                KYBER_ETH_TOKEN_ADDRESS,
+                0
+            );
+            var (, etherToDest) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+                KYBER_ETH_TOKEN_ADDRESS,
+                destTokenAddress, 
+                0
+            );
+            
+            rate = sourceToEther.mul(etherToDest).div(10**18);
+        }
+    }
+
+    // Returns a ratio of currentMarginAmount / maintenanceMarginAmount for this particular loan/trade
+    function getMarginRatio(
+        address exposureTokenAddress,
+        address collateralTokenAddress,
+        uint exposureTokenAmount,
+        uint collateralTokenAmount,
+        uint maintenanceMarginAmount)
+        public
+        view
+        returns (uint marginRatio)
+    {
+        uint exposureToCollateralRate = getTradeRate(
+            exposureTokenAddress,
+            collateralTokenAddress
+        );
+        if (exposureToCollateralRate == 0) {
+            return 0;
+        }
+
+        uint currentMarginAmount = collateralTokenAmount
+                        .div(exposureTokenAmount)
+                        .div(exposureToCollateralRate)
+                        .mul(10**20);
+        
+        marginRatio = currentMarginAmount.div(maintenanceMarginAmount);
+
+        // for debugging
+        MarginCalc(
+            exposureTokenAddress,
+            collateralTokenAddress,
+            this,
+            exposureTokenAmount,
+            collateralTokenAmount,
+            maintenanceMarginAmount,
+            marginRatio
+        );
+    }
+
+    /*
+    * Internal functions
+    */
+
+    function _doTrade(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint sourceTokenAmount)
+        internal
+        returns (uint destTokenAmount)
+    {
         if (KYBER_CONTRACT == address(0)) {
             uint tradeRate = getTradeRate(sourceTokenAddress, destTokenAddress);
             destTokenAmount = sourceTokenAmount.mul(tradeRate).div(10**18);
@@ -242,103 +390,9 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         }
     }
 
-    // TODO
-    function shouldLiquidate(
-        bytes32 loanOrderHash,
-        address trader)
-        public
-        view
-        returns (bool)
-    {
-        return false;
-        /*
-        LoanOrder memory loanOrder = getLoanOrder(loanOrderHash);
-        
-        if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
-            return true;
-        }
-        else {
-            return (_getMarginRatio(loanOrder, trader) <= (uint(liquidationThresholdPercent)));
-        }
-        */
-    }
-
-    function isTradeSupported(
-        address sourceTokenAddress,
-        address destTokenAddress)
-        public
-        view 
-        returns (bool)
-    {
-        return (getTradeRate(sourceTokenAddress, destTokenAddress) > 0);
-    }
-
-    function getTradeRate(
-        address sourceTokenAddress,
-        address destTokenAddress)
-        public
-        view 
-        returns (uint rate)
-    {   
-        if (KYBER_CONTRACT == address(0)) {
-            rate = (uint(block.blockhash(block.number-1)) % 100 + 1).mul(10**18);
-        }
-        else {
-            var (, sourceToEther) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
-                sourceTokenAddress, 
-                KYBER_ETH_TOKEN_ADDRESS, 
-                0
-            );
-            var (, etherToDest) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
-                KYBER_ETH_TOKEN_ADDRESS, 
-                destTokenAddress, 
-                0
-            );
-            
-            rate = sourceToEther.mul(etherToDest).div(10**18);
-        }
-    }
-
-    // TODO
-    function getMarginRatio(
-        bytes32 /* loanOrderHash */,
-        address /* trader */)
-        public
-        view
-        returns (uint level)
-    {
-        level = 200;
-        /*LoanOrder memory loanOrder = getLoanOrder(loanOrderHash);
-        Loan memory loan = getLoan(loanOrderHash, trader);
-
-        level = _getMarginRatio(
-            trader,
-            tradeTokenAddress,
-            tradeTokenAmount,
-            loanOrder.loanTokenAddress,
-            loanOrder.collateralTokenAddress,
-            loan.collateralTokenAmountFilled,
-            loan.loanTokenAmountFilled
-            loanOrder.maintenanceMarginAmount
-        );*/
-    }
-
-
-    // Should return a ratio of currentMarginAmount / maintenanceMarginAmount for this particular loan/trade
-    // TODO
-    function _getMarginRatio(
-        address /* trader */,
-        address /* collateralTokenAddress */,
-        address /* tradeTokenAddress */,
-        uint /* collateralTokenAmountFilled */,
-        uint /* tradeTokenAmount */,
-        uint /* maintenanceMarginAmount */)
-        internal
-        view
-        returns (uint level)
-    {
-        level = 200;
-    }
+    /*
+    * Internal View functions
+    */
 
     function getLoanOrder (
         bytes32 loanOrderHash)
@@ -375,8 +429,6 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         return buildTradeStruct(tradeTokenAddress, uints, active);
     }
 
-
-
     function getDecimals(EIP20 token) 
         internal
         view 
@@ -384,6 +436,11 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     {
         return token.decimals();
     }
+
+
+    /*
+    * Owner functions
+    */
 
     function setInterestFeePercent(
         uint newRate) 
