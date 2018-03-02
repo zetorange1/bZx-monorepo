@@ -1,9 +1,11 @@
-/* globals test, expect, describe, beforeEach, afterEach */
+/* globals test, expect, describe, beforeEach, afterEach, jest */
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import { assert } from "@0xproject/assert";
 import * as Addresses from "./constants/addresses";
 import b0xJS from "./setup";
+
+jest.setTimeout(10000);
 
 describe("allowance", () => {
   const tokenAddress = Addresses.TEST_TOKENS[0];
@@ -78,6 +80,30 @@ describe("allowance", () => {
 
   describe("getAllowance", () => {
     test("should return allowance", async () => {
+      const res = await b0xJS.getAllowance({
+        tokenAddress,
+        ownerAddress,
+        spenderAddress
+      });
+
+      expect(res).toEqual(new BigNumber(0));
+    });
+  });
+
+  describe("resetAllowance", () => {
+    test("should reset allowance", async () => {
+      await b0xJS.setAllowanceUnlimited({
+        tokenAddress,
+        ownerAddress,
+        spenderAddress
+      });
+
+      await b0xJS.resetAllowance({
+        tokenAddress,
+        ownerAddress,
+        spenderAddress
+      });
+
       const res = await b0xJS.getAllowance({
         tokenAddress,
         ownerAddress,

@@ -55,6 +55,12 @@ export default class B0xJS {
       amountInBaseUnits: constants.UNLIMITED_ALLOWANCE_IN_BASE_UNITS
     });
 
+  resetAllowance = async props =>
+    this.setAllowance({
+      ...props,
+      amountInBaseUnits: new BigNumber(0)
+    });
+
   getAllowance = async ({ tokenAddress, ownerAddress, spenderAddress }) =>
     allowance.getAllowance(this.web3, {
       tokenAddress,
