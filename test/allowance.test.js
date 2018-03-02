@@ -1,9 +1,11 @@
-/* globals test, expect, describe, beforeEach, afterEach */
+/* globals test, expect, describe, beforeEach, afterEach, jest */
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import { assert } from "@0xproject/assert";
 import * as Addresses from "./constants/addresses";
 import b0xJS from "./setup";
+
+jest.setTimeout(10000);
 
 describe("allowance", () => {
   const tokenAddress = Addresses.TEST_TOKENS[0];
