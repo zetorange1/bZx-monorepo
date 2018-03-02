@@ -68,7 +68,7 @@ export default class TrackedTokenItems extends React.Component {
       ownerAddress: accounts[0].toLowerCase(),
       spenderAddress: `0x04758f1f88a9cea9bdef16d75f44c2f07a255e14`
     });
-    this.setState({ allowance: allowance.toNumber() !== 0 });
+    this.setState({ approved: allowance.toNumber() !== 0 });
   }
 
   setStateForInput = key => e => this.setState({ [key]: e.target.value });
