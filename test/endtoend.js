@@ -13,6 +13,8 @@ var config = require('../../config/secrets.js');
 let B0xVault = artifacts.require("B0xVault");
 let B0xTo0x = artifacts.require("B0xTo0x");
 let B0xOracle = artifacts.require("B0xOracle");
+let B0xOracleRegistry = artifacts.require("OracleRegistry");
+let B0xTokenRegistry = artifacts.require("TokenRegistry");
 let B0x = artifacts.require("B0x");
 let B0xToken = artifacts.require("B0xToken");
 let ERC20 = artifacts.require("ERC20"); // for testing with any ERC20 token
@@ -31,8 +33,10 @@ contract('B0xTest', function(accounts) {
   var vault;
   var b0x;
   var oracle;
+  var oracle_registry;
   var b0x_token;
   var b0xTo0x;
+  var token_registry;
 
   var test_tokens = [];
 
@@ -86,6 +90,8 @@ contract('B0xTest', function(accounts) {
       (b0x_token = await B0xToken.deployed()),
       (vault = await B0xVault.deployed()),
       (b0xTo0x = await B0xTo0x.deployed()),
+      (oracle_registry = await B0xOracleRegistry.deployed()),
+      (token_registry = await B0xTokenRegistry.deployed()),
       (b0x = await B0x.deployed()),
       (oracle = await B0xOracle.deployed()),
 
@@ -163,6 +169,45 @@ contract('B0xTest', function(accounts) {
           console.log(result);
   });
   */
+
+ 
+
+  it("should check token registry", async function() {
+    // return array of arrays: address[], uint[], string, uint[], string
+    var data = await token_registry.getTokenList.call();
+    var namePos = 0;
+    var symPos = 0;
+
+    for(var i=0; i < data[0].length; i++) {
+      data[3][i] = data[3][i].toNumber();
+      console.log("Token "+i+" symbol: "+data[4].substr(symPos,data[3][i]));
+      symPos = symPos+data[3][i];
+
+      data[1][i] = data[1][i].toNumber();
+      console.log("Token "+i+" name: "+data[2].substr(namePos,data[1][i]));
+      namePos = namePos+data[1][i];
+      
+      console.log("Token "+i+" address: "+data[0][i]);
+    }
+    
+    assert.isOk(true);
+  });
+
+  it("should check oracle registry", async function() {
+    // return array of arrays: address[], uint[], string
+    var data = await oracle_registry.getOracleList.call();
+    var namePos = 0;
+
+    for(var i=0; i < data[0].length; i++) {
+      data[1][i] = data[1][i].toNumber();
+      console.log("Oracle "+i+" name: "+data[2].substr(namePos,data[1][i]));
+      namePos = namePos+data[1][i];
+      
+      console.log("Oracle "+i+" address: "+data[0][i]);
+    }
+    
+    assert.isOk(true);
+  });
 
   it("should verify approval", async function() {
     var balance = await loanToken1.balanceOf.call(lender1_account);

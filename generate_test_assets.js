@@ -22,8 +22,10 @@ if (!fs.existsSync("./html_public_test/abi")) {
 var addresses = {
 	"B0x": "unknown",
 	"B0xVault": "unknown",
+	"B0xTo0x": "unknown",
 	"B0xOracle": "unknown",
 	"B0xToken": "unknown",
+	"TokenRegistry": "unknown",
 	"OracleRegistry": "unknown",
 
 	"TestToken0": "unknown",
@@ -119,7 +121,6 @@ outHTML += `
 
 ZRXToken :: 0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3
 EtherToken :: 0x48BaCB9266a570d521063EF5dD96e61686DbE788
-TokenRegistry :: 0x0B1ba0af832d7C05fD64161E0Db78E85978E8082
 
 
 Available Accounts

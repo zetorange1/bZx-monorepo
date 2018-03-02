@@ -1,12 +1,13 @@
 
+var TokenRegistry = artifacts.require("./TokenRegistry.sol");
 var B0xToken = artifacts.require("./B0xToken.sol");
-
 var BaseToken = artifacts.require("./BaseToken.sol");
 
 var fs = require('fs');
 
+var config = require('../../config/secrets.js');
 
-module.exports = function(deployer, network, accounts) {
+module.exports = async function(deployer, network, accounts) {
 	network = network.replace("-fork", "");
 	if (network == "develop")
 		network = "development";
@@ -15,49 +16,90 @@ module.exports = function(deployer, network, accounts) {
 		console.log("migrations :: before balance: "+balance);
 	});
 
+
 	if (network == "development") {
-		deployer.deploy(B0xToken).then(function() {
-			/*B0xToken.deployed().then(function(instance) {
-				instance.transfer(accounts[1], web3.toWei(100000, "ether"));
-				instance.transfer(accounts[2], web3.toWei(100000, "ether"));
-			});*/
-		})
+		await deployer.deploy(B0xToken).then(function() {
+			return deployer.deploy(TokenRegistry);
+		});
+		
+		var registry = await TokenRegistry.deployed();
+		
+		var b0x_token = await B0xToken.deployed();
+		var b0x_token_name = await b0x_token.name.call();
+		var b0x_token_symbol = await b0x_token.symbol.call();
+
+		await registry.addToken(
+			B0xToken.address,
+			b0x_token_name,
+			b0x_token_symbol,
+			18,
+			"0x0",
+			"0x0");
+
+		await registry.addToken(
+			config["protocol"]["development"]["ZeroEx"]["ZRXToken"],
+			"0x Protocol Token",
+			"ZRX",
+			18,
+			"0x0",
+			"0x0");
+
+		await registry.addToken(
+			config["protocol"]["development"]["ZeroEx"]["EtherToken"],
+			"Ether Token",
+			"WETH",
+			18,
+			"0x0",
+			"0x0");
 
 		for (var i = 0; i < 10; ++i) {
 			if (!fs.existsSync("./build/contracts/TestToken"+i+".json")) {
-				deployer.new(
+				var token = await deployer.new(
 					BaseToken,
 					10000000000000000000000000,
 					"TestToken"+i, 
 					18, 
-					"TEST"+i).then(function(instance) {
-						return instance.name.call().then(function(name) {
-							//console.log(name + " created: "+instance.address);
-							fs.writeFile("./build/contracts/"+name+".json", 
-								JSON.stringify(
-								{
-									"contractName": name,
-									"abi": instance.abi,
-									"networks": {
-										"50": {
-											"events": {},
-											"links": {},
-											"address": instance.address
-										},
-										"4447": {
-											"events": {},
-											"links": {},
-											"address": instance.address
-										},
-									}
-								}), function(err) {
-								if(err) {
-									return console.log(err);
-								}
-							});
-						});
+					"TEST"+i);
+				var token_name = await token.name.call();
+				var token_symbol = await token.symbol.call();
+
+				fs.writeFileSync("./build/contracts/"+token_name+".json", 
+					JSON.stringify(
+					{
+						"contractName": token_name,
+						"abi": token.abi,
+						"tokenAddress": token.address,
+						"tokenName": token_name,
+						"tokenSymbol": token_symbol,
+						"networks": {
+							"50": {
+								"events": {},
+								"links": {},
+								"address": token.address
+							},
+							"4447": {
+								"events": {},
+								"links": {},
+								"address": token.address
+							},
+						}
+					}), function(err) {
+					if(err) {
+						return console.log(err);
+					}
 				});
 			}
+
+			var jsonFile = fs.readFileSync("./build/contracts/TestToken"+i+".json");
+			var jsonContent = JSON.parse(jsonFile);
+
+			await registry.addToken(
+				jsonContent["tokenAddress"],
+				jsonContent["tokenName"],
+				jsonContent["tokenSymbol"],
+				18,
+				"0x0",
+				"0x0");
 		}
 	}
 }

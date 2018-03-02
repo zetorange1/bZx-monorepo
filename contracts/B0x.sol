@@ -1432,12 +1432,37 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             DEBUG_MODE = _toggle;
     }
 
-    function set0xExchangeWrapper (
-        address _exchange0xWrapper)
+
+    function setB0xToken (
+        address _token)
         public
         onlyOwner
     {
-        B0XTO0X_CONTRACT = _exchange0xWrapper;
+        B0X_TOKEN_CONTRACT = _token;
+    }
+
+    function setVault (
+        address _vault)
+        public
+        onlyOwner
+    {
+        VAULT_CONTRACT = _vault;
+    }
+
+    function setOracleRegistry (
+        address _registry)
+        public
+        onlyOwner
+    {
+        ORACLE_REGISTRY_CONTRACT = _registry;
+    }
+
+    function set0xExchangeWrapper (
+        address _wrapper)
+        public
+        onlyOwner
+    {
+        B0XTO0X_CONTRACT = _wrapper;
     }
 
     function upgradeContract (
