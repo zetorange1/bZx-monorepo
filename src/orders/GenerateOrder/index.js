@@ -34,7 +34,6 @@ export default class GenerateOrder extends React.Component {
     expirationDate: moment(),
 
     // oracle
-    useB0xOracle: true,
     oracleAddress: `0x0000000000000000000000000000000000000000`,
 
     // relay/exchange settings
@@ -58,15 +57,6 @@ export default class GenerateOrder extends React.Component {
 
   setRelayCheckbox = (e, value) =>
     this.setState({ sendToRelayExchange: value });
-
-  setUseB0xCheckbox = (e, value) => {
-    if (value) {
-      this.setState({
-        oracleAddress: `0x0000000000000000000000000000000000000000`
-      });
-    }
-    this.setState({ useB0xOracle: value });
-  };
 
   /* Submission handler */
 
@@ -139,8 +129,6 @@ export default class GenerateOrder extends React.Component {
         <OracleSection
           oracleAddress={this.state.oracleAddress}
           setOracleAddress={this.setStateForInput(`oracleAddress`)}
-          useB0xCheckbox={this.state.useB0xOracle}
-          setUseB0xCheckbox={this.setUseB0xCheckbox}
         />
 
         <Divider />
