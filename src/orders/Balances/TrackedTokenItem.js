@@ -97,11 +97,11 @@ export default class TrackedTokenItems extends React.Component {
   };
 
   renderAllowance = () => {
-    const { allowance } = this.state;
-    if (allowance === null) {
+    const { approved } = this.state;
+    if (approved === null) {
       return <div>Checking</div>;
     }
-    if (allowance === true) {
+    if (approved === true) {
       return (
         <Button variant="raised" onClick={this.approve}>
           Un-approve
