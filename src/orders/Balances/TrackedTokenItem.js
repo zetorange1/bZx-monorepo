@@ -62,6 +62,12 @@ export default class TrackedTokenItems extends React.Component {
   };
 
   async componentDidMount() {
+    this.checkAllowance();
+  }
+
+  setStateForInput = key => e => this.setState({ [key]: e.target.value });
+
+  checkAllowance = async () => {
     const { b0x, token, accounts } = this.props;
     const allowance = await b0x.getAllowance({
       tokenAddress: token.address,
@@ -69,9 +75,7 @@ export default class TrackedTokenItems extends React.Component {
       spenderAddress: `0x04758f1f88a9cea9bdef16d75f44c2f07a255e14`
     });
     this.setState({ approved: allowance.toNumber() !== 0 });
-  }
-
-  setStateForInput = key => e => this.setState({ [key]: e.target.value });
+  };
 
   toggleSendDialog = () =>
     this.setState(p => ({ showSendDialog: !p.showSendDialog }));
@@ -86,9 +90,14 @@ export default class TrackedTokenItems extends React.Component {
     this.props.updateTrackedTokens();
   };
 
-  approve = () => {
-    // TODO - fill this out
-    alert(`approve token`);
+  approve = async () => {
+    const { b0x, token, accounts } = this.props;
+    await b0x.setAllowanceUnlimited({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase(),
+      spenderAddress: `0x04758f1f88a9cea9bdef16d75f44c2f07a255e14`
+    });
+    this.checkAllowance();
   };
 
   unapprove = () => {
@@ -103,13 +112,13 @@ export default class TrackedTokenItems extends React.Component {
     }
     if (approved === true) {
       return (
-        <Button variant="raised" onClick={this.approve}>
+        <Button variant="raised" onClick={this.unapprove}>
           Un-approve
         </Button>
       );
     }
     return (
-      <Button variant="raised" onClick={this.unapprove}>
+      <Button variant="raised" onClick={this.approve}>
         Approve
       </Button>
     );
