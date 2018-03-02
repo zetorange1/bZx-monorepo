@@ -91,7 +91,7 @@ describe("allowance", () => {
   });
 
   describe("resetAllowance", () => {
-    test.only("should reset allowance", async () => {
+    test("should reset allowance", async () => {
       await b0xJS.setAllowanceUnlimited({
         tokenAddress,
         ownerAddress,
