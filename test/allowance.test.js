@@ -89,4 +89,28 @@ describe("allowance", () => {
       expect(res).toEqual(new BigNumber(0));
     });
   });
+
+  describe("resetAllowance", () => {
+    test.only("should reset allowance", async () => {
+      await b0xJS.setAllowanceUnlimited({
+        tokenAddress,
+        ownerAddress,
+        spenderAddress
+      });
+
+      await b0xJS.resetAllowance({
+        tokenAddress,
+        ownerAddress,
+        spenderAddress
+      });
+
+      const res = await b0xJS.getAllowance({
+        tokenAddress,
+        ownerAddress,
+        spenderAddress
+      });
+
+      expect(res).toEqual(new BigNumber(0));
+    });
+  });
 });
