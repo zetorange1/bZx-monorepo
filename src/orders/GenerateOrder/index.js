@@ -74,7 +74,11 @@ export default class GenerateOrder extends React.Component {
     const isValid = validateInputs(this.state);
     this.setState({ orderHash: null, finalOrder: null });
     if (isValid) {
-      const orderObject = compileObject(this.state, this.props.tokens);
+      const orderObject = await compileObject(
+        this.props.web3,
+        this.state,
+        this.props.accounts[0]
+      );
       const saltedOrderObj = addSalt(orderObject);
       const orderHash = getHash(saltedOrderObj);
       const signature = await signOrder(

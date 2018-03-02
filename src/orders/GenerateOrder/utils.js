@@ -1,11 +1,12 @@
 import B0xJS from "b0x.js";  // eslint-disable-line
+import getNetworkId from "../../web3/getNetworkId";
 
-export const compileObject = state => {
+export const compileObject = async (web3, state, account) => {
   const { sendToRelayExchange } = state;
   return {
     b0xAddress: `0x0000000000000000000000000000000000000000`,
-    makerAddress: `0x0000000000000000000000000000000000000000`,
-    networkId: 1,
+    makerAddress: account.toLowerCase(),
+    networkId: await getNetworkId(web3),
 
     // addresses
     loanTokenAddress: state.loanTokenAddress,
@@ -41,7 +42,6 @@ export const addSalt = obj => {
   };
 };
 
-// TODO - actually get signature
 export const signOrder = async (orderHash, accounts, b0x) => {
   const signature = await b0x.signOrderHashAsync(
     orderHash,
@@ -52,4 +52,3 @@ export const signOrder = async (orderHash, accounts, b0x) => {
 };
 
 export const getHash = obj => B0xJS.getLoanOrderHashHex(obj);
-// return `0xa0443e64b09e95208424ec3bf7c1b543b841de766877a8b76e25d76b6b42b970`;

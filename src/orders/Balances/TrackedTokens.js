@@ -8,7 +8,13 @@ const Container = styled.div`
   max-width: 480px;
 `;
 
-const TrackedTokens = ({ tokens, trackedTokens, updateTrackedTokens }) => {
+const TrackedTokens = ({
+  tokens,
+  trackedTokens,
+  updateTrackedTokens,
+  b0x,
+  accounts
+}) => {
   const tokenData = tokens.filter(t => trackedTokens.includes(t.address));
   const tokenDataWithIcon = tokenData.map(t => ({
     ...t,
@@ -23,6 +29,8 @@ const TrackedTokens = ({ tokens, trackedTokens, updateTrackedTokens }) => {
             key={token.address}
             token={token}
             updateTrackedTokens={updateTrackedTokens}
+            b0x={b0x}
+            accounts={accounts}
           />
         ))}
       </Container>

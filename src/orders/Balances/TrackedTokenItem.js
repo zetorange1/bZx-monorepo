@@ -54,9 +54,28 @@ const ButtonGroup = styled.div`
 `;
 
 export default class TrackedTokenItems extends React.Component {
-  state = { showSendDialog: false, recipientAddress: ``, sendAmount: `` };
+  state = {
+    showSendDialog: false,
+    recipientAddress: ``,
+    sendAmount: ``,
+    approved: null
+  };
+
+  async componentDidMount() {
+    this.checkAllowance();
+  }
 
   setStateForInput = key => e => this.setState({ [key]: e.target.value });
+
+  checkAllowance = async () => {
+    const { b0x, token, accounts } = this.props;
+    const allowance = await b0x.getAllowance({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase(),
+      spenderAddress: `0x04758f1f88a9cea9bdef16d75f44c2f07a255e14`
+    });
+    this.setState({ approved: allowance.toNumber() !== 0 });
+  };
 
   toggleSendDialog = () =>
     this.setState(p => ({ showSendDialog: !p.showSendDialog }));
@@ -71,6 +90,40 @@ export default class TrackedTokenItems extends React.Component {
     this.props.updateTrackedTokens();
   };
 
+  approve = async () => {
+    const { b0x, token, accounts } = this.props;
+    await b0x.setAllowanceUnlimited({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase(),
+      spenderAddress: `0x04758f1f88a9cea9bdef16d75f44c2f07a255e14`
+    });
+    this.checkAllowance();
+  };
+
+  unapprove = () => {
+    // TODO - fill this out
+    alert(`unapprove token`);
+  };
+
+  renderAllowance = () => {
+    const { approved } = this.state;
+    if (approved === null) {
+      return <div>Checking</div>;
+    }
+    if (approved === true) {
+      return (
+        <Button variant="raised" onClick={this.unapprove}>
+          Un-approve
+        </Button>
+      );
+    }
+    return (
+      <Button variant="raised" onClick={this.approve}>
+        Approve
+      </Button>
+    );
+  };
+
   render() {
     const { name, symbol, iconUrl, amount } = this.props.token;
     return (
@@ -83,9 +136,7 @@ export default class TrackedTokenItems extends React.Component {
           {amount} {symbol}
         </BalanceAmount>
         <ButtonGroup>
-          <Button variant="raised" onClick={() => {}}>
-            Approve
-          </Button>
+          {this.renderAllowance()}
           <Button
             variant="raised"
             color="primary"
