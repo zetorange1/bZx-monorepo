@@ -54,7 +54,22 @@ const ButtonGroup = styled.div`
 `;
 
 export default class TrackedTokenItems extends React.Component {
-  state = { showSendDialog: false, recipientAddress: ``, sendAmount: `` };
+  state = {
+    showSendDialog: false,
+    recipientAddress: ``,
+    sendAmount: ``,
+    approved: null
+  };
+
+  async componentDidMount() {
+    const { b0x, token, accounts } = this.props;
+    const allowance = await b0x.getAllowance({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase(),
+      spenderAddress: `0x04758f1f88a9cea9bdef16d75f44c2f07a255e14`
+    });
+    this.setState({ allowance: allowance.toNumber() !== 0 });
+  }
 
   setStateForInput = key => e => this.setState({ [key]: e.target.value });
 
@@ -71,6 +86,35 @@ export default class TrackedTokenItems extends React.Component {
     this.props.updateTrackedTokens();
   };
 
+  approve = () => {
+    // TODO - fill this out
+    alert(`approve token`);
+  };
+
+  unapprove = () => {
+    // TODO - fill this out
+    alert(`unapprove token`);
+  };
+
+  renderAllowance = () => {
+    const { allowance } = this.state;
+    if (allowance === null) {
+      return <div>Checking</div>;
+    }
+    if (allowance === true) {
+      return (
+        <Button variant="raised" onClick={this.approve}>
+          Un-approve
+        </Button>
+      );
+    }
+    return (
+      <Button variant="raised" onClick={this.unapprove}>
+        Approve
+      </Button>
+    );
+  };
+
   render() {
     const { name, symbol, iconUrl, amount } = this.props.token;
     return (
@@ -83,9 +127,7 @@ export default class TrackedTokenItems extends React.Component {
           {amount} {symbol}
         </BalanceAmount>
         <ButtonGroup>
-          <Button variant="raised" onClick={() => {}}>
-            Approve
-          </Button>
+          {this.renderAllowance()}
           <Button
             variant="raised"
             color="primary"

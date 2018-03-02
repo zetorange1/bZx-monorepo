@@ -71,6 +71,8 @@ class Orders extends React.Component {
                   </ContentContainer>
                   <ContentContainer show={activeTab === `BALANCES`}>
                     <Balances
+                      b0x={b0x}
+                      accounts={accounts}
                       tokens={tokens}
                       trackedTokens={trackedTokens}
                       updateTrackedTokens={this.updateTrackedTokens}
