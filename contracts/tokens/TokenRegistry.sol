@@ -28,8 +28,7 @@ contract TokenRegistry is Ownable {
         string name,
         string symbol,
         uint8 decimals,
-        bytes ipfsHash,
-        bytes swarmHash
+        string url
     );
 
     event LogRemoveToken(
@@ -37,14 +36,12 @@ contract TokenRegistry is Ownable {
         string name,
         string symbol,
         uint8 decimals,
-        bytes ipfsHash,
-        bytes swarmHash
+        string url
     );
 
     event LogTokenNameChange(address indexed token, string oldName, string newName);
     event LogTokenSymbolChange(address indexed token, string oldSymbol, string newSymbol);
-    event LogTokenIpfsHashChange(address indexed token, bytes oldIpfsHash, bytes newIpfsHash);
-    event LogTokenSwarmHashChange(address indexed token, bytes oldSwarmHash, bytes newSwarmHash);
+    event LogTokenURLChange(address indexed token, string oldURL, string newURL);
 
     mapping (address => TokenMetadata) public tokens;
     mapping (string => address) tokenBySymbol;
@@ -57,8 +54,7 @@ contract TokenRegistry is Ownable {
         string name;
         string symbol;
         uint8 decimals;
-        bytes ipfsHash;
-        bytes swarmHash;
+        string url;
     }
 
     modifier tokenExists(address _token) {
@@ -92,15 +88,13 @@ contract TokenRegistry is Ownable {
     /// @param _name Name of new token.
     /// @param _symbol Symbol for new token.
     /// @param _decimals Number of decimals, divisibility of new token.
-    /// @param _ipfsHash IPFS hash of token icon.
-    /// @param _swarmHash Swarm hash of token icon.
+    /// @param _url URL of token icon.
     function addToken(
         address _token,
         string _name,
         string _symbol,
         uint8 _decimals,
-        bytes _ipfsHash,
-        bytes _swarmHash)
+        string _url)
         public
         onlyOwner
         tokenDoesNotExist(_token)
@@ -113,8 +107,7 @@ contract TokenRegistry is Ownable {
             name: _name,
             symbol: _symbol,
             decimals: _decimals,
-            ipfsHash: _ipfsHash,
-            swarmHash: _swarmHash
+            url: _url
         });
         tokenAddresses.push(_token);
         tokenBySymbol[_symbol] = _token;
@@ -124,8 +117,7 @@ contract TokenRegistry is Ownable {
             _name,
             _symbol,
             _decimals,
-            _ipfsHash,
-            _swarmHash
+            _url
         );
     }
 
@@ -147,8 +139,7 @@ contract TokenRegistry is Ownable {
             token.name,
             token.symbol,
             token.decimals,
-            token.ipfsHash,
-            token.swarmHash
+            token.url
         );
         delete tokenBySymbol[token.symbol];
         delete tokenByName[token.name];
@@ -187,30 +178,17 @@ contract TokenRegistry is Ownable {
         token.symbol = _symbol;
     }
 
-    /// @dev Allows owner to modify an existing token's IPFS hash.
-    /// @param _token Address of existing token.
-    /// @param _ipfsHash New IPFS hash.
-    function setTokenIpfsHash(address _token, bytes _ipfsHash)
+    /// @dev Allows owner to modify an existing token's icon URL.
+    /// @param _token URL of token token.
+    /// @param _url New URL to token icon.
+    function setTokenURL(address _token, string _url)
         public
         onlyOwner
         tokenExists(_token)
     {
         TokenMetadata storage token = tokens[_token];
-        LogTokenIpfsHashChange(_token, token.ipfsHash, _ipfsHash);
-        token.ipfsHash = _ipfsHash;
-    }
-
-    /// @dev Allows owner to modify an existing token's Swarm hash.
-    /// @param _token Address of existing token.
-    /// @param _swarmHash New Swarm hash.
-    function setTokenSwarmHash(address _token, bytes _swarmHash)
-        public
-        onlyOwner
-        tokenExists(_token)
-    {
-        TokenMetadata storage token = tokens[_token];
-        LogTokenSwarmHashChange(_token, token.swarmHash, _swarmHash);
-        token.swarmHash = _swarmHash;
+        LogTokenURLChange(_token, token.url, _url);
+        token.url = _url;
     }
 
     /*
@@ -250,8 +228,7 @@ contract TokenRegistry is Ownable {
             string,   //name
             string,   //symbol
             uint8,    //decimals
-            bytes,    //ipfsHash
-            bytes     //swarmHash
+            string    //url
         )
     {
         TokenMetadata memory token = tokens[_token];
@@ -260,8 +237,7 @@ contract TokenRegistry is Ownable {
             token.name,
             token.symbol,
             token.decimals,
-            token.ipfsHash,
-            token.swarmHash
+            token.url
         );
     }
 
@@ -276,8 +252,7 @@ contract TokenRegistry is Ownable {
             string,   //name
             string,   //symbol
             uint8,    //decimals
-            bytes,    //ipfsHash
-            bytes     //swarmHash
+            string    //url
         )
     {
         address _token = tokenByName[_name];
@@ -295,8 +270,7 @@ contract TokenRegistry is Ownable {
             string,   //name
             string,   //symbol
             uint8,    //decimals
-            bytes,    //ipfsHash
-            bytes     //swarmHash
+            string    //url
         )
     {
         address _token = tokenBySymbol[_symbol];
@@ -313,33 +287,46 @@ contract TokenRegistry is Ownable {
         return tokenAddresses;
     }
 
-    /// @dev Returns an array of token addresses, an array with the length of each token name, a concatenated string of token names,
-    /// @dev an array with the length of each token symbol, a concatenated string of token symbols
-    /// @return Array of token names, array of name lengths, concatenated string of all names, array of symbol lengths, concatenated string of all symbols
+    /// @dev Returns as assembled export of token metadata
+    /// @return address array, name length array, symbol length array, decimals, url length array, concatenated name string, 
+    /// @return concatenated symbol string, concatenated url string
     function getTokenList()
         public
         view
-        returns (address[], uint[], string, uint[], string)
+        returns (
+            address[] addresses, 
+            uint[] decimals, 
+            uint[] stringLengths, 
+            string allStrings)
     {
         if (tokenAddresses.length == 0)
             return;
 
-        address[] memory addresses = tokenAddresses;
-        uint[] memory nameLengths = new uint[](tokenAddresses.length);
-        uint[] memory symbolLengths = new uint[](tokenAddresses.length);
-        string memory allNames;
-        string memory allSymbols;
-        
+        addresses = tokenAddresses;
+        decimals = new uint[](tokenAddresses.length);
+        stringLengths = new uint[](tokenAddresses.length * 3);
+
+        string memory tmp;
+        uint j = 0;
         for (uint i = 0; i < tokenAddresses.length; i++) {
-            string memory tmpName = tokens[tokenAddresses[i]].name;
-            string memory tmpSymbol = tokens[tokenAddresses[i]].symbol;
-            nameLengths[i] = bytes(tmpName).length;
-            allNames = strConcat(allNames, tmpName);
-            symbolLengths[i] = bytes(tmpSymbol).length;
-            allSymbols = strConcat(allSymbols, tmpSymbol);
+            tmp = tokens[tokenAddresses[i]].symbol;
+            stringLengths[j] = bytes(tmp).length;
+            allStrings = strConcat(allStrings, tmp);
+
+            tmp = tokens[tokenAddresses[i]].name;
+            stringLengths[j+1] = bytes(tmp).length;
+            allStrings = strConcat(allStrings, tmp);
+
+            decimals[i] = tokens[tokenAddresses[i]].decimals;
+
+            tmp = tokens[tokenAddresses[i]].url;
+            stringLengths[j+2] = bytes(tmp).length;
+            allStrings = strConcat(allStrings, tmp);
+
+            j += 3;
         }
 
-        return (addresses, nameLengths, allNames, symbolLengths, allSymbols);
+        return (addresses, decimals, stringLengths, allStrings);
     }
 
     /// @dev Concatenates two strings

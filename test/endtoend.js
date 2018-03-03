@@ -1,4 +1,22 @@
 
+
+// Toggle the tests to run
+var run = {
+  "should check token registry": false,
+  "should check oracle registry": false,
+  "should verify approval": true,
+  "should generate loanOrderHash (as lender)": true,
+  "should sign and verify orderHash": true,
+  "should take sample loan order as trader": true,
+  "should generate 0x order": true,
+  "should sign and verify 0x order": true,
+  "should open 0x trade with borrowed funds": true,
+  /*"should test LoanOrder bytes": false,
+  "should test Loan bytes": false,
+  "should test Trade bytes": false,*/
+};
+
+
 const BigNumber = require('bignumber.js');
 const BN = require('bn.js');
 const ethABI = require('ethereumjs-abi');
@@ -170,32 +188,44 @@ contract('B0xTest', function(accounts) {
   });
   */
 
- 
 
-  it("should check token registry", async function() {
+  (run["should check token registry"] ? it : it.skip)("should check token registry", async function() {
     // return array of arrays: address[], uint[], string, uint[], string
     var data = await token_registry.getTokenList.call();
-    var namePos = 0;
-    var symPos = 0;
+    console.log(data);
+    var stringPos = 0;
 
-    for(var i=0; i < data[0].length; i++) {
-      data[3][i] = data[3][i].toNumber();
-      console.log("Token "+i+" symbol: "+data[4].substr(symPos,data[3][i]));
-      symPos = symPos+data[3][i];
+    var addresses = data[0];
+    var decimals = data[1];
+    var stringLengths = data[2];
+    var allStrings = data[3];
 
-      data[1][i] = data[1][i].toNumber();
-      console.log("Token "+i+" name: "+data[2].substr(namePos,data[1][i]));
-      namePos = namePos+data[1][i];
+    for(var i=0, j=0; i < addresses.length; i++, j+=3) {
+      stringLengths[j] = stringLengths[j].toNumber();
+      console.log("Token "+i+" symbol: "+allStrings.substr(stringPos,stringLengths[j]));
+      stringPos+=stringLengths[j];
+
+      stringLengths[j+1] = stringLengths[j+1].toNumber();
+      console.log("Token "+i+" name: "+allStrings.substr(stringPos,stringLengths[j+1]));
+      stringPos+=stringLengths[j+1];
       
-      console.log("Token "+i+" address: "+data[0][i]);
+      console.log("Token "+i+" decimals: "+decimals[i].toNumber());
+
+      stringLengths[j+2] = stringLengths[j+2].toNumber();
+      console.log("Token "+i+" url: "+allStrings.substr(stringPos,stringLengths[j+2]));
+      stringPos+=stringLengths[j+2];
+
+      console.log("Token "+i+" address: "+addresses[i]);
     }
     
     assert.isOk(true);
   });
 
-  it("should check oracle registry", async function() {
+
+  (run["should check oracle registry"] ? it : it.skip)("should check oracle registry", async function() {
     // return array of arrays: address[], uint[], string
     var data = await oracle_registry.getOracleList.call();
+    //console.log(data);
     var namePos = 0;
 
     for(var i=0; i < data[0].length; i++) {
@@ -209,7 +239,7 @@ contract('B0xTest', function(accounts) {
     assert.isOk(true);
   });
 
-  it("should verify approval", async function() {
+  (run["should verify approval"] ? it : it.skip)("should verify approval", async function() {
     var balance = await loanToken1.balanceOf.call(lender1_account);
     console.log("loanToken1 lender1_account: "+balance);
     
@@ -233,7 +263,7 @@ contract('B0xTest', function(accounts) {
     assert.isOk(true);
   });
 
-  it("should generate loanOrderHash (as lender)", function(done) {
+  (run["should generate loanOrderHash (as lender)"] ? it : it.skip)("should generate loanOrderHash (as lender)", function(done) {
 
     OrderParams_b0x = {
       "b0xAddress": b0x.address,
@@ -285,7 +315,7 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should sign and verify orderHash", function(done) {
+  (run["should sign and verify orderHash"] ? it : it.skip)("should sign and verify orderHash", function(done) {
     const nodeVersion = web3.version.node;
     const isParityNode = _.includes(nodeVersion, 'Parity');
     const isTestRpc = _.includes(nodeVersion, 'TestRPC');
@@ -315,7 +345,7 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should take sample loan order as trader", function(done) {
+  (run["should take sample loan order as trader"] ? it : it.skip)("should take sample loan order as trader", function(done) {
     b0x.takeLoanOrderAsTrader(
       [
         OrderParams_b0x["makerAddress"],
@@ -353,7 +383,7 @@ contract('B0xTest', function(accounts) {
       });
   });
 
-  it("should generate 0x order", async function() {
+  (run["should generate 0x order"] ? it : it.skip)("should generate 0x order", async function() {
     OrderParams_0x = {
       "exchangeContractAddress": config["protocol"]["development"]["ZeroEx"]["Exchange"],
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
@@ -375,7 +405,7 @@ contract('B0xTest', function(accounts) {
     assert.isOk(true);
   });
 
-  it("should sign and verify 0x order", function(done) {
+  (run["should sign and verify 0x order"] ? it : it.skip)("should sign and verify 0x order", function(done) {
     const nodeVersion = web3.version.node;
     const isParityNode = _.includes(nodeVersion, 'Parity');
     const isTestRpc = _.includes(nodeVersion, 'TestRPC');
@@ -415,7 +445,7 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  it("should open 0x trade with borrowed funds", function(done) {
+  (run["should open 0x trade with borrowed funds"] ? it : it.skip)("should open 0x trade with borrowed funds", function(done) {
     var types = ['bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32'];
     var values = [
       Web3Utils.padLeft(OrderParams_0x["maker"], 64),
@@ -458,7 +488,7 @@ contract('B0xTest', function(accounts) {
   });
 
 
-  /*it("should test LoanOrder bytes", function(done) {
+  /*(run["should test LoanOrder bytes"] ? it : it.skip)("should test LoanOrder bytes", function(done) {
     b0x.getLoanOrderByteData.call(
       OrderHash_b0x,
       {from: trader1_account, gas: 5000000, gasPrice: web3.toWei(8, "gwei")}).then(function(bts) {
@@ -481,7 +511,7 @@ contract('B0xTest', function(accounts) {
   });
 
 
-  it("should test Loan bytes", function(done) {
+  (run["should test Loan bytes"] ? it : it.skip)("should test Loan bytes", function(done) {
     b0x.getLoanByteData.call(
       OrderHash_b0x,
       trader1_account,
@@ -505,7 +535,7 @@ contract('B0xTest', function(accounts) {
   });
 
 
-  it("should test Trade bytes", function(done) {
+  (run["should test Trade bytes"] ? it : it.skip)("should test Trade bytes", function(done) {
     b0x.getTradeByteData.call(
       OrderHash_b0x,
       trader1_account,

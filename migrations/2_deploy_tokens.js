@@ -33,24 +33,21 @@ module.exports = async function(deployer, network, accounts) {
 			b0x_token_name,
 			b0x_token_symbol,
 			18,
-			"0x0",
-			"0x0");
+			"http://url");
 
 		await registry.addToken(
 			config["protocol"]["development"]["ZeroEx"]["ZRXToken"],
 			"0x Protocol Token",
 			"ZRX",
 			18,
-			"0x0",
-			"0x0");
+			"http://url");
 
 		await registry.addToken(
 			config["protocol"]["development"]["ZeroEx"]["EtherToken"],
 			"Ether Token",
 			"WETH",
 			18,
-			"0x0",
-			"0x0");
+			"http://url");
 
 		for (var i = 0; i < 10; ++i) {
 			if (!fs.existsSync("./build/contracts/TestToken"+i+".json")) {
@@ -98,8 +95,7 @@ module.exports = async function(deployer, network, accounts) {
 				jsonContent["tokenName"],
 				jsonContent["tokenSymbol"],
 				18,
-				"0x0",
-				"0x0");
+				"http://url");
 		}
 	}
 }
