@@ -45,12 +45,18 @@ describe("filling orders", () => {
         orderHashHex,
         signerAddress
       );
-      const receipt = await b0xJS.takeLoanOrderAsLender(
+
+      const collateralTokenAddress = Addresses.EtherToken;
+      const loanTokenAmountFilled = "20";
+
+      const receipt = await b0xJS.takeLoanOrderAsTrader(
         { ...order, signature },
+        collateralTokenAddress,
+        loanTokenAmountFilled,
         { from: Addresses.ACCOUNTS[1], gas: 1000000 }
       );
 
-      const loanTokenAmountFilled = pathOr(
+      const loanTokenAmountFilledReturn = pathOr(
         null,
         [
           "events",
@@ -60,7 +66,7 @@ describe("filling orders", () => {
         ],
         receipt
       );
-      expect(loanTokenAmountFilled).toBe("0");
+      expect(loanTokenAmountFilledReturn).toBe("0");
     });
   });
 });

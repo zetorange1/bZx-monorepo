@@ -87,4 +87,7 @@ export default class B0xJS {
 
   takeLoanOrderAsLender = async (...props) =>
     fill.takeLoanOrderAsLender(this.web3, ...props);
+
+  takeLoanOrderAsTrader = async (...props) =>
+    fill.takeLoanOrderAsTrader(this.web3, ...props);
 }
