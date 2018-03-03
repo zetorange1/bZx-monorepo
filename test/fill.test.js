@@ -6,26 +6,25 @@ import * as Addresses from "./constants/addresses";
 import makeOrder from "./utils/order";
 
 describe("filling orders", () => {
+  const accounts = [Addresses.ACCOUNTS[0], Addresses.ACCOUNTS[1]];
   beforeAll(async () => {
-    await b0xJS.setAllowanceUnlimited({
-      tokenAddress: Addresses.EtherToken,
-      ownerAddress: Addresses.ACCOUNTS[0]
-    });
-    await b0xJS.setAllowanceUnlimited({
-      tokenAddress: Addresses.EtherToken,
-      ownerAddress: Addresses.ACCOUNTS[1]
-    });
+    const promises = accounts.map(account =>
+      b0xJS.setAllowanceUnlimited({
+        tokenAddress: Addresses.EtherToken,
+        ownerAddress: account
+      })
+    );
+    await Promise.all(promises);
   });
 
   afterAll(async () => {
-    await b0xJS.resetAllowance({
-      tokenAddress: Addresses.EtherToken,
-      ownerAddress: Addresses.ACCOUNTS[0]
-    });
-    await b0xJS.resetAllowance({
-      tokenAddress: Addresses.EtherToken,
-      ownerAddress: Addresses.ACCOUNTS[1]
-    });
+    const promises = accounts.map(account =>
+      b0xJS.resetAllowance({
+        tokenAddress: Addresses.EtherToken,
+        ownerAddress: account
+      })
+    );
+    await Promise.all(promises);
   });
 
   const order = makeOrder({ makerAddress: Addresses.ACCOUNTS[0] });
