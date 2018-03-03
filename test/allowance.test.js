@@ -15,7 +15,6 @@ describe("allowance", () => {
     await b0xJS.setAllowance({
       tokenAddress,
       ownerAddress,
-
       amountInBaseUnits: new BigNumber(0)
     });
   };
