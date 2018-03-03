@@ -3,11 +3,12 @@ import { pathOr } from "ramda";
 import B0xJS from "../src";
 import b0xJS from "./setup";
 import * as addresses from "./constants/addresses";
-import order from "./constants/order";
+import makeOrder from "./utils/order";
 
 describe("filling orders", () => {
   describe("takeLoanOrderAsLender", async () => {
     test("should return total amount of loanToken borrowed", async () => {
+      const order = makeOrder();
       const signerAddress = order.makerAddress;
 
       const orderHashHex = B0xJS.getLoanOrderHashHex(order);

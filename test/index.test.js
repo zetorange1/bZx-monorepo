@@ -8,13 +8,13 @@ import * as utils from "../src/utils";
 import * as Errors from "../src/constants/errors";
 import * as Addresses from "./constants/addresses";
 import b0xJS from "./setup";
-import order from "./constants/order";
+import makeOrder from "./utils/order";
 
 describe("signOrderHashAsync", () => {
   test("should sign properly", async () => {
     const [signerAddress] = await b0xJS.web3.eth.getAccounts();
 
-    const orderHash = B0xJS.getLoanOrderHashHex(order);
+    const orderHash = B0xJS.getLoanOrderHashHex(makeOrder());
     const signature = await b0xJS.signOrderHashAsync(orderHash, signerAddress);
 
     // Not sure why this doesn't work
