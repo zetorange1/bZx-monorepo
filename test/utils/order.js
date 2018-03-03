@@ -3,7 +3,8 @@ import * as Addresses from "../constants/addresses";
 const makeOrder = ({
   makerAddress = Addresses.ACCOUNTS[0],
   feeRecipientAddress = Addresses.ACCOUNTS[0],
-  networkId = 1
+  networkId = 1,
+  salt = "2019429563929979"
 }) => ({
   b0xAddress: Addresses.B0x,
   makerAddress,
@@ -30,7 +31,7 @@ const makeOrder = ({
 
   // expiration date/time
   expirationUnixTimestampSec: "2519061340",
-  salt: "2019429563929979"
+  salt
 });
 
 export default (props = {}) => makeOrder(props);

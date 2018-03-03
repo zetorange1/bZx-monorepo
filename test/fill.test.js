@@ -27,12 +27,16 @@ describe("filling orders", () => {
     await Promise.all(promises);
   });
 
-  const order = makeOrder({ makerAddress: Addresses.ACCOUNTS[0] });
-  const signerAddress = order.makerAddress;
+  const signerAddress = Addresses.ACCOUNTS[0];
   const txOpts = { from: Addresses.ACCOUNTS[1], gas: 1000000 };
 
   describe("takeLoanOrderAsLender", async () => {
     test("should return total amount of loanToken borrowed", async () => {
+      const order = makeOrder({
+        makerAddress: Addresses.ACCOUNTS[0],
+        salt: B0xJS.generatePseudoRandomSalt()
+      });
+
       const orderHashHex = B0xJS.getLoanOrderHashHex(order);
       const signature = await b0xJS.signOrderHashAsync(
         orderHashHex,
@@ -59,6 +63,11 @@ describe("filling orders", () => {
 
   describe("takeLoanOrderAsTrader", async () => {
     test("should return total amount of loanToken borrowed", async () => {
+      const order = makeOrder({
+        makerAddress: Addresses.ACCOUNTS[0],
+        salt: B0xJS.generatePseudoRandomSalt()
+      });
+
       const orderHashHex = B0xJS.getLoanOrderHashHex(order);
       const signature = await b0xJS.signOrderHashAsync(
         orderHashHex,
