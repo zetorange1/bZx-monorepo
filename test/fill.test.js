@@ -33,6 +33,7 @@ describe("filling orders", () => {
 
   const order = makeOrder({ makerAddress: Addresses.ACCOUNTS[0] });
   const signerAddress = order.makerAddress;
+  const txOpts = { from: Addresses.ACCOUNTS[1], gas: 1000000 };
 
   describe("takeLoanOrderAsLender", async () => {
     test("should return total amount of loanToken borrowed", async () => {
@@ -43,7 +44,7 @@ describe("filling orders", () => {
       );
       const receipt = await b0xJS.takeLoanOrderAsLender(
         { ...order, signature },
-        { from: Addresses.ACCOUNTS[1], gas: 1000000 }
+        txOpts
       );
 
       const loanTokenAmountFilled = pathOr(
@@ -75,7 +76,7 @@ describe("filling orders", () => {
         { ...order, signature },
         collateralTokenAddress,
         loanTokenAmountFilled,
-        { from: Addresses.ACCOUNTS[1], gas: 1000000 }
+        txOpts
       );
 
       const loanTokenAmountFilledReturn = pathOr(
