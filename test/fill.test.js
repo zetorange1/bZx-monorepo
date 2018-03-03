@@ -1,6 +1,5 @@
 /* globals test, describe, expect, beforeAll, afterAll */
 import { pathOr } from "ramda";
-import { BigNumber } from "@0xproject/utils";
 import B0xJS from "../src";
 import b0xJS from "./setup";
 import * as Addresses from "./constants/addresses";
@@ -19,15 +18,13 @@ describe("filling orders", () => {
   });
 
   afterAll(async () => {
-    await b0xJS.setAllowance({
+    await b0xJS.resetAllowance({
       tokenAddress: Addresses.EtherToken,
-      ownerAddress: Addresses.ACCOUNTS[0],
-      amountInBaseUnits: new BigNumber(0)
+      ownerAddress: Addresses.ACCOUNTS[0]
     });
-    await b0xJS.setAllowance({
+    await b0xJS.resetAllowance({
       tokenAddress: Addresses.EtherToken,
-      ownerAddress: Addresses.ACCOUNTS[1],
-      amountInBaseUnits: new BigNumber(0)
+      ownerAddress: Addresses.ACCOUNTS[1]
     });
   });
 
