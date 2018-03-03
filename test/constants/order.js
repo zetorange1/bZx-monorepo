@@ -6,9 +6,9 @@ export default {
   networkId: 1,
 
   // addresses
-  loanTokenAddress: addresses.ZRXToken,
-  interestTokenAddress: addresses.ZRXToken,
-  collateralTokenAddress: addresses.ZRXToken,
+  loanTokenAddress: addresses.EtherToken,
+  interestTokenAddress: addresses.EtherToken,
+  collateralTokenAddress: addresses.EtherToken,
   feeRecipientAddress: addresses.ACCOUNTS[0],
   oracleAddress: addresses.B0xOracle,
 
