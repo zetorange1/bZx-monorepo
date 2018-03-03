@@ -1,7 +1,7 @@
 /* globals test, expect, describe, beforeEach, afterEach, jest */
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
-import { assert } from "@0xproject/assert";
+import { pathOr } from "ramda";
 import * as Addresses from "./constants/addresses";
 import b0xJS from "./setup";
 
@@ -10,13 +10,12 @@ jest.setTimeout(10000);
 describe("allowance", () => {
   const tokenAddress = Addresses.TEST_TOKENS[0];
   const ownerAddress = Addresses.ACCOUNTS[0];
-  const spenderAddress = Addresses.B0x;
 
   const resetAllowance = async () => {
     await b0xJS.setAllowance({
       tokenAddress,
       ownerAddress,
-      spenderAddress,
+
       amountInBaseUnits: new BigNumber(0)
     });
   };
@@ -27,15 +26,21 @@ describe("allowance", () => {
   describe("setAllowance", () => {
     const ALLOWANCE_AMOUNT = new BigNumber(436);
 
-    test("should output transaction hash", async () => {
-      const txHash = await b0xJS.setAllowance({
+    test("should return receipt with Approval event", async () => {
+      const receipt = await b0xJS.setAllowance({
         tokenAddress,
         ownerAddress,
-        spenderAddress,
+
         amountInBaseUnits: ALLOWANCE_AMOUNT
       });
 
-      assert.isHexString("txHash", txHash);
+      const value = pathOr(
+        null,
+        ["events", "Approval", "returnValues", "_value"],
+        receipt
+      );
+
+      expect(new BigNumber(value)).toEqual(ALLOWANCE_AMOUNT);
     });
 
     test("should set spender's allowance", async () => {
@@ -44,14 +49,13 @@ describe("allowance", () => {
       await b0xJS.setAllowance({
         tokenAddress,
         ownerAddress,
-        spenderAddress,
+
         amountInBaseUnits: ALLOWANCE_AMOUNT
       });
 
       const allowance = await b0xJS.getAllowance({
         tokenAddress,
-        ownerAddress,
-        spenderAddress
+        ownerAddress
       });
 
       expect(allowance).toEqual(expectedAllowance);
@@ -64,14 +68,12 @@ describe("allowance", () => {
 
       await b0xJS.setAllowanceUnlimited({
         tokenAddress,
-        ownerAddress,
-        spenderAddress
+        ownerAddress
       });
 
       const allowance = await b0xJS.getAllowance({
         tokenAddress,
-        ownerAddress,
-        spenderAddress
+        ownerAddress
       });
 
       expect(allowance).toEqual(expectedAllowance);
@@ -82,8 +84,7 @@ describe("allowance", () => {
     test("should return allowance", async () => {
       const res = await b0xJS.getAllowance({
         tokenAddress,
-        ownerAddress,
-        spenderAddress
+        ownerAddress
       });
 
       expect(res).toEqual(new BigNumber(0));
@@ -94,20 +95,17 @@ describe("allowance", () => {
     test("should reset allowance", async () => {
       await b0xJS.setAllowanceUnlimited({
         tokenAddress,
-        ownerAddress,
-        spenderAddress
+        ownerAddress
       });
 
       await b0xJS.resetAllowance({
         tokenAddress,
-        ownerAddress,
-        spenderAddress
+        ownerAddress
       });
 
       const res = await b0xJS.getAllowance({
         tokenAddress,
-        ownerAddress,
-        spenderAddress
+        ownerAddress
       });
 
       expect(res).toEqual(new BigNumber(0));
