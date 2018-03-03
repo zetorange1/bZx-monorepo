@@ -25,7 +25,7 @@ export const setAllowance = async (
       gasPrice: txOpts.gasPrice
     });
 
-  return receipt.transactionHash;
+  return receipt;
 };
 
 export const getAllowance = async (

@@ -1,7 +1,7 @@
 /* globals test, expect, describe, beforeEach, afterEach, jest */
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
-import { assert } from "@0xproject/assert";
+import { pathOr } from "ramda";
 import * as Addresses from "./constants/addresses";
 import b0xJS from "./setup";
 
@@ -27,15 +27,21 @@ describe("allowance", () => {
   describe("setAllowance", () => {
     const ALLOWANCE_AMOUNT = new BigNumber(436);
 
-    test("should output transaction hash", async () => {
-      const txHash = await b0xJS.setAllowance({
+    test("should return receipt with Approval event", async () => {
+      const receipt = await b0xJS.setAllowance({
         tokenAddress,
         ownerAddress,
         spenderAddress,
         amountInBaseUnits: ALLOWANCE_AMOUNT
       });
 
-      assert.isHexString("txHash", txHash);
+      const value = pathOr(
+        null,
+        ["events", "Approval", "returnValues", "_value"],
+        receipt
+      );
+
+      expect(new BigNumber(value)).toEqual(ALLOWANCE_AMOUNT);
     });
 
     test("should set spender's allowance", async () => {
