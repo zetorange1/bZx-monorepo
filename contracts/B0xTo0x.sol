@@ -12,7 +12,6 @@ import './shared/Debugger.sol';
 contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
     using SafeMath for uint256;
 
-    address public VAULT_CONTRACT;
     address public EXCHANGE_CONTRACT;
     address public ZRX_TOKEN_CONTRACT;
     address public TOKEN_TRANSFER_PROXY_CONTRACT;
@@ -27,13 +26,11 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
     }
 
     function B0xTo0x(
-        address _vault,
         address _exchange, 
         address _zrxToken,
         address _proxy) 
         public 
     {
-        VAULT_CONTRACT = _vault;
         EXCHANGE_CONTRACT = _exchange;
         ZRX_TOKEN_CONTRACT = _zrxToken;
         TOKEN_TRANSFER_PROXY_CONTRACT = _proxy;
@@ -41,15 +38,16 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
 
    function take0xTrade(
         address trader,
-        address oracleAddress,
-        uint loanTokenAmountToUse,
+        address sourceAddress,
+        address destAddress,
+        uint sourceTokenAmountToUse,
         bytes orderData0x) // 0x order arguments and converted to hex, padded to 32 bytes, concatenated, and appended to the ECDSA
         public
         onlyB0x
         returns (
-            address tradeTokenAddress,
-            uint tradeTokenAmount,
-            uint loanTokenUsedAmount)
+            address destTokenAddress,
+            uint destTokenAmount,
+            uint sourceTokenUsedAmount)
     {
         // address[5], uint[6], uint8, bytes32, bytes32
         var (orderAddresses0x, orderValues0x, signature) = getOrderValuesFromData(orderData0x);
@@ -82,40 +80,40 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         orderValues0x[5]     // salt
     */
 
-        loanTokenUsedAmount = _take0xTrade(
+        sourceTokenUsedAmount = _take0xTrade(
             trader,
-            loanTokenAmountToUse,
+            sourceTokenAmountToUse,
             orderAddresses0x,
             orderValues0x,
             signature);
 
-        if (loanTokenUsedAmount == 0) {
+        if (sourceTokenUsedAmount == 0) {
             //LogErrorUint("error: 0x trade did not fill!", 0, 0x0);
             voidOrRevert(96); return;
         }
 
-        tradeTokenAmount = getPartialAmount(
-            loanTokenUsedAmount,
-            orderValues0x[1], // takerTokenAmount (aka loanTokenAmount)
-            orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
+        destTokenAmount = getPartialAmount(
+            sourceTokenUsedAmount,
+            orderValues0x[1], // takerTokenAmount (aka sourceTokenAmount)
+            orderValues0x[0] // makerTokenAmount (aka destTokenAmount)
         );
 
-        // transfer the tradeToken to the oracle
-        if (!EIP20(orderAddresses0x[2]).transfer(oracleAddress, tradeTokenAmount))
+        // transfer the destToken to the destination
+        if (!EIP20(orderAddresses0x[2]).transfer(destAddress, destTokenAmount))
             revert();
 
-        if (loanTokenUsedAmount < loanTokenAmountToUse) {
-            // transfer the unused loanToken back to the vault
-            if (!EIP20(orderAddresses0x[3]).transfer(VAULT_CONTRACT, loanTokenAmountToUse-loanTokenUsedAmount))
+        if (sourceTokenUsedAmount < sourceTokenAmountToUse) {
+            // transfer the unused sourceToken back to the source
+            if (!EIP20(orderAddresses0x[3]).transfer(sourceAddress, sourceTokenAmountToUse-sourceTokenUsedAmount))
                 revert();
         }
 
-        tradeTokenAddress = orderAddresses0x[2]; // makerToken (aka tradeTokenAddress)
+        destTokenAddress = orderAddresses0x[2]; // makerToken (aka destTokenAddress)
     }
 
    function _take0xTrade(
         address trader,
-        uint loanTokenAmountToUse,
+        uint sourceTokenAmountToUse,
         address[5] orderAddresses0x,
         uint[6] orderValues0x,
         bytes signature)
@@ -134,29 +132,29 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
 
         var (v, r, s) = getSignatureParts(signature);
 
-        // Increase the allowance for 0x Exchange Proxy to transfer the loanToken needed for the 0x trade
-        // orderAddresses0x[3] ->  takerToken/loanToken
+        // Increase the allowance for 0x Exchange Proxy to transfer the sourceToken needed for the 0x trade
+        // orderAddresses0x[3] ->  takerToken/sourceToken
         if (!EIP20(orderAddresses0x[3]).approve(
             TOKEN_TRANSFER_PROXY_CONTRACT, 
-            EIP20(orderAddresses0x[3]).allowance(this, TOKEN_TRANSFER_PROXY_CONTRACT).add(loanTokenAmountToUse))) {
+            EIP20(orderAddresses0x[3]).allowance(this, TOKEN_TRANSFER_PROXY_CONTRACT).add(sourceTokenAmountToUse))) {
             revert();
         }
 
-        // 0x order will fail if loanTokenAmountToUse is too high
-        uint loanTokenUsedAmount = Exchange_Interface(EXCHANGE_CONTRACT).fillOrder(
+        // 0x order will fail if sourceTokenAmountToUse is too high
+        uint sourceTokenUsedAmount = Exchange_Interface(EXCHANGE_CONTRACT).fillOrder(
             orderAddresses0x,
             orderValues0x,
-            loanTokenAmountToUse,
+            sourceTokenAmountToUse,
             true, // shouldThrowOnInsufficientBalanceOrAllowance
             v,
             r,
             s);
-        if (loanTokenUsedAmount == 0) {
+        if (sourceTokenUsedAmount == 0) {
             //LogErrorUint("error: 0x order failed!", 0, 0x0);
             return intOrRevert(0,149);
         }
 
-        return loanTokenUsedAmount;
+        return sourceTokenUsedAmount;
     }
 
     function getOrderValuesFromData(
@@ -241,14 +239,6 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         returns (uint)
     {
         return SafeMath.div(SafeMath.mul(numerator, target), denominator);
-    }
-
-    function setVault (
-        address _vault)
-        public
-        onlyOwner
-    {
-        VAULT_CONTRACT = _vault;
     }
 
     function set0xExchange (

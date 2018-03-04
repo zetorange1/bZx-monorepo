@@ -153,7 +153,7 @@ contract B0xVault is B0xOwnable {
     function transferFrom(
         address token,
         address from,
-        address to,        
+        address to,
         uint value)
         public
         onlyB0x

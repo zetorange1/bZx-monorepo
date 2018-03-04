@@ -10,10 +10,10 @@ var run = {
   "should take sample loan order as trader": true,
   "should generate 0x order": true,
   "should sign and verify 0x order": true,
-  "should open 0x trade with borrowed funds": true,
+  "should open 0x position with borrowed funds": true,
   /*"should test LoanOrder bytes": false,
   "should test Loan bytes": false,
-  "should test Trade bytes": false,*/
+  "should test Position bytes": false,*/
 };
 
 
@@ -445,7 +445,7 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  (run["should open 0x trade with borrowed funds"] ? it : it.skip)("should open 0x trade with borrowed funds", function(done) {
+  (run["should open 0x position with borrowed funds"] ? it : it.skip)("should open 0x position with borrowed funds", function(done) {
     var types = ['bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32'];
     var values = [
       Web3Utils.padLeft(OrderParams_0x["maker"], 64),
@@ -469,7 +469,7 @@ contract('B0xTest', function(accounts) {
     //console.log(ECSignature_0x_raw);
 
     var textEvents;
-    b0x.open0xTrade(
+    b0x.openPositionWith0x(
       OrderHash_b0x,
       sample_order_tightlypacked + ECSignature_0x_raw.substring(2),
       {from: trader1_account}).then(function(tx) {
@@ -477,7 +477,7 @@ contract('B0xTest', function(accounts) {
         tx_obj = tx;
         return gasRefundEvent.get();
       }).then(function(caughtEvents) {
-        console.log(txPrettyPrint(tx_obj,"should open 0x trade with borrowed funds",caughtEvents));
+        console.log(txPrettyPrint(tx_obj,"should open 0x position with borrowed funds",caughtEvents));
         assert.isOk(true);
         done();
       }, function(error) {
@@ -535,19 +535,19 @@ contract('B0xTest', function(accounts) {
   });
 
 
-  (run["should test Trade bytes"] ? it : it.skip)("should test Trade bytes", function(done) {
-    b0x.getTradeByteData.call(
+  (run["should test Position bytes"] ? it : it.skip)("should test Position bytes", function(done) {
+    b0x.getPositionByteData.call(
       OrderHash_b0x,
       trader1_account,
       {from: trader1_account, gas: 5000000, gasPrice: web3.toWei(8, "gwei")}).then(function(bts) {
         console.log(bts);
-        b0x.getTradeLog(
+        b0x.getPositionLog(
           bts,
           {from: trader1_account, gas: 5000000, gasPrice: web3.toWei(20, "gwei")}).then(function(tx) {
             tx_obj = tx;
             return gasRefundEvent.get();
           }).then(function(caughtEvents) {
-            console.log(txPrettyPrint(tx_obj,"should test Trade bytes",caughtEvents));
+            console.log(txPrettyPrint(tx_obj,"should test Position bytes",caughtEvents));
             assert.isOk(tx_obj);
             done();
           }, function(error) {

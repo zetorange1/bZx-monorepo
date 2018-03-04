@@ -36,14 +36,14 @@ interface Oracle_Interface {
         public
         returns (bool);
 
-    /// @dev Called by b0x after a 0x trade is opened by a borrower
+    /// @dev Called by b0x after a 0x position is opened by a borrower
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param trader The trader that opened a trade
+    /// @param trader The trader that opened a position
     /// @param tradeTokenAddress The token that was bought in the trade
     /// @param tradeTokenAmount The amount of token that was bought
     /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
     /// @return Successful execution of the function
-    function didOpenTrade(
+    function didOpenPosition(
         bytes32 loanOrderHash,
         address trader,
         address tradeTokenAddress,
@@ -73,16 +73,16 @@ interface Oracle_Interface {
         returns (bool);
 
 
-    /// @dev Called by b0x after a trade is closed by liquidation, or early
+    /// @dev Called by b0x after a position is closed by liquidation, or early
     /// @dev by the borrower
     /// @param loanOrderHash A unique hash representing the loan order.
-    /// @param tradeCloser The user that liquidated the trade
-    /// @param isLiquidation A boolean indicating if the trade was closed due to liquidation
+    /// @param closer The user that liquidated the position
+    /// @param isLiquidation A boolean indicating if the position was closed due to liquidation
     /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
     /// @return Successful execution of the function
-    function didCloseTrade(
+    function didClosePosition(
         bytes32 loanOrderHash,
-        address tradeCloser,
+        address closer,
         bool isLiquidation,
         uint gasUsed)
         public
@@ -155,6 +155,18 @@ interface Oracle_Interface {
         public
         returns (uint);
 
+    /// @dev Transfers a token from the Oracle
+    /// @param tokenAddress The token being transferred
+    /// @param to The receiver of the token
+    /// @param value The amount of token being transferred
+    /// @return Successful transfer of the token
+    function transferToken(
+        address tokenAddress,
+        address to,
+        uint value)
+        public
+        returns (bool);
+
     /// @dev Checks if a position has fallen below margin
     /// @dev maintenance and should be liquidated
     /// @param loanOrderHash A unique hash representing the loan order
@@ -188,7 +200,7 @@ interface Oracle_Interface {
         view 
         returns (uint);
 
-    /// @dev Returns a ratio of currentMarginAmount / maintenanceMarginAmount for this particular loan/trade
+    /// @dev Returns a ratio of currentMarginAmount / maintenanceMarginAmount for this particular loan/position
     /// @param exposureTokenAddress The token at risk (typically the loan token)
     /// @param collateralTokenAddress The token used as collateral
     /// @param exposureTokenAmount The amount of token at risk

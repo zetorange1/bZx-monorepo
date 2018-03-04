@@ -29,7 +29,7 @@ contract B0xTypes {
         bool active;
     }
 
-    struct Trade {
+    struct Position {
         address tradeTokenAddress;
         uint tradeTokenAmount;
         uint loanTokenUsedAmount;
@@ -63,7 +63,7 @@ contract B0xTypes {
         bytes32 loanOrderHash
     );
 
-    event LogLoanOrTrade (
+    event LogLoanOrPosition (
         address lender_OR_tradeToken,
         uint collateralTokenAmountFilled_OR_tradeTokenAmount,
         uint loanTokenAmountFilled_OR_loanTokenUsedAmount,
@@ -85,7 +85,73 @@ contract B0xTypes {
 
     uint constant MAX_UINT = 2**256 - 1;
 
-    function getLoanOrderFromBytes(
+    function buildLoanOrderStruct(
+        bytes32 loanOrderHash,
+        address[6] addrs,
+        uint[8] uints) 
+        internal
+        pure
+        returns (LoanOrder) {
+
+        return LoanOrder({
+            maker: addrs[0],
+            loanTokenAddress: addrs[1],
+            interestTokenAddress: addrs[2],
+            collateralTokenAddress: addrs[3],
+            feeRecipientAddress: addrs[4],
+            oracleAddress: addrs[5],
+            loanTokenAmount: uints[0],
+            interestAmount: uints[1],
+            initialMarginAmount: uints[2],
+            maintenanceMarginAmount: uints[3],
+            lenderRelayFee: uints[4],
+            traderRelayFee: uints[5],
+            expirationUnixTimestampSec: uints[6],
+            loanOrderHash: loanOrderHash
+        });
+    }
+
+    function buildLoanStruct(
+        address addr,
+        uint[4] uints,
+        bool boolean)
+        internal
+        pure
+        returns (Loan) {
+
+        return Loan({
+            lender: addr,
+            collateralTokenAmountFilled: uints[0],
+            loanTokenAmountFilled: uints[1],
+            filledUnixTimestampSec: uints[2],
+            listPosition: uints[3],
+            active: boolean
+        });
+    }
+
+    function buildPositionStruct(
+        address addr,
+        uint[4] uints,
+        bool boolean)
+        internal
+        pure
+        returns (Position) {
+
+        return Position({
+            tradeTokenAddress: addr,
+            tradeTokenAmount: uints[0],
+            loanTokenUsedAmount: uints[1],
+            filledUnixTimestampSec: uints[2],
+            listPosition: uints[3],
+            active: boolean
+        });
+    }
+
+    /*
+     * Unused Functions (remove later)
+     */
+
+    /*function getLoanOrderFromBytes(
         bytes loanOrderData)
         internal
         pure
@@ -129,23 +195,23 @@ contract B0xTypes {
         pure
         returns (Loan) 
     {
-        var (lender, uints, active) = getLoanOrTradePartsFromBytes(loanData);
+        var (lender, uints, active) = getLoanOrPositionPartsFromBytes(loanData);
         
         return buildLoanStruct(lender, uints, active);
     }
 
-    function getTradeFromBytes(
+    function getPositionFromBytes(
         bytes tradeData)
         internal
         pure
-        returns (Trade) 
+        returns (Position) 
     {
-        var (tradeTokenAddress, uints, active) = getLoanOrTradePartsFromBytes(tradeData);
+        var (tradeTokenAddress, uints, active) = getLoanOrPositionPartsFromBytes(tradeData);
         
-        return buildTradeStruct(tradeTokenAddress, uints, active);
+        return buildPositionStruct(tradeTokenAddress, uints, active);
     }
 
-    function getLoanOrTradePartsFromBytes(
+    function getLoanOrPositionPartsFromBytes(
         bytes data)
         internal
         pure
@@ -253,7 +319,7 @@ contract B0xTypes {
         return data;
     }
 
-    function getTradeBytes (
+    function getPositionBytes (
         address tradeTokenAddress,
         uint[4] uints,
         bool active)
@@ -287,67 +353,5 @@ contract B0xTypes {
         }
         
         return data;
-    }
-
-    function buildLoanOrderStruct(
-        bytes32 loanOrderHash,
-        address[6] addrs,
-        uint[8] uints) 
-        internal
-        pure
-        returns (LoanOrder) {
-
-        return LoanOrder({
-            maker: addrs[0],
-            loanTokenAddress: addrs[1],
-            interestTokenAddress: addrs[2],
-            collateralTokenAddress: addrs[3],
-            feeRecipientAddress: addrs[4],
-            oracleAddress: addrs[5],
-            loanTokenAmount: uints[0],
-            interestAmount: uints[1],
-            initialMarginAmount: uints[2],
-            maintenanceMarginAmount: uints[3],
-            lenderRelayFee: uints[4],
-            traderRelayFee: uints[5],
-            expirationUnixTimestampSec: uints[6],
-            loanOrderHash: loanOrderHash
-        });
-    }
-
-    function buildLoanStruct(
-        address addr,
-        uint[4] uints,
-        bool boolean)
-        internal
-        pure
-        returns (Loan) {
-
-        return Loan({
-            lender: addr,
-            collateralTokenAmountFilled: uints[0],
-            loanTokenAmountFilled: uints[1],
-            filledUnixTimestampSec: uints[2],
-            listPosition: uints[3],
-            active: boolean
-        });
-    }
-
-    function buildTradeStruct(
-        address addr,
-        uint[4] uints,
-        bool boolean)
-        internal
-        pure
-        returns (Trade) {
-
-        return Trade({
-            tradeTokenAddress: addr,
-            tradeTokenAmount: uints[0],
-            loanTokenUsedAmount: uints[1],
-            filledUnixTimestampSec: uints[2],
-            listPosition: uints[3],
-            active: boolean
-        });
-    }
+    }*/
 }

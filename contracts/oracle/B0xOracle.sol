@@ -15,6 +15,7 @@ import '../tokens/EIP20.sol';
 import '../interfaces/Oracle_Interface.sol';
 import '../interfaces/KyberNetwork_Interface.sol';
 
+/*
 // used for getting data from b0x
 contract B0xInterface {
     function getLoanOrderParts (
@@ -30,13 +31,14 @@ contract B0xInterface {
         view
         returns (address,uint[4],bool);
 
-    function getTradeParts (
+    function getPositionParts (
         bytes32 loanOrderHash,
         address trader)
         public
         view
         returns (address,uint[4],bool);
 }
+*/
 
 contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Debugger, B0xOwnable {
     using SafeMath for uint256;
@@ -54,7 +56,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     // Percentage of gas refund paid to non-bounty hunters
     uint public gasRewardPercent = 90;
 
-    // Percentage of gas refund paid to bounty hunters after successfully liquidating a trade
+    // Percentage of gas refund paid to bounty hunters after successfully liquidating a position
     uint public bountyRewardPercent = 110;
 
     address public VAULT_CONTRACT;
@@ -99,7 +101,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         return true;
     }
 
-    function didOpenTrade(
+    function didOpenPosition(
         bytes32 /* loanOrderHash */,
         address /* trader */,
         address /* tradeTokenAddress */,
@@ -136,9 +138,9 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         return true;
     }
 
-    function didCloseTrade(
-        bytes32 loanOrderHash,
-        address tradeCloser,
+    function didClosePosition(
+        bytes32 /* loanOrderHash */,
+        address closer,
         bool isLiquidation,
         uint gasUsed)
         public
@@ -147,23 +149,10 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         updatesEMA(tx.gasprice)
         returns (bool)
     {
-        // sends gas refunds owed from earlier transactions
-        for (uint i=0; i < gasRefunds[loanOrderHash].length; i++) {
-            GasData storage gasData = gasRefunds[loanOrderHash][i];
-            if (!gasData.isPaid) {
-                if (sendRefund(
-                    gasData.payer,
-                    gasData.gasUsed,
-                    emaValue,
-                    gasRewardPercent))               
-                        gasData.isPaid = true;
-            }
-        }
-
         // sends gas and bounty reward to bounting hunter
         if (isLiquidation) {
             calculateAndSendRefund(
-                tradeCloser,
+                closer,
                 gasUsed,
                 emaValue,
                 bountyRewardPercent);
@@ -197,13 +186,26 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     }
 
     function didCloseLoan(
-        bytes32 /* loanOrderHash */,
+        bytes32 loanOrderHash,
         uint /* gasUsed */)
         public
         onlyB0x
         updatesEMA(tx.gasprice)
         returns (bool)
     {
+        // sends gas refunds owed from earlier transactions
+        for (uint i=0; i < gasRefunds[loanOrderHash].length; i++) {
+            GasData storage gasData = gasRefunds[loanOrderHash][i];
+            if (!gasData.isPaid) {
+                if (sendRefund(
+                    gasData.payer,
+                    gasData.gasUsed,
+                    emaValue,
+                    gasRewardPercent))               
+                        gasData.isPaid = true;
+            }
+        }
+        
         return true;
     }
 
@@ -249,6 +251,19 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
             sourceTokenAmount);
     }
 
+    function transferToken(
+        address tokenAddress,
+        address to,
+        uint value)
+        public
+        onlyB0x
+        returns (bool)
+    {
+        if (!EIP20(tokenAddress).transfer(to, value))
+            revert();
+
+        return true;
+    }
 
     /*
     * Public View functions
@@ -310,7 +325,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         }
     }
 
-    // Returns a ratio of currentMarginAmount / maintenanceMarginAmount for this particular loan/trade
+    // Returns a ratio of currentMarginAmount / maintenanceMarginAmount for this particular loan/position
     function getMarginRatio(
         address exposureTokenAddress,
         address collateralTokenAddress,
@@ -394,7 +409,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     * Internal View functions
     */
 
-    function getLoanOrder (
+    /*function getLoanOrder (
         bytes32 loanOrderHash)
         internal
         view
@@ -417,17 +432,17 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         return buildLoanStruct(lender, uints, active);
     }
 
-    function getTrade (
+    function getPosition (
         bytes32 loanOrderHash,
         address trader)
         internal
         view
-        returns (Trade)
+        returns (Position)
     {
-        var (tradeTokenAddress, uints, active) = B0xInterface(b0xContractAddress).getTradeParts(loanOrderHash, trader);
+        var (tradeTokenAddress, uints, active) = B0xInterface(b0xContractAddress).getPositionParts(loanOrderHash, trader);
 
         return buildTradeStruct(tradeTokenAddress, uints, active);
-    }
+    }*/
 
     function getDecimals(EIP20 token) 
         internal

@@ -38,7 +38,7 @@ module.exports = function(deployer, network, accounts) {
 	}
 
 	return deployer.deploy(B0xVault).then(function() {
-		return deployer.deploy(B0xTo0x, B0xVault.address, config["protocol"][network]["ZeroEx"]["Exchange"], config["protocol"][network]["ZeroEx"]["ZRXToken"], config["protocol"][network]["ZeroEx"]["TokenTransferProxy"]).then(function() {
+		return deployer.deploy(B0xTo0x, config["protocol"][network]["ZeroEx"]["Exchange"], config["protocol"][network]["ZeroEx"]["ZRXToken"], config["protocol"][network]["ZeroEx"]["TokenTransferProxy"]).then(function() {
 			return deployer.deploy(OracleRegistry).then(function() {
 				return deployer.deploy(B0x, b0xTokenAddress, B0xVault.address, OracleRegistry.address, B0xTo0x.address).then(function() {
 
