@@ -1,3 +1,5 @@
+import Identicon from "identicon.js";
+
 export const TOKENS = {
   WETH: {
     label: `Ether Token`,
@@ -30,11 +32,12 @@ export const getSymbol = (tokens, address) => {
   return tokenData.symbol;
 };
 
-export const getIconURL = ({ symbol }) => {
+export const getIconURL = ({ symbol, address }) => {
   if (symbolToPNG[symbol]) {
     return `/static/tokens/${symbolToPNG[symbol]}`;
   }
-  return `TODO_URL`;
+  const data = new Identicon(address, 420).toString();
+  return `data:image/png;base64,${data}`;
 };
 
 export const getTokenInfo = address => {
