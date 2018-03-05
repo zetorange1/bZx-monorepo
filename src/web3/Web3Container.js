@@ -34,7 +34,7 @@ export default class Web3Container extends React.Component {
     }
     const zeroEx = new ZeroEx(web3.currentProvider, {
       networkId: 1,
-      tokenRegistryContractAddress: `0x0b1ba0af832d7c05fd64161e0db78e85978e8082`
+      tokenRegistryContractAddress: `0x00e67f019943ee802e33d40e9b7f5775a7d42481`
     });
     const b0x = new B0xJS(web3.currentProvider);
 
