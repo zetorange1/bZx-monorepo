@@ -1,4 +1,4 @@
-import Identicon from "identicon.js";
+import blockies from "ethereum-blockies-png";
 
 export const TOKENS = {
   WETH: {
@@ -36,8 +36,8 @@ export const getIconURL = ({ symbol, address }) => {
   if (symbolToPNG[symbol]) {
     return `/static/tokens/${symbolToPNG[symbol]}`;
   }
-  const data = new Identicon(address, 420).toString();
-  return `data:image/png;base64,${data}`;
+  const dataURL = blockies.createDataURL({ seed: address });
+  return dataURL;
 };
 
 export const getTokenInfo = address => {
