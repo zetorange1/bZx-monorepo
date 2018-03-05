@@ -33,8 +33,9 @@ export default class GenerateOrder extends React.Component {
     // expiration date/time
     expirationDate: moment(),
 
-    // oracle
-    oracleAddress: `0x0000000000000000000000000000000000000000`,
+    // oracles
+    oracles: this.props.oracles,
+    oracleAddress: this.props.oracles[0].address,
 
     // relay/exchange settings
     sendToRelayExchange: false,
@@ -129,6 +130,7 @@ export default class GenerateOrder extends React.Component {
         <OracleSection
           oracleAddress={this.state.oracleAddress}
           setOracleAddress={this.setStateForInput(`oracleAddress`)}
+          oracles={this.state.oracles}
         />
 
         <Divider />
