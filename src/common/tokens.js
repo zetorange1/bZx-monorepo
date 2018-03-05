@@ -19,16 +19,22 @@ export const TOKENS = {
   }
 };
 
+const symbolToPNG = {
+  B0X: `b0x.png`,
+  ZRX: `zero_ex.png`,
+  WETH: `ether_erc20.png`
+};
+
 export const getSymbol = (tokens, address) => {
   const tokenData = tokens.filter(t => t.address === address)[0];
   return tokenData.symbol;
 };
 
 export const getIconURL = ({ symbol }) => {
-  if (TOKENS[symbol]) {
-    return TOKENS[symbol].iconUrl;
+  if (symbolToPNG[symbol]) {
+    return `/static/tokens/${symbolToPNG[symbol]}`;
   }
-  return `https://files.coinmarketcap.com/static/img/coins/128x128/bitcoin.png`;
+  return `TODO_URL`;
 };
 
 export const getTokenInfo = address => {
