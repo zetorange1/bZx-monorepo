@@ -1,6 +1,57 @@
 
 var fs = require("fs");
 
+var jsonAPI = {
+	"ZRXToken": {
+		"address": "0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3",
+		"abi": "",
+	},
+	"EtherToken": {
+		"address": "0x48BaCB9266a570d521063EF5dD96e61686DbE788",
+		"abi": "",
+	},
+	"Account 0": {
+		"address": "0x5409ed021d9299bf6814279a6a1411a7e866a631",
+		"abi": "",
+	},
+	"Account 1": {
+		"address": "0x6ecbe1db9ef729cbe972c83fb886247691fb6beb",
+		"abi": "",
+	},
+	"Account 2": {
+		"address": "0xe36ea790bc9d7ab70c55260c66d52b1eca985f84",
+		"abi": "",
+	},
+	"Account 3": {
+		"address": "0xe834ec434daba538cd1b9fe1582052b880bd7e63",
+		"abi": "",
+	},
+	"Account 4": {
+		"address": "0x78dc5d2d739606d31509c31d654056a45185ecb6",
+		"abi": "",
+	},
+	"Account 5": {
+		"address": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+		"abi": "",
+	},
+	"Account 6": {
+		"address": "0x06cef8e666768cc40cc78cf93d9611019ddcb628",
+		"abi": "",
+	},
+	"Account 7": {
+		"address": "0x4404ac8bd8f9618d27ad2f1485aa1b2cfd82482d",
+		"abi": "",
+	},
+	"Account 8": {
+		"address": "0x7457d5e02197480db681d3fdf256c7aca21bdc12",
+		"abi": "",
+	},
+	"Account 9": {
+		"address": "0x91c987bf62d25945db517bdaa840a6c661374402",
+		"abi": "",
+	},
+};
+
 if (!fs.existsSync("./html_public_test")) {
     fs.mkdirSync("./html_public_test");
 	proceed();
@@ -40,13 +91,14 @@ var addresses = {
 	"TestToken9": "unknown",
 };
 
+
 Object.keys(addresses).forEach(function(item, index) {
 	var contents = fs.readFileSync("./build/contracts/"+item+".json");
 	var jsonContent = JSON.parse(contents);
 
 	var abi = "";
 	try {
-		abi = JSON.stringify(jsonContent["abi"])
+		abi = JSON.stringify(jsonContent["abi"], null, '\t')
 		addresses[item] = jsonContent["networks"]["50"]["address"]
 	}
 	catch(err) {
@@ -61,8 +113,20 @@ Object.keys(addresses).forEach(function(item, index) {
 				console.log(item+".json Error: "+err);
 			}
 		});
+
+		jsonAPI[item] = {
+			"address": jsonContent["networks"]["50"]["address"],
+			"abi": jsonContent["abi"]
+		};
 	}
 });
+
+fs.writeFile("./html_public_test/contracts.json", JSON.stringify(jsonAPI, null, '\t'), function(err) {
+	if(err) {
+		console.log("jsonAPI json Error: "+err);
+	}
+});
+
 
 var abiIndex = `
 
@@ -108,6 +172,8 @@ var outHTML = `
 		<font size="2" face="Courier New">
 Listening on b0x.network:8545
 
+<a href="contracts.json" target="_blank">Contracts JSON</a>
+
 Smart Contracts
 ==================
 `;
@@ -119,22 +185,22 @@ Object.keys(addresses).forEach(function(item, index) {
 
 outHTML += `
 
-ZRXToken :: 0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3
-EtherToken :: 0x48BaCB9266a570d521063EF5dD96e61686DbE788
+ZRXToken :: `+jsonAPI["ZRXToken"]["address"]+`
+EtherToken :: `+jsonAPI["EtherToken"]["address"]+`
 
 
 Available Accounts
 ==================
-(0) 0x5409ed021d9299bf6814279a6a1411a7e866a631
-(1) 0x6ecbe1db9ef729cbe972c83fb886247691fb6beb
-(2) 0xe36ea790bc9d7ab70c55260c66d52b1eca985f84
-(3) 0xe834ec434daba538cd1b9fe1582052b880bd7e63
-(4) 0x78dc5d2d739606d31509c31d654056a45185ecb6
-(5) 0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872
-(6) 0x06cef8e666768cc40cc78cf93d9611019ddcb628
-(7) 0x4404ac8bd8f9618d27ad2f1485aa1b2cfd82482d
-(8) 0x7457d5e02197480db681d3fdf256c7aca21bdc12
-(9) 0x91c987bf62d25945db517bdaa840a6c661374402
+(0) `+jsonAPI["Account 0"]["address"]+`
+(1) `+jsonAPI["Account 1"]["address"]+`
+(2) `+jsonAPI["Account 2"]["address"]+`
+(3) `+jsonAPI["Account 3"]["address"]+`
+(4) `+jsonAPI["Account 4"]["address"]+`
+(5) `+jsonAPI["Account 5"]["address"]+`
+(6) `+jsonAPI["Account 6"]["address"]+`
+(7) `+jsonAPI["Account 7"]["address"]+`
+(8) `+jsonAPI["Account 8"]["address"]+`
+(9) `+jsonAPI["Account 9"]["address"]+`
 
 Private Keys
 ==================
