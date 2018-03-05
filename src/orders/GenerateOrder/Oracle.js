@@ -4,20 +4,7 @@ import { InputLabel } from "material-ui/Input";
 import { MenuItem } from "material-ui/Menu";
 import Section, { SectionLabel } from "../../common/FormSection";
 
-export default ({
-  oracleAddress,
-  setOracleAddress,
-  oracles = [
-    {
-      name: `b0xOracle`,
-      address: `0x0000000000000000000000000000000000000000`
-    },
-    {
-      name: `otherOracle`,
-      address: `0x1111111111111111111111111111111111111111`
-    }
-  ]
-}) => (
+export default ({ oracleAddress, setOracleAddress, oracles }) => (
   <Section>
     <SectionLabel>Oracle</SectionLabel>
 

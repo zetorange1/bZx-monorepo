@@ -22,7 +22,8 @@ export default class Web3Container extends React.Component {
     zeroEx: null,
     tokens: null,
     b0x: null,
-    accounts: null
+    accounts: null,
+    oracles: null
   };
 
   async componentDidMount() {
@@ -55,17 +56,43 @@ export default class Web3Container extends React.Component {
       alert(`Please unlock your MetaMask account, and then refresh the page.`);
       return;
     }
-    this.setState({ loading: false, web3, zeroEx, tokens, b0x, accounts });
+
+    // Get oracles
+    let oracles;
+    try {
+      oracles = await b0x.getOracleList();
+    } catch (err) {
+      alert(`Cannot retrieve oracles.`);
+      console.error(err);
+    }
+
+    this.setState({
+      loading: false,
+      web3,
+      zeroEx,
+      tokens,
+      b0x,
+      accounts,
+      oracles
+    });
   }
 
   render() {
-    const { loading, web3, zeroEx, tokens, b0x, accounts } = this.state;
+    const {
+      loading,
+      web3,
+      zeroEx,
+      tokens,
+      b0x,
+      accounts,
+      oracles
+    } = this.state;
     const { render } = this.props;
     if (loading) {
       return <LoadingContainer>Loading Web3...</LoadingContainer>;
     }
     return web3 ? (
-      render({ web3, zeroEx, tokens, b0x, accounts })
+      render({ web3, zeroEx, tokens, b0x, accounts, oracles })
     ) : (
       <GetMetaMask />
     );
