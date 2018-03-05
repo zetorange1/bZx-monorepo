@@ -71,8 +71,7 @@ export default class TrackedTokenItems extends React.Component {
     const { b0x, token, accounts } = this.props;
     const allowance = await b0x.getAllowance({
       tokenAddress: token.address,
-      ownerAddress: accounts[0].toLowerCase(),
-      spenderAddress: `0x04758f1f88a9cea9bdef16d75f44c2f07a255e14`
+      ownerAddress: accounts[0].toLowerCase()
     });
     this.setState({ approved: allowance.toNumber() !== 0 });
   };
@@ -94,15 +93,18 @@ export default class TrackedTokenItems extends React.Component {
     const { b0x, token, accounts } = this.props;
     await b0x.setAllowanceUnlimited({
       tokenAddress: token.address,
-      ownerAddress: accounts[0].toLowerCase(),
-      spenderAddress: `0x04758f1f88a9cea9bdef16d75f44c2f07a255e14`
+      ownerAddress: accounts[0].toLowerCase()
     });
     this.checkAllowance();
   };
 
-  unapprove = () => {
-    // TODO - fill this out
-    alert(`unapprove token`);
+  unapprove = async () => {
+    const { b0x, token, accounts } = this.props;
+    await b0x.resetAllowance({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase()
+    });
+    this.checkAllowance();
   };
 
   renderAllowance = () => {
