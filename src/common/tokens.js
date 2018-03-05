@@ -1,3 +1,5 @@
+import blockies from "ethereum-blockies-png";
+
 export const TOKENS = {
   WETH: {
     label: `Ether Token`,
@@ -19,16 +21,23 @@ export const TOKENS = {
   }
 };
 
+const symbolToPNG = {
+  B0X: `b0x.png`,
+  ZRX: `zero_ex.png`,
+  WETH: `ether_erc20.png`
+};
+
 export const getSymbol = (tokens, address) => {
   const tokenData = tokens.filter(t => t.address === address)[0];
   return tokenData.symbol;
 };
 
-export const getIconURL = ({ symbol }) => {
-  if (TOKENS[symbol]) {
-    return TOKENS[symbol].iconUrl;
+export const getIconURL = ({ symbol, address }) => {
+  if (symbolToPNG[symbol]) {
+    return `/static/tokens/${symbolToPNG[symbol]}`;
   }
-  return `https://files.coinmarketcap.com/static/img/coins/128x128/bitcoin.png`;
+  const dataURL = blockies.createDataURL({ seed: address });
+  return dataURL;
 };
 
 export const getTokenInfo = address => {
