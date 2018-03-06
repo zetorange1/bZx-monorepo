@@ -11,7 +11,9 @@ export const setAllowance = async (
     ownerAddress,
     spenderAddress = Addresses.B0x,
     amountInBaseUnits,
-    txOpts = {}
+    txOpts = {
+      gasLimit: 100000
+    }
   }
 ) => {
   assert.isETHAddressHex("ownerAddress", ownerAddress);
