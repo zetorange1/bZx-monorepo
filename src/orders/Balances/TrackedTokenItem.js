@@ -69,10 +69,12 @@ export default class TrackedTokenItems extends React.Component {
 
   checkAllowance = async () => {
     const { b0x, token, accounts } = this.props;
+    console.log(`checking allowance`);
     const allowance = await b0x.getAllowance({
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase()
     });
+    console.log(`Allowance:`, allowance.toNumber());
     this.setState({ approved: allowance.toNumber() !== 0 });
   };
 
@@ -95,7 +97,7 @@ export default class TrackedTokenItems extends React.Component {
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase()
     });
-    this.checkAllowance();
+    setTimeout(() => this.checkAllowance(), 5000);
   };
 
   unapprove = async () => {
@@ -104,7 +106,7 @@ export default class TrackedTokenItems extends React.Component {
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase()
     });
-    this.checkAllowance();
+    setTimeout(() => this.checkAllowance(), 5000);
   };
 
   renderAllowance = () => {
