@@ -81,6 +81,95 @@ describe("initAddresses", () => {
   test("should initialize addresses from test network api", async () => {
     await B0xJS.initAddresses();
 
+    assert.isETHAddressHex(
+      "B0xJS.addresses.ZRXToken",
+      B0xJS.addresses.ZRXToken
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses.EtherToken",
+      B0xJS.addresses.EtherToken
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses['Account 0']",
+      B0xJS.addresses["Account 0"]
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses['Account 1']",
+      B0xJS.addresses["Account 1"]
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses['Account 2']",
+      B0xJS.addresses["Account 2"]
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses['Account 3']",
+      B0xJS.addresses["Account 3"]
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses['Account 4']",
+      B0xJS.addresses["Account 4"]
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses['Account 5']",
+      B0xJS.addresses["Account 5"]
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses['Account 6']",
+      B0xJS.addresses["Account 6"]
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses['Account 7']",
+      B0xJS.addresses["Account 7"]
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses['Account 8']",
+      B0xJS.addresses["Account 8"]
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses['Account 9']",
+      B0xJS.addresses["Account 9"]
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses.TestToken0",
+      B0xJS.addresses.TestToken0
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses.TestToken1",
+      B0xJS.addresses.TestToken1
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses.TestToken2",
+      B0xJS.addresses.TestToken2
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses.TestToken3",
+      B0xJS.addresses.TestToken3
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses.TestToken4",
+      B0xJS.addresses.TestToken4
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses.TestToken5",
+      B0xJS.addresses.TestToken5
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses.TestToken6",
+      B0xJS.addresses.TestToken6
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses.TestToken7",
+      B0xJS.addresses.TestToken7
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses.TestToken8",
+      B0xJS.addresses.TestToken8
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses.TestToken9",
+      B0xJS.addresses.TestToken9
+    );
+
     assert.isETHAddressHex("B0xJS.addresses.B0x", B0xJS.addresses.B0x);
     assert.isETHAddressHex(
       "B0xJS.addresses.B0xVault",
