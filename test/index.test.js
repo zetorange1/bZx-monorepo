@@ -75,3 +75,16 @@ describe("getBalance", () => {
     expect(balance).toEqual(new BigNumber("0"));
   });
 });
+
+describe("initAddresses", () => {
+  test("should initialize addresses from test network api", async () => {
+    await B0xJS.initAddresses();
+    expect(B0xJS.addresses.B0x).toBeTruthy();
+    expect(B0xJS.addresses.B0xVault).toBeTruthy();
+    expect(B0xJS.addresses.B0xTo0x).toBeTruthy();
+    expect(B0xJS.addresses.B0xOracle).toBeTruthy();
+    expect(B0xJS.addresses.B0xToken).toBeTruthy();
+    expect(B0xJS.addresses.TokenRegistry).toBeTruthy();
+    expect(B0xJS.addresses.OracleRegistry).toBeTruthy();
+  });
+});
