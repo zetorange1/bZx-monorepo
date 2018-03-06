@@ -4,7 +4,7 @@ import { BigNumber } from "@0xproject/utils";
 import * as ethUtil from "ethereumjs-util";
 import { schemas } from "./schemas/b0x_json_schemas";
 import * as utils from "./utils";
-import erc20Abi from "./contracts/ERC20.abi.json";
+import erc20Abi from "./contracts/EIP20.json";
 import * as allowance from "./allowance";
 import * as oracles from "./oracles";
 import * as Addresses from "./addresses";

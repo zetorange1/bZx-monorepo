@@ -1,7 +1,7 @@
 import { assert } from "@0xproject/assert";
 import { BigNumber } from "@0xproject/utils";
 import * as utils from "./utils";
-import erc20Abi from "./contracts/ERC20.abi.json";
+import erc20Abi from "./contracts/EIP20.json";
 import * as Addresses from "../test/constants/addresses";
 
 export const setAllowance = async (
