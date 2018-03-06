@@ -7,6 +7,7 @@ import * as utils from "./utils";
 import erc20Abi from "./contracts/ERC20.abi.json";
 import * as allowance from "./allowance";
 import * as oracles from "./oracles";
+import * as Addresses from "./addresses";
 
 let Web3 = null;
 if (typeof window !== "undefined") {
@@ -17,6 +18,10 @@ if (typeof window !== "undefined") {
 export default class B0xJS {
   static generatePseudoRandomSalt = utils.generatePseudoRandomSalt;
   static noop = utils.noop;
+  static initAddresses = async () => {
+    const addresses = await Addresses.getAddresses();
+    B0xJS.addresses = addresses;
+  };
 
   constructor(provider) {
     assert.isWeb3Provider("provider", provider);
