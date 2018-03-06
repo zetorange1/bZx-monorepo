@@ -1,4 +1,5 @@
 /* globals test, expect, describe */
+import { assert } from "@0xproject/assert";
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import sigUtil from "eth-sig-util";
@@ -79,12 +80,28 @@ describe("getBalance", () => {
 describe("initAddresses", () => {
   test("should initialize addresses from test network api", async () => {
     await B0xJS.initAddresses();
-    expect(B0xJS.addresses.B0x).toBeTruthy();
-    expect(B0xJS.addresses.B0xVault).toBeTruthy();
-    expect(B0xJS.addresses.B0xTo0x).toBeTruthy();
-    expect(B0xJS.addresses.B0xOracle).toBeTruthy();
-    expect(B0xJS.addresses.B0xToken).toBeTruthy();
-    expect(B0xJS.addresses.TokenRegistry).toBeTruthy();
-    expect(B0xJS.addresses.OracleRegistry).toBeTruthy();
+
+    assert.isETHAddressHex("B0xJS.addresses.B0x", B0xJS.addresses.B0x);
+    assert.isETHAddressHex(
+      "B0xJS.addresses.B0xVault",
+      B0xJS.addresses.B0xVault
+    );
+    assert.isETHAddressHex("B0xJS.addresses.B0xTo0x", B0xJS.addresses.B0xTo0x);
+    assert.isETHAddressHex(
+      "B0xJS.addresses.B0xOracle",
+      B0xJS.addresses.B0xOracle
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses.B0xToken",
+      B0xJS.addresses.B0xToken
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses.TokenRegistry",
+      B0xJS.addresses.TokenRegistry
+    );
+    assert.isETHAddressHex(
+      "B0xJS.addresses.OracleRegistry",
+      B0xJS.addresses.OracleRegistry
+    );
   });
 });
