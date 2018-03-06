@@ -170,7 +170,7 @@ var outHTML = `
 	<body>
 		<pre style="white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word;">
 		<font size="2" face="Courier New">
-Listening on b0x.network:8545
+Listening on https://testnet.b0x.network:443
 
 <a href="contracts.json" target="_blank">Contracts JSON</a>
 

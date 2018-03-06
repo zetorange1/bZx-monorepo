@@ -2,7 +2,7 @@
 pragma solidity ^0.4.19;
 
 import './UnlimitedAllowanceToken.sol';
-//import './fake/ERC827_AlwaysOwned.sol'; // Testing only! Please remove below and use above for production!
+//import './fake/ERC827_AlwaysOwned.sol'; // Testing only! Please remove this and use above for production!
 
 contract BaseToken is UnlimitedAllowanceToken {
     string public name;

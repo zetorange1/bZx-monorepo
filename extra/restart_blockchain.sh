@@ -2,6 +2,7 @@
 
 ## to run at boot, add this to /etc/rc.local -> cd /path/to/here && su ec2-user -c ./restart_blockchain.sh
 
+cd ../
 rimraf ./build/contracts/*
 npm run build
 npm run blockchain:stop

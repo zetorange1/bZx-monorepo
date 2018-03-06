@@ -18,9 +18,6 @@ pragma solidity ^0.4.19;
     OpenZeppelin.
 
     !!! Safeguard of user funds should be of the utmost importance !!!
-
-    Note to EthDenver hackers:
-    Mock-up/simulate the data as much as you need to!
  */
 interface Oracle_Interface {
 

@@ -190,7 +190,7 @@ contract('B0xTest', function(accounts) {
 
 
   (run["should check token registry"] ? it : it.skip)("should check token registry", async function() {
-    // return array of arrays: address[], uint[], string, uint[], string
+    // return array of arrays: address[], uint[], uint[], string
     var data = await token_registry.getTokenList.call();
     console.log(data);
     var stringPos = 0;
