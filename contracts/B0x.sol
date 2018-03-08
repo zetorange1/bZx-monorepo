@@ -182,13 +182,13 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             signature
         )) {
             //debugLog("error: invalid signiture (loanOrderHash)", loanOrder.loanOrderHash);
-            return intOrRevert(0,132);
+            return intOrRevert(0,185);
         }
 
         // makerRole (orderValues[7]) and takerRole must not be equal and must have a value <= 1
         if (orderValues[7] > 1 || takerRole > 1 || orderValues[7] == takerRole) {
             //debugLog("error: makerRole or takerRole is invalid for this order (loanOrderHash)", loanOrder.loanOrderHash);
-            return intOrRevert(0,1141);
+            return intOrRevert(0,191);
         }
 
         address lender;
@@ -208,7 +208,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         Loan storage loan = loans[loanOrder.loanOrderHash][trader];
         if (loan.loanTokenAmountFilled != 0) {
             //debugLog("error: loanOrder already filled for this trader (loanOrderHash)", loanOrder.loanOrderHash);
-            return intOrRevert(0,1141);
+            return intOrRevert(0,211);
         }        
 
         uint collateralTokenAmountFilled = _fillLoanOrder(
@@ -272,7 +272,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                 gasUsed // initial used gas, collected in modifier
             )) {
                 //debugLog("error: didTakeOrder oracle call failed! (loanOrderHash)", loanOrder.loanOrderHash);
-                return intOrRevert(0,170);
+                return intOrRevert(0,275);
             }
         }
 
@@ -290,24 +290,24 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
             //debugLog("error: invalid loan order (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,259);
+            return intOrRevert(0,293);
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
             //debugLog("error: loan order is expired (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,264);
+            return intOrRevert(0,298);
         }
 
         Loan memory loan = loans[loanOrderHash][msg.sender];
         if (loan.loanTokenAmountFilled == 0 || !loan.active) {
             //debugLog("error: loan not found or not active (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,270);
+            return intOrRevert(0,304);
         }
 
         Position storage position = positions[loanOrderHash][msg.sender];
         if (position.active) {
             //debugLog("error: a position is already opened for this loan (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,276);
+            return intOrRevert(0,310);
         }
 
         if (Oracle_Interface(loanOrder.oracleAddress).shouldLiquidate(
@@ -319,7 +319,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                 loan.collateralTokenAmountFilled,
                 loanOrder.maintenanceMarginAmount)) {
             //debugLog("error: margin too low! (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,288);
+            return intOrRevert(0,322);
         }
 
         // transfer the loanToken to the B0xTo0x contract
@@ -329,7 +329,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             B0XTO0X_CONTRACT,
             loan.loanTokenAmountFilled)) {
             //debugLog("error: unable to transfer loanToken (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,288);
+            return intOrRevert(0,332);
         }
 
         var (tradeTokenAddress, tradeTokenAmount, loanTokenUsedAmount) = B0xTo0x_Interface(B0XTO0X_CONTRACT).take0xTrade(
@@ -349,7 +349,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
 
         if (tradeTokenAmount == 0) {
             //debugLog("error: 0x trade did not fill! (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,315);
+            return intOrRevert(0,352);
         }
 
         // record position in b0x
@@ -378,7 +378,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             gasUsed // initial used gas, collected in modifier
         )) {
             //debugLog("error: didOpenPosition oracle call failed! (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,344);
+            return intOrRevert(0,381);
         }
 
         return tradeTokenAmount;
@@ -395,20 +395,20 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
             //debugLog("payInterest error: invalid loan order (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,361);
+            return intOrRevert(0,398);
         }
 
         Loan storage loan = loans[loanOrderHash][trader];
         if (loan.loanTokenAmountFilled == 0 || !loan.active) {
             //debugLog("payInterest error: loan not found or not active (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,367);
+            return intOrRevert(0,404);
         }
         
         InterestData memory interestData = getInterest(loanOrder,trader);
 
         if (interestData.interestPaidSoFar >= interestData.totalAmountAccrued) {
             //debugLog("warning: nothing left to pay for this loanOrderHash and trader (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,374);
+            return intOrRevert(0,411);
         }
 
         uint amountOwed = interestData.totalAmountAccrued.sub(interestData.interestPaidSoFar);
@@ -422,7 +422,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             amountOwed
         )) {
             //debugLog("error: unable to pay interest!! (amountOwed, trader, loanOrderHash)", amountOwed, trader, loanOrderHash);
-            return intOrRevert(0,388);
+            return intOrRevert(0,425);
         }
 
         // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
@@ -435,7 +435,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             gasUsed // initial used gas, collected in modifier
         )) {
             //debugLog("error: didPayInterest oracle call failed! (loanOrderHash)", loanOrder.loanOrderHash);
-            return intOrRevert(0,401);
+            return intOrRevert(0,438);
         }
 
         return amountOwed;
@@ -453,18 +453,18 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
             //debugLog("depositCollateral error: invalid loan order (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,419);
+            return boolOrRevert(false,456);
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
             //debugLog("error: loan order is expired (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,424);
+            return boolOrRevert(false,461);
         }
 
         Loan storage loan = loans[loanOrderHash][msg.sender];
         if (loan.loanTokenAmountFilled == 0 || !loan.active) {
             //debugLog("depositCollateral error: loan not found or not active (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,430);
+            return boolOrRevert(false,467);
         }
 
         if (! B0xVault(VAULT_CONTRACT).depositCollateral(
@@ -473,7 +473,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             depositAmount
         )) {
             //debugLog("depositCollateral error: unable to transfer enough collateralToken (depositAmount, loanOrderHash)", depositAmount, loanOrder.loanOrderHash);
-            return boolOrRevert(false,439);
+            return boolOrRevert(false,476);
         }
 
         loan.collateralTokenAmountFilled = loan.collateralTokenAmountFilled.add(depositAmount);
@@ -484,7 +484,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             gasUsed // initial used gas, collected in modifier
         )) {
             //debugLog("error: didDepositCollateral oracle call failed! (loanOrderHash)", loanOrder.loanOrderHash);
-            return boolOrRevert(false,450);
+            return boolOrRevert(false,487);
         }
 
         return true;
@@ -504,23 +504,23 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
             //debugLog("changeCollateral error: invalid loan order (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,470);
+            return boolOrRevert(false,507);
         }
 
         Loan storage loan = loans[loanOrderHash][msg.sender];
         if (loan.loanTokenAmountFilled == 0 || !loan.active) {
             //debugLog("changeCollateral error: loan not found or not active (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,486);
+            return boolOrRevert(false,513);
         }
 
         if (collateralTokenFilled == address(0) || collateralTokenFilled == loan.collateralTokenFilled) {
             //debugLog("changeCollateral error: invalid collateralTokenFilled (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,475);
+            return boolOrRevert(false,518);
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
             //debugLog("error: loan order is expired (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,480);
+            return boolOrRevert(false,523);
         }
 
         uint collateralTokenAmountFilled = getInitialMarginRequired(
@@ -532,7 +532,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         );
         if (collateralTokenAmountFilled == 0) {
             //debugLog("changeCollateral error: loanToken to collateralToken combo not supported at this time by oracle (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,498);
+            return boolOrRevert(false,535);
         }
 
         // transfer the new collateral token from the trader to the vault
@@ -542,7 +542,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             collateralTokenAmountFilled
         )) {
             //debugLog("changeCollateral error: unable to transfer enough collateralToken to vault (collateralTokenAmountFilled, loanOrderHash)", collateralTokenAmountFilled, loanOrder.loanOrderHash);
-            return boolOrRevert(false,508);
+            return boolOrRevert(false,545);
         }
 
         // transfer the old collateral token from the vault to the trader
@@ -552,7 +552,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             loan.collateralTokenAmountFilled
         )) {
             //debugLog("changeCollateral error: unable to transfer enough collateralToken to trader (collateralTokenAmountFilled, loanOrderHash)", loan.collateralTokenAmountFilled, loanOrder.loanOrderHash);
-            return boolOrRevert(false,518);
+            return boolOrRevert(false,555);
         }
 
         loan.collateralTokenFilled = collateralTokenFilled;
@@ -564,7 +564,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             gasUsed // initial used gas, collected in modifier
         )) {
             //debugLog("error: didChangeCollateral oracle call failed! (loanOrderHash)", loanOrder.loanOrderHash);
-            return boolOrRevert(false,530);
+            return boolOrRevert(false,567);
         }
 
         return true;
@@ -580,19 +580,19 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         Position storage position = positions[loanOrderHash][msg.sender];
         if (!position.active) {
             //debugLog("error: position not found or not active (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,546);
+            return boolOrRevert(false,583);
         }
 
         Loan memory loan = loans[loanOrderHash][msg.sender];
         if (loan.loanTokenAmountFilled == 0 || !loan.active) {
             //debugLog("error: loan not found or not active (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,270);
+            return boolOrRevert(false,589);
         }
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
             //debugLog("error: invalid loan order (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,552);
+            return boolOrRevert(false,595);
         }
 
         return _closePosition(
@@ -615,13 +615,13 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         Position storage position = positions[loanOrderHash][msg.sender];
         if (!position.active) {
             //debugLog("error: position not found or not active (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,546);
+            return intOrRevert(0,618);
         }
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
             //debugLog("error: invalid loan order (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,552);
+            return intOrRevert(0,624);
         }
 
         // transfer the tradeToken to the B0xTo0x contract
@@ -630,7 +630,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             B0XTO0X_CONTRACT,
             position.tradeTokenAmount)) {
             //debugLog("error: unable to transfer trade token (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,552);
+            return intOrRevert(0,633);
         }
 
         var (loanTokenAddress, loanTokenAmount, tradeTokenUsedAmount) = B0xTo0x_Interface(B0XTO0X_CONTRACT).take0xTrade(
@@ -645,7 +645,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             loanTokenAddress != loanOrder.loanTokenAddress)     // invalid trade
         {
             //debugLog("error: 0x trade did not fill! (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,315);
+            return intOrRevert(0,648);
         }
 
         TradeOn0x(
@@ -663,7 +663,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             gasUsed // initial used gas, collected in modifier
         )) {
             //debugLog("error: didClosePosition oracle call failed! (loanOrderHash)", loanOrder.loanOrderHash);
-            return intOrRevert(0,1332);
+            return intOrRevert(0,666);
         }
 
         position.active = false;
@@ -682,25 +682,25 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         // traders should call closePosition to close their own positions
         if (trader == msg.sender) {
             //debugLog("error: traders should call closePosition to close their own positions (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,574);
+            return boolOrRevert(false,685);
         }
         
         Position storage position = positions[loanOrderHash][trader];
         if (!position.active) {
             //debugLog("error: position not found or not active (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,580);
+            return boolOrRevert(false,691);
         }
 
         Loan memory loan = loans[loanOrderHash][trader];
         if (loan.loanTokenAmountFilled == 0 || !loan.active) {
             //debugLog("error: loan not found or not active (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,270);
+            return boolOrRevert(false,697);
         }
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
             //debugLog("error: invalid loan order (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,586);
+            return boolOrRevert(false,703);
         }
 
         // liqudation must succeed!
@@ -729,19 +729,19 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         Position memory position = positions[loanOrderHash][msg.sender];
         if (position.active) {
             //debugLog("error: loan cannot be closed while a position is open (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,614);
+            return boolOrRevert(false,732);
         }
 
         Loan storage loan = loans[loanOrderHash][msg.sender];
         if (loan.loanTokenAmountFilled == 0 || !loan.active) {
             //debugLog("error: loan not found or not active (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,620);
+            return boolOrRevert(false,738);
         }
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
             //debugLog("changeCollateral error: invalid loan order (loanOrderHash)", loanOrderHash);
-            return boolOrRevert(false,626);
+            return boolOrRevert(false,744);
         }
         
         return _closeLoan(
@@ -782,7 +782,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
             //debugLog("changeCollateral error: invalid loan order (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,667);
+            return intOrRevert(0,785);
         }
 
         require(loanOrder.maker == msg.sender);
@@ -1023,40 +1023,40 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
     {
         if (loanOrder.maker == msg.sender) {
             //debugLog("error: invalid taker (loanOrderHash)", loanOrder.loanOrderHash);
-            return boolOrRevert(false,1083);
+            return boolOrRevert(false,1026);
         }
         if (loanOrder.loanTokenAddress == address(0) 
             || loanOrder.interestTokenAddress == address(0)
             || collateralTokenFilled == address(0)) {
             //debugLog("error: one or more token addresses are missing from the order (loanOrderHash)", loanOrder.loanOrderHash);
-            return boolOrRevert(false,1089);
+            return boolOrRevert(false,1032);
         }
 
         if (loanTokenAmountFilled > loanOrder.loanTokenAmount) {
             //debugLog("error: loanTokenAmountFilled can't be greater than loanOrder.loanTokenAmount (loanOrderHash)", loanOrder.loanOrderHash);
-            return boolOrRevert(false,1094);
+            return boolOrRevert(false,1037);
         }
 
         if (! OracleRegistry(ORACLE_REGISTRY_CONTRACT).hasOracle(loanOrder.oracleAddress)) {
             //debugLog("error: oracle doesn't exist in OracleRegistry (loanOrderHash)", loanOrder.loanOrderHash);
-            return boolOrRevert(false,1099);
+            return boolOrRevert(false,1042);
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
             //LogError(uint8(Errors.ORDER_EXPIRED), 0, loanOrder.loanOrderHash);
             //debugLog("error: loanOrder has expired (loanOrderHash)", loanOrder.loanOrderHash);
-            return boolOrRevert(false,1105);
+            return boolOrRevert(false,1048);
         }
 
         if(! (loanOrder.maintenanceMarginAmount >= 0 && loanOrder.maintenanceMarginAmount < loanOrder.initialMarginAmount && loanOrder.initialMarginAmount <= 100)) {
             //debugLog("error: valid margin parameters (loanOrderHash)", loanOrder.loanOrderHash);
-            return boolOrRevert(false,1110);
+            return boolOrRevert(false,1053);
         }
 
         uint remainingLoanTokenAmount = loanOrder.loanTokenAmount.sub(getUnavailableLoanTokenAmount(loanOrder.loanOrderHash));
         if (remainingLoanTokenAmount < loanTokenAmountFilled) {
             //debugLog("error: not enough loanToken still available in thie order (loanOrderHash)", loanOrder.loanOrderHash);
-            return boolOrRevert(false,1116);
+            return boolOrRevert(false,1059);
         }
 
         return true;
@@ -1074,7 +1074,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
     {
         if (!_verifyLoanOrder(loanOrder, collateralTokenFilled, loanTokenAmountFilled)) {
             //debugLog("error: loanOrder did not pass validation! (loanOrderHash)", loanOrder.loanOrderHash);
-            return intOrRevert(0,1132);
+            return intOrRevert(0,1077);
         }
 
         uint collateralTokenAmountFilled = getInitialMarginRequired(
@@ -1086,7 +1086,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         );
         if (collateralTokenAmountFilled == 0) {
             //debugLog("changeCollateral error: loanToken to collateralToken combo not supported at this time by oracle (loanOrderHash)", loanOrderHash);
-            return intOrRevert(0,1153);
+            return intOrRevert(0,1089);
         }
 
         if (! B0xVault(VAULT_CONTRACT).depositCollateral(
@@ -1095,7 +1095,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             collateralTokenAmountFilled
         )) {
             //debugLog("error: unable to transfer enough collateralToken (collateralTokenAmountFilled, loanOrderHash)", collateralTokenAmountFilled, loanOrder.loanOrderHash);
-            return intOrRevert(loanTokenAmountFilled,1187);
+            return intOrRevert(loanTokenAmountFilled,1098);
         }
 
         // total interest required if loan is kept until order expiration
@@ -1107,7 +1107,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             totalInterestRequired
         )) {
             //debugLog("error: unable to transfer enough interestToken (totalInterestRequired, loanOrderHash)", totalInterestRequired, loanOrder.loanOrderHash);
-            return intOrRevert(loanTokenAmountFilled,1199);
+            return intOrRevert(loanTokenAmountFilled,1110);
         }
 
         if (! B0xVault(VAULT_CONTRACT).depositFunding(
@@ -1116,7 +1116,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             loanTokenAmountFilled
         )) {
             //debugLog("error: unable to transfer enough loanToken (loanTokenAmountFilled, loanOrderHash)", loanTokenAmountFilled, loanOrder.loanOrderHash);
-            return intOrRevert(loanTokenAmountFilled,1208);
+            return intOrRevert(loanTokenAmountFilled,1119);
         }
 
         if (loanOrder.feeRecipientAddress != address(0)) {
@@ -1130,7 +1130,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                     paidTraderFee
                 )) {
                     //debugLog("error: unable to pay traderRelayFee (loanOrderHash)", loanOrder.loanOrderHash);
-                    return intOrRevert(loanTokenAmountFilled,1222);
+                    return intOrRevert(loanTokenAmountFilled,1133);
                 }
             }
             if (loanOrder.lenderRelayFee > 0) {
@@ -1143,7 +1143,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                     paidLenderFee
                 )) {
                     //debugLog("error: unable to pay lenderRelayFee (loanOrderHash)", loanOrder.loanOrderHash);
-                    return intOrRevert(0,1235);
+                    return intOrRevert(0,1146);
                 }
             }
         }
@@ -1195,7 +1195,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             gasUsed
         )) {
             //debugLog("error: didCloseLoan oracle call failed! (loanOrderHash)", loanOrder.loanOrderHash);
-            return boolOrRevert(false,1287);
+            return boolOrRevert(false,1198);
         }
 
         return true;
@@ -1231,7 +1231,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
 
         if (loanTokenAmountReceived == 0) {
             //debugLog("error: trade failed in the Oracle! (loanOrderHash)", loanOrder.loanOrderHash);
-            return boolOrRevert(false,1322);
+            return boolOrRevert(false,1234);
         }
 
         if(! Oracle_Interface(loanOrder.oracleAddress).didClosePosition(
@@ -1241,7 +1241,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             gasUsed // initial used gas, collected in modifier
         )) {
             //debugLog("error: didClosePosition oracle call failed! (loanOrderHash)", loanOrder.loanOrderHash);
-            return boolOrRevert(false,1332);
+            return boolOrRevert(false,1244);
         }
 
         position.active = false;
