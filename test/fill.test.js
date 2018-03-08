@@ -29,7 +29,7 @@ describe("filling orders", () => {
   afterAll(async () => {
     const promises = accounts.map(account =>
       b0xJS.resetAllowance({
-        tokenAddress: Addresses.EtherToken,
+        tokenAddress: Addresses.ZRXToken,
         ownerAddress: account
       })
     );
