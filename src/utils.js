@@ -41,6 +41,7 @@ export const getLoanOrderHashHex = order => {
     bigNumberToBN(order.lenderRelayFee),
     bigNumberToBN(order.traderRelayFee),
     bigNumberToBN(order.expirationUnixTimestampSec),
+    bigNumberToBN(order.makerRole),
     bigNumberToBN(order.salt)
   ];
   const orderHashHex = Web3Utils.soliditySha3(

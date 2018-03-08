@@ -16,12 +16,13 @@ exports.loanOrderSchema = {
     lenderRelayFee: { $ref: '/Number' },
     traderRelayFee: { $ref: '/Number' },
     expirationUnixTimestampSec: { $ref: '/Number' },
+    makerRole: { $ref: '/Number' },
     salt: { $ref: '/Number' },
   },
   required: [
     'b0xAddress', 'makerAddress', 'loanTokenAddress', 'interestTokenAddress', 'collateralTokenAddress', 'feeRecipientAddress', 'oracleAddress',
     'loanTokenAmount', 'interestAmount', 'initialMarginAmount', 'maintenanceMarginAmount',
-    'lenderRelayFee', 'traderRelayFee', 'expirationUnixTimestampSec', 'salt',
+    'lenderRelayFee', 'traderRelayFee', 'expirationUnixTimestampSec', 'makerRole', 'salt',
   ],
   type: 'object',
 };
