@@ -1,4 +1,5 @@
 import * as Addresses from "../constants/addresses";
+import contracts from "../../src/contracts";
 
 const makeOrder = ({
   makerAddress = Addresses.ACCOUNTS[0],
@@ -6,7 +7,7 @@ const makeOrder = ({
   networkId = 1,
   salt = "2019429563929979"
 }) => ({
-  b0xAddress: Addresses.B0x,
+  b0xAddress: contracts.B0x.address,
   makerAddress,
   networkId,
 
@@ -15,7 +16,7 @@ const makeOrder = ({
   interestTokenAddress: Addresses.EtherToken,
   collateralTokenAddress: Addresses.EtherToken,
   feeRecipientAddress,
-  oracleAddress: Addresses.B0xOracle,
+  oracleAddress: contracts.B0xOracle.address,
 
   // token amounts
   loanTokenAmount: "40",
