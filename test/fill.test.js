@@ -1,5 +1,6 @@
 /* globals test, describe, expect, beforeAll, afterAll */
 import { pathOr } from "ramda";
+import { BigNumber } from "bignumber.js";
 import B0xJS from "../src";
 import b0xJS from "./setup";
 import * as Addresses from "./constants/addresses";
@@ -10,11 +11,19 @@ describe("filling orders", () => {
   beforeAll(async () => {
     const promises = accounts.map(account =>
       b0xJS.setAllowanceUnlimited({
-        tokenAddress: Addresses.EtherToken,
+        tokenAddress: Addresses.ZRXToken,
         ownerAddress: account
       })
     );
     await Promise.all(promises);
+
+    test("should have greater than 0 balance", async () => {
+      const balance = await b0xJS.getBalance({
+        tokenAddress: Addresses.ZRXToken,
+        ownerAddress: Addresses.ACCOUNTS[0]
+      });
+      expect(balance.gt(new BigNumber(0))).toBe(true);
+    });
   });
 
   afterAll(async () => {
