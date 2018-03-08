@@ -1,12 +1,11 @@
 import * as utils from "./utils";
-import b0xAbi from "./contracts/B0x.abi.json";
-import * as addresses from "../test/constants/addresses";
+import contracts from "./contracts";
 
 export const takeLoanOrderAsLender = async (web3, order, txOpts) => {
   const b0xContract = await utils.getContractInstance(
     web3,
-    b0xAbi,
-    addresses.B0x
+    contracts.B0x.abi,
+    contracts.B0x.address
   );
 
   const orderAddresses = [
@@ -47,8 +46,8 @@ export const takeLoanOrderAsTrader = async (
 ) => {
   const b0xContract = await utils.getContractInstance(
     web3,
-    b0xAbi,
-    addresses.B0x
+    contracts.B0x.abi,
+    contracts.B0x.address
   );
 
   const orderAddresses = [
