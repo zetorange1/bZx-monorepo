@@ -1,9 +1,10 @@
 import { map, mapAccum, pipe, zipWith } from "ramda";
 import { assert } from "@0xproject/assert";
 import * as utils from "./utils";
-import oracleRegistryAbi from "./contracts/OracleRegistry.abi.json";
-import * as addresses from "../test/constants/addresses";
-import oracleAbi from "./contracts/B0xOracle.abi.json";
+import contracts from "./contracts";
+
+const oracleAbi = contracts.B0xOracle.abi;
+const oracleRegistryAbi = contracts.OracleRegistry.abi;
 
 export const getOracleListRaw = async web3 => {
   const ORACLE_ADDRESSES = 0;
@@ -13,7 +14,7 @@ export const getOracleListRaw = async web3 => {
   const oracleRegistryContract = await utils.getContractInstance(
     web3,
     oracleRegistryAbi,
-    addresses.OracleRegistry
+    contracts.OracleRegistry.address
   );
 
   const res = await oracleRegistryContract.methods.getOracleList().call();

@@ -3,11 +3,12 @@ import { constants } from "0x.js/lib/src/utils/constants";
 import b0xJS from "./setup";
 import * as oracles from "../src/oracles";
 import * as addresses from "./constants/addresses";
+import contracts from "../src/contracts";
 
 describe("oracles", () => {
   const testOracleNames = ["b0xOracle", "coolOracle", "anotherOracle"];
   const testOracleAddresses = [
-    addresses.B0xOracle,
+    contracts.B0xOracle.address,
     constants.NULL_ADDRESS,
     constants.NULL_ADDRESS
   ];
@@ -23,7 +24,7 @@ describe("oracles", () => {
 
   test("formatOracleList", () => {
     const expected = [
-      { name: "b0xOracle", address: addresses.B0xOracle },
+      { name: "b0xOracle", address: contracts.B0xOracle.address },
       { name: "coolOracle", address: constants.NULL_ADDRESS },
       { name: "anotherOracle", address: constants.NULL_ADDRESS }
     ];
@@ -38,7 +39,9 @@ describe("oracles", () => {
 
   describe("getOracleList", async () => {
     test("should return formatted list of oracles", async () => {
-      const expected = [{ name: "b0xOracle", address: addresses.B0xOracle }];
+      const expected = [
+        { name: "b0xOracle", address: contracts.B0xOracle.address }
+      ];
       const oracleList = await b0xJS.getOracleList();
       expect(oracleList).toEqual(expected);
     });
@@ -46,7 +49,7 @@ describe("oracles", () => {
 
   describe("isTradeSupported", async () => {
     test("should return true for pair of supported tokens", async () => {
-      const oracleAddress = addresses.B0xOracle;
+      const oracleAddress = contracts.B0xOracle.address;
       const isSupported = await b0xJS.isTradeSupported({
         sourceTokenAddress: addresses.ZRXToken,
         destTokenAddress: addresses.EtherToken,

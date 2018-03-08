@@ -3,12 +3,15 @@ import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import sigUtil from "eth-sig-util";
 import B0xJS from "../src";
-import erc20Abi from "../src/contracts/ERC20.abi.json";
+import EIP20 from "../src/contracts/EIP20.json";
 import * as utils from "../src/utils";
 import * as Errors from "../src/constants/errors";
 import * as Addresses from "./constants/addresses";
 import b0xJS from "./setup";
 import makeOrder from "./utils/order";
+import contracts from "../src/contracts";
+
+const erc20Abi = EIP20.abi;
 
 describe("signOrderHashAsync", () => {
   test("should sign properly", async () => {
@@ -50,11 +53,11 @@ describe("getContractInstance", () => {
     const tokenContract = await utils.getContractInstance(
       b0xJS.web3,
       erc20Abi,
-      Addresses.TEST_TOKENS[0]
+      contracts.TestToken0.address
     );
     expect(tokenContract).toBeInstanceOf(b0xJS.web3.eth.Contract);
     expect(tokenContract.options.address.toLowerCase()).toBe(
-      Addresses.TEST_TOKENS[0].toLowerCase()
+      contracts.TestToken0.address.toLowerCase()
     );
   });
 
@@ -68,8 +71,8 @@ describe("getContractInstance", () => {
 describe("getBalance", () => {
   test("should return token balance", async () => {
     const balance = await b0xJS.getBalance({
-      tokenAddress: Addresses.TEST_TOKENS[0],
-      ownerAddress: Addresses.ACCOUNTS[10]
+      tokenAddress: contracts.TestToken0.address,
+      ownerAddress: Addresses.ACCOUNTS[9]
     });
 
     expect(balance).toEqual(new BigNumber("0"));
