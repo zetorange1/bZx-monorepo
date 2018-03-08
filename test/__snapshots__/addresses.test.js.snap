@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`addresses should return an object of addresses 1`] = `
+Object {
+  "B0x": "0x9f1b58239c5569497e810b36d188032c7dec1b6e",
+  "B0xOracle": "0x83f4568de2c667111e609f03de1c3b62a62d4bde",
+  "B0xTo0x": "0x3d0b23ec08430c8588d131d6ff71f8969c0a8c7e",
+  "B0xToken": "0x5200aa8124076140f4dea2fccbfe06f59767440a",
+  "B0xVault": "0xc4e5a9f86a14d0c32ce7ccff907a22115f60f150",
+  "EIP20": "",
+  "OracleRegistry": "0xb0d783731da88cab19951e2cab3c8c541445ff42",
+  "TestToken0": "0x801386dbe93db04c524365a51ca0e78438e0ebec",
+  "TestToken1": "0xed2ad4a7d55a27556d9c0f0f0f36d4484d4aadaf",
+  "TestToken2": "0x49e46d0aa4a951f1f2cced10ea6f87e5eb3dbd79",
+  "TestToken3": "0x7154c2ee4c1b7b4f701435f66947d1445757b20c",
+  "TestToken4": "0x44d58ee463e9002a543ada6506c3784bfc46b454",
+  "TestToken5": "0x1752a81a0d3db3758cd56d31f0f8dbb1cd1c5c32",
+  "TestToken6": "0x2f6da09ccec5caea21976872b9aa9a713e646f5c",
+  "TestToken7": "0x6c0777088ebd5108af2dd42fa75de8900f45f7d7",
+  "TestToken8": "0x33cf10c892f7412c3abf159b125d81378e182cf2",
+  "TestToken9": "0x9ed37f60de56745e3c579b6ab1889704863099a0",
+  "TokenRegistry": "0x675cd9e6a869fffea24fe2fa8e900241191e7854",
+}
+`;

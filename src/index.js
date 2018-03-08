@@ -18,10 +18,7 @@ if (typeof window !== "undefined") {
 export default class B0xJS {
   static generatePseudoRandomSalt = utils.generatePseudoRandomSalt;
   static noop = utils.noop;
-  static initAddresses = async () => {
-    const addresses = await Addresses.getAddresses();
-    B0xJS.addresses = addresses;
-  };
+  static addresses = Addresses.getAddresses();
 
   constructor(provider) {
     assert.isWeb3Provider("provider", provider);
