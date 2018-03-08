@@ -3,12 +3,13 @@ import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import { pathOr } from "ramda";
 import * as Addresses from "./constants/addresses";
+import contracts from "../src/contracts";
 import b0xJS from "./setup";
 
 jest.setTimeout(10000);
 
 describe("allowance", () => {
-  const tokenAddress = Addresses.TEST_TOKENS[0];
+  const tokenAddress = contracts.TestToken0.address;
   const ownerAddress = Addresses.ACCOUNTS[0];
 
   const resetAllowance = async () => {
@@ -36,7 +37,7 @@ describe("allowance", () => {
 
       const value = pathOr(
         null,
-        ["events", "Approval", "returnValues", "_value"],
+        ["events", "Approval", "returnValues", "value"],
         receipt
       );
 

@@ -1,7 +1,5 @@
-import fetch from "node-fetch";
 import { map, pipe } from "ramda";
-
-const API = "https://testnet.b0x.network/info/contracts.json";
+import contracts from "./contracts";
 
 const formatData = raw =>
   pipe(
@@ -9,8 +7,4 @@ const formatData = raw =>
     map(address => address.toLowerCase())
   )(raw);
 
-export const getAddresses = async () => {
-  const res = await fetch(API);
-  const data = await res.json();
-  return formatData(data);
-};
+export const getAddresses = () => formatData(contracts);
