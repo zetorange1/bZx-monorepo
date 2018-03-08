@@ -9,6 +9,7 @@ import * as Errors from "../src/constants/errors";
 import * as Addresses from "./constants/addresses";
 import b0xJS from "./setup";
 import order from "./constants/order";
+import contracts from "../src/contracts";
 
 const erc20Abi = EIP20.abi;
 
@@ -52,11 +53,11 @@ describe("getContractInstance", () => {
     const tokenContract = await utils.getContractInstance(
       b0xJS.web3,
       erc20Abi,
-      Addresses.TEST_TOKENS[0]
+      contracts.TestToken0.address
     );
     expect(tokenContract).toBeInstanceOf(b0xJS.web3.eth.Contract);
     expect(tokenContract.options.address.toLowerCase()).toBe(
-      Addresses.TEST_TOKENS[0].toLowerCase()
+      contracts.TestToken0.address.toLowerCase()
     );
   });
 
@@ -70,8 +71,8 @@ describe("getContractInstance", () => {
 describe("getBalance", () => {
   test("should return token balance", async () => {
     const balance = await b0xJS.getBalance({
-      tokenAddress: Addresses.TEST_TOKENS[0],
-      ownerAddress: Addresses.ACCOUNTS[10]
+      tokenAddress: contracts.TestToken0.address,
+      ownerAddress: Addresses.ACCOUNTS[9]
     });
 
     expect(balance).toEqual(new BigNumber("0"));

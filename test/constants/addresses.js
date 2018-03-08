@@ -1,15 +1,3 @@
-export const TEST_TOKENS = [
-  "0xbe302898f3491d83e6ce6e36af5a12a8a0930365",
-  "0x40d0e4e99eba1e6f7c04fd8bb98bac3d08e61076",
-  "0x918f7f2233516c5cd4662d90f810109b44175e8f",
-  "0x30b6b569af55db8b0810ce814b9c8e7f29f2fb21",
-  "0x28e3b5856224fe188e9401ca81114275cbbba830",
-  "0xf999cd84e7d5d33609811f163078914e719d6326",
-  "0xa23f2c75a46a5b5e6e9855099686c64cb57bf60a",
-  "0x2b7eaf00d96c89a610a002db04b2693daf3e2004",
-  "0x1ecb5186e75d589574d49fe7a54e33ae1fbcf232",
-  "0xc15f25b2a451443d2eb5c2390049bea17f2a4204"
-];
 export const ACCOUNTS = [
   "0x5409ed021d9299bf6814279a6a1411a7e866a631",
   "0x6ecbe1db9ef729cbe972c83fb886247691fb6beb",
@@ -23,9 +11,6 @@ export const ACCOUNTS = [
   "0x91c987bf62d25945db517bdaa840a6c661374402",
   "0x6a7d785ffa5d340b5c468e0725e1df8f41b768a8"
 ];
-export const B0x = "0x3bec121cfee97b2df24ef7ac5ff2c3f715b87d88";
-export const OracleRegistry = "0xc27905d254d860e96328749db9356f411166a9e1";
-export const B0xOracle = "0xa0d11c6af833bef087fed29172a5f3c3c560b927";
 
 export const ZRXToken = "0x25b8fe1de9daf8ba351890744ff28cf7dfa8f5e3";
 export const EtherToken = "0x48bacb9266a570d521063ef5dd96e61686dbe788";

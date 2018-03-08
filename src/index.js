@@ -4,10 +4,12 @@ import { BigNumber } from "@0xproject/utils";
 import * as ethUtil from "ethereumjs-util";
 import { schemas } from "./schemas/b0x_json_schemas";
 import * as utils from "./utils";
-import erc20Abi from "./contracts/EIP20.json";
+import contracts from "./contracts";
 import * as allowance from "./allowance";
 import * as oracles from "./oracles";
 import * as Addresses from "./addresses";
+
+const erc20Abi = contracts.EIP20.abi;
 
 let Web3 = null;
 if (typeof window !== "undefined") {
