@@ -47,7 +47,7 @@ export const getLoanOrderHashHex = order => {
   const orderHashHex = Web3Utils.soliditySha3(
     { t: "address", v: order.b0xAddress },
     { t: "address[6]", v: orderAddrs },
-    { t: "uint256[8]", v: orderUints }
+    { t: "uint256[9]", v: orderUints }
   );
   return orderHashHex;
 };
