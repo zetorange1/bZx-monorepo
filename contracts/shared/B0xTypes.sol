@@ -22,6 +22,7 @@ contract B0xTypes {
 
     struct Loan {
         address lender;
+        address collateralTokenFilled;
         uint collateralTokenAmountFilled;
         uint loanTokenAmountFilled;
         uint filledUnixTimestampSec;
@@ -63,10 +64,22 @@ contract B0xTypes {
         bytes32 loanOrderHash
     );
 
-    event LogLoanOrPosition (
-        address lender_OR_tradeToken,
-        uint collateralTokenAmountFilled_OR_tradeTokenAmount,
-        uint loanTokenAmountFilled_OR_loanTokenUsedAmount,
+    event LogLoan (
+        address trader,
+        address lender,
+        address collateralTokenFilled,
+        uint collateralTokenAmountFilled,
+        uint loanTokenAmountFilled,
+        uint filledUnixTimestampSec,
+        uint listPosition,
+        bool active,
+        bytes32 loanOrderHash
+    );
+
+    event LogPosition (
+        address tradeToken,
+        uint tradeTokenAmount,
+        uint loanTokenUsedAmount,
         uint filledUnixTimestampSec,
         uint listPosition,
         bool active
@@ -88,7 +101,7 @@ contract B0xTypes {
     function buildLoanOrderStruct(
         bytes32 loanOrderHash,
         address[6] addrs,
-        uint[8] uints) 
+        uint[9] uints) 
         internal
         pure
         returns (LoanOrder) {
@@ -112,7 +125,7 @@ contract B0xTypes {
     }
 
     function buildLoanStruct(
-        address addr,
+        address[2] addrs,
         uint[4] uints,
         bool boolean)
         internal
@@ -120,7 +133,8 @@ contract B0xTypes {
         returns (Loan) {
 
         return Loan({
-            lender: addr,
+            lender: addrs[0],
+            collateralTokenFilled: addrs[1],
             collateralTokenAmountFilled: uints[0],
             loanTokenAmountFilled: uints[1],
             filledUnixTimestampSec: uints[2],
@@ -170,7 +184,7 @@ contract B0xTypes {
         }
 
         // handles uint
-        uint[8] memory uints;
+        uint[9] memory uints;
         for(i = addrs.length+1; i <= addrs.length+uints.length; i++) {
             uint tmpUint;
             assembly {
@@ -248,7 +262,7 @@ contract B0xTypes {
     function getLoanOrderBytes (
         bytes32 loanOrderHash,
         address[6] addrs,
-        uint[8] uints)
+        uint[9] uints)
         public
         pure
         returns (bytes)

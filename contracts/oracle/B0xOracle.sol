@@ -22,7 +22,7 @@ contract B0xInterface {
         bytes32 loanOrderHash)
         public
         view
-        returns (address[6],uint[8]);
+        returns (address[6],uint[9]);
 
     function getLoanParts (
         bytes32 loanOrderHash,

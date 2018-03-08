@@ -280,6 +280,7 @@ contract('B0xTest', function(accounts) {
       "lenderRelayFee": web3.toWei(0.001, "ether").toString(),
       "traderRelayFee": web3.toWei(0.0015, "ether").toString(),
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
+      "makerRole": "0", // 0=lender, 1=trader
       "salt": B0xJS.generatePseudoRandomSalt().toString()
     };
     console.log(OrderParams_b0x);
@@ -302,6 +303,7 @@ contract('B0xTest', function(accounts) {
         new BN(OrderParams_b0x["lenderRelayFee"]),
         new BN(OrderParams_b0x["traderRelayFee"]),
         new BN(OrderParams_b0x["expirationUnixTimestampSec"]),
+        new BN(OrderParams_b0x["makerRole"]),
         new BN(OrderParams_b0x["salt"])
     ]).then(function(orderHash) {
       console.log("sol hash: "+orderHash);
@@ -363,6 +365,7 @@ contract('B0xTest', function(accounts) {
         new BN(OrderParams_b0x["lenderRelayFee"]),
         new BN(OrderParams_b0x["traderRelayFee"]),
         new BN(OrderParams_b0x["expirationUnixTimestampSec"]),
+        new BN(OrderParams_b0x["makerRole"]),
         new BN(OrderParams_b0x["salt"])
       ],
       collateralToken1.address,
