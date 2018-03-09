@@ -43,11 +43,12 @@ export default class OrderInfo extends React.Component {
 
   render() {
     const { order, tokens } = this.props;
+    const role = order.makerRole === `0` ? `lender` : `trader`;
     return (
       <div>
         <Tokens
           tokens={tokens}
-          role={order.makerRole === `0` ? `lender` : `trader`}
+          role={role}
           loanTokenAddress={order.loanTokenAddress}
           loanTokenAmount={order.loanTokenAmount}
           interestTokenAddress={order.interestTokenAddress}
@@ -63,7 +64,7 @@ export default class OrderInfo extends React.Component {
         <Expiration
           expirationUnixTimestampSec={order.expirationUnixTimestampSec}
         />
-        {order.role === `lender` && (
+        {role === `lender` && (
           <Inputs
             tokens={tokens}
             fillOrderAmount={this.state.fillOrderAmount}
