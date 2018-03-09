@@ -47,7 +47,7 @@ export default class OrderInfo extends React.Component {
       <div>
         <Tokens
           tokens={tokens}
-          role={order.role}
+          role={order.makerRole === `0` ? `lender` : `trader`}
           loanTokenAddress={order.loanTokenAddress}
           loanTokenAmount={order.loanTokenAmount}
           interestTokenAddress={order.interestTokenAddress}
