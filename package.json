@@ -37,7 +37,7 @@
     "material-ui": "^1.0.0-beta.33",
     "material-ui-pickers": "^1.0.0-beta.15.1",
     "moment": "^2.20.1",
-    "next": "^4.2.3",
+    "next": "^5.0.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-jss": "^8.2.0",
