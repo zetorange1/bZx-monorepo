@@ -62,7 +62,11 @@ export default class GenerateOrder extends React.Component {
   /* Submission handler */
 
   handleSubmit = async () => {
-    const isValid = validateInputs(this.state);
+    const isValid = await validateInputs(
+      this.props.b0x,
+      this.props.accounts,
+      this.state
+    );
     this.setState({ orderHash: null, finalOrder: null });
     if (isValid) {
       const orderObject = await compileObject(
@@ -79,12 +83,9 @@ export default class GenerateOrder extends React.Component {
       );
       const finalOrder = {
         ...saltedOrderObj,
-        role: this.state.role,
         signature
       };
       this.setState({ orderHash, finalOrder });
-    } else {
-      alert(verificationResult.errorMsg); // eslint-disable-line no-undef
     }
   };
 

@@ -4,8 +4,9 @@ import getNetworkId from "../../web3/getNetworkId";
 export const compileObject = async (web3, state, account) => {
   const { sendToRelayExchange } = state;
   return {
-    b0xAddress: `0x0000000000000000000000000000000000000000`,
+    b0xAddress: B0xJS.addresses.B0x,
     makerAddress: account.toLowerCase(),
+    makerRole: (state.role === `lender` ? 0 : 1).toString(),
     networkId: await getNetworkId(web3),
 
     // addresses
