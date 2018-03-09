@@ -6,6 +6,7 @@ export const compileObject = async (web3, state, account) => {
   return {
     b0xAddress: `0x0000000000000000000000000000000000000000`,
     makerAddress: account.toLowerCase(),
+    makerRole: state.role === `lender` ? 0 : 1,
     networkId: await getNetworkId(web3),
 
     // addresses

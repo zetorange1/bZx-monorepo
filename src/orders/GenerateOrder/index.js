@@ -79,7 +79,6 @@ export default class GenerateOrder extends React.Component {
       );
       const finalOrder = {
         ...saltedOrderObj,
-        role: this.state.role,
         signature
       };
       this.setState({ orderHash, finalOrder });
