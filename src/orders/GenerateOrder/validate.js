@@ -10,13 +10,15 @@ const validRange = (min, max, val) => {
 const checkCoinsAdded = ({
   loanTokenAddress,
   interestTokenAddress,
-  collateralTokenAddress
+  collateralTokenAddress,
+  role
 }) => {
   const trackedTokens = getTrackedTokens();
   const a = trackedTokens.includes(loanTokenAddress);
   const b = trackedTokens.includes(interestTokenAddress);
   const c = trackedTokens.includes(collateralTokenAddress);
-  if (a && b && c) {
+  const cPrime = role === `lender` ? true : c;
+  if (a && b && cPrime) {
     return true;
   }
   alert(
