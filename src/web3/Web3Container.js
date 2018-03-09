@@ -3,6 +3,7 @@ import { ZeroEx } from "0x.js";
 import B0xJS from "b0x.js"; // eslint-disable-line
 import getWeb3 from "./getWeb3";
 import GetMetaMask from "./GetMetaMask";
+import getNetworkId from "./getNetworkId";
 
 const LoadingContainer = styled.div`
   background: white;
@@ -32,11 +33,11 @@ export default class Web3Container extends React.Component {
       this.setState({ loading: false });
       return;
     }
-    const zeroEx = new ZeroEx(web3.currentProvider, {
-      networkId: 1,
-      tokenRegistryContractAddress: `0x00e67f019943ee802e33d40e9b7f5775a7d42481`
-    });
     const b0x = new B0xJS(web3.currentProvider);
+    const zeroEx = new ZeroEx(web3.currentProvider, {
+      networkId: await getNetworkId(web3),
+      tokenRegistryContractAddress: B0xJS.addresses.TokenRegistry
+    });
 
     // Get tokens from the token registry
     let tokens;
