@@ -27,14 +27,33 @@ const checkCoinsAdded = ({
   return false;
 };
 
-// TODO - check if the coins have been approved
-// eslint-disable-next-line
-const checkCoinsApproved = () => {
-  console.log(`TODO - check that these coins have been approved`);
-  return true;
+const checkAllowance = async (b0x, accounts, tokenAddress) => {
+  const allowance = await b0x.getAllowance({
+    tokenAddress,
+    ownerAddress: accounts[0].toLowerCase()
+  });
+  return allowance.toNumber() !== 0;
 };
 
-export default state => {
+const checkCoinsApproved = async (b0x, accounts, state) => {
+  const {
+    loanTokenAddress,
+    interestTokenAddress,
+    collateralTokenAddress,
+    role
+  } = state;
+  if (role === `lender`) {
+    const a = await checkAllowance(b0x, accounts, loanTokenAddress);
+    const b = await checkAllowance(b0x, accounts, interestTokenAddress);
+    return a && b;
+  }
+  const a = await checkAllowance(b0x, accounts, loanTokenAddress);
+  const b = await checkAllowance(b0x, accounts, interestTokenAddress);
+  const c = await checkAllowance(b0x, accounts, collateralTokenAddress);
+  return a && b && c;
+};
+
+export default async (b0x, accounts, state) => {
   const { initialMarginAmount, liquidationMarginAmount } = state;
   try {
     validRange(10, 100, initialMarginAmount);
@@ -55,6 +74,12 @@ export default state => {
     return false;
   }
 
-  // const coinsApproved = checkCoinsApproved(state);
+  const coinsApproved = await checkCoinsApproved(b0x, accounts, state);
+  if (!coinsApproved) {
+    alert(
+      `Some of your selected tokens have not been approved. Please go to the Balances tab and approve these tokens.`
+    );
+    return false;
+  }
   return true;
 };
