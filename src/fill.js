@@ -68,6 +68,7 @@ export const takeLoanOrderAsTrader = async (
     order.lenderRelayFee,
     order.traderRelayFee,
     order.expirationUnixTimestampSec,
+    order.makerRole,
     order.salt
   ];
 
