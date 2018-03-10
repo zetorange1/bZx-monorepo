@@ -1,6 +1,6 @@
-/* globals test, describe, expect, beforeAll, afterAll */
+/* globals test, describe, expect, beforeAll */
 import { pathOr } from "ramda";
-import { BigNumber } from "bignumber.js";
+// import { BigNumber } from "bignumber.js";
 import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
 import B0xJS from "../src";
 import b0xJS from "./setup";
@@ -9,34 +9,7 @@ import makeOrder from "./utils/order";
 import * as orderConstants from "../src/constants/order";
 
 describe("filling orders", () => {
-  const accounts = [Addresses.ACCOUNTS[0], Addresses.ACCOUNTS[1]];
-  beforeAll(async () => {
-    const promises = accounts.map(account =>
-      b0xJS.setAllowanceUnlimited({
-        tokenAddress: Addresses.ZRXToken,
-        ownerAddress: account
-      })
-    );
-    await Promise.all(promises);
-  });
-
-  afterAll(async () => {
-    const promises = accounts.map(account =>
-      b0xJS.resetAllowance({
-        tokenAddress: Addresses.ZRXToken,
-        ownerAddress: account
-      })
-    );
-    await Promise.all(promises);
-  });
-
-  test("should have greater than 0 balance", async () => {
-    const balance = await b0xJS.getBalance({
-      tokenAddress: Addresses.ZRXToken,
-      ownerAddress: Addresses.ACCOUNTS[0]
-    });
-    expect(balance.gt(new BigNumber(0))).toBe(true);
-  });
+  beforeAll(async () => {});
 
   describe("takeLoanOrderAsLender", async () => {
     test.skip("should return total amount of loanToken borrowed", async () => {
