@@ -72,12 +72,12 @@ export const setupLoanTokens = ({
     loanTokens[0].methods.transfer(lenders[0], transferAmt).send(ownerTxOpts),
     loanTokens[1].methods.transfer(lenders[1], transferAmt).send(ownerTxOpts),
     b0xJS.setAllowanceUnlimited({
-      tokenAddress: loanTokens[0].options.address,
+      tokenAddress: loanTokens[0].options.address.toLowerCase(),
       ownerAddress: lenders[0],
       spenderAddress: Contracts.B0xVault.address
     }),
     b0xJS.setAllowanceUnlimited({
-      tokenAddress: loanTokens[1].options.address,
+      tokenAddress: loanTokens[1].options.address.toLowerCase(),
       ownerAddress: lenders[1],
       spenderAddress: Contracts.B0xVault.address
     })
@@ -100,12 +100,12 @@ export const setupCollateralTokens = ({
       .transfer(traders[1], transferAmt)
       .send(ownerTxOpts),
     b0xJS.setAllowanceUnlimited({
-      tokenAddress: collateralTokens[0].options.address,
+      tokenAddress: collateralTokens[0].options.address.toLowerCase(),
       ownerAddress: traders[0],
       spenderAddress: Contracts.B0xVault.address
     }),
     b0xJS.setAllowanceUnlimited({
-      tokenAddress: collateralTokens[1].options.address,
+      tokenAddress: collateralTokens[1].options.address.toLowerCase(),
       ownerAddress: traders[1],
       spenderAddress: Contracts.B0xVault.address
     })
@@ -128,12 +128,12 @@ export const setupInterestTokens = ({
       .transfer(traders[1], transferAmt)
       .send(ownerTxOpts),
     b0xJS.setAllowanceUnlimited({
-      tokenAddress: interestTokens[0].options.address,
+      tokenAddress: interestTokens[0].options.address.toLowerCase(),
       ownerAddress: traders[0],
       spenderAddress: Contracts.B0xVault.address
     }),
     b0xJS.setAllowanceUnlimited({
-      tokenAddress: interestTokens[1].options.address,
+      tokenAddress: interestTokens[1].options.address.toLowerCase(),
       ownerAddress: traders[1],
       spenderAddress: Contracts.B0xVault.address
     })

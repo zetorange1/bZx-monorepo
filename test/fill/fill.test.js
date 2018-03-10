@@ -23,7 +23,7 @@ describe("filling orders", () => {
     const traders = [Addresses.ACCOUNTS[2], Addresses.ACCOUNTS[4]];
 
     const ownerTxOpts = { from: owner };
-    const transferAmt = b0xJS.web3.toWei(1000000, "ether");
+    const transferAmt = "1000000";
 
     await utils.setupB0xToken({
       b0xToken,
