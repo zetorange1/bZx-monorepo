@@ -59,8 +59,6 @@ describe("filling orders", () => {
         txOpts
       );
 
-      console.log(JSON.stringify(receipt));
-
       const loanTokenAmountFilled = pathOr(
         null,
         [
@@ -76,26 +74,31 @@ describe("filling orders", () => {
   });
 
   describe("takeLoanOrderAsTrader", async () => {
-    test.skip("should return total amount of loanToken borrowed", async () => {
+    test("should return total amount of loanToken borrowed", async () => {
+      const makerAddress = Addresses.ACCOUNTS[0];
+      const takerAddress = Addresses.ACCOUNTS[1];
+      const txOpts = { from: takerAddress, gas: 1000000 };
+
       const order = makeOrder({
-        makerAddress: Addresses.ACCOUNTS[0],
+        makerRole: orderConstants.MAKER_ROLE.LENDER,
+        makerAddress,
         salt: B0xJS.generatePseudoRandomSalt()
       });
 
       const orderHashHex = B0xJS.getLoanOrderHashHex(order);
       const signature = await b0xJS.signOrderHashAsync(
-        orderHashHex
-        // signerAddress
+        orderHashHex,
+        makerAddress
       );
 
-      const collateralTokenAddress = Addresses.EtherToken;
+      const collateralTokenAddress = Addresses.ZRXToken;
       const loanTokenAmountFilled = "20";
 
       const receipt = await b0xJS.takeLoanOrderAsTrader(
         { ...order, signature },
         collateralTokenAddress,
-        loanTokenAmountFilled
-        // txOpts
+        loanTokenAmountFilled,
+        txOpts
       );
 
       const loanTokenAmountFilledReturn = pathOr(
