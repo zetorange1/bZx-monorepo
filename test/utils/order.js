@@ -3,7 +3,7 @@ import * as Addresses from "../constants/addresses";
 import contracts from "../../src/contracts";
 import * as constants from "../../src/constants/order";
 
-const makeOrder = ({
+export default ({
   makerRole = constants.MAKER_ROLE.LENDER,
   makerAddress = Addresses.ACCOUNTS[0],
   networkId = 1,
@@ -11,7 +11,7 @@ const makeOrder = ({
   feeRecipientAddress = constantsZX.NULL_ADDRESS,
   salt = "2019429563929979",
   loanTokenAmount = "40"
-}) => ({
+} = {}) => ({
   makerRole,
   b0xAddress: contracts.B0x.address,
   makerAddress,
@@ -40,5 +40,3 @@ const makeOrder = ({
   expirationUnixTimestampSec: "2519061340",
   salt
 });
-
-export default (props = {}) => makeOrder(props);
