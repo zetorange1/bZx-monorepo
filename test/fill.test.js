@@ -79,14 +79,13 @@ describe("filling orders", () => {
       const makerAddress = Addresses.ACCOUNTS[0];
       const takerAddress = Addresses.ACCOUNTS[1];
       const txOpts = { from: takerAddress, gas: 1000000 };
-
+      const collateralTokenAddress = constantsZX.NULL_ADDRESS; // Addresses.ZRXToken;
       const order = makeOrder({
         makerRole: orderConstants.MAKER_ROLE.LENDER,
         makerAddress,
-        salt: B0xJS.generatePseudoRandomSalt()
+        salt: B0xJS.generatePseudoRandomSalt(),
+        collateralTokenAddress
       });
-
-      console.log(order);
 
       const orderHashHex = B0xJS.getLoanOrderHashHex(order);
       const signature = await b0xJS.signOrderHashAsync(
@@ -94,7 +93,6 @@ describe("filling orders", () => {
         makerAddress
       );
 
-      const collateralTokenAddress = constantsZX.NULL_ADDRESS; // Addresses.ZRXToken;
       const loanTokenAmountFilled = "20";
 
       const receipt = await b0xJS.takeLoanOrderAsTrader(
