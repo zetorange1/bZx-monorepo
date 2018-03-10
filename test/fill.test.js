@@ -1,6 +1,7 @@
 /* globals test, describe, expect, beforeAll, afterAll */
 import { pathOr } from "ramda";
 import { BigNumber } from "bignumber.js";
+import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
 import B0xJS from "../src";
 import b0xJS from "./setup";
 import * as Addresses from "./constants/addresses";
@@ -38,7 +39,7 @@ describe("filling orders", () => {
   });
 
   describe("takeLoanOrderAsLender", async () => {
-    test("should return total amount of loanToken borrowed", async () => {
+    test.skip("should return total amount of loanToken borrowed", async () => {
       const makerAddress = Addresses.ACCOUNTS[1];
       const takerAddress = Addresses.ACCOUNTS[0];
       const txOpts = { from: takerAddress, gas: 1000000 };
@@ -85,13 +86,15 @@ describe("filling orders", () => {
         salt: B0xJS.generatePseudoRandomSalt()
       });
 
+      console.log(order);
+
       const orderHashHex = B0xJS.getLoanOrderHashHex(order);
       const signature = await b0xJS.signOrderHashAsync(
         orderHashHex,
         makerAddress
       );
 
-      const collateralTokenAddress = Addresses.ZRXToken;
+      const collateralTokenAddress = constantsZX.NULL_ADDRESS; // Addresses.ZRXToken;
       const loanTokenAmountFilled = "20";
 
       const receipt = await b0xJS.takeLoanOrderAsTrader(
@@ -111,6 +114,8 @@ describe("filling orders", () => {
         ],
         receipt
       );
+      console.log(JSON.stringify(receipt, null, 2));
+
       expect(loanTokenAmountFilledReturn).toBe("0");
     });
   });

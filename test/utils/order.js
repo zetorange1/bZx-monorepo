@@ -33,8 +33,8 @@ export default ({
   maintenanceMarginAmount: "25",
 
   // relay fees
-  lenderRelayFee: "1",
-  traderRelayFee: "1",
+  lenderRelayFee: "100",
+  traderRelayFee: "100",
 
   // expiration date/time
   expirationUnixTimestampSec: "2519061340",
