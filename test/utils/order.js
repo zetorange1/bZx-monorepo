@@ -7,10 +7,10 @@ export default ({
   makerRole = constants.MAKER_ROLE.LENDER,
   makerAddress = Addresses.ACCOUNTS[0],
   networkId = 1,
-  collateralTokenAddress = constantsZX.NULL_ADDRESS,
+  collateralTokenAddress = Addresses.ZRXToken,
   feeRecipientAddress = constantsZX.NULL_ADDRESS,
   salt = "2019429563929979",
-  loanTokenAmount = "40"
+  loanTokenAmount = "40000"
 } = {}) => ({
   makerRole,
   b0xAddress: contracts.B0x.address,
@@ -26,15 +26,15 @@ export default ({
 
   // token amounts
   loanTokenAmount,
-  interestAmount: "41",
+  interestAmount: "2",
 
   // margin amounts
-  initialMarginAmount: "40",
-  maintenanceMarginAmount: "20",
+  initialMarginAmount: "50",
+  maintenanceMarginAmount: "25",
 
   // relay fees
-  lenderRelayFee: "0",
-  traderRelayFee: "0",
+  lenderRelayFee: "1",
+  traderRelayFee: "1",
 
   // expiration date/time
   expirationUnixTimestampSec: "2519061340",
