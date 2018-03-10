@@ -25,6 +25,7 @@ export const takeLoanOrderAsLender = async (web3, order, txOpts) => {
     order.lenderRelayFee,
     order.traderRelayFee,
     order.expirationUnixTimestampSec,
+    order.makerRole,
     order.salt
   ];
 
