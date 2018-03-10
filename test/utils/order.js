@@ -1,25 +1,31 @@
+import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
 import * as Addresses from "../constants/addresses";
 import contracts from "../../src/contracts";
+import * as constants from "../../src/constants/order";
 
 const makeOrder = ({
+  makerRole = constants.MAKER_ROLE.LENDER,
   makerAddress = Addresses.ACCOUNTS[0],
-  feeRecipientAddress = Addresses.ACCOUNTS[0],
   networkId = 1,
-  salt = "2019429563929979"
+  collateralTokenAddress = constantsZX.NULL_ADDRESS,
+  feeRecipientAddress = constantsZX.NULL_ADDRESS,
+  salt = "2019429563929979",
+  loanTokenAmount = "40"
 }) => ({
+  makerRole,
   b0xAddress: contracts.B0x.address,
   makerAddress,
   networkId,
 
   // addresses
-  loanTokenAddress: Addresses.EtherToken,
-  interestTokenAddress: Addresses.EtherToken,
-  collateralTokenAddress: Addresses.EtherToken,
+  loanTokenAddress: Addresses.ZRXToken,
+  interestTokenAddress: Addresses.ZRXToken,
+  collateralTokenAddress,
   feeRecipientAddress,
   oracleAddress: contracts.B0xOracle.address,
 
   // token amounts
-  loanTokenAmount: "40",
+  loanTokenAmount,
   interestAmount: "41",
 
   // margin amounts
