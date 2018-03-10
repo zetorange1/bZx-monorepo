@@ -4,39 +4,52 @@ import contracts from "../../src/contracts";
 import * as constants from "../../src/constants/order";
 
 export default ({
-  makerRole = constants.MAKER_ROLE.LENDER,
   makerAddress = Addresses.ACCOUNTS[0],
-  networkId = 1,
+
+  loanTokenAddress = Addresses.ZRXToken,
+  interestTokenAddress = Addresses.ZRXToken,
   collateralTokenAddress = Addresses.ZRXToken,
   feeRecipientAddress = constantsZX.NULL_ADDRESS,
-  salt = "2019429563929979",
-  loanTokenAmount = "40000"
+
+  loanTokenAmount = "40000",
+  interestAmount = "2",
+
+  initialMarginAmount = "50",
+  maintenanceMarginAmount = "25",
+
+  lenderRelayFee = "10000",
+  traderRelayFee = "10000",
+
+  expirationUnixTimestampSec = "2519061340",
+
+  makerRole = constants.MAKER_ROLE.LENDER,
+  salt = "2019429563929979"
 } = {}) => ({
-  makerRole,
   b0xAddress: contracts.B0x.address,
   makerAddress,
-  networkId,
 
   // addresses
-  loanTokenAddress: Addresses.ZRXToken,
-  interestTokenAddress: Addresses.ZRXToken,
+  loanTokenAddress,
+  interestTokenAddress,
   collateralTokenAddress,
   feeRecipientAddress,
   oracleAddress: contracts.B0xOracle.address,
 
   // token amounts
   loanTokenAmount,
-  interestAmount: "2",
+  interestAmount,
 
   // margin amounts
-  initialMarginAmount: "50",
-  maintenanceMarginAmount: "25",
+  initialMarginAmount,
+  maintenanceMarginAmount,
 
   // relay fees
-  lenderRelayFee: "10000",
-  traderRelayFee: "10000",
+  lenderRelayFee,
+  traderRelayFee,
 
   // expiration date/time
-  expirationUnixTimestampSec: "2519061340",
+  expirationUnixTimestampSec,
+
+  makerRole,
   salt
 });
