@@ -41,12 +41,13 @@ export const getLoanOrderHashHex = order => {
     bigNumberToBN(order.lenderRelayFee),
     bigNumberToBN(order.traderRelayFee),
     bigNumberToBN(order.expirationUnixTimestampSec),
+    bigNumberToBN(order.makerRole),
     bigNumberToBN(order.salt)
   ];
   const orderHashHex = Web3Utils.soliditySha3(
     { t: "address", v: order.b0xAddress },
     { t: "address[6]", v: orderAddrs },
-    { t: "uint256[8]", v: orderUints }
+    { t: "uint256[9]", v: orderUints }
   );
   return orderHashHex;
 };
