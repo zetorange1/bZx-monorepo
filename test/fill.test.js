@@ -17,14 +17,6 @@ describe("filling orders", () => {
       })
     );
     await Promise.all(promises);
-
-    test("should have greater than 0 balance", async () => {
-      const balance = await b0xJS.getBalance({
-        tokenAddress: Addresses.ZRXToken,
-        ownerAddress: Addresses.ACCOUNTS[0]
-      });
-      expect(balance.gt(new BigNumber(0))).toBe(true);
-    });
   });
 
   afterAll(async () => {
@@ -35,6 +27,14 @@ describe("filling orders", () => {
       })
     );
     await Promise.all(promises);
+  });
+
+  test("should have greater than 0 balance", async () => {
+    const balance = await b0xJS.getBalance({
+      tokenAddress: Addresses.ZRXToken,
+      ownerAddress: Addresses.ACCOUNTS[0]
+    });
+    expect(balance.gt(new BigNumber(0))).toBe(true);
   });
 
   describe("takeLoanOrderAsLender", async () => {
