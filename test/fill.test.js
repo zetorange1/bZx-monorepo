@@ -44,7 +44,7 @@ describe("filling orders", () => {
       const txOpts = { from: takerAddress, gas: 1000000 };
 
       const order = makeOrder({
-        makerRole: orderConstants.MAKER_ROLE.LENDER,
+        makerRole: orderConstants.MAKER_ROLE.TRADER,
         makerAddress,
         salt: B0xJS.generatePseudoRandomSalt()
       });
