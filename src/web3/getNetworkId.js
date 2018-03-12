@@ -1,4 +1,7 @@
 export default web3 =>
-  new Promise(resolve => {
-    web3.eth.net.getId((_, b) => resolve(b));
+  new Promise((resolve, reject) => {
+    web3.eth.net
+      .getId()
+      .then(resolve)
+      .catch(reject);
   });
