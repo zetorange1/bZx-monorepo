@@ -1,16 +1,24 @@
 
 
-// Toggle the tests to run
+// set configuration and tests to run
 var run = {
+  "debug mode": true,
+  
   "should check token registry": false,
   "should check oracle registry": false,
-  "should verify approval": true,
-  "should generate loanOrderHash (as lender)": true,
-  "should sign and verify orderHash": true,
-  "should take sample loan order as trader": true,
-  "should generate 0x order": true,
-  "should sign and verify 0x order": true,
-  "should open 0x position with borrowed funds": true,
+  "should verify approval": false,
+
+  "should generate loanOrderHash (as lender1)": true,
+  "should sign and verify orderHash (as lender1)": true,
+  "should take sample loan order (as trader1)": true,
+
+  "should generate loanOrderHash (as trader2)": true,
+  "should sign and verify orderHash (as trader2)": true,
+  "should take sample loan order (as lender2)": true,
+
+  "should generate 0x order": false,
+  "should sign and verify 0x order": false,
+  "should open 0x position with borrowed funds": false,
   /*"should test LoanOrder bytes": false,
   "should test Loan bytes": false,
   "should test Position bytes": false,*/
@@ -66,10 +74,16 @@ contract('B0xTest', function(accounts) {
   var zrx_token;
   var exchange_0x;
 
-  var OrderParams_b0x;
-  var OrderHash_b0x;
-  var ECSignature_raw;
-  var ECSignature;
+  var OrderParams_b0x_1;
+  var OrderHash_b0x_1;
+  var ECSignature_raw_1;
+  var ECSignature_1;
+
+  var OrderParams_b0x_2;
+  var OrderHash_b0x_2;
+  var ECSignature_raw_2;
+  var ECSignature_2;
+
 
   var OrderParams_0x;
   var OrderHash_0x;
@@ -169,6 +183,10 @@ contract('B0xTest', function(accounts) {
     ]);
   });
 
+  before('set b0x debug mode', async function () {
+    await b0x.setDebugMode(run["debug mode"], {from: owner_account});
+  });
+
   before('watch events', function () {
     gasRefundEvent = oracle.MarginCalc();
     logErrorEvent0x = b0xTo0x.LogErrorUint();
@@ -263,9 +281,10 @@ contract('B0xTest', function(accounts) {
     assert.isOk(true);
   });
 
-  (run["should generate loanOrderHash (as lender)"] ? it : it.skip)("should generate loanOrderHash (as lender)", function(done) {
 
-    OrderParams_b0x = {
+  (run["should generate loanOrderHash (as lender1)"] ? it : it.skip)("should generate loanOrderHash (as lender1)", function(done) {
+
+    OrderParams_b0x_1 = {
       "b0xAddress": b0x.address,
       "makerAddress": lender1_account, // lender
       "loanTokenAddress": loanToken1.address,
@@ -283,31 +302,31 @@ contract('B0xTest', function(accounts) {
       "makerRole": "0", // 0=lender, 1=trader
       "salt": B0xJS.generatePseudoRandomSalt().toString()
     };
-    console.log(OrderParams_b0x);
-    let expectedHash = B0xJS.getLoanOrderHashHex(OrderParams_b0x);
+    console.log(OrderParams_b0x_1);
+    let expectedHash = B0xJS.getLoanOrderHashHex(OrderParams_b0x_1);
     console.log("js hash: "+expectedHash);
     b0x.getLoanOrderHash.call(
       [
-        OrderParams_b0x["makerAddress"],
-        OrderParams_b0x["loanTokenAddress"],
-        OrderParams_b0x["interestTokenAddress"],
-        OrderParams_b0x["collateralTokenAddress"],
-        OrderParams_b0x["feeRecipientAddress"],
-        OrderParams_b0x["oracleAddress"]
+        OrderParams_b0x_1["makerAddress"],
+        OrderParams_b0x_1["loanTokenAddress"],
+        OrderParams_b0x_1["interestTokenAddress"],
+        OrderParams_b0x_1["collateralTokenAddress"],
+        OrderParams_b0x_1["feeRecipientAddress"],
+        OrderParams_b0x_1["oracleAddress"]
       ],
       [
-        new BN(OrderParams_b0x["loanTokenAmount"]),
-        new BN(OrderParams_b0x["interestAmount"]),
-        new BN(OrderParams_b0x["initialMarginAmount"]),
-        new BN(OrderParams_b0x["maintenanceMarginAmount"]),
-        new BN(OrderParams_b0x["lenderRelayFee"]),
-        new BN(OrderParams_b0x["traderRelayFee"]),
-        new BN(OrderParams_b0x["expirationUnixTimestampSec"]),
-        new BN(OrderParams_b0x["makerRole"]),
-        new BN(OrderParams_b0x["salt"])
+        new BN(OrderParams_b0x_1["loanTokenAmount"]),
+        new BN(OrderParams_b0x_1["interestAmount"]),
+        new BN(OrderParams_b0x_1["initialMarginAmount"]),
+        new BN(OrderParams_b0x_1["maintenanceMarginAmount"]),
+        new BN(OrderParams_b0x_1["lenderRelayFee"]),
+        new BN(OrderParams_b0x_1["traderRelayFee"]),
+        new BN(OrderParams_b0x_1["expirationUnixTimestampSec"]),
+        new BN(OrderParams_b0x_1["makerRole"]),
+        new BN(OrderParams_b0x_1["salt"])
     ]).then(function(orderHash) {
       console.log("sol hash: "+orderHash);
-      OrderHash_b0x = orderHash;
+      OrderHash_b0x_1 = orderHash;
       assert.equal(orderHash, expectedHash, "expectedHash should equal returned loanOrderHash");
       done();
     }, function(error) {
@@ -317,26 +336,26 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  (run["should sign and verify orderHash"] ? it : it.skip)("should sign and verify orderHash", function(done) {
+  (run["should sign and verify orderHash (as lender1)"] ? it : it.skip)("should sign and verify orderHash (as lender1)", function(done) {
     const nodeVersion = web3.version.node;
     const isParityNode = _.includes(nodeVersion, 'Parity');
     const isTestRpc = _.includes(nodeVersion, 'TestRPC');
 
     if (isParityNode || isTestRpc) {
       // Parity and TestRpc nodes add the personalMessage prefix itself
-      ECSignature_raw = web3.eth.sign(lender1_account, OrderHash_b0x);
+      ECSignature_raw_1 = web3.eth.sign(lender1_account, OrderHash_b0x_1);
     }
     else {
-      var orderHashBuff = ethUtil.toBuffer(OrderHash_b0x);
+      var orderHashBuff = ethUtil.toBuffer(OrderHash_b0x_1);
       var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
       var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
-      ECSignature_raw = web3.eth.sign(lender1_account, msgHashHex);
+      ECSignature_raw_1 = web3.eth.sign(lender1_account, msgHashHex);
     }
 
     b0x.isValidSignature.call(
       lender1_account, // lender
-      OrderHash_b0x,
-      ECSignature_raw
+      OrderHash_b0x_1,
+      ECSignature_raw_1
     ).then(function(result) {
       assert.isOk(result);
       done();
@@ -347,36 +366,36 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  (run["should take sample loan order as trader"] ? it : it.skip)("should take sample loan order as trader", function(done) {
+  (run["should take sample loan order (as trader1)"] ? it : it.skip)("should take sample loan order (as trader1)", function(done) {
     b0x.takeLoanOrderAsTrader(
       [
-        OrderParams_b0x["makerAddress"],
-        OrderParams_b0x["loanTokenAddress"],
-        OrderParams_b0x["interestTokenAddress"],
-        OrderParams_b0x["collateralTokenAddress"],
-        OrderParams_b0x["feeRecipientAddress"],
-        OrderParams_b0x["oracleAddress"]
+        OrderParams_b0x_1["makerAddress"],
+        OrderParams_b0x_1["loanTokenAddress"],
+        OrderParams_b0x_1["interestTokenAddress"],
+        OrderParams_b0x_1["collateralTokenAddress"],
+        OrderParams_b0x_1["feeRecipientAddress"],
+        OrderParams_b0x_1["oracleAddress"]
       ],
       [
-        new BN(OrderParams_b0x["loanTokenAmount"]),
-        new BN(OrderParams_b0x["interestAmount"]),
-        new BN(OrderParams_b0x["initialMarginAmount"]),
-        new BN(OrderParams_b0x["maintenanceMarginAmount"]),
-        new BN(OrderParams_b0x["lenderRelayFee"]),
-        new BN(OrderParams_b0x["traderRelayFee"]),
-        new BN(OrderParams_b0x["expirationUnixTimestampSec"]),
-        new BN(OrderParams_b0x["makerRole"]),
-        new BN(OrderParams_b0x["salt"])
+        new BN(OrderParams_b0x_1["loanTokenAmount"]),
+        new BN(OrderParams_b0x_1["interestAmount"]),
+        new BN(OrderParams_b0x_1["initialMarginAmount"]),
+        new BN(OrderParams_b0x_1["maintenanceMarginAmount"]),
+        new BN(OrderParams_b0x_1["lenderRelayFee"]),
+        new BN(OrderParams_b0x_1["traderRelayFee"]),
+        new BN(OrderParams_b0x_1["expirationUnixTimestampSec"]),
+        new BN(OrderParams_b0x_1["makerRole"]),
+        new BN(OrderParams_b0x_1["salt"])
       ],
       collateralToken1.address,
       web3.toWei(12.3, "ether"),
-      ECSignature_raw,
+      ECSignature_raw_1,
       {from: trader1_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
         //console.log(tx);
         tx_obj = tx;
         return gasRefundEvent.get();
       }).then(function(caughtEvents) {
-        console.log(txPrettyPrint(tx_obj,"should take sample loan order as trader",caughtEvents));
+        console.log(txPrettyPrint(tx_obj,"should take sample loan order (as trader1)",caughtEvents));
         assert.isOk(tx_obj);
         done();
       }, function(error) {
@@ -385,6 +404,131 @@ contract('B0xTest', function(accounts) {
         done();
       });
   });
+
+
+  (run["should generate loanOrderHash (as trader2)"] ? it : it.skip)("should generate loanOrderHash (as trader2)", function(done) {
+
+    OrderParams_b0x_2 = {
+      "b0xAddress": b0x.address,
+      "makerAddress": trader2_account, // lender
+      "loanTokenAddress": loanToken2.address,
+      "interestTokenAddress": interestToken2.address,
+      "collateralTokenAddress": collateralToken2.address,
+      "feeRecipientAddress": NULL_ADDRESS,
+      "oracleAddress": oracle.address,
+      "loanTokenAmount": web3.toWei(100000, "ether").toString(),
+      "interestAmount": web3.toWei(2, "ether").toString(), // 2 token units per day
+      "initialMarginAmount": "50", // 50%
+      "maintenanceMarginAmount": "25", // 25%
+      "lenderRelayFee": web3.toWei(0.001, "ether").toString(),
+      "traderRelayFee": web3.toWei(0.0015, "ether").toString(),
+      "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
+      "makerRole": "1", // 0=lender, 1=trader
+      "salt": B0xJS.generatePseudoRandomSalt().toString()
+    };
+    console.log(OrderParams_b0x_2);
+    let expectedHash = B0xJS.getLoanOrderHashHex(OrderParams_b0x_2);
+    console.log("js hash: "+expectedHash);
+    b0x.getLoanOrderHash.call(
+      [
+        OrderParams_b0x_2["makerAddress"],
+        OrderParams_b0x_2["loanTokenAddress"],
+        OrderParams_b0x_2["interestTokenAddress"],
+        OrderParams_b0x_2["collateralTokenAddress"],
+        OrderParams_b0x_2["feeRecipientAddress"],
+        OrderParams_b0x_2["oracleAddress"]
+      ],
+      [
+        new BN(OrderParams_b0x_2["loanTokenAmount"]),
+        new BN(OrderParams_b0x_2["interestAmount"]),
+        new BN(OrderParams_b0x_2["initialMarginAmount"]),
+        new BN(OrderParams_b0x_2["maintenanceMarginAmount"]),
+        new BN(OrderParams_b0x_2["lenderRelayFee"]),
+        new BN(OrderParams_b0x_2["traderRelayFee"]),
+        new BN(OrderParams_b0x_2["expirationUnixTimestampSec"]),
+        new BN(OrderParams_b0x_2["makerRole"]),
+        new BN(OrderParams_b0x_2["salt"])
+    ]).then(function(orderHash) {
+      console.log("sol hash: "+orderHash);
+      OrderHash_b0x_2 = orderHash;
+      assert.equal(orderHash, expectedHash, "expectedHash should equal returned loanOrderHash");
+      done();
+    }, function(error) {
+      console.error(error);
+      assert.equal(true, false);
+      done();
+    });
+  });
+
+  (run["should sign and verify orderHash (as trader2)"] ? it : it.skip)("should sign and verify orderHash (as trader2)", function(done) {
+    const nodeVersion = web3.version.node;
+    const isParityNode = _.includes(nodeVersion, 'Parity');
+    const isTestRpc = _.includes(nodeVersion, 'TestRPC');
+
+    if (isParityNode || isTestRpc) {
+      // Parity and TestRpc nodes add the personalMessage prefix itself
+      ECSignature_raw_2 = web3.eth.sign(trader2_account, OrderHash_b0x_2);
+    }
+    else {
+      var orderHashBuff = ethUtil.toBuffer(OrderHash_b0x_2);
+      var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
+      var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
+      ECSignature_raw_2 = web3.eth.sign(trader2_account, msgHashHex);
+    }
+
+    b0x.isValidSignature.call(
+      trader2_account, // lender
+      OrderHash_b0x_2,
+      ECSignature_raw_2
+    ).then(function(result) {
+      assert.isOk(result);
+      done();
+    }, function(error) {
+      console.error(error);
+      assert.isOk(false);
+      done();
+    });
+  });
+
+  (run["should take sample loan order (as lender2)"] ? it : it.skip)("should take sample loan order (as lender2)", function(done) {
+    b0x.takeLoanOrderAsLender(
+      [
+        OrderParams_b0x_2["makerAddress"],
+        OrderParams_b0x_2["loanTokenAddress"],
+        OrderParams_b0x_2["interestTokenAddress"],
+        OrderParams_b0x_2["collateralTokenAddress"],
+        OrderParams_b0x_2["feeRecipientAddress"],
+        OrderParams_b0x_2["oracleAddress"]
+      ],
+      [
+        new BN(OrderParams_b0x_2["loanTokenAmount"]),
+        new BN(OrderParams_b0x_2["interestAmount"]),
+        new BN(OrderParams_b0x_2["initialMarginAmount"]),
+        new BN(OrderParams_b0x_2["maintenanceMarginAmount"]),
+        new BN(OrderParams_b0x_2["lenderRelayFee"]),
+        new BN(OrderParams_b0x_2["traderRelayFee"]),
+        new BN(OrderParams_b0x_2["expirationUnixTimestampSec"]),
+        new BN(OrderParams_b0x_2["makerRole"]),
+        new BN(OrderParams_b0x_2["salt"])
+      ],
+      ECSignature_raw_2,
+      {from: lender2_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
+        //console.log(tx);
+        tx_obj = tx;
+        return gasRefundEvent.get();
+      }).then(function(caughtEvents) {
+        console.log(txPrettyPrint(tx_obj,"should take sample loan order (as lender2)",caughtEvents));
+        assert.isOk(tx_obj);
+        done();
+      }, function(error) {
+        console.error("error: "+error);
+        assert.isOk(false);
+        done();
+      });
+  });
+
+
+
 
   (run["should generate 0x order"] ? it : it.skip)("should generate 0x order", async function() {
     OrderParams_0x = {
@@ -473,7 +617,7 @@ contract('B0xTest', function(accounts) {
 
     var textEvents;
     b0x.openPositionWith0x(
-      OrderHash_b0x,
+      OrderHash_b0x_1,
       sample_order_tightlypacked + ECSignature_0x_raw.substring(2),
       {from: trader1_account}).then(function(tx) {
         //console.log(tx);
@@ -493,7 +637,7 @@ contract('B0xTest', function(accounts) {
 
   /*(run["should test LoanOrder bytes"] ? it : it.skip)("should test LoanOrder bytes", function(done) {
     b0x.getLoanOrderByteData.call(
-      OrderHash_b0x,
+      OrderHash_b0x_1,
       {from: trader1_account, gas: 5000000, gasPrice: web3.toWei(8, "gwei")}).then(function(bts) {
         console.log(bts);
         b0x.getLoanOrderLog(
@@ -516,7 +660,7 @@ contract('B0xTest', function(accounts) {
 
   (run["should test Loan bytes"] ? it : it.skip)("should test Loan bytes", function(done) {
     b0x.getLoanByteData.call(
-      OrderHash_b0x,
+      OrderHash_b0x_1,
       trader1_account,
       {from: trader1_account, gas: 5000000, gasPrice: web3.toWei(20, "gwei")}).then(function(bts) {
         console.log(bts);
@@ -540,7 +684,7 @@ contract('B0xTest', function(accounts) {
 
   (run["should test Position bytes"] ? it : it.skip)("should test Position bytes", function(done) {
     b0x.getPositionByteData.call(
-      OrderHash_b0x,
+      OrderHash_b0x_1,
       trader1_account,
       {from: trader1_account, gas: 5000000, gasPrice: web3.toWei(8, "gwei")}).then(function(bts) {
         console.log(bts);

@@ -1,56 +1,8 @@
 
 var fs = require("fs");
 
-var jsonAPI = {
-	"ZRXToken": {
-		"address": "0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3",
-		"abi": "",
-	},
-	"EtherToken": {
-		"address": "0x48BaCB9266a570d521063EF5dD96e61686DbE788",
-		"abi": "",
-	},
-	"Account 0": {
-		"address": "0x5409ed021d9299bf6814279a6a1411a7e866a631",
-		"abi": "",
-	},
-	"Account 1": {
-		"address": "0x6ecbe1db9ef729cbe972c83fb886247691fb6beb",
-		"abi": "",
-	},
-	"Account 2": {
-		"address": "0xe36ea790bc9d7ab70c55260c66d52b1eca985f84",
-		"abi": "",
-	},
-	"Account 3": {
-		"address": "0xe834ec434daba538cd1b9fe1582052b880bd7e63",
-		"abi": "",
-	},
-	"Account 4": {
-		"address": "0x78dc5d2d739606d31509c31d654056a45185ecb6",
-		"abi": "",
-	},
-	"Account 5": {
-		"address": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
-		"abi": "",
-	},
-	"Account 6": {
-		"address": "0x06cef8e666768cc40cc78cf93d9611019ddcb628",
-		"abi": "",
-	},
-	"Account 7": {
-		"address": "0x4404ac8bd8f9618d27ad2f1485aa1b2cfd82482d",
-		"abi": "",
-	},
-	"Account 8": {
-		"address": "0x7457d5e02197480db681d3fdf256c7aca21bdc12",
-		"abi": "",
-	},
-	"Account 9": {
-		"address": "0x91c987bf62d25945db517bdaa840a6c661374402",
-		"abi": "",
-	},
-};
+const Web3 = require('web3');
+let web3 = new Web3();
 
 if (!fs.existsSync("./html_public_test")) {
     fs.mkdirSync("./html_public_test");
@@ -67,6 +19,9 @@ if (!fs.existsSync("./html_public_test")) {
 function proceed() {
 if (!fs.existsSync("./html_public_test/abi")) {
     fs.mkdirSync("./html_public_test/abi");
+}
+if (!fs.existsSync("./html_public_test/deployed")) {
+    fs.mkdirSync("./html_public_test/deployed");
 }
 
 
@@ -89,6 +44,8 @@ var addresses = {
 	"TestToken7": "unknown",
 	"TestToken8": "unknown",
 	"TestToken9": "unknown",
+
+	"EIP20": "unknown",
 };
 
 
@@ -98,8 +55,22 @@ Object.keys(addresses).forEach(function(item, index) {
 
 	var abi = "";
 	try {
-		abi = JSON.stringify(jsonContent["abi"], null, '\t')
-		addresses[item] = jsonContent["networks"]["50"]["address"]
+		addresses[item] = "";
+		if (item != "EIP20") {
+			addresses[item] = web3.toChecksumAddress(jsonContent["networks"]["50"]["address"]);
+		}
+		var jsonAsset = {
+			"address": addresses[item],
+			"abi": jsonContent["abi"]
+		};
+		
+		abi = JSON.stringify(jsonContent["abi"], null, '\t');
+
+		fs.writeFileSync("./html_public_test/deployed/"+item+".json", JSON.stringify(jsonAsset), function(err) {
+			if(err) {
+				console.log(item+".json Error: "+err);
+			}
+		});
 	}
 	catch(err) {
 		console.log(item+".json Error: "+err);
@@ -113,17 +84,6 @@ Object.keys(addresses).forEach(function(item, index) {
 				console.log(item+".json Error: "+err);
 			}
 		});
-
-		jsonAPI[item] = {
-			"address": jsonContent["networks"]["50"]["address"],
-			"abi": jsonContent["abi"]
-		};
-	}
-});
-
-fs.writeFile("./html_public_test/contracts.json", JSON.stringify(jsonAPI, null, '\t'), function(err) {
-	if(err) {
-		console.log("jsonAPI json Error: "+err);
 	}
 });
 
@@ -170,55 +130,24 @@ var outHTML = `
 	<body>
 		<pre style="white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word;">
 		<font size="2" face="Courier New">
-Listening on https://testnet.b0x.network:443
-
-<a href="contracts.json" target="_blank">Contracts JSON</a>
 
 Smart Contracts
 ==================
 `;
 
 Object.keys(addresses).forEach(function(item, index) {
+	if (addresses[item] == "") {
+		addresses[item] = "[abi only]";
+	}
 	outHTML += item+` :: `+addresses[item]+` <a href="abi/`+item+`.abi.json" target="_blank">abi</a>
 `;
 });
 
 outHTML += `
 
-ZRXToken :: `+jsonAPI["ZRXToken"]["address"]+`
-EtherToken :: `+jsonAPI["EtherToken"]["address"]+`
+ZRXToken :: 0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3
+EtherToken :: 0x48BaCB9266a570d521063EF5dD96e61686DbE788
 
-
-Available Accounts
-==================
-(0) `+jsonAPI["Account 0"]["address"]+`
-(1) `+jsonAPI["Account 1"]["address"]+`
-(2) `+jsonAPI["Account 2"]["address"]+`
-(3) `+jsonAPI["Account 3"]["address"]+`
-(4) `+jsonAPI["Account 4"]["address"]+`
-(5) `+jsonAPI["Account 5"]["address"]+`
-(6) `+jsonAPI["Account 6"]["address"]+`
-(7) `+jsonAPI["Account 7"]["address"]+`
-(8) `+jsonAPI["Account 8"]["address"]+`
-(9) `+jsonAPI["Account 9"]["address"]+`
-
-Private Keys
-==================
-(0) f2f48ee19680706196e2e339e5da3491186e0c4c5030670656b0e0164837257d
-(1) 5d862464fe9303452126c8bc94274b8c5f9874cbd219789b3eb2128075a76f72
-(2) df02719c4df8b9b8ac7f551fcb5d9ef48fa27eef7a66453879f4d8fdc6e78fb1
-(3) ff12e391b79415e941a94de3bf3a9aee577aed0731e297d5cfa0b8a1e02fa1d0
-(4) 752dd9cf65e68cfaba7d60225cbdbc1f4729dd5e5507def72815ed0d8abc6249
-(5) efb595a0178eb79a8df953f87c5148402a224cdf725e88c0146727c6aceadccd
-(6) 83c6d2cc5ddcf9711a6d59b417dc20eb48afd58d45290099e5987e3d768f328f
-(7) bb2d3f7c9583780a7d3904a2f55d792707c345f21de1bacb2d389934d82796b2
-(8) b2fd4d29c1390b71b8795ae81196bfd60293adf99f9d32a0aff06288fcdac55f
-(9) 23cb7121166b9a2f93ae0b7c05bde02eae50d64449b2cbb42bc84e9d38d6cc89
-
-HD Wallet
-==================
-Mnemonic:      concert load couple harbor equip island argue ramp clarify fence smart topic
-Base HD Path:  m/44'/60'/0'/0/{account_index}
 		</font>
 		</pre>
 	</body>
@@ -229,5 +158,24 @@ fs.writeFile("./html_public_test/index.html", outHTML, function(err) {
 		console.err("Error: "+err);
 	}
 });
+
+fs.writeFileSync("./html_public_test/deployed/ZRXToken.json", JSON.stringify({
+	"address": "0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3",
+	"abi": ""
+}), function(err) {
+	if(err) {
+		console.log(item+".json Error: "+err);
+	}
+});
+
+fs.writeFileSync("./html_public_test/deployed/EtherToken.json", JSON.stringify({
+	"address": "0x48BaCB9266a570d521063EF5dD96e61686DbE788",
+	"abi": ""
+}), function(err) {
+	if(err) {
+		console.log(item+".json Error: "+err);
+	}
+});
+
 }
 

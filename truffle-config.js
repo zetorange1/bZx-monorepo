@@ -19,6 +19,13 @@ module.exports = {
       //gas: 4712388,
       gasPrice: 20000000000
     },
+    b0xnet: {
+      host: "localhost",
+      port: 8546,
+      network_id: "50",
+      gas: 7000000,
+      gasPrice: 20000000000
+    },
     ropsten: {
       provider: new HDWalletProvider(config["mnemonic"]["ropsten"], "https://ropsten.infura.io/"+config["infura_apikey"]),
       network_id: 3,
