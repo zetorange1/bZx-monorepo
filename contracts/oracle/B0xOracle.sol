@@ -359,6 +359,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
             exposureTokenAmount,
             collateralTokenAmount,
             maintenanceMarginAmount,
+            exposureToCollateralRate,
             marginRatio
         );
     }

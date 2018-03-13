@@ -93,6 +93,7 @@ contract B0xTypes {
         uint exposureTokenAmount,
         uint collateralTokenAmount,
         uint marginAmount,
+        uint rate,
         uint otherAmount
     );
 

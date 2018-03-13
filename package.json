@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "b0x.js": "git+https://github.com/b0xNetwork/b0x.js.git",
-    "rimraf": "^2.6.2",
     "truffle-hdwallet-provider": "0.0.3",
     "zeppelin-solidity": "1.6.0"
   },
@@ -34,7 +33,7 @@
     "migrate": "truffle migrate",
     "migrate:reset": "truffle migrate --reset",
     "network": "npm run network:deploy && npm run network:run",
-    "network:deploy": "rimraf ./test_network && mkdir ./test_network && ziptool --unzip ./extra/78fe8dd.zip -o ./test_network",
+    "network:deploy": "rimraf ./test_network && mkdirp ./test_network && ziptool --unzip ./extra/78fe8dd.zip -o ./test_network",
     "network:run": "ganache-cli --networkId 50 -p 8545 --db ./test_network -m \"concert load couple harbor equip island argue ramp clarify fence smart topic\"",
     "test": "truffle test ./test/endtoend.js"
   }
