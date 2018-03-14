@@ -25,7 +25,7 @@ const TABS = [
 ];
 
 class Orders extends React.Component {
-  state = { activeTab: `GEN_ORDER`, trackedTokens: [] };
+  state = { activeTab: `FILL_ORDER`, trackedTokens: [] };
 
   componentDidMount = () => this.updateTrackedTokens();
 
