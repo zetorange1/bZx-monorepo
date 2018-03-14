@@ -81,7 +81,7 @@ export default class TrackedTokenItems extends React.Component {
 
   checkAllowance = async () => {
     const { b0x, token, accounts } = this.props;
-    console.log(`checking allowance`);
+    console.log(`checking allowance: ${token.name}`);
     const allowance = await b0x.getAllowance({
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase()
