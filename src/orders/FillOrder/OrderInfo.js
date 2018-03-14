@@ -75,8 +75,12 @@ export default class OrderInfo extends React.Component {
             collateralTokenAddress={order.collateralTokenAddress}
           />
           <Details
+            oracles={this.props.oracles}
             initialMarginAmount={order.initialMarginAmount}
             maintenanceMarginAmount={order.maintenanceMarginAmount}
+            oracleAddress={order.oracleAddress}
+            signature={order.signature}
+            feeRecipientAddress={order.feeRecipientAddress}
             lenderRelayFee={order.lenderRelayFee}
             traderRelayFee={order.traderRelayFee}
           />

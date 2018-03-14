@@ -24,30 +24,77 @@ const Title = styled.div`
   line-height: 1;
 `;
 
+const Hash = styled.a`
+  display: inline-block;
+  font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 20ch;
+  vertical-align: middle;
+`;
+
+const Signature = styled.div`
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 20ch;
+`;
+
 export default ({
+  oracles,
   initialMarginAmount,
   maintenanceMarginAmount,
+  oracleAddress,
+  signature,
+  feeRecipientAddress,
   lenderRelayFee,
   traderRelayFee
-}) => (
-  <Fragment>
-    <Container>
-      <DataContainer>
-        <Title>Initial Margin Amount</Title>
-        <div>{initialMarginAmount}%</div>
-      </DataContainer>
-      <DataContainer>
-        <Title>Maintenance Margin Amount</Title>
-        <div>{maintenanceMarginAmount}%</div>
-      </DataContainer>
-      <DataContainer>
-        <Title>Lender Relay Fee</Title>
-        <div>{lenderRelayFee}%</div>
-      </DataContainer>
-      <DataContainer>
-        <Title>Trader Relay Fee</Title>
-        <div>{traderRelayFee}%</div>
-      </DataContainer>
-    </Container>
-  </Fragment>
-);
+}) => {
+  const oracle = oracles.filter(o => o.address === oracleAddress)[0];
+  return (
+    <Fragment>
+      <Container>
+        <DataContainer>
+          <Title>Initial Margin Amount</Title>
+          <div>{initialMarginAmount}%</div>
+        </DataContainer>
+        <DataContainer>
+          <Title>Maintenance Margin Amount</Title>
+          <div>{maintenanceMarginAmount}%</div>
+        </DataContainer>
+        {feeRecipientAddress !==
+          `0x0000000000000000000000000000000000000000` && (
+          <Fragment>
+            <DataContainer>
+              <Title>Lender Relay Fee</Title>
+              <div>{lenderRelayFee}%</div>
+            </DataContainer>
+            <DataContainer>
+              <Title>Trader Relay Fee</Title>
+              <div>{traderRelayFee}%</div>
+            </DataContainer>
+          </Fragment>
+        )}
+        <DataContainer>
+          <Title>Oracle</Title>
+          <div>
+            {oracle.name} (
+            <Hash
+              href={`https://etherscan.io/address/${oracle.address}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {oracle.address}
+            </Hash>)
+          </div>
+        </DataContainer>
+        <DataContainer>
+          <Title>Signature</Title>
+          <Signature title={signature}>{signature}</Signature> (hover to see)
+        </DataContainer>
+      </Container>
+    </Fragment>
+  );
+};

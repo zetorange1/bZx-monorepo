@@ -68,7 +68,7 @@ class Orders extends React.Component {
                     />
                   </ContentContainer>
                   <ContentContainer show={activeTab === `FILL_ORDER`}>
-                    <FillOrder tokens={tokens} />
+                    <FillOrder tokens={tokens} oracles={oracles} />
                   </ContentContainer>
                   <ContentContainer show={activeTab === `BALANCES`}>
                     <Balances

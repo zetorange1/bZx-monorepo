@@ -68,7 +68,11 @@ export default class FillOrder extends React.Component {
       return (
         <Fragment>
           <BackLink onClick={this.reset}>Go Back</BackLink>
-          <OrderInfo order={JSON.parse(value)} tokens={this.props.tokens} />
+          <OrderInfo
+            order={JSON.parse(value)}
+            tokens={this.props.tokens}
+            oracles={this.props.oracles}
+          />
         </Fragment>
       );
     }
