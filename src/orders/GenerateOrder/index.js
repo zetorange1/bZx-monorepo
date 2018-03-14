@@ -28,7 +28,7 @@ export default class GenerateOrder extends React.Component {
 
     // margin amounts
     initialMarginAmount: 40,
-    liquidationMarginAmount: 20,
+    maintenanceMarginAmount: 20,
 
     // expiration date/time
     expirationDate: moment(),
@@ -116,7 +116,7 @@ export default class GenerateOrder extends React.Component {
         <MarginAmountsSection
           setStateForInput={this.setStateForInput}
           initialMarginAmount={this.state.initialMarginAmount}
-          liquidationMarginAmount={this.state.liquidationMarginAmount}
+          maintenanceMarginAmount={this.state.maintenanceMarginAmount}
         />
 
         <Divider />

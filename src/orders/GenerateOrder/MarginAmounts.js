@@ -20,7 +20,7 @@ const ToolTipHint = styled.span`
 export default ({
   setStateForInput,
   initialMarginAmount,
-  liquidationMarginAmount
+  maintenanceMarginAmount
 }) => (
   <Section>
     <SectionLabel>Margin Amounts</SectionLabel>
@@ -43,11 +43,11 @@ export default ({
         </FormHelperText>
       </FormControl>
       <FormControl>
-        <InputLabel>Liquidation Margin Amount</InputLabel>
+        <InputLabel>Maintenance Margin Amount</InputLabel>
         <Input
-          value={liquidationMarginAmount}
+          value={maintenanceMarginAmount}
           type="number"
-          onChange={setStateForInput(`liquidationMarginAmount`)}
+          onChange={setStateForInput(`maintenanceMarginAmount`)}
           endAdornment={<InputAdornment position="end">%</InputAdornment>}
         />
         <FormHelperText component="div">

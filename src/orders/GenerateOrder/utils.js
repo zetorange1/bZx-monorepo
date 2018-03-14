@@ -24,7 +24,7 @@ export const compileObject = async (web3, state, account) => {
 
     // margin amounts
     initialMarginAmount: state.initialMarginAmount.toString(),
-    maintenanceMarginAmount: state.liquidationMarginAmount.toString(),
+    maintenanceMarginAmount: state.maintenanceMarginAmount.toString(),
 
     // relay fees
     lenderRelayFee: (sendToRelayExchange ? state.lenderRelayFee : 0).toString(),

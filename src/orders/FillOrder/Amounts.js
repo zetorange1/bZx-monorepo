@@ -24,7 +24,7 @@ const Title = styled.div`
 
 export default ({
   initialMarginAmount,
-  liquidationMarginAmount,
+  maintenanceMarginAmount,
   lenderRelayFee,
   traderRelayFee
 }) => (
@@ -35,8 +35,8 @@ export default ({
         <div>{initialMarginAmount}%</div>
       </DataContainer>
       <DataContainer>
-        <Title>Liquidation Margin Amount</Title>
-        <div>{liquidationMarginAmount}%</div>
+        <Title>Maintenance Margin Amount</Title>
+        <div>{maintenanceMarginAmount}%</div>
       </DataContainer>
       <DataContainer>
         <Title>Lender Relay Fee</Title>

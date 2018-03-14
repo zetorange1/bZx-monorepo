@@ -54,13 +54,13 @@ const checkCoinsApproved = async (b0x, accounts, state) => {
 };
 
 export default async (b0x, accounts, state) => {
-  const { initialMarginAmount, liquidationMarginAmount } = state;
+  const { initialMarginAmount, maintenanceMarginAmount } = state;
   try {
     validRange(10, 100, initialMarginAmount);
-    validRange(5, 95, liquidationMarginAmount);
-    if (liquidationMarginAmount > initialMarginAmount) {
+    validRange(5, 95, maintenanceMarginAmount);
+    if (maintenanceMarginAmount > initialMarginAmount) {
       throw Error(
-        `Liquidation margin amount cannot be larger than initial margin amount.`
+        `The maintenance margin amount cannot be larger than initial margin amount.`
       );
     }
   } catch (error) {
