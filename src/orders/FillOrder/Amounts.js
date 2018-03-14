@@ -8,14 +8,16 @@ const Container = styled.div`
   padding: 24px 0;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
 `;
 
 const DataContainer = styled.div`
-  width: 120px;
+  display: flex;
 `;
 
 const Title = styled.div`
-  margin-bottom: 24px !important;
+  margin-right: 12px;
+  margin-bottom: 12px !important;
   color: rgba(0, 0, 0, 0.54);
   padding: 0;
   font-size: 1rem;

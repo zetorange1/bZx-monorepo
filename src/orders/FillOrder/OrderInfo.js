@@ -17,6 +17,10 @@ const SubmitBtn = styled(Button)`
   margin-bottom: 24px;
 `;
 
+const Hash = styled.a`
+  font-family: monospace;
+`;
+
 export default class OrderInfo extends React.Component {
   state = {
     fillOrderAmount: 0,
@@ -43,10 +47,24 @@ export default class OrderInfo extends React.Component {
   render() {
     const { order, tokens } = this.props;
     const role = order.makerRole === `0` ? `lender` : `trader`;
+    const counterRole = order.makerRole !== `0` ? `lender` : `trader`;
     return (
       <Fragment>
         <Section>
           <SectionLabel>1. Review order info</SectionLabel>
+          <p>
+            This order was created by{` `}
+            <Hash
+              href={`https://etherscan.io/address/${order.makerAddress}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {order.makerAddress}
+            </Hash>
+            {` `}
+            for a{` `}
+            {counterRole} to fill.
+          </p>
           <Tokens
             tokens={tokens}
             role={role}
