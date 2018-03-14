@@ -1,5 +1,8 @@
+import { Fragment } from "react";
 import styled from "styled-components";
 import Button from "material-ui/Button";
+
+import Section, { SectionLabel, Divider } from "../../common/FormSection";
 
 import Tokens from "./Tokens";
 import Amounts from "./Amounts";
@@ -8,14 +11,10 @@ import Inputs from "./Inputs";
 
 import { validateFillOrder, submitFillOrder } from "./utils";
 
-const Submission = styled.div`
-  text-align: center;
-  margin-bottom: 24px;
-`;
-
 const SubmitBtn = styled(Button)`
   width: 100%;
   max-width: 480px;
+  margin-bottom: 24px;
 `;
 
 export default class OrderInfo extends React.Component {
@@ -45,38 +44,43 @@ export default class OrderInfo extends React.Component {
     const { order, tokens } = this.props;
     const role = order.makerRole === `0` ? `lender` : `trader`;
     return (
-      <div>
-        <Tokens
-          tokens={tokens}
-          role={role}
-          loanTokenAddress={order.loanTokenAddress}
-          loanTokenAmount={order.loanTokenAmount}
-          interestTokenAddress={order.interestTokenAddress}
-          interestAmount={order.interestAmount}
-          collateralTokenAddress={order.collateralTokenAddress}
-        />
-        <Amounts
-          initialMarginAmount={order.initialMarginAmount}
-          maintenanceMarginAmount={order.maintenanceMarginAmount}
-          lenderRelayFee={order.lenderRelayFee}
-          traderRelayFee={order.traderRelayFee}
-        />
-        <Expiration
-          expirationUnixTimestampSec={order.expirationUnixTimestampSec}
-        />
-        {role === `lender` && (
-          <Inputs
+      <Fragment>
+        <Section>
+          <SectionLabel>1. Review order info</SectionLabel>
+          <Tokens
             tokens={tokens}
-            fillOrderAmount={this.state.fillOrderAmount}
-            collateralTokenAddress={this.state.collateralTokenAddress}
+            role={role}
             loanTokenAddress={order.loanTokenAddress}
-            setFillOrderAmount={this.setStateFor(`fillOrderAmount`)}
-            setCollateralTokenAddress={this.setStateFor(
-              `collateralTokenAddress`
-            )}
+            loanTokenAmount={order.loanTokenAmount}
+            interestTokenAddress={order.interestTokenAddress}
+            interestAmount={order.interestAmount}
+            collateralTokenAddress={order.collateralTokenAddress}
           />
-        )}
-        <Submission>
+          <Amounts
+            initialMarginAmount={order.initialMarginAmount}
+            maintenanceMarginAmount={order.maintenanceMarginAmount}
+            lenderRelayFee={order.lenderRelayFee}
+            traderRelayFee={order.traderRelayFee}
+          />
+          <Expiration
+            expirationUnixTimestampSec={order.expirationUnixTimestampSec}
+          />
+        </Section>
+        <Divider />
+        <Section>
+          <SectionLabel>2. Choose parameters and submit</SectionLabel>
+          {role === `lender` && (
+            <Inputs
+              tokens={tokens}
+              fillOrderAmount={this.state.fillOrderAmount}
+              collateralTokenAddress={this.state.collateralTokenAddress}
+              loanTokenAddress={order.loanTokenAddress}
+              setFillOrderAmount={this.setStateFor(`fillOrderAmount`)}
+              setCollateralTokenAddress={this.setStateFor(
+                `collateralTokenAddress`
+              )}
+            />
+          )}
           <SubmitBtn
             variant="raised"
             color="primary"
@@ -84,8 +88,8 @@ export default class OrderInfo extends React.Component {
           >
             Fill Order
           </SubmitBtn>
-        </Submission>
-      </div>
+        </Section>
+      </Fragment>
     );
   }
 }

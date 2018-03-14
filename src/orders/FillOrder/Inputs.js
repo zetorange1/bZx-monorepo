@@ -40,7 +40,6 @@ export default ({
   const symbol = getSymbol(tokens, loanTokenAddress);
   return (
     <Fragment>
-      <SectionLabel>Fill order options</SectionLabel>
       <Container>
         <DataContainer>
           <Title>Collateral Token</Title>
@@ -68,6 +67,3 @@ export default ({
     </Fragment>
   );
 };
-
-// marginTokenAddressFilled
-// lendTokenAmountFilled

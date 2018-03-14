@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import styled from "styled-components";
 import Typography from "material-ui/Typography";
 import MuiButton from "material-ui/Button";
@@ -45,7 +46,7 @@ const TEMP_ORDER = {
 };
 
 export default class FillOrder extends React.Component {
-  state = { value: JSON.stringify(TEMP_ORDER), showOrderInfo: false };
+  state = { value: JSON.stringify(TEMP_ORDER), showOrderInfo: true };
 
   reset = () => this.setState({ showOrderInfo: false });
 
@@ -65,11 +66,10 @@ export default class FillOrder extends React.Component {
     const { showOrderInfo, value } = this.state;
     if (showOrderInfo) {
       return (
-        <div>
+        <Fragment>
           <BackLink onClick={this.reset}>Go Back</BackLink>
-          <SectionLabel>Order info</SectionLabel>
           <OrderInfo order={JSON.parse(value)} tokens={this.props.tokens} />
-        </div>
+        </Fragment>
       );
     }
     return (
@@ -77,8 +77,6 @@ export default class FillOrder extends React.Component {
         <SectionLabel>Fill an order</SectionLabel>
         <Typography>Paste your JSON order below:</Typography>
         <TextArea
-          name=""
-          id=""
           cols="30"
           rows="10"
           value={value}
