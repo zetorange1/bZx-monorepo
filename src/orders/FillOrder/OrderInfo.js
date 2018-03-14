@@ -5,7 +5,7 @@ import Button from "material-ui/Button";
 import Section, { SectionLabel, Divider } from "../../common/FormSection";
 
 import Tokens from "./Tokens";
-import Amounts from "./Amounts";
+import Details from "./Details";
 import Expiration from "./Expiration";
 import Inputs from "./Inputs";
 
@@ -74,7 +74,7 @@ export default class OrderInfo extends React.Component {
             interestAmount={order.interestAmount}
             collateralTokenAddress={order.collateralTokenAddress}
           />
-          <Amounts
+          <Details
             initialMarginAmount={order.initialMarginAmount}
             maintenanceMarginAmount={order.maintenanceMarginAmount}
             lenderRelayFee={order.lenderRelayFee}
