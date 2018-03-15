@@ -34,25 +34,18 @@ const Hash = styled.a`
   vertical-align: middle;
 `;
 
-const Signature = styled.div`
-  display: inline-block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 20ch;
-`;
-
 export default ({
   oracles,
   initialMarginAmount,
   maintenanceMarginAmount,
   oracleAddress,
-  signature,
   feeRecipientAddress,
   lenderRelayFee,
   traderRelayFee
 }) => {
   const oracle = oracles.filter(o => o.address === oracleAddress)[0];
+  const useRelay =
+    feeRecipientAddress !== `0x0000000000000000000000000000000000000000`;
   return (
     <Fragment>
       <Container>
@@ -64,19 +57,6 @@ export default ({
           <Title>Maintenance Margin Amount</Title>
           <div>{maintenanceMarginAmount}%</div>
         </DataContainer>
-        {feeRecipientAddress !==
-          `0x0000000000000000000000000000000000000000` && (
-          <Fragment>
-            <DataContainer>
-              <Title>Lender Relay Fee</Title>
-              <div>{lenderRelayFee}%</div>
-            </DataContainer>
-            <DataContainer>
-              <Title>Trader Relay Fee</Title>
-              <div>{traderRelayFee}%</div>
-            </DataContainer>
-          </Fragment>
-        )}
         <DataContainer>
           <Title>Oracle</Title>
           <div>
@@ -90,10 +70,28 @@ export default ({
             </Hash>)
           </div>
         </DataContainer>
-        <DataContainer>
-          <Title>Signature</Title>
-          <Signature title={signature}>{signature}</Signature> (hover to see)
-        </DataContainer>
+        {useRelay && (
+          <Fragment>
+            <DataContainer>
+              <Title>Relay/Exchange address</Title>
+              <Hash
+                href={`https://etherscan.io/address/${feeRecipientAddress}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {feeRecipientAddress}
+              </Hash>
+            </DataContainer>
+            <DataContainer>
+              <Title>Lender Relay Fee</Title>
+              <div>{lenderRelayFee}%</div>
+            </DataContainer>
+            <DataContainer>
+              <Title>Trader Relay Fee</Title>
+              <div>{traderRelayFee}%</div>
+            </DataContainer>
+          </Fragment>
+        )}
       </Container>
     </Fragment>
   );
