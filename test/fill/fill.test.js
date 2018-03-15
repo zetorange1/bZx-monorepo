@@ -10,6 +10,10 @@ import * as orderConstants from "../../src/constants/order";
 import * as utils from "./utils";
 
 describe("filling orders", () => {
+  const owner = Addresses.ACCOUNTS[0];
+  const lenders = [Addresses.ACCOUNTS[1], Addresses.ACCOUNTS[3]];
+  const traders = [Addresses.ACCOUNTS[2], Addresses.ACCOUNTS[4]];
+
   beforeAll(async () => {
     const {
       loanTokens,
@@ -18,12 +22,8 @@ describe("filling orders", () => {
       b0xToken
     } = await utils.initAllContractInstances();
 
-    const owner = Addresses.ACCOUNTS[0];
-    const lenders = [Addresses.ACCOUNTS[1], Addresses.ACCOUNTS[3]];
-    const traders = [Addresses.ACCOUNTS[2], Addresses.ACCOUNTS[4]];
-
     const ownerTxOpts = { from: owner };
-    const transferAmt = "1000000000000000000000000";
+    const transferAmt = b0xJS.web3.utils.toWei("1000000", "ether");
 
     await utils.setupB0xToken({
       b0xToken,
@@ -90,14 +90,18 @@ describe("filling orders", () => {
 
   describe("takeLoanOrderAsTrader", async () => {
     test("should return total amount of loanToken borrowed", async () => {
-      const makerAddress = Addresses.ACCOUNTS[0];
-      const takerAddress = Addresses.ACCOUNTS[1];
+      const { loanTokens } = await utils.initAllContractInstances();
+
+      const makerAddress = lenders[0];
+      const takerAddress = traders[0];
       const txOpts = { from: takerAddress, gas: 1000000 };
       const collateralTokenAddress = constantsZX.NULL_ADDRESS; // Addresses.ZRXToken;
+
       const order = makeOrder({
         makerRole: orderConstants.MAKER_ROLE.LENDER,
         makerAddress,
         salt: B0xJS.generatePseudoRandomSalt(),
+        loanTokenAddress: loanTokens[0].options.address.toLowerCase(),
         collateralTokenAddress
       });
 
