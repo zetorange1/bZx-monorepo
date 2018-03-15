@@ -23,10 +23,12 @@ export const initAllContractInstances = async () => {
     Contracts.B0xToken.abi,
     Contracts.B0xToken.address
   );
+
+  console.log("initAllContractInstances done.");
   return { loanTokens, collateralTokens, interestTokens, b0xToken };
 };
 
-export const setupB0xToken = ({
+export const setupB0xToken = async ({
   b0xToken,
   lenders,
   traders,
@@ -59,10 +61,11 @@ export const setupB0xToken = ({
       spenderAddress: Contracts.B0xVault.address
     })
   ];
-  return Promise.all(promises);
+  await Promise.all(promises);
+  console.log("setupB0xToken done.");
 };
 
-export const setupLoanTokens = ({
+export const setupLoanTokens = async ({
   loanTokens,
   lenders,
   transferAmt,
@@ -83,10 +86,11 @@ export const setupLoanTokens = ({
     })
   ];
 
-  return Promise.all(promises);
+  await Promise.all(promises);
+  console.log("setupLoanTokens done.");
 };
 
-export const setupCollateralTokens = ({
+export const setupCollateralTokens = async ({
   collateralTokens,
   traders,
   transferAmt,
@@ -111,10 +115,11 @@ export const setupCollateralTokens = ({
     })
   ];
 
-  return Promise.all(promises);
+  await Promise.all(promises);
+  console.log("setupCollateralTokens done.");
 };
 
-export const setupInterestTokens = ({
+export const setupInterestTokens = async ({
   interestTokens,
   traders,
   transferAmt,
@@ -139,5 +144,6 @@ export const setupInterestTokens = ({
     })
   ];
 
-  return Promise.all(promises);
+  await Promise.all(promises);
+  console.log("setupInterestTokens done.");
 };
