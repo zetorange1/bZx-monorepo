@@ -1,5 +1,5 @@
 {
-  "address": "0x45b3a72221e571017c0f0ec42189e11d149d0ace",
+  "address": "0x75ecc2f387b3a490ce042ea1d2d342920b69ec8f",
   "abi": [
     {
       "constant": true,
@@ -406,6 +406,7 @@
           "type": "uint256"
         },
         { "indexed": false, "name": "marginAmount", "type": "uint256" },
+        { "indexed": false, "name": "rate", "type": "uint256" },
         { "indexed": false, "name": "otherAmount", "type": "uint256" }
       ],
       "name": "MarginCalc",
@@ -730,8 +731,8 @@
     },
     {
       "constant": false,
-      "inputs": [{ "name": "_toggle", "type": "bool" }],
-      "name": "toggleDebugMode",
+      "inputs": [{ "name": "_debug", "type": "bool" }],
+      "name": "setDebugMode",
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
