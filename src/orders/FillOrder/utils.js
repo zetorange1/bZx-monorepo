@@ -8,6 +8,12 @@ export const validateFillOrder = (
   fillOrderAmount,
   marginTokenAddress
 ) => {
+  const role = order.makerRole === `0` ? `lender` : `trader`;
+  if (role === `lender`) {
+    // check that I have sufficient loanToken to lend
+  } else {
+    // check that I have sufficient collateralToken and interestToken
+  }
   console.log(`validateFillOrder`);
   console.log(order, fillOrderAmount, marginTokenAddress);
   return true;
