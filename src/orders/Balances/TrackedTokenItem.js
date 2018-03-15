@@ -75,8 +75,7 @@ export default class TrackedTokenItems extends React.Component {
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase()
     });
-    console.log('balance of', token.name)
-    console.log(balance.toNumber())
+    console.log(`balance of`, token.name, balance.toNumber());
     this.setState({ balance: balance.toNumber() });
   };
 
