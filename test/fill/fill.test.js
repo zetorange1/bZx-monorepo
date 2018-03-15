@@ -1,5 +1,5 @@
 /* globals test, describe, expect, beforeAll */
-import { pathOr } from "ramda";
+import { pathOr, clone } from "ramda";
 // import { BigNumber } from "bignumber.js";
 import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
 import B0xJS from "../../src";
@@ -21,7 +21,6 @@ describe("filling orders", () => {
       interestTokens,
       b0xToken
     } = await utils.initAllContractInstances();
-
     const ownerTxOpts = { from: owner };
     const transferAmt = b0xJS.web3.utils.toWei("1000000", "ether");
 
@@ -30,25 +29,25 @@ describe("filling orders", () => {
       lenders,
       traders,
       transferAmt,
-      ownerTxOpts
+      ownerTxOpts: clone(ownerTxOpts)
     });
     await utils.setupLoanTokens({
       loanTokens,
       lenders,
       transferAmt,
-      ownerTxOpts
+      ownerTxOpts: clone(ownerTxOpts)
     });
     await utils.setupCollateralTokens({
       collateralTokens,
       traders,
       transferAmt,
-      ownerTxOpts
+      ownerTxOpts: clone(ownerTxOpts)
     });
     await utils.setupInterestTokens({
       interestTokens,
       traders,
       transferAmt,
-      ownerTxOpts
+      ownerTxOpts: clone(ownerTxOpts)
     });
   });
 
@@ -90,36 +89,44 @@ describe("filling orders", () => {
 
   describe("takeLoanOrderAsTrader", async () => {
     test("should return total amount of loanToken borrowed", async () => {
-      const { loanTokens } = await utils.initAllContractInstances();
-
+      const {
+        loanTokens,
+        interestTokens,
+        collateralTokens
+      } = await utils.initAllContractInstances();
       const makerAddress = lenders[0];
       const takerAddress = traders[0];
       const txOpts = { from: takerAddress, gas: 1000000 };
-      const collateralTokenAddress = constantsZX.NULL_ADDRESS; // Addresses.ZRXToken;
+      const expirationUnixTimestampSec = "1719061340";
 
       const order = makeOrder({
-        makerRole: orderConstants.MAKER_ROLE.LENDER,
         makerAddress,
-        salt: B0xJS.generatePseudoRandomSalt(),
         loanTokenAddress: loanTokens[0].options.address.toLowerCase(),
-        collateralTokenAddress
+        interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
+        collateralTokenAddress: constantsZX.NULL_ADDRESS,
+        feeRecipientAddress: constantsZX.NULL_ADDRESS,
+        loanTokenAmount: b0xJS.web3.utils.toWei(100000).toString(),
+        interestAmount: b0xJS.web3.utils.toWei(2).toString(),
+        initialMarginAmount: "50",
+        maintenanceMarginAmount: "25",
+        lenderRelayFee: b0xJS.web3.utils.toWei(0.001).toString(),
+        traderRelayFee: b0xJS.web3.utils.toWei(0.0015).toString(),
+        expirationUnixTimestampSec,
+        makerRole: orderConstants.MAKER_ROLE.LENDER,
+        salt: B0xJS.generatePseudoRandomSalt().toString()
       });
-
       const orderHashHex = B0xJS.getLoanOrderHashHex(order);
       const signature = await b0xJS.signOrderHashAsync(
         orderHashHex,
         makerAddress
       );
-
-      const loanTokenAmountFilled = "20";
-
+      const loanTokenAmountFilled = b0xJS.web3.utils.toWei(12.3);
       const receipt = await b0xJS.takeLoanOrderAsTrader(
         { ...order, signature },
-        collateralTokenAddress,
+        collateralTokens[0].options.address.toLowerCase(),
         loanTokenAmountFilled,
         txOpts
       );
-
       const loanTokenAmountFilledReturn = pathOr(
         null,
         [
@@ -131,7 +138,6 @@ describe("filling orders", () => {
         receipt
       );
       console.log(JSON.stringify(receipt, null, 2));
-
       expect(loanTokenAmountFilledReturn).toBe("0");
     });
   });
