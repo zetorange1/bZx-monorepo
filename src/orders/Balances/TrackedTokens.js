@@ -5,7 +5,6 @@ import { getIconURL } from "../../common/tokens";
 
 const Container = styled.div`
   width: 100%;
-  max-width: 480px;
 `;
 
 const TrackedTokens = ({

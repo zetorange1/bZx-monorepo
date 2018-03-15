@@ -58,14 +58,27 @@ export default class TrackedTokenItems extends React.Component {
     showSendDialog: false,
     recipientAddress: ``,
     sendAmount: ``,
-    approved: null
+    approved: null,
+    balance: null
   };
 
   async componentDidMount() {
     this.checkAllowance();
+    this.getBalance();
   }
 
   setStateForInput = key => e => this.setState({ [key]: e.target.value });
+
+  getBalance = async () => {
+    const { b0x, token, accounts } = this.props;
+    const balance = await b0x.getBalance({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase()
+    });
+    console.log('balance of', token.name)
+    console.log(balance.toNumber())
+    this.setState({ balance: balance.toNumber() });
+  };
 
   checkAllowance = async () => {
     const { b0x, token, accounts } = this.props;
@@ -129,16 +142,21 @@ export default class TrackedTokenItems extends React.Component {
   };
 
   render() {
-    const { name, symbol, iconUrl, amount } = this.props.token;
+    const { name, symbol, iconUrl } = this.props.token;
+    const { balance } = this.state;
     return (
       <Container>
         <TokenInfo>
           <TokenIcon src={iconUrl} />
           <Name>{name}</Name>
         </TokenInfo>
-        <BalanceAmount>
-          {amount} {symbol}
-        </BalanceAmount>
+        {balance !== null ? (
+          <BalanceAmount>
+            {balance.toString()} {symbol}
+          </BalanceAmount>
+        ) : (
+          <div>loading...</div>
+        )}
         <ButtonGroup>
           {this.renderAllowance()}
           <Button
