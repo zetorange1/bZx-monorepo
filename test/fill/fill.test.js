@@ -24,6 +24,21 @@ describe("filling orders", () => {
     const ownerTxOpts = { from: owner };
     const transferAmt = b0xJS.web3.utils.toWei("1000000", "ether");
 
+    const balancePs = [
+      b0xToken,
+      ...loanTokens,
+      ...collateralTokens,
+      ...interestTokens
+    ].map(token =>
+      b0xJS.getBalance({
+        tokenAddress: token.options.address.toLowerCase(),
+        ownerAddress: owner
+      })
+    );
+
+    const res = await Promise.all(balancePs);
+    console.log(res);
+
     await utils.setupB0xToken({
       b0xToken,
       lenders,
