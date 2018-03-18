@@ -1,16 +1,22 @@
-/* globals test, expect, describe, beforeEach, afterEach, jest */
+/* globals test, expect, describe, beforeEach, afterEach, jest, beforeAll */
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import { pathOr } from "ramda";
 import * as Addresses from "./constants/addresses";
 import Contracts from "../src/contracts";
 import b0xJS from "./setup";
+import * as UnlockUtils from "./utils/unlock";
+import Accounts from "./constants/accounts.secret";
 
-jest.setTimeout(10000);
+jest.setTimeout(100000);
 
 describe("allowance", () => {
   const tokenAddress = Contracts.TestToken0.address;
   const ownerAddress = Addresses.ACCOUNTS[0];
+
+  beforeAll(async () => {
+    await UnlockUtils.unlock(b0xJS.web3, Accounts[0]);
+  });
 
   const resetAllowance = async () => {
     await b0xJS.setAllowance({
