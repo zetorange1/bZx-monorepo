@@ -2,7 +2,6 @@
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import { pathOr } from "ramda";
-import * as Addresses from "./constants/addresses";
 import Contracts from "../src/contracts";
 import b0xJS from "./setup";
 import * as UnlockUtils from "./utils/unlock";
@@ -12,7 +11,7 @@ jest.setTimeout(100000);
 
 describe("allowance", () => {
   const tokenAddress = Contracts.TestToken0.address;
-  const ownerAddress = Addresses.ACCOUNTS[0];
+  const ownerAddress = Accounts[0].address;
 
   beforeAll(async () => {
     await UnlockUtils.unlock(b0xJS.web3, Accounts[0]);

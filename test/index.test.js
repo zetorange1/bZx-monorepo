@@ -6,10 +6,10 @@ import B0xJS from "../src";
 import EIP20 from "../src/contracts/EIP20.json";
 import * as utils from "../src/utils";
 import * as Errors from "../src/constants/errors";
-import * as Addresses from "./constants/addresses";
 import b0xJS from "./setup";
 import makeOrder from "./utils/order";
 import contracts from "../src/contracts";
+import Accounts from "./constants/accounts.secret";
 
 const erc20Abi = EIP20.abi;
 
@@ -72,7 +72,7 @@ describe("getBalance", () => {
   test("should return token balance", async () => {
     const balance = await b0xJS.getBalance({
       tokenAddress: contracts.TestToken0.address,
-      ownerAddress: Addresses.ACCOUNTS[9]
+      ownerAddress: Accounts[9].address
     });
 
     expect(balance).toEqual(new BigNumber("0"));

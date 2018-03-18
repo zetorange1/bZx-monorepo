@@ -2,9 +2,10 @@ import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
 import * as Addresses from "../constants/addresses";
 import contracts from "../../src/contracts";
 import * as constants from "../../src/constants/order";
+import Accounts from "../constants/accounts.secret";
 
 export default ({
-  makerAddress = Addresses.ACCOUNTS[0],
+  makerAddress = Accounts[0].address,
 
   loanTokenAddress = Addresses.ZRXToken,
   interestTokenAddress = Addresses.ZRXToken,

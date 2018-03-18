@@ -4,15 +4,15 @@ import { pathOr, clone } from "ramda";
 import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
 import B0xJS from "../../src";
 import b0xJS from "../setup";
-import * as Addresses from "../constants/addresses";
 import makeOrder from "../utils/order";
 import * as orderConstants from "../../src/constants/order";
 import * as utils from "./utils";
+import Accounts from "../constants/accounts.secret";
 
 describe("filling orders", () => {
-  const owner = Addresses.ACCOUNTS[0];
-  const lenders = [Addresses.ACCOUNTS[1], Addresses.ACCOUNTS[3]];
-  const traders = [Addresses.ACCOUNTS[2], Addresses.ACCOUNTS[4]];
+  const owner = Accounts[0].address;
+  const lenders = [Accounts[1].address, Accounts[3].address];
+  const traders = [Accounts[2].address, Accounts[4].address];
 
   beforeAll(async () => {
     const {
@@ -68,8 +68,8 @@ describe("filling orders", () => {
 
   describe("takeLoanOrderAsLender", async () => {
     test.skip("should return total amount of loanToken borrowed", async () => {
-      const makerAddress = Addresses.ACCOUNTS[1];
-      const takerAddress = Addresses.ACCOUNTS[0];
+      const makerAddress = Accounts[1].address;
+      const takerAddress = Accounts[0].address;
       const txOpts = { from: takerAddress, gas: 1000000 };
 
       const order = makeOrder({
