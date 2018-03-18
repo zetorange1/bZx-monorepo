@@ -2,3 +2,4 @@ node_modules
 test*.json
 *.log
 secrets.js
+*.secret.js
