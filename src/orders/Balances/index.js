@@ -10,7 +10,7 @@ export default class Balances extends React.Component {
   render() {
     return (
       <div>
-        <Ether />
+        <Ether web3={this.props.web3} accounts={this.props.accounts} />
         <Divider />
         <TrackedTokens
           tokens={this.props.tokens}
@@ -29,5 +29,3 @@ export default class Balances extends React.Component {
     );
   }
 }
-
-// - "Balances" - lets the maker or taker of a lend order specify the tokens they want our smart contract to use for the purposes of making or taking an order (similar to the 0x portal)
