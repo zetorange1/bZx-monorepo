@@ -1,2 +1,2 @@
-export const ZRXToken = "0x25b8fe1de9daf8ba351890744ff28cf7dfa8f5e3";
-export const EtherToken = "0x48bacb9266a570d521063ef5dd96e61686dbe788";
+export const ZRXToken = "0xa38a5c8f63b7df14e5078b95a1807abb8f41f166";
+export const EtherToken = "0xb6c04208e4ebb505c3c40b8fcf13051428fcd25e";
