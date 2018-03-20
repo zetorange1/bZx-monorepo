@@ -21,7 +21,7 @@ export default class AddToken extends React.Component {
   setTokenAddress = addr => this.setState({ tokenAddress: addr });
 
   handleAddTrackedToken = () => {
-    addTrackedToken(this.state.tokenAddress);
+    addTrackedToken(this.props.tokens, this.state.tokenAddress);
     this.props.updateTrackedTokens();
   };
 
