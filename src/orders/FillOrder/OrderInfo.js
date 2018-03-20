@@ -29,14 +29,16 @@ export default class OrderInfo extends React.Component {
 
   setStateFor = key => value => this.setState({ [key]: value });
 
-  handleSubmit = () => {
-    const { order, tokens } = this.props;
+  handleSubmit = async () => {
+    const { order, tokens, b0x, accounts } = this.props;
     const { fillOrderAmount, collateralTokenAddress } = this.state;
-    const isFillOrderValid = validateFillOrder(
+    const isFillOrderValid = await validateFillOrder(
       order,
       fillOrderAmount,
       collateralTokenAddress,
-      tokens
+      tokens,
+      b0x,
+      accounts
     );
     if (isFillOrderValid) {
       submitFillOrder(order, fillOrderAmount, collateralTokenAddress);

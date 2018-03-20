@@ -3,17 +3,46 @@ import { getTrackedTokens } from "../../common/trackedTokens";
 
 export const getOrderHash = order => B0xJS.getLoanOrderHashHex(order);
 
-// TODO - validate fill order submission
-export const validateFillOrder = (
+const checkAllowance = async (b0x, accounts, tokenAddress) => {
+  const allowance = await b0x.getAllowance({
+    tokenAddress,
+    ownerAddress: accounts[0].toLowerCase()
+  });
+  return allowance.toNumber() !== 0;
+};
+
+const checkCoinsApproved = async (
+  b0x,
+  accounts,
+  order,
+  collateralTokenAddress
+) => {
+  const makerRole = order.makerRole === `0` ? `lender` : `trader`;
+  if (makerRole === `lender`) {
+    // check that user has approved collateralToken and interestToken
+    const { interestTokenAddress } = order;
+    const a = await checkAllowance(b0x, accounts, interestTokenAddress);
+    const b = await checkAllowance(b0x, accounts, collateralTokenAddress);
+    return a && b;
+  }
+  // check that user has approved loanToken
+  const { loanTokenAddress } = order;
+  const a = await checkAllowance(b0x, accounts, loanTokenAddress);
+  return a;
+};
+
+export const validateFillOrder = async (
   order,
   fillOrderAmount,
   collateralTokenAddress,
-  tokens
+  tokens,
+  b0x,
+  accounts
 ) => {
   const makerRole = order.makerRole === `0` ? `lender` : `trader`;
   const trackedTokens = getTrackedTokens(tokens);
   if (makerRole === `lender`) {
-    // check that user has tracked and approved collateralToken and interestToken
+    // check that user has tracked collateralToken and interestToken
     const { interestTokenAddress } = order;
     if (
       !trackedTokens.includes(interestTokenAddress) ||
@@ -25,7 +54,7 @@ export const validateFillOrder = (
       return false;
     }
   } else {
-    // check that user has tracked and approved loanToken
+    // check that user has tracked loanToken
     const { loanTokenAddress } = order;
     if (!trackedTokens.includes(loanTokenAddress)) {
       alert(
@@ -33,6 +62,19 @@ export const validateFillOrder = (
       );
       return false;
     }
+  }
+
+  const coinsApproved = await checkCoinsApproved(
+    b0x,
+    accounts,
+    order,
+    collateralTokenAddress
+  );
+  if (!coinsApproved) {
+    alert(
+      `Some of your coins are not approved, please check the balances tab.`
+    );
+    return false;
   }
   console.log(`validateFillOrder`);
   console.log(order, fillOrderAmount, collateralTokenAddress);
