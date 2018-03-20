@@ -20,14 +20,11 @@ export const getTrackedTokens = tokens => {
 const getStoredTokens = tokens => {
   const trackedTokens = getTrackedTokens(tokens);
   const permaTokens = getPermaTokens(tokens);
-  console.log(`trackedTokens`, trackedTokens);
-  console.log(`permaTokens`, permaTokens);
   return trackedTokens.filter(addr => !permaTokens.includes(addr));
 };
 
 export const addTrackedToken = (tokens, addr) => {
   const storedTokens = getStoredTokens(tokens);
-  console.log(`storedTokens`, storedTokens);
   const alreadyExists = storedTokens.includes(addr);
   if (!alreadyExists) {
     const newTrackedTokens = [...storedTokens, addr];
