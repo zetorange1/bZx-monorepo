@@ -65,7 +65,8 @@ export default class GenerateOrder extends React.Component {
     const isValid = await validateInputs(
       this.props.b0x,
       this.props.accounts,
-      this.state
+      this.state,
+      this.props.tokens
     );
     this.setState({ orderHash: null, finalOrder: null });
     if (isValid) {

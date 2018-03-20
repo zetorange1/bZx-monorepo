@@ -7,6 +7,10 @@ import AddToken from "./AddToken";
 export default class Balances extends React.Component {
   state = {};
 
+  componentDidMount() {
+    this.props.updateTrackedTokens();
+  }
+
   render() {
     return (
       <div>

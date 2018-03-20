@@ -12,7 +12,10 @@ import Dialog, {
   DialogTitle
 } from "material-ui/Dialog";
 import { COLORS } from "../../styles/constants";
-import { removeTrackedToken } from "../../common/trackedTokens";
+import {
+  removeTrackedToken,
+  PERMA_TOKEN_SYMBOLS
+} from "../../common/trackedTokens";
 
 const Container = styled.div`
   display: flex;
@@ -99,7 +102,7 @@ export default class TrackedTokenItems extends React.Component {
   };
 
   handleRemoveToken = () => {
-    removeTrackedToken(this.props.token.address);
+    removeTrackedToken(this.props.tokens, this.props.token.address);
     this.props.updateTrackedTokens();
   };
 
@@ -143,6 +146,7 @@ export default class TrackedTokenItems extends React.Component {
   render() {
     const { name, symbol, iconUrl } = this.props.token;
     const { balance } = this.state;
+    const isPermaToken = PERMA_TOKEN_SYMBOLS.includes(symbol);
     return (
       <Container>
         <TokenInfo>
@@ -165,7 +169,12 @@ export default class TrackedTokenItems extends React.Component {
           >
             Send
           </Button>
-          <IconButton onClick={this.handleRemoveToken}>
+          <IconButton
+            onClick={this.handleRemoveToken}
+            style={{
+              visibility: isPermaToken ? `hidden` : `unset`
+            }}
+          >
             <Icon>close</Icon>
           </IconButton>
         </ButtonGroup>
