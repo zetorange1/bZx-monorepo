@@ -79,12 +79,13 @@ export default class TrackedTokenItems extends React.Component {
       ownerAddress: accounts[0].toLowerCase()
     });
     console.log(`balance of`, token.name, balance.toNumber());
-    this.setState({ balance: balance.toNumber() });
+    this.setState({ balance: balance.toNumber() / 1e18 });
   };
 
   checkAllowance = async () => {
     const { b0x, token, accounts } = this.props;
     console.log(`checking allowance`);
+    console.log(token.name, token.address);
     const allowance = await b0x.getAllowance({
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase()
