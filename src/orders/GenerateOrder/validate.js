@@ -1,4 +1,4 @@
-import { getTrackedTokens } from "../Balances/utils";
+import { getTrackedTokens } from "../../common/trackedTokens";
 
 const validRange = (min, max, val) => {
   if (val <= max && val >= min) {
@@ -7,13 +7,11 @@ const validRange = (min, max, val) => {
   throw new Error(`Invalid range`);
 };
 
-const checkCoinsAdded = ({
-  loanTokenAddress,
-  interestTokenAddress,
-  collateralTokenAddress,
-  role
-}) => {
-  const trackedTokens = getTrackedTokens();
+const checkCoinsAdded = (
+  { loanTokenAddress, interestTokenAddress, collateralTokenAddress, role },
+  tokens
+) => {
+  const trackedTokens = getTrackedTokens(tokens);
   const a = trackedTokens.includes(loanTokenAddress);
   const b = trackedTokens.includes(interestTokenAddress);
   const c = trackedTokens.includes(collateralTokenAddress);
@@ -53,7 +51,7 @@ const checkCoinsApproved = async (b0x, accounts, state) => {
   return a && b && c;
 };
 
-export default async (b0x, accounts, state) => {
+export default async (b0x, accounts, state, tokens) => {
   const { initialMarginAmount, liquidationMarginAmount } = state;
   try {
     validRange(10, 100, initialMarginAmount);
@@ -69,7 +67,7 @@ export default async (b0x, accounts, state) => {
     return false;
   }
 
-  const coinsAdded = checkCoinsAdded(state);
+  const coinsAdded = checkCoinsAdded(state, tokens);
   if (!coinsAdded) {
     return false;
   }

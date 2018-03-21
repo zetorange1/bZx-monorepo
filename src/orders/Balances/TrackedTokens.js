@@ -30,6 +30,7 @@ const TrackedTokens = ({
             updateTrackedTokens={updateTrackedTokens}
             b0x={b0x}
             accounts={accounts}
+            tokens={tokens}
           />
         ))}
       </Container>
