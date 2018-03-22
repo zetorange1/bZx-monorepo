@@ -11,10 +11,11 @@ var run = {
   "should generate loanOrderHash (as lender1)": true,
   "should sign and verify orderHash (as lender1)": true,
   "should take sample loan order (as trader1)": true,
+  "should get loan orders (for trader 1)": true,
 
-  "should generate loanOrderHash (as trader2)": true,
-  "should sign and verify orderHash (as trader2)": true,
-  "should take sample loan order (as lender2)": true,
+  "should generate loanOrderHash (as trader2)": false,
+  "should sign and verify orderHash (as trader2)": false,
+  "should take sample loan order (as lender2)": false,
 
   "should generate 0x order": false,
   "should sign and verify 0x order": false,
@@ -405,6 +406,72 @@ contract('B0xTest', function(accounts) {
       });
   });
 
+(run["should get loan orders (for trader 1)"] ? it : it.skip)("should get loan orders (for trader 1)", async function() {
+    // return array of arrays: address[], uint[], string
+    var data = await b0x.getOrders.call(
+      trader1_account,
+      0, // starting item
+      10 // max number of items returned
+    );
+    console.log(data);
+
+    data = data.substr(2); // remove 0x from front
+    const itemCount = 14;
+    const objCount = data.length / 64 / itemCount;
+    var orders = [];
+
+    if (objCount % 1 != 0) { // must be a whole number
+        console.error("error: data length invalid!");
+        assert.isOk(false);
+    }
+    else {
+      var orderObjArray = data.match(new RegExp('.{1,' + (itemCount * 64) + '}', 'g'));
+      //console.log("orderObjArray.length: "+orderObjArray.length);
+      for(var i=0; i < orderObjArray.length; i++) {
+        var orderParams = orderObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
+        //console.log(i+": orderParams.length: "+orderParams.length);
+        orders.push({
+          maker: "0x"+orderParams[0].substr(24),
+          loanTokenAddress: "0x"+orderParams[1].substr(24),
+          interestTokenAddress: "0x"+orderParams[2].substr(24),
+          collateralTokenAddress: "0x"+orderParams[3].substr(24),
+          feeRecipientAddress: "0x"+orderParams[4].substr(24),
+          oracleAddress: "0x"+orderParams[5].substr(24),
+          loanTokenAmount: parseInt("0x"+orderParams[6]),
+          interestAmount: parseInt("0x"+orderParams[7]),
+          initialMarginAmount: parseInt("0x"+orderParams[8]),
+          maintenanceMarginAmount: parseInt("0x"+orderParams[9]),
+          lenderRelayFee: parseInt("0x"+orderParams[10]),
+          traderRelayFee: parseInt("0x"+orderParams[11]),
+          expirationUnixTimestampSec: parseInt("0x"+orderParams[12]),
+          loanOrderHash: "0x"+orderParams[13]
+        });
+      }
+
+      /*struct LoanOrder {
+          address maker;
+          address loanTokenAddress;
+          address interestTokenAddress;
+          address collateralTokenAddress;
+          address feeRecipientAddress;
+          address oracleAddress;
+          uint loanTokenAmount;
+          uint interestAmount;
+          uint initialMarginAmount;
+          uint maintenanceMarginAmount;
+          uint lenderRelayFee;
+          uint traderRelayFee;
+          uint expirationUnixTimestampSec;
+          bytes32 loanOrderHash;
+      }*/
+
+      console.log(orders);
+
+      assert.isOk(true);
+    }
+  });
+
+
 
   (run["should generate loanOrderHash (as trader2)"] ? it : it.skip)("should generate loanOrderHash (as trader2)", function(done) {
 
@@ -616,7 +683,7 @@ contract('B0xTest', function(accounts) {
     //console.log(ECSignature_0x_raw);
 
     var textEvents;
-    b0x.openPositionWith0x(
+    b0x.tradeWith0x(
       OrderHash_b0x_1,
       sample_order_tightlypacked + ECSignature_0x_raw.substring(2),
       {from: trader1_account}).then(function(tx) {

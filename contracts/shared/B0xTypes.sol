@@ -20,22 +20,14 @@ contract B0xTypes {
         bytes32 loanOrderHash;
     }
 
-    struct Loan {
+    struct LoanPosition {
         address lender;
-        address collateralTokenFilled;
-        uint collateralTokenAmountFilled;
+        address collateralTokenAddressFilled;
+        address positionTokenAddressFilled;
         uint loanTokenAmountFilled;
-        uint filledUnixTimestampSec;
-        uint listPosition;
-        bool active;
-    }
-
-    struct Position {
-        address tradeTokenAddress;
-        uint tradeTokenAmount;
-        uint loanTokenUsedAmount;
-        uint filledUnixTimestampSec;
-        uint listPosition;
+        uint collateralTokenAmountFilled;
+        uint positionTokenAmountFilled;
+        uint loanStartUnixTimestampSec;
         bool active;
     }
 
@@ -45,45 +37,6 @@ contract B0xTypes {
         uint totalAmountAccrued;
         uint interestPaidSoFar;
     }
-
-
-    event LogLoanOrder (
-        address maker,
-        address loanTokenAddress,
-        address interestTokenAddress,
-        address collateralTokenAddress,
-        address feeRecipientAddress,
-        address oracleAddress,
-        uint loanTokenAmount,
-        uint interestAmount,
-        uint initialMarginAmount,
-        uint maintenanceMarginAmount,
-        uint lenderRelayFee,
-        uint traderRelayFee,
-        uint expirationUnixTimestampSec,
-        bytes32 loanOrderHash
-    );
-
-    event LogLoan (
-        address trader,
-        address lender,
-        address collateralTokenFilled,
-        uint collateralTokenAmountFilled,
-        uint loanTokenAmountFilled,
-        uint filledUnixTimestampSec,
-        uint listPosition,
-        bool active,
-        bytes32 loanOrderHash
-    );
-
-    event LogPosition (
-        address tradeToken,
-        uint tradeTokenAmount,
-        uint loanTokenUsedAmount,
-        uint filledUnixTimestampSec,
-        uint listPosition,
-        bool active
-    );
 
     // for debugging, remove later
     event MarginCalc(
@@ -125,9 +78,9 @@ contract B0xTypes {
         });
     }
 
-    function buildLoanStruct(
+    /*function buildLoanStruct(
         address[2] addrs,
-        uint[4] uints,
+        uint[3] uints,
         bool boolean)
         internal
         pure
@@ -139,14 +92,13 @@ contract B0xTypes {
             collateralTokenAmountFilled: uints[0],
             loanTokenAmountFilled: uints[1],
             filledUnixTimestampSec: uints[2],
-            listPosition: uints[3],
             active: boolean
         });
-    }
+    }*/
 
-    function buildPositionStruct(
+    /*function buildPositionStruct(
         address addr,
-        uint[4] uints,
+        uint[3] uints,
         bool boolean)
         internal
         pure
@@ -157,10 +109,9 @@ contract B0xTypes {
             tradeTokenAmount: uints[0],
             loanTokenUsedAmount: uints[1],
             filledUnixTimestampSec: uints[2],
-            listPosition: uints[3],
             active: boolean
         });
-    }
+    }*/
 
     /*
      * Unused Functions (remove later)
