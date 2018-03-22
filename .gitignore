@@ -7,3 +7,4 @@ package-lock.json
 /html_public_test
 /ignores
 /contracts/zeppelinos
+*.log
