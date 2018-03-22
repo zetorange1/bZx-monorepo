@@ -79,7 +79,7 @@ const test = {
   TokenRegistry: TokenRegistryTest
 };
 
-const contractsRaw = process.env.NODE_ENV === "development" ? test : live;
+const contractsRaw = process.env.NODE_ENV === "production" ? live : test;
 const contracts = map(
   ({ address, ...rest }) => ({ address: address.toLowerCase(), ...rest }),
   contractsRaw
