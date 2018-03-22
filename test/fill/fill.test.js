@@ -6,8 +6,8 @@ import B0xJS from "../../src";
 import b0xJS from "../setup";
 import makeOrder from "../utils/order";
 import * as orderConstants from "../../src/constants/order";
-import * as utils from "./utils";
-import Accounts from "../constants/accounts.secret";
+import * as Utils from "./utils";
+import Accounts from "../constants/accounts";
 
 describe("filling orders", () => {
   const owner = Accounts[0].address;
@@ -20,7 +20,7 @@ describe("filling orders", () => {
       collateralTokens,
       interestTokens,
       b0xToken
-    } = await utils.initAllContractInstances();
+    } = await Utils.initAllContractInstances();
     const ownerTxOpts = { from: owner };
     const transferAmt = b0xJS.web3.utils.toWei("1000000", "ether");
 
@@ -39,26 +39,26 @@ describe("filling orders", () => {
     const res = await Promise.all(balancePs);
     console.log(res);
 
-    await utils.setupB0xToken({
+    await Utils.setupB0xToken({
       b0xToken,
       lenders,
       traders,
       transferAmt,
       ownerTxOpts: clone(ownerTxOpts)
     });
-    await utils.setupLoanTokens({
+    await Utils.setupLoanTokens({
       loanTokens,
       lenders,
       transferAmt,
       ownerTxOpts: clone(ownerTxOpts)
     });
-    await utils.setupCollateralTokens({
+    await Utils.setupCollateralTokens({
       collateralTokens,
       traders,
       transferAmt,
       ownerTxOpts: clone(ownerTxOpts)
     });
-    await utils.setupInterestTokens({
+    await Utils.setupInterestTokens({
       interestTokens,
       traders,
       transferAmt,
@@ -108,7 +108,7 @@ describe("filling orders", () => {
         loanTokens,
         interestTokens,
         collateralTokens
-      } = await utils.initAllContractInstances();
+      } = await Utils.initAllContractInstances();
       const makerAddress = lenders[0];
       const takerAddress = traders[0];
       const txOpts = { from: takerAddress, gas: 1000000 };

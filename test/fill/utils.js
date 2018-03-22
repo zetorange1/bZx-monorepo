@@ -1,10 +1,19 @@
 import Contracts from "../../src/contracts";
 import b0xJS from "../setup";
 import * as utils from "../../src/utils";
+import Accounts from "../constants/accounts";
+import * as UnlockUtils from "../utils/unlock";
 
 export const getContractInstances = contracts => {
   const promises = contracts.map(contract =>
     utils.getContractInstance(b0xJS.web3, contract.abi, contract.address)
+  );
+  return Promise.all(promises);
+};
+
+export const unlockAllAccounts = () => {
+  const promises = Accounts.map(account =>
+    UnlockUtils.unlock(b0xJS.web3, account)
   );
   return Promise.all(promises);
 };

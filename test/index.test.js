@@ -9,7 +9,7 @@ import * as Errors from "../src/constants/errors";
 import b0xJS from "./setup";
 import makeOrder from "./utils/order";
 import contracts from "../src/contracts";
-import Accounts from "./constants/accounts.secret";
+import Accounts from "./constants/accounts";
 
 const erc20Abi = EIP20.abi;
 
