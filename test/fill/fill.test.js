@@ -173,16 +173,11 @@ describe("filling orders", () => {
       );
       const loanTokenAmountFilledReturn = pathOr(
         null,
-        [
-          "events",
-          "LoanOrderTakenAmounts",
-          "returnValues",
-          "loanTokenAmountFilled"
-        ],
+        ["events", "LogLoan", "returnValues", "loanTokenAmountFilled"],
         receipt
       );
       console.log(JSON.stringify(receipt, null, 2));
-      expect(loanTokenAmountFilledReturn).toBe("0");
+      expect(loanTokenAmountFilledReturn).toBe(loanTokenAmountFilled);
     });
   });
 });
