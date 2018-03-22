@@ -1,5 +1,5 @@
 /* globals test, describe, expect, beforeAll */
-import { pathOr, clone } from "ramda";
+import { pathOr } from "ramda";
 import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
 import B0xJS from "../../src";
 import b0xJS from "../setup";
@@ -45,25 +45,25 @@ describe("filling orders", () => {
       lenders,
       traders,
       transferAmt,
-      ownerTxOpts: clone(ownerTxOpts)
+      ownerTxOpts
     });
     await Utils.setupLoanTokens({
       loanTokens,
       lenders,
       transferAmt,
-      ownerTxOpts: clone(ownerTxOpts)
+      ownerTxOpts
     });
     await Utils.setupCollateralTokens({
       collateralTokens,
       traders,
       transferAmt,
-      ownerTxOpts: clone(ownerTxOpts)
+      ownerTxOpts
     });
     await Utils.setupInterestTokens({
       interestTokens,
       traders,
       transferAmt,
-      ownerTxOpts: clone(ownerTxOpts)
+      ownerTxOpts
     });
 
     const balancePs2 = [
