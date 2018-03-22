@@ -34,6 +34,8 @@ export default class B0xJS {
     return orderHashHex;
   }
 
+  isValidSignature = async props => utils.isValidSignature(this.web3, props);
+
   async signOrderHashAsync(
     orderHash,
     signerAddress,

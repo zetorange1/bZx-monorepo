@@ -130,7 +130,7 @@ describe("filling orders", () => {
       const txOpts = {
         from: takerAddress,
         gas: 1000000,
-        gasPrice: web3.utils.toWei("30", "gwei")
+        gasPrice: web3.utils.toWei("30", "gwei").toString()
       };
       const expirationUnixTimestampSec = "1719061340";
 
@@ -156,6 +156,14 @@ describe("filling orders", () => {
         orderHashHex,
         makerAddress
       );
+
+      const isValidSig = await b0xJS.isValidSignature({
+        account: makerAddress,
+        orderHash: orderHashHex,
+        signature
+      });
+      console.log("isValidSig", isValidSig);
+
       const loanTokenAmountFilled = web3.utils.toWei("12.3");
       const receipt = await b0xJS.takeLoanOrderAsTrader(
         { ...order, signature },
