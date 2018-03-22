@@ -1,6 +1,9 @@
 
 var fs = require("fs");
 
+const Web3 = require('web3');
+let web3 = new Web3();
+
 if (!fs.existsSync("./html_public_test")) {
     fs.mkdirSync("./html_public_test");
 	proceed();
@@ -16,6 +19,9 @@ if (!fs.existsSync("./html_public_test")) {
 function proceed() {
 if (!fs.existsSync("./html_public_test/abi")) {
     fs.mkdirSync("./html_public_test/abi");
+}
+if (!fs.existsSync("./html_public_test/deployed")) {
+    fs.mkdirSync("./html_public_test/deployed");
 }
 
 
@@ -38,6 +44,8 @@ var addresses = {
 	"TestToken7": "unknown",
 	"TestToken8": "unknown",
 	"TestToken9": "unknown",
+
+	"EIP20": "unknown",
 };
 
 
@@ -47,8 +55,22 @@ Object.keys(addresses).forEach(function(item, index) {
 
 	var abi = "";
 	try {
-		abi = JSON.stringify(jsonContent["abi"], null, '\t')
-		addresses[item] = jsonContent["networks"]["50"]["address"]
+		addresses[item] = "";
+		if (item != "EIP20") {
+			addresses[item] = web3.toChecksumAddress(jsonContent["networks"]["50"]["address"]);
+		}
+		var jsonAsset = {
+			"address": addresses[item],
+			"abi": jsonContent["abi"]
+		};
+		
+		abi = JSON.stringify(jsonContent["abi"], null, '\t');
+
+		fs.writeFileSync("./html_public_test/deployed/"+item+".json", JSON.stringify(jsonAsset), function(err) {
+			if(err) {
+				console.log(item+".json Error: "+err);
+			}
+		});
 	}
 	catch(err) {
 		console.log(item+".json Error: "+err);
@@ -108,25 +130,23 @@ var outHTML = `
 	<body>
 		<pre style="white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word;">
 		<font size="2" face="Courier New">
-Listening on https://testnet.b0x.network:443
-
-<a href="contracts.json" target="_blank">Contracts JSON</a>
 
 Smart Contracts
 ==================
 `;
 
 Object.keys(addresses).forEach(function(item, index) {
+	if (addresses[item] == "") {
+		addresses[item] = "[abi only]";
+	}
 	outHTML += item+` :: `+addresses[item]+` <a href="abi/`+item+`.abi.json" target="_blank">abi</a>
 `;
 });
 
 outHTML += `
 
-ZRXToken :: 0xa38a5c8f63b7df14e5078b95a1807abb8f41f166 <a href="abi/ZRXToken.abi.json" target="_blank">abi</a>
-EtherToken :: 0xb6c04208e4ebb505c3c40b8fcf13051428fcd25e <a href="abi/EtherToken.abi.json" target="_blank">abi</a>
-Exchange :: 0xbae32c0672d99bb465a296cd9b8dfc3441ddafbe <a href="abi/Exchange.abi.json" target="_blank">abi</a>
-TokenTransferProxy :: 0x6f16a6860719ed581d0cbeb40dab04508d30acba <a href="abi/TokenTransferProxy.abi.json" target="_blank">abi</a>
+ZRXToken :: 0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3
+EtherToken :: 0x48BaCB9266a570d521063EF5dD96e61686DbE788
 
 		</font>
 		</pre>
@@ -138,5 +158,24 @@ fs.writeFile("./html_public_test/index.html", outHTML, function(err) {
 		console.err("Error: "+err);
 	}
 });
+
+fs.writeFileSync("./html_public_test/deployed/ZRXToken.json", JSON.stringify({
+	"address": "0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3",
+	"abi": ""
+}), function(err) {
+	if(err) {
+		console.log(item+".json Error: "+err);
+	}
+});
+
+fs.writeFileSync("./html_public_test/deployed/EtherToken.json", JSON.stringify({
+	"address": "0x48BaCB9266a570d521063EF5dD96e61686DbE788",
+	"abi": ""
+}), function(err) {
+	if(err) {
+		console.log(item+".json Error: "+err);
+	}
+});
+
 }
 
