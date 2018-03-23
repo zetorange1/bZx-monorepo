@@ -4,9 +4,9 @@ exports[`addresses should return an object of addresses 1`] = `
 Object {
   "B0x": "0x4d3d5c850dd5bd9d6f4adda3dd039a3c8054ca29",
   "B0xOracle": "0x8ea76477cfaca8f7ea06477fd3c09a740ac6012a",
-  "B0xTo0x": "0x6346e3a22d2ef8fee3b3c2171367490e52d81c52",
+  "B0xTo0x": "0x7bf7bb74c43dc141293aff12a2d7de350e9b09e0",
   "B0xToken": "0x6000eca38b8b5bba64986182fe2a69c57f6b5414",
-  "B0xVault": "0x8726c7414ac023d23348326b47af3205185fd035",
+  "B0xVault": "0x04b5dadd2c0d6a261bfafbc964e0cac48585def3",
   "EIP20": "",
   "OracleRegistry": "0xaa86dda78e9434aca114b6676fc742a18d15a1cc",
   "TestToken0": "0x0d8b0dd11f5d34ed41d556def5f841900d5b1c6b",

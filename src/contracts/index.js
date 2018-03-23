@@ -18,24 +18,24 @@ import TestToken8 from "./TestToken8.json";
 import TestToken9 from "./TestToken9.json";
 import TokenRegistry from "./TokenRegistry.json";
 
-import B0xTest from "../../test/contracts/B0x.json";
-import B0xOracleTest from "../../test/contracts/B0xOracle.json";
-import B0xTo0xTest from "../../test/contracts/B0xTo0x.json";
-import B0xTokenTest from "../../test/contracts/B0xToken.json";
-import B0xVaultTest from "../../test/contracts/B0xVault.json";
-import EIP20Test from "../../test/contracts/EIP20.json";
-import OracleRegistryTest from "../../test/contracts/OracleRegistry.json";
-import TestToken0Test from "../../test/contracts/TestToken0.json";
-import TestToken1Test from "../../test/contracts/TestToken1.json";
-import TestToken2Test from "../../test/contracts/TestToken2.json";
-import TestToken3Test from "../../test/contracts/TestToken3.json";
-import TestToken4Test from "../../test/contracts/TestToken4.json";
-import TestToken5Test from "../../test/contracts/TestToken5.json";
-import TestToken6Test from "../../test/contracts/TestToken6.json";
-import TestToken7Test from "../../test/contracts/TestToken7.json";
-import TestToken8Test from "../../test/contracts/TestToken8.json";
-import TestToken9Test from "../../test/contracts/TestToken9.json";
-import TokenRegistryTest from "../../test/contracts/TokenRegistry.json";
+import B0xTest from "../../../protocol_contracts/test_network/deployed/B0x.json";
+import B0xOracleTest from "../../../protocol_contracts/test_network/deployed/B0xOracle.json";
+import B0xTo0xTest from "../../../protocol_contracts/test_network/deployed/B0xTo0x.json";
+import B0xTokenTest from "../../../protocol_contracts/test_network/deployed/B0xToken.json";
+import B0xVaultTest from "../../../protocol_contracts/test_network/deployed/B0xVault.json";
+import EIP20Test from "../../../protocol_contracts/test_network/deployed/EIP20.json";
+import OracleRegistryTest from "../../../protocol_contracts/test_network/deployed/OracleRegistry.json";
+import TestToken0Test from "../../../protocol_contracts/test_network/deployed/TestToken0.json";
+import TestToken1Test from "../../../protocol_contracts/test_network/deployed/TestToken1.json";
+import TestToken2Test from "../../../protocol_contracts/test_network/deployed/TestToken2.json";
+import TestToken3Test from "../../../protocol_contracts/test_network/deployed/TestToken3.json";
+import TestToken4Test from "../../../protocol_contracts/test_network/deployed/TestToken4.json";
+import TestToken5Test from "../../../protocol_contracts/test_network/deployed/TestToken5.json";
+import TestToken6Test from "../../../protocol_contracts/test_network/deployed/TestToken6.json";
+import TestToken7Test from "../../../protocol_contracts/test_network/deployed/TestToken7.json";
+import TestToken8Test from "../../../protocol_contracts/test_network/deployed/TestToken8.json";
+import TestToken9Test from "../../../protocol_contracts/test_network/deployed/TestToken9.json";
+import TokenRegistryTest from "../../../protocol_contracts/test_network/deployed/TokenRegistry.json";
 
 const live = {
   B0x,
