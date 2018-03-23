@@ -11,3 +11,16 @@ __Note:__ This project is still under *heavy* construction.
 2. Run `npm run dev` to start webpack in watch mode.
 
 Whenever a file is saved, webpack rebuilds and outputs `b0x.js` in the `/dist` directory.
+
+# Running Tests
+
+1. Clone repo: `git clone https://github.com/b0xNetwork/protocol_contracts`
+    - Note: `protocol_contracts` and `b0x.js` folders must be sibling folders
+
+1. Install dependencies for `protocol_contracts`: `npm install`
+
+1. Run testnet: `npm run network`
+
+1. `cd` to your `b0x.js` folder
+
+1. Run tests for `b0x.js`: `npm test`
