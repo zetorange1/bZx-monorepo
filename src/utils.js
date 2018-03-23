@@ -5,6 +5,7 @@ import BN from "bn.js";
 import Web3Utils from "web3-utils";
 import * as Errors from "./constants/errors";
 import { SchemaValidator } from "./schemas/b0x_json_schemas";
+import Contracts from "./contracts";
 
 export const noop = () => {};
 
@@ -62,7 +63,8 @@ export const doesContractExistAtAddress = async (web3, address) => {
 export const getContractInstance = async (web3, abi, address) => {
   assert.isETHAddressHex("address", address);
   const contractExists = await doesContractExistAtAddress(web3, address);
-  if (!contractExists) throw new Error(Errors.ContractDoesNotExist);
+  if (!contractExists)
+    throw new Error(`${Errors.ContractDoesNotExist} ${address}`);
 
   const contract = new web3.eth.Contract(abi, address);
   return contract;
@@ -80,4 +82,18 @@ export const doesConformToSchema = (variableName, value, schema) => {
     "\t"
   )}\nValidation errors: ${validationResult.errors.join(", ")}`;
   assert.assert(!hasValidationErrors, msg);
+};
+
+export const isValidSignature = async (
+  web3,
+  { account, orderHash, signature }
+) => {
+  const b0xContract = await getContractInstance(
+    web3,
+    Contracts.B0x.abi,
+    Contracts.B0x.address
+  );
+  return b0xContract.methods
+    .isValidSignature(account, orderHash, signature)
+    .call();
 };

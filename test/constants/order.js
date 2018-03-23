@@ -24,7 +24,7 @@ export default {
 
   // expiration date/time
   expirationUnixTimestampSec: "1519061340",
-  
+
   makerRole: "0",
   salt: "0.2019429563929979"
 };

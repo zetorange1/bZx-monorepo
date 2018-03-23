@@ -7,6 +7,7 @@ import * as utils from "./utils";
 import contracts from "./contracts";
 import * as allowance from "./allowance";
 import * as oracles from "./oracles";
+import * as fill from "./fill";
 import * as Addresses from "./addresses";
 
 const erc20Abi = contracts.EIP20.abi;
@@ -32,6 +33,8 @@ export default class B0xJS {
     const orderHashHex = utils.getLoanOrderHashHex(order);
     return orderHashHex;
   }
+
+  isValidSignature = async props => utils.isValidSignature(this.web3, props);
 
   async signOrderHashAsync(
     orderHash,
@@ -87,4 +90,10 @@ export default class B0xJS {
   getOracleList = async () => oracles.getOracleList(this.web3);
   isTradeSupported = async (...props) =>
     oracles.isTradeSupported(this.web3, ...props);
+
+  takeLoanOrderAsLender = async (...props) =>
+    fill.takeLoanOrderAsLender(this.web3, ...props);
+
+  takeLoanOrderAsTrader = async (...props) =>
+    fill.takeLoanOrderAsTrader(this.web3, ...props);
 }
