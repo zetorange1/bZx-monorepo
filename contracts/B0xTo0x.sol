@@ -123,7 +123,7 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         if (orderAddresses0x[4] != address(0) && // feeRecipient
                 orderValues0x[3] > 0 // takerFee
         ) {
-            // The 0x TokenTransferProxy already has unlimited transfer allowance for ZRX from this contract
+            // The 0x TokenTransferProxy already has unlimited transfer allowance for ZRX from this contract (set during deployment of this contract)
             if (!EIP20(ZRX_TOKEN_CONTRACT).transferFrom(trader, this, orderValues0x[3])) {
                 //LogErrorUint("error: b0x can't transfer ZRX from trader", 0, 0x0);
                 return intOrRevert(0,132);

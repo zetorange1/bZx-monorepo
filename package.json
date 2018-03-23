@@ -39,7 +39,7 @@
     "migrate:reset": "truffle migrate --reset",
     "network": "npm run network:deploy && npm run network:run",
     "network:deploy": "rimraf ./test_network && mkdirp ./test_network && ziptool --unzip ./extra/b0x_db_latest.zip -o ./test_network",
-    "network:deploy0xdb": "rimraf ./test_network && mkdirp ./test_network && ziptool --unzip ./extra/0x_db_78fe8dd.zip -o ./test_network",
+    "network:deploy0xdb": "rimraf ./test_network && mkdirp ./test_network && ziptool --unzip ./extra/0x_db_07d00cc515e0f9825b81595386b358593b7a3d6f.zip -o ./test_network",
     "network:run": "ganache-cli --networkId 50 -p 8545 --db ./test_network -m \"concert load couple harbor equip island argue ramp clarify fence smart topic\"",
     "test": "truffle test ./test/endtoend.js"
   }

@@ -22,6 +22,7 @@ contract B0xTypes {
 
     struct LoanPosition {
         address lender;
+        address trader;
         address collateralTokenAddressFilled;
         address positionTokenAddressFilled;
         uint loanTokenAmountFilled;
@@ -29,6 +30,11 @@ contract B0xTypes {
         uint positionTokenAmountFilled;
         uint loanStartUnixTimestampSec;
         bool active;
+    }
+
+    struct Counterparty {
+        address counterparty;
+        bytes32 loanOrderHash;
     }
 
     struct InterestData {

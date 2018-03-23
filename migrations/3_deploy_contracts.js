@@ -1,6 +1,6 @@
 
 const BigNumber = require('bignumber.js');
-const MAX_UINT = new BigNumber(2).pow(256).minus(1);
+const MAX_UINT = new BigNumber(2).pow(256).minus(1).toString();
 
 var B0xToken = artifacts.require("./B0xToken.sol")
 var b0xTokenAddress;
@@ -48,6 +48,7 @@ module.exports = function(deployer, network, accounts) {
 
 					B0xTo0x.deployed().then(function(instance) {
 						instance.transferB0xOwnership(B0x.address).then(function() {
+							// TokenTransferProxy needs to have unlimited transfer approval for ZRX from B0xTo0x
 							instance.approveFor(
 								config["protocol"][network]["ZeroEx"]["ZRXToken"],
 								config["protocol"][network]["ZeroEx"]["TokenTransferProxy"],

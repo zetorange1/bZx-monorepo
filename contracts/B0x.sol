@@ -35,7 +35,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
     mapping (bytes32 => uint) public orderCancelledAmounts; // mapping of loanOrderHash to loanTokenAmount cancelled
 
     mapping (bytes32 => mapping (address => LoanPosition)) public loanPositions; // mapping of loanOrderHash to mapping of traders to loanPositions
-    mapping (address => bytes32[]) public loanList; // mapping of lenders and trader addresses to array of loanOrderHashes
+    mapping (address => Counterparty[]) public loanList; // mapping of lenders and trader addresses to array of loan Counterparty structs
 
     mapping (bytes32 => mapping (address => uint)) public interestPaid; // mapping of loanOrderHash to mapping of traders to amount of interest paid so far to a lender
 
@@ -176,12 +176,21 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             // no previous partial loan fill
             loanOrder = buildLoanOrderStruct(loanOrderHash, orderAddresses, orderValues);
             orders[loanOrder.loanOrderHash] = loanOrder;
-            loanList[lender].push(loanOrder.loanOrderHash);
-            loanList[trader].push(loanOrder.loanOrderHash);
+            loanList[lender].push(Counterparty({
+                counterparty: trader,
+                loanOrderHash: loanOrder.loanOrderHash
+            }));
+            loanList[trader].push(Counterparty({
+                counterparty: lender,
+                loanOrderHash: loanOrder.loanOrderHash
+            }));
         }
         else {
             // previous partial/complete loan fill by another trader
-            loanList[trader].push(loanOrder.loanOrderHash);
+            loanList[trader].push(Counterparty({
+                counterparty: lender,
+                loanOrderHash: loanOrder.loanOrderHash
+            }));
         }
 
         if(!isValidSignature(
@@ -219,6 +228,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         orderFilledAmounts[loanOrder.loanOrderHash] = orderFilledAmounts[loanOrder.loanOrderHash].add(loanTokenAmountFilled);
 
         loanPosition.lender = lender;
+        loanPosition.trader = trader;
         loanPosition.collateralTokenAddressFilled = collateralTokenFilled;
         loanPosition.positionTokenAddressFilled = loanOrder.loanTokenAddress;
         loanPosition.loanTokenAmountFilled = loanTokenAmountFilled;
@@ -229,7 +239,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
 
         LoanPositionUpdated (
             loanPosition.lender,
-            trader,
+            loanPosition.trader,
             loanPosition.collateralTokenAddressFilled,
             loanPosition.positionTokenAddressFilled,
             loanPosition.loanTokenAmountFilled,
@@ -759,11 +769,11 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             return;
         }
 
-        // size of bytes = ((addrs.length + uints.length + 1) * 32) * (end-start)
+        // size of bytes = ((addrs.length(6) + uints.length(7) + 1) * 32) * (end-start)
         bytes memory data = new bytes(448 * (end - start)); 
 
         for (uint j=0; j < end-start; j++) {
-            bytes32 loanOrderHash = loanList[user][j+start];
+            bytes32 loanOrderHash = loanList[user][j+start].loanOrderHash;
             var (addrs,uints) = getLoanOrderParts(loanOrderHash);
 
             uint i;
@@ -788,6 +798,52 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             i = addrs.length + uints.length + 1;
             assembly {
                 mstore(add(data, mul(add(i, mul(j, 14)), 32)), loanOrderHash)
+            }
+        }
+
+        return data;
+    }
+
+    function getLoanPositions(
+        address loanParty,
+        uint start,
+        uint count)
+        public
+        view
+        returns (bytes)
+    {
+        var end = Math.min256(loanList[loanParty].length, start.add(count));
+        if (end == 0 || start >= end) {
+            return;
+        }
+
+        // size of bytes = ((addrs.length(4) + uints.length(5)) * 32) * (end-start)
+        bytes memory data = new bytes(288 * (end - start)); 
+
+        for (uint j=0; j < end-start; j++) {
+            bytes32 loanOrderHash = loanList[loanParty][j+start].loanOrderHash;
+            if (loanPositions[loanOrderHash][loanParty].loanTokenAmountFilled == 0) {
+                // loanParty is lender, so it needs to be set to the trader counterparty to retrieve the loan details
+                loanParty = loanList[loanParty][j+start].counterparty; // loanParty is now the trader
+            }
+            var (addrs,uints) = getLoanPositionParts(loanOrderHash,loanParty);
+
+            uint i;
+
+            // handles address
+            for(i = 1; i <= addrs.length; i++) {
+                address tmpAddr = addrs[i-1];
+                assembly {
+                    mstore(add(data, mul(add(i, mul(j, 14)), 32)), tmpAddr)
+                }
+            }
+
+            // handles uint
+            for(i = addrs.length+1; i <= addrs.length+uints.length; i++) {
+                uint tmpUint = uints[i-1-addrs.length];
+                assembly {
+                    mstore(add(data, mul(add(i, mul(j, 14)), 32)), tmpUint)
+                }
             }
         }
 
@@ -1426,29 +1482,41 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
 
         return getLoanBytes(lender, uints, active);
     }
-    function getLoanParts (
+    */
+    function getLoanPositionParts (
         bytes32 loanOrderHash,
         address trader)
         public
         view
-        returns (address,uint[3],bool)
+        returns (address[4],uint[5])
     {
-        Loan memory loan = loans[loanOrderHash][trader];
-        if (loan.loanTokenAmountFilled == 0) {
+        LoanPosition memory loanPosition = loanPositions[loanOrderHash][trader];
+        if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             return;
         }
 
+        uint active = 1;
+        if (!loanPosition.active) {
+            active = 0;
+        }
         return (
-            loan.lender,
             [
-                loan.collateralTokenAmountFilled,
-                loan.loanTokenAmountFilled,
-                loan.filledUnixTimestampSec
+                loanPosition.lender,
+                loanPosition.trader,
+                loanPosition.collateralTokenAddressFilled,
+                loanPosition.positionTokenAddressFilled
             ],
-            loan.active
+            [
+                loanPosition.loanTokenAmountFilled,
+                loanPosition.collateralTokenAmountFilled,
+                loanPosition.positionTokenAmountFilled,
+                loanPosition.loanStartUnixTimestampSec,
+                active
+            ]
         );
     }
 
+    /*
     function getPositionByteData (
         bytes32 loanOrderHash,
         address trader)
