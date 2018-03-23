@@ -83,15 +83,36 @@ describe("filling orders", () => {
   });
 
   describe("takeLoanOrderAsLender", async () => {
-    test.skip("should return total amount of loanToken borrowed", async () => {
-      const makerAddress = Accounts[1].address;
-      const takerAddress = Accounts[0].address;
-      const txOpts = { from: takerAddress, gas: 1000000 };
+    test("should return total amount of loanToken borrowed", async () => {
+      const {
+        loanTokens,
+        interestTokens,
+        collateralTokens
+      } = await Utils.initAllContractInstances();
+      const makerAddress = traders[1];
+      const takerAddress = lenders[1];
+      const txOpts = {
+        from: takerAddress,
+        gas: 1000000,
+        gasPrice: web3.utils.toWei("30", "gwei").toString()
+      };
+      const expirationUnixTimestampSec = "1719061340";
 
       const order = makeOrder({
-        makerRole: orderConstants.MAKER_ROLE.TRADER,
         makerAddress,
-        salt: B0xJS.generatePseudoRandomSalt()
+        loanTokenAddress: loanTokens[1].options.address.toLowerCase(),
+        interestTokenAddress: interestTokens[1].options.address.toLowerCase(),
+        collateralTokenAddress: collateralTokens[1].options.address.toLowerCase(),
+        feeRecipientAddress: constantsZX.NULL_ADDRESS,
+        loanTokenAmount: web3.utils.toWei("100000").toString(),
+        interestAmount: web3.utils.toWei("2").toString(),
+        initialMarginAmount: "50",
+        maintenanceMarginAmount: "25",
+        lenderRelayFee: web3.utils.toWei("0.001").toString(),
+        traderRelayFee: web3.utils.toWei("0.0015").toString(),
+        expirationUnixTimestampSec,
+        makerRole: orderConstants.MAKER_ROLE.TRADER,
+        salt: B0xJS.generatePseudoRandomSalt().toString()
       });
 
       const orderHashHex = B0xJS.getLoanOrderHashHex(order);
@@ -99,22 +120,31 @@ describe("filling orders", () => {
         orderHashHex,
         makerAddress
       );
+
+      const isValidSig = await b0xJS.isValidSignature({
+        account: makerAddress,
+        orderHash: orderHashHex,
+        signature
+      });
+      console.log("isValidSig", isValidSig);
+
       const receipt = await b0xJS.takeLoanOrderAsLender(
         { ...order, signature },
         txOpts
       );
-
-      const loanTokenAmountFilled = pathOr(
+      console.log(JSON.stringify(receipt, null, 2));
+      const loanTokenAmountFilledReturn = pathOr(
         null,
         [
           "events",
-          "LoanOrderTakenAmounts",
+          "LoanPositionUpdated",
           "returnValues",
           "loanTokenAmountFilled"
         ],
         receipt
       );
-      expect(loanTokenAmountFilled).toBe("0");
+      const loanTokenAmountFilled = "100000000000000000000000";
+      expect(loanTokenAmountFilledReturn).toBe(loanTokenAmountFilled);
     });
   });
 
@@ -181,7 +211,7 @@ describe("filling orders", () => {
         ],
         receipt
       );
-      console.log(JSON.stringify(receipt, null, 2));
+      // console.log(JSON.stringify(receipt, null, 2));
       expect(loanTokenAmountFilledReturn).toBe(loanTokenAmountFilled);
     });
   });
