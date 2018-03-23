@@ -37,9 +37,9 @@ describe("filling orders", () => {
       })
     );
 
-    const res = await Promise.all(balancePs);
+    const balancesBefore = await Promise.all(balancePs);
     console.log("before setting up tokens");
-    console.log(res.map(bigNum => bigNum.toString()));
+    console.log(balancesBefore.map(bigNum => bigNum.toString()));
 
     await Utils.setupB0xToken({
       b0xToken,
@@ -80,8 +80,8 @@ describe("filling orders", () => {
     );
 
     console.log("after setting up tokens");
-    const res2 = await Promise.all(balancePs2);
-    console.log(res2.map(bigNum => bigNum.toString()));
+    const balancesAfter = await Promise.all(balancePs2);
+    console.log(balancesAfter.map(bigNum => bigNum.toString()));
   });
 
   describe("takeLoanOrderAsLender", async () => {
