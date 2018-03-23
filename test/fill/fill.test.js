@@ -173,7 +173,12 @@ describe("filling orders", () => {
       );
       const loanTokenAmountFilledReturn = pathOr(
         null,
-        ["events", "LogLoan", "returnValues", "loanTokenAmountFilled"],
+        [
+          "events",
+          "LoanPositionUpdated",
+          "returnValues",
+          "loanTokenAmountFilled"
+        ],
         receipt
       );
       console.log(JSON.stringify(receipt, null, 2));
