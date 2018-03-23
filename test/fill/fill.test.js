@@ -38,6 +38,7 @@ describe("filling orders", () => {
     );
 
     const res = await Promise.all(balancePs);
+    console.log("before setting up tokens");
     console.log(res.map(bigNum => bigNum.toString()));
 
     await Utils.setupB0xToken({
@@ -78,6 +79,7 @@ describe("filling orders", () => {
       })
     );
 
+    console.log("after setting up tokens");
     const res2 = await Promise.all(balancePs2);
     console.log(res2.map(bigNum => bigNum.toString()));
   });
@@ -121,18 +123,11 @@ describe("filling orders", () => {
         makerAddress
       );
 
-      const isValidSig = await b0xJS.isValidSignature({
-        account: makerAddress,
-        orderHash: orderHashHex,
-        signature
-      });
-      console.log("isValidSig", isValidSig);
-
       const receipt = await b0xJS.takeLoanOrderAsLender(
         { ...order, signature },
         txOpts
       );
-      console.log(JSON.stringify(receipt, null, 2));
+
       const loanTokenAmountFilledReturn = pathOr(
         null,
         [
@@ -187,13 +182,6 @@ describe("filling orders", () => {
         makerAddress
       );
 
-      const isValidSig = await b0xJS.isValidSignature({
-        account: makerAddress,
-        orderHash: orderHashHex,
-        signature
-      });
-      console.log("isValidSig", isValidSig);
-
       const loanTokenAmountFilled = web3.utils.toWei("12.3");
       const receipt = await b0xJS.takeLoanOrderAsTrader(
         { ...order, signature },
@@ -211,7 +199,6 @@ describe("filling orders", () => {
         ],
         receipt
       );
-      // console.log(JSON.stringify(receipt, null, 2));
       expect(loanTokenAmountFilledReturn).toBe(loanTokenAmountFilled);
     });
   });
