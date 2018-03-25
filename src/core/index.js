@@ -9,6 +9,7 @@ import * as allowance from "../allowance";
 import * as oracles from "../oracles";
 import * as fill from "../fill";
 import * as Addresses from "../addresses";
+import * as orderHistory from "../orderHistory";
 
 const erc20Abi = contracts.EIP20.abi;
 
@@ -96,4 +97,6 @@ export default class B0xJS {
 
   takeLoanOrderAsTrader = async (...props) =>
     fill.takeLoanOrderAsTrader(this.web3, ...props);
+
+  getOrders = async (...props) => orderHistory.getOrders(this.web3, ...props);
 }
