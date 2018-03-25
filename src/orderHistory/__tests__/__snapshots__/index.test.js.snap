@@ -2,26 +2,20 @@
 
 exports[`order history getOrders should return order history 1`] = `
 Array [
-  Array [
-    0,
-    Array [
-      Object {
-        "collateralTokenAddress": "0x0000000000000000000000000000000000000000",
-        "expirationUnixTimestampSec": 1719061340,
-        "feeRecipientAddress": "0x0000000000000000000000000000000000000000",
-        "initialMarginAmount": 50,
-        "interestAmount": 2000000000000000000,
-        "interestTokenAddress": "0x609acc8b356894a937fc58f3411f9528de96ecb1",
-        "lenderRelayFee": 1000000000000000,
-        "loanOrderHash": "0x070284d0b3f43ff369921fe2dc33c8952c9eba9ea7f38e95e899d1a333b4c2b5",
-        "loanTokenAddress": "0x0d8b0dd11f5d34ed41d556def5f841900d5b1c6b",
-        "loanTokenAmount": 1e+23,
-        "maintenanceMarginAmount": 25,
-        "maker": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
-        "oracleAddress": "0x8ea76477cfaca8f7ea06477fd3c09a740ac6012a",
-        "traderRelayFee": 1500000000000000,
-      },
-    ],
-  ],
+  Object {
+    "collateralTokenAddress": "0x0000000000000000000000000000000000000000",
+    "expirationUnixTimestampSec": 1719061340,
+    "feeRecipientAddress": "0x0000000000000000000000000000000000000000",
+    "initialMarginAmount": 50,
+    "interestAmount": 2000000000000000000,
+    "interestTokenAddress": "0x609acc8b356894a937fc58f3411f9528de96ecb1",
+    "lenderRelayFee": 1000000000000000,
+    "loanTokenAddress": "0x0d8b0dd11f5d34ed41d556def5f841900d5b1c6b",
+    "loanTokenAmount": 1e+23,
+    "maintenanceMarginAmount": 25,
+    "maker": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+    "oracleAddress": "0x8ea76477cfaca8f7ea06477fd3c09a740ac6012a",
+    "traderRelayFee": 1500000000000000,
+  },
 ]
 `;

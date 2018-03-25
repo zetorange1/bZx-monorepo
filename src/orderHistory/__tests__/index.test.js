@@ -93,14 +93,17 @@ describe("order history", () => {
 
   describe("getOrders", async () => {
     test("should return order history", async () => {
-      const ordersRaw = await b0xJS.getOrders({
+      const orders = await b0xJS.getOrders({
         loanPartyAddress: traders[0],
         start: 0,
         count: 10
       });
 
-      const orders = ordersRaw.map((loanOrderHash, ...rest) => rest);
-      expect(orders).toMatchSnapshot();
+      const ordersNoLoanOrderHash = orders.map(
+        ({ loanOrderHash, ...rest }) => rest
+      );
+
+      expect(ordersNoLoanOrderHash).toMatchSnapshot();
     });
   });
 });
