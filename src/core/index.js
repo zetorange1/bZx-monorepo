@@ -2,13 +2,13 @@ import { assert } from "@0xproject/assert";
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import * as ethUtil from "ethereumjs-util";
-import { schemas } from "./schemas/b0x_json_schemas";
+import { schemas } from "../schemas/b0x_json_schemas";
 import * as utils from "./utils";
-import contracts from "./contracts";
-import * as allowance from "./allowance";
-import * as oracles from "./oracles";
-import * as fill from "./fill";
-import * as Addresses from "./addresses";
+import contracts from "../contracts";
+import * as allowance from "../allowance";
+import * as oracles from "../oracles";
+import * as fill from "../fill";
+import * as Addresses from "../addresses";
 
 const erc20Abi = contracts.EIP20.abi;
 

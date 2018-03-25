@@ -1,8 +1,8 @@
 import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
-import * as Addresses from "../constants/addresses";
-import contracts from "../../src/contracts";
-import * as constants from "../../src/constants/order";
-import Accounts from "../constants/accounts";
+import * as Addresses from "./addresses";
+import contracts from "../../contracts";
+import * as constants from "../constants/order";
+import Accounts from "./accounts";
 
 export default ({
   makerAddress = Accounts[0].address,

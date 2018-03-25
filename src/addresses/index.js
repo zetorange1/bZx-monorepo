@@ -1,5 +1,5 @@
 import { map, pipe } from "ramda";
-import contracts from "./contracts";
+import contracts from "../contracts";
 
 const formatData = raw =>
   pipe(

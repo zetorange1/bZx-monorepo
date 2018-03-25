@@ -1,7 +1,7 @@
 import { assert } from "@0xproject/assert";
 import { BigNumber } from "@0xproject/utils";
-import * as utils from "./utils";
-import contracts from "./contracts";
+import * as utils from "../core/utils";
+import contracts from "../contracts";
 
 const erc20Abi = contracts.EIP20.abi;
 

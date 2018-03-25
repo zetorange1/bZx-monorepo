@@ -1,5 +1,5 @@
-import * as utils from "./utils";
-import contracts from "./contracts";
+import * as utils from "../core/utils";
+import contracts from "../contracts";
 
 export const takeLoanOrderAsLender = async (web3, order, txOpts) => {
   const b0xContract = await utils.getContractInstance(

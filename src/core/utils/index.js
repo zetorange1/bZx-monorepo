@@ -3,9 +3,9 @@ import { assert } from "@0xproject/assert";
 import { constants } from "0x.js/lib/src/utils/constants";
 import BN from "bn.js";
 import Web3Utils from "web3-utils";
-import * as Errors from "./constants/errors";
-import { SchemaValidator } from "./schemas/b0x_json_schemas";
-import Contracts from "./contracts";
+import * as Errors from "../constants/errors";
+import { SchemaValidator } from "../../schemas/b0x_json_schemas";
+import Contracts from "../../contracts";
 
 export const noop = () => {};
 
