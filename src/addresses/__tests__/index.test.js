@@ -1,5 +1,5 @@
 /* globals test, expect, describe */
-import B0xJS from "../src";
+import B0xJS from "../../index";
 
 describe("addresses", () => {
   test("should return an object of addresses", async () => {
