@@ -99,6 +99,7 @@ describe("filling orders", () => {
         gasPrice: web3.utils.toWei("30", "gwei").toString()
       };
       const expirationUnixTimestampSec = "1719061340";
+      const loanTokenAmount = web3.utils.toWei("100000").toString();
 
       const order = makeOrder({
         makerAddress,
@@ -106,7 +107,7 @@ describe("filling orders", () => {
         interestTokenAddress: interestTokens[1].options.address.toLowerCase(),
         collateralTokenAddress: collateralTokens[1].options.address.toLowerCase(),
         feeRecipientAddress: constantsZX.NULL_ADDRESS,
-        loanTokenAmount: web3.utils.toWei("100000").toString(),
+        loanTokenAmount,
         interestAmount: web3.utils.toWei("2").toString(),
         initialMarginAmount: "50",
         maintenanceMarginAmount: "25",
@@ -138,8 +139,7 @@ describe("filling orders", () => {
         ],
         receipt
       );
-      const loanTokenAmountFilled = "100000000000000000000000";
-      expect(loanTokenAmountFilledReturn).toBe(loanTokenAmountFilled);
+      expect(loanTokenAmountFilledReturn).toBe(loanTokenAmount);
     });
   });
 
