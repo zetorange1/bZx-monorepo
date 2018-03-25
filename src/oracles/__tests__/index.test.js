@@ -1,9 +1,9 @@
 /* globals test, describe, expect */
 import { constants } from "0x.js/lib/src/utils/constants";
-import b0xJS from "./setup";
-import * as oracles from "../src/oracles";
-import * as Addresses from "./constants/addresses";
-import Contracts from "../src/contracts";
+import b0xJS from "../../../test/setup";
+import * as oracles from "../index";
+import * as Addresses from "../../../test/constants/addresses";
+import Contracts from "../../contracts";
 
 describe("oracles", () => {
   const testOracleNames = ["b0xOracle", "coolOracle", "anotherOracle"];
