@@ -21,7 +21,7 @@ const Hash = styled.a`
   font-family: monospace;
 `;
 
-export default class OrderInfo extends React.Component {
+export default class FillOrder extends React.Component {
   state = {
     fillOrderAmount: 0,
     collateralTokenAddress: this.props.tokens[0].address

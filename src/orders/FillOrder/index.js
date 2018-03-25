@@ -3,7 +3,7 @@ import styled from "styled-components";
 import Typography from "material-ui/Typography";
 import MuiButton from "material-ui/Button";
 import { SectionLabel } from "../../common/FormSection";
-import OrderInfo from "./OrderInfo";
+import FillOrderPage from "./FillOrder";
 import { getOrderHash } from "./utils";
 
 const TextArea = styled.textarea`
@@ -47,7 +47,7 @@ export default class FillOrder extends React.Component {
       return (
         <Fragment>
           <BackLink onClick={this.reset}>Go Back</BackLink>
-          <OrderInfo
+          <FillOrderPage
             order={JSON.parse(value)}
             tokens={this.props.tokens}
             oracles={this.props.oracles}
