@@ -101,7 +101,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         return true;
     }
 
-    function didOpenPosition(
+    function didTradePosition(
         bytes32 /* loanOrderHash */,
         address /* trader */,
         address /* tradeTokenAddress */,
@@ -138,29 +138,6 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         return true;
     }
 
-    function didClosePosition(
-        bytes32 /* loanOrderHash */,
-        address closer,
-        bool isLiquidation,
-        uint gasUsed)
-        public
-        onlyB0x
-        //refundsGas(taker, emaValue, gasUsed, 0) // refunds based on collected gas price EMA
-        updatesEMA(tx.gasprice)
-        returns (bool)
-    {
-        // sends gas and bounty reward to bounting hunter
-        if (isLiquidation) {
-            calculateAndSendRefund(
-                closer,
-                gasUsed,
-                emaValue,
-                bountyRewardPercent);
-        }
-        
-        return true;
-    }
-
     function didDepositCollateral(
         bytes32 /* loanOrderHash */,
         address /* borrower */,
@@ -187,12 +164,24 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
 
     function didCloseLoan(
         bytes32 loanOrderHash,
-        uint /* gasUsed */)
+        address closer,
+        bool isLiquidation,
+        uint gasUsed)
         public
         onlyB0x
+        //refundsGas(taker, emaValue, gasUsed, 0) // refunds based on collected gas price EMA
         updatesEMA(tx.gasprice)
         returns (bool)
     {
+        // sends gas and bounty reward to bounty hunter
+        if (isLiquidation) {
+            calculateAndSendRefund(
+                closer,
+                gasUsed,
+                emaValue,
+                bountyRewardPercent);
+        }
+        
         // sends gas refunds owed from earlier transactions
         for (uint i=0; i < gasRefunds[loanOrderHash].length; i++) {
             GasData storage gasData = gasRefunds[loanOrderHash][i];
@@ -272,9 +261,9 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     function shouldLiquidate(
         bytes32 /* loanOrderHash */,
         address /* trader */,
-        address exposureTokenAddress,
+        address positionTokenAddress,
         address collateralTokenAddress,
-        uint exposureTokenAmount,
+        uint positionTokenAmount,
         uint collateralTokenAmount,
         uint maintenanceMarginAmount)
         public
@@ -282,11 +271,11 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         returns (bool)
     {
         return (getMarginRatio(
-                exposureTokenAddress,
+                positionTokenAddress,
                 collateralTokenAddress,
-                exposureTokenAmount,
+                positionTokenAmount,
                 collateralTokenAmount,
-                maintenanceMarginAmount) <= (uint(liquidationThresholdPercent)));
+                maintenanceMarginAmount) <= (liquidationThresholdPercent));
     } 
 
     function isTradeSupported(
@@ -308,8 +297,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     {   
         if (KYBER_CONTRACT == address(0)) {
             rate = (uint(block.blockhash(block.number-1)) % 100 + 1).mul(10**18);
-        }
-        else {
+        } else {
             var (, sourceToEther) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
                 sourceTokenAddress, 
                 KYBER_ETH_TOKEN_ADDRESS,
@@ -327,39 +315,39 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
 
     // Returns a ratio of currentMarginAmount / maintenanceMarginAmount for this particular loan/position
     function getMarginRatio(
-        address exposureTokenAddress,
+        address positionTokenAddress,
         address collateralTokenAddress,
-        uint exposureTokenAmount,
+        uint positionTokenAmount,
         uint collateralTokenAmount,
         uint maintenanceMarginAmount)
         public
         view
         returns (uint marginRatio)
     {
-        uint exposureToCollateralRate = getTradeRate(
-            exposureTokenAddress,
+        uint positionToCollateralRate = getTradeRate(
+            positionTokenAddress,
             collateralTokenAddress
         );
-        if (exposureToCollateralRate == 0) {
+        if (positionToCollateralRate == 0) {
             return 0;
         }
 
         uint currentMarginAmount = collateralTokenAmount
-                        .div(exposureTokenAmount)
-                        .div(exposureToCollateralRate)
+                        .div(positionTokenAmount)
+                        .div(positionToCollateralRate)
                         .mul(10**20);
         
         marginRatio = currentMarginAmount.div(maintenanceMarginAmount);
 
         // for debugging
         MarginCalc(
-            exposureTokenAddress,
+            positionTokenAddress,
             collateralTokenAddress,
             this,
-            exposureTokenAmount,
+            positionTokenAmount,
             collateralTokenAmount,
             maintenanceMarginAmount,
-            exposureToCollateralRate,
+            positionToCollateralRate,
             marginRatio
         );
     }
@@ -378,11 +366,10 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         if (KYBER_CONTRACT == address(0)) {
             uint tradeRate = getTradeRate(sourceTokenAddress, destTokenAddress);
             destTokenAmount = sourceTokenAmount.mul(tradeRate).div(10**18);
-            if (!EIP20(destTokenAddress).transfer(b0xContractAddress, destTokenAmount)) {
+            if (!EIP20(destTokenAddress).transfer(VAULT_CONTRACT, destTokenAmount)) {
                 revert();
             }
-        }
-        else {
+        } else {
             uint destEtherAmount = KyberNetwork_Interface(KYBER_CONTRACT).trade(
                 sourceTokenAddress,
                 sourceTokenAmount,
@@ -398,7 +385,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
                 KYBER_ETH_TOKEN_ADDRESS,
                 destEtherAmount,
                 destTokenAddress,
-                b0xContractAddress, // b0x recieves the destToken
+                VAULT_CONTRACT, // b0xVault recieves the destToken
                 MAX_UINT, // no limit to the amount of tokens we can buy
                 0, // no min coversation rate
                 this

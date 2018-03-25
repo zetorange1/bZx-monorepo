@@ -88,8 +88,7 @@ contract GasRefunder {
                 refundAmount,
                 true
             );
-        }
-        else {
+        } else {
             GasRefund(
                 payer,
                 gasUsed,

@@ -66,22 +66,22 @@ contract B0xTypes {
         pure
         returns (LoanOrder) {
 
-        return LoanOrder({
-            maker: addrs[0],
-            loanTokenAddress: addrs[1],
-            interestTokenAddress: addrs[2],
-            collateralTokenAddress: addrs[3],
-            feeRecipientAddress: addrs[4],
-            oracleAddress: addrs[5],
-            loanTokenAmount: uints[0],
-            interestAmount: uints[1],
-            initialMarginAmount: uints[2],
-            maintenanceMarginAmount: uints[3],
-            lenderRelayFee: uints[4],
-            traderRelayFee: uints[5],
-            expirationUnixTimestampSec: uints[6],
-            loanOrderHash: loanOrderHash
-        });
+            return LoanOrder({
+                maker: addrs[0],
+                loanTokenAddress: addrs[1],
+                interestTokenAddress: addrs[2],
+                collateralTokenAddress: addrs[3],
+                feeRecipientAddress: addrs[4],
+                oracleAddress: addrs[5],
+                loanTokenAmount: uints[0],
+                interestAmount: uints[1],
+                initialMarginAmount: uints[2],
+                maintenanceMarginAmount: uints[3],
+                lenderRelayFee: uints[4],
+                traderRelayFee: uints[5],
+                expirationUnixTimestampSec: uints[6],
+                loanOrderHash: loanOrderHash
+            });
     }
 
     /*function buildLoanStruct(

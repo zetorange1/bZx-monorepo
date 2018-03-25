@@ -55,15 +55,14 @@ contract B0xVault is B0xOwnable {
     function depositCollateral(
         address token,
         address user,
-        uint value)
+        uint tokenAmount)
         public
         onlyB0x
         returns (bool)
     {
-        collateral[token][user] = collateral[token][user].add(value);
-        if (!EIP20(token).transferFrom(user, this, value))
-            //revert();
-            return true;
+        collateral[token][user] = collateral[token][user].add(tokenAmount);
+        if (!EIP20(token).transferFrom(user, this, tokenAmount))
+            revert();
 
         return true;
     }
@@ -71,13 +70,13 @@ contract B0xVault is B0xOwnable {
     function depositFunding(
         address token,
         address user,
-        uint value)
+        uint tokenAmount)
         public
         onlyB0x
         returns (bool)
     {
-        funding[token][user] = funding[token][user].add(value);
-        if (!EIP20(token).transferFrom(user, this, value))
+        funding[token][user] = funding[token][user].add(tokenAmount);
+        if (!EIP20(token).transferFrom(user, this, tokenAmount))
             revert();
 
         return true;
@@ -86,13 +85,13 @@ contract B0xVault is B0xOwnable {
     function depositInterest(
         address token,
         address user,
-        uint value)
+        uint tokenAmount)
         public
         onlyB0x
         returns (bool)
     {
-        interest[token][user] = interest[token][user].add(value);
-        if (!EIP20(token).transferFrom(user, this, value))
+        interest[token][user] = interest[token][user].add(tokenAmount);
+        if (!EIP20(token).transferFrom(user, this, tokenAmount))
             revert();
 
         return true;
@@ -101,13 +100,34 @@ contract B0xVault is B0xOwnable {
     function withdrawCollateral(
         address token,
         address user,
-        uint value)
+        uint tokenAmount)
         public
         onlyB0x
         returns (bool)
     {
-        collateral[token][user] = collateral[token][user].sub(value);
-        if (!EIP20(token).transfer(user, value))
+        collateral[token][user] = collateral[token][user].sub(tokenAmount);
+        if (!EIP20(token).transfer(user, tokenAmount))
+            revert();
+
+        return true;
+    }
+
+    // This function is used when b0x needs to sell some collateral to cover loan token losses
+    function sendCollateralToOracle(
+        address token,
+        address user,
+        address oracleAddress,
+        uint tokenAmount)
+        public
+        onlyB0x
+        returns (bool)
+    {
+        if (tokenAmount == 0)
+            return false;
+
+        collateral[token][user] = collateral[token][user].sub(tokenAmount);
+
+        if (!EIP20(token).transfer(oracleAddress, tokenAmount))
             revert();
 
         return true;
@@ -116,13 +136,28 @@ contract B0xVault is B0xOwnable {
     function withdrawFunding(
         address token,
         address user,
-        uint value)
+        uint tokenAmount)
         public
         onlyB0x
         returns (bool)
     {
-        funding[token][user] = funding[token][user].sub(value);
-        if (!EIP20(token).transfer(user, value))
+        funding[token][user] = funding[token][user].sub(tokenAmount);
+        if (!EIP20(token).transfer(user, tokenAmount))
+            revert();
+
+        return true;
+    }
+
+    function withdrawInterest(
+        address token,
+        address user,
+        uint tokenAmount)
+        public
+        onlyB0x
+        returns (bool)
+    {
+        interest[token][user] = interest[token][user].sub(tokenAmount);
+        if (!EIP20(token).transfer(user, tokenAmount))
             revert();
 
         return true;
@@ -131,8 +166,8 @@ contract B0xVault is B0xOwnable {
     // Interest payment distributions are the responsibility of the Oracle used for the loanOrder.
     // This function can only be called by b0x to transfer interest to the Oracle for further processing.
     function sendInterestToOracle(
-        address user,
         address token,
+        address user,
         address oracleAddress,
         uint tokenAmount)
         public
@@ -150,16 +185,30 @@ contract B0xVault is B0xOwnable {
         return true;
     }
 
-    function transferFrom(
+    function transferToken(
         address token,
-        address from,
         address to,
-        uint value)
+        uint tokenAmount)
         public
         onlyB0x
         returns (bool)
     {
-        if (!EIP20(token).transferFrom(from, to, value))
+        if (!EIP20(token).transfer(to, tokenAmount))
+            revert();
+
+        return true;
+    }
+
+    function transferTokenFrom(
+        address token,
+        address from,
+        address to,
+        uint tokenAmount)
+        public
+        onlyB0x
+        returns (bool)
+    {
+        if (!EIP20(token).transferFrom(from, to, tokenAmount))
             revert();
 
         return true;

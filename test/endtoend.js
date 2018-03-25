@@ -69,7 +69,7 @@ contract('B0xTest', function(accounts) {
   var test_tokens = [];
 
   var gasRefundEvent;
-  var logErrorEvent0x;
+  //var logErrorEvent0x;
 
   var tx_obj;
 
@@ -191,7 +191,7 @@ contract('B0xTest', function(accounts) {
 
   before('watch events', function () {
     gasRefundEvent = oracle.MarginCalc();
-    logErrorEvent0x = b0xTo0x.LogErrorUint();
+    //logErrorEvent0x = b0xTo0x.LogErrorUint();
   });
 
   after(function() {
@@ -737,7 +737,7 @@ contract('B0xTest', function(accounts) {
     //console.log(ECSignature_0x_raw);
 
     var textEvents;
-    b0x.tradeWith0x(
+    b0x.tradePositionWith0x(
       OrderHash_b0x_1,
       sample_order_tightlypacked + ECSignature_0x_raw.substring(2),
       {from: trader1_account}).then(function(tx) {

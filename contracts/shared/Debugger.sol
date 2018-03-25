@@ -5,9 +5,10 @@ contract Debugger {
     
     bool public DEBUG_MODE = true;
     
-    event DebugLog(string logMessage, uint logValue, address logAddress, bytes32 logData);
-
     event DebugLine(uint lineNumber);
+
+    /*
+    event DebugLog(string logMessage, uint logValue, address logAddress, bytes32 logData);
 
     function debugLog(
         string logMsg)
@@ -76,7 +77,7 @@ contract Debugger {
 
         DebugLog(logMsg, logValue, logAddr, logData);
     }
-
+    */
 
     function voidOrRevert(uint lineno) 
         internal

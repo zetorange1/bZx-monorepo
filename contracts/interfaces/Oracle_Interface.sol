@@ -33,14 +33,14 @@ interface Oracle_Interface {
         public
         returns (bool);
 
-    /// @dev Called by b0x after a 0x position is opened by a borrower
+    /// @dev Called by b0x after a position token is traded
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param trader The trader that opened a position
+    /// @param trader The trader doing the trade
     /// @param tradeTokenAddress The token that was bought in the trade
     /// @param tradeTokenAmount The amount of token that was bought
     /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
     /// @return Successful execution of the function
-    function didOpenPosition(
+    function didTradePosition(
         bytes32 loanOrderHash,
         address trader,
         address tradeTokenAddress,
@@ -65,22 +65,6 @@ interface Oracle_Interface {
         address lender,
         address interestTokenAddress,
         uint amountOwed,
-        uint gasUsed)
-        public
-        returns (bool);
-
-
-    /// @dev Called by b0x after a position is closed by liquidation, or early
-    /// @dev by the borrower
-    /// @param loanOrderHash A unique hash representing the loan order.
-    /// @param closer The user that liquidated the position
-    /// @param isLiquidation A boolean indicating if the position was closed due to liquidation
-    /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
-    /// @return Successful execution of the function
-    function didClosePosition(
-        bytes32 loanOrderHash,
-        address closer,
-        bool isLiquidation,
         uint gasUsed)
         public
         returns (bool);
@@ -112,11 +96,15 @@ interface Oracle_Interface {
         returns (bool);
 
     /// @dev Called by b0x after a loan is closed
-    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param loanOrderHash A unique hash representing the loan order.
+    /// @param closer The user that closed the loan
+    /// @param isLiquidation A boolean indicating if the loan was closed due to liquidation
     /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
     /// @return Successful execution of the function
     function didCloseLoan(
         bytes32 loanOrderHash,
+        address closer,
+        bool isLiquidation,
         uint gasUsed)
         public
         returns (bool);

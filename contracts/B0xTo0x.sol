@@ -16,8 +16,8 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
     address public ZRX_TOKEN_CONTRACT;
     address public TOKEN_TRANSFER_PROXY_CONTRACT;
 
-    event LogErrorUint(string errorTxt, uint errorValue, bytes32 indexed orderHash);
-    event LogErrorAddr(string errorTxt, address errorAddr, bytes32 indexed orderHash);
+    //event LogErrorUint(string errorTxt, uint errorValue, bytes32 indexed orderHash);
+    //event LogErrorAddr(string errorTxt, address errorAddr, bytes32 indexed orderHash);
 
     // Only the owner (b0x contract) can directly deposit ether
     function() 
@@ -38,8 +38,7 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
 
    function take0xTrade(
         address trader,
-        address sourceAddress,
-        address destAddress,
+        address vaultAddress,
         uint sourceTokenAmountToUse,
         bytes orderData0x) // 0x order arguments and converted to hex, padded to 32 bytes, concatenated, and appended to the ECDSA
         public
@@ -49,7 +48,7 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             uint destTokenAmount,
             uint sourceTokenUsedAmount)
     {
-        // address[5], uint[6], uint8, bytes32, bytes32
+        // address[5], uint[6], bytes (uint8, bytes32, bytes32)
         var (orderAddresses0x, orderValues0x, signature) = getOrderValuesFromData(orderData0x);
 
     /*
@@ -87,24 +86,19 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             orderValues0x,
             signature);
 
-        if (sourceTokenUsedAmount == 0) {
-            //LogErrorUint("error: 0x trade did not fill!", 0, 0x0);
-            voidOrRevert(96); return;
-        }
-
         destTokenAmount = getPartialAmount(
             sourceTokenUsedAmount,
             orderValues0x[1], // takerTokenAmount (aka sourceTokenAmount)
             orderValues0x[0] // makerTokenAmount (aka destTokenAmount)
         );
 
-        // transfer the destToken to the destination
-        if (!EIP20(orderAddresses0x[2]).transfer(destAddress, destTokenAmount))
+        // transfer the destToken to the vault
+        if (!EIP20(orderAddresses0x[2]).transfer(vaultAddress, destTokenAmount))
             revert();
 
         if (sourceTokenUsedAmount < sourceTokenAmountToUse) {
-            // transfer the unused sourceToken back to the source
-            if (!EIP20(orderAddresses0x[3]).transfer(sourceAddress, sourceTokenAmountToUse-sourceTokenUsedAmount))
+            // transfer the unused sourceToken back to the vault
+            if (!EIP20(orderAddresses0x[3]).transfer(vaultAddress, sourceTokenAmountToUse-sourceTokenUsedAmount))
                 revert();
         }
 
@@ -126,21 +120,20 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             // The 0x TokenTransferProxy already has unlimited transfer allowance for ZRX from this contract (set during deployment of this contract)
             if (!EIP20(ZRX_TOKEN_CONTRACT).transferFrom(trader, this, orderValues0x[3])) {
                 //LogErrorUint("error: b0x can't transfer ZRX from trader", 0, 0x0);
-                return intOrRevert(0,132);
+                return intOrRevert(0,129);
             }
         }
 
         var (v, r, s) = getSignatureParts(signature);
 
         // Increase the allowance for 0x Exchange Proxy to transfer the sourceToken needed for the 0x trade
-        // orderAddresses0x[3] ->  takerToken/sourceToken
+        // orderAddresses0x[3] -> takerToken/sourceToken
         if (!EIP20(orderAddresses0x[3]).approve(
             TOKEN_TRANSFER_PROXY_CONTRACT, 
             EIP20(orderAddresses0x[3]).allowance(this, TOKEN_TRANSFER_PROXY_CONTRACT).add(sourceTokenAmountToUse))) {
             revert();
         }
 
-        // 0x order will fail if sourceTokenAmountToUse is too high
         uint sourceTokenUsedAmount = Exchange_Interface(EXCHANGE_CONTRACT).fillOrder(
             orderAddresses0x,
             orderValues0x,
@@ -149,10 +142,6 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             v,
             r,
             s);
-        if (sourceTokenUsedAmount == 0) {
-            //LogErrorUint("error: 0x order failed!", 0, 0x0);
-            return intOrRevert(0,149);
-        }
 
         return sourceTokenUsedAmount;
     }
