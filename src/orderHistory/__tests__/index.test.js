@@ -93,7 +93,8 @@ describe("order history", () => {
 
   describe("getOrders", async () => {
     /* NOTE: If you want to re-run this test, you must restart
-     the local testnet as the orders made by this address will accumulate */
+     the local testnet as the orders made by this address will
+      accumulate causing this test to fail */
     test("should return order history", async () => {
       const orders = await b0xJS.getOrders({
         loanPartyAddress: traders[0],
