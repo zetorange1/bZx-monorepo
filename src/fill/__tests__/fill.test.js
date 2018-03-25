@@ -1,12 +1,12 @@
 /* globals test, describe, expect, beforeAll */
 import { pathOr } from "ramda";
 import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
-import B0xJS from "../../src";
-import b0xJS from "../setup";
-import makeOrder from "../utils/order";
-import * as orderConstants from "../../src/constants/order";
+import B0xJS from "../../index";
+import b0xJS from "../../../test/setup";
+import makeOrder from "../../../test/utils/order";
+import * as orderConstants from "../../constants/order";
 import * as Utils from "./utils";
-import Accounts from "../constants/accounts";
+import Accounts from "../../../test/constants/accounts";
 
 const { web3 } = b0xJS;
 
