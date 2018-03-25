@@ -1,21 +1,24 @@
 import { pipe, map } from "ramda";
 
 const ORDER_FIELD_COUNT = 14;
-const SOMETHING = 64;
+const MAX_SOLIDITY_TYPE_SIZE = 64;
 const HEX_RADIX = 16;
 
 const remove0xPrefix = data => data.substr(2);
 
 const checkProperObjCount = data => {
-  const objCount = data.length / SOMETHING / ORDER_FIELD_COUNT;
+  const objCount = data.length / MAX_SOLIDITY_TYPE_SIZE / ORDER_FIELD_COUNT;
   if (objCount % 1 !== 0) throw new Error("Must be whole number of objects");
   return data;
 };
 
 const getOrderObjArray = data =>
-  data.match(new RegExp(`.{1,${ORDER_FIELD_COUNT * SOMETHING}}`, "g"));
+  data.match(
+    new RegExp(`.{1,${ORDER_FIELD_COUNT * MAX_SOLIDITY_TYPE_SIZE}}`, "g")
+  );
 
-const getOrderParams = data => data.match(new RegExp(`.{1,${SOMETHING}}`, "g"));
+const getOrderParams = data =>
+  data.match(new RegExp(`.{1,${MAX_SOLIDITY_TYPE_SIZE}}`, "g"));
 
 const getOrder = params => ({
   maker: `0x${params[0].substr(24)}`,
