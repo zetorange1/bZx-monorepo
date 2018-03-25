@@ -45,32 +45,20 @@ export const setupB0xToken = async ({
   transferAmt,
   ownerTxOpts
 }) => {
-  const promises = [
-    b0xToken.methods.transfer(lenders[0], transferAmt).send(clone(ownerTxOpts)),
-    b0xToken.methods.transfer(lenders[1], transferAmt).send(clone(ownerTxOpts)),
-    b0xToken.methods.transfer(traders[0], transferAmt).send(clone(ownerTxOpts)),
-    b0xToken.methods.transfer(traders[1], transferAmt).send(clone(ownerTxOpts)),
+  const allAddresses = [...lenders, ...traders];
+
+  const b0xTokenPromises = allAddresses.map(address =>
+    b0xToken.methods.transfer(address, transferAmt).send(clone(ownerTxOpts))
+  );
+  const allowancePromises = allAddresses.map(address =>
     b0xJS.setAllowanceUnlimited({
       tokenAddress: Contracts.B0xToken.address,
-      ownerAddress: lenders[0],
-      spenderAddress: Contracts.B0xVault.address
-    }),
-    b0xJS.setAllowanceUnlimited({
-      tokenAddress: Contracts.B0xToken.address,
-      ownerAddress: lenders[1],
-      spenderAddress: Contracts.B0xVault.address
-    }),
-    b0xJS.setAllowanceUnlimited({
-      tokenAddress: Contracts.B0xToken.address,
-      ownerAddress: traders[0],
-      spenderAddress: Contracts.B0xVault.address
-    }),
-    b0xJS.setAllowanceUnlimited({
-      tokenAddress: Contracts.B0xToken.address,
-      ownerAddress: traders[1],
+      ownerAddress: address,
       spenderAddress: Contracts.B0xVault.address
     })
-  ];
+  );
+
+  const promises = [...b0xTokenPromises, ...allowancePromises];
   await Promise.all(promises);
   console.log("setupB0xToken done.");
 
