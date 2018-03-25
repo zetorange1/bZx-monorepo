@@ -41,7 +41,13 @@ export default class FillOrder extends React.Component {
       accounts
     );
     if (isFillOrderValid) {
-      submitFillOrder(order, fillOrderAmount, collateralTokenAddress);
+      submitFillOrder(
+        order,
+        fillOrderAmount,
+        collateralTokenAddress,
+        b0x,
+        accounts
+      );
     } else {
       alert(`There is something wrong with your order`);
     }

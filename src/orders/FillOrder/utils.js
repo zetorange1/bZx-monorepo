@@ -80,10 +80,28 @@ export const validateFillOrder = async (
   console.log(order, fillOrderAmount, collateralTokenAddress);
   return true;
 };
+export const submitFillOrder = async (
+  order,
+  fillOrderAmount,
+  collateralTokenAddress,
+  b0x,
+  accounts
+) => {
+  console.log(`order`, order);
+  console.log(`getting order hash`);
+  const orderHashHex = await B0xJS.getLoanOrderHashHex(order);
+  console.log(`orderHashHex`, orderHashHex);
+  const signature = await b0x.signOrderHashAsync(
+    orderHashHex,
+    order.makerAddress
+  );
+  console.log(`signature`, signature);
+  const payload = { ...order, signature };
+  const txOpts = { from: accounts[0].toLowerCase() };
+  console.log(`payload`, payload);
+  console.log(`txOpts`, txOpts);
+  const receipt = await b0x.takeLoanOrderAsLender(payload, txOpts);
 
-// TODO - submit the fill order request
-export const submitFillOrder = (order, fillOrderAmount, marginTokenAddress) => {
-  console.log(`submitFillOrder`);
-  console.log(order, fillOrderAmount, marginTokenAddress);
+  console.log(receipt);
   return true;
 };
