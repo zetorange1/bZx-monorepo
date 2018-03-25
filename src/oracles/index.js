@@ -1,6 +1,6 @@
 import { map, mapAccum, pipe, zipWith } from "ramda";
 import { assert } from "@0xproject/assert";
-import * as utils from "../utils";
+import * as utils from "../core/utils";
 import contracts from "../contracts";
 
 const oracleAbi = contracts.B0xOracle.abi;

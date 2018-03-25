@@ -2,14 +2,14 @@
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import sigUtil from "eth-sig-util";
-import B0xJS from "../src";
-import EIP20 from "../src/contracts/EIP20.json";
-import * as utils from "../src/utils";
-import * as Errors from "../src/constants/errors";
+import B0xJS from "../../core";
+import EIP20 from "../../contracts/EIP20.json";
+import * as utils from "../../core/utils";
+import * as Errors from "../constants/errors";
 import b0xJS from "./setup";
-import makeOrder from "./utils/order";
-import contracts from "../src/contracts";
-import Accounts from "./constants/accounts";
+import makeOrder from "./order";
+import contracts from "../../contracts";
+import Accounts from "./accounts";
 
 const erc20Abi = EIP20.abi;
 

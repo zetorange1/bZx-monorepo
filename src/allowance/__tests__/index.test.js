@@ -3,8 +3,8 @@ import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import { pathOr } from "ramda";
 import Contracts from "../../contracts";
-import b0xJS from "../../../test/setup";
-import Accounts from "../../../test/constants/accounts";
+import b0xJS from "../../core/__tests__/setup";
+import Accounts from "../../core/__tests__/accounts";
 
 describe("allowance", () => {
   const tokenAddress = Contracts.TestToken0.address;

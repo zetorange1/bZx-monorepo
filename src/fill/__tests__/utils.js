@@ -1,9 +1,9 @@
 import { clone } from "ramda";
 import Contracts from "../../contracts";
-import b0xJS from "../../../test/setup";
-import * as utils from "../../utils";
-import Accounts from "../../../test/constants/accounts";
-import * as UnlockUtils from "../../../test/utils/unlock";
+import b0xJS from "../../core/__tests__/setup";
+import * as utils from "../../core/utils";
+import Accounts from "../../core/__tests__/accounts";
+import * as UnlockUtils from "../../core/__tests__/unlock";
 
 export const getContractInstances = contracts => {
   const promises = contracts.map(contract =>
