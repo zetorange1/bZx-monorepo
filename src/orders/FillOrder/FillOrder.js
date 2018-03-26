@@ -55,7 +55,7 @@ export default class FillOrder extends React.Component {
 
   render() {
     const { order, tokens } = this.props;
-    const role = order.makerRole === `0` ? `lender` : `trader`;
+    const makerRole = order.makerRole === `0` ? `lender` : `trader`;
     const counterRole = order.makerRole !== `0` ? `lender` : `trader`;
     return (
       <Fragment>
@@ -76,7 +76,7 @@ export default class FillOrder extends React.Component {
           </p>
           <Tokens
             tokens={tokens}
-            role={role}
+            role={makerRole}
             loanTokenAddress={order.loanTokenAddress}
             loanTokenAmount={order.loanTokenAmount}
             interestTokenAddress={order.interestTokenAddress}
@@ -99,8 +99,12 @@ export default class FillOrder extends React.Component {
         </Section>
         <Divider />
         <Section>
-          <SectionLabel>2. Choose parameters and submit</SectionLabel>
-          {role === `lender` && (
+          <SectionLabel>
+            {makerRole === `lender`
+              ? `2. Choose parameters and submit`
+              : `2. Submit fill order transaction`}
+          </SectionLabel>
+          {makerRole === `lender` && (
             <Inputs
               tokens={tokens}
               fillOrderAmount={this.state.fillOrderAmount}
