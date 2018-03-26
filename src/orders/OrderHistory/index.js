@@ -1,3 +1,5 @@
+import OrderItem from "./OrderItem";
+
 export default class OrderHistory extends React.Component {
   state = { orders: [] };
 
@@ -13,15 +15,7 @@ export default class OrderHistory extends React.Component {
 
   render() {
     const { orders } = this.state;
-    return (
-      <div>
-        {orders.map(o => (
-          <div>
-            <pre>{JSON.stringify(o, null, 4)}</pre>
-          </div>
-        ))}
-      </div>
-    );
+    return <div>{orders.map(order => <OrderItem order={order} />)}</div>;
   }
 }
 
