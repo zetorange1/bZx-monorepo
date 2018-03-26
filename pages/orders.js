@@ -85,7 +85,7 @@ class Orders extends React.Component {
                     />
                   </ContentContainer>
                   <ContentContainer show={activeTab === `ORDER_HISTORY`}>
-                    <OrderHistory />
+                    <OrderHistory b0x={b0x} accounts={accounts} />
                   </ContentContainer>
                 </Fragment>
               )}
