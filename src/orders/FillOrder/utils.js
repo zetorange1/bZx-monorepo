@@ -87,20 +87,24 @@ export const submitFillOrder = async (
   b0x,
   accounts
 ) => {
-  console.log(`order`, order);
-  console.log(`getting order hash`);
-  const orderHashHex = await B0xJS.getLoanOrderHashHex(order);
-  console.log(`orderHashHex`, orderHashHex);
-  const signature = await b0x.signOrderHashAsync(
-    orderHashHex,
-    order.makerAddress
-  );
-  console.log(`signature`, signature);
-  const payload = { ...order, signature };
   const txOpts = { from: accounts[0].toLowerCase() };
-  console.log(`payload`, payload);
+  const makerIsLender = order.makerRole === `0`;
+
+  console.log(`order`, order);
   console.log(`txOpts`, txOpts);
-  const receipt = await b0x.takeLoanOrderAsLender(payload, txOpts);
+  console.log(`makerIsLender`, makerIsLender);
+
+  let receipt;
+  if (makerIsLender) {
+    receipt = await b0x.takeLoanOrderAsTrader(
+      order,
+      collateralTokenAddress,
+      fillOrderAmount,
+      txOpts
+    );
+  } else {
+    receipt = await b0x.takeLoanOrderAsLender(order, txOpts);
+  }
 
   console.log(receipt);
   return true;
