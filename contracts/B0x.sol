@@ -1300,30 +1300,24 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
 
         // check if lender is being made whole, and if not attempt to sell collateral token to cover losses
         if (loanPosition.positionTokenAmountFilled < loanOrder.loanTokenAmount) {
-            // TODO: Calculate (using oracle) the amount of collateral token is needed to fill missing loanToken, 
-            // then transfer it to to the oracle and sell it for loan token
-            
-            /*
-            // Send the collateral to the oracle to sell to cover loan token losses.
-            // Unused collateral will be returned to the vault by the oracle.
-            if (! B0xVault(VAULT_CONTRACT).sendCollateralToOracle(
+            // Send all of the collateral token to the oracle to sell to cover loan token losses.
+            // Unused collateral should be returned to the vault by the oracle.
+            if (! B0xVault(VAULT_CONTRACT).transferToken(
                 loanPosition.collateralTokenAddressFilled,
-                loanPosition.trader,
                 loanOrder.oracleAddress,
                 loanPosition.collateralTokenAmountFilled
             )) {
                 return boolOrRevert(false,1315);
             }
 
-            // TODO: add new function (like doTrade) to oracle to cover loan losses
-            loanTokenAmountReceived = Oracle_Interface(loanOrder.oracleAddress).doTrade(
-                loanPosition.positionTokenAddressFilled,
-                tradeTokenAddress,
-                loanPosition.positionTokenAmountFilled);
+            var (loanTokenAmountCovered, collateralTokenAmountUsed) = Oracle_Interface(loanOrder.oracleAddress).doTradeofCollateral(
+                loanPosition.collateralTokenAddressFilled,
+                loanOrder.loanTokenAddress,
+                loanPosition.collateralTokenAmountFilled,
+                loanOrder.loanTokenAmount.sub(loanPosition.positionTokenAmountFilled));
             
-            
-            loanPosition.collateralTokenAmountFilled = [new lessor amount]
-            */
+            loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.add(loanTokenAmountCovered);
+            loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(collateralTokenAmountUsed);
         }
 
         if (! B0xVault(VAULT_CONTRACT).withdrawCollateral(
@@ -1335,9 +1329,9 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         }
 
         if (! B0xVault(VAULT_CONTRACT).withdrawFunding(
-            loanOrder.loanTokenAddress,
+            loanPosition.positionTokenAddressFilled, // same as loanTokenAddress
             loanPosition.lender,
-            loanPosition.loanTokenAmountFilled
+            loanPosition.positionTokenAmountFilled
         )) {
             return boolOrRevert(false,1342);
         }

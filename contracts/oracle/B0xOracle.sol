@@ -132,8 +132,12 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
 
         // Transfers the interest to the lender, less the interest fee.
         // The fee is retained by the oracle.
-        if (!EIP20(interestTokenAddress).transfer(lender, amountOwed.sub(interestFee)))
+        if (!_transferToken(
+            interestTokenAddress,
+            lender,
+            amountOwed.sub(interestFee))) {
             revert();
+        }
 
         return true;
     }
@@ -209,7 +213,8 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         destTokenAmount = _doTrade(
             sourceTokenAddress,
             destTokenAddress,
-            sourceTokenAmount);
+            sourceTokenAmount,
+            MAX_UINT); // no limit on the dest amount
     }
 
     function verifyAndDoTrade(
@@ -237,21 +242,39 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         destTokenAmount = _doTrade(
             sourceTokenAddress,
             destTokenAddress,
-            sourceTokenAmount);
+            sourceTokenAmount,
+            MAX_UINT); // no limit on the dest amount
     }
 
-    function transferToken(
-        address tokenAddress,
-        address to,
-        uint value)
+    function doTradeofCollateral(
+        address collateralTokenAddress,
+        address loanTokenAddress,
+        uint collateralTokenAmountUsable,
+        uint loanTokenAmountNeeded)
         public
         onlyB0x
-        returns (bool)
+        returns (uint loanTokenAmountCovered, uint collateralTokenAmountUsed)
     {
-        if (!EIP20(tokenAddress).transfer(to, value))
+        uint collateralTokenBalance = EIP20(collateralTokenAddress).balanceOf.gas(4999)(this); // Changes to state require at least 5000 gas
+        if (collateralTokenBalance < collateralTokenAmountUsable) {
             revert();
+        }
+        
+        loanTokenAmountCovered = _doTrade(
+            collateralTokenAddress,
+            loanTokenAddress,
+            collateralTokenAmountUsable,
+            loanTokenAmountNeeded);
 
-        return true;
+        collateralTokenAmountUsed = collateralTokenBalance.sub(EIP20(collateralTokenAddress).balanceOf.gas(4999)(this)); // Changes to state require at least 5000 gas
+
+        // send unused collateral token back to the vault
+        if (!_transferToken(
+            collateralTokenAddress,
+            VAULT_CONTRACT,
+            collateralTokenAmountUsable.sub(collateralTokenAmountUsed))) {
+            revert();
+        }
     }
 
     /*
@@ -359,14 +382,21 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     function _doTrade(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount)
+        uint sourceTokenAmount,
+        uint maxDestTokenAmount)
         internal
         returns (uint destTokenAmount)
     {
         if (KYBER_CONTRACT == address(0)) {
             uint tradeRate = getTradeRate(sourceTokenAddress, destTokenAddress);
             destTokenAmount = sourceTokenAmount.mul(tradeRate).div(10**18);
-            if (!EIP20(destTokenAddress).transfer(VAULT_CONTRACT, destTokenAmount)) {
+            if (destTokenAmount > maxDestTokenAmount) {
+                destTokenAmount = maxDestTokenAmount;
+            }
+            if (!_transferToken(
+                destTokenAddress,
+                VAULT_CONTRACT,
+                destTokenAmount)) {
                 revert();
             }
         } else {
@@ -375,7 +405,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
                 sourceTokenAmount,
                 KYBER_ETH_TOKEN_ADDRESS,
                 this, // B0xOracle receives the Ether proceeds
-                MAX_UINT, // no limit on the dest amount 
+                maxDestTokenAmount,
                 0, // no min coversation rate
                 this
             );
@@ -386,11 +416,24 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
                 destEtherAmount,
                 destTokenAddress,
                 VAULT_CONTRACT, // b0xVault recieves the destToken
-                MAX_UINT, // no limit to the amount of tokens we can buy
+                maxDestTokenAmount,
                 0, // no min coversation rate
                 this
             );
         }
+    }
+
+    function _transferToken(
+        address tokenAddress,
+        address to,
+        uint value)
+        internal
+        returns (bool)
+    {
+        if (!EIP20(tokenAddress).transfer(to, value))
+            revert();
+
+        return true;
     }
 
     /*

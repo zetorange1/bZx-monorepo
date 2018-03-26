@@ -140,17 +140,19 @@ interface Oracle_Interface {
         public
         returns (uint);
 
-    /// @dev Transfers a token from the Oracle
-    /// @param tokenAddress The token being transferred
-    /// @param to The receiver of the token
-    /// @param value The amount of token being transferred
-    /// @return Successful transfer of the token
-    function transferToken(
-        address tokenAddress,
-        address to,
-        uint value)
+    /// @dev Liquidates collateral to cover loan losses
+    /// @param collateralTokenAddress The collateral token
+    /// @param loanTokenAddress The loan token
+    /// @param collateralTokenAmountUsable The total amount of collateral usable to cover losses
+    /// @param loanTokenAmountNeeded The amount of loan token needed to cover losses
+    /// @return The amount of destToken bought
+    function doTradeofCollateral(
+        address collateralTokenAddress,
+        address loanTokenAddress,
+        uint collateralTokenAmountUsable,
+        uint loanTokenAmountNeeded)
         public
-        returns (bool);
+        returns (uint, uint);
 
     /// @dev Checks if a position has fallen below margin
     /// @dev maintenance and should be liquidated
