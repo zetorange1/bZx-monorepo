@@ -1,8 +1,21 @@
+import OrderItem from "./OrderItem";
+
 export default class OrderHistory extends React.Component {
-  state = {};
+  state = { orders: [] };
+
+  async componentDidMount() {
+    const { b0x, accounts } = this.props;
+    const orders = await b0x.getOrders({
+      loanPartyAddress: accounts[0].toLowerCase(),
+      start: 0,
+      count: 10
+    });
+    this.setState({ orders });
+  }
 
   render() {
-    return <div>Order history stuff here</div>;
+    const { orders } = this.state;
+    return <div>{orders.map(order => <OrderItem order={order} />)}</div>;
   }
 }
 
