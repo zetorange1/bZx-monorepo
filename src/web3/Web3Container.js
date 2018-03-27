@@ -36,7 +36,7 @@ export default class Web3Container extends React.Component {
     const b0x = new B0xJS(web3.currentProvider);
     const zeroEx = new ZeroEx(web3.currentProvider, {
       networkId: await getNetworkId(web3),
-      tokenRegistryContractAddress: B0xJS.addresses.TokenRegistry
+      tokenRegistryContractAddress: b0x.addresses.TokenRegistry
     });
 
     // Get tokens from the token registry

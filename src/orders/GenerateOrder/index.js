@@ -73,7 +73,8 @@ export default class GenerateOrder extends React.Component {
       const orderObject = await compileObject(
         this.props.web3,
         this.state,
-        this.props.accounts[0]
+        this.props.accounts[0],
+        this.props.b0x
       );
       const saltedOrderObj = addSalt(orderObject);
       const orderHash = getHash(saltedOrderObj);
