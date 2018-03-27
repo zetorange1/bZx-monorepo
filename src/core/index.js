@@ -23,11 +23,11 @@ if (typeof window !== "undefined") {
 export default class B0xJS {
   static generatePseudoRandomSalt = utils.generatePseudoRandomSalt;
   static noop = utils.noop;
-  static addresses = Addresses.getAddresses();
 
-  constructor(provider) {
+  constructor(provider, { addresses = Addresses.getAddresses() } = {}) {
     assert.isWeb3Provider("provider", provider);
     this.web3 = new Web3(provider);
+    this.addresses = addresses;
   }
 
   static getLoanOrderHashHex(order) {
