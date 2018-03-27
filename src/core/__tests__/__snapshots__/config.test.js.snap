@@ -22,3 +22,26 @@ Object {
   "TokenRegistry": "0x32eecaf51dfea9618e9bc94e9fbfddb1bbdcba15",
 }
 `;
+
+exports[`config should use provided config 1`] = `
+Object {
+  "B0x": "thisisatest",
+  "B0xOracle": "thisisatest",
+  "B0xTo0x": "thisisatest",
+  "B0xToken": "thisisatest",
+  "B0xVault": "thisisatest",
+  "EIP20": "thisisatest",
+  "OracleRegistry": "thisisatest",
+  "TestToken0": "thisisatest",
+  "TestToken1": "thisisatest",
+  "TestToken2": "thisisatest",
+  "TestToken3": "thisisatest",
+  "TestToken4": "thisisatest",
+  "TestToken5": "thisisatest",
+  "TestToken6": "thisisatest",
+  "TestToken7": "thisisatest",
+  "TestToken8": "thisisatest",
+  "TestToken9": "thisisatest",
+  "TokenRegistry": "thisisatest",
+}
+`;
