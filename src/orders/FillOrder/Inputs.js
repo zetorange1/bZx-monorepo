@@ -2,7 +2,6 @@ import { Fragment } from "react";
 import styled from "styled-components";
 import Input, { InputLabel, InputAdornment } from "material-ui/Input";
 import { FormControl } from "material-ui/Form";
-import { SectionLabel } from "../../common/FormSection";
 import { getSymbol } from "../../common/tokens";
 
 import TokenPicker from "../../common/TokenPicker";
@@ -40,7 +39,6 @@ export default ({
   const symbol = getSymbol(tokens, loanTokenAddress);
   return (
     <Fragment>
-      <SectionLabel>Fill order options</SectionLabel>
       <Container>
         <DataContainer>
           <Title>Collateral Token</Title>
@@ -68,6 +66,3 @@ export default ({
     </Fragment>
   );
 };
-
-// marginTokenAddressFilled
-// lendTokenAmountFilled

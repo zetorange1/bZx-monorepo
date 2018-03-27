@@ -25,7 +25,7 @@ const TABS = [
 ];
 
 class Orders extends React.Component {
-  state = { activeTab: `GEN_ORDER`, trackedTokens: [] };
+  state = { activeTab: `FILL_ORDER`, trackedTokens: [] };
 
   changeTab = tabId => this.setState({ activeTab: tabId });
 
@@ -63,7 +63,12 @@ class Orders extends React.Component {
                     />
                   </ContentContainer>
                   <ContentContainer show={activeTab === `FILL_ORDER`}>
-                    <FillOrder tokens={tokens} />
+                    <FillOrder
+                      tokens={tokens}
+                      oracles={oracles}
+                      b0x={b0x}
+                      accounts={accounts}
+                    />
                   </ContentContainer>
                   <ContentContainer show={activeTab === `BALANCES`}>
                     <Balances
