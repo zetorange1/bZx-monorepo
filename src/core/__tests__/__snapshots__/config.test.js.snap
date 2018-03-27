@@ -1,0 +1,47 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`config should use default config when config arg not provided 1`] = `
+Object {
+  "B0x": "0x4d3d5c850dd5bd9d6f4adda3dd039a3c8054ca29",
+  "B0xOracle": "0x8ea76477cfaca8f7ea06477fd3c09a740ac6012a",
+  "B0xTo0x": "0x7bf7bb74c43dc141293aff12a2d7de350e9b09e0",
+  "B0xToken": "0x6000eca38b8b5bba64986182fe2a69c57f6b5414",
+  "B0xVault": "0x04b5dadd2c0d6a261bfafbc964e0cac48585def3",
+  "EIP20": "",
+  "OracleRegistry": "0xaa86dda78e9434aca114b6676fc742a18d15a1cc",
+  "TestToken0": "0x0d8b0dd11f5d34ed41d556def5f841900d5b1c6b",
+  "TestToken1": "0xc4df27466183c0fe2a5924d6ea56e334deff146a",
+  "TestToken2": "0x8a063452f7df2614db1bca3a85ef35da40cf0835",
+  "TestToken3": "0xf96b018e8de3a229dbaced8439df9e3034e263c1",
+  "TestToken4": "0x609acc8b356894a937fc58f3411f9528de96ecb1",
+  "TestToken5": "0x4586649629f699f9a4b61d0e962dc3c9025fe488",
+  "TestToken6": "0xb48e1b16829c7f5bd62b76cb878a6bb1c4625d7a",
+  "TestToken7": "0xe704967449b57b2382b7fa482718748c13c63190",
+  "TestToken8": "0x2c530e4ecc573f11bd72cf5fdf580d134d25f15f",
+  "TestToken9": "0x2ebb94cc79d7d0f1195300aaf191d118f53292a8",
+  "TokenRegistry": "0x32eecaf51dfea9618e9bc94e9fbfddb1bbdcba15",
+}
+`;
+
+exports[`config should use provided config 1`] = `
+Object {
+  "B0x": "thisisatest",
+  "B0xOracle": "thisisatest",
+  "B0xTo0x": "thisisatest",
+  "B0xToken": "thisisatest",
+  "B0xVault": "thisisatest",
+  "EIP20": "thisisatest",
+  "OracleRegistry": "thisisatest",
+  "TestToken0": "thisisatest",
+  "TestToken1": "thisisatest",
+  "TestToken2": "thisisatest",
+  "TestToken3": "thisisatest",
+  "TestToken4": "thisisatest",
+  "TestToken5": "thisisatest",
+  "TestToken6": "thisisatest",
+  "TestToken7": "thisisatest",
+  "TestToken8": "thisisatest",
+  "TestToken9": "thisisatest",
+  "TokenRegistry": "thisisatest",
+}
+`;
