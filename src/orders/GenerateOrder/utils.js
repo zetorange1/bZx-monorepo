@@ -1,10 +1,10 @@
-import B0xJS from "b0x.js";  // eslint-disable-line
+import B0xJS from "b0x.js"; // eslint-disable-line
 import getNetworkId from "../../web3/getNetworkId";
 
-export const compileObject = async (web3, state, account) => {
+export const compileObject = async (web3, state, account, b0x) => {
   const { sendToRelayExchange } = state;
   return {
-    b0xAddress: B0xJS.addresses.B0x,
+    b0xAddress: b0x.addresses.B0x,
     makerAddress: account.toLowerCase(),
     makerRole: (state.role === `lender` ? 0 : 1).toString(),
     networkId: await getNetworkId(web3),
