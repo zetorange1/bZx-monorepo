@@ -97,9 +97,19 @@ export default class TrackedTokenItems extends React.Component {
   toggleSendDialog = () =>
     this.setState(p => ({ showSendDialog: !p.showSendDialog }));
 
-  sendTokens = () => {
-    // const { recipientAddress, sendAmount } = this.state;
-    // TODO - send actual tokens
+  sendTokens = async () => {
+    const { b0x, token, accounts, updateTrackedTokens } = this.props;
+    const { recipientAddress, sendAmount } = this.state;
+    const receipt = await b0x.transferToken({
+      tokenAddress: token.address,
+      to: recipientAddress.toLowerCase(),
+      amount: sendAmount * 1e18,
+      txOpts: { from: accounts[0] }
+    });
+    console.log(receipt);
+    this.setState({ showSendDialog: false });
+    alert(`Sent!`);
+    setTimeout(() => updateTrackedTokens(true), 5000);
   };
 
   handleRemoveToken = () => {
