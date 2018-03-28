@@ -1,7 +1,13 @@
+import MuiButton from "material-ui/Button";
 import styled from "styled-components";
 import Section, { SectionLabel } from "../../common/FormSection";
 import TrackedTokenItem from "./TrackedTokenItem";
 import { getIconURL } from "../../common/tokens";
+
+const Button = styled(MuiButton)`
+  margin-right: auto !important;
+  margin-bottom: 12px !important;
+`;
 
 const Container = styled.div`
   width: 100%;
@@ -22,6 +28,9 @@ const TrackedTokens = ({
   return (
     <Section>
       <SectionLabel>Tracked tokens</SectionLabel>
+      <Button variant="raised" onClick={() => updateTrackedTokens(true)}>
+        Refresh
+      </Button>
       <Container>
         {tokenDataWithIcon.map(token => (
           <TrackedTokenItem
