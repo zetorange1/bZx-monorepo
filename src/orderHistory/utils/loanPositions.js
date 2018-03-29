@@ -1,25 +1,8 @@
 import { pipe, map } from "ramda";
-import { SOLIDITY_TYPE_MAX_CHARS } from "../../core/constants";
+import * as Utils from "./index";
 
-const LOAN_POS_FIELD_COUNT = 9;
+const NUM_LOAN_POS_FIELDS = 9;
 const HEX_RADIX = 16;
-
-const remove0xPrefix = data => data.substr(2);
-
-const checkProperObjCount = data => {
-  const objCount = data.length / SOLIDITY_TYPE_MAX_CHARS / LOAN_POS_FIELD_COUNT;
-  if (objCount % 1 !== 0)
-    throw new Error("Data length invalid. Must be whole number of objects");
-  return data;
-};
-
-const getOrderObjArray = data =>
-  data.match(
-    new RegExp(`.{1,${LOAN_POS_FIELD_COUNT * SOLIDITY_TYPE_MAX_CHARS}}`, "g")
-  );
-
-const getOrderParams = data =>
-  data.match(new RegExp(`.{1,${SOLIDITY_TYPE_MAX_CHARS}}`, "g"));
 
 const getLoanPosition = params => ({
   lender: `0x${params[0].substr(24)}`,
@@ -33,10 +16,13 @@ const getLoanPosition = params => ({
   active: parseInt(`0x${params[8]}`, HEX_RADIX)
 });
 
+const checkProperObjCount = Utils.makeCheckProperObjCount(NUM_LOAN_POS_FIELDS);
+const getOrderObjArray = Utils.makeGetOrderObjArray(NUM_LOAN_POS_FIELDS);
+
 export const cleanData = raw =>
   pipe(
-    remove0xPrefix,
+    Utils.remove0xPrefix,
     checkProperObjCount,
     getOrderObjArray,
-    map(pipe(getOrderParams, getLoanPosition))
+    map(pipe(Utils.getOrderParams, getLoanPosition))
   )(raw);

@@ -95,7 +95,7 @@ describe("loan positions", () => {
     /* NOTE: If you want to re-run this test, you must restart
      the local testnet as the orders made by this address will
       accumulate causing this test to fail */
-    test("should return loan positions", async () => {
+    test.skip("should return loan positions", async () => {
       const loanPositions = await b0xJS.getLoanPositions({
         loanPartyAddress: traders[0],
         start: 0,

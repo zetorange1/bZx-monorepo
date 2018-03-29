@@ -1,24 +1,8 @@
 import { pipe, map } from "ramda";
-import { SOLIDITY_TYPE_MAX_CHARS } from "../../core/constants";
+import * as Utils from "./index";
 
-const ORDER_FIELD_COUNT = 14;
+const NUM_ORDER_FIELDS = 14;
 const HEX_RADIX = 16;
-
-const remove0xPrefix = data => data.substr(2);
-
-const checkProperObjCount = data => {
-  const objCount = data.length / SOLIDITY_TYPE_MAX_CHARS / ORDER_FIELD_COUNT;
-  if (objCount % 1 !== 0) throw new Error("Must be whole number of objects");
-  return data;
-};
-
-const getOrderObjArray = data =>
-  data.match(
-    new RegExp(`.{1,${ORDER_FIELD_COUNT * SOLIDITY_TYPE_MAX_CHARS}}`, "g")
-  );
-
-const getOrderParams = data =>
-  data.match(new RegExp(`.{1,${SOLIDITY_TYPE_MAX_CHARS}}`, "g"));
 
 const getOrder = params => ({
   maker: `0x${params[0].substr(24)}`,
@@ -37,10 +21,13 @@ const getOrder = params => ({
   loanOrderHash: `0x${params[13]}`
 });
 
+const checkProperObjCount = Utils.makeCheckProperObjCount(NUM_ORDER_FIELDS);
+const getOrderObjArray = Utils.makeGetOrderObjArray(NUM_ORDER_FIELDS);
+
 export const cleanData = raw =>
   pipe(
-    remove0xPrefix,
+    Utils.remove0xPrefix,
     checkProperObjCount,
     getOrderObjArray,
-    map(pipe(getOrderParams, getOrder))
+    map(pipe(Utils.getOrderParams, getOrder))
   )(raw);
