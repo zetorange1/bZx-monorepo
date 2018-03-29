@@ -48,6 +48,10 @@ var addresses = {
 	"EIP20": "unknown",
 };
 
+var addresses_0x = {
+	"ZRXToken": "0x1d7022f5b17d2f8b695918fb48fa1089c9f85401",
+	"EtherToken": "0x871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c",
+}
 
 Object.keys(addresses).forEach(function(item, index) {
 	var contents = fs.readFileSync("./build/contracts/"+item+".json");
@@ -145,8 +149,11 @@ Object.keys(addresses).forEach(function(item, index) {
 
 outHTML += `
 
-ZRXToken :: 0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3
-EtherToken :: 0x48BaCB9266a570d521063EF5dD96e61686DbE788
+`;
+Object.keys(addresses_0x).forEach(function(item, index) {
+	outHTML += item + " :: " + addresses_0x[item] + "\n";
+});
+outHTML += `
 
 		</font>
 		</pre>
@@ -159,22 +166,15 @@ fs.writeFile("./html_public_test/index.html", outHTML, function(err) {
 	}
 });
 
-fs.writeFileSync("./html_public_test/deployed/ZRXToken.json", JSON.stringify({
-	"address": "0x25B8Fe1DE9dAf8BA351890744FF28cf7dFa8f5e3",
-	"abi": ""
-}), function(err) {
-	if(err) {
-		console.log(item+".json Error: "+err);
-	}
-});
-
-fs.writeFileSync("./html_public_test/deployed/EtherToken.json", JSON.stringify({
-	"address": "0x48BaCB9266a570d521063EF5dD96e61686DbE788",
-	"abi": ""
-}), function(err) {
-	if(err) {
-		console.log(item+".json Error: "+err);
-	}
+Object.keys(addresses_0x).forEach(function(item, index) {
+	fs.writeFileSync("./html_public_test/deployed/"+item+".json", JSON.stringify({
+		"address": addresses_0x[item],
+		"abi": ""
+	}), function(err) {
+		if(err) {
+			console.log(item+".json Error: "+err);
+		}
+	});
 });
 
 }

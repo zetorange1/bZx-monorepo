@@ -190,7 +190,7 @@ contract('B0xTest', function(accounts) {
   });
 
   before('watch events', function () {
-    gasRefundEvent = oracle.MarginCalc();
+    gasRefundEvent = oracle.GasRefund();
     //logErrorEvent0x = b0xTo0x.LogErrorUint();
   });
 

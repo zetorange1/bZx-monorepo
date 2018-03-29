@@ -293,12 +293,11 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         view
         returns (bool)
     {
-        return (getMarginRatio(
+        return (getCurrentMargin(
                 positionTokenAddress,
                 collateralTokenAddress,
                 positionTokenAmount,
-                collateralTokenAmount,
-                maintenanceMarginAmount) <= (liquidationThresholdPercent));
+                collateralTokenAmount).div(maintenanceMarginAmount) <= (liquidationThresholdPercent));
     } 
 
     function isTradeSupported(
@@ -336,16 +335,14 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         }
     }
 
-    // Returns a ratio of currentMarginAmount / maintenanceMarginAmount for this particular loan/position
-    function getMarginRatio(
+    function getCurrentMargin(
         address positionTokenAddress,
         address collateralTokenAddress,
         uint positionTokenAmount,
-        uint collateralTokenAmount,
-        uint maintenanceMarginAmount)
+        uint collateralTokenAmount)
         public
         view
-        returns (uint marginRatio)
+        returns (uint currentMarginAmount)
     {
         uint positionToCollateralRate = getTradeRate(
             positionTokenAddress,
@@ -355,24 +352,10 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
             return 0;
         }
 
-        uint currentMarginAmount = collateralTokenAmount
+        currentMarginAmount = collateralTokenAmount
                         .div(positionTokenAmount)
                         .div(positionToCollateralRate)
                         .mul(10**20);
-        
-        marginRatio = currentMarginAmount.div(maintenanceMarginAmount);
-
-        // for debugging
-        MarginCalc(
-            positionTokenAddress,
-            collateralTokenAddress,
-            this,
-            positionTokenAmount,
-            collateralTokenAmount,
-            maintenanceMarginAmount,
-            positionToCollateralRate,
-            marginRatio
-        );
     }
 
     /*

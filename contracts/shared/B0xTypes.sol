@@ -44,8 +44,8 @@ contract B0xTypes {
         uint interestPaidSoFar;
     }
 
-    // for debugging, remove later
-    event MarginCalc(
+    // for debugging
+    /*event MarginCalc(
         address exposureTokenAddress,
         address collateralTokenAddress,
         address oracleAddress,
@@ -54,7 +54,7 @@ contract B0xTypes {
         uint marginAmount,
         uint rate,
         uint otherAmount
-    );
+    );*/
 
     uint constant MAX_UINT = 2**256 - 1;
 

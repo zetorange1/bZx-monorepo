@@ -280,17 +280,6 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             return intOrRevert(0,280);
         }
 
-        if (Oracle_Interface(loanOrder.oracleAddress).shouldLiquidate(
-                loanOrderHash,
-                msg.sender,
-                loanPosition.positionTokenAddressFilled,
-                loanPosition.collateralTokenAddressFilled,
-                loanPosition.positionTokenAmountFilled,
-                loanPosition.collateralTokenAmountFilled,
-                loanOrder.maintenanceMarginAmount)) {
-            return intOrRevert(0,291);
-        }
-
         // transfer the current position token to the B0xTo0x contract
         if (!B0xVault(VAULT_CONTRACT).transferToken(
             loanPosition.positionTokenAddressFilled,
@@ -305,16 +294,21 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             loanPosition.positionTokenAmountFilled,
             orderData0x);
 
-        /*
-        orderAddresses0x[4] // feeRecipient
-        orderValues0x[3] // takerFee
-        orderAddresses0x[2]; // makerToken (aka tradeTokenAddress)
-        orderValues0x[1], // takerTokenAmount (aka positionTokenAmount)
-        orderValues0x[0] // makerTokenAmount (aka tradeTokenAmount)
-        */
 
         if (tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled) {
             return intOrRevert(0,317);
+        }
+
+        // trade token has to equal loan token if loan needs to be liquidated
+        if (tradeTokenAddress != loanOrder.loanTokenAddress && Oracle_Interface(loanOrder.oracleAddress).shouldLiquidate(
+                loanOrderHash,
+                msg.sender,
+                loanPosition.positionTokenAddressFilled,
+                loanPosition.collateralTokenAddressFilled,
+                loanPosition.positionTokenAmountFilled,
+                loanPosition.collateralTokenAmountFilled,
+                loanOrder.maintenanceMarginAmount)) {
+            return intOrRevert(0,291);
         }
 
         // the trade token becomes the new position token
@@ -368,7 +362,8 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             return intOrRevert(0,368);
         }
 
-        if (Oracle_Interface(loanOrder.oracleAddress).shouldLiquidate(
+        // trade token has to equal loan token if loan needs to be liquidated
+        if (tradeTokenAddress != loanOrder.loanTokenAddress && Oracle_Interface(loanOrder.oracleAddress).shouldLiquidate(
                 loanOrderHash,
                 msg.sender,
                 loanPosition.positionTokenAddressFilled,
@@ -376,7 +371,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                 loanPosition.positionTokenAmountFilled,
                 loanPosition.collateralTokenAmountFilled,
                 loanOrder.maintenanceMarginAmount)) {
-            return intOrRevert(0,379);
+            return intOrRevert(0,291);
         }
 
         uint tradeTokenAmount = _tradePositionWithOracle(
@@ -878,41 +873,32 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                                     .mul(positionToCollateralRate)
                                     .div(10**20)
                                     .mul(initialMarginAmount);
-
-        MarginCalc(
-            positionTokenAddress,
-            collateralTokenAddress,
-            oracleAddress,
-            positionTokenAmount,
-            collateralTokenAmount,
-            initialMarginAmount,
-            positionToCollateralRate,
-            0
-        );
     }
 
-    function getMarginRatio(
+    // returns currentMarginAmount, initialMarginAmount, maintenanceMarginAmount
+    function getMargin(
         bytes32 loanOrderHash,
         address trader)
         public
         view
-        returns (uint marginRatio)
+        returns (uint, uint, uint)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            return 0;
+            return;
         }
 
         LoanPosition memory loanPosition = loanPositions[loanOrderHash][trader];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return 0;
+            return;
         }
 
-        marginRatio = Oracle_Interface(loanOrder.oracleAddress).getMarginRatio(
+        return (Oracle_Interface(loanOrder.oracleAddress).getCurrentMargin(
             loanPosition.positionTokenAddressFilled,
             loanPosition.collateralTokenAddressFilled,
             loanPosition.positionTokenAmountFilled,
-            loanPosition.collateralTokenAmountFilled,
+            loanPosition.collateralTokenAmountFilled),
+            loanOrder.initialMarginAmount,
             loanOrder.maintenanceMarginAmount);
     }
 
@@ -1389,7 +1375,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         uint loanTokenAmountFilled,
         uint loanStartUnixTimestampSec)
         internal
-        view
+        pure
         returns (uint totalInterestRequired)
     {
         totalInterestRequired = getPartialAmountNoError(loanTokenAmountFilled, loanOrder.loanTokenAmount, (loanOrder.expirationUnixTimestampSec.sub(loanStartUnixTimestampSec) / 86400).mul(loanOrder.interestAmount));
