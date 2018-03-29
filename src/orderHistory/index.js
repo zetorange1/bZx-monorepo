@@ -21,7 +21,6 @@ export const getLoanPositions = async (
   web3,
   { loanPartyAddress, start, count }
 ) => {
-  console.log(contracts.B0x.abi);
   const b0xContract = await CoreUtils.getContractInstance(
     web3,
     contracts.B0x.abi,
