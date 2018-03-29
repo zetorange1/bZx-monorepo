@@ -4,7 +4,8 @@ export const remove0xPrefix = data => data.substr(2);
 
 export const makeCheckProperObjCount = numFields => data => {
   const objCount = data.length / SOLIDITY_TYPE_MAX_CHARS / numFields;
-  if (objCount % 1 !== 0) throw new Error("Must be whole number of objects");
+  if (objCount % 1 !== 0)
+    throw new Error("Data length invalid, must be whole number of objects");
   return data;
 };
 
