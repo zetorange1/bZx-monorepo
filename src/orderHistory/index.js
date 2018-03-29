@@ -1,6 +1,7 @@
 import * as CoreUtils from "../core/utils";
 import contracts from "../contracts";
 import * as OrderUtils from "./utils/orders";
+import * as LoanPosUtils from "./utils/loanPositions";
 
 export const getOrders = async (web3, { loanPartyAddress, start, count }) => {
   const b0xContract = await CoreUtils.getContractInstance(
@@ -20,6 +21,7 @@ export const getLoanPositions = async (
   web3,
   { loanPartyAddress, start, count }
 ) => {
+  console.log(contracts.B0x.abi);
   const b0xContract = await CoreUtils.getContractInstance(
     web3,
     contracts.B0x.abi,
@@ -30,5 +32,5 @@ export const getLoanPositions = async (
     .getLoanPositions(loanPartyAddress, start, count)
     .call();
 
-  return OrderUtils.cleanData(data);
+  return LoanPosUtils.cleanData(data);
 };
