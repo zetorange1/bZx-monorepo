@@ -29,6 +29,20 @@ class Orders extends React.Component {
 
   changeTab = tabId => this.setState({ activeTab: tabId });
 
+  updateTrackedTokens = tokens => hardRefresh => {
+    if (hardRefresh) {
+      this.setState({ trackedTokens: [] }, () =>
+        this.setState({
+          trackedTokens: getTrackedTokens(tokens)
+        })
+      );
+    } else {
+      this.setState({
+        trackedTokens: getTrackedTokens(tokens)
+      });
+    }
+  };
+
   render() {
     const { activeTab, trackedTokens } = this.state;
     return (
@@ -77,11 +91,7 @@ class Orders extends React.Component {
                       accounts={accounts}
                       tokens={tokens}
                       trackedTokens={trackedTokens}
-                      updateTrackedTokens={() =>
-                        this.setState({
-                          trackedTokens: getTrackedTokens(tokens)
-                        })
-                      }
+                      updateTrackedTokens={this.updateTrackedTokens(tokens)}
                     />
                   </ContentContainer>
                   <ContentContainer show={activeTab === `ORDER_HISTORY`}>
