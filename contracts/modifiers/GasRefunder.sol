@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
@@ -33,7 +33,7 @@ contract GasRefunder {
 
     modifier refundsGasAfterCollection(address payer, uint gasPrice, uint percentMultiplier)
     {
-        uint startingGas = msg.gas;
+        uint startingGas = gasleft();
 
         _; // modified function body inserted here
         
@@ -56,7 +56,7 @@ contract GasRefunder {
         if (gasUsed == 0 || gasPrice == 0)
             return;
 
-        gasUsed = gasUsed - msg.gas;
+        gasUsed = gasUsed - gasleft();
 
         sendRefund(
             payer,
@@ -81,7 +81,7 @@ contract GasRefunder {
 
         if (throwOnGasRefundFail) {
             payer.transfer(refundAmount);
-            GasRefund(
+            emit GasRefund(
                 payer,
                 gasUsed,
                 gasPrice,
@@ -89,7 +89,7 @@ contract GasRefunder {
                 true
             );
         } else {
-            GasRefund(
+            emit GasRefund(
                 payer,
                 gasUsed,
                 gasPrice,

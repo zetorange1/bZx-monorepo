@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 // Interface to the 0xProject Exchange contract
 

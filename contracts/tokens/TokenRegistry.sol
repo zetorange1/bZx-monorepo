@@ -17,7 +17,7 @@
 
 */
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
@@ -112,7 +112,7 @@ contract TokenRegistry is Ownable {
         tokenAddresses.push(_token);
         tokenBySymbol[_symbol] = _token;
         tokenByName[_name] = _token;
-        LogAddToken(
+        emit LogAddToken(
             _token,
             _name,
             _symbol,
@@ -134,7 +134,7 @@ contract TokenRegistry is Ownable {
         tokenAddresses.length -= 1;
 
         TokenMetadata storage token = tokens[_token];
-        LogRemoveToken(
+        emit LogRemoveToken(
             token.token,
             token.name,
             token.symbol,
@@ -156,7 +156,7 @@ contract TokenRegistry is Ownable {
         nameDoesNotExist(_name)
     {
         TokenMetadata storage token = tokens[_token];
-        LogTokenNameChange(_token, token.name, _name);
+        emit LogTokenNameChange(_token, token.name, _name);
         delete tokenByName[token.name];
         tokenByName[_name] = _token;
         token.name = _name;
@@ -172,7 +172,7 @@ contract TokenRegistry is Ownable {
         symbolDoesNotExist(_symbol)
     {
         TokenMetadata storage token = tokens[_token];
-        LogTokenSymbolChange(_token, token.symbol, _symbol);
+        emit LogTokenSymbolChange(_token, token.symbol, _symbol);
         delete tokenBySymbol[token.symbol];
         tokenBySymbol[_symbol] = _token;
         token.symbol = _symbol;
@@ -187,7 +187,7 @@ contract TokenRegistry is Ownable {
         tokenExists(_token)
     {
         TokenMetadata storage token = tokens[_token];
-        LogTokenURLChange(_token, token.url, _url);
+        emit LogTokenURLChange(_token, token.url, _url);
         token.url = _url;
     }
 

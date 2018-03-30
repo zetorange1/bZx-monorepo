@@ -1,12 +1,12 @@
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 contract GasTracker {
 
     uint internal gasUsed;
 
     modifier tracksGas() {
-        gasUsed = msg.gas;
+        gasUsed = gasleft();
 
         _; // modified function body inserted here
 

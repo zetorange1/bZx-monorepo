@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 contract Debugger {
     
@@ -17,7 +17,7 @@ contract Debugger {
         if (!DEBUG_MODE)
             return;
         
-        DebugLog(logMsg, 0, 0x0, 0x0);
+        emit DebugLog(logMsg, 0, 0x0, 0x0);
     }
     
     function debugLog(
@@ -28,7 +28,7 @@ contract Debugger {
         if (!DEBUG_MODE)
             return;
 
-        DebugLog(logMsg, logValue, 0x0, 0x0);
+        emit DebugLog(logMsg, logValue, 0x0, 0x0);
     }
     
     function debugLog(
@@ -39,7 +39,7 @@ contract Debugger {
         if (!DEBUG_MODE)
             return;
 
-        DebugLog(logMsg, 0, logAddr, 0x0);
+        emit DebugLog(logMsg, 0, logAddr, 0x0);
     }
     
     function debugLog(
@@ -50,7 +50,7 @@ contract Debugger {
         if (!DEBUG_MODE)
             return;
 
-        DebugLog(logMsg, 0, 0x0, logData);
+        emit DebugLog(logMsg, 0, 0x0, logData);
     }
 
     function debugLog(
@@ -62,7 +62,7 @@ contract Debugger {
         if (!DEBUG_MODE)
             return;
 
-        DebugLog(logMsg, logValue, 0x0, logData);
+        emit DebugLog(logMsg, logValue, 0x0, logData);
     }
 
     function debugLog(
@@ -75,7 +75,7 @@ contract Debugger {
         if (!DEBUG_MODE)
             return;
 
-        DebugLog(logMsg, logValue, logAddr, logData);
+        emit DebugLog(logMsg, logValue, logAddr, logData);
     }
     */
 
@@ -86,7 +86,7 @@ contract Debugger {
             revert();
         }
 
-        DebugLine(lineno);
+        emit DebugLine(lineno);
         return;
     }
     
@@ -98,7 +98,7 @@ contract Debugger {
             revert();
         }
 
-        DebugLine(lineno);
+        emit DebugLine(lineno);
         return retVal;
     }
 
@@ -110,7 +110,7 @@ contract Debugger {
             revert();
         }
 
-        DebugLine(lineno);
+        emit DebugLine(lineno);
         return retVal;
     }
 }

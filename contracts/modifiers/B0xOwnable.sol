@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
@@ -24,7 +24,7 @@ contract B0xOwnable is Ownable {
     */
     function transferB0xOwnership(address newB0xContractAddress) public onlyOwner {
         require(newB0xContractAddress != address(0) && newB0xContractAddress != owner);
-        B0xOwnershipTransferred(b0xContractAddress, newB0xContractAddress);
+        emit B0xOwnershipTransferred(b0xContractAddress, newB0xContractAddress);
         b0xContractAddress = newB0xContractAddress;
     }
 
@@ -35,7 +35,7 @@ contract B0xOwnable is Ownable {
     */
     function transferOwnership(address newOwner) public onlyOwner {
         require(newOwner != address(0) && newOwner != b0xContractAddress);
-        OwnershipTransferred(owner, newOwner);
+        emit OwnershipTransferred(owner, newOwner);
         owner = newOwner;
     }
 }

@@ -16,7 +16,7 @@
 
 */
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 import 'zeppelin-solidity/contracts/token/ERC827/ERC827Token.sol';
 
@@ -43,7 +43,7 @@ contract UnlimitedAllowanceToken is ERC827Token {
             if (allowance < MAX_UINT) {
                 allowed[_from][msg.sender] -= _value;
             }
-            Transfer(_from, _to, _value);
+            emit Transfer(_from, _to, _value);
             return true;
         } else {
             return false;

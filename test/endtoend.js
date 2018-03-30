@@ -11,16 +11,16 @@ var run = {
   "should generate loanOrderHash (as lender1)": true,
   "should sign and verify orderHash (as lender1)": true,
   "should take sample loan order (as trader1)": true,
-  "should get loan orders (for trader 1)": true,
-  "should get loan positions (for trader 1)": true,
+  "should get loan orders (for trader 1)": false,
+  "should get loan positions (for trader 1)": false,
 
   "should generate loanOrderHash (as trader2)": false,
   "should sign and verify orderHash (as trader2)": false,
   "should take sample loan order (as lender2)": false,
 
-  "should generate 0x order": false,
-  "should sign and verify 0x order": false,
-  "should open 0x position with borrowed funds": false,
+  "should generate 0x order": true,
+  "should sign and verify 0x order": true,
+  "should open 0x position with borrowed funds": true,
   /*"should test LoanOrder bytes": false,
   "should test Loan bytes": false,
   "should test Position bytes": false,*/
@@ -739,7 +739,8 @@ contract('B0xTest', function(accounts) {
     var textEvents;
     b0x.tradePositionWith0x(
       OrderHash_b0x_1,
-      sample_order_tightlypacked + ECSignature_0x_raw.substring(2),
+      sample_order_tightlypacked,
+      ECSignature_0x_raw,
       {from: trader1_account}).then(function(tx) {
         //console.log(tx);
         tx_obj = tx;

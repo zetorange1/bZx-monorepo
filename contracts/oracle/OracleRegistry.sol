@@ -17,7 +17,7 @@
 
 */
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
@@ -85,7 +85,7 @@ contract OracleRegistry is Ownable {
         });
         oracleAddresses.push(_oracle);
         oracleByName[_name] = _oracle;
-        LogAddOracle(
+        emit LogAddOracle(
             _oracle,
             _name
         );
@@ -104,7 +104,7 @@ contract OracleRegistry is Ownable {
         oracleAddresses.length -= 1;
 
         OracleMetadata storage oracle = oracles[_oracle];
-        LogRemoveOracle(
+        emit LogRemoveOracle(
             oracle.oracle,
             oracle.name
         );
@@ -122,7 +122,7 @@ contract OracleRegistry is Ownable {
         nameDoesNotExist(_name)
     {
         OracleMetadata storage oracle = oracles[_oracle];
-        LogOracleNameChange(_oracle, oracle.name, _name);
+        emit LogOracleNameChange(_oracle, oracle.name, _name);
         delete oracleByName[oracle.name];
         oracleByName[_name] = _oracle;
         oracle.name = _name;

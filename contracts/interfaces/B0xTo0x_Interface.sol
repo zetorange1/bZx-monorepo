@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 interface B0xTo0x_Interface {
 
@@ -7,7 +7,8 @@ interface B0xTo0x_Interface {
         address trader,
         address vaultAddress,
         uint sourceTokenAmountToUse,
-        bytes orderData0x) // 0x order arguments and converted to hex, padded to 32 bytes, concatenated, and appended to the ECDSA
+        bytes orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated
+        bytes signiture0x) // ECDSA of the 0x order
         public
         returns (
             address destTokenAddress,

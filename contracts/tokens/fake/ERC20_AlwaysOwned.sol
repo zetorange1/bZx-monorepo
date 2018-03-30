@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 import 'zeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
 
@@ -28,7 +28,7 @@ contract ERC20_AlwaysOwned is StandardToken {
     }*/
 
     function transfer(address _to, uint256 _value) public returns (bool) {
-        Transfer(msg.sender, _to, _value);
+        emit Transfer(msg.sender, _to, _value);
         return true;
     }
 
@@ -38,12 +38,12 @@ contract ERC20_AlwaysOwned is StandardToken {
     }
 
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-        Transfer(_from, _to, _value);
+        emit Transfer(_from, _to, _value);
         return true;
     }
 
     function approve(address _spender, uint256 _value) public returns (bool) {
-        Approval(msg.sender, _spender, _value);
+        emit Approval(msg.sender, _spender, _value);
         return true;
     }
 

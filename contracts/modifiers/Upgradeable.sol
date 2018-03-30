@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
@@ -27,7 +27,7 @@ contract Upgradeable is Ownable {
     function setUpgraded(address newAddress) public wasNotUpgraded onlyOwner {
         require(newAddress != address(0) && newAddress != UPGRADED_TO_ADDRESS);
         UPGRADED_TO_ADDRESS = newAddress;
-        ContractUpgraded(newAddress);
+        emit ContractUpgraded(newAddress);
     }
 
     /**
@@ -52,7 +52,7 @@ contract Upgradeable is Ownable {
         external
         onlyOwner
     {
-        require(msg.sender.send(this.balance));
+        require(msg.sender.send(address(this).balance));
     }
     
     /**

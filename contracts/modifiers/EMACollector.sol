@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
@@ -36,6 +36,6 @@ contract EMACollector {
                     ),
                     emaValue / (emaPeriods + 1) * 2     // no overflow
                 );
-        EMAUpdated(emaValue);
+        emit EMAUpdated(emaValue);
     }
 }

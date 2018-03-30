@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 import 'zeppelin-solidity/contracts/math/Math.sol';
 
@@ -232,7 +232,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         loanPosition.loanStartUnixTimestampSec = block.timestamp;
         loanPosition.active = true;
 
-        LoanPositionUpdated (
+        emit LoanPositionUpdated (
             loanPosition.lender,
             loanPosition.trader,
             loanPosition.collateralTokenAddressFilled,
@@ -260,7 +260,8 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
 
     function tradePositionWith0x(
         bytes32 loanOrderHash,
-        bytes orderData0x) // 0x order arguments and converted to hex, padded to 32 bytes, concatenated, and appended to the ECDSA
+        bytes orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated
+        bytes signiture0x) // ECDSA of the 0x order
         external
         nonReentrant
         tracksGas
@@ -268,16 +269,16 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            return intOrRevert(0,271);
+            return intOrRevert(0,272);
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
-            return intOrRevert(0,275);
+            return intOrRevert(0,276);
         }
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return intOrRevert(0,280);
+            return intOrRevert(0,281);
         }
 
         // transfer the current position token to the B0xTo0x contract
@@ -285,18 +286,22 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             loanPosition.positionTokenAddressFilled,
             B0XTO0X_CONTRACT,
             loanPosition.positionTokenAmountFilled)) {
-            return intOrRevert(0,299);
+            return intOrRevert(0,289);
         }
 
-        var (tradeTokenAddress, tradeTokenAmount, positionTokenUsedAmount) = B0xTo0x_Interface(B0XTO0X_CONTRACT).take0xTrade(
+        address tradeTokenAddress;
+        uint tradeTokenAmount;
+        uint positionTokenUsedAmount;
+        (tradeTokenAddress, tradeTokenAmount, positionTokenUsedAmount) = B0xTo0x_Interface(B0XTO0X_CONTRACT).take0xTrade(
             msg.sender, // trader
             VAULT_CONTRACT,
             loanPosition.positionTokenAmountFilled,
-            orderData0x);
+            orderData0x,
+            signiture0x);
 
 
         if (tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled) {
-            return intOrRevert(0,317);
+            return intOrRevert(0,304);
         }
 
         // trade token has to equal loan token if loan needs to be liquidated
@@ -308,14 +313,14 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                 loanPosition.positionTokenAmountFilled,
                 loanPosition.collateralTokenAmountFilled,
                 loanOrder.maintenanceMarginAmount)) {
-            return intOrRevert(0,291);
+            return intOrRevert(0,316);
         }
 
         // the trade token becomes the new position token
         loanPosition.positionTokenAddressFilled = tradeTokenAddress;
         loanPosition.positionTokenAmountFilled = tradeTokenAmount;
 
-        LogPositionTraded(
+        emit LogPositionTraded(
             loanOrderHash,
             msg.sender,
             tradeTokenAddress,
@@ -330,7 +335,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             tradeTokenAmount,
             gasUsed // initial used gas, collected in modifier
         )) {
-            return intOrRevert(0,339);
+            return intOrRevert(0,338);
         }
 
         return tradeTokenAmount;
@@ -346,20 +351,20 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            return intOrRevert(0,355);
+            return intOrRevert(0,354);
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
-            return intOrRevert(0,359);
+            return intOrRevert(0,358);
         }
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return intOrRevert(0,364);
+            return intOrRevert(0,363);
         }
 
         if (tradeTokenAddress == loanPosition.positionTokenAddressFilled) {
-            return intOrRevert(0,368);
+            return intOrRevert(0,367);
         }
 
         // trade token has to equal loan token if loan needs to be liquidated
@@ -371,7 +376,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                 loanPosition.positionTokenAmountFilled,
                 loanPosition.collateralTokenAmountFilled,
                 loanOrder.maintenanceMarginAmount)) {
-            return intOrRevert(0,291);
+            return intOrRevert(0,379);
         }
 
         uint tradeTokenAmount = _tradePositionWithOracle(
@@ -385,7 +390,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             return intOrRevert(0,390);
         }
 
-        LogPositionTraded(
+        emit LogPositionTraded(
             loanOrderHash,
             msg.sender,
             tradeTokenAddress,
@@ -705,7 +710,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         view
         returns (bytes)
     {
-        var end = Math.min256(loanList[loanParty].length, start.add(count));
+        uint end = Math.min256(loanList[loanParty].length, start.add(count));
         if (end == 0 || start >= end) {
             return;
         }
@@ -715,7 +720,9 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
 
         for (uint j=0; j < end-start; j++) {
             bytes32 loanOrderHash = loanList[loanParty][j+start].loanOrderHash;
-            var (addrs,uints) = getLoanOrderParts(loanOrderHash);
+            address[6] memory addrs;
+            uint[7] memory uints;
+            (addrs, uints) = getLoanOrderParts(loanOrderHash);
 
             uint i;
 
@@ -753,7 +760,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         view
         returns (bytes)
     {
-        var end = Math.min256(loanList[loanParty].length, start.add(count));
+        uint end = Math.min256(loanList[loanParty].length, start.add(count));
         if (end == 0 || start >= end) {
             return;
         }
@@ -767,7 +774,9 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                 // loanParty is lender, so it needs to be set to the trader counterparty to retrieve the loan details
                 loanParty = loanList[loanParty][j+start].counterparty; // loanParty is now the trader
             }
-            var (addrs,uints) = getLoanPositionParts(loanOrderHash,loanParty);
+            address[4] memory addrs;
+            uint[5] memory uints;
+            (addrs, uints) = getLoanPositionParts(loanOrderHash, loanParty);
 
             uint i;
 
@@ -949,7 +958,10 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         pure
         returns (bool)
     {
-        var (v, r, s) = getSignatureParts(signature);
+        uint8 v;
+	bytes32 r;
+        bytes32 s;
+        (v, r, s) = getSignatureParts(signature);
         return signer == ecrecover(
             keccak256("\x19Ethereum Signed Message:\n32", hash),
             v,
@@ -1059,34 +1071,34 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         returns (bool)
     {
         if (loanOrder.maker == msg.sender) {
-            return boolOrRevert(false,1076);
+            return boolOrRevert(false,1074);
         }
         if (loanOrder.loanTokenAddress == address(0) 
             || loanOrder.interestTokenAddress == address(0)
             || collateralTokenFilled == address(0)) {
-            return boolOrRevert(false,1081);
+            return boolOrRevert(false,1079);
         }
 
         if (loanTokenAmountFilled > loanOrder.loanTokenAmount) {
-            return boolOrRevert(false,1085);
+            return boolOrRevert(false,1083);
         }
 
         if (! OracleRegistry(ORACLE_REGISTRY_CONTRACT).hasOracle(loanOrder.oracleAddress)) {
-            return boolOrRevert(false,1089);
+            return boolOrRevert(false,1087);
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
             //LogError(uint8(Errors.ORDER_EXPIRED), 0, loanOrder.loanOrderHash);
-            return boolOrRevert(false,1094);
+            return boolOrRevert(false,1092);
         }
 
         if (loanOrder.maintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= loanOrder.initialMarginAmount) {
-            return boolOrRevert(false,1098);
+            return boolOrRevert(false,1096);
         }
 
         uint remainingLoanTokenAmount = loanOrder.loanTokenAmount.sub(getUnavailableLoanTokenAmount(loanOrder.loanOrderHash));
         if (remainingLoanTokenAmount < loanTokenAmountFilled) {
-            return boolOrRevert(false,1103);
+            return boolOrRevert(false,1101);
         }
 
         return true;
@@ -1103,7 +1115,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         returns (uint)
     {
         if (!_verifyLoanOrder(loanOrder, collateralTokenFilled, loanTokenAmountFilled)) {
-            return intOrRevert(0,1120);
+            return intOrRevert(0,1118);
         }
 
         uint collateralTokenAmountFilled = getInitialMarginRequired(
@@ -1114,7 +1126,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             loanOrder.initialMarginAmount
         );
         if (collateralTokenAmountFilled == 0) {
-            return intOrRevert(0,1131);
+            return intOrRevert(0,1129);
         }
 
         if (! B0xVault(VAULT_CONTRACT).depositCollateral(
@@ -1122,7 +1134,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             trader,
             collateralTokenAmountFilled
         )) {
-            return intOrRevert(loanTokenAmountFilled,1139);
+            return intOrRevert(loanTokenAmountFilled,1137);
         }
 
         // total interest required if loan is kept until order expiration
@@ -1136,7 +1148,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             trader,
             totalInterestRequired
         )) {
-            return intOrRevert(loanTokenAmountFilled,1153);
+            return intOrRevert(loanTokenAmountFilled,1151);
         }
 
         if (! B0xVault(VAULT_CONTRACT).depositFunding(
@@ -1144,7 +1156,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             lender,
             loanTokenAmountFilled
         )) {
-            return intOrRevert(loanTokenAmountFilled,1161);
+            return intOrRevert(loanTokenAmountFilled,1159);
         }
 
         if (loanOrder.feeRecipientAddress != address(0)) {
@@ -1157,7 +1169,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                     loanOrder.feeRecipientAddress,
                     paidTraderFee
                 )) {
-                    return intOrRevert(loanTokenAmountFilled,1174);
+                    return intOrRevert(loanTokenAmountFilled,1172);
                 }
             }
             if (loanOrder.lenderRelayFee > 0) {
@@ -1169,7 +1181,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                     loanOrder.feeRecipientAddress,
                     paidLenderFee
                 )) {
-                    return intOrRevert(0,1186);
+                    return intOrRevert(0,1184);
                 }
             }
         }
@@ -1201,7 +1213,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             orders[loanOrder.loanOrderHash].oracleAddress,
             amountPaid
         )) {
-            return intOrRevert(0,1218);
+            return intOrRevert(0,1216);
         }
 
          // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
@@ -1213,7 +1225,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             amountPaid,
             gasUsed // initial used gas, collected in modifier
         )) {
-            return intOrRevert(0,1230);
+            return intOrRevert(0,1228);
         }
 
         return amountPaid;
@@ -1280,7 +1292,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                 loanPosition.trader,
                 totalInterestToRefund
             )) {
-                return boolOrRevert(false,1297);
+                return boolOrRevert(false,1295);
             }
         }
 
@@ -1293,10 +1305,12 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                 loanOrder.oracleAddress,
                 loanPosition.collateralTokenAmountFilled
             )) {
-                return boolOrRevert(false,1315);
+                return boolOrRevert(false,1308);
             }
 
-            var (loanTokenAmountCovered, collateralTokenAmountUsed) = Oracle_Interface(loanOrder.oracleAddress).doTradeofCollateral(
+            uint loanTokenAmountCovered;
+            uint collateralTokenAmountUsed;
+            (loanTokenAmountCovered, collateralTokenAmountUsed) = Oracle_Interface(loanOrder.oracleAddress).doTradeofCollateral(
                 loanPosition.collateralTokenAddressFilled,
                 loanOrder.loanTokenAddress,
                 loanPosition.collateralTokenAmountFilled,
@@ -1311,7 +1325,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             loanPosition.trader,
             loanPosition.collateralTokenAmountFilled
         )) {
-            return boolOrRevert(false,1334);
+            return boolOrRevert(false,1328);
         }
 
         if (! B0xVault(VAULT_CONTRACT).withdrawFunding(
@@ -1319,7 +1333,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             loanPosition.lender,
             loanPosition.positionTokenAmountFilled
         )) {
-            return boolOrRevert(false,1342);
+            return boolOrRevert(false,1336);
         }
 
         if (! Oracle_Interface(loanOrder.oracleAddress).didCloseLoan(
@@ -1328,7 +1342,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             isLiquidation,
             gasUsed
         )) {
-            return boolOrRevert(false,1351);
+            return boolOrRevert(false,1345);
         }
 
         return true;
@@ -1348,7 +1362,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             loanPosition.positionTokenAddressFilled,
             loanOrder.oracleAddress,
             loanPosition.positionTokenAmountFilled)) {
-            return intOrRevert(0,1371);
+            return intOrRevert(0,1365);
         }
 
         uint tradeTokenAmountReceived;
@@ -1452,7 +1466,9 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         view
         returns (bytes)
     {
-        var (addrs,uints) = getLoanOrderParts(loanOrderHash);
+        address[6] addrs;
+        uint[7] uints;
+        (addrs,uints) = getLoanOrderParts(loanOrderHash);
         if (addrs[0] == address(0)) {
             return;
         }
@@ -1491,38 +1507,19 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             ]
         );
     }
-    /*
-    function getLoanByteData (
-        bytes32 loanOrderHash,
-        address trader)
-        public
-        view
-        returns (bytes)
-    {
-        var (lender,uints,active) = getLoanParts(loanOrderHash, trader);
-        if (lender == address(0)) {
-            return;
-        }
 
-        return getLoanBytes(lender, uints, active);
-    }
-    */
     function getLoanPositionParts (
         bytes32 loanOrderHash,
         address trader)
         public
         view
-        returns (address[4],uint[5])
+        returns (address[4], uint[5])
     {
         LoanPosition memory loanPosition = loanPositions[loanOrderHash][trader];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             return;
         }
 
-        uint active = 1;
-        if (!loanPosition.active) {
-            active = 0;
-        }
         return (
             [
                 loanPosition.lender,
@@ -1535,7 +1532,7 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                 loanPosition.collateralTokenAmountFilled,
                 loanPosition.positionTokenAmountFilled,
                 loanPosition.loanStartUnixTimestampSec,
-                active
+                loanPosition.active ? 1 : 0
             ]
         );
     }
@@ -1548,7 +1545,10 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         view
         returns (bytes)
     {
-        var (tradeTokenAddress,uints,active) = getPositionParts(loanOrderHash, trader);
+        address tradeTokenAddress;
+        uint[3] uints;
+        bool active;
+        (tradeTokenAddress,uints,active) = getPositionParts(loanOrderHash, trader);
         if (tradeTokenAddress == address(0)) {
             return;
         }

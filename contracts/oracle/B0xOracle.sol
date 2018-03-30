@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
@@ -94,7 +94,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
     {
         gasRefunds[loanOrderHash].push(GasData({
             payer: taker,
-            gasUsed: gasUsed.sub(msg.gas),
+            gasUsed: gasUsed.sub(gasleft()),
             isPaid: false
         }));
 
@@ -297,7 +297,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
                 positionTokenAddress,
                 collateralTokenAddress,
                 positionTokenAmount,
-                collateralTokenAmount).div(maintenanceMarginAmount) <= (liquidationThresholdPercent));
+                collateralTokenAmount).mul(100).div(maintenanceMarginAmount) <= (liquidationThresholdPercent));
     } 
 
     function isTradeSupported(
@@ -320,12 +320,15 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         if (KYBER_CONTRACT == address(0)) {
             rate = (uint(block.blockhash(block.number-1)) % 100 + 1).mul(10**18);
         } else {
-            var (, sourceToEther) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+            uint sourceToEther;
+            (, sourceToEther) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
                 sourceTokenAddress, 
                 KYBER_ETH_TOKEN_ADDRESS,
                 0
             );
-            var (, etherToDest) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+            
+            uint etherToDest;
+            (, etherToDest) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
                 KYBER_ETH_TOKEN_ADDRESS,
                 destTokenAddress, 
                 0
@@ -353,9 +356,20 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         }
 
         currentMarginAmount = collateralTokenAmount
+                        .mul(10**20)
                         .div(positionTokenAmount)
-                        .div(positionToCollateralRate)
-                        .mul(10**20);
+                        .div(positionToCollateralRate);
+
+        /*emit MarginCalc(
+            positionTokenAddress,
+            collateralTokenAddress,
+            this,
+            positionTokenAmount,
+            collateralTokenAmount,
+            currentMarginAmount,
+            positionToCollateralRate,
+            liquidationThresholdPercent
+        );*/
     }
 
     /*
@@ -429,33 +443,25 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         view
         returns (LoanOrder)
     {
-        var (addrs, uints) = B0xInterface(b0xContractAddress).getLoanOrderParts(loanOrderHash);
+        address[6] addrs;
+        uint[7] uints;
+        (addrs, uints) = B0xInterface(b0xContractAddress).getLoanOrderParts(loanOrderHash);
 
         return buildLoanOrderStruct(loanOrderHash, addrs, uints);
     }
 
-    function getLoan (
-        bytes32 loanOrderHash,
-        address trader)
-        internal
-        view
-        returns (Loan)
-    {
-        var (lender, uints, active) = B0xInterface(b0xContractAddress).getLoanParts(loanOrderHash, trader);
-
-        return buildLoanStruct(lender, uints, active);
-    }
-
-    function getPosition (
+    function getLoanPosition (
         bytes32 loanOrderHash,
         address trader)
         internal
         view
         returns (Position)
     {
-        var (tradeTokenAddress, uints, active) = B0xInterface(b0xContractAddress).getPositionParts(loanOrderHash, trader);
+        address[4] addrs;
+        uint[5] uints;
+        (addrs, uints) = B0xInterface(b0xContractAddress).getLoanPositionParts(loanOrderHash, trader);
 
-        return buildTradeStruct(tradeTokenAddress, uints, active);
+        return buildLoanPositionStruct(addrs, uints);
     }*/
 
     function getDecimals(EIP20 token) 

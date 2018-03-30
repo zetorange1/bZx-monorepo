@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import './interfaces/B0xTo0x_Interface.sol';
@@ -40,7 +40,8 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         address trader,
         address vaultAddress,
         uint sourceTokenAmountToUse,
-        bytes orderData0x) // 0x order arguments and converted to hex, padded to 32 bytes, concatenated, and appended to the ECDSA
+        bytes orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated
+        bytes signiture0x) // ECDSA of the 0x order
         public
         onlyB0x
         returns (
@@ -49,21 +50,24 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             uint sourceTokenUsedAmount)
     {
         // address[5], uint[6], bytes (uint8, bytes32, bytes32)
-        var (orderAddresses0x, orderValues0x, signature) = getOrderValuesFromData(orderData0x);
+        address[5] memory orderAddresses0x;
+        uint[6] memory orderValues0x;
+        (orderAddresses0x, orderValues0x) = getOrderValuesFromData(orderData0x);
 
     /*
-        LogErrorAddr("maker", orderAddresses0x[0], loanOrderHash);
-        LogErrorAddr("taker", orderAddresses0x[1], loanOrderHash);
-        LogErrorAddr("makerToken", orderAddresses0x[2], loanOrderHash);
-        LogErrorAddr("takerToken", orderAddresses0x[3], loanOrderHash);
-        LogErrorAddr("feeRecipient", orderAddresses0x[4], loanOrderHash);
-        LogErrorUint("makerTokenAmount", orderValues0x[0], loanOrderHash);
-        LogErrorUint("takerTokenAmount", orderValues0x[1], loanOrderHash);
-        LogErrorUint("makerFee", orderValues0x[2], loanOrderHash);
-        LogErrorUint("takerFee", orderValues0x[3], loanOrderHash);
-        LogErrorUint("expirationTimestampInSec", orderValues0x[4], loanOrderHash);
-        LogErrorUint("salt", orderValues0x[5], loanOrderHash);
+        LogErrorAddr("maker", orderAddresses0x[0], 0x0);
+        LogErrorAddr("taker", orderAddresses0x[1], 0x0);
+        LogErrorAddr("makerToken", orderAddresses0x[2], 0x0);
+        LogErrorAddr("takerToken", orderAddresses0x[3], 0x0);
+        LogErrorAddr("feeRecipient", orderAddresses0x[4], 0x0);
+        LogErrorUint("makerTokenAmount", orderValues0x[0], 0x0);
+        LogErrorUint("takerTokenAmount", orderValues0x[1], 0x0);
+        LogErrorUint("makerFee", orderValues0x[2], 0x0);
+        LogErrorUint("takerFee", orderValues0x[3], 0x0);
+        LogErrorUint("expirationTimestampInSec", orderValues0x[4], 0x0);
+        LogErrorUint("salt", orderValues0x[5], 0x0);
     */
+    
 
     /*
         orderAddresses0x[0], // maker
@@ -84,7 +88,7 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             sourceTokenAmountToUse,
             orderAddresses0x,
             orderValues0x,
-            signature);
+            signiture0x);
 
         destTokenAmount = getPartialAmount(
             sourceTokenUsedAmount,
@@ -105,13 +109,13 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         destTokenAddress = orderAddresses0x[2]; // makerToken (aka destTokenAddress)
     }
 
-   function _take0xTrade(
+    function _take0xTrade(
         address trader,
         uint sourceTokenAmountToUse,
         address[5] orderAddresses0x,
         uint[6] orderValues0x,
         bytes signature)
-        private
+        internal
         returns (uint) 
     {
         if (orderAddresses0x[4] != address(0) && // feeRecipient
@@ -124,7 +128,10 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             }
         }
 
-        var (v, r, s) = getSignatureParts(signature);
+        uint8 v;
+	bytes32 r;
+        bytes32 s;
+        (v, r, s) = getSignatureParts(signature);
 
         // Increase the allowance for 0x Exchange Proxy to transfer the sourceToken needed for the 0x trade
         // orderAddresses0x[3] -> takerToken/sourceToken
@@ -152,8 +159,7 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         pure
         returns (
             address[5] orderAddresses,
-            uint[6] orderValues,
-            bytes signature) 
+            uint[6] orderValues) 
     {
         address maker;
         address taker;
@@ -178,7 +184,6 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             takerFee := mload(add(orderData0x, 288))
             expirationTimestampInSec := mload(add(orderData0x, 320))
             salt := mload(add(orderData0x, 352))
-            signature := mload(add(orderData0x, 384))
         }
         orderAddresses = [
             maker,
