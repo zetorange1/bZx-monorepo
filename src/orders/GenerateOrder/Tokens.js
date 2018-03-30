@@ -26,6 +26,7 @@ const Title = styled.div`
   padding: 0;
   font-size: 1rem;
   line-height: 1;
+  cursor: pointer;
 `;
 
 const MoreInfo = styled.span`
