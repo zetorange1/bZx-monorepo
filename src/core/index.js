@@ -100,6 +100,8 @@ export default class B0xJS {
     fill.takeLoanOrderAsTrader(this.web3, ...props);
 
   getOrders = async (...props) => orderHistory.getOrders(this.web3, ...props);
+  getLoanPositions = async (...props) =>
+    orderHistory.getLoanPositions(this.web3, ...props);
 
   transferToken = async (...props) =>
     transfer.transferToken(this.web3, ...props);
