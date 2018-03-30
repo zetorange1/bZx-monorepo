@@ -73,6 +73,15 @@ export default ({
               </InputAdornment>
             }
           />
+          <FormHelperText component="div">
+            <Tooltip
+              title={`This amount is the total amount being ${
+                role === `trader` ? `borrowed` : `loaned`
+              }.`}
+            >
+              <MoreInfo>More Info</MoreInfo>
+            </Tooltip>
+          </FormHelperText>
         </FormControl>
       </TokenGroup>
 
