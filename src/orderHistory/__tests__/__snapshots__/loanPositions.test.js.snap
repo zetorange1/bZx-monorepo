@@ -5,9 +5,8 @@ Array [
   Object {
     "active": 1,
     "collateralTokenAddressFilled": "0x8a063452f7df2614db1bca3a85ef35da40cf0835",
-    "collateralTokenAmountFilled": 73800000000000000000,
+    "collateralTokenAmountFilled": 553500000000000000000,
     "lender": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
-    "loanStartUnixTimestampSec": 1522430308,
     "loanTokenAmountFilled": 12300000000000000000,
     "positionTokenAddressFilled": "0x0d8b0dd11f5d34ed41d556def5f841900d5b1c6b",
     "positionTokenAmountFilled": 12300000000000000000,
@@ -18,7 +17,6 @@ Array [
     "collateralTokenAddressFilled": "0x0000000000000000000000000000000000000000",
     "collateralTokenAmountFilled": 9.640536225379413e+47,
     "lender": "0x0000000000000000000000000000000000000000",
-    "loanStartUnixTimestampSec": 7.879790889163816e+47,
     "loanTokenAmountFilled": 0,
     "positionTokenAddressFilled": "0x0000000000000000000000000000000000000000",
     "positionTokenAmountFilled": 3.8869580383892615e+46,
