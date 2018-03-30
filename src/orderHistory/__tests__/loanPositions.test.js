@@ -102,7 +102,11 @@ describe("loan positions", () => {
         count: 10
       });
 
-      expect(loanPositions).toMatchSnapshot();
+      const loanPositionsNoTimestamp = loanPositions.map(
+        ({ loanStartUnixTimestampSec, ...rest }) => rest
+      );
+
+      expect(loanPositionsNoTimestamp).toMatchSnapshot();
     });
   });
 });
