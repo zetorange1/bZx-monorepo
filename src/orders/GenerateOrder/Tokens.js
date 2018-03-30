@@ -26,11 +26,16 @@ const Title = styled.div`
   padding: 0;
   font-size: 1rem;
   line-height: 1;
+  cursor: pointer;
 `;
 
 const MoreInfo = styled.span`
   text-decoration: underline;
   cursor: pointer;
+`;
+
+const CenteredFormHelperText = styled(FormHelperText)`
+  text-align: center !important;
 `;
 
 export default ({
@@ -69,6 +74,15 @@ export default ({
               </InputAdornment>
             }
           />
+          <FormHelperText component="div">
+            <Tooltip
+              title={`This amount is the total amount being ${
+                role === `trader` ? `borrowed` : `loaned`
+              }.`}
+            >
+              <MoreInfo>More Info</MoreInfo>
+            </Tooltip>
+          </FormHelperText>
         </FormControl>
       </TokenGroup>
 
@@ -107,6 +121,20 @@ export default ({
             setAddress={setStateForAddress(`collateralTokenAddress`)}
             value={collateralTokenAddress}
           />
+          <CenteredFormHelperText margin="normal" component="div">
+            <Tooltip
+              title={
+                <div style={{ maxWidth: `240px` }}>
+                  This token amount will be calculated when the order is filled
+                  (either partially or fully). It will be set to the amount
+                  needed to satisfy the initial margin amount to cover the
+                  amount of loan token borrowed.
+                </div>
+              }
+            >
+              <MoreInfo>More Info</MoreInfo>
+            </Tooltip>
+          </CenteredFormHelperText>
         </TokenGroup>
       )}
     </Content>

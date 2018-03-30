@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import styled from "styled-components";
+import Tooltip from "material-ui/Tooltip";
 import { getIconURL } from "../../common/tokens";
 
 const Container = styled.div`
@@ -27,6 +28,7 @@ const Title = styled.div`
   padding: 0;
   font-size: 1rem;
   line-height: 1;
+  cursor: pointer;
 `;
 
 const CoinIcon = styled.img`
@@ -63,7 +65,9 @@ export default ({
     <Fragment>
       <Container>
         <TokenContainer>
-          <Title>Loan Token</Title>
+          <Tooltip title="This is the total amount being loaned or borrowed.">
+            <Title>Loan Token</Title>
+          </Tooltip>
           <CoinIcon src={getIconURL(loanToken)} />
           <CoinLabel>{loanToken.name}</CoinLabel>
           <CoinAmount>
@@ -71,7 +75,9 @@ export default ({
           </CoinAmount>
         </TokenContainer>
         <TokenContainer>
-          <Title>Interest Token</Title>
+          <Tooltip title="This is the interest amount, paid per day by the borrower.">
+            <Title>Interest Token</Title>
+          </Tooltip>
           <CoinIcon src={getIconURL(interestToken)} />
           <CoinLabel>{interestToken.name}</CoinLabel>
           <CoinAmount>
@@ -80,7 +86,18 @@ export default ({
         </TokenContainer>
         {role === `trader` && (
           <TokenContainer>
-            <Title>Collateral Token</Title>
+            <Tooltip
+              title={
+                <div style={{ maxWidth: `240px` }}>
+                  This token amount will be calculated when the order is filled
+                  (either partially or fully). It will be set to the amount
+                  needed to satisfy the initial margin amount to cover the
+                  amount of loan token borrowed.
+                </div>
+              }
+            >
+              <Title>Collateral Token</Title>
+            </Tooltip>
             <CoinIcon src={getIconURL(collateralToken)} />
             <CoinLabel>{collateralToken.name}</CoinLabel>
           </TokenContainer>
