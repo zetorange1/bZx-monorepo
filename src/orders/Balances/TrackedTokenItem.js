@@ -62,7 +62,8 @@ export default class TrackedTokenItems extends React.Component {
     recipientAddress: ``,
     sendAmount: ``,
     approved: null,
-    balance: null
+    balance: null,
+    approvalLoading: false
   };
 
   async componentDidMount() {
@@ -91,7 +92,10 @@ export default class TrackedTokenItems extends React.Component {
       ownerAddress: accounts[0].toLowerCase()
     });
     console.log(`Allowance:`, allowance.toNumber());
-    this.setState({ approved: allowance.toNumber() !== 0 });
+    this.setState({
+      approved: allowance.toNumber() !== 0,
+      approvalLoading: false
+    });
   };
 
   toggleSendDialog = () =>
@@ -119,36 +123,52 @@ export default class TrackedTokenItems extends React.Component {
 
   approve = async () => {
     const { b0x, token, accounts } = this.props;
-    await b0x.setAllowanceUnlimited({
+    this.setState({ approvalLoading: true });
+    console.log(`approving allowance`);
+    console.log(token.name, token.address);
+    const receipt = await b0x.setAllowanceUnlimited({
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase()
     });
+    console.log(receipt);
     setTimeout(() => this.checkAllowance(), 5000);
   };
 
   unapprove = async () => {
     const { b0x, token, accounts } = this.props;
-    await b0x.resetAllowance({
+    this.setState({ approvalLoading: true });
+    console.log(`unapproving allowance`);
+    console.log(token.name, token.address);
+    const receipt = await b0x.resetAllowance({
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase()
     });
+    console.log(receipt);
     setTimeout(() => this.checkAllowance(), 5000);
   };
 
   renderAllowance = () => {
-    const { approved } = this.state;
+    const { approved, approvalLoading } = this.state;
     if (approved === null) {
       return <div>Checking</div>;
     }
     if (approved === true) {
       return (
-        <Button variant="raised" onClick={this.unapprove}>
+        <Button
+          variant="raised"
+          onClick={this.unapprove}
+          disabled={approvalLoading}
+        >
           Un-approve
         </Button>
       );
     }
     return (
-      <Button variant="raised" onClick={this.approve}>
+      <Button
+        variant="raised"
+        onClick={this.approve}
+        disabled={approvalLoading}
+      >
         Approve
       </Button>
     );
