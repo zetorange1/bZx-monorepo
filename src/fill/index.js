@@ -1,11 +1,12 @@
 import * as utils from "../core/utils";
-import contracts from "../contracts";
+import { ropsten as Contracts } from "../contracts";
+import * as Addresses from "../addresses";
 
 export const takeLoanOrderAsLender = async (web3, order, txOpts) => {
   const b0xContract = await utils.getContractInstance(
     web3,
-    contracts.B0x.abi,
-    contracts.B0x.address
+    Contracts.B0x.abi,
+    Addresses.getAddresses(web3.currentProvider).B0x
   );
 
   const orderAddresses = [
@@ -47,8 +48,8 @@ export const takeLoanOrderAsTrader = async (
 ) => {
   const b0xContract = await utils.getContractInstance(
     web3,
-    contracts.B0x.abi,
-    contracts.B0x.address
+    Contracts.B0x.abi,
+    Addresses.getAddresses(web3.currentProvider).B0x
   );
 
   const orderAddresses = [
