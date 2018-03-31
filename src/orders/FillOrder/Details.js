@@ -84,11 +84,11 @@ export default ({
             </DataContainer>
             <DataContainer>
               <Title>Lender Relay Fee</Title>
-              <div>{lenderRelayFee}%</div>
+              <div>{lenderRelayFee} B0X</div>
             </DataContainer>
             <DataContainer>
               <Title>Trader Relay Fee</Title>
-              <div>{traderRelayFee}%</div>
+              <div>{traderRelayFee} B0X</div>
             </DataContainer>
           </Fragment>
         )}

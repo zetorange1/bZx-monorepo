@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import styled from "styled-components";
 import Button from "material-ui/Button";
 
+import { fromBigNumber } from "../../common/utils";
 import Section, { SectionLabel, Divider } from "../../common/FormSection";
 
 import Tokens from "./Tokens";
@@ -78,9 +79,9 @@ export default class FillOrder extends React.Component {
             tokens={tokens}
             role={makerRole}
             loanTokenAddress={order.loanTokenAddress}
-            loanTokenAmount={order.loanTokenAmount}
+            loanTokenAmount={fromBigNumber(order.loanTokenAmount, 1e18)}
             interestTokenAddress={order.interestTokenAddress}
-            interestAmount={order.interestAmount}
+            interestAmount={fromBigNumber(order.interestAmount, 1e18)}
             collateralTokenAddress={order.collateralTokenAddress}
           />
           <Details
@@ -90,8 +91,8 @@ export default class FillOrder extends React.Component {
             oracleAddress={order.oracleAddress}
             signature={order.signature}
             feeRecipientAddress={order.feeRecipientAddress}
-            lenderRelayFee={order.lenderRelayFee}
-            traderRelayFee={order.traderRelayFee}
+            lenderRelayFee={fromBigNumber(order.lenderRelayFee, 1e18)}
+            traderRelayFee={fromBigNumber(order.traderRelayFee, 1e18)}
           />
           <Expiration
             expirationUnixTimestampSec={order.expirationUnixTimestampSec}
