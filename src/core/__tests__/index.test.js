@@ -3,15 +3,14 @@ import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import sigUtil from "eth-sig-util";
 import B0xJS from "../../core";
-import EIP20 from "../../contracts/EIP20.json";
 import * as utils from "../../core/utils";
 import * as Errors from "../constants/errors";
 import b0xJS from "./setup";
 import makeOrder from "./order";
-import contracts from "../../contracts";
+import { local as Contracts } from "../../contracts";
 import Accounts from "./accounts";
 
-const erc20Abi = EIP20.abi;
+const { EIP20 } = Contracts;
 
 describe("signOrderHashAsync", () => {
   test("should sign properly", async () => {
@@ -52,18 +51,18 @@ describe("getContractInstance", () => {
   test("should create web3 contract instance", async () => {
     const tokenContract = await utils.getContractInstance(
       b0xJS.web3,
-      erc20Abi,
-      contracts.TestToken0.address
+      EIP20.abi,
+      Contracts.TestToken0.address
     );
     expect(tokenContract).toBeInstanceOf(b0xJS.web3.eth.Contract);
     expect(tokenContract.options.address.toLowerCase()).toBe(
-      contracts.TestToken0.address.toLowerCase()
+      Contracts.TestToken0.address.toLowerCase()
     );
   });
 
   test("should throw error on incorrect address", async () => {
     await expect(
-      utils.getContractInstance(b0xJS.web3, erc20Abi, constants.NULL_ADDRESS)
+      utils.getContractInstance(b0xJS.web3, EIP20.abi, constants.NULL_ADDRESS)
     ).rejects.toThrow(Errors.ContractDoesNotExist);
   });
 });
@@ -71,7 +70,7 @@ describe("getContractInstance", () => {
 describe("getBalance", () => {
   test("should return token balance", async () => {
     const balance = await b0xJS.getBalance({
-      tokenAddress: contracts.TestToken0.address,
+      tokenAddress: Contracts.TestToken0.address,
       ownerAddress: Accounts[9].address
     });
 
