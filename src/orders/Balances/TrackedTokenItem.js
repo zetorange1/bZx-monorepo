@@ -16,6 +16,7 @@ import {
   removeTrackedToken,
   PERMA_TOKEN_SYMBOLS
 } from "../../common/trackedTokens";
+import { fromBigNumber, toBigNumber } from "../../common/utils";
 
 const Container = styled.div`
   display: flex;
@@ -80,7 +81,7 @@ export default class TrackedTokenItems extends React.Component {
       ownerAddress: accounts[0].toLowerCase()
     });
     console.log(`balance of`, token.name, balance.toNumber());
-    this.setState({ balance: balance.toNumber() / 1e18 });
+    this.setState({ balance: fromBigNumber(balance, 1e18) });
   };
 
   checkAllowance = async () => {
@@ -107,7 +108,7 @@ export default class TrackedTokenItems extends React.Component {
     const receipt = await b0x.transferToken({
       tokenAddress: token.address,
       to: recipientAddress.toLowerCase(),
-      amount: sendAmount * 1e18,
+      amount: toBigNumber(sendAmount, 1e18),
       txOpts: { from: accounts[0] }
     });
     console.log(receipt);

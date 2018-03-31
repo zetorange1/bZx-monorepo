@@ -1,4 +1,5 @@
 import B0xJS from "b0x.js"; // eslint-disable-line
+import { toBigNumber } from "../../common/utils";
 import getNetworkId from "../../web3/getNetworkId";
 
 export const compileObject = async (web3, state, account, b0x) => {
@@ -19,16 +20,22 @@ export const compileObject = async (web3, state, account, b0x) => {
     oracleAddress: state.oracleAddress,
 
     // token amounts
-    loanTokenAmount: state.loanTokenAmount.toString(),
-    interestAmount: state.interestAmount.toString(),
+    loanTokenAmount: toBigNumber(state.loanTokenAmount, 1e18),
+    interestAmount: toBigNumber(state.interestAmount, 1e18),
 
     // margin amounts
     initialMarginAmount: state.initialMarginAmount.toString(),
     maintenanceMarginAmount: state.maintenanceMarginAmount.toString(),
 
     // relay fees
-    lenderRelayFee: (sendToRelayExchange ? state.lenderRelayFee : 0).toString(),
-    traderRelayFee: (sendToRelayExchange ? state.traderRelayFee : 0).toString(),
+    lenderRelayFee: toBigNumber(
+      sendToRelayExchange ? state.lenderRelayFee : 0,
+      1e18
+    ),
+    traderRelayFee: toBigNumber(
+      sendToRelayExchange ? state.traderRelayFee : 0,
+      1e18
+    ),
 
     // expiration date/time
     expirationUnixTimestampSec: state.expirationDate.unix().toString()

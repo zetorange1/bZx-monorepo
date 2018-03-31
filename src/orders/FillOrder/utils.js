@@ -1,5 +1,6 @@
 import B0xJS from "b0x.js";  // eslint-disable-line
 import { getTrackedTokens } from "../../common/trackedTokens";
+import { toBigNumber } from "../../common/utils";
 
 export const getOrderHash = order => B0xJS.getLoanOrderHashHex(order);
 
@@ -99,7 +100,7 @@ export const submitFillOrder = async (
     receipt = await b0x.takeLoanOrderAsTrader(
       order,
       collateralTokenAddress,
-      fillOrderAmount,
+      toBigNumber(fillOrderAmount, 1e18),
       txOpts
     );
   } else {
