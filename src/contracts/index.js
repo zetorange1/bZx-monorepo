@@ -15,5 +15,3 @@ const networks = map(network => toLowerCase(network), networksRaw);
 
 const { local, ropsten } = networks;
 export { local, ropsten };
-
-export default networks;
