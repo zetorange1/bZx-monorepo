@@ -4,15 +4,13 @@ import { BigNumber } from "@0xproject/utils";
 import * as ethUtil from "ethereumjs-util";
 import { schemas } from "../schemas/b0x_json_schemas";
 import * as utils from "./utils";
-import contracts from "../contracts";
+import EIP20 from "../contracts/EIP20.json";
 import * as allowance from "../allowance";
 import * as oracles from "../oracles";
 import * as fill from "../fill";
 import * as Addresses from "../addresses";
 import * as orderHistory from "../orderHistory";
 import * as transfer from "../transfer";
-
-const erc20Abi = contracts.EIP20.abi;
 
 let Web3 = null;
 if (typeof window !== "undefined") {
@@ -24,7 +22,7 @@ export default class B0xJS {
   static generatePseudoRandomSalt = utils.generatePseudoRandomSalt;
   static noop = utils.noop;
 
-  constructor(provider, { addresses = Addresses.getAddresses() } = {}) {
+  constructor(provider, { addresses = Addresses.getAddresses(provider) } = {}) {
     assert.isWeb3Provider("provider", provider);
     this.web3 = new Web3(provider);
     this.addresses = addresses;
@@ -82,7 +80,7 @@ export default class B0xJS {
 
     const tokenContract = await utils.getContractInstance(
       this.web3,
-      erc20Abi,
+      EIP20.abi,
       tokenAddress
     );
     const balance = await tokenContract.methods.balanceOf(ownerAddress).call();
