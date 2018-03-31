@@ -1,11 +1,19 @@
 import { map } from "ramda";
-import ropsten from "./ropsten";
-import local from "./local";
+import _ropsten from "./ropsten";
+import _local from "./local";
 
-const contractsRaw = process.env.NODE_ENV === "production" ? ropsten : local;
-const contracts = map(
-  ({ address, ...rest }) => ({ address: address.toLowerCase(), ...rest }),
-  contractsRaw
-);
+const toLowerCase = map(({ address, ...rest }) => ({
+  address: address.toLowerCase(),
+  ...rest
+}));
 
-export default contracts;
+const networksRaw = {
+  local: _local,
+  ropsten: _ropsten
+};
+const networks = map(network => toLowerCase(network), networksRaw);
+
+const { local, ropsten } = networks;
+export { local, ropsten };
+
+export default networks;
