@@ -1,5 +1,5 @@
 import { clone } from "ramda";
-import Contracts from "../../contracts";
+import { local as Contracts } from "../../contracts";
 import b0xJS from "../../core/__tests__/setup";
 import * as utils from "../../core/utils";
 import Accounts from "../../core/__tests__/accounts";
