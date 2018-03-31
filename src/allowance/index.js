@@ -1,16 +1,17 @@
 import { assert } from "@0xproject/assert";
 import { BigNumber } from "@0xproject/utils";
 import * as utils from "../core/utils";
-import contracts from "../contracts";
+import { local as Contracts } from "../contracts";
+import * as Addresses from "../addresses";
 
-const erc20Abi = contracts.EIP20.abi;
+const erc20Abi = Contracts.EIP20.abi;
 
 export const setAllowance = async (
   web3,
   {
     tokenAddress,
     ownerAddress,
-    spenderAddress = contracts.B0x.address,
+    spenderAddress = Addresses.getAddresses(web3.currentProvider).B0x,
     amountInBaseUnits,
     txOpts = {
       gasLimit: 100000
@@ -40,7 +41,11 @@ export const setAllowance = async (
 
 export const getAllowance = async (
   web3,
-  { tokenAddress, ownerAddress, spenderAddress = contracts.B0x.address }
+  {
+    tokenAddress,
+    ownerAddress,
+    spenderAddress = Addresses.getAddresses(web3.currentProvider).B0x
+  }
 ) => {
   assert.isETHAddressHex("ownerAddress", ownerAddress);
   assert.isETHAddressHex("spenderAddress", spenderAddress);

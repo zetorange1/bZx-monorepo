@@ -1,10 +1,8 @@
 import { map, mapAccum, pipe, zipWith } from "ramda";
 import { assert } from "@0xproject/assert";
 import * as utils from "../core/utils";
-import contracts from "../contracts";
-
-const oracleAbi = contracts.B0xOracle.abi;
-const oracleRegistryAbi = contracts.OracleRegistry.abi;
+import { getContracts } from "../contracts";
+import * as Addresses from "../addresses";
 
 export const getOracleListRaw = async web3 => {
   const ORACLE_ADDRESSES = 0;
@@ -13,8 +11,8 @@ export const getOracleListRaw = async web3 => {
 
   const oracleRegistryContract = await utils.getContractInstance(
     web3,
-    oracleRegistryAbi,
-    contracts.OracleRegistry.address
+    getContracts(web3.currentProvider).OracleRegistry.abi,
+    Addresses.getAddresses(web3.currentProvider).OracleRegistry
   );
 
   const res = await oracleRegistryContract.methods.getOracleList().call();
@@ -87,7 +85,7 @@ export const isTradeSupported = async (
 
   const oracleContract = await utils.getContractInstance(
     web3,
-    oracleAbi,
+    getContracts(web3.currentProvider).B0xOracle.abi,
     oracleAddress
   );
 

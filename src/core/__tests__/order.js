@@ -1,6 +1,6 @@
 import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
 import * as Addresses from "./addresses";
-import contracts from "../../contracts";
+import { local as Contracts } from "../../contracts";
 import * as constants from "../constants/order";
 import Accounts from "./accounts";
 
@@ -26,7 +26,7 @@ export default ({
   makerRole = constants.MAKER_ROLE.LENDER,
   salt = "2019429563929979"
 } = {}) => ({
-  b0xAddress: contracts.B0x.address,
+  b0xAddress: Contracts.B0x.address,
   makerAddress,
 
   // addresses
@@ -34,7 +34,7 @@ export default ({
   interestTokenAddress,
   collateralTokenAddress,
   feeRecipientAddress,
-  oracleAddress: contracts.B0xOracle.address,
+  oracleAddress: Contracts.B0xOracle.address,
 
   // token amounts
   loanTokenAmount,

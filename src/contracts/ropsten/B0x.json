@@ -1,0 +1,787 @@
+{
+  "address": "0x75ecc2f387b3a490ce042ea1d2d342920b69ec8f",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "ORACLE_REGISTRY_CONTRACT",
+      "outputs": [{ "name": "", "type": "address" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [{ "name": "tokens", "type": "address[]" }],
+      "name": "reclaimTokens",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [{ "name": "newContract", "type": "address" }],
+      "name": "upgrade",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "B0X_TOKEN_CONTRACT",
+      "outputs": [{ "name": "", "type": "address" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [{ "name": "", "type": "bytes32" }],
+      "name": "filled",
+      "outputs": [{ "name": "", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        { "name": "", "type": "bytes32" },
+        { "name": "", "type": "address" }
+      ],
+      "name": "positions",
+      "outputs": [
+        { "name": "tradeTokenAddress", "type": "address" },
+        { "name": "tradeTokenAmount", "type": "uint256" },
+        { "name": "loanTokenUsedAmount", "type": "uint256" },
+        { "name": "filledUnixTimestampSec", "type": "uint256" },
+        { "name": "listPosition", "type": "uint256" },
+        { "name": "active", "type": "bool" }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [{ "name": "", "type": "bytes32" }],
+      "name": "cancelled",
+      "outputs": [{ "name": "", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        { "name": "", "type": "bytes32" },
+        { "name": "", "type": "address" }
+      ],
+      "name": "loans",
+      "outputs": [
+        { "name": "lender", "type": "address" },
+        { "name": "collateralTokenFilled", "type": "address" },
+        { "name": "collateralTokenAmountFilled", "type": "uint256" },
+        { "name": "loanTokenAmountFilled", "type": "uint256" },
+        { "name": "filledUnixTimestampSec", "type": "uint256" },
+        { "name": "listPosition", "type": "uint256" },
+        { "name": "active", "type": "bool" }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "DEBUG_MODE",
+      "outputs": [{ "name": "", "type": "bool" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [{ "name": "", "type": "address" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [{ "name": "", "type": "bytes32" }],
+      "name": "orders",
+      "outputs": [
+        { "name": "maker", "type": "address" },
+        { "name": "loanTokenAddress", "type": "address" },
+        { "name": "interestTokenAddress", "type": "address" },
+        { "name": "collateralTokenAddress", "type": "address" },
+        { "name": "feeRecipientAddress", "type": "address" },
+        { "name": "oracleAddress", "type": "address" },
+        { "name": "loanTokenAmount", "type": "uint256" },
+        { "name": "interestAmount", "type": "uint256" },
+        { "name": "initialMarginAmount", "type": "uint256" },
+        { "name": "maintenanceMarginAmount", "type": "uint256" },
+        { "name": "lenderRelayFee", "type": "uint256" },
+        { "name": "traderRelayFee", "type": "uint256" },
+        { "name": "expirationUnixTimestampSec", "type": "uint256" },
+        { "name": "loanOrderHash", "type": "bytes32" }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        { "name": "", "type": "address" },
+        { "name": "", "type": "uint256" }
+      ],
+      "name": "positionList",
+      "outputs": [{ "name": "", "type": "bytes32" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "UPGRADED_TO_ADDRESS",
+      "outputs": [{ "name": "", "type": "address" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "reclaimEther",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        { "name": "", "type": "bytes32" },
+        { "name": "", "type": "address" }
+      ],
+      "name": "interestPaid",
+      "outputs": [{ "name": "", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        { "name": "tokens", "type": "address[]" },
+        { "name": "recipient", "type": "address" }
+      ],
+      "name": "destroyAndSend",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [{ "name": "tokens", "type": "address[]" }],
+      "name": "destroy",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [{ "name": "", "type": "bytes32" }],
+      "name": "orderFilledAmounts",
+      "outputs": [{ "name": "", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "B0XTO0X_CONTRACT",
+      "outputs": [{ "name": "", "type": "address" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [{ "name": "", "type": "bytes32" }],
+      "name": "orderCancelledAmounts",
+      "outputs": [{ "name": "", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "EXTERNAL_QUERY_GAS_LIMIT",
+      "outputs": [{ "name": "", "type": "uint16" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [{ "name": "newAddress", "type": "address" }],
+      "name": "setUpgraded",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [{ "name": "newOwner", "type": "address" }],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        { "name": "", "type": "address" },
+        { "name": "", "type": "uint256" }
+      ],
+      "name": "orderList",
+      "outputs": [{ "name": "", "type": "bytes32" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "VAULT_CONTRACT",
+      "outputs": [{ "name": "", "type": "address" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "VERSION",
+      "outputs": [{ "name": "", "type": "string" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "name": "_b0xToken", "type": "address" },
+        { "name": "_vault", "type": "address" },
+        { "name": "_oracleregistry", "type": "address" },
+        { "name": "_exchange0xWrapper", "type": "address" }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    { "payable": false, "stateMutability": "nonpayable", "type": "fallback" },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": false, "name": "loanOrderHash", "type": "bytes32" },
+        { "indexed": false, "name": "trader", "type": "address" },
+        { "indexed": false, "name": "destTokenAddress", "type": "address" },
+        { "indexed": false, "name": "destTokenAmount", "type": "uint256" },
+        { "indexed": false, "name": "sourceTokenUsedAmount", "type": "uint256" }
+      ],
+      "name": "TradeOn0x",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": false, "name": "maker", "type": "address" },
+        { "indexed": false, "name": "loanTokenAddress", "type": "address" },
+        { "indexed": false, "name": "interestTokenAddress", "type": "address" },
+        {
+          "indexed": false,
+          "name": "collateralTokenAddress",
+          "type": "address"
+        },
+        { "indexed": false, "name": "feeRecipientAddress", "type": "address" },
+        { "indexed": false, "name": "oracleAddress", "type": "address" },
+        { "indexed": false, "name": "loanTokenAmount", "type": "uint256" },
+        { "indexed": false, "name": "interestAmount", "type": "uint256" },
+        { "indexed": false, "name": "initialMarginAmount", "type": "uint256" },
+        {
+          "indexed": false,
+          "name": "maintenanceMarginAmount",
+          "type": "uint256"
+        },
+        { "indexed": false, "name": "lenderRelayFee", "type": "uint256" },
+        { "indexed": false, "name": "traderRelayFee", "type": "uint256" },
+        {
+          "indexed": false,
+          "name": "expirationUnixTimestampSec",
+          "type": "uint256"
+        },
+        { "indexed": false, "name": "loanOrderHash", "type": "bytes32" }
+      ],
+      "name": "LogLoanOrder",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": false, "name": "trader", "type": "address" },
+        { "indexed": false, "name": "lender", "type": "address" },
+        {
+          "indexed": false,
+          "name": "collateralTokenFilled",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "collateralTokenAmountFilled",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "loanTokenAmountFilled",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "filledUnixTimestampSec",
+          "type": "uint256"
+        },
+        { "indexed": false, "name": "listPosition", "type": "uint256" },
+        { "indexed": false, "name": "active", "type": "bool" },
+        { "indexed": false, "name": "loanOrderHash", "type": "bytes32" }
+      ],
+      "name": "LogLoan",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": false, "name": "tradeToken", "type": "address" },
+        { "indexed": false, "name": "tradeTokenAmount", "type": "uint256" },
+        { "indexed": false, "name": "loanTokenUsedAmount", "type": "uint256" },
+        {
+          "indexed": false,
+          "name": "filledUnixTimestampSec",
+          "type": "uint256"
+        },
+        { "indexed": false, "name": "listPosition", "type": "uint256" },
+        { "indexed": false, "name": "active", "type": "bool" }
+      ],
+      "name": "LogPosition",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": false, "name": "exposureTokenAddress", "type": "address" },
+        {
+          "indexed": false,
+          "name": "collateralTokenAddress",
+          "type": "address"
+        },
+        { "indexed": false, "name": "oracleAddress", "type": "address" },
+        { "indexed": false, "name": "exposureTokenAmount", "type": "uint256" },
+        {
+          "indexed": false,
+          "name": "collateralTokenAmount",
+          "type": "uint256"
+        },
+        { "indexed": false, "name": "marginAmount", "type": "uint256" },
+        { "indexed": false, "name": "rate", "type": "uint256" },
+        { "indexed": false, "name": "otherAmount", "type": "uint256" }
+      ],
+      "name": "MarginCalc",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": false, "name": "logMessage", "type": "string" },
+        { "indexed": false, "name": "logValue", "type": "uint256" },
+        { "indexed": false, "name": "logAddress", "type": "address" },
+        { "indexed": false, "name": "logData", "type": "bytes32" }
+      ],
+      "name": "DebugLog",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [{ "indexed": false, "name": "lineNumber", "type": "uint256" }],
+      "name": "DebugLine",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [{ "indexed": true, "name": "newAddress", "type": "address" }],
+      "name": "ContractUpgraded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "name": "previousOwner", "type": "address" },
+        { "indexed": true, "name": "newOwner", "type": "address" }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        { "name": "orderAddresses", "type": "address[6]" },
+        { "name": "orderValues", "type": "uint256[9]" },
+        { "name": "collateralTokenFilled", "type": "address" },
+        { "name": "loanTokenAmountFilled", "type": "uint256" },
+        { "name": "signature", "type": "bytes" }
+      ],
+      "name": "takeLoanOrderAsTrader",
+      "outputs": [{ "name": "", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        { "name": "orderAddresses", "type": "address[6]" },
+        { "name": "orderValues", "type": "uint256[9]" },
+        { "name": "signature", "type": "bytes" }
+      ],
+      "name": "takeLoanOrderAsLender",
+      "outputs": [{ "name": "", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        { "name": "loanOrderHash", "type": "bytes32" },
+        { "name": "orderData0x", "type": "bytes" }
+      ],
+      "name": "openPositionWith0x",
+      "outputs": [{ "name": "", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        { "name": "loanOrderHash", "type": "bytes32" },
+        { "name": "trader", "type": "address" }
+      ],
+      "name": "payInterest",
+      "outputs": [{ "name": "", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        { "name": "loanOrderHash", "type": "bytes32" },
+        { "name": "depositAmount", "type": "uint256" }
+      ],
+      "name": "depositCollateral",
+      "outputs": [{ "name": "", "type": "bool" }],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        { "name": "loanOrderHash", "type": "bytes32" },
+        { "name": "collateralTokenFilled", "type": "address" }
+      ],
+      "name": "changeCollateral",
+      "outputs": [{ "name": "", "type": "bool" }],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [{ "name": "loanOrderHash", "type": "bytes32" }],
+      "name": "closePosition",
+      "outputs": [{ "name": "", "type": "bool" }],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        { "name": "loanOrderHash", "type": "bytes32" },
+        { "name": "orderData0x", "type": "bytes" }
+      ],
+      "name": "closePositionWith0x",
+      "outputs": [{ "name": "", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        { "name": "loanOrderHash", "type": "bytes32" },
+        { "name": "trader", "type": "address" }
+      ],
+      "name": "liquidatePosition",
+      "outputs": [{ "name": "", "type": "bool" }],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [{ "name": "loanOrderHash", "type": "bytes32" }],
+      "name": "closeLoan",
+      "outputs": [{ "name": "", "type": "bool" }],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        { "name": "orderAddresses", "type": "address[6]" },
+        { "name": "orderValues", "type": "uint256[9]" },
+        { "name": "cancelLoanTokenAmount", "type": "uint256" }
+      ],
+      "name": "cancelLoanOrder",
+      "outputs": [{ "name": "", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        { "name": "loanOrderHash", "type": "bytes32" },
+        { "name": "cancelLoanTokenAmount", "type": "uint256" }
+      ],
+      "name": "cancelLoanOrder",
+      "outputs": [{ "name": "", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        { "name": "loanOrderHash", "type": "bytes32" },
+        { "name": "trader", "type": "address" }
+      ],
+      "name": "shouldLiquidate",
+      "outputs": [{ "name": "", "type": "bool" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        { "name": "orderAddresses", "type": "address[6]" },
+        { "name": "orderValues", "type": "uint256[9]" }
+      ],
+      "name": "getLoanOrderHash",
+      "outputs": [{ "name": "", "type": "bytes32" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [{ "name": "loanOrderHash", "type": "bytes32" }],
+      "name": "getUnavailableLoanTokenAmount",
+      "outputs": [{ "name": "", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        { "name": "signer", "type": "address" },
+        { "name": "hash", "type": "bytes32" },
+        { "name": "signature", "type": "bytes" }
+      ],
+      "name": "isValidSignature",
+      "outputs": [{ "name": "", "type": "bool" }],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [{ "name": "signature", "type": "bytes" }],
+      "name": "getSignatureParts",
+      "outputs": [
+        { "name": "v", "type": "uint8" },
+        { "name": "r", "type": "bytes32" },
+        { "name": "s", "type": "bytes32" }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        { "name": "numerator", "type": "uint256" },
+        { "name": "denominator", "type": "uint256" },
+        { "name": "target", "type": "uint256" }
+      ],
+      "name": "isRoundingError",
+      "outputs": [{ "name": "", "type": "bool" }],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        { "name": "numerator", "type": "uint256" },
+        { "name": "denominator", "type": "uint256" },
+        { "name": "target", "type": "uint256" }
+      ],
+      "name": "getPartialAmount",
+      "outputs": [{ "name": "", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        { "name": "numerator", "type": "uint256" },
+        { "name": "denominator", "type": "uint256" },
+        { "name": "target", "type": "uint256" }
+      ],
+      "name": "getPartialAmountNoError",
+      "outputs": [{ "name": "", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        { "name": "loanOrderHash", "type": "bytes32" },
+        { "name": "trader", "type": "address" }
+      ],
+      "name": "getInterest",
+      "outputs": [
+        { "name": "lender", "type": "address" },
+        { "name": "interestTokenAddress", "type": "address" },
+        { "name": "totalAmountAccrued", "type": "uint256" },
+        { "name": "interestPaidSoFar", "type": "uint256" }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        { "name": "loanOrderHash", "type": "bytes32" },
+        { "name": "trader", "type": "address" }
+      ],
+      "name": "getMarginRatio",
+      "outputs": [{ "name": "marginRatio", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        { "name": "exposureTokenAddress", "type": "address" },
+        { "name": "collateralTokenAddress", "type": "address" },
+        { "name": "oracleAddress", "type": "address" },
+        { "name": "exposureTokenAmount", "type": "uint256" },
+        { "name": "initialMarginAmount", "type": "uint256" }
+      ],
+      "name": "getInitialMarginRequired",
+      "outputs": [{ "name": "collateralTokenAmount", "type": "uint256" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [{ "name": "_debug", "type": "bool" }],
+      "name": "setDebugMode",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [{ "name": "_token", "type": "address" }],
+      "name": "setB0xToken",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [{ "name": "_vault", "type": "address" }],
+      "name": "setVault",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [{ "name": "_registry", "type": "address" }],
+      "name": "setOracleRegistry",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [{ "name": "_wrapper", "type": "address" }],
+      "name": "set0xExchangeWrapper",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [{ "name": "newContract", "type": "address" }],
+      "name": "upgradeContract",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ]
+}
