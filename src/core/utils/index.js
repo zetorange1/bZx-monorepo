@@ -5,7 +5,8 @@ import BN from "bn.js";
 import Web3Utils from "web3-utils";
 import * as Errors from "../constants/errors";
 import { SchemaValidator } from "../../schemas/b0x_json_schemas";
-import Contracts from "../../contracts";
+import { ropsten as Contracts } from "../../contracts";
+import * as Addresses from "../../addresses";
 
 export const noop = () => {};
 
@@ -91,7 +92,7 @@ export const isValidSignature = async (
   const b0xContract = await getContractInstance(
     web3,
     Contracts.B0x.abi,
-    Contracts.B0x.address
+    Addresses.getAddresses(web3.currentProvider).B0x
   );
   return b0xContract.methods
     .isValidSignature(account, orderHash, signature)
