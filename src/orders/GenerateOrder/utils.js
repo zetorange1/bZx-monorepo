@@ -24,12 +24,18 @@ export const compileObject = async (web3, state, account, b0x) => {
     interestAmount: toBigNumber(state.interestAmount, 1e18),
 
     // margin amounts
-    initialMarginAmount: toBigNumber(state.initialMarginAmount),
-    maintenanceMarginAmount: toBigNumber(state.maintenanceMarginAmount),
+    initialMarginAmount: state.initialMarginAmount.toString(),
+    maintenanceMarginAmount: state.maintenanceMarginAmount.toString(),
 
     // relay fees
-    lenderRelayFee: toBigNumber(sendToRelayExchange ? state.lenderRelayFee : 0),
-    traderRelayFee: toBigNumber(sendToRelayExchange ? state.traderRelayFee : 0),
+    lenderRelayFee: toBigNumber(
+      sendToRelayExchange ? state.lenderRelayFee : 0,
+      1e18
+    ),
+    traderRelayFee: toBigNumber(
+      sendToRelayExchange ? state.traderRelayFee : 0,
+      1e18
+    ),
 
     // expiration date/time
     expirationUnixTimestampSec: state.expirationDate.unix().toString()

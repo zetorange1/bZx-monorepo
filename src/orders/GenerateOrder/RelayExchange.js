@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import { FormControlLabel } from "material-ui/Form";
+import Input, { InputLabel, InputAdornment } from "material-ui/Input";
+import { FormControl, FormControlLabel } from "material-ui/Form";
 import Checkbox from "material-ui/Checkbox";
 import TextField from "material-ui/TextField";
 import Section, { SectionLabel } from "../../common/FormSection";
@@ -38,20 +39,24 @@ export default ({
           margin="normal"
           fullWidth
         />
-        <TextField
-          type="number"
-          value={lenderRelayFee}
-          onChange={setStateForInput(`lenderRelayFee`)}
-          label="Lender Relay Fee"
-          margin="normal"
-        />
-        <TextField
-          type="number"
-          value={traderRelayFee}
-          onChange={setStateForInput(`traderRelayFee`)}
-          label="Trader Relay Fee"
-          margin="normal"
-        />
+        <FormControl margin="normal">
+          <InputLabel>Lender Relay Fee</InputLabel>
+          <Input
+            value={lenderRelayFee}
+            type="number"
+            onChange={setStateForInput(`lenderRelayFee`)}
+            endAdornment={<InputAdornment position="end">B0X</InputAdornment>}
+          />
+        </FormControl>
+        <FormControl margin="normal">
+          <InputLabel>Trader Relay Fee</InputLabel>
+          <Input
+            value={traderRelayFee}
+            type="number"
+            onChange={setStateForInput(`traderRelayFee`)}
+            endAdornment={<InputAdornment position="end">B0X</InputAdornment>}
+          />
+        </FormControl>
       </Fragment>
     )}
   </Section>
