@@ -7,12 +7,11 @@ import * as Addresses from "../addresses";
 const erc20Abi = Contracts.EIP20.abi;
 
 export const setAllowance = async (
-  web3,
-  host,
+  { web3, networkId },
   {
     tokenAddress,
     ownerAddress,
-    spenderAddress = Addresses.getAddresses(host).B0x,
+    spenderAddress = Addresses.getAddresses(networkId).B0x,
     amountInBaseUnits,
     txOpts = {
       gasLimit: 100000
@@ -41,12 +40,11 @@ export const setAllowance = async (
 };
 
 export const getAllowance = async (
-  web3,
-  host,
+  { web3, networkId },
   {
     tokenAddress,
     ownerAddress,
-    spenderAddress = Addresses.getAddresses(host).B0x
+    spenderAddress = Addresses.getAddresses(networkId).B0x
   }
 ) => {
   assert.isETHAddressHex("ownerAddress", ownerAddress);
