@@ -26,16 +26,15 @@ export default class B0xJS {
   Force users to provide host url */
   constructor(
     provider,
-    { host, addresses = Addresses.getAddresses(host) } = {}
+    { networkId, addresses = Addresses.getAddresses(networkId) } = {}
   ) {
-    if (!host) throw new Error("Missing host param. Provide a host param.");
-    if (provider.host && provider.host !== host)
-      throw new Error("provider.host value must equal host param value");
+    if (!networkId)
+      throw new Error("Missing networkId. Provide a networkId param.");
 
     assert.isWeb3Provider("provider", provider);
     this.web3 = new Web3(provider);
     this.addresses = addresses;
-    this.host = host;
+    this.networkId = networkId;
   }
 
   static getLoanOrderHashHex(order) {
@@ -62,8 +61,7 @@ export default class B0xJS {
     return signature;
   }
 
-  setAllowance = async (...props) =>
-    allowance.setAllowance(this.web3, this.host, ...props);
+  setAllowance = async (...props) => allowance.setAllowance(this, ...props);
 
   setAllowanceUnlimited = async props =>
     this.setAllowance({
@@ -77,12 +75,7 @@ export default class B0xJS {
       amountInBaseUnits: new BigNumber(0)
     });
 
-  getAllowance = async ({ tokenAddress, ownerAddress, spenderAddress }) =>
-    allowance.getAllowance(this.web3, this.host, {
-      tokenAddress,
-      ownerAddress,
-      spenderAddress
-    });
+  getAllowance = async (...props) => allowance.getAllowance(this, ...props);
 
   getBalance = async ({ tokenAddress, ownerAddress }) => {
     assert.isETHAddressHex("ownerAddress", ownerAddress);
@@ -97,21 +90,19 @@ export default class B0xJS {
     return new BigNumber(balance);
   };
 
-  getOracleList = async () => oracles.getOracleList(this.web3, this.host);
+  getOracleList = async () => oracles.getOracleList(this);
   isTradeSupported = async (...props) =>
-    oracles.isTradeSupported(this.web3, this.host, ...props);
+    oracles.isTradeSupported(this, ...props);
 
   takeLoanOrderAsLender = async (...props) =>
-    fill.takeLoanOrderAsLender(this.web3, this.host, ...props);
+    fill.takeLoanOrderAsLender(this, ...props);
 
   takeLoanOrderAsTrader = async (...props) =>
-    fill.takeLoanOrderAsTrader(this.web3, this.host, ...props);
+    fill.takeLoanOrderAsTrader(this, ...props);
 
-  getOrders = async (...props) =>
-    orderHistory.getOrders(this.web3, this.host, ...props);
+  getOrders = async (...props) => orderHistory.getOrders(this, ...props);
   getLoanPositions = async (...props) =>
-    orderHistory.getLoanPositions(this.web3, this.host, ...props);
+    orderHistory.getLoanPositions(this, ...props);
 
-  transferToken = async (...props) =>
-    transfer.transferToken(this.web3, ...props);
+  transferToken = async (...props) => transfer.transferToken(this, ...props);
 }
