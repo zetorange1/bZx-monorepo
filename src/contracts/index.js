@@ -20,4 +20,5 @@ const networksById = {
   3: ropsten
 };
 
-export const getContracts = networkId => networksById[networkId];
+export const getContracts = (networkId = null) =>
+  networksById[networkId] ? networksById[networkId] : local;
