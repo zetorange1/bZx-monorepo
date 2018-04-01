@@ -12,10 +12,10 @@ export const compileObject = async (web3, state, account, b0x) => {
     // addresses
     loanTokenAddress: state.loanTokenAddress,
     interestTokenAddress: state.interestTokenAddress,
-    collateralTokenAddress: state.collateralTokenAddress,
-    collateralTokenAddress: state.role === `lender`
-      ? `0x0000000000000000000000000000000000000000`
-      : state.collateralTokenAddress,
+    collateralTokenAddress:
+      state.role === `lender`
+        ? `0x0000000000000000000000000000000000000000`
+        : state.collateralTokenAddress,
     feeRecipientAddress: sendToRelayExchange
       ? state.feeRecipientAddress
       : `0x0000000000000000000000000000000000000000`,
@@ -53,12 +53,12 @@ export const addSalt = obj => {
 };
 
 export const addNetworkId = async (order, web3) => {
-  const networkId = await getNetworkId(web3)
+  const networkId = await getNetworkId(web3);
   return {
     ...order,
     networkId
   };
-}
+};
 
 export const signOrder = async (orderHash, accounts, b0x) => {
   const signature = await b0x.signOrderHashAsync(

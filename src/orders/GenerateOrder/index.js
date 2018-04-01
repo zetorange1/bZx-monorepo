@@ -11,7 +11,13 @@ import Submission from "./Submission";
 import Result from "./Result";
 
 import validateInputs from "./validate";
-import { compileObject, addSalt, signOrder, getHash, addNetworkId } from "./utils";
+import {
+  compileObject,
+  addSalt,
+  signOrder,
+  getHash,
+  addNetworkId
+} from "./utils";
 
 export default class GenerateOrder extends React.Component {
   state = {
@@ -86,9 +92,12 @@ export default class GenerateOrder extends React.Component {
       const orderWithSignature = {
         ...saltedOrderObj,
         signature
-      }
-      console.log('orderHash', orderHash);
-      const finalOrder = await addNetworkId(orderWithSignature, this.props.web3);
+      };
+      console.log(`orderHash`, orderHash);
+      const finalOrder = await addNetworkId(
+        orderWithSignature,
+        this.props.web3
+      );
       const isSigValid = await this.props.b0x.isValidSignature({
         account: this.props.accounts[0].toLowerCase(),
         orderHash,
