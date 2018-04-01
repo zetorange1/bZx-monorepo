@@ -87,12 +87,13 @@ export const doesConformToSchema = (variableName, value, schema) => {
 
 export const isValidSignature = async (
   web3,
+  host,
   { account, orderHash, signature }
 ) => {
   const b0xContract = await getContractInstance(
     web3,
-    getContracts(web3.currentProvider).B0x.abi,
-    Addresses.getAddresses(web3.currentProvider).B0x
+    getContracts(host).B0x.abi,
+    Addresses.getAddresses(host).B0x
   );
   return b0xContract.methods
     .isValidSignature(account, orderHash, signature)
