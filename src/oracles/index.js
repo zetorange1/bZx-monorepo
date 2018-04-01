@@ -4,15 +4,15 @@ import * as utils from "../core/utils";
 import { getContracts } from "../contracts";
 import * as Addresses from "../addresses";
 
-export const getOracleListRaw = async web3 => {
+export const getOracleListRaw = async ({ web3, networkId }) => {
   const ORACLE_ADDRESSES = 0;
   const ORACLE_NAME_LENGTHS = 1;
   const ORACLE_NAMES_ALL_CONCAT = 2;
 
   const oracleRegistryContract = await utils.getContractInstance(
     web3,
-    getContracts(web3.currentProvider).OracleRegistry.abi,
-    Addresses.getAddresses(web3.currentProvider).OracleRegistry
+    getContracts(networkId).OracleRegistry.abi,
+    Addresses.getAddresses(networkId).OracleRegistry
   );
 
   const res = await oracleRegistryContract.methods.getOracleList().call();
@@ -60,12 +60,12 @@ export const formatOracleList = ({ oracleAddresses, oracleNames }) =>
     oracleNames
   );
 
-export const getOracleList = async web3 => {
+export const getOracleList = async ({ web3, networkId }) => {
   const {
     oracleAddresses,
     oracleNameLengths,
     oracleNamesAllConcat
-  } = await getOracleListRaw(web3);
+  } = await getOracleListRaw({ web3, networkId });
 
   const oracleNames = cleanOracleNames({
     oracleNameLengths,
@@ -76,7 +76,7 @@ export const getOracleList = async web3 => {
 };
 
 export const isTradeSupported = async (
-  web3,
+  { web3, networkId },
   { sourceTokenAddress, destTokenAddress, oracleAddress }
 ) => {
   assert.isETHAddressHex("sourceTokenAddress", sourceTokenAddress);
@@ -85,7 +85,7 @@ export const isTradeSupported = async (
 
   const oracleContract = await utils.getContractInstance(
     web3,
-    getContracts(web3.currentProvider).B0xOracle.abi,
+    getContracts(networkId).B0xOracle.abi,
     oracleAddress
   );
 
