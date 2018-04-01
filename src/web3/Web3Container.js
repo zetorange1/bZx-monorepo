@@ -33,9 +33,10 @@ export default class Web3Container extends React.Component {
       this.setState({ loading: false });
       return;
     }
-    const b0x = new B0xJS(web3.currentProvider);
+    const networkId = await getNetworkId(web3);
+    const b0x = new B0xJS(web3.currentProvider, { networkId });
     const zeroEx = new ZeroEx(web3.currentProvider, {
-      networkId: await getNetworkId(web3),
+      networkId,
       tokenRegistryContractAddress: b0x.addresses.TokenRegistry
     });
 
