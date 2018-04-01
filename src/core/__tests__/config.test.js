@@ -6,7 +6,7 @@ describe("config", () => {
   test("should use default config when config arg not provided", () => {
     const networkUrl = "http://localhost:8545";
     const provider = new Web3.providers.HttpProvider(networkUrl);
-    const b0xJS = new B0xJS(provider);
+    const b0xJS = new B0xJS(provider, { host: networkUrl });
 
     expect(b0xJS.addresses).toMatchSnapshot();
   });
@@ -15,6 +15,7 @@ describe("config", () => {
     const networkUrl = "http://localhost:8545";
     const provider = new Web3.providers.HttpProvider(networkUrl);
     const config = {
+      host: networkUrl,
       addresses: {
         B0x: "thisisatest",
         B0xOracle: "thisisatest",
