@@ -8,10 +8,11 @@ const erc20Abi = Contracts.EIP20.abi;
 
 export const setAllowance = async (
   web3,
+  host,
   {
     tokenAddress,
     ownerAddress,
-    spenderAddress = Addresses.getAddresses(web3.currentProvider).B0x,
+    spenderAddress = Addresses.getAddresses(host).B0x,
     amountInBaseUnits,
     txOpts = {
       gasLimit: 100000
@@ -41,10 +42,11 @@ export const setAllowance = async (
 
 export const getAllowance = async (
   web3,
+  host,
   {
     tokenAddress,
     ownerAddress,
-    spenderAddress = Addresses.getAddresses(web3.currentProvider).B0x
+    spenderAddress = Addresses.getAddresses(host).B0x
   }
 ) => {
   assert.isETHAddressHex("ownerAddress", ownerAddress);
