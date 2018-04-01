@@ -2,11 +2,15 @@ import * as utils from "../core/utils";
 import { getContracts } from "../contracts";
 import * as Addresses from "../addresses";
 
-export const takeLoanOrderAsLender = async (web3, host, order, txOpts) => {
+export const takeLoanOrderAsLender = async (
+  { web3, networkId },
+  order,
+  txOpts
+) => {
   const b0xContract = await utils.getContractInstance(
     web3,
-    getContracts(host).B0x.abi,
-    Addresses.getAddresses(host).B0x
+    getContracts(networkId).B0x.abi,
+    Addresses.getAddresses(networkId).B0x
   );
 
   const orderAddresses = [
@@ -40,8 +44,7 @@ export const takeLoanOrderAsLender = async (web3, host, order, txOpts) => {
 };
 
 export const takeLoanOrderAsTrader = async (
-  web3,
-  host,
+  { web3, networkId },
   order,
   collateralTokenAddress,
   loanTokenAmountFilled,
@@ -49,8 +52,8 @@ export const takeLoanOrderAsTrader = async (
 ) => {
   const b0xContract = await utils.getContractInstance(
     web3,
-    getContracts(host).B0x.abi,
-    Addresses.getAddresses(host).B0x
+    getContracts(networkId).B0x.abi,
+    Addresses.getAddresses(networkId).B0x
   );
 
   const orderAddresses = [
