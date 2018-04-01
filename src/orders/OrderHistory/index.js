@@ -10,7 +10,7 @@ export default class OrderHistory extends React.Component {
 
   getOrders = async () => {
     const { b0x, accounts } = this.props;
-    this.setState({ loading: true });
+    this.setState({ orders: [], loading: true });
     const orders = await b0x.getOrders({
       loanPartyAddress: accounts[0].toLowerCase(),
       start: 0,
@@ -20,17 +20,20 @@ export default class OrderHistory extends React.Component {
   };
 
   render() {
+    const { b0x, accounts } = this.props;
     const { orders, loading } = this.state;
     return (
       <div>
         <div>
-          <Button onClick={this.getOrders} variant="raised">
+          <Button onClick={this.getOrders} variant="raised" disabled={loading}>
             {loading ? `Refreshing...` : `Refresh`}
           </Button>
         </div>
         <br />
         {orders.length > 0 ? (
-          orders.map(order => <OrderItem order={order} />)
+          orders.map(order => (
+            <OrderItem b0x={b0x} accounts={accounts} order={order} />
+          ))
         ) : (
           <p>You have no orders, try refreshing.</p>
         )}
