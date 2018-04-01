@@ -97,19 +97,20 @@ export default class B0xJS {
     return new BigNumber(balance);
   };
 
-  getOracleList = async () => oracles.getOracleList(this.web3);
+  getOracleList = async () => oracles.getOracleList(this.web3, this.host);
   isTradeSupported = async (...props) =>
-    oracles.isTradeSupported(this.web3, ...props);
+    oracles.isTradeSupported(this.web3, this.host, ...props);
 
   takeLoanOrderAsLender = async (...props) =>
-    fill.takeLoanOrderAsLender(this.web3, ...props);
+    fill.takeLoanOrderAsLender(this.web3, this.host, ...props);
 
   takeLoanOrderAsTrader = async (...props) =>
-    fill.takeLoanOrderAsTrader(this.web3, ...props);
+    fill.takeLoanOrderAsTrader(this.web3, this.host, ...props);
 
-  getOrders = async (...props) => orderHistory.getOrders(this.web3, ...props);
+  getOrders = async (...props) =>
+    orderHistory.getOrders(this.web3, this.host, ...props);
   getLoanPositions = async (...props) =>
-    orderHistory.getLoanPositions(this.web3, ...props);
+    orderHistory.getLoanPositions(this.web3, this.host, ...props);
 
   transferToken = async (...props) =>
     transfer.transferToken(this.web3, ...props);
