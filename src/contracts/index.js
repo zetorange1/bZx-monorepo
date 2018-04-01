@@ -1,4 +1,4 @@
-import { map, contains, pathOr } from "ramda";
+import { map, contains } from "ramda";
 import _ropsten from "./ropsten";
 import _local from "./local";
 
@@ -16,8 +16,7 @@ const networks = map(network => toLowerCase(network), networksRaw);
 const { local, ropsten } = networks;
 export { local, ropsten };
 
-export const getContracts = provider => {
-  const host = pathOr(null, ["host"], provider);
-  if (contains("localhost", host)) return local;
+export const getContracts = providerHostUrl => {
+  if (contains("localhost", providerHostUrl)) return local;
   return ropsten;
 };
