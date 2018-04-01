@@ -9,8 +9,10 @@ import b0xJS from "./setup";
 import makeOrder from "./order";
 import { local as Contracts } from "../../contracts";
 import Accounts from "./accounts";
+import * as orderConstants from "../constants/order";
 
 const { EIP20 } = Contracts;
+const { web3 } = b0xJS;
 
 describe("signOrderHashAsync", () => {
   test("should sign properly", async () => {
@@ -75,5 +77,40 @@ describe("getBalance", () => {
     });
 
     expect(balance).toEqual(new BigNumber("0"));
+  });
+});
+
+describe("isValidSignature", () => {
+  test("should return true for a valid signature", async () => {
+    const makerAddress = Accounts[4].address;
+
+    const expirationUnixTimestampSec = "1719061340";
+    const loanTokenAmount = web3.utils.toWei("100000").toString();
+
+    const order = makeOrder({
+      makerAddress,
+      loanTokenAddress: Contracts.TestToken1.address,
+      interestTokenAddress: Contracts.TestToken5.address,
+      collateralTokenAddress: Contracts.TestToken3.address,
+      feeRecipientAddress: constants.NULL_ADDRESS,
+      loanTokenAmount,
+      interestAmount: web3.utils.toWei("2").toString(),
+      initialMarginAmount: "50",
+      maintenanceMarginAmount: "25",
+      lenderRelayFee: web3.utils.toWei("0.001").toString(),
+      traderRelayFee: web3.utils.toWei("0.0015").toString(),
+      expirationUnixTimestampSec,
+      makerRole: orderConstants.MAKER_ROLE.TRADER,
+      salt: B0xJS.generatePseudoRandomSalt().toString()
+    });
+
+    const orderHash = B0xJS.getLoanOrderHashHex(order);
+    const signature = await b0xJS.signOrderHashAsync(orderHash, makerAddress);
+    const res = await b0xJS.isValidSignature({
+      account: makerAddress,
+      orderHash,
+      signature
+    });
+    expect(res).toBe(true);
   });
 });
