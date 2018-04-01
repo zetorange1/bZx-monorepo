@@ -60,12 +60,12 @@ export const formatOracleList = ({ oracleAddresses, oracleNames }) =>
     oracleNames
   );
 
-export const getOracleList = async web3 => {
+export const getOracleList = async (web3, host) => {
   const {
     oracleAddresses,
     oracleNameLengths,
     oracleNamesAllConcat
-  } = await getOracleListRaw(web3);
+  } = await getOracleListRaw(web3, host);
 
   const oracleNames = cleanOracleNames({
     oracleNameLengths,
