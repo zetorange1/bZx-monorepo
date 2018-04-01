@@ -1,4 +1,4 @@
-import { map, pipe, pathOr, contains } from "ramda";
+import { map, pipe, contains } from "ramda";
 import { local, ropsten } from "../contracts";
 
 const formatData = raw =>
@@ -7,8 +7,7 @@ const formatData = raw =>
     map(address => address.toLowerCase())
   )(raw);
 
-export const getAddresses = provider => {
-  const host = pathOr(null, ["host"], provider);
-  if (contains("localhost", host)) return formatData(local);
+export const getAddresses = providerHostUrl => {
+  if (contains("localhost", providerHostUrl)) return formatData(local);
   return formatData(ropsten);
 };

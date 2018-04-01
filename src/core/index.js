@@ -22,10 +22,20 @@ export default class B0xJS {
   static generatePseudoRandomSalt = utils.generatePseudoRandomSalt;
   static noop = utils.noop;
 
-  constructor(provider, { addresses = Addresses.getAddresses(provider) } = {}) {
+  /* On Metamask, provider.host is undefined 
+  Force users to provide host url */
+  constructor(
+    provider,
+    { host, addresses = Addresses.getAddresses(host) } = {}
+  ) {
+    if (!host) throw new Error("Missing host param. Provide a host param.");
+    if (provider.host && provider.host !== host)
+      throw new Error("provider.host value must equal host param value");
+
     assert.isWeb3Provider("provider", provider);
     this.web3 = new Web3(provider);
     this.addresses = addresses;
+    this.host = host;
   }
 
   static getLoanOrderHashHex(order) {
@@ -53,7 +63,7 @@ export default class B0xJS {
   }
 
   setAllowance = async (...props) =>
-    allowance.setAllowance(this.web3, ...props);
+    allowance.setAllowance(this.web3, this.host, ...props);
 
   setAllowanceUnlimited = async props =>
     this.setAllowance({
@@ -68,7 +78,7 @@ export default class B0xJS {
     });
 
   getAllowance = async ({ tokenAddress, ownerAddress, spenderAddress }) =>
-    allowance.getAllowance(this.web3, {
+    allowance.getAllowance(this.web3, this.host, {
       tokenAddress,
       ownerAddress,
       spenderAddress
