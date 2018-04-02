@@ -20,7 +20,8 @@ var run = {
 
   "should generate 0x order": true,
   "should sign and verify 0x order": true,
-  "should open 0x position with borrowed funds": true,
+  "should trade position with 0x order": true,
+  "should trade position with oracle": true,
   /*"should test LoanOrder bytes": false,
   "should test Loan bytes": false,
   "should test Position bytes": false,*/
@@ -297,7 +298,7 @@ contract('B0xTest', function(accounts) {
       "loanTokenAmount": web3.toWei(100000, "ether").toString(),
       "interestAmount": web3.toWei(2, "ether").toString(), // 2 token units per day
       "initialMarginAmount": "50", // 50%
-      "maintenanceMarginAmount": "25", // 25%
+      "maintenanceMarginAmount": "5", // 25%
       "lenderRelayFee": web3.toWei(0.001, "ether").toString(),
       "traderRelayFee": web3.toWei(0.0015, "ether").toString(),
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
@@ -713,7 +714,7 @@ contract('B0xTest', function(accounts) {
     });
   });
 
-  (run["should open 0x position with borrowed funds"] ? it : it.skip)("should open 0x position with borrowed funds", function(done) {
+  (run["should trade position with 0x order"] ? it : it.skip)("should trade position with 0x order", function(done) {
     var types = ['bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32'];
     var values = [
       Web3Utils.padLeft(OrderParams_0x["maker"], 64),
@@ -736,7 +737,6 @@ contract('B0xTest', function(accounts) {
     //console.log(sample_order_tightlypacked);
     //console.log(ECSignature_0x_raw);
 
-    var textEvents;
     b0x.tradePositionWith0x(
       OrderHash_b0x_1,
       sample_order_tightlypacked,
@@ -746,7 +746,7 @@ contract('B0xTest', function(accounts) {
         tx_obj = tx;
         return gasRefundEvent.get();
       }).then(function(caughtEvents) {
-        console.log(txPrettyPrint(tx_obj,"should open 0x position with borrowed funds",caughtEvents));
+        console.log(txPrettyPrint(tx_obj,"should trade position with 0x order",caughtEvents));
         assert.isOk(true);
         done();
       }, function(error) {
@@ -755,6 +755,26 @@ contract('B0xTest', function(accounts) {
         done();
       });
   });
+
+  (run["should trade position with oracle"] ? it : it.skip)("should trade position with oracle", function(done) {
+    b0x.tradePositionWithOracle(
+      OrderHash_b0x_1,
+      interestToken2.address,
+      {from: trader1_account}).then(function(tx) {
+        //console.log(tx);
+        tx_obj = tx;
+        return gasRefundEvent.get();
+      }).then(function(caughtEvents) {
+        console.log(txPrettyPrint(tx_obj,"should trade position with oracle",caughtEvents));
+        assert.isOk(true);
+        done();
+      }, function(error) {
+        console.error(error);
+        assert.isOk(false);
+        done();
+      });
+  });
+
 
 
   /*(run["should test LoanOrder bytes"] ? it : it.skip)("should test LoanOrder bytes", function(done) {

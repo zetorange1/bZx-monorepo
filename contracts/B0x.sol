@@ -72,9 +72,18 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
     event LogPositionTraded(
         bytes32 loanOrderHash,
         address trader,
+        address sourceTokenAddress,
         address destTokenAddress,
-        uint destTokenAmount,
-        uint sourceTokenUsedAmount
+        uint sourceTokenAmount,
+        uint destTokenAmount
+    );
+
+    event LogMarginLevels(
+        bytes32 loanOrderHash,
+        address trader,
+        uint initialMarginAmount,
+        uint maintenanceMarginAmount,
+        uint currentMarginAmount
     );
 
     function() public {}
@@ -304,6 +313,10 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             return intOrRevert(0,304);
         }
 
+        if (DEBUG_MODE) {
+            _emitMarginLog(loanOrder, loanPosition);
+        }
+
         // trade token has to equal loan token if loan needs to be liquidated
         if (tradeTokenAddress != loanOrder.loanTokenAddress && Oracle_Interface(loanOrder.oracleAddress).shouldLiquidate(
                 loanOrderHash,
@@ -316,17 +329,18 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             return intOrRevert(0,316);
         }
 
-        // the trade token becomes the new position token
-        loanPosition.positionTokenAddressFilled = tradeTokenAddress;
-        loanPosition.positionTokenAmountFilled = tradeTokenAmount;
-
         emit LogPositionTraded(
             loanOrderHash,
             msg.sender,
+            loanPosition.positionTokenAddressFilled,
             tradeTokenAddress,
-            tradeTokenAmount,
-            positionTokenUsedAmount
+            positionTokenUsedAmount,
+            tradeTokenAmount
         );
+
+        // the trade token becomes the new position token
+        loanPosition.positionTokenAddressFilled = tradeTokenAddress;
+        loanPosition.positionTokenAmountFilled = tradeTokenAmount;
 
         if (! Oracle_Interface(loanOrder.oracleAddress).didTradePosition(
             loanOrderHash,
@@ -367,6 +381,10 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             return intOrRevert(0,367);
         }
 
+        if (DEBUG_MODE) {
+            _emitMarginLog(loanOrder, loanPosition);
+        }
+
         // trade token has to equal loan token if loan needs to be liquidated
         if (tradeTokenAddress != loanOrder.loanTokenAddress && Oracle_Interface(loanOrder.oracleAddress).shouldLiquidate(
                 loanOrderHash,
@@ -393,9 +411,10 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         emit LogPositionTraded(
             loanOrderHash,
             msg.sender,
+            loanPosition.positionTokenAddressFilled,
             tradeTokenAddress,
-            tradeTokenAmount,
-            loanPosition.positionTokenAmountFilled
+            loanPosition.positionTokenAmountFilled,
+            tradeTokenAmount
         );
 
         // the trade token becomes the new position token
@@ -584,6 +603,10 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
             return boolOrRevert(false,586);
+        }
+
+        if (DEBUG_MODE) {
+            _emitMarginLog(loanOrder, loanPosition);
         }
 
         // if the position token is not the loan token, then we need to buy back the loan token (if liquidation checks pass),
@@ -821,6 +844,10 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             return true; // expired loan
         }
 
+        if (DEBUG_MODE) {
+            _emitMarginLog(loanOrder, loanPosition);
+        }
+
         return Oracle_Interface(loanOrder.oracleAddress).shouldLiquidate(
             loanOrderHash,
             trader,
@@ -884,8 +911,8 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
                                     .mul(initialMarginAmount);
     }
 
-    // returns currentMarginAmount, initialMarginAmount, maintenanceMarginAmount
-    function getMargin(
+    // returns initialMarginAmount, maintenanceMarginAmount, currentMarginAmount
+    function getMarginLevels(
         bytes32 loanOrderHash,
         address trader)
         public
@@ -902,13 +929,9 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             return;
         }
 
-        return (Oracle_Interface(loanOrder.oracleAddress).getCurrentMargin(
-            loanPosition.positionTokenAddressFilled,
-            loanPosition.collateralTokenAddressFilled,
-            loanPosition.positionTokenAmountFilled,
-            loanPosition.collateralTokenAmountFilled),
-            loanOrder.initialMarginAmount,
-            loanOrder.maintenanceMarginAmount);
+        return (_getMarginLevels(
+            loanOrder,
+            loanPosition));
     }
 
     function getInterest(
@@ -1057,6 +1080,47 @@ contract B0x is ReentrancyGuard, Upgradeable, GasTracker, Debugger, B0xTypes {
             totalAmountAccrued: getPartialAmountNoError(loanPosition.loanTokenAmountFilled, loanOrder.loanTokenAmount, interestTime.sub(loanPosition.loanStartUnixTimestampSec).div(86400).mul(loanOrder.interestAmount)),
             interestPaidSoFar: interestPaid[loanOrder.loanOrderHash][loanPosition.trader]
         });
+    }
+
+    // returns initialMarginAmount, maintenanceMarginAmount, currentMarginAmount
+    function _getMarginLevels(
+        LoanOrder loanOrder,
+        LoanPosition loanPosition)
+        internal
+        view
+        returns (uint, uint, uint)
+    {
+        return (
+            loanOrder.initialMarginAmount,
+            loanOrder.maintenanceMarginAmount,
+            Oracle_Interface(loanOrder.oracleAddress).getCurrentMarginAmount(
+                loanPosition.positionTokenAddressFilled,
+                loanPosition.collateralTokenAddressFilled,
+                loanPosition.positionTokenAmountFilled,
+                loanPosition.collateralTokenAmountFilled)
+        );
+    }
+
+    function _emitMarginLog(
+        LoanOrder loanOrder,
+        LoanPosition loanPosition)
+        internal
+    {
+        uint initialMarginAmount;
+        uint maintenanceMarginAmount;
+        uint currentMarginAmount;
+        (initialMarginAmount, maintenanceMarginAmount, currentMarginAmount) = _getMarginLevels(
+            loanOrder,
+            loanPosition
+        );
+
+        emit LogMarginLevels(
+            loanOrder.loanOrderHash,
+            loanPosition.trader,
+            initialMarginAmount,
+            maintenanceMarginAmount,
+            currentMarginAmount
+        );
     }
 
     /*

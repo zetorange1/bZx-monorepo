@@ -129,7 +129,7 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         }
 
         uint8 v;
-	bytes32 r;
+	    bytes32 r;
         bytes32 s;
         (v, r, s) = getSignatureParts(signature);
 

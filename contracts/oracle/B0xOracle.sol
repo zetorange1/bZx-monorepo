@@ -43,6 +43,9 @@ contract B0xInterface {
 contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Debugger, B0xOwnable {
     using SafeMath for uint256;
 
+    // this is the value the Kyber portal uses when setting a very high maximum number for appr
+    uint constant MAX_FOR_KYBER = 57896044618658097711785492504343953926634992332820282019728792003956564819968;
+
     address constant KYBER_ETH_TOKEN_ADDRESS = 0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
 
     // Percentage of interest retained as fee
@@ -64,8 +67,9 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
 
     mapping (bytes32 => GasData[]) public gasRefunds; // // mapping of loanOrderHash to array of GasData
 
-    // Only the owner can directly deposit ether
-    function() public payable onlyOwner {}
+    // The contract needs to be able to receive Ether from Kyber trades
+    // "Stuck" Ether can be transfered by the owner using the transferEther function.
+    function() public payable {}
 
     function B0xOracle(
         address _vault_contract,
@@ -214,7 +218,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
             sourceTokenAddress,
             destTokenAddress,
             sourceTokenAmount,
-            MAX_UINT); // no limit on the dest amount
+            MAX_FOR_KYBER); // no limit on the dest amount
     }
 
     function verifyAndDoTrade(
@@ -243,7 +247,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
             sourceTokenAddress,
             destTokenAddress,
             sourceTokenAmount,
-            MAX_UINT); // no limit on the dest amount
+            MAX_FOR_KYBER); // no limit on the dest amount
     }
 
     function doTradeofCollateral(
@@ -293,7 +297,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         view
         returns (bool)
     {
-        return (getCurrentMargin(
+        return (getCurrentMarginAmount(
                 positionTokenAddress,
                 collateralTokenAddress,
                 positionTokenAmount,
@@ -338,7 +342,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         }
     }
 
-    function getCurrentMargin(
+    function getCurrentMarginAmount(
         address positionTokenAddress,
         address collateralTokenAddress,
         uint positionTokenAmount,
@@ -371,107 +375,6 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
             liquidationThresholdPercent
         );*/
     }
-
-    /*
-    * Internal functions
-    */
-
-    function _doTrade(
-        address sourceTokenAddress,
-        address destTokenAddress,
-        uint sourceTokenAmount,
-        uint maxDestTokenAmount)
-        internal
-        returns (uint destTokenAmount)
-    {
-        if (KYBER_CONTRACT == address(0)) {
-            uint tradeRate = getTradeRate(sourceTokenAddress, destTokenAddress);
-            destTokenAmount = sourceTokenAmount.mul(tradeRate).div(10**18);
-            if (destTokenAmount > maxDestTokenAmount) {
-                destTokenAmount = maxDestTokenAmount;
-            }
-            if (!_transferToken(
-                destTokenAddress,
-                VAULT_CONTRACT,
-                destTokenAmount)) {
-                revert();
-            }
-        } else {
-            uint destEtherAmount = KyberNetwork_Interface(KYBER_CONTRACT).trade(
-                sourceTokenAddress,
-                sourceTokenAmount,
-                KYBER_ETH_TOKEN_ADDRESS,
-                this, // B0xOracle receives the Ether proceeds
-                maxDestTokenAmount,
-                0, // no min coversation rate
-                this
-            );
-
-            destTokenAmount = KyberNetwork_Interface(KYBER_CONTRACT).trade
-                .value(destEtherAmount)( // send Ether along 
-                KYBER_ETH_TOKEN_ADDRESS,
-                destEtherAmount,
-                destTokenAddress,
-                VAULT_CONTRACT, // b0xVault recieves the destToken
-                maxDestTokenAmount,
-                0, // no min coversation rate
-                this
-            );
-        }
-    }
-
-    function _transferToken(
-        address tokenAddress,
-        address to,
-        uint value)
-        internal
-        returns (bool)
-    {
-        if (!EIP20(tokenAddress).transfer(to, value))
-            revert();
-
-        return true;
-    }
-
-    /*
-    * Internal View functions
-    */
-
-    /*function getLoanOrder (
-        bytes32 loanOrderHash)
-        internal
-        view
-        returns (LoanOrder)
-    {
-        address[6] addrs;
-        uint[7] uints;
-        (addrs, uints) = B0xInterface(b0xContractAddress).getLoanOrderParts(loanOrderHash);
-
-        return buildLoanOrderStruct(loanOrderHash, addrs, uints);
-    }
-
-    function getLoanPosition (
-        bytes32 loanOrderHash,
-        address trader)
-        internal
-        view
-        returns (Position)
-    {
-        address[4] addrs;
-        uint[5] uints;
-        (addrs, uints) = B0xInterface(b0xContractAddress).getLoanPositionParts(loanOrderHash, trader);
-
-        return buildLoanPositionStruct(addrs, uints);
-    }*/
-
-    function getDecimals(EIP20 token) 
-        internal
-        view 
-        returns(uint)
-    {
-        return token.decimals();
-    }
-
 
     /*
     * Owner functions
@@ -538,4 +441,147 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         require(_newEMAPeriods > 1 && _newEMAPeriods != emaPeriods);
         emaPeriods = _newEMAPeriods;
     }
+
+    function transferEther(
+        address to,
+        uint value)
+        public
+        onlyOwner
+        returns (bool)
+    {
+        uint amount = value;
+        if (amount > address(this).balance) {
+            amount = address(this).balance;
+        }
+
+        return (to.send(amount));
+    }
+
+    function transferToken(
+        address tokenAddress,
+        address to,
+        uint value)
+        public
+        onlyOwner
+        returns (bool)
+    {
+        return (_transferToken(
+            tokenAddress,
+            to,
+            value
+        ));
+    }
+
+    /*
+    * Internal functions
+    */
+
+    function _doTrade(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint sourceTokenAmount,
+        uint maxDestTokenAmount)
+        internal
+        returns (uint destTokenAmount)
+    {
+        if (KYBER_CONTRACT == address(0)) {
+            uint tradeRate = getTradeRate(sourceTokenAddress, destTokenAddress);
+            destTokenAmount = sourceTokenAmount.mul(tradeRate).div(10**18);
+            if (destTokenAmount > maxDestTokenAmount) {
+                destTokenAmount = maxDestTokenAmount;
+            }
+            /*if (!_transferToken(
+                destTokenAddress,
+                VAULT_CONTRACT,
+                destTokenAmount)) {
+                revert();
+            }*/
+        } else {
+            // re-up the Kyber spend approval if needed
+            if (EIP20(sourceTokenAddress).allowance.gas(4999)(this, KYBER_CONTRACT) < 
+                MAX_FOR_KYBER) {
+                if (!EIP20(sourceTokenAddress).approve(
+                    KYBER_CONTRACT,
+                    MAX_FOR_KYBER)) {
+                    revert();
+                }
+            }
+            
+            uint maxDestEtherAmount = maxDestTokenAmount;
+            if (maxDestTokenAmount < MAX_FOR_KYBER) {
+                uint etherToDest;
+                (, etherToDest) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+                    KYBER_ETH_TOKEN_ADDRESS,
+                    destTokenAddress, 
+                    0
+                );
+                maxDestEtherAmount = maxDestTokenAmount.mul(10**18).div(etherToDest);
+            }
+
+            uint destEtherAmount = KyberNetwork_Interface(KYBER_CONTRACT).trade(
+                sourceTokenAddress,
+                sourceTokenAmount,
+                KYBER_ETH_TOKEN_ADDRESS,
+                this, // B0xOracle receives the Ether proceeds
+                maxDestEtherAmount,
+                0, // no min coversation rate
+                address(0)
+            );
+
+            destTokenAmount = KyberNetwork_Interface(KYBER_CONTRACT).trade
+                .value(destEtherAmount)( // send Ether along 
+                KYBER_ETH_TOKEN_ADDRESS,
+                destEtherAmount,
+                destTokenAddress,
+                VAULT_CONTRACT, // b0xVault recieves the destToken
+                maxDestTokenAmount,
+                0, // no min coversation rate
+                address(0)
+            );
+        }
+    }
+
+    function _transferToken(
+        address tokenAddress,
+        address to,
+        uint value)
+        internal
+        returns (bool)
+    {
+        if (!EIP20(tokenAddress).transfer(to, value))
+            revert();
+
+        return true;
+    }
+
+    /*
+    * Internal View functions
+    */
+
+    /*function getLoanOrder (
+        bytes32 loanOrderHash)
+        internal
+        view
+        returns (LoanOrder)
+    {
+        address[6] addrs;
+        uint[7] uints;
+        (addrs, uints) = B0xInterface(b0xContractAddress).getLoanOrderParts(loanOrderHash);
+
+        return buildLoanOrderStruct(loanOrderHash, addrs, uints);
+    }
+
+    function getLoanPosition (
+        bytes32 loanOrderHash,
+        address trader)
+        internal
+        view
+        returns (Position)
+    {
+        address[4] addrs;
+        uint[5] uints;
+        (addrs, uints) = B0xInterface(b0xContractAddress).getLoanPositionParts(loanOrderHash, trader);
+
+        return buildLoanPositionStruct(addrs, uints);
+    }*/
 }

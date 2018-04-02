@@ -187,13 +187,13 @@ interface Oracle_Interface {
         view 
         returns (uint);
 
-    /// @dev Returns the current margin amount for this particular loan/position
+    /// @dev Returns the current margin level for this particular loan/position
     /// @param exposureTokenAddress The token at risk (typically the loan token)
     /// @param collateralTokenAddress The token used as collateral
     /// @param exposureTokenAmount The amount of token at risk
     /// @param collateralTokenAmount The amount of collateral token
     /// @return The current margin amount
-    function getCurrentMargin(
+    function getCurrentMarginAmount(
         address exposureTokenAddress,
         address collateralTokenAddress,
         uint exposureTokenAmount,
