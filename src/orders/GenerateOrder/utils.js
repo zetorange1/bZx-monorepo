@@ -54,7 +54,7 @@ export const signOrder = async (orderHash, accounts, b0x) => {
   const signature = await b0x.signOrderHashAsync(
     orderHash,
     accounts[0].toLowerCase(),
-    false
+    true
   );
   return signature;
 };
