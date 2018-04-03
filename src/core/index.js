@@ -48,6 +48,7 @@ export default class B0xJS {
   async signOrderHashAsync(
     orderHash,
     signerAddress,
+    // Metamask provider needs shouldAddPersonalMessagePrefix to be true
     shouldAddPersonalMessagePrefix
   ) {
     assert.isHexString("orderHash", orderHash);
