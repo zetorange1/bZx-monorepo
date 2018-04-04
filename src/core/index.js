@@ -44,6 +44,8 @@ export default class B0xJS {
     const orderHashHex = utils.getLoanOrderHashHex(order);
     return orderHashHex;
   }
+  getLoanOrderHashAsync = async props =>
+    utils.getLoanOrderHashAsync(this, props);
 
   isValidSignature = async props => utils.isValidSignature(this, props);
 
@@ -54,7 +56,6 @@ export default class B0xJS {
     shouldAddPersonalMessagePrefix
   ) {
     assert.isHexString("orderHash", orderHash);
-
     const nodeVersion = this.web3.version.node;
     const isParityNode = _.includes(nodeVersion, "Parity");
     const isTestRpc = _.includes(nodeVersion, "TestRPC");
