@@ -11,17 +11,17 @@ var run = {
   "should generate loanOrderHash (as lender1)": true,
   "should sign and verify orderHash (as lender1)": true,
   "should take sample loan order (as trader1)": true,
-  "should get loan orders (for trader 1)": false,
-  "should get loan positions (for trader 1)": false,
+  "should get loan orders (for trader 1)": true,
+  "should get loan positions (for trader 1)": true,
 
   "should generate loanOrderHash (as trader2)": false,
   "should sign and verify orderHash (as trader2)": false,
   "should take sample loan order (as lender2)": false,
 
-  "should generate 0x order": true,
-  "should sign and verify 0x order": true,
-  "should trade position with 0x order": true,
-  "should trade position with oracle": true,
+  "should generate 0x order": false,
+  "should sign and verify 0x order": false,
+  "should trade position with 0x order": false,
+  "should trade position with oracle": false,
   /*"should test LoanOrder bytes": false,
   "should test Loan bytes": false,
   "should test Position bytes": false,*/
@@ -186,9 +186,9 @@ contract('B0xTest', function(accounts) {
     ]);
   });
 
-  before('set b0x debug mode', async function () {
+  /*before('set b0x debug mode', async function () {
     await b0x.setDebugMode(run["debug mode"], {from: owner_account});
-  });
+  });*/
 
   before('watch events', function () {
     gasRefundEvent = oracle.GasRefund();

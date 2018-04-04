@@ -1,4 +1,6 @@
 
+var config = require('../../config/secrets.js');
+
 var fs = require("fs");
 
 const Web3 = require('web3');
@@ -34,23 +36,33 @@ var addresses = {
 	"TokenRegistry": "unknown",
 	"OracleRegistry": "unknown",
 
-	"TestToken0": "unknown",
-	"TestToken1": "unknown",
-	"TestToken2": "unknown",
-	"TestToken3": "unknown",
-	"TestToken4": "unknown",
-	"TestToken5": "unknown",
-	"TestToken6": "unknown",
-	"TestToken7": "unknown",
-	"TestToken8": "unknown",
-	"TestToken9": "unknown",
-
 	"EIP20": "unknown",
 };
 
+var network = "development";
+if (process.argv.length >= 3) {
+	network = process.argv[2];
+}
+
 var addresses_0x = {
-	"ZRXToken": "0x1d7022f5b17d2f8b695918fb48fa1089c9f85401",
-	"EtherToken": "0x871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c",
+	"ZRXToken": config["protocol"][network]["ZeroEx"]["ZRXToken"],
+	"EtherToken (depreciated)": config["protocol"][network]["ZeroEx"]["EtherToken"],
+	"WETH9": config["protocol"][network]["ZeroEx"]["WETH9"] != "" ? config["protocol"][network]["ZeroEx"]["WETH9"] : config["protocol"][network]["ZeroEx"]["EtherToken"],
+}
+
+if (network == "development") {
+	for(var i=0; i <= 9; i++) {
+		addresses["TestToken"+i] = "unknown";
+	}
+}
+
+var networkId;
+switch(network) {
+    case "ropsten":
+		networkId = 3;
+        break;
+    default:
+		networkId = 50;
 }
 
 Object.keys(addresses).forEach(function(item, index) {
@@ -61,7 +73,7 @@ Object.keys(addresses).forEach(function(item, index) {
 	try {
 		addresses[item] = "";
 		if (item != "EIP20") {
-			addresses[item] = web3.toChecksumAddress(jsonContent["networks"]["50"]["address"]);
+			addresses[item] = web3.toChecksumAddress(jsonContent["networks"][networkId]["address"]);
 		}
 		var jsonAsset = {
 			"address": addresses[item],
