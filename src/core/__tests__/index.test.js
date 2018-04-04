@@ -16,7 +16,8 @@ const { web3 } = b0xJS;
 
 describe("signOrderHashAsync", () => {
   test("should sign properly", async () => {
-    const [signerAddress] = await b0xJS.web3.eth.getAccounts();
+    const [signerAddressRaw] = await b0xJS.web3.eth.getAccounts();
+    const signerAddress = signerAddressRaw.toLowerCase();
 
     const orderHash = B0xJS.getLoanOrderHashHex(makeOrder());
     const signature = await b0xJS.signOrderHashAsync(orderHash, signerAddress);
