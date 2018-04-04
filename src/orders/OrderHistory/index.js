@@ -4,13 +4,14 @@ export default class OrderHistory extends React.Component {
   state = { orders: [] };
 
   async componentDidMount() {
-    const { b0x, accounts } = this.props;
-    const orders = await b0x.getOrders({
-      loanPartyAddress: accounts[0].toLowerCase(),
-      start: 0,
-      count: 10
-    });
-    this.setState({ orders });
+    // const { b0x, accounts } = this.props;
+    // disabling for now
+    // const orders = await b0x.getOrders({
+    //   loanPartyAddress: accounts[0].toLowerCase(),
+    //   start: 0,
+    //   count: 10
+    // });
+    this.setState({ orders: [] });
   }
 
   render() {
