@@ -33,7 +33,6 @@ export const signOrderHashAsync = async (
     }
     signature = await web3.eth.sign(msgHashHex, signerAddress);
   }
-  // return signature;
 
   // HACK: There is no consensus on whether the signatureHex string should be formatted as
   // v + r + s OR r + s + v, and different clients (even different versions of the same client)
