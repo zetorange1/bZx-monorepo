@@ -1,5 +1,4 @@
 import { BigNumber } from "@0xproject/utils";
-import sigUtil from "eth-sig-util";
 import { assert } from "@0xproject/assert";
 import { constants } from "0x.js/lib/src/utils/constants";
 import BN from "bn.js";
@@ -90,28 +89,6 @@ export const doesConformToSchema = (variableName, value, schema) => {
     "\t"
   )}\nValidation errors: ${validationResult.errors.join(", ")}`;
   assert.assert(!hasValidationErrors, msg);
-};
-
-export const isValidSignature = ({ account, orderHash, signature }) => {
-  const recoveredAccount = sigUtil.recoverPersonalSignature({
-    data: orderHash,
-    sig: signature
-  });
-  return recoveredAccount === account;
-};
-
-export const isValidSignatureAsync = async (
-  { web3, networkId },
-  { account, orderHash, signature }
-) => {
-  const b0xContract = await getContractInstance(
-    web3,
-    getContracts(networkId).B0x.abi,
-    Addresses.getAddresses(networkId).B0x
-  );
-  return b0xContract.methods
-    .isValidSignature(account, orderHash, signature)
-    .call();
 };
 
 export const getLoanOrderHashAsync = async ({ web3, networkId }, order) => {

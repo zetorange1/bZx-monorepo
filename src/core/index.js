@@ -1,9 +1,6 @@
 import { assert } from "@0xproject/assert";
-import _ from "lodash";
 import { constants } from "0x.js/lib/src/utils/constants";
-import { signatureUtils } from "0x.js/lib/src/utils/signature_utils";
 import { BigNumber } from "@0xproject/utils";
-import * as ethUtil from "ethereumjs-util";
 import { schemas } from "../schemas/b0x_json_schemas";
 import * as utils from "./utils";
 import EIP20 from "../contracts/EIP20.json";
@@ -13,6 +10,7 @@ import * as fill from "../fill";
 import * as Addresses from "../addresses";
 import * as orderHistory from "../orderHistory";
 import * as transfer from "../transfer";
+import * as signature from "../signature";
 
 let Web3 = null;
 if (typeof window !== "undefined") {
@@ -47,77 +45,13 @@ export default class B0xJS {
   getLoanOrderHashAsync = async props =>
     utils.getLoanOrderHashAsync(this, props);
 
-  static isValidSignature = props => utils.isValidSignature(props);
+  static isValidSignature = props => signature.isValidSignature(props);
 
   isValidSignatureAsync = async props =>
-    utils.isValidSignatureAsync(this, props);
+    signature.isValidSignatureAsync(this, props);
 
-  async signOrderHashAsync(
-    orderHash,
-    signerAddress,
-    // Metamask provider needs shouldAddPersonalMessagePrefix to be true
-    shouldAddPersonalMessagePrefix
-  ) {
-    assert.isHexString("orderHash", orderHash);
-    assert.isETHAddressHex("signerAddress", signerAddress);
-    const nodeVersion = this.web3.version.node;
-    const isParityNode = _.includes(nodeVersion, "Parity");
-    const isTestRpc = _.includes(nodeVersion, "TestRPC");
-    let signature = null;
-
-    if (isParityNode || isTestRpc) {
-      // Parity and TestRpc nodes add the personalMessage prefix itself
-      signature = this.web3.eth.sign(signerAddress, orderHash);
-    } else {
-      let msgHashHex = orderHash;
-      if (shouldAddPersonalMessagePrefix) {
-        const orderHashBuff = ethUtil.toBuffer(orderHash);
-        const msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
-        msgHashHex = ethUtil.bufferToHex(msgHashBuff);
-      }
-      signature = await this.web3.eth.sign(msgHashHex, signerAddress);
-    }
-    // return signature;
-
-    // HACK: There is no consensus on whether the signatureHex string should be formatted as
-    // v + r + s OR r + s + v, and different clients (even different versions of the same client)
-    // return the signature params in different orders. In order to support all client implementations,
-    // we parse the signature in both ways, and evaluate if either one is a valid signature.
-    const validVParamValues = [27, 28];
-    const ecSignatureVRS = signatureUtils.parseSignatureHexAsVRS(signature);
-    if (_.includes(validVParamValues, ecSignatureVRS.v)) {
-      const isValidVRSSignature = signatureUtils.isValidSignature(
-        orderHash,
-        ecSignatureVRS,
-        signerAddress
-      );
-      if (isValidVRSSignature) {
-        return ethUtil.toRpcSig(
-          ecSignatureVRS.v,
-          ecSignatureVRS.r,
-          ecSignatureVRS.s
-        );
-      }
-    }
-
-    const ecSignatureRSV = signatureUtils.parseSignatureHexAsRSV(signature);
-    if (_.includes(validVParamValues, ecSignatureRSV.v)) {
-      const isValidRSVSignature = signatureUtils.isValidSignature(
-        orderHash,
-        ecSignatureRSV,
-        signerAddress
-      );
-      if (isValidRSVSignature) {
-        return ethUtil.toRpcSig(
-          ecSignatureRSV.v,
-          ecSignatureRSV.r,
-          ecSignatureRSV.s
-        );
-      }
-    }
-
-    throw new Error("InvalidSignature");
-  }
+  signOrderHashAsync = async (...props) =>
+    signature.signOrderHashAsync(this, ...props);
 
   setAllowance = async (...props) => allowance.setAllowance(this, ...props);
 
