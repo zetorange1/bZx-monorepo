@@ -56,17 +56,16 @@ export default class B0xJS {
     shouldAddPersonalMessagePrefix
   ) {
     assert.isHexString("orderHash", orderHash);
+    assert.isETHAddressHex("signerAddress", signerAddress);
     const nodeVersion = this.web3.version.node;
     const isParityNode = _.includes(nodeVersion, "Parity");
     const isTestRpc = _.includes(nodeVersion, "TestRPC");
     let signature = null;
 
     if (isParityNode || isTestRpc) {
-      console.log("isParityNode or isTestRpc");
       // Parity and TestRpc nodes add the personalMessage prefix itself
       signature = this.web3.eth.sign(signerAddress, orderHash);
     } else {
-      console.log("is Metamask");
       let msgHashHex = orderHash;
       if (shouldAddPersonalMessagePrefix) {
         const orderHashBuff = ethUtil.toBuffer(orderHash);
@@ -90,8 +89,11 @@ export default class B0xJS {
         signerAddress
       );
       if (isValidVRSSignature) {
-        console.log("isValidVRSSignature", ecSignatureVRS);
-        return ecSignatureVRS;
+        return ethUtil.toRpcSig(
+          ecSignatureVRS.v,
+          ecSignatureVRS.r,
+          ecSignatureVRS.s
+        );
       }
     }
 
@@ -103,8 +105,11 @@ export default class B0xJS {
         signerAddress
       );
       if (isValidRSVSignature) {
-        console.log("isValidRSVSignature", ecSignatureRSV);
-        return ecSignatureRSV;
+        return ethUtil.toRpcSig(
+          ecSignatureRSV.v,
+          ecSignatureRSV.r,
+          ecSignatureRSV.s
+        );
       }
     }
 
