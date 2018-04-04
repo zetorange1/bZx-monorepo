@@ -30,6 +30,30 @@ describe("signOrderHashAsync", () => {
   });
 });
 
+describe("isValidSignature", () => {
+  test("b0xJS result should matach b0x contract result", async () => {
+    const [signerAddressRaw] = await b0xJS.web3.eth.getAccounts();
+    const signerAddress = signerAddressRaw.toLowerCase();
+
+    const orderHash = B0xJS.getLoanOrderHashHex(makeOrder());
+    const signature = await b0xJS.signOrderHashAsync(orderHash, signerAddress);
+
+    const isValidB0xJS = B0xJS.isValidSignature({
+      account: signerAddress,
+      orderHash,
+      signature
+    });
+
+    const isValidB0x = await b0xJS.isValidSignatureAsync({
+      account: signerAddress,
+      orderHash,
+      signature
+    });
+
+    expect(isValidB0xJS).toBe(isValidB0x);
+  });
+});
+
 describe("generatePseudoRandomSalt", () => {
   test("should generate different salts", () => {
     expect(B0xJS.generatePseudoRandomSalt()).not.toEqual(
