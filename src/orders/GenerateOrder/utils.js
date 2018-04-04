@@ -56,6 +56,18 @@ export const signOrder = async (orderHash, accounts, b0x) => {
     accounts[0].toLowerCase(),
     true
   );
+  const isValidSignature = b0x.isValidSignature({
+    account: accounts[0].toLowerCase(),
+    orderHash,
+    signature
+  });
+  const isValidSignatureB0x = await b0x.isValidSignatureAsync({
+    account: accounts[0].toLowerCase(),
+    orderHash,
+    signature
+  });
+  console.log(`${signature} isValidSignature`, isValidSignature);
+  console.log(`${signature} isValidSignatureB0x`, isValidSignatureB0x);
   return signature;
 };
 
