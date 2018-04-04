@@ -26,8 +26,8 @@ export const generatePseudoRandomSalt = () => {
   return salt;
 };
 
-export const getLoanOrderHashHex = order => {
-  const orderAddrs = [
+const getLoanOrderHashArgs = order => {
+  const orderAddresses = [
     order.makerAddress,
     order.loanTokenAddress,
     order.interestTokenAddress,
@@ -35,7 +35,7 @@ export const getLoanOrderHashHex = order => {
     order.feeRecipientAddress,
     order.oracleAddress
   ];
-  const orderUints = [
+  const orderValues = [
     bigNumberToBN(order.loanTokenAmount),
     bigNumberToBN(order.interestAmount),
     bigNumberToBN(order.initialMarginAmount),
@@ -46,10 +46,16 @@ export const getLoanOrderHashHex = order => {
     bigNumberToBN(order.makerRole),
     bigNumberToBN(order.salt)
   ];
+  return { orderAddresses, orderValues };
+};
+
+export const getLoanOrderHashHex = order => {
+  const { orderAddresses, orderValues } = getLoanOrderHashArgs(order);
+
   const orderHashHex = Web3Utils.soliditySha3(
     { t: "address", v: order.b0xAddress },
-    { t: "address[6]", v: orderAddrs },
-    { t: "uint256[9]", v: orderUints }
+    { t: "address[6]", v: orderAddresses },
+    { t: "uint256[9]", v: orderValues }
   );
   return orderHashHex;
 };
@@ -96,5 +102,17 @@ export const isValidSignature = async (
   );
   return b0xContract.methods
     .isValidSignature(account, orderHash, signature)
+    .call();
+};
+
+export const getLoanOrderHashAsync = async ({ web3, networkId }, order) => {
+  const { orderAddresses, orderValues } = getLoanOrderHashArgs(order);
+  const b0xContract = await getContractInstance(
+    web3,
+    getContracts(networkId).B0x.abi,
+    Addresses.getAddresses(networkId).B0x
+  );
+  return b0xContract.methods
+    .getLoanOrderHash(orderAddresses, orderValues)
     .call();
 };
