@@ -1,4 +1,5 @@
 import { BigNumber } from "@0xproject/utils";
+import sigUtil from "eth-sig-util";
 import { assert } from "@0xproject/assert";
 import { constants } from "0x.js/lib/src/utils/constants";
 import BN from "bn.js";
@@ -89,6 +90,14 @@ export const doesConformToSchema = (variableName, value, schema) => {
     "\t"
   )}\nValidation errors: ${validationResult.errors.join(", ")}`;
   assert.assert(!hasValidationErrors, msg);
+};
+
+export const isValidSignature = ({ account, orderHash, signature }) => {
+  const recoveredAccount = sigUtil.recoverPersonalSignature({
+    data: orderHash,
+    sig: signature
+  });
+  return recoveredAccount === account;
 };
 
 export const isValidSignatureAsync = async (

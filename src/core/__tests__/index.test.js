@@ -1,7 +1,6 @@
 /* globals test, expect, describe */
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
-import sigUtil from "eth-sig-util";
 import B0xJS from "../../core";
 import * as utils from "../../core/utils";
 import * as Errors from "../constants/errors";
@@ -21,17 +20,13 @@ describe("signOrderHashAsync", () => {
 
     const orderHash = B0xJS.getLoanOrderHashHex(makeOrder());
     const signature = await b0xJS.signOrderHashAsync(orderHash, signerAddress);
-
-    // Not sure why this doesn't work
-    // const recoveredAccount = await b0xJS.web3.eth.accounts.recover(
-    //   orderHash,
-    //   signature
-    // );
-    const recoveredAccount = sigUtil.recoverPersonalSignature({
-      data: orderHash,
-      sig: signature
+    const isValid = B0xJS.isValidSignature({
+      account: signerAddress,
+      orderHash,
+      signature
     });
-    expect(recoveredAccount).toBe(signerAddress.toLowerCase());
+
+    expect(isValid).toBe(true);
   });
 });
 

@@ -47,6 +47,8 @@ export default class B0xJS {
   getLoanOrderHashAsync = async props =>
     utils.getLoanOrderHashAsync(this, props);
 
+  static isValidSignature = props => utils.isValidSignature(props);
+
   isValidSignatureAsync = async props =>
     utils.isValidSignatureAsync(this, props);
 
