@@ -11,7 +11,7 @@ export const setAllowance = async (
   {
     tokenAddress,
     ownerAddress,
-    spenderAddress = Addresses.getAddresses(networkId).B0x,
+    spenderAddress = Addresses.getAddresses(networkId).B0xVault,
     amountInBaseUnits,
     txOpts = {
       gasLimit: 100000
@@ -44,7 +44,7 @@ export const getAllowance = async (
   {
     tokenAddress,
     ownerAddress,
-    spenderAddress = Addresses.getAddresses(networkId).B0x
+    spenderAddress = Addresses.getAddresses(networkId).B0xVault
   }
 ) => {
   assert.isETHAddressHex("ownerAddress", ownerAddress);
