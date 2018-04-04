@@ -91,7 +91,7 @@ export const doesConformToSchema = (variableName, value, schema) => {
   assert.assert(!hasValidationErrors, msg);
 };
 
-export const isValidSignature = async (
+export const isValidSignatureAsync = async (
   { web3, networkId },
   { account, orderHash, signature }
 ) => {

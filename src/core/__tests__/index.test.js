@@ -81,7 +81,7 @@ describe("getBalance", () => {
   });
 });
 
-describe("isValidSignature", () => {
+describe("isValidSignatureAsync", () => {
   test("should return true for a valid signature", async () => {
     const makerAddress = Accounts[4].address;
 
@@ -107,7 +107,7 @@ describe("isValidSignature", () => {
 
     const orderHash = B0xJS.getLoanOrderHashHex(order);
     const signature = await b0xJS.signOrderHashAsync(orderHash, makerAddress);
-    const res = await b0xJS.isValidSignature({
+    const res = await b0xJS.isValidSignatureAsync({
       account: makerAddress,
       orderHash,
       signature
@@ -144,7 +144,7 @@ describe("isValidSignature", () => {
       orderHash,
       nonMakerAddress
     );
-    const res = await b0xJS.isValidSignature({
+    const res = await b0xJS.isValidSignatureAsync({
       account: makerAddress,
       orderHash,
       signature
