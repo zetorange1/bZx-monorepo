@@ -13,16 +13,16 @@ import TokenTransferProxy from "./TokenTransferProxy.json";
 import WETH9 from "./WETH9.json";
 
 export default {
-	B0x,
-	B0xOracle,
-	B0xTo0x,
-	B0xToken,
-	B0xVault,
-	EIP20,
-	OracleRegistry,
-	TokenRegistry,
-	ZRXToken,
-	EtherToken,
-	TokenTransferProxy,
-	WETH9
+  B0x,
+  B0xOracle,
+  B0xTo0x,
+  B0xToken,
+  B0xVault,
+  EIP20,
+  OracleRegistry,
+  TokenRegistry,
+  ZRXToken,
+  EtherToken,
+  TokenTransferProxy,
+  WETH9
 };

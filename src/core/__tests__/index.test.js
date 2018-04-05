@@ -1,7 +1,6 @@
 /* globals test, expect, describe */
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
-import sigUtil from "eth-sig-util";
 import B0xJS from "../../core";
 import * as utils from "../../core/utils";
 import * as Errors from "../constants/errors";
@@ -16,21 +15,42 @@ const { web3 } = b0xJS;
 
 describe("signOrderHashAsync", () => {
   test("should sign properly", async () => {
-    const [signerAddress] = await b0xJS.web3.eth.getAccounts();
+    const [signerAddressRaw] = await b0xJS.web3.eth.getAccounts();
+    const signerAddress = signerAddressRaw.toLowerCase();
+
+    const orderHash = B0xJS.getLoanOrderHashHex(makeOrder());
+    const signature = await b0xJS.signOrderHashAsync(orderHash, signerAddress);
+    const isValid = B0xJS.isValidSignature({
+      account: signerAddress,
+      orderHash,
+      signature
+    });
+
+    expect(isValid).toBe(true);
+  });
+});
+
+describe("isValidSignature", () => {
+  test("b0xJS result should matach b0x contract result", async () => {
+    const [signerAddressRaw] = await b0xJS.web3.eth.getAccounts();
+    const signerAddress = signerAddressRaw.toLowerCase();
 
     const orderHash = B0xJS.getLoanOrderHashHex(makeOrder());
     const signature = await b0xJS.signOrderHashAsync(orderHash, signerAddress);
 
-    // Not sure why this doesn't work
-    // const recoveredAccount = await b0xJS.web3.eth.accounts.recover(
-    //   orderHash,
-    //   signature
-    // );
-    const recoveredAccount = sigUtil.recoverPersonalSignature({
-      data: orderHash,
-      sig: signature
+    const isValidB0xJS = B0xJS.isValidSignature({
+      account: signerAddress,
+      orderHash,
+      signature
     });
-    expect(recoveredAccount).toBe(signerAddress.toLowerCase());
+
+    const isValidB0x = await b0xJS.isValidSignatureAsync({
+      account: signerAddress,
+      orderHash,
+      signature
+    });
+
+    expect(isValidB0xJS).toBe(isValidB0x);
   });
 });
 
@@ -80,7 +100,7 @@ describe("getBalance", () => {
   });
 });
 
-describe("isValidSignature", () => {
+describe("isValidSignatureAsync", () => {
   test("should return true for a valid signature", async () => {
     const makerAddress = Accounts[4].address;
 
@@ -106,7 +126,7 @@ describe("isValidSignature", () => {
 
     const orderHash = B0xJS.getLoanOrderHashHex(order);
     const signature = await b0xJS.signOrderHashAsync(orderHash, makerAddress);
-    const res = await b0xJS.isValidSignature({
+    const res = await b0xJS.isValidSignatureAsync({
       account: makerAddress,
       orderHash,
       signature
@@ -143,7 +163,7 @@ describe("isValidSignature", () => {
       orderHash,
       nonMakerAddress
     );
-    const res = await b0xJS.isValidSignature({
+    const res = await b0xJS.isValidSignatureAsync({
       account: makerAddress,
       orderHash,
       signature

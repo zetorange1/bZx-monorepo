@@ -1,7 +1,6 @@
 import { assert } from "@0xproject/assert";
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
-import * as ethUtil from "ethereumjs-util";
 import { schemas } from "../schemas/b0x_json_schemas";
 import * as utils from "./utils";
 import EIP20 from "../contracts/EIP20.json";
@@ -11,6 +10,7 @@ import * as fill from "../fill";
 import * as Addresses from "../addresses";
 import * as orderHistory from "../orderHistory";
 import * as transfer from "../transfer";
+import * as signature from "../signature";
 
 let Web3 = null;
 if (typeof window !== "undefined") {
@@ -42,24 +42,16 @@ export default class B0xJS {
     const orderHashHex = utils.getLoanOrderHashHex(order);
     return orderHashHex;
   }
+  getLoanOrderHashAsync = async props =>
+    utils.getLoanOrderHashAsync(this, props);
 
-  isValidSignature = async props => utils.isValidSignature(this, props);
+  static isValidSignature = props => signature.isValidSignature(props);
 
-  async signOrderHashAsync(
-    orderHash,
-    signerAddress,
-    shouldAddPersonalMessagePrefix
-  ) {
-    assert.isHexString("orderHash", orderHash);
-    let msgHashHex = orderHash;
-    if (shouldAddPersonalMessagePrefix) {
-      const orderHashBuff = ethUtil.toBuffer(orderHash);
-      const msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
-      msgHashHex = ethUtil.bufferToHex(msgHashBuff);
-    }
-    const signature = await this.web3.eth.sign(msgHashHex, signerAddress);
-    return signature;
-  }
+  isValidSignatureAsync = async props =>
+    signature.isValidSignatureAsync(this, props);
+
+  signOrderHashAsync = async (...props) =>
+    signature.signOrderHashAsync(this, ...props);
 
   setAllowance = async (...props) => allowance.setAllowance(this, ...props);
 
