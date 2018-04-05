@@ -94,7 +94,7 @@ export default ({
           value={interestTokenAddress}
         />
         <FormControl margin="normal" fullWidth>
-          <InputLabel>Interest amount (paid per day)</InputLabel>
+          <InputLabel>Interest amount (per day)</InputLabel>
           <Input
             value={interestAmount}
             type="number"
@@ -106,7 +106,7 @@ export default ({
             }
           />
           <FormHelperText component="div">
-            <Tooltip title="This amount is prorated if the lend order is closed early by the trader, or if the trader's loan is liquidated.">
+            <Tooltip title="This amount is prorated if the loan order is closed early by the trader, or if the trader's loan is liquidated.">
               <MoreInfo>More Info</MoreInfo>
             </Tooltip>
           </FormHelperText>
