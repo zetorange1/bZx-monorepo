@@ -3,6 +3,7 @@ import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
 import moment from "moment";
 import { COLORS } from "../../styles/constants";
 import { fromBigNumber } from "../../common/utils";
+import { getSymbol } from "../../common/tokens";
 
 const CardContent = styled(MuiCardContent)`
   position: relative;
@@ -54,11 +55,13 @@ export default class OrderItem extends React.Component {
   }
 
   render() {
-    const { order, accounts } = this.props;
+    const { order, accounts, tokens } = this.props;
     // const { loanPositions } = this.state;
     const isMaker = order.maker === accounts[0].toLowerCase();
     const date = moment(order.expirationUnixTimestampSec * 1000);
     const dateStr = date.format(`MMMM Do YYYY, h:mm a`);
+    const loanTokenSymbol = getSymbol(tokens, order.loanTokenAddress);
+    const interestTokenSymbol = getSymbol(tokens, order.interestTokenAddress);
     return (
       <Card>
         <CardContent>
@@ -81,12 +84,16 @@ export default class OrderItem extends React.Component {
 
           <DataPointContainer>
             <Label>Loan Amount</Label>
-            <DataPoint>{fromBigNumber(order.loanTokenAmount, 1e18)}</DataPoint>
+            <DataPoint>
+              {fromBigNumber(order.loanTokenAmount, 1e18)} {loanTokenSymbol}
+            </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Interest Amount</Label>
-            <DataPoint>{fromBigNumber(order.interestAmount, 1e18)}</DataPoint>
+            <DataPoint>
+              {fromBigNumber(order.interestAmount, 1e18)} {interestTokenSymbol}
+            </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>

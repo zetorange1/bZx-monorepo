@@ -95,7 +95,11 @@ class Orders extends React.Component {
                     />
                   </ContentContainer>
                   <ContentContainer show={activeTab === `ORDER_HISTORY`}>
-                    <OrderHistory b0x={b0x} accounts={accounts} />
+                    <OrderHistory
+                      b0x={b0x}
+                      accounts={accounts}
+                      tokens={tokens}
+                    />
                   </ContentContainer>
                 </Fragment>
               )}

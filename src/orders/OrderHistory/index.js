@@ -44,7 +44,7 @@ export default class OrderHistory extends React.Component {
   };
 
   render() {
-    const { b0x, accounts } = this.props;
+    const { b0x, accounts, tokens } = this.props;
     const { orders, loading, count } = this.state;
     return (
       <div>
@@ -62,7 +62,12 @@ export default class OrderHistory extends React.Component {
         <br />
         {orders.length > 0 ? (
           orders.map(order => (
-            <OrderItem b0x={b0x} accounts={accounts} order={order} />
+            <OrderItem
+              b0x={b0x}
+              accounts={accounts}
+              tokens={tokens}
+              order={order}
+            />
           ))
         ) : (
           <p>You have no orders, try refreshing.</p>
