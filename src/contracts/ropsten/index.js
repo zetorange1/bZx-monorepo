@@ -8,9 +8,8 @@ import OracleRegistry from "./OracleRegistry.json";
 import TokenRegistry from "./TokenRegistry.json";
 
 import ZRXToken from "./ZRXToken.json";
-import EtherToken from "./EtherToken.json";
+import WETH from "./WETH.json";
 import TokenTransferProxy from "./TokenTransferProxy.json";
-import WETH9 from "./WETH9.json";
 
 export default {
   B0x,
@@ -22,7 +21,6 @@ export default {
   OracleRegistry,
   TokenRegistry,
   ZRXToken,
-  EtherToken,
-  TokenTransferProxy,
-  WETH9
+  WETH,
+  TokenTransferProxy
 };
