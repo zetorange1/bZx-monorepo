@@ -47,13 +47,16 @@ const Alert = styled.div`
   box-shadow: ${SHADOWS.light};
 `;
 
+const Version = styled.div`
+  color: #2879ff;
+  padding: 12px;
+  text-align: right;
+  font-weight: bolder;
+`;
+
 const Nav = () => (
   <div>
-    <Alert>
-      Warning: This portal is under <em>heavy</em> development. Updates may
-      happen without notice and there may be major bugs. Thanks for your
-      patience as we build this out!
-    </Alert>
+    <Version>Alpha v0.2</Version>
     <Container>
       <Content>
         <NavContent />
