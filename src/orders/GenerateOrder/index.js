@@ -11,7 +11,13 @@ import Submission from "./Submission";
 import Result from "./Result";
 
 import validateInputs from "./validate";
-import { compileObject, addSalt, signOrder, getHash } from "./utils";
+import {
+  compileObject,
+  addSalt,
+  signOrder,
+  getHash,
+  addNetworkId
+} from "./utils";
 
 export default class GenerateOrder extends React.Component {
   state = {
@@ -23,8 +29,8 @@ export default class GenerateOrder extends React.Component {
     collateralTokenAddress: this.props.tokens[0].address,
 
     // token amounts
-    //loanTokenAmount: 40,
-    //interestAmount: 41,
+    loanTokenAmount: ``,
+    interestAmount: ``,
 
     // margin amounts
     initialMarginAmount: 50,
@@ -83,10 +89,21 @@ export default class GenerateOrder extends React.Component {
         this.props.accounts,
         this.props.b0x
       );
-      const finalOrder = {
+      const orderWithSignature = {
         ...saltedOrderObj,
         signature
       };
+      console.log(`orderHash`, orderHash);
+      const finalOrder = await addNetworkId(
+        orderWithSignature,
+        this.props.web3
+      );
+      const isSigValid = await this.props.b0x.isValidSignature({
+        account: this.props.accounts[0].toLowerCase(),
+        orderHash,
+        signature
+      });
+      console.log(`isSigValid`, isSigValid);
       this.setState({ orderHash, finalOrder });
     }
   };
