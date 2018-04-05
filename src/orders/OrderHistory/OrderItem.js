@@ -31,11 +31,13 @@ export default class OrderItem extends React.Component {
   }
 
   render() {
-    const { order } = this.props;
+    const { order, accounts } = this.props;
     // const { loanPositions } = this.state;
+    const isMaker = order.makerRole === accounts[0].toLowerCase();
     return (
       <Card>
         <CardContent>
+          <div>Your role: {isMaker ? `Maker` : `Lender`}</div>
           <Pre>{JSON.stringify(order, null, 4)}</Pre>
           {/* <Pre>{JSON.stringify(loanPositions, null, 4)}</Pre> */}
         </CardContent>
