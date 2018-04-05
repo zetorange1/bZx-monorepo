@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
+import moment from "moment";
 import { COLORS } from "../../styles/constants";
 
 const CardContent = styled(MuiCardContent)`
@@ -55,6 +56,8 @@ export default class OrderItem extends React.Component {
     const { order, accounts } = this.props;
     // const { loanPositions } = this.state;
     const isMaker = order.maker === accounts[0].toLowerCase();
+    const date = moment(order.expirationUnixTimestampSec * 1000);
+    const dateStr = date.format(`MMMM Do YYYY, h:mm a`);
     return (
       <Card>
         <CardContent>
@@ -63,6 +66,11 @@ export default class OrderItem extends React.Component {
             <DataPoint>
               <Hash>{order.loanOrderHash}</Hash>
             </DataPoint>
+          </DataPointContainer>
+
+          <DataPointContainer>
+            <Label>Expires</Label>
+            <DataPoint>{`${dateStr} (${date.fromNow()})`}</DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
