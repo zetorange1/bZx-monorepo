@@ -42,6 +42,7 @@ const Hash = styled.span`
 
 export default class OrderItem extends React.Component {
   // state = { loanPositions: [] };
+  state = { showRawOrder: true };
 
   async componentDidMount() {
     // const { b0x, accounts } = this.props;
@@ -54,8 +55,12 @@ export default class OrderItem extends React.Component {
     // this.setState({ loanPositions });
   }
 
+  toggleShowRawOrder = () =>
+    this.setState(p => ({ showRawOrder: !p.showRawOrder }));
+
   render() {
     const { order, accounts, tokens } = this.props;
+    const { showRawOrder } = this.state;
     // const { loanPositions } = this.state;
     const isMaker = order.maker === accounts[0].toLowerCase();
     const date = moment(order.expirationUnixTimestampSec * 1000);
@@ -105,7 +110,13 @@ export default class OrderItem extends React.Component {
             <Label>Maintenance Margin</Label>
             <DataPoint>{order.maintenanceMarginAmount}%</DataPoint>
           </DataPointContainer>
-          <Pre>{JSON.stringify(order, null, 4)}</Pre>
+          <div>
+            <br />
+            <a href="#" onClick={this.toggleShowRawOrder}>
+              {showRawOrder ? `Hide` : `Show`} raw order
+            </a>
+          </div>
+          {showRawOrder && <Pre>{JSON.stringify(order, null, 4)}</Pre>}
           {/* <Pre>{JSON.stringify(loanPositions, null, 4)}</Pre> */}
         </CardContent>
       </Card>
