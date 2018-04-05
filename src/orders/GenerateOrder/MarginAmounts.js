@@ -36,7 +36,7 @@ export default ({
         <FormHelperText component="div">
           <Tooltip
             id="tooltip-icon"
-            title="The margin level the trader is required to have in order to take out a trade with the loan."
+            title="The minimum margin level the trader must have in order to fill a loan order or place a trade."
           >
             <ToolTipHint>Range: 10%-100%</ToolTipHint>
           </Tooltip>
@@ -53,7 +53,7 @@ export default ({
         <FormHelperText component="div">
           <Tooltip
             id="tooltip-icon"
-            title="The margin level that will trigger a liquidation if the trader's margin balance falls to this level or lower. This cannot be greater than the initial margin amount."
+            title="The margin level that will trigger a loan liquidation if the trader's margin balance falls to this level or lower. This cannot be greater than the initial margin amount."
           >
             <ToolTipHint>Range: 5%-95%</ToolTipHint>
           </Tooltip>

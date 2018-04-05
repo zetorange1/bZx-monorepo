@@ -39,7 +39,7 @@ export default class Ether extends React.Component {
               target="_blank"
               rel="noreferrer noopener"
             >
-              wrapped Ether (WETH)
+              Wrapped Ether (WETH)
             </a>
             {` `}
             to trade on b0x.

@@ -50,7 +50,7 @@ const Alert = styled.div`
 const Nav = () => (
   <div>
     <Alert>
-      Warning: this portal is still under <em>heavy</em> development.
+      Warning: This portal is under <em>heavy</em> development. Updates may happen without notice and there may be major bugs. Thanks for your patience as we build this out!
     </Alert>
     <Container>
       <Content>

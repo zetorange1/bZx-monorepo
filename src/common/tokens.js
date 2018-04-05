@@ -2,7 +2,7 @@ import blockies from "ethereum-blockies-png";
 
 export const TOKENS = {
   WETH: {
-    label: `Ether Token`,
+    label: `Wrapped Ether`,
     address: `WETH_SM_ADDRESS_HERE`,
     iconUrl: `https://files.coinmarketcap.com/static/img/coins/128x128/ethereum.png`,
     decimals: 18
