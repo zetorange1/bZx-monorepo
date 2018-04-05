@@ -29,8 +29,8 @@ export default class GenerateOrder extends React.Component {
     collateralTokenAddress: this.props.tokens[0].address,
 
     // token amounts
-    //loanTokenAmount: 40,
-    //interestAmount: 41,
+    // loanTokenAmount: 40,
+    // interestAmount: 41,
 
     // margin amounts
     initialMarginAmount: 50,
