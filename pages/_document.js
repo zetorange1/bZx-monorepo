@@ -53,6 +53,10 @@ export default class MyDocument extends Document {
         <Head>
           <title>b0x Portal</title>
           <link
+            href="/static/favicon.ico"
+            rel="icon"
+          />
+          <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css"
           />
