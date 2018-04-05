@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import styled from "styled-components";
 import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
 import moment from "moment";
@@ -40,9 +41,21 @@ const Hash = styled.span`
   font-family: monospace;
 `;
 
+const AddressLink = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  display: inline-block;
+  font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 20ch;
+`;
+
 export default class OrderItem extends React.Component {
   // state = { loanPositions: [] };
-  state = { showRawOrder: true };
+  state = { showRawOrder: false };
 
   async componentDidMount() {
     // const { b0x, accounts } = this.props;
@@ -65,8 +78,32 @@ export default class OrderItem extends React.Component {
     const isMaker = order.maker === accounts[0].toLowerCase();
     const date = moment(order.expirationUnixTimestampSec * 1000);
     const dateStr = date.format(`MMMM Do YYYY, h:mm a`);
+
     const loanTokenSymbol = getSymbol(tokens, order.loanTokenAddress);
     const interestTokenSymbol = getSymbol(tokens, order.interestTokenAddress);
+    const collateralTokenSymbol = getSymbol(
+      tokens,
+      order.collateralTokenAddress
+    );
+
+    const tokenLinkPrefix = `https://ropsten.etherscan.io/token/`;
+    const loanTokenAddressLink = `${tokenLinkPrefix}${order.loanTokenAddress}`;
+    const interestTokenAddressLink = `${tokenLinkPrefix}${
+      order.interestTokenAddress
+    }`;
+    const collateralTokenAddressLink = `${tokenLinkPrefix}${
+      order.collateralTokenAddress
+    }`;
+
+    const addressLinkPrefix = `https://ropsten.etherscan.io/address/`;
+    const oracleAddressLink = `${addressLinkPrefix}${order.oracleAddress}`;
+    const feeRecipientAddressLink = `${addressLinkPrefix}${
+      order.feeRecipientAddress
+    }`;
+
+    const isUsingRelay =
+      order.feeRecipientAddress !==
+      `0x0000000000000000000000000000000000000000`;
     return (
       <Card>
         <CardContent>
@@ -91,6 +128,10 @@ export default class OrderItem extends React.Component {
             <Label>Loan Amount</Label>
             <DataPoint>
               {fromBigNumber(order.loanTokenAmount, 1e18)} {loanTokenSymbol}
+              {` `}(
+              <AddressLink href={loanTokenAddressLink}>
+                {order.loanTokenAddress}
+              </AddressLink>)
             </DataPoint>
           </DataPointContainer>
 
@@ -98,6 +139,21 @@ export default class OrderItem extends React.Component {
             <Label>Interest Amount</Label>
             <DataPoint>
               {fromBigNumber(order.interestAmount, 1e18)} {interestTokenSymbol}
+              {` `}(
+              <AddressLink href={interestTokenAddressLink}>
+                {order.interestTokenAddress}
+              </AddressLink>)
+            </DataPoint>
+          </DataPointContainer>
+
+          <DataPointContainer>
+            <Label>Collateral Token</Label>
+            <DataPoint>
+              {collateralTokenSymbol}
+              {` `}(
+              <AddressLink href={collateralTokenAddressLink}>
+                {order.collateralTokenAddress}
+              </AddressLink>)
             </DataPoint>
           </DataPointContainer>
 
@@ -110,6 +166,47 @@ export default class OrderItem extends React.Component {
             <Label>Maintenance Margin</Label>
             <DataPoint>{order.maintenanceMarginAmount}%</DataPoint>
           </DataPointContainer>
+
+          <DataPointContainer>
+            <Label>Oracle Address</Label>
+            <DataPoint>
+              <Hash>
+                <AddressLink href={oracleAddressLink}>
+                  {order.oracleAddress}
+                </AddressLink>
+              </Hash>
+            </DataPoint>
+          </DataPointContainer>
+
+          {isUsingRelay && (
+            <Fragment>
+              <DataPointContainer>
+                <Label>Fee recipient address</Label>
+                <DataPoint>
+                  <Hash>
+                    <AddressLink href={feeRecipientAddressLink}>
+                      {order.feeRecipientAddress}
+                    </AddressLink>
+                  </Hash>
+                </DataPoint>
+              </DataPointContainer>
+
+              <DataPointContainer>
+                <Label>Trader Relay Fee</Label>
+                <DataPoint>
+                  {fromBigNumber(order.lenderRelayFee, 1e18)} B0X
+                </DataPoint>
+              </DataPointContainer>
+
+              <DataPointContainer>
+                <Label>Trader Relay Fee</Label>
+                <DataPoint>
+                  {fromBigNumber(order.traderRelayFee, 1e18)} B0X
+                </DataPoint>
+              </DataPointContainer>
+            </Fragment>
+          )}
+
           <div>
             <br />
             <a href="#" onClick={this.toggleShowRawOrder}>
