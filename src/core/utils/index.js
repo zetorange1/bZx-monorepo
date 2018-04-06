@@ -26,7 +26,7 @@ export const generatePseudoRandomSalt = () => {
   return salt;
 };
 
-const getLoanOrderHashArgs = order => {
+const getLoanOrderHashArgs = (order, asStrings) => {
   const orderAddresses = [
     order.makerAddress,
     order.loanTokenAddress,
@@ -35,22 +35,37 @@ const getLoanOrderHashArgs = order => {
     order.feeRecipientAddress,
     order.oracleAddress
   ];
-  const orderValues = [
-    bigNumberToBN(order.loanTokenAmount),
-    bigNumberToBN(order.interestAmount),
-    bigNumberToBN(order.initialMarginAmount),
-    bigNumberToBN(order.maintenanceMarginAmount),
-    bigNumberToBN(order.lenderRelayFee),
-    bigNumberToBN(order.traderRelayFee),
-    bigNumberToBN(order.expirationUnixTimestampSec),
-    bigNumberToBN(order.makerRole),
-    bigNumberToBN(order.salt)
-  ];
+  var orderValues = [];
+  if (asStrings) {
+	  orderValues = [
+		order.loanTokenAmount.toString(),
+		order.interestAmount.toString(),
+		order.initialMarginAmount.toString(),
+		order.maintenanceMarginAmount.toString(),
+		order.lenderRelayFee.toString(),
+		order.traderRelayFee.toString(),
+		order.expirationUnixTimestampSec.toString(),
+		order.makerRole.toString(),
+		order.salt.toString()
+	  ];
+  } else {
+	  orderValues = [
+		bigNumberToBN(order.loanTokenAmount),
+		bigNumberToBN(order.interestAmount),
+		bigNumberToBN(order.initialMarginAmount),
+		bigNumberToBN(order.maintenanceMarginAmount),
+		bigNumberToBN(order.lenderRelayFee),
+		bigNumberToBN(order.traderRelayFee),
+		bigNumberToBN(order.expirationUnixTimestampSec),
+		bigNumberToBN(order.makerRole),
+		bigNumberToBN(order.salt)
+	  ];
+  }
   return { orderAddresses, orderValues };
 };
 
 export const getLoanOrderHashHex = order => {
-  const { orderAddresses, orderValues } = getLoanOrderHashArgs(order);
+  const { orderAddresses, orderValues } = getLoanOrderHashArgs(order, true);
 
   const orderHashHex = Web3Utils.soliditySha3(
     { t: "address", v: order.b0xAddress },
@@ -92,7 +107,7 @@ export const doesConformToSchema = (variableName, value, schema) => {
 };
 
 export const getLoanOrderHashAsync = async ({ web3, networkId }, order) => {
-  const { orderAddresses, orderValues } = getLoanOrderHashArgs(order);
+  const { orderAddresses, orderValues } = getLoanOrderHashArgs(order, false);
   const b0xContract = await getContractInstance(
     web3,
     getContracts(networkId).B0x.abi,

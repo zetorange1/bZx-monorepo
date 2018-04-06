@@ -20,9 +20,11 @@ const checkProperObjCount = Utils.makeCheckProperObjCount(NUM_LOAN_POS_FIELDS);
 const getOrderObjArray = Utils.makeGetOrderObjArray(NUM_LOAN_POS_FIELDS);
 
 export const cleanData = raw =>
+  raw ?
   pipe(
     Utils.remove0xPrefix,
     checkProperObjCount,
     getOrderObjArray,
     map(pipe(Utils.getOrderParams, getLoanPosition))
-  )(raw);
+  )(raw) :
+  [];

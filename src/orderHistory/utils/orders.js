@@ -25,9 +25,11 @@ const checkProperObjCount = Utils.makeCheckProperObjCount(NUM_ORDER_FIELDS);
 const getOrderObjArray = Utils.makeGetOrderObjArray(NUM_ORDER_FIELDS);
 
 export const cleanData = raw =>
+  raw ?
   pipe(
     Utils.remove0xPrefix,
     checkProperObjCount,
     getOrderObjArray,
     map(pipe(Utils.getOrderParams, getOrder))
-  )(raw);
+  )(raw) :
+  [];
