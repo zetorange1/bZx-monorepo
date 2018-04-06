@@ -62,7 +62,7 @@ export default ({
           <div>
             {oracle.name} (
             <Hash
-              href={`https://etherscan.io/address/${oracle.address}`}
+              href={`https://ropsten.etherscan.io/address/${oracle.address}`}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -75,7 +75,7 @@ export default ({
             <DataContainer>
               <Title>Relay/Exchange address</Title>
               <Hash
-                href={`https://etherscan.io/address/${feeRecipientAddress}`}
+                href={`https://ropsten.etherscan.io/address/${feeRecipientAddress}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
