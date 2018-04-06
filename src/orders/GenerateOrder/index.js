@@ -98,7 +98,7 @@ export default class GenerateOrder extends React.Component {
         orderWithSignature,
         this.props.web3
       );
-      const isSigValid = await this.props.b0x.isValidSignature({
+      const isSigValid = await this.props.b0x.isValidSignatureAsync({
         account: this.props.accounts[0].toLowerCase(),
         orderHash,
         signature
