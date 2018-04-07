@@ -50,23 +50,40 @@ const checkCoinsApproved = async (b0x, accounts, state) => {
 };
 
 const checkCoinsAllowed = (state, tokens) => {
-  const { loanTokenAddress, collateralTokenAddress } = state;
-
+  const { loanTokenAddress, collateralTokenAddress, role } = state;
+  const notAllowed = [`ZRX`, `B0X`];
   const loanToken = tokens.filter(t => t.address === loanTokenAddress)[0];
+  const invalidLoanToken = notAllowed.includes(loanToken && loanToken.symbol);
+
+  if (role === `lender`) {
+    return !invalidLoanToken;
+  }
+
+  // for trader, check collateral token as well
   const collateralToken = tokens.filter(
     t => t.address === collateralTokenAddress
   )[0];
 
-  const notAllowed = [`ZRX`, `B0X`];
-  const a = notAllowed.includes(loanToken && loanToken.symbol);
-  const b = notAllowed.includes(collateralToken && collateralToken.symbol);
-  const isNotAllowed = a || b;
+  const invalidCollateralToken = notAllowed.includes(
+    collateralToken && collateralToken.symbol
+  );
 
-  return !isNotAllowed;
+  const invalid = invalidLoanToken || invalidCollateralToken;
+  return !invalid;
 };
 
 export default async (b0x, accounts, state, tokens) => {
-  const { initialMarginAmount, maintenanceMarginAmount } = state;
+  const {
+    loanTokenAmount,
+    interestAmount,
+    initialMarginAmount,
+    maintenanceMarginAmount
+  } = state;
+  if (loanTokenAmount === `` || interestAmount === ``) {
+    alert(`Please enter a valid token amount.`);
+    return false;
+  }
+
   try {
     validRange(10, 100, initialMarginAmount);
     validRange(5, 95, maintenanceMarginAmount);
