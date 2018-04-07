@@ -4,7 +4,7 @@
   "private": true,
   "main": "dist/b0x.js",
   "scripts": {
-    "test": "NODE_ENV=development jest",
+    "test": "NODE_ENV=development jest -i",
     "lint": "eslint src test",
     "lint:fix": "eslint src --fix",
     "prettier:fix": "prettier --write 'src/**/*.js'",
@@ -12,10 +12,7 @@
     "dev": "webpack --watch --config webpack.config.js",
     "build": "webpack --config webpack.config.js"
   },
-  "pre-commit": [
-    "prettier:pre-commit",
-    "lint"
-  ],
+  "pre-commit": ["prettier:pre-commit", "lint"],
   "dependencies": {
     "0x.js": "^0.29.0",
     "@0xproject/assert": "0.0.20",
