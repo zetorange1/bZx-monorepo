@@ -12,7 +12,10 @@
     "dev": "webpack --watch --config webpack.config.js",
     "build": "webpack --config webpack.config.js"
   },
-  "pre-commit": ["prettier:pre-commit", "lint"],
+  "pre-commit": [
+    "prettier:pre-commit",
+    "lint"
+  ],
   "dependencies": {
     "0x.js": "^0.29.0",
     "@0xproject/assert": "0.0.20",
@@ -25,12 +28,15 @@
     "debug": "^3.1.0",
     "eth-sig-util": "^1.4.2",
     "ethereumjs-util": "^5.1.4",
+    "fs-extra": "^5.0.0",
+    "ganache-cli": "^6.1.0",
     "jsonschema": "^1.2.2",
     "lodash": "^4.17.4",
     "moment": "^2.20.1",
     "ramda": "^0.25.0",
     "web3": "^1.0.0-beta.30",
-    "web3-utils": "^1.0.0-beta.33"
+    "web3-utils": "^1.0.0-beta.33",
+    "ziptool": "^1.0.2"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
