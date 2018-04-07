@@ -26,7 +26,34 @@ export const generatePseudoRandomSalt = () => {
   return salt;
 };
 
-const getLoanOrderHashArgs = (order, asStrings) => {
+const getOrderValues = (order, shouldFormatAsStrings) => {
+  if (shouldFormatAsStrings) {
+    return [
+      order.loanTokenAmount.toString(),
+      order.interestAmount.toString(),
+      order.initialMarginAmount.toString(),
+      order.maintenanceMarginAmount.toString(),
+      order.lenderRelayFee.toString(),
+      order.traderRelayFee.toString(),
+      order.expirationUnixTimestampSec.toString(),
+      order.makerRole.toString(),
+      order.salt.toString()
+    ];
+  }
+  return [
+    bigNumberToBN(order.loanTokenAmount),
+    bigNumberToBN(order.interestAmount),
+    bigNumberToBN(order.initialMarginAmount),
+    bigNumberToBN(order.maintenanceMarginAmount),
+    bigNumberToBN(order.lenderRelayFee),
+    bigNumberToBN(order.traderRelayFee),
+    bigNumberToBN(order.expirationUnixTimestampSec),
+    bigNumberToBN(order.makerRole),
+    bigNumberToBN(order.salt)
+  ];
+};
+
+const getLoanOrderHashArgs = (order, shouldFormatAsStrings) => {
   const orderAddresses = [
     order.makerAddress,
     order.loanTokenAddress,
@@ -35,32 +62,8 @@ const getLoanOrderHashArgs = (order, asStrings) => {
     order.feeRecipientAddress,
     order.oracleAddress
   ];
-  var orderValues = [];
-  if (asStrings) {
-	  orderValues = [
-		order.loanTokenAmount.toString(),
-		order.interestAmount.toString(),
-		order.initialMarginAmount.toString(),
-		order.maintenanceMarginAmount.toString(),
-		order.lenderRelayFee.toString(),
-		order.traderRelayFee.toString(),
-		order.expirationUnixTimestampSec.toString(),
-		order.makerRole.toString(),
-		order.salt.toString()
-	  ];
-  } else {
-	  orderValues = [
-		bigNumberToBN(order.loanTokenAmount),
-		bigNumberToBN(order.interestAmount),
-		bigNumberToBN(order.initialMarginAmount),
-		bigNumberToBN(order.maintenanceMarginAmount),
-		bigNumberToBN(order.lenderRelayFee),
-		bigNumberToBN(order.traderRelayFee),
-		bigNumberToBN(order.expirationUnixTimestampSec),
-		bigNumberToBN(order.makerRole),
-		bigNumberToBN(order.salt)
-	  ];
-  }
+  const orderValues = getOrderValues(order, shouldFormatAsStrings);
+
   return { orderAddresses, orderValues };
 };
 
