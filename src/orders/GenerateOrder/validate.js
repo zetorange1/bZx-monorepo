@@ -12,17 +12,13 @@ const checkCoinsAdded = (
   tokens
 ) => {
   const trackedTokens = getTrackedTokens(tokens);
-  const a = trackedTokens.includes(loanTokenAddress);
-  const b = trackedTokens.includes(interestTokenAddress);
-  const c = trackedTokens.includes(collateralTokenAddress);
-  const cPrime = role === `lender` ? true : c;
-  if (a && b && cPrime) {
-    return true;
+
+  if (role === `lender`) {
+    return trackedTokens.includes(loanTokenAddress);
   }
-  alert(
-    `Some of your selected tokens have not been added to the tracked tokens list. Please go to the Balances tab and add these tokens.`
-  );
-  return false;
+  const a = trackedTokens.includes(interestTokenAddress);
+  const b = trackedTokens.includes(collateralTokenAddress);
+  return a && b;
 };
 
 const checkAllowance = async (b0x, accounts, tokenAddress) => {
@@ -41,14 +37,16 @@ const checkCoinsApproved = async (b0x, accounts, state) => {
     role
   } = state;
   if (role === `lender`) {
-    const a = await checkAllowance(b0x, accounts, loanTokenAddress);
-    const b = await checkAllowance(b0x, accounts, interestTokenAddress);
-    return a && b;
+    const loanTokenAllowed = await checkAllowance(
+      b0x,
+      accounts,
+      loanTokenAddress
+    );
+    return loanTokenAllowed;
   }
-  const a = await checkAllowance(b0x, accounts, loanTokenAddress);
-  const b = await checkAllowance(b0x, accounts, interestTokenAddress);
-  const c = await checkAllowance(b0x, accounts, collateralTokenAddress);
-  return a && b && c;
+  const a = await checkAllowance(b0x, accounts, interestTokenAddress);
+  const b = await checkAllowance(b0x, accounts, collateralTokenAddress);
+  return a && b;
 };
 
 export default async (b0x, accounts, state, tokens) => {
@@ -69,6 +67,9 @@ export default async (b0x, accounts, state, tokens) => {
 
   const coinsAdded = checkCoinsAdded(state, tokens);
   if (!coinsAdded) {
+    alert(
+      `Some of your selected tokens have not been added to the tracked tokens list. Please go to the Balances tab and add these tokens.`
+    );
     return false;
   }
 
