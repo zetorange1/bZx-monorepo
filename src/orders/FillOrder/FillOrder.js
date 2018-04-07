@@ -65,7 +65,9 @@ export default class FillOrder extends React.Component {
           <p>
             This order was created by{` `}
             <Hash
-              href={`https://ropsten.etherscan.io/address/${order.makerAddress}`}
+              href={`https://ropsten.etherscan.io/address/${
+                order.makerAddress
+              }`}
               target="_blank"
               rel="noopener noreferrer"
             >
