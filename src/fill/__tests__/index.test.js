@@ -14,6 +14,7 @@ describe("filling orders", () => {
   const owner = Accounts[0].address;
   const lenders = [Accounts[1].address, Accounts[3].address];
   const traders = [Accounts[2].address, Accounts[4].address];
+  const loanTokenAmount = web3.utils.toWei("251").toString();
 
   beforeAll(async () => {
     const {
@@ -99,7 +100,6 @@ describe("filling orders", () => {
         gasPrice: web3.utils.toWei("30", "gwei").toString()
       };
       const expirationUnixTimestampSec = "1719061340";
-      const loanTokenAmount = web3.utils.toWei("100000").toString();
 
       const order = makeOrder({
         makerAddress,
@@ -165,7 +165,7 @@ describe("filling orders", () => {
         interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
         collateralTokenAddress: constantsZX.NULL_ADDRESS,
         feeRecipientAddress: constantsZX.NULL_ADDRESS,
-        loanTokenAmount: web3.utils.toWei("100000").toString(),
+        loanTokenAmount,
         interestAmount: web3.utils.toWei("2").toString(),
         initialMarginAmount: "50",
         maintenanceMarginAmount: "25",

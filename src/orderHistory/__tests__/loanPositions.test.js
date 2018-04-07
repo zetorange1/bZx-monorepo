@@ -65,7 +65,7 @@ describe("loan positions", () => {
       interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
       collateralTokenAddress: constantsZX.NULL_ADDRESS,
       feeRecipientAddress: constantsZX.NULL_ADDRESS,
-      loanTokenAmount: web3.utils.toWei("100000").toString(),
+      loanTokenAmount: web3.utils.toWei("251").toString(),
       interestAmount: web3.utils.toWei("2").toString(),
       initialMarginAmount: "50",
       maintenanceMarginAmount: "25",
