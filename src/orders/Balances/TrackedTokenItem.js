@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import Button from "material-ui/Button";
 import Icon from "material-ui/Icon";
+import Tooltip from "material-ui/Tooltip";
 import IconButton from "material-ui/IconButton";
 import Input, { InputLabel, InputAdornment } from "material-ui/Input";
 import { FormControl } from "material-ui/Form";
@@ -28,10 +29,15 @@ const Container = styled.div`
   }
 `;
 
-const TokenInfo = styled.div`
+const TokenInfo = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  display: block;
   width: 120px;
   display: flex;
   align-items: center;
+  text-decoration: none;
 `;
 
 const TokenIcon = styled.img`
@@ -55,6 +61,11 @@ const ButtonGroup = styled.div`
   & > *:first-child {
     margin-right: 12px;
   }
+`;
+
+const TooltipText = styled.div`
+  font-family: monospace;
+  font-size: 12px;
 `;
 
 export default class TrackedTokenItems extends React.Component {
@@ -176,19 +187,21 @@ export default class TrackedTokenItems extends React.Component {
   };
 
   render() {
-    const { name, symbol, iconUrl } = this.props.token;
+    const { name, symbol, iconUrl, address } = this.props.token;
     const { balance } = this.state;
     const isPermaToken = PERMA_TOKEN_SYMBOLS.includes(symbol);
     return (
       <Container>
-        <TokenInfo>
+        <TokenInfo href={`https://ropsten.etherscan.io/token/${address}`}>
           <TokenIcon src={iconUrl} />
           <Name>{name}</Name>
         </TokenInfo>
         {balance !== null ? (
-          <BalanceAmount>
-            {balance.toString()} {symbol}
-          </BalanceAmount>
+          <Tooltip title={<TooltipText>{address}</TooltipText>}>
+            <BalanceAmount>
+              {balance.toString()} {symbol}
+            </BalanceAmount>
+          </Tooltip>
         ) : (
           <div>loading...</div>
         )}
