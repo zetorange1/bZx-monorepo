@@ -48,10 +48,10 @@ export const validateFillOrder = async (
       t => t.address === collateralTokenAddress
     )[0];
     const notAllowed = [`ZRX`, `B0X`];
-    const collateralTokenAllowed = notAllowed.includes(
+    const collateralTokenNotAllowed = notAllowed.includes(
       collateralToken && collateralToken.symbol
     );
-    if (!collateralTokenAllowed) {
+    if (collateralTokenNotAllowed) {
       alert(`ZRX and B0X is not yet supported for lending or as collateral.`);
       return false;
     }
