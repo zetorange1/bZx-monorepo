@@ -73,7 +73,17 @@ const checkCoinsAllowed = (state, tokens) => {
 };
 
 export default async (b0x, accounts, state, tokens) => {
-  const { initialMarginAmount, maintenanceMarginAmount } = state;
+  const {
+    loanTokenAmount,
+    interestAmount,
+    initialMarginAmount,
+    maintenanceMarginAmount
+  } = state;
+  if (loanTokenAmount === `` || interestAmount === ``) {
+    alert(`Please enter a valid token amount.`);
+    return false;
+  }
+
   try {
     validRange(10, 100, initialMarginAmount);
     validRange(5, 95, maintenanceMarginAmount);
