@@ -7,6 +7,7 @@
     "test": "jest",
     "dev": "next",
     "build": "next build && next export -o dist",
+    "prod": "cd dist && python -m http.server --bind 127.0.0.1",
     "lint": "eslint lib pages src",
     "lint:fix": "eslint lib pages src --fix",
     "prepush": "npm run lint"
