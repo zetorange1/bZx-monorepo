@@ -1,4 +1,11 @@
 import styled from "styled-components";
+import Button from "material-ui/Button";
+import Dialog, {
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle
+} from "material-ui/Dialog";
 import Nav from "./Nav";
 import Footer from "./Footer";
 import { DIMENSIONS } from "../styles/constants";
@@ -33,12 +40,37 @@ const ContentContainer = styled.div`
   max-width: ${DIMENSIONS.maxWidth};
 `;
 
-export default ({ children }) => (
-  <Container>
-    <Nav />
-    <Content>
-      <ContentContainer>{children}</ContentContainer>
-    </Content>
-    <Footer />
-  </Container>
-);
+export default class Layout extends React.Component {
+  state = { showAlertDialog: false, alertText: `` };
+
+  componentDidMount = () => {
+    alert = x => this.showAlert(x);
+  };
+
+  showAlert = text => this.setState({ alertText: text, showAlertDialog: true });
+
+  hideAlert = () => this.setState({ showAlertDialog: false });
+
+  render() {
+    return (
+      <Container>
+        <Nav />
+        <Content>
+          <ContentContainer>{this.props.children}</ContentContainer>
+        </Content>
+        <Footer />
+        <Dialog open={this.state.showAlertDialog}>
+          <DialogTitle>Alert</DialogTitle>
+          <DialogContent>
+            <DialogContentText>{this.state.alertText}</DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.hideAlert} color="primary">
+              OK
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Container>
+    );
+  }
+}
