@@ -49,6 +49,22 @@ const checkCoinsApproved = async (b0x, accounts, state) => {
   return a && b;
 };
 
+const checkCoinsAllowed = (state, tokens) => {
+  const { loanTokenAddress, collateralTokenAddress } = state;
+
+  const loanToken = tokens.filter(t => t.address === loanTokenAddress)[0];
+  const collateralToken = tokens.filter(
+    t => t.address === collateralTokenAddress
+  )[0];
+
+  const notAllowed = [`ZRX`, `B0X`];
+  const a = notAllowed.includes(loanToken && loanToken.symbol);
+  const b = notAllowed.includes(collateralToken && collateralToken.symbol);
+  const isNotAllowed = a || b;
+
+  return !isNotAllowed;
+};
+
 export default async (b0x, accounts, state, tokens) => {
   const { initialMarginAmount, maintenanceMarginAmount } = state;
   try {
@@ -62,6 +78,12 @@ export default async (b0x, accounts, state, tokens) => {
   } catch (error) {
     // eslint-disable-next-line no-undef
     alert(`Margin amounts are invalid: ${error.message}`);
+    return false;
+  }
+
+  const coinsAllowed = checkCoinsAllowed(state, tokens);
+  if (!coinsAllowed) {
+    alert(`ZRX and B0X is not yet supported for lending or as collateral.`);
     return false;
   }
 

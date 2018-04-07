@@ -43,6 +43,19 @@ export const validateFillOrder = async (
   const makerRole = order.makerRole === `0` ? `lender` : `trader`;
   const trackedTokens = getTrackedTokens(tokens);
   if (makerRole === `lender`) {
+    // make sure the collateral token chosen is allowed
+    const collateralToken = tokens.filter(
+      t => t.address === collateralTokenAddress
+    )[0];
+    const notAllowed = [`ZRX`, `B0X`];
+    const collateralTokenAllowed = notAllowed.includes(
+      collateralToken && collateralToken.symbol
+    );
+    if (!collateralTokenAllowed) {
+      alert(`ZRX and B0X is not yet supported for lending or as collateral.`);
+      return false;
+    }
+
     // check that user has tracked collateralToken and interestToken
     const { interestTokenAddress } = order;
     if (
