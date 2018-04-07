@@ -102,11 +102,19 @@ describe("loan positions", () => {
         count: 10
       });
 
-      const loanPositionsNoTimestamp = loanPositions.map(
-        ({ loanStartUnixTimestampSec, ...rest }) => rest
+      /*
+      One thing to keep in mind with tests against takeLoanOrderAsLender or takeLoanOrderAsTrader..
+      to calcuate the amount of collateral token amount required and transfered, b0x does a call to the oracle to get the current exchange rate 
+      (between collateralToken and loanToken), then based on that and the initialMarginAmount, 
+      it calculates and transfers enough collateral token from the trader to satisfy margin requirements. 
+      Since the testnet isn't connected to Kyber to get true token rates, the oracle just randomly generates a bogus rate. 
+      */
+      const loanPositionsNoRandomFields = loanPositions.map(
+        ({ loanStartUnixTimestampSec, collateralTokenAmountFilled, ...rest }) =>
+          rest
       );
 
-      expect(loanPositionsNoTimestamp).toMatchSnapshot();
+      expect(loanPositionsNoRandomFields).toMatchSnapshot();
     });
   });
 });
