@@ -27,6 +27,7 @@ export const generatePseudoRandomSalt = () => {
 };
 
 const getOrderValues = (order, shouldFormatAsStrings) => {
+  // Must be strings in production for Web3Utils.soliditySha3 for some reason
   if (shouldFormatAsStrings) {
     return [
       order.loanTokenAmount.toString(),
