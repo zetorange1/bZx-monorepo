@@ -49,8 +49,6 @@ export default class FillOrder extends React.Component {
         b0x,
         accounts
       );
-    } else {
-      alert(`There is something wrong with your order`);
     }
   };
 
