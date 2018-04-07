@@ -1,4 +1,3 @@
-/* globals test, describe, expect, beforeAll */
 import { pathOr } from "ramda";
 import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
 import B0xJS from "../../core";
