@@ -40,12 +40,12 @@ const Content = styled.div`
   align-items: center;
 `;
 
-const Alert = styled.div`
-  color: white;
-  background: red;
-  padding: 12px;
-  box-shadow: ${SHADOWS.light};
-`;
+// const Alert = styled.div`
+//   color: white;
+//   background: red;
+//   padding: 12px;
+//   box-shadow: ${SHADOWS.light};
+// `;
 
 const Version = styled.div`
   color: #2879ff;
