@@ -68,17 +68,6 @@ const getLoanOrderHashArgs = (order, shouldFormatAsStrings) => {
   return { orderAddresses, orderValues };
 };
 
-export const getLoanOrderHashHex = order => {
-  const { orderAddresses, orderValues } = getLoanOrderHashArgs(order, true);
-
-  const orderHashHex = Web3Utils.soliditySha3(
-    { t: "address", v: order.b0xAddress },
-    { t: "address[6]", v: orderAddresses },
-    { t: "uint256[9]", v: orderValues }
-  );
-  return orderHashHex;
-};
-
 export const doesContractExistAtAddress = async (web3, address) => {
   const code = await web3.eth.getCode(address);
   // Regex matches 0x0, 0x00, 0x in order to accommodate poorly implemented clients
@@ -96,18 +85,15 @@ export const getContractInstance = async (web3, abi, address) => {
   return contract;
 };
 
-export const doesConformToSchema = (variableName, value, schema) => {
-  const schemaValidator = new SchemaValidator();
-  const validationResult = schemaValidator.validate(value, schema);
-  const hasValidationErrors = validationResult.errors.length > 0;
-  const msg = `Expected ${variableName} to conform to schema ${
-    schema.id
-  }\nEncountered: ${JSON.stringify(
-    value,
-    null,
-    "\t"
-  )}\nValidation errors: ${validationResult.errors.join(", ")}`;
-  assert.assert(!hasValidationErrors, msg);
+export const getLoanOrderHashHex = order => {
+  const { orderAddresses, orderValues } = getLoanOrderHashArgs(order, true);
+
+  const orderHashHex = Web3Utils.soliditySha3(
+    { t: "address", v: order.b0xAddress },
+    { t: "address[6]", v: orderAddresses },
+    { t: "uint256[9]", v: orderValues }
+  );
+  return orderHashHex;
 };
 
 export const getLoanOrderHashAsync = async ({ web3, networkId }, order) => {
@@ -120,4 +106,18 @@ export const getLoanOrderHashAsync = async ({ web3, networkId }, order) => {
   return b0xContract.methods
     .getLoanOrderHash(orderAddresses, orderValues)
     .call();
+};
+
+export const doesConformToSchema = (variableName, value, schema) => {
+  const schemaValidator = new SchemaValidator();
+  const validationResult = schemaValidator.validate(value, schema);
+  const hasValidationErrors = validationResult.errors.length > 0;
+  const msg = `Expected ${variableName} to conform to schema ${
+    schema.id
+  }\nEncountered: ${JSON.stringify(
+    value,
+    null,
+    "\t"
+  )}\nValidation errors: ${validationResult.errors.join(", ")}`;
+  assert.assert(!hasValidationErrors, msg);
 };
