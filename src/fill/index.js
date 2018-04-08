@@ -1,13 +1,24 @@
-import * as utils from "../core/utils";
+import * as Signature from "../signature";
+import * as CoreUtils from "../core/utils";
 import { getContracts } from "../contracts";
 import * as Addresses from "../addresses";
+
+const checkForValidSignature = order => {
+  Signature.isValidSignature({
+    account: order.makerAddress,
+    orderHash: CoreUtils.getLoanOrderHashHex(order),
+    signature: order.signature
+  });
+};
 
 export const takeLoanOrderAsLender = async (
   { web3, networkId },
   order,
   txOpts
 ) => {
-  const b0xContract = await utils.getContractInstance(
+  checkForValidSignature(order);
+
+  const b0xContract = await CoreUtils.getContractInstance(
     web3,
     getContracts(networkId).B0x.abi,
     Addresses.getAddresses(networkId).B0x
@@ -50,7 +61,9 @@ export const takeLoanOrderAsTrader = async (
   loanTokenAmountFilled,
   txOpts
 ) => {
-  const b0xContract = await utils.getContractInstance(
+  checkForValidSignature(order);
+
+  const b0xContract = await CoreUtils.getContractInstance(
     web3,
     getContracts(networkId).B0x.abi,
     Addresses.getAddresses(networkId).B0x
