@@ -8,6 +8,9 @@ import * as Utils from "./utils";
 import Accounts from "../../core/__tests__/accounts";
 
 const { web3 } = b0xJS;
+// Valid sig length, but last digit has been changed
+const BAD_SIG =
+  "0x056184af8d9bbf1734ddbff840e8be410193a99acab9add00512808250cb40f6423e669f24e65a8ee8af97e1a2abd90644177b39985438ecfee0dd2e7e44f77709";
 
 describe("filling orders", () => {
   const owner = Accounts[0].address;
@@ -85,6 +88,43 @@ describe("filling orders", () => {
   });
 
   describe("takeLoanOrderAsLender", async () => {
+    test("should throw an error with an invalid signature", async () => {
+      const {
+        loanTokens,
+        interestTokens,
+        collateralTokens
+      } = await Utils.initAllContractInstances();
+      const makerAddress = traders[1];
+      const takerAddress = lenders[1];
+      const txOpts = {
+        from: takerAddress,
+        gas: 1000000,
+        gasPrice: web3.utils.toWei("30", "gwei").toString()
+      };
+      const expirationUnixTimestampSec = "1719061340";
+
+      const order = makeOrder({
+        makerAddress,
+        loanTokenAddress: loanTokens[1].options.address.toLowerCase(),
+        interestTokenAddress: interestTokens[1].options.address.toLowerCase(),
+        collateralTokenAddress: collateralTokens[1].options.address.toLowerCase(),
+        feeRecipientAddress: constantsZX.NULL_ADDRESS,
+        loanTokenAmount,
+        interestAmount: web3.utils.toWei("2").toString(),
+        initialMarginAmount: "50",
+        maintenanceMarginAmount: "25",
+        lenderRelayFee: web3.utils.toWei("0.001").toString(),
+        traderRelayFee: web3.utils.toWei("0.0015").toString(),
+        expirationUnixTimestampSec,
+        makerRole: orderConstants.MAKER_ROLE.TRADER,
+        salt: B0xJS.generatePseudoRandomSalt().toString()
+      });
+
+      await expect(
+        b0xJS.takeLoanOrderAsLender({ ...order, signature: BAD_SIG }, txOpts)
+      ).rejects.toThrow();
+    });
+
     test("should return total amount of loanToken borrowed", async () => {
       const {
         loanTokens,
@@ -143,6 +183,42 @@ describe("filling orders", () => {
   });
 
   describe("takeLoanOrderAsTrader", async () => {
+    test("should throw an error with an invalid signature", async () => {
+      const {
+        loanTokens,
+        interestTokens
+      } = await Utils.initAllContractInstances();
+      const makerAddress = lenders[0];
+      const takerAddress = traders[0];
+      const txOpts = {
+        from: takerAddress,
+        gas: 1000000,
+        gasPrice: web3.utils.toWei("30", "gwei").toString()
+      };
+      const expirationUnixTimestampSec = "1719061340";
+
+      const order = makeOrder({
+        makerAddress,
+        loanTokenAddress: loanTokens[0].options.address.toLowerCase(),
+        interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
+        collateralTokenAddress: constantsZX.NULL_ADDRESS,
+        feeRecipientAddress: constantsZX.NULL_ADDRESS,
+        loanTokenAmount,
+        interestAmount: web3.utils.toWei("2").toString(),
+        initialMarginAmount: "50",
+        maintenanceMarginAmount: "25",
+        lenderRelayFee: web3.utils.toWei("0.001").toString(),
+        traderRelayFee: web3.utils.toWei("0.0015").toString(),
+        expirationUnixTimestampSec,
+        makerRole: orderConstants.MAKER_ROLE.LENDER,
+        salt: B0xJS.generatePseudoRandomSalt().toString()
+      });
+
+      await expect(
+        b0xJS.takeLoanOrderAsTrader({ ...order, signature: BAD_SIG }, txOpts)
+      ).rejects.toThrow();
+    });
+
     test("should return total amount of loanToken borrowed", async () => {
       const {
         loanTokens,

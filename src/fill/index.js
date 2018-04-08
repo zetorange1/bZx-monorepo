@@ -1,17 +1,14 @@
 import * as Signature from "../signature";
 import * as CoreUtils from "../core/utils";
-import * as Errors from "../core/constants/errors";
 import { getContracts } from "../contracts";
 import * as Addresses from "../addresses";
 
 const checkForValidSignature = order => {
-  const isValid = Signature.isValidSignature({
+  Signature.isValidSignature({
     account: order.makerAddress,
     orderHash: CoreUtils.getLoanOrderHashHex(order),
     signature: order.signature
   });
-
-  if (!isValid) throw new Error(Errors.InvalidSignature);
 };
 
 export const takeLoanOrderAsLender = async (
