@@ -12,7 +12,7 @@ describe("addresses", () => {
     expect(b0xJS.addresses).toMatchSnapshot();
   });
 
-  test("should return local testnet addresses for no networkId", async () => {
+  test("should throw error for no networkId", async () => {
     expect(() => {
       const networkUrl = "http://localhost:8545";
       const provider = new Web3.providers.HttpProvider(networkUrl);
