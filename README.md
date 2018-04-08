@@ -16,5 +16,7 @@ Whenever a file is saved, webpack rebuilds and outputs `b0x.js` in the `/dist` d
 
 1. Clone repo: `git clone https://github.com/b0xNetwork/protocol_contracts`
     - Note: `protocol_contracts` and `b0x.js` folders must be sibling folders
+    
+1. Install dependencies for `protocol_contracts`: `npm install`
 
 1. Run tests for `b0x.js`: `npm test`
