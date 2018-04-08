@@ -1,5 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`addresses should return kovan testnet addresses for networkId 42 1`] = `
+Object {
+  "B0x": "0x66c529139ea5ff2f4e758c28fed902ef78ddf798",
+  "B0xOracle": "0x2f498a9cd5f8a74ed579a95a5ab47f1bf9126bfa",
+  "B0xTo0x": "0x3cb5ee86adcf8fc4301354b58fde01535939a3b5",
+  "B0xToken": "0x14823db576c11e4a54ca9e01ca0b28b18d3d1187",
+  "B0xVault": "0xbe46529e2f3208d35027c809ff1df173b022565d",
+  "EIP20": "",
+  "OracleRegistry": "0x81558e6edf0f7ae1222fd56ad63cffad09dadf64",
+  "TokenRegistry": "0x0dadad008647f0f7b68ffe662135cd714a56698c",
+  "TokenTransferProxy": "0x4e9aad8184de8833365fea970cd9149372fdf1e6",
+  "WETH": "0xc778417e063141139fce010982780140aa0cd5ab",
+  "ZRXToken": "0xa8e9fa8f91e5ae138c74648c9c304f1c75003a8d",
+}
+`;
+
 exports[`addresses should return local testnet addresses for all other networkIds 1`] = `
 Object {
   "B0x": "0xaa86dda78e9434aca114b6676fc742a18d15a1cc",
@@ -20,5 +36,21 @@ Object {
   "TestToken8": "0xb48e1b16829c7f5bd62b76cb878a6bb1c4625d7a",
   "TestToken9": "0xc4cc602a7345518d0b7a84049d4bc8575ebf3398",
   "TokenRegistry": "0x1941ff73d1154774d87521d2d0aaad5d19c8df60",
+}
+`;
+
+exports[`addresses should return rinkeby testnet addresses for networkId 4 1`] = `
+Object {
+  "B0x": "0x66c529139ea5ff2f4e758c28fed902ef78ddf798",
+  "B0xOracle": "0x2f498a9cd5f8a74ed579a95a5ab47f1bf9126bfa",
+  "B0xTo0x": "0x3cb5ee86adcf8fc4301354b58fde01535939a3b5",
+  "B0xToken": "0x14823db576c11e4a54ca9e01ca0b28b18d3d1187",
+  "B0xVault": "0xbe46529e2f3208d35027c809ff1df173b022565d",
+  "EIP20": "",
+  "OracleRegistry": "0x81558e6edf0f7ae1222fd56ad63cffad09dadf64",
+  "TokenRegistry": "0x0dadad008647f0f7b68ffe662135cd714a56698c",
+  "TokenTransferProxy": "0x4e9aad8184de8833365fea970cd9149372fdf1e6",
+  "WETH": "0xc778417e063141139fce010982780140aa0cd5ab",
+  "ZRXToken": "0xa8e9fa8f91e5ae138c74648c9c304f1c75003a8d",
 }
 `;
