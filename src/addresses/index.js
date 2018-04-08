@@ -7,4 +7,5 @@ const formatData = raw =>
     map(address => address.toLowerCase())
   )(raw);
 
-export const getAddresses = networkId => formatData(getContracts(networkId));
+export const getAddresses = networkId =>
+  pipe(getContracts, formatData)(networkId);
