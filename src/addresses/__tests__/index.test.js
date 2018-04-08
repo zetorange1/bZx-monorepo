@@ -1,4 +1,3 @@
-/* globals test, expect, describe */
 import b0xJS from "../../core/__tests__/setup";
 
 describe("addresses", () => {

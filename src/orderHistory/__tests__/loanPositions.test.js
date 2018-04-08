@@ -1,4 +1,3 @@
-/* globals test, describe, expect, beforeAll */
 import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
 import b0xJS from "../../core/__tests__/setup";
 import Accounts from "../../core/__tests__/accounts";
@@ -65,7 +64,7 @@ describe("loan positions", () => {
       interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
       collateralTokenAddress: constantsZX.NULL_ADDRESS,
       feeRecipientAddress: constantsZX.NULL_ADDRESS,
-      loanTokenAmount: web3.utils.toWei("100000").toString(),
+      loanTokenAmount: web3.utils.toWei("251").toString(),
       interestAmount: web3.utils.toWei("2").toString(),
       initialMarginAmount: "50",
       maintenanceMarginAmount: "25",
@@ -102,11 +101,19 @@ describe("loan positions", () => {
         count: 10
       });
 
-      const loanPositionsNoTimestamp = loanPositions.map(
-        ({ loanStartUnixTimestampSec, ...rest }) => rest
+      /*
+      One thing to keep in mind with tests against takeLoanOrderAsLender or takeLoanOrderAsTrader..
+      to calcuate the amount of collateral token amount required and transfered, b0x does a call to the oracle to get the current exchange rate 
+      (between collateralToken and loanToken), then based on that and the initialMarginAmount, 
+      it calculates and transfers enough collateral token from the trader to satisfy margin requirements. 
+      Since the testnet isn't connected to Kyber to get true token rates, the oracle just randomly generates a bogus rate. 
+      */
+      const loanPositionsNoRandomFields = loanPositions.map(
+        ({ loanStartUnixTimestampSec, collateralTokenAmountFilled, ...rest }) =>
+          rest
       );
 
-      expect(loanPositionsNoTimestamp).toMatchSnapshot();
+      expect(loanPositionsNoRandomFields).toMatchSnapshot();
     });
   });
 });

@@ -1,4 +1,3 @@
-/* globals test, describe, expect, beforeAll */
 import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
 import b0xJS from "../../core/__tests__/setup";
 import Accounts from "../../core/__tests__/accounts";

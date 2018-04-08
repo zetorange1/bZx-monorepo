@@ -1,4 +1,3 @@
-/* globals test, describe, expect */
 import { constants } from "0x.js/lib/src/utils/constants";
 import b0xJS from "../../core/__tests__/setup";
 import * as oracles from "../index";

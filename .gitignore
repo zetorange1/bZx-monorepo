@@ -3,3 +3,5 @@ node_modules
 secrets.js
 *.secret.js
 *.test.json
+.DS_Store
+test_network

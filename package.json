@@ -4,7 +4,7 @@
   "private": true,
   "main": "dist/b0x.js",
   "scripts": {
-    "test": "NODE_ENV=development jest",
+    "test": "NODE_ENV=development jest -i",
     "lint": "eslint src test",
     "lint:fix": "eslint src --fix",
     "prettier:fix": "prettier --write 'src/**/*.js'",
@@ -28,12 +28,15 @@
     "debug": "^3.1.0",
     "eth-sig-util": "^1.4.2",
     "ethereumjs-util": "^5.1.4",
+    "fs-extra": "^5.0.0",
+    "ganache-cli": "^6.1.0",
     "jsonschema": "^1.2.2",
     "lodash": "^4.17.4",
     "moment": "^2.20.1",
     "ramda": "^0.25.0",
     "web3": "^1.0.0-beta.30",
-    "web3-utils": "^1.0.0-beta.33"
+    "web3-utils": "^1.0.0-beta.33",
+    "ziptool": "^1.0.2"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -49,6 +52,7 @@
     "eslint-config-airbnb": "^16.1.0",
     "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-jest": "^21.15.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-prettier": "^2.6.0",
     "eslint-plugin-react": "^7.5.1",

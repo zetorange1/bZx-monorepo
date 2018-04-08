@@ -1,4 +1,3 @@
-/* globals test, describe, expect, beforeAll */
 import { pathOr } from "ramda";
 import b0xJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";

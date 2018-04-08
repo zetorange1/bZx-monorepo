@@ -1,4 +1,3 @@
-/* globals test, expect, describe, beforeEach, afterEach */
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import { pathOr } from "ramda";

@@ -1,4 +1,3 @@
-/* globals test, expect, describe */
 import Web3 from "web3";
 import B0xJS from "../../core";
 
