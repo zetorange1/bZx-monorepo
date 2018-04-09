@@ -36,6 +36,13 @@ const CoinIcon = styled.img`
   margin-top: 6px;
 `;
 
+const CoinInfo = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  text-decoration: none;
+`;
+
 const CoinLabel = styled.div`
   margin-top: 12px;
 
@@ -46,6 +53,11 @@ const CoinLabel = styled.div`
 
 const CoinAmount = styled.div`
   margin-top: 12px;
+`;
+
+const TooltipText = styled.div`
+  font-family: monospace;
+  font-size: 12px;
 `;
 
 export default ({
@@ -68,21 +80,29 @@ export default ({
           <Tooltip title="This is the total amount being loaned or borrowed.">
             <Title>Loan Token</Title>
           </Tooltip>
-          <CoinIcon src={getIconURL(loanToken)} />
-          <CoinLabel>{loanToken.name}</CoinLabel>
-          <CoinAmount>
-            {loanTokenAmount} {loanToken.symbol}
-          </CoinAmount>
+		  <CoinInfo href={`https://ropsten.etherscan.io/token/${loanToken.address}`}>
+		    <CoinIcon src={getIconURL(loanToken)} />
+		    <CoinLabel>{loanToken.name}</CoinLabel>
+		  </CoinInfo>
+          <Tooltip title={<TooltipText>{loanToken.address}</TooltipText>}>
+            <CoinAmount>
+              {loanTokenAmount} {loanToken.symbol}
+            </CoinAmount>
+          </Tooltip>
         </TokenContainer>
         <TokenContainer>
           <Tooltip title="This is the interest amount, paid per day by the borrower.">
             <Title>Interest Token</Title>
           </Tooltip>
-          <CoinIcon src={getIconURL(interestToken)} />
-          <CoinLabel>{interestToken.name}</CoinLabel>
-          <CoinAmount>
-            {interestAmount} {interestToken.symbol}
-          </CoinAmount>
+		  <CoinInfo href={`https://ropsten.etherscan.io/token/${interestToken.address}`}>
+		    <CoinIcon src={getIconURL(interestToken)} />
+		    <CoinLabel>{interestToken.name}</CoinLabel>
+		  </CoinInfo>
+          <Tooltip title={<TooltipText>{interestToken.address}</TooltipText>}>
+            <CoinAmount>
+              {interestAmount} {interestToken.symbol}
+            </CoinAmount>
+          </Tooltip>
         </TokenContainer>
         {role === `trader` && (
           <TokenContainer>
@@ -98,8 +118,10 @@ export default ({
             >
               <Title>Collateral Token</Title>
             </Tooltip>
-            <CoinIcon src={getIconURL(collateralToken)} />
-            <CoinLabel>{collateralToken.name}</CoinLabel>
+		    <CoinInfo href={`https://ropsten.etherscan.io/token/${collateralToken.address}`}>
+		      <CoinIcon src={getIconURL(collateralToken)} />
+		      <CoinLabel>{collateralToken.name}</CoinLabel>
+		    </CoinInfo>
           </TokenContainer>
         )}
       </Container>
