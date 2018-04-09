@@ -43,7 +43,7 @@ export default class Web3Container extends React.Component {
     // Get tokens from the token registry
     let tokens;
     try {
-      tokens = await zeroEx.tokenRegistry.getTokensAsync();
+      tokens = await b0x.getTokenList();
     } catch (err) {
       alert(
         `You may be on the wrong network, please check MetaMask and refresh the page.`

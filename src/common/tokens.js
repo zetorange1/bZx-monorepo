@@ -21,20 +21,14 @@ export const TOKENS = {
   }
 };
 
-const symbolToPNG = {
-  B0X: `b0x.png`,
-  ZRX: `zero_ex.png`,
-  WETH: `ether_erc20.png`
-};
-
 export const getSymbol = (tokens, address) => {
   const tokenData = tokens.filter(t => t.address === address)[0];
   return tokenData.symbol;
 };
 
-export const getIconURL = ({ symbol, address }) => {
-  if (symbolToPNG[symbol]) {
-    return `/static/tokens/${symbolToPNG[symbol]}`;
+export const getIconURL = ({ url, address }) => {
+  if (url) {
+    return url;
   }
   const dataURL = blockies.createDataURL({ seed: address });
   return dataURL;
