@@ -75,18 +75,18 @@ export const doesContractExistAtAddress = async (web3, address) => {
   return !codeIsEmpty;
 };
 
-export const getContractInstance = async (web3, abi, address, gas, gasPrice) => {
+export const getContractInstance = async (
+  web3,
+  abi,
+  address,
+  { gas, gasPrice } = {}
+) => {
   assert.isETHAddressHex("address", address);
   const contractExists = await doesContractExistAtAddress(web3, address);
   if (!contractExists)
     throw new Error(`${Errors.ContractDoesNotExist} ${address}`);
 
-  var options = {
-    "gas": gas ? gas : undefined,
-    "gasPrice": gasPrice ? gasPrice : undefined,
-  }
-
-  const contract = new web3.eth.Contract(abi, address, options);
+  const contract = new web3.eth.Contract(abi, address, { gas, gasPrice });
   return contract;
 };
 
@@ -127,6 +127,4 @@ export const doesConformToSchema = (variableName, value, schema) => {
   assert.assert(!hasValidationErrors, msg);
 };
 
-export const toChecksumAddress = addr => {
-  return Web3Utils.toChecksumAddress(addr);
-};
+export const toChecksumAddress = addr => Web3Utils.toChecksumAddress(addr);
