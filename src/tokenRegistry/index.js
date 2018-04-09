@@ -13,7 +13,7 @@ export const getTokenList = async ({ web3, networkId }) => {
     .getTokenAddresses()
     .call();
 
-  const promises = tokenAddresses.map(async address => {
+  const getTokenPs = tokenAddresses.map(async address => {
     const doesExist = await utils.doesContractExistAtAddress(web3, address);
     if (doesExist) {
       const tokenData = await tokenRegistryContract.methods
@@ -30,7 +30,7 @@ export const getTokenList = async ({ web3, networkId }) => {
     return null;
   });
 
-  const tokensRaw = await Promise.all(promises);
+  const tokensRaw = await Promise.all(getTokenPs);
   const tokens = tokensRaw.filter(token => !!token);
 
   return tokens;
