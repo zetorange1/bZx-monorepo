@@ -85,7 +85,7 @@ export const isTradeSupported = async (
 
   const oracleContract = await utils.getContractInstance(
     web3,
-    getContracts(networkId).B0xOracle.abi,
+    getContracts(networkId).Oracle_Interface.abi,
     oracleAddress
   );
 

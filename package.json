@@ -4,7 +4,7 @@
   "private": true,
   "main": "dist/b0x.js",
   "scripts": {
-    "test": "NODE_ENV=development jest -i",
+    "test": "set NODE_ENV=development && jest -i",
     "lint": "eslint src test",
     "lint:fix": "eslint src --fix",
     "prettier:fix": "prettier --write 'src/**/*.js'",
