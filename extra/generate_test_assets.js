@@ -36,6 +36,7 @@ var addresses = {
 	"TokenRegistry": "unknown",
 	"OracleRegistry": "unknown",
 
+	"Oracle_Interface": "unknown",
 	"EIP20": "unknown",
 };
 
@@ -45,9 +46,8 @@ if (process.argv.length >= 3) {
 }
 
 var addresses_0x = {
-	"ZRXToken": config["protocol"][network]["ZeroEx"]["ZRXToken"],
-	"EtherToken (depreciated)": config["protocol"][network]["ZeroEx"]["EtherToken"],
-	"WETH9": config["protocol"][network]["ZeroEx"]["WETH9"] != "" ? config["protocol"][network]["ZeroEx"]["WETH9"] : config["protocol"][network]["ZeroEx"]["EtherToken"],
+	"ZRXToken": web3.toChecksumAddress(config["protocol"][network]["ZeroEx"]["ZRXToken"]),
+	"WETH": config["protocol"][network]["ZeroEx"]["WETH9"] != "" ? web3.toChecksumAddress(config["protocol"][network]["ZeroEx"]["WETH9"]) : web3.toChecksumAddress(config["protocol"][network]["ZeroEx"]["EtherToken"]),
 }
 
 if (network == "development") {
@@ -69,10 +69,10 @@ Object.keys(addresses).forEach(function(item, index) {
 	var contents = fs.readFileSync("./build/contracts/"+item+".json");
 	var jsonContent = JSON.parse(contents);
 
-	var abi = "";
+	var abi = "[]";
 	try {
 		addresses[item] = "";
-		if (item != "EIP20") {
+		if (item != "Oracle_Interface" && item != "EIP20") {
 			addresses[item] = web3.toChecksumAddress(jsonContent["networks"][networkId]["address"]);
 		}
 		var jsonAsset = {
@@ -92,7 +92,7 @@ Object.keys(addresses).forEach(function(item, index) {
 		console.log(item+".json Error: "+err);
 	}
 
-	if (abi != "") {
+	if (abi != "[]") {
 		/*console.log("address:", address);
 		console.log("abi:", abi);*/
 		fs.writeFile("./html_public_test/abi/"+item+".abi.json", abi, function(err) {
@@ -181,7 +181,7 @@ fs.writeFile("./html_public_test/index.html", outHTML, function(err) {
 Object.keys(addresses_0x).forEach(function(item, index) {
 	fs.writeFileSync("./html_public_test/deployed/"+item+".json", JSON.stringify({
 		"address": addresses_0x[item],
-		"abi": ""
+		"abi": []
 	}), function(err) {
 		if(err) {
 			console.log(item+".json Error: "+err);

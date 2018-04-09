@@ -40,6 +40,11 @@ contract B0xInterface {
 }
 */
 
+interface WETH_Interface {
+    function deposit() public payable;
+    function withdraw(uint wad) public;
+}
+
 contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Debugger, B0xOwnable {
     using SafeMath for uint256;
 
@@ -64,6 +69,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
 
     address public VAULT_CONTRACT;
     address public KYBER_CONTRACT;
+    address public WETH_CONTRACT;
 
     mapping (bytes32 => GasData[]) public gasRefunds; // // mapping of loanOrderHash to array of GasData
 
@@ -73,12 +79,14 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
 
     function B0xOracle(
         address _vault_contract,
-        address _kyber_contract) 
+        address _kyber_contract,
+        address _weth_contract) 
         public
         payable
     {
         VAULT_CONTRACT = _vault_contract;
         KYBER_CONTRACT = _kyber_contract;
+        WETH_CONTRACT = _weth_contract;
 
         // settings for EMACollector
         emaValue = 20 * 10**9 wei; // set an initial price average for gas (20 gwei)
@@ -325,20 +333,39 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
             rate = (uint(block.blockhash(block.number-1)) % 100 + 1).mul(10**18);
         } else {
             uint sourceToEther;
-            (, sourceToEther) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
-                sourceTokenAddress, 
-                KYBER_ETH_TOKEN_ADDRESS,
-                0
-            );
-            
             uint etherToDest;
-            (, etherToDest) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
-                KYBER_ETH_TOKEN_ADDRESS,
-                destTokenAddress, 
-                0
-            );
             
-            rate = sourceToEther.mul(etherToDest).div(10**18);
+            if (sourceTokenAddress == WETH_CONTRACT) {
+                (, etherToDest) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+                    KYBER_ETH_TOKEN_ADDRESS,
+                    destTokenAddress, 
+                    0
+                );
+
+                rate = etherToDest;
+            } else if (destTokenAddress == WETH_CONTRACT) {
+                (, sourceToEther) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+                    sourceTokenAddress, 
+                    KYBER_ETH_TOKEN_ADDRESS,
+                    0
+                );
+
+                rate = sourceToEther;
+            } else {
+                (, sourceToEther) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+                    sourceTokenAddress, 
+                    KYBER_ETH_TOKEN_ADDRESS,
+                    0
+                );
+
+                (, etherToDest) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+                    KYBER_ETH_TOKEN_ADDRESS,
+                    destTokenAddress, 
+                    0
+                );
+
+                rate = sourceToEther.mul(etherToDest).div(10**18);
+            }
         }
     }
 
@@ -434,6 +461,15 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
         KYBER_CONTRACT = newAddress;
     }
 
+    function setWethContractAddress(
+        address newAddress) 
+        public
+        onlyOwner
+    {
+        require(newAddress != WETH_CONTRACT && newAddress != address(0));
+        WETH_CONTRACT = newAddress;
+    }
+
     function setEMAPeriods (
         uint _newEMAPeriods)
         public
@@ -497,47 +533,91 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
                 revert();
             }*/
         } else {
-            // re-up the Kyber spend approval if needed
-            if (EIP20(sourceTokenAddress).allowance.gas(4999)(this, KYBER_CONTRACT) < 
-                MAX_FOR_KYBER) {
-                if (!EIP20(sourceTokenAddress).approve(
-                    KYBER_CONTRACT,
-                    MAX_FOR_KYBER)) {
+            if (sourceTokenAddress == WETH_CONTRACT) {
+                WETH_Interface(WETH_CONTRACT).withdraw(sourceTokenAmount);
+
+                destTokenAmount = KyberNetwork_Interface(KYBER_CONTRACT).trade
+                    .value(sourceTokenAmount)( // send Ether along 
+                    KYBER_ETH_TOKEN_ADDRESS,
+                    sourceTokenAmount,
+                    destTokenAddress,
+                    VAULT_CONTRACT, // b0xVault recieves the destToken
+                    maxDestTokenAmount,
+                    0, // no min coversation rate
+                    address(0)
+                );
+            } else if (destTokenAddress == WETH_CONTRACT) {
+                // re-up the Kyber spend approval if needed
+                if (EIP20(sourceTokenAddress).allowance.gas(4999)(this, KYBER_CONTRACT) < 
+                    MAX_FOR_KYBER) {
+                    if (!EIP20(sourceTokenAddress).approve(
+                        KYBER_CONTRACT,
+                        MAX_FOR_KYBER)) {
+                        revert();
+                    }
+                }
+
+                destTokenAmount = KyberNetwork_Interface(KYBER_CONTRACT).trade(
+                    sourceTokenAddress,
+                    sourceTokenAmount,
+                    KYBER_ETH_TOKEN_ADDRESS,
+                    this, // B0xOracle receives the Ether proceeds
+                    maxDestTokenAmount,
+                    0, // no min coversation rate
+                    address(0)
+                );
+
+                WETH_Interface(WETH_CONTRACT).deposit.value(destTokenAmount)();
+
+                if (!_transferToken(
+                    destTokenAddress,
+                    VAULT_CONTRACT,
+                    destTokenAmount)) {
                     revert();
                 }
-            }
-            
-            uint maxDestEtherAmount = maxDestTokenAmount;
-            if (maxDestTokenAmount < MAX_FOR_KYBER) {
-                uint etherToDest;
-                (, etherToDest) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+            } else {
+                // re-up the Kyber spend approval if needed
+                if (EIP20(sourceTokenAddress).allowance.gas(4999)(this, KYBER_CONTRACT) < 
+                    MAX_FOR_KYBER) {
+                    if (!EIP20(sourceTokenAddress).approve(
+                        KYBER_CONTRACT,
+                        MAX_FOR_KYBER)) {
+                        revert();
+                    }
+                }
+                
+                uint maxDestEtherAmount = maxDestTokenAmount;
+                if (maxDestTokenAmount < MAX_FOR_KYBER) {
+                    uint etherToDest;
+                    (, etherToDest) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+                        KYBER_ETH_TOKEN_ADDRESS,
+                        destTokenAddress, 
+                        0
+                    );
+                    maxDestEtherAmount = maxDestTokenAmount.mul(10**18).div(etherToDest);
+                }
+
+                uint destEtherAmount = KyberNetwork_Interface(KYBER_CONTRACT).trade(
+                    sourceTokenAddress,
+                    sourceTokenAmount,
                     KYBER_ETH_TOKEN_ADDRESS,
-                    destTokenAddress, 
-                    0
+                    this, // B0xOracle receives the Ether proceeds
+                    maxDestEtherAmount,
+                    0, // no min coversation rate
+                    address(0)
                 );
-                maxDestEtherAmount = maxDestTokenAmount.mul(10**18).div(etherToDest);
+
+                destTokenAmount = KyberNetwork_Interface(KYBER_CONTRACT).trade
+                    .value(destEtherAmount)( // send Ether along 
+                    KYBER_ETH_TOKEN_ADDRESS,
+                    destEtherAmount,
+                    destTokenAddress,
+                    VAULT_CONTRACT, // b0xVault recieves the destToken
+                    maxDestTokenAmount,
+                    0, // no min coversation rate
+                    address(0)
+                );
             }
-
-            uint destEtherAmount = KyberNetwork_Interface(KYBER_CONTRACT).trade(
-                sourceTokenAddress,
-                sourceTokenAmount,
-                KYBER_ETH_TOKEN_ADDRESS,
-                this, // B0xOracle receives the Ether proceeds
-                maxDestEtherAmount,
-                0, // no min coversation rate
-                address(0)
-            );
-
-            destTokenAmount = KyberNetwork_Interface(KYBER_CONTRACT).trade
-                .value(destEtherAmount)( // send Ether along 
-                KYBER_ETH_TOKEN_ADDRESS,
-                destEtherAmount,
-                destTokenAddress,
-                VAULT_CONTRACT, // b0xVault recieves the destToken
-                maxDestTokenAmount,
-                0, // no min coversation rate
-                address(0)
-            );
         }
     }
 

@@ -91,8 +91,10 @@ module.exports = function(deployer, network, accounts) {
 				(await collateralToken2.approve(vault.address, MAX_UINT, {from: trader2_account})),
 		  
 				(await interestToken1.transfer(trader1_account, web3.toWei(1000000, "ether"), {from: owner_account})),
+				(await interestToken1.transfer(trader2_account, web3.toWei(1000000, "ether"), {from: owner_account})),
 				(await interestToken2.transfer(trader2_account, web3.toWei(1000000, "ether"), {from: owner_account})),
 				(await interestToken1.approve(vault.address, MAX_UINT, {from: trader1_account})),
+				(await interestToken1.approve(vault.address, MAX_UINT, {from: trader2_account})),
 				(await interestToken2.approve(vault.address, MAX_UINT, {from: trader2_account})),
 
 				/*
@@ -194,8 +196,8 @@ module.exports = function(deployer, network, accounts) {
 					new BN(OrderParams_b0x_1["makerRole"]),
 					new BN(OrderParams_b0x_1["salt"])
 				],
-				collateralToken1.address,
-				web3.toWei(100, "ether"),
+				collateralToken2.address,
+				web3.toWei(20, "ether"),
 				ECSignature_raw_1,
 				{from: trader2_account, gas: 1000000, gasPrice: web3.toWei(20, "gwei")}).then(function(tx) {
 					console.log(tx);

@@ -12,7 +12,7 @@ module.exports = function(deployer, network, accounts) {
 	if (network == "develop" || network == "testnet")
 		network = "development";
 
-	deployer.deploy(B0xOracle, B0xVault.address, config["protocol"][network]["KyberContractAddress"]
+	deployer.deploy(B0xOracle, B0xVault.address, config["protocol"][network]["KyberContractAddress"], config["protocol"][network]["ZeroEx"]["WETH9"]
 		,{from: accounts[0], value: web3.toWei(1, "ether")}).then(async function() { // seeds B0xOracle with 1 Ether
 		
 		var oracle = await B0xOracle.deployed();

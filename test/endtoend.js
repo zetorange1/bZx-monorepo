@@ -4,15 +4,15 @@
 var run = {
   "debug mode": true,
   
-  "should check token registry": false,
+  //"should check token registry": false,
   "should check oracle registry": false,
   "should verify approval": false,
 
   "should generate loanOrderHash (as lender1)": true,
   "should sign and verify orderHash (as lender1)": true,
   "should take sample loan order (as trader1)": true,
-  "should get loan orders (for trader 1)": true,
-  "should get loan positions (for trader 1)": true,
+  "should get loan orders (for lender1)": false,
+  "should get loan positions (for lender1)": false,
 
   "should generate loanOrderHash (as trader2)": false,
   "should sign and verify orderHash (as trader2)": false,
@@ -210,6 +210,7 @@ contract('B0xTest', function(accounts) {
   */
 
 
+  /* TODO: getTokenList has been removed from contract, so this needs updating
   (run["should check token registry"] ? it : it.skip)("should check token registry", async function() {
     // return array of arrays: address[], uint[], uint[], string
     var data = await token_registry.getTokenList.call();
@@ -241,6 +242,7 @@ contract('B0xTest', function(accounts) {
     
     assert.isOk(true);
   });
+  */
 
 
   (run["should check oracle registry"] ? it : it.skip)("should check oracle registry", async function() {
@@ -408,10 +410,10 @@ contract('B0xTest', function(accounts) {
       });
   });
 
-(run["should get loan orders (for trader 1)"] ? it : it.skip)("should get loan orders (for trader 1)", async function() {
+(run["should get loan orders (for lender1)"] ? it : it.skip)("should get loan orders (for lender1)", async function() {
     // return array of arrays: address[], uint[], string
     var data = await b0x.getOrders.call(
-      trader1_account,
+      lender1_account,
       0, // starting item
       10 // max number of items returned
     );
@@ -473,10 +475,10 @@ contract('B0xTest', function(accounts) {
     }
   });
 
-  (run["should get loan positions (for trader 1)"] ? it : it.skip)("should get loan positions (for trader 1)", async function() {
+  (run["should get loan positions (for lender1)"] ? it : it.skip)("should get loan positions (for lender1)", async function() {
     // return array of arrays: address[], uint[], boolean
     var data = await b0x.getLoanPositions.call(
-      trader1_account,
+      lender1_account,
       0, // starting item
       10 // max number of items returned
     );

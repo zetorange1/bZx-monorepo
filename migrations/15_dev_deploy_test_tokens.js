@@ -53,7 +53,7 @@ module.exports = function(deployer, network, accounts) {
 					name,
 					symbol,
 					18,
-					"http://url");
+					"");
 			}
 		});
 	}
