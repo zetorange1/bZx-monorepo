@@ -45,7 +45,7 @@ const AddressLink = styled.a.attrs({
   target: `_blank`,
   rel: `noopener noreferrer`
 })`
-  display: inline-block;
+  //display: inline-block;
   font-family: monospace;
   white-space: nowrap;
   overflow: hidden;
@@ -104,6 +104,7 @@ export default class OrderItem extends React.Component {
     const isUsingRelay =
       order.feeRecipientAddress !==
       `0x0000000000000000000000000000000000000000`;
+
     return (
       <Card>
         <CardContent>
@@ -115,13 +116,8 @@ export default class OrderItem extends React.Component {
           </DataPointContainer>
 
           <DataPointContainer>
-            <Label>Expires</Label>
-            <DataPoint>{`${dateStr} (${date.fromNow()})`}</DataPoint>
-          </DataPointContainer>
-
-          <DataPointContainer>
-            <Label>Role</Label>
-            <DataPoint>{isMaker ? `Maker` : `Lender`}</DataPoint>
+            <Label>Your Role</Label>
+            <DataPoint>{isMaker ? `Maker` : `Taker`}</DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
@@ -138,7 +134,7 @@ export default class OrderItem extends React.Component {
           <DataPointContainer>
             <Label>Interest Amount</Label>
             <DataPoint>
-              {fromBigNumber(order.interestAmount, 1e18)} {interestTokenSymbol}
+              {fromBigNumber(order.interestAmount, 1e18)} {interestTokenSymbol} per day
               {` `}(
               <AddressLink href={interestTokenAddressLink}>
                 {order.interestTokenAddress}
@@ -148,6 +144,7 @@ export default class OrderItem extends React.Component {
 
           <DataPointContainer>
             <Label>Collateral Token</Label>
+            {collateralTokenSymbol != `unknown` ? (
             <DataPoint>
               {collateralTokenSymbol}
               {` `}(
@@ -155,6 +152,11 @@ export default class OrderItem extends React.Component {
                 {order.collateralTokenAddress}
               </AddressLink>)
             </DataPoint>
+            ) : (
+            <DataPoint>
+              (not set by maker)
+            </DataPoint>
+            )}
           </DataPointContainer>
 
           <DataPointContainer>
@@ -176,6 +178,11 @@ export default class OrderItem extends React.Component {
                 </AddressLink>
               </Hash>
             </DataPoint>
+          </DataPointContainer>
+
+          <DataPointContainer>
+            <Label>Expires</Label>
+            <DataPoint>{`${dateStr} (${date.fromNow()})`}</DataPoint>
           </DataPointContainer>
 
           {isUsingRelay && (
