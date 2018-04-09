@@ -11,6 +11,7 @@ import * as Addresses from "../addresses";
 import * as orderHistory from "../orderHistory";
 import * as transfer from "../transfer";
 import * as signature from "../signature";
+import * as Errors from "./constants/errors";
 
 let Web3 = null;
 if (typeof window !== "undefined") {
@@ -28,8 +29,7 @@ export default class B0xJS {
     provider,
     { networkId, addresses = Addresses.getAddresses(networkId) } = {}
   ) {
-    if (!networkId)
-      throw new Error("Missing networkId. Provide a networkId param.");
+    if (!networkId) throw new Error(Errors.NoNetworkId);
 
     assert.isWeb3Provider("provider", provider);
     this.web3 = new Web3(provider);
