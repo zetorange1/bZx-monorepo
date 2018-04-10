@@ -51,7 +51,7 @@ describe("oracles", () => {
       const oracleAddress = Contracts.B0xOracle.address;
       const isSupported = await b0xJS.isTradeSupported({
         sourceTokenAddress: Addresses.ZRXToken,
-        destTokenAddress: Addresses.EtherToken,
+        destTokenAddress: Addresses.WETH,
         oracleAddress
       });
       expect(isSupported).toBe(true);

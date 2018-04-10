@@ -6,7 +6,7 @@ import B0xVault from "./B0xVault.json";
 import EIP20 from "./EIP20.json";
 import OracleRegistry from "./OracleRegistry.json";
 import TokenRegistry from "./TokenRegistry.json";
-
+import OracleInterface from "./Oracle_Interface.json";
 import ZRXToken from "./ZRXToken.json";
 import WETH from "./WETH.json";
 import TokenTransferProxy from "./TokenTransferProxy.json";
@@ -22,5 +22,6 @@ export default {
   TokenRegistry,
   ZRXToken,
   WETH,
-  TokenTransferProxy
+  TokenTransferProxy,
+  OracleInterface
 };
