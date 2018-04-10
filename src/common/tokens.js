@@ -23,7 +23,7 @@ export const TOKENS = {
 
 export const getSymbol = (tokens, address) => {
   const tokenData = tokens.filter(t => t.address === address)[0];
-  return tokenData ? tokenData.symbol : "unknown";
+  return tokenData ? tokenData.symbol : `unknown`;
 };
 
 export const getIconURL = ({ url, address }) => {

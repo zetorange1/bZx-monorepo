@@ -80,10 +80,12 @@ export default ({
           <Tooltip title="This is the total amount being loaned or borrowed.">
             <Title>Loan Token</Title>
           </Tooltip>
-		  <CoinInfo href={`https://ropsten.etherscan.io/token/${loanToken.address}`}>
-		    <CoinIcon src={getIconURL(loanToken)} />
-		    <CoinLabel>{loanToken.name}</CoinLabel>
-		  </CoinInfo>
+          <CoinInfo
+            href={`https://ropsten.etherscan.io/token/${loanToken.address}`}
+          >
+            <CoinIcon src={getIconURL(loanToken)} />
+            <CoinLabel>{loanToken.name}</CoinLabel>
+          </CoinInfo>
           <Tooltip title={<TooltipText>{loanToken.address}</TooltipText>}>
             <CoinAmount>
               {loanTokenAmount} {loanToken.symbol}
@@ -94,10 +96,12 @@ export default ({
           <Tooltip title="This is the interest amount, paid per day by the borrower.">
             <Title>Interest Token</Title>
           </Tooltip>
-		  <CoinInfo href={`https://ropsten.etherscan.io/token/${interestToken.address}`}>
-		    <CoinIcon src={getIconURL(interestToken)} />
-		    <CoinLabel>{interestToken.name}</CoinLabel>
-		  </CoinInfo>
+          <CoinInfo
+            href={`https://ropsten.etherscan.io/token/${interestToken.address}`}
+          >
+            <CoinIcon src={getIconURL(interestToken)} />
+            <CoinLabel>{interestToken.name}</CoinLabel>
+          </CoinInfo>
           <Tooltip title={<TooltipText>{interestToken.address}</TooltipText>}>
             <CoinAmount>
               {interestAmount} {interestToken.symbol}
@@ -118,10 +122,14 @@ export default ({
             >
               <Title>Collateral Token</Title>
             </Tooltip>
-		    <CoinInfo href={`https://ropsten.etherscan.io/token/${collateralToken.address}`}>
-		      <CoinIcon src={getIconURL(collateralToken)} />
-		      <CoinLabel>{collateralToken.name}</CoinLabel>
-		    </CoinInfo>
+            <CoinInfo
+              href={`https://ropsten.etherscan.io/token/${
+                collateralToken.address
+              }`}
+            >
+              <CoinIcon src={getIconURL(collateralToken)} />
+              <CoinLabel>{collateralToken.name}</CoinLabel>
+            </CoinInfo>
           </TokenContainer>
         )}
       </Container>

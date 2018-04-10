@@ -134,7 +134,9 @@ export default class OrderItem extends React.Component {
           <DataPointContainer>
             <Label>Interest Amount</Label>
             <DataPoint>
-              {fromBigNumber(order.interestAmount, 1e18)} {interestTokenSymbol} per day
+              {fromBigNumber(order.interestAmount, 1e18)} {interestTokenSymbol}
+              {` `}
+              per day
               {` `}(
               <AddressLink href={interestTokenAddressLink}>
                 {order.interestTokenAddress}
@@ -144,18 +146,16 @@ export default class OrderItem extends React.Component {
 
           <DataPointContainer>
             <Label>Collateral Token</Label>
-            {collateralTokenSymbol != `unknown` ? (
-            <DataPoint>
-              {collateralTokenSymbol}
-              {` `}(
-              <AddressLink href={collateralTokenAddressLink}>
-                {order.collateralTokenAddress}
-              </AddressLink>)
-            </DataPoint>
+            {collateralTokenSymbol !== `unknown` ? (
+              <DataPoint>
+                {collateralTokenSymbol}
+                {` `}(
+                <AddressLink href={collateralTokenAddressLink}>
+                  {order.collateralTokenAddress}
+                </AddressLink>)
+              </DataPoint>
             ) : (
-            <DataPoint>
-              (not set by maker)
-            </DataPoint>
+              <DataPoint>(not set by maker)</DataPoint>
             )}
           </DataPointContainer>
 
