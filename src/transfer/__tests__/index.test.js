@@ -53,7 +53,7 @@ describe("transfer", () => {
       const { b0xToken } = await FillTestUtils.initAllContractInstances();
       const amount = web3.utils.toWei("1").toString();
 
-      const txHash = await Transfer.transferTokenWithTxHash(
+      const p = await Transfer.transferTokenWithTxHash(
         { web3 },
         {
           tokenAddress: b0xToken.options.address.toLowerCase(),
@@ -62,6 +62,11 @@ describe("transfer", () => {
           txOpts: { from }
         }
       );
+
+      const txHash = await p.txHash();
+      const receipt = await p.receipt();
+      console.log(txHash);
+      console.log(receipt);
       expect(() => {
         assert.isHexString("txHash", txHash);
       }).not.toThrow();
