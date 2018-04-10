@@ -1,12 +1,14 @@
 import { pathOr } from "ramda";
+import { assert } from "@0xproject/assert";
 import b0xJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 import Accounts from "../../core/__tests__/accounts";
-import * as TransferUtils from "./utils";
+import * as TransferTestUtils from "./utils";
+import * as Transfer from "../index";
 
 const { web3 } = b0xJS;
 
-describe("filling orders", () => {
+describe("transfer", () => {
   const from = Accounts[0].address;
   const to = Accounts[1].address;
   let balances = [];
@@ -14,7 +16,7 @@ describe("filling orders", () => {
   beforeAll(async () => {
     const { b0xToken } = await FillTestUtils.initAllContractInstances();
 
-    balances = await TransferUtils.getBalances({
+    balances = await TransferTestUtils.getBalances({
       addresses: [from, to],
       tokenAddress: b0xToken.options.address.toLowerCase()
     });
@@ -38,13 +40,31 @@ describe("filling orders", () => {
         receipt
       );
 
-      const finalBalances = await TransferUtils.getBalances({
+      const finalBalances = await TransferTestUtils.getBalances({
         addresses: [from, to],
         tokenAddress: b0xToken.options.address.toLowerCase()
       });
 
       expect(transferValue).toBe(amount);
       expect(balances[1].plus(amount)).toEqual(finalBalances[1]);
+    });
+
+    test("should emit transactionHash", async () => {
+      const { b0xToken } = await FillTestUtils.initAllContractInstances();
+      const amount = web3.utils.toWei("1").toString();
+
+      const txHash = await Transfer.transferTokenWithTxHash(
+        { web3 },
+        {
+          tokenAddress: b0xToken.options.address.toLowerCase(),
+          to,
+          amount,
+          txOpts: { from }
+        }
+      );
+      expect(() => {
+        assert.isHexString("txHash", txHash);
+      }).not.toThrow();
     });
   });
 });

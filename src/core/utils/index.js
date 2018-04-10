@@ -121,3 +121,8 @@ export const doesConformToSchema = (variableName, value, schema) => {
   )}\nValidation errors: ${validationResult.errors.join(", ")}`;
   assert.assert(!hasValidationErrors, msg);
 };
+
+export const promisifyReturningTxHash = contractMethodSend =>
+  new Promise((resolve, reject) => {
+    contractMethodSend.on("transactionHash", resolve).on("error", reject);
+  });
