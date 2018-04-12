@@ -96,5 +96,5 @@ export default class B0xJS {
   getLoanPositions = async (...props) =>
     orderHistory.getLoanPositions(this, ...props);
 
-  transferToken = async (...props) => transfer.transferToken(this, ...props);
+  transferToken = (...props) => transfer.transferToken(this, ...props);
 }

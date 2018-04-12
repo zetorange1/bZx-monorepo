@@ -4,7 +4,6 @@ import b0xJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 import Accounts from "../../core/__tests__/accounts";
 import * as TransferTestUtils from "./utils";
-import * as Transfer from "../index";
 
 const { web3 } = b0xJS;
 
@@ -23,7 +22,7 @@ describe("transfer", () => {
   });
 
   describe("transferTokens", async () => {
-    test("should return total amount of loanToken borrowed", async () => {
+    test("should return total amount of loanToken borrowed and transfer funds correctly", async () => {
       const { b0xToken } = await FillTestUtils.initAllContractInstances();
       const amount = web3.utils.toWei("1").toString();
 
@@ -49,28 +48,30 @@ describe("transfer", () => {
       expect(balances[1].plus(amount)).toEqual(finalBalances[1]);
     });
 
-    test("should emit transactionHash", async () => {
+    test("should return a web3 PromiEvent", async () => {
       const { b0xToken } = await FillTestUtils.initAllContractInstances();
       const amount = web3.utils.toWei("1").toString();
 
-      const p = await Transfer.transferTokenWithTxHash(
-        { web3 },
-        {
+      const receipt = await b0xJS
+        .transferToken({
           tokenAddress: b0xToken.options.address.toLowerCase(),
           to,
           amount,
           txOpts: { from }
-        }
-      );
-      console.log("p", p);
+        })
+        .on("transactionHash", transactionHash => {
+          expect(() => {
+            assert.isHexString("transactionHash", transactionHash);
+          }).not.toThrow();
+        });
 
-      const transactionHash = await p.transactionHash;
-      const receipt = await p.receipt;
-      console.log(transactionHash);
-      console.log(receipt);
-      expect(() => {
-        assert.isHexString("txHash", transactionHash);
-      }).not.toThrow();
+      const transferValue = pathOr(
+        null,
+        ["events", "Transfer", "returnValues", "value"],
+        receipt
+      );
+
+      expect(transferValue).toBe(amount);
     });
   });
 });
