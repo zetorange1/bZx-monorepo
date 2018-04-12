@@ -26,7 +26,7 @@ export const transferTokenWithTxHash = async (
 
   const p = tokenContract.methods.transfer(to, amount).send(clone(txOpts));
   return {
-    txHash: () => CoreUtils.promisifyReturningTxHash(p),
-    receipt: () => p
+    transactionHash: CoreUtils.promisifyReturningTxHash(p),
+    receipt: p
   };
 };

@@ -62,13 +62,14 @@ describe("transfer", () => {
           txOpts: { from }
         }
       );
+      console.log("p", p);
 
-      const txHash = await p.txHash();
-      const receipt = await p.receipt();
-      console.log(txHash);
+      const transactionHash = await p.transactionHash;
+      const receipt = await p.receipt;
+      console.log(transactionHash);
       console.log(receipt);
       expect(() => {
-        assert.isHexString("txHash", txHash);
+        assert.isHexString("txHash", transactionHash);
       }).not.toThrow();
     });
   });
