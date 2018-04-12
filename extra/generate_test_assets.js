@@ -29,6 +29,7 @@ if (!fs.existsSync("./html_public_test/deployed")) {
 
 var addresses = {
 	"B0x": "unknown",
+	"B0xProxy": "unknown",
 	"B0xVault": "unknown",
 	"B0xTo0x": "unknown",
 	"B0xOracle": "unknown",
@@ -65,9 +66,36 @@ switch(network) {
 		networkId = 50;
 }
 
+var jsonContents = {};
 Object.keys(addresses).forEach(function(item, index) {
 	var contents = fs.readFileSync("./build/contracts/"+item+".json");
 	var jsonContent = JSON.parse(contents);
+
+	try {
+		if (item == "B0xProxy") {
+			if (!jsonContents["B0x"]) {
+				jsonContents["B0x"] = {};
+			}
+			jsonContents["B0x"]["networks"] = jsonContent["networks"];
+			delete addresses[item];
+			return;
+		} else if (item == "B0x") {
+			if (!jsonContents["B0x"]) {
+				jsonContents["B0x"] = {};
+			}
+			jsonContents["B0x"]["abi"] = jsonContent["abi"];
+			return;
+		}
+
+		jsonContents[item] = jsonContent;
+	}
+	catch(err) {
+		console.log(item+".json Error: "+err);
+	}
+});
+
+Object.keys(addresses).forEach(function(item, index) {
+	var jsonContent = jsonContents[item];
 
 	var abi = "[]";
 	try {

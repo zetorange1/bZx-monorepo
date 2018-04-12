@@ -1,8 +1,9 @@
 
-var B0x = artifacts.require("./B0x.sol");
-var B0xVault = artifacts.require("./B0xVault.sol");
-var B0xOracle = artifacts.require("./B0xOracle.sol");
-var B0xToken = artifacts.require("./B0xToken.sol");
+var B0xProxy = artifacts.require("B0xProxy");
+var B0x = artifacts.require("B0x");
+var B0xVault = artifacts.require("B0xVault");
+var B0xOracle = artifacts.require("B0xOracle");
+var B0xToken = artifacts.require("B0xToken");
 
 var fs = require('fs');
 
@@ -52,7 +53,9 @@ module.exports = function(deployer, network, accounts) {
 		var ECSignature_1;
 
 		async function asyncCall() {
-			var b0x = await B0x.deployed();
+			var b0xProxy = await B0xProxy.deployed();
+			var b0x = await B0x.at(b0xProxy.address);
+
 			var vault = await B0xVault.deployed();
 			var oracle = await B0xOracle.deployed();
 			var b0x_token = await B0xToken.deployed();

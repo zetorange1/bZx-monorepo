@@ -1,20 +1,21 @@
 
-var TokenRegistry = artifacts.require("./TokenRegistry.sol");
+var TokenRegistry = artifacts.require("TokenRegistry");
 
-var TestToken0 = artifacts.require("./TestToken0.sol");
-var TestToken1 = artifacts.require("./TestToken1.sol");
-var TestToken2 = artifacts.require("./TestToken2.sol");
-var TestToken3 = artifacts.require("./TestToken3.sol");
-var TestToken4 = artifacts.require("./TestToken4.sol");
-var TestToken5 = artifacts.require("./TestToken5.sol");
-var TestToken6 = artifacts.require("./TestToken6.sol");
-var TestToken7 = artifacts.require("./TestToken7.sol");
-var TestToken8 = artifacts.require("./TestToken8.sol");
-var TestToken9 = artifacts.require("./TestToken9.sol");
+var TestToken0 = artifacts.require("TestToken0");
+var TestToken1 = artifacts.require("TestToken1");
+var TestToken2 = artifacts.require("TestToken2");
+var TestToken3 = artifacts.require("TestToken3");
+var TestToken4 = artifacts.require("TestToken4");
+var TestToken5 = artifacts.require("TestToken5");
+var TestToken6 = artifacts.require("TestToken6");
+var TestToken7 = artifacts.require("TestToken7");
+var TestToken8 = artifacts.require("TestToken8");
+var TestToken9 = artifacts.require("TestToken9");
 
 module.exports = function(deployer, network, accounts) {
 	network = network.replace("-fork", "");
-
+	
+	//if (true) return;
 	if (network == "develop" || network == "development" || network == "testnet") {
 		network = "development";
 

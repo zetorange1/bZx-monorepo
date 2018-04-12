@@ -1,7 +1,7 @@
 
-var TokenRegistry = artifacts.require("./TokenRegistry.sol");
+var TokenRegistry = artifacts.require("TokenRegistry");
 
-var B0xToken = artifacts.require("./B0xToken.sol");
+var B0xToken = artifacts.require("B0xToken");
 
 var config = require('../../config/secrets.js');
 

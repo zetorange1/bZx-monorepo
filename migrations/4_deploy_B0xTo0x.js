@@ -1,5 +1,5 @@
 
-var B0xTo0x = artifacts.require("./B0xTo0x.sol");
+var B0xTo0x = artifacts.require("B0xTo0x");
 
 var config = require('../../config/secrets.js');
 

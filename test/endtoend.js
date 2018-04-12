@@ -11,17 +11,17 @@ var run = {
   "should generate loanOrderHash (as lender1)": true,
   "should sign and verify orderHash (as lender1)": true,
   "should take sample loan order (as trader1)": true,
-  "should get loan orders (for lender1)": false,
-  "should get loan positions (for lender1)": false,
+  "should get loan orders (for lender1)": true,
+  "should get loan positions (for lender1)": true,
 
   "should generate loanOrderHash (as trader2)": false,
   "should sign and verify orderHash (as trader2)": false,
   "should take sample loan order (as lender2)": false,
 
-  "should generate 0x order": false,
-  "should sign and verify 0x order": false,
-  "should trade position with 0x order": false,
-  "should trade position with oracle": false,
+  "should generate 0x order": true,
+  "should sign and verify 0x order": true,
+  "should trade position with 0x order": true,
+  "should trade position with oracle": true,
   /*"should test LoanOrder bytes": false,
   "should test Loan bytes": false,
   "should test Position bytes": false,*/
@@ -44,11 +44,14 @@ let B0xTo0x = artifacts.require("B0xTo0x");
 let B0xOracle = artifacts.require("B0xOracle");
 let B0xOracleRegistry = artifacts.require("OracleRegistry");
 let B0xTokenRegistry = artifacts.require("TokenRegistry");
-let B0x = artifacts.require("B0x");
 let B0xToken = artifacts.require("B0xToken");
 let ERC20 = artifacts.require("ERC20"); // for testing with any ERC20 token
 let BaseToken = artifacts.require("BaseToken");
 let Exchange0x = artifacts.require("Exchange_Interface");
+
+let B0xProxy = artifacts.require("B0xProxy"); // b0x proxy
+let B0x = artifacts.require("B0x"); // B0x interface
+
 
 let currentGasPrice = 20000000000; // 20 gwei
 let currentEthPrice = 1000; // USD
@@ -60,12 +63,13 @@ const NONNULL_ADDRESS = "0x0000000000000000000000000000000000000001";
 
 contract('B0xTest', function(accounts) {
   var vault;
-  var b0x;
   var oracle;
   var oracle_registry;
   var b0x_token;
   var b0xTo0x;
   var token_registry;
+
+  var b0x;
 
   var test_tokens = [];
 
@@ -127,8 +131,9 @@ contract('B0xTest', function(accounts) {
       (b0xTo0x = await B0xTo0x.deployed()),
       (oracle_registry = await B0xOracleRegistry.deployed()),
       (token_registry = await B0xTokenRegistry.deployed()),
-      (b0x = await B0x.deployed()),
       (oracle = await B0xOracle.deployed()),
+
+      (b0x = await B0x.at((await B0xProxy.deployed()).address)),
 
       (zrx_token = await ERC20.at(config["protocol"]["development"]["ZeroEx"]["ZRXToken"])),
       (exchange_0x = await Exchange0x.at(config["protocol"]["development"]["ZeroEx"]["Exchange"])),

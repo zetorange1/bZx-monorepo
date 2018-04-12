@@ -8,44 +8,18 @@ import '../modifiers/B0xOwnable.sol';
 import '../modifiers/EMACollector.sol';
 import '../modifiers/GasRefunder.sol';
 import '../B0xVault.sol';
-import '../shared/B0xTypes.sol';
 import '../shared/Debugger.sol';
 
 import '../tokens/EIP20.sol';
 import '../interfaces/Oracle_Interface.sol';
 import '../interfaces/KyberNetwork_Interface.sol';
 
-/*
-// used for getting data from b0x
-contract B0xInterface {
-    function getLoanOrderParts (
-        bytes32 loanOrderHash)
-        public
-        view
-        returns (address[6],uint[9]);
-
-    function getLoanParts (
-        bytes32 loanOrderHash,
-        address trader)
-        public
-        view
-        returns (address,uint[4],bool);
-
-    function getPositionParts (
-        bytes32 loanOrderHash,
-        address trader)
-        public
-        view
-        returns (address,uint[4],bool);
-}
-*/
-
 interface WETH_Interface {
     function deposit() public payable;
     function withdraw(uint wad) public;
 }
 
-contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Debugger, B0xOwnable {
+contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0xOwnable {
     using SafeMath for uint256;
 
     // this is the value the Kyber portal uses when setting a very high maximum number for appr
@@ -633,35 +607,4 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, B0xTypes, Deb
 
         return true;
     }
-
-    /*
-    * Internal View functions
-    */
-
-    /*function getLoanOrder (
-        bytes32 loanOrderHash)
-        internal
-        view
-        returns (LoanOrder)
-    {
-        address[6] addrs;
-        uint[7] uints;
-        (addrs, uints) = B0xInterface(b0xContractAddress).getLoanOrderParts(loanOrderHash);
-
-        return buildLoanOrderStruct(loanOrderHash, addrs, uints);
-    }
-
-    function getLoanPosition (
-        bytes32 loanOrderHash,
-        address trader)
-        internal
-        view
-        returns (Position)
-    {
-        address[4] addrs;
-        uint[5] uints;
-        (addrs, uints) = B0xInterface(b0xContractAddress).getLoanPositionParts(loanOrderHash, trader);
-
-        return buildLoanPositionStruct(addrs, uints);
-    }*/
 }

@@ -16,14 +16,14 @@ module.exports = {
       host: "localhost",
       port: 8545,
       network_id: "50",
-      gas: 7000000,
+      gas: 4712388,
       gasPrice: 20000000000
     },
     testnet: {
       host: "localhost",
       port: 8545,
       network_id: "50",
-      gas: 7000000,
+      gas: 4712388,
       gasPrice: 20000000000
     },
     ropsten: {
