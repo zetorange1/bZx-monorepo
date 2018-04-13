@@ -68,6 +68,17 @@ const TooltipText = styled.div`
   font-size: 12px;
 `;
 
+const TxHashLink = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  font-family: monospace;
+  display: block;
+  text-overflow: ellipsis;
+  overflow: auto;
+}
+`;
+
 export default class TrackedTokenItems extends React.Component {
   state = {
     showSendDialog: false,
@@ -116,15 +127,26 @@ export default class TrackedTokenItems extends React.Component {
   sendTokens = async () => {
     const { b0x, token, accounts, updateTrackedTokens } = this.props;
     const { recipientAddress, sendAmount } = this.state;
-    const receipt = await b0x.transferToken({
-      tokenAddress: token.address,
-      to: recipientAddress.toLowerCase(),
-      amount: toBigNumber(sendAmount, 1e18),
-      txOpts: { from: accounts[0] }
-    });
-    console.log(receipt);
+    b0x
+      .transferToken({
+        tokenAddress: token.address,
+        to: recipientAddress.toLowerCase(),
+        amount: toBigNumber(sendAmount, 1e18),
+        txOpts: { from: accounts[0] }
+      })
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`https://ropsten.etherscan.io/tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        alert(error);
+      });
     this.setState({ showSendDialog: false });
-    alert(`Sent!`);
     setTimeout(() => updateTrackedTokens(true), 5000);
   };
 
@@ -135,27 +157,49 @@ export default class TrackedTokenItems extends React.Component {
 
   approve = async () => {
     const { b0x, token, accounts } = this.props;
-    this.setState({ approvalLoading: true });
     console.log(`approving allowance`);
     console.log(token.name, token.address);
-    const receipt = await b0x.setAllowanceUnlimited({
-      tokenAddress: token.address,
-      ownerAddress: accounts[0].toLowerCase()
-    });
-    console.log(receipt);
+    b0x
+      .setAllowanceUnlimited({
+        tokenAddress: token.address,
+        ownerAddress: accounts[0].toLowerCase()
+      })
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`https://ropsten.etherscan.io/tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        alert(error);
+      });
     setTimeout(() => this.checkAllowance(), 5000);
   };
 
   unapprove = async () => {
     const { b0x, token, accounts } = this.props;
-    this.setState({ approvalLoading: true });
     console.log(`unapproving allowance`);
     console.log(token.name, token.address);
-    const receipt = await b0x.resetAllowance({
-      tokenAddress: token.address,
-      ownerAddress: accounts[0].toLowerCase()
-    });
-    console.log(receipt);
+    b0x
+      .resetAllowance({
+        tokenAddress: token.address,
+        ownerAddress: accounts[0].toLowerCase()
+      })
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`https://ropsten.etherscan.io/tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        alert(error);
+      });
     setTimeout(() => this.checkAllowance(), 5000);
   };
 
