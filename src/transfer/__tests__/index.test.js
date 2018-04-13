@@ -1,9 +1,9 @@
 import { pathOr } from "ramda";
-import { assert } from "@0xproject/assert";
 import b0xJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 import Accounts from "../../core/__tests__/accounts";
 import * as TransferTestUtils from "./utils";
+import { expectPromiEvent } from "../../core/__tests__/utils";
 
 const { web3 } = b0xJS;
 
@@ -52,26 +52,14 @@ describe("transfer", () => {
       const { b0xToken } = await FillTestUtils.initAllContractInstances();
       const amount = web3.utils.toWei("1").toString();
 
-      const receipt = await b0xJS
-        .transferToken({
-          tokenAddress: b0xToken.options.address.toLowerCase(),
-          to,
-          amount,
-          txOpts: { from }
-        })
-        .on("transactionHash", transactionHash => {
-          expect(() => {
-            assert.isHexString("transactionHash", transactionHash);
-          }).not.toThrow();
-        });
+      const promiEvent = b0xJS.transferToken({
+        tokenAddress: b0xToken.options.address.toLowerCase(),
+        to,
+        amount,
+        txOpts: { from }
+      });
 
-      const transferValue = pathOr(
-        null,
-        ["events", "Transfer", "returnValues", "value"],
-        receipt
-      );
-
-      expect(transferValue).toBe(amount);
+      expectPromiEvent(promiEvent);
     });
   });
 });
