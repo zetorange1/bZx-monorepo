@@ -11,14 +11,10 @@ const checkForValidSignature = order => {
   });
 };
 
-export const takeLoanOrderAsLender = async (
-  { web3, networkId },
-  order,
-  txOpts
-) => {
+export const takeLoanOrderAsLender = ({ web3, networkId }, order, txOpts) => {
   checkForValidSignature(order);
 
-  const b0xContract = await CoreUtils.getContractInstance(
+  const b0xContract = CoreUtils.getContractInstance(
     web3,
     getContracts(networkId).B0x.abi,
     Addresses.getAddresses(networkId).B0x
@@ -54,7 +50,7 @@ export const takeLoanOrderAsLender = async (
     });
 };
 
-export const takeLoanOrderAsTrader = async (
+export const takeLoanOrderAsTrader = (
   { web3, networkId },
   order,
   collateralTokenAddress,
@@ -63,7 +59,7 @@ export const takeLoanOrderAsTrader = async (
 ) => {
   checkForValidSignature(order);
 
-  const b0xContract = await CoreUtils.getContractInstance(
+  const b0xContract = CoreUtils.getContractInstance(
     web3,
     getContracts(networkId).B0x.abi,
     Addresses.getAddresses(networkId).B0x

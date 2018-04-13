@@ -86,10 +86,10 @@ export default class B0xJS {
   isTradeSupported = async (...props) =>
     oracles.isTradeSupported(this, ...props);
 
-  takeLoanOrderAsLender = async (...props) =>
+  takeLoanOrderAsLender = (...props) =>
     fill.takeLoanOrderAsLender(this, ...props);
 
-  takeLoanOrderAsTrader = async (...props) =>
+  takeLoanOrderAsTrader = (...props) =>
     fill.takeLoanOrderAsTrader(this, ...props);
 
   getOrders = async (...props) => orderHistory.getOrders(this, ...props);
