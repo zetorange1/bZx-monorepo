@@ -41,20 +41,21 @@ const ContentContainer = styled.div`
 `;
 
 export default class Layout extends React.Component {
-  state = { showAlertDialog: false, alertText: `` };
+  state = { showAlertDialog: false, alertText: ``, alertComponent: null };
 
   componentDidMount = () => {
-    alert = x => this.showAlert(x);
+    alert = (text, { component }) => this.showAlert(text, component);
   };
 
-  showAlert = text => {
-    this.setState({ alertText: text, showAlertDialog: true });
+  showAlert = (text, alertComponent = null) => {
+    this.setState({ alertText: text, showAlertDialog: true, alertComponent });
     console.error(text);
   };
 
   hideAlert = () => this.setState({ showAlertDialog: false });
 
   render() {
+    const AlertComponent = this.state.alertComponent;
     return (
       <Container>
         <Nav />
@@ -66,6 +67,7 @@ export default class Layout extends React.Component {
           <DialogTitle>Alert</DialogTitle>
           <DialogContent>
             <DialogContentText>{this.state.alertText}</DialogContentText>
+            {AlertComponent && <AlertComponent />}
           </DialogContent>
           <DialogActions>
             <Button onClick={this.hideAlert} color="primary">
