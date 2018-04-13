@@ -53,6 +53,24 @@ contract B0xObjects {
         uint maintenanceMarginAmount,
         uint currentMarginAmount
     );
+
+    event LogWithdrawProfit(
+        bytes32 loanOrderHash,
+        address trader,
+        uint profit
+    );
+
+    // for debugging
+    /*event MarginCalc(
+        address exposureTokenAddress,
+        address collateralTokenAddress,
+        address oracleAddress,
+        uint exposureTokenAmount,
+        uint collateralTokenAmount,
+        uint marginAmount,
+        uint rate,
+        uint otherAmount
+    );*/
     
     struct LoanOrder {
         address maker;

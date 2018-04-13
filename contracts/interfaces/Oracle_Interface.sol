@@ -82,6 +82,19 @@ interface Oracle_Interface {
         public
         returns (bool);
 
+    /// @dev Called by b0x after a borrower has withdrawn excess collateral
+    /// @dev token for an open loan
+    /// @param loanOrderHash A unique hash representing the loan order.
+    /// @param borrower The borrower
+    /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
+    /// @return Successful execution of the function
+    function didWithdrawCollateral(
+        bytes32 loanOrderHash,
+        address borrower,
+        uint gasUsed)
+        public
+        returns (bool);
+
     /// @dev Called by b0x after a borrower has changed the collateral token
     /// @dev used for an open loan
     /// @param loanOrderHash A unique hash representing the loan order
@@ -91,6 +104,20 @@ interface Oracle_Interface {
     function didChangeCollateral(
         bytes32 loanOrderHash,
         address borrower,
+        uint gasUsed)
+        public
+        returns (bool);
+
+    /// @dev Called by b0x after a borrower has withdraw their profits, if any
+    /// @dev used for an open loan
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param borrower The borrower
+    /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
+    /// @return Successful execution of the function
+    function didWithdrawProfit(
+        bytes32 loanOrderHash,
+        address borrower,
+        uint profitOrLoss,
         uint gasUsed)
         public
         returns (bool);
@@ -123,18 +150,20 @@ interface Oracle_Interface {
 
     /// @dev Verifies a position has fallen below margin maintenance
     /// @dev then liquidates the position on-chain
-    /// @param sourceTokenAddress The token being sold
-    /// @param destTokenAddress The token being bought
-    /// @param collateralTokenAddress The collateral token from the loan
-    /// @param sourceTokenAmount The amount of token being sold
-    /// @param collateralTokenAmount The collateral token amount from the loan
+    /// @param loanTokenAddress The token that was loaned
+    /// @param positionTokenAddress The token in the current position (could also be the loanToken)
+    /// @param collateralTokenAddress The token used for collateral
+    /// @param loanTokenAmount The amount of loan token
+    /// @param positionTokenAmount The amount of position token
+    /// @param collateralTokenAmount The amount of collateral token
     /// @param maintenanceMarginAmount The maintenance margin amount from the loan
     /// @return The amount of destToken bought
-    function verifyAndDoTrade(
-        address sourceTokenAddress, // typically tradeToken
-        address destTokenAddress,   // typically loanToken
+    function verifyAndLiquidate(
+        address loanTokenAddress,
+        address positionTokenAddress,
         address collateralTokenAddress,
-        uint sourceTokenAmount,
+        uint loanTokenAmount,
+        uint positionTokenAmount,
         uint collateralTokenAmount,
         uint maintenanceMarginAmount)
         public
@@ -158,18 +187,22 @@ interface Oracle_Interface {
     /// @dev maintenance and should be liquidated
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The address of the trader
-    /// @param exposureTokenAddress The token at risk (typically the loan token)
-    /// @param collateralTokenAddress The token used as collateral
-    /// @param exposureTokenAmount The amount of token at risk
+    /// @param loanTokenAddress The token that was loaned
+    /// @param positionTokenAddress The token in the current position (could also be the loanToken)
+    /// @param collateralTokenAddress The token used for collateral
+    /// @param loanTokenAmount The amount of loan token
+    /// @param positionTokenAmount The amount of position token
     /// @param collateralTokenAmount The amount of collateral token
     /// @param maintenanceMarginAmount The maintenance margin amount from the loan
     /// @return Returns True if the trade should be liquidated immediately
     function shouldLiquidate(
         bytes32 loanOrderHash,
         address trader,
-        address exposureTokenAddress,
+        address loanTokenAddress,
+        address positionTokenAddress,
         address collateralTokenAddress,
-        uint exposureTokenAmount,
+        uint loanTokenAmount,
+        uint positionTokenAmount,
         uint collateralTokenAmount,
         uint maintenanceMarginAmount)
         public
@@ -187,16 +220,35 @@ interface Oracle_Interface {
         view 
         returns (uint);
 
+    /// @dev Returns the profit/loss data for the current position
+    /// @param positionTokenAddress The token in the current position (could also be the loanToken)
+    /// @param loanTokenAddress The token that was loaned
+    /// @param positionTokenAmount The amount of position token
+    /// @param loanTokenAmount The amount of loan token
+    /// @return isProfit, profitOrLoss (denominated in loanToken), positionToLoanAmount, positionToLoanRate
+    function getProfitOrLoss(
+        address positionTokenAddress,
+        address loanTokenAddress,
+        uint positionTokenAmount,
+        uint loanTokenAmount)
+        public
+        view
+        returns (bool isProfit, uint profitOrLoss, uint positionToLoanAmount, uint positionToLoanRate);
+
     /// @dev Returns the current margin level for this particular loan/position
-    /// @param exposureTokenAddress The token at risk (typically the loan token)
-    /// @param collateralTokenAddress The token used as collateral
-    /// @param exposureTokenAmount The amount of token at risk
+    /// @param loanTokenAddress The token that was loaned
+    /// @param positionTokenAddress The token in the current position (could also be the loanToken)
+    /// @param collateralTokenAddress The token used for collateral
+    /// @param loanTokenAmount The amount of loan token
+    /// @param positionTokenAmount The amount of position token
     /// @param collateralTokenAmount The amount of collateral token
     /// @return The current margin amount
     function getCurrentMarginAmount(
-        address exposureTokenAddress,
+        address loanTokenAddress,
+        address positionTokenAddress,
         address collateralTokenAddress,
-        uint exposureTokenAmount,
+        uint loanTokenAmount,
+        uint positionTokenAmount,
         uint collateralTokenAmount)
         public
         view

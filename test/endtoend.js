@@ -22,6 +22,7 @@ var run = {
   "should sign and verify 0x order": true,
   "should trade position with 0x order": true,
   "should trade position with oracle": true,
+  "should withdraw profits": true,
   /*"should test LoanOrder bytes": false,
   "should test Loan bytes": false,
   "should test Position bytes": false,*/
@@ -672,7 +673,7 @@ contract('B0xTest', function(accounts) {
       "taker": NULL_ADDRESS,
       "takerFee": web3.toWei(0.0013, "ether").toString(),
       "takerTokenAddress": loanToken1.address,
-      "takerTokenAmount": web3.toWei(20.1, "ether").toString(),
+      "takerTokenAmount": web3.toWei(90, "ether").toString(),
     };
     console.log(OrderParams_0x);
 
@@ -782,7 +783,24 @@ contract('B0xTest', function(accounts) {
       });
   });
 
-
+  (run["should withdraw profits"] ? it : it.skip)("should withdraw profits", function(done) {
+    b0x.withdrawProfit(
+      OrderHash_b0x_1,
+      {from: trader1_account}).then(function(tx) {
+        //console.log(tx);
+        tx_obj = tx;
+        return gasRefundEvent.get();
+      }).then(function(caughtEvents) {
+        console.log(txPrettyPrint(tx_obj,"should withdraw profits",caughtEvents));
+        assert.isOk(true);
+        done();
+      }, function(error) {
+        console.error(error);
+        assert.isOk(false);
+        done();
+      });
+  });
+  
 
   /*(run["should test LoanOrder bytes"] ? it : it.skip)("should test LoanOrder bytes", function(done) {
     b0x.getLoanOrderByteData.call(
