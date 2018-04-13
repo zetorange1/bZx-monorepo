@@ -1,6 +1,18 @@
+import styled from "styled-components";
 import B0xJS from "b0x.js";  // eslint-disable-line
 import { getTrackedTokens } from "../../common/trackedTokens";
 import { toBigNumber } from "../../common/utils";
+
+const TxHashLink = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  font-family: monospace;
+  display: block;
+  text-overflow: ellipsis;
+  overflow: auto;
+}
+`;
 
 export const getOrderHash = order => B0xJS.getLoanOrderHashHex(order);
 
@@ -110,14 +122,48 @@ export const submitFillOrder = async (
 
   let receipt;
   if (makerIsLender) {
-    receipt = await b0x.takeLoanOrderAsTrader(
-      order,
-      collateralTokenAddress,
-      toBigNumber(fillOrderAmount, 1e18),
-      txOpts
-    );
+    // receipt = await b0x.takeLoanOrderAsTrader(
+    //   order,
+    //   collateralTokenAddress,
+    //   toBigNumber(fillOrderAmount, 1e18),
+    //   txOpts
+    // );
+
+    b0x
+      .takeLoanOrderAsTrader(
+        order,
+        collateralTokenAddress,
+        toBigNumber(fillOrderAmount, 1e18),
+        txOpts
+      )
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`https://ropsten.etherscan.io/tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        alert(error);
+      });
   } else {
-    receipt = await b0x.takeLoanOrderAsLender(order, txOpts);
+    // receipt = await b0x.takeLoanOrderAsLender(order, txOpts);
+    b0x
+      .takeLoanOrderAsLender(order, txOpts)
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`https://ropsten.etherscan.io/tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        alert(error);
+      });
   }
 
   console.log(receipt);
