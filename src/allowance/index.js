@@ -6,7 +6,7 @@ import * as Addresses from "../addresses";
 
 const erc20Abi = Contracts.EIP20.abi;
 
-export const setAllowance = async (
+export const setAllowance = (
   { web3, networkId },
   {
     tokenAddress,
@@ -23,20 +23,12 @@ export const setAllowance = async (
   assert.isETHAddressHex("tokenAddress", tokenAddress);
   assert.isValidBaseUnitAmount("amountInBaseUnits", amountInBaseUnits);
 
-  const tokenContract = await utils.getContractInstance(
-    web3,
-    erc20Abi,
-    tokenAddress
-  );
-  const receipt = await tokenContract.methods
-    .approve(spenderAddress, amountInBaseUnits)
-    .send({
-      from: ownerAddress,
-      gas: txOpts.gasLimit,
-      gasPrice: txOpts.gasPrice
-    });
-
-  return receipt;
+  const tokenContract = utils.getContractInstance(web3, erc20Abi, tokenAddress);
+  return tokenContract.methods.approve(spenderAddress, amountInBaseUnits).send({
+    from: ownerAddress,
+    gas: txOpts.gasLimit,
+    gasPrice: txOpts.gasPrice
+  });
 };
 
 export const getAllowance = async (
