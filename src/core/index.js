@@ -53,15 +53,15 @@ export default class B0xJS {
   signOrderHashAsync = async (...props) =>
     signature.signOrderHashAsync(this, ...props);
 
-  setAllowance = async (...props) => allowance.setAllowance(this, ...props);
+  setAllowance = (...props) => allowance.setAllowance(this, ...props);
 
-  setAllowanceUnlimited = async props =>
+  setAllowanceUnlimited = props =>
     this.setAllowance({
       ...props,
       amountInBaseUnits: constants.UNLIMITED_ALLOWANCE_IN_BASE_UNITS
     });
 
-  resetAllowance = async props =>
+  resetAllowance = props =>
     this.setAllowance({
       ...props,
       amountInBaseUnits: new BigNumber(0)

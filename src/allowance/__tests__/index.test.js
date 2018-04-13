@@ -4,6 +4,7 @@ import { pathOr } from "ramda";
 import { local as Contracts } from "../../contracts";
 import b0xJS from "../../core/__tests__/setup";
 import Accounts from "../../core/__tests__/accounts";
+import { expectPromiEvent } from "../../core/__tests__/utils";
 
 describe("allowance", () => {
   const tokenAddress = Contracts.TestToken0.address;
@@ -27,7 +28,6 @@ describe("allowance", () => {
       const receipt = await b0xJS.setAllowance({
         tokenAddress,
         ownerAddress,
-
         amountInBaseUnits: ALLOWANCE_AMOUNT
       });
 
@@ -38,6 +38,15 @@ describe("allowance", () => {
       );
 
       expect(new BigNumber(value)).toEqual(ALLOWANCE_AMOUNT);
+    });
+
+    test("should return a web3 PromiEvent", async () => {
+      const promiEvent = b0xJS.setAllowance({
+        tokenAddress,
+        ownerAddress,
+        amountInBaseUnits: ALLOWANCE_AMOUNT
+      });
+      expectPromiEvent(promiEvent);
     });
 
     test("should set spender's allowance", async () => {
@@ -75,6 +84,14 @@ describe("allowance", () => {
 
       expect(allowance).toEqual(expectedAllowance);
     });
+
+    test("should return a web3 PromiEvent", async () => {
+      const promiEvent = b0xJS.setAllowanceUnlimited({
+        tokenAddress,
+        ownerAddress
+      });
+      expectPromiEvent(promiEvent);
+    });
   });
 
   describe("getAllowance", () => {
@@ -106,6 +123,15 @@ describe("allowance", () => {
       });
 
       expect(res).toEqual(new BigNumber(0));
+    });
+
+    test("should return a web3 PromiEvent", async () => {
+      const promiEvent = b0xJS.resetAllowance({
+        tokenAddress,
+        ownerAddress
+      });
+
+      expectPromiEvent(promiEvent);
     });
   });
 });
