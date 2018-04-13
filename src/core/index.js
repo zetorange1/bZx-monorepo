@@ -3,6 +3,7 @@ import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import { schemas } from "../schemas/b0x_json_schemas";
 import * as utils from "./utils";
+import * as tokenRegistry from "../tokenRegistry";
 import EIP20 from "../contracts/EIP20.json";
 import * as allowance from "../allowance";
 import * as oracles from "../oracles";
@@ -22,8 +23,9 @@ if (typeof window !== "undefined") {
 export default class B0xJS {
   static generatePseudoRandomSalt = utils.generatePseudoRandomSalt;
   static noop = utils.noop;
+  static toChecksumAddress = utils.toChecksumAddress;
 
-  /* On Metamask, provider.host is undefined 
+  /* On Metamask, provider.host is undefined
   Force users to provide host url */
   constructor(
     provider,
@@ -81,6 +83,8 @@ export default class B0xJS {
     const balance = await tokenContract.methods.balanceOf(ownerAddress).call();
     return new BigNumber(balance);
   };
+
+  getTokenList = async () => tokenRegistry.getTokenList(this);
 
   getOracleList = async () => oracles.getOracleList(this);
   isTradeSupported = async (...props) =>

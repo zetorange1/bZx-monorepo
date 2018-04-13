@@ -17,8 +17,7 @@ const networksRaw = {
 };
 const networks = map(network => toLowerCase(network), networksRaw);
 
-const { local, ropsten, kovan, rinkeby } = networks;
-export { local, ropsten, kovan, rinkeby };
+export const { local, ropsten, kovan, rinkeby } = networks;
 
 const networksById = {
   3: ropsten,

@@ -23,6 +23,7 @@ describe("config", () => {
         B0xVault: "thisisatest",
         EIP20: "thisisatest",
         OracleRegistry: "thisisatest",
+        OracleInterface: "thisisatest",
         TestToken0: "thisisatest",
         TestToken1: "thisisatest",
         TestToken2: "thisisatest",

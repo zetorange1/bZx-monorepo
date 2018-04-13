@@ -117,7 +117,4 @@ export const doesConformToSchema = (variableName, value, schema) => {
   assert.assert(!hasValidationErrors, msg);
 };
 
-export const promisifyReturningTxHash = contractMethodSend =>
-  new Promise((resolve, reject) => {
-    contractMethodSend.on("transactionHash", resolve).on("error", reject);
-  });
+export const toChecksumAddress = addr => Web3Utils.toChecksumAddress(addr);

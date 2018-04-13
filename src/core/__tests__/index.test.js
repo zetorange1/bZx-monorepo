@@ -22,6 +22,14 @@ describe("generatePseudoRandomSalt", () => {
   });
 });
 
+describe("toChecksumAddress", () => {
+  test("should convert to checksum address", () => {
+    expect("0x9Bffd1579bd6760a186fFf1A720f2a5dB35dE0f4").toEqual(
+      B0xJS.toChecksumAddress("0x9bffd1579bd6760a186fff1a720f2a5db35de0f4")
+    );
+  });
+});
+
 describe("getContractInstance", () => {
   test("should create web3 contract instance", async () => {
     const tokenContract = await utils.getContractInstance(
