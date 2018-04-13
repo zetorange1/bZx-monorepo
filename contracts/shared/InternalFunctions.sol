@@ -10,40 +10,29 @@ import "../interfaces/Oracle_Interface.sol";
 contract InternalFunctions is B0xStorage {
     using SafeMath for uint256;
 
-    // for debugging
-    /*event MarginCalc(
-        address exposureTokenAddress,
+    function _getInitialCollateralRequired(
+        address loanTokenAddress,
         address collateralTokenAddress,
         address oracleAddress,
-        uint exposureTokenAmount,
-        uint collateralTokenAmount,
-        uint marginAmount,
-        uint rate,
-        uint otherAmount
-    );*/
-
-    function _getInitialMarginRequired(
-        address positionTokenAddress,
-        address collateralTokenAddress,
-        address oracleAddress,
-        uint positionTokenAmount,
+        uint loanTokenAmountFilled,
         uint initialMarginAmount)
         internal
         view
         returns (uint collateralTokenAmount)
     {
-        uint positionToCollateralRate = Oracle_Interface(oracleAddress).getTradeRate(
-            positionTokenAddress,
+        uint loanToCollateralRate = Oracle_Interface(oracleAddress).getTradeRate(
+            loanTokenAddress,
             collateralTokenAddress
         );
-        if (positionToCollateralRate == 0) {
+        if (loanToCollateralRate == 0) {
             return 0;
         }
         
-        collateralTokenAmount = positionTokenAmount
-                                    .mul(positionToCollateralRate)
-                                    .div(10**20)
-                                    .mul(initialMarginAmount);
+        collateralTokenAmount = loanTokenAmountFilled
+                                    .mul(loanToCollateralRate)
+                                    .div(10**18)
+                                    .mul(initialMarginAmount)
+                                    .div(100);
     }
 
     function _getTotalInterestRequired(
@@ -165,10 +154,11 @@ contract InternalFunctions is B0xStorage {
 
         uint tradeTokenAmountReceived;
         if (isLiquidation) {
-            tradeTokenAmountReceived = Oracle_Interface(loanOrder.oracleAddress).verifyAndDoTrade(
+            tradeTokenAmountReceived = Oracle_Interface(loanOrder.oracleAddress).verifyAndLiquidate(
+                loanOrder.loanTokenAddress,
                 loanPosition.positionTokenAddressFilled,
-                tradeTokenAddress,
                 loanPosition.collateralTokenAddressFilled,
+                loanPosition.loanTokenAmountFilled,
                 loanPosition.positionTokenAmountFilled,
                 loanPosition.collateralTokenAmountFilled,
                 loanOrder.maintenanceMarginAmount);
@@ -216,8 +206,10 @@ contract InternalFunctions is B0xStorage {
             loanOrder.initialMarginAmount,
             loanOrder.maintenanceMarginAmount,
             Oracle_Interface(loanOrder.oracleAddress).getCurrentMarginAmount(
+                loanOrder.loanTokenAddress,
                 loanPosition.positionTokenAddressFilled,
                 loanPosition.collateralTokenAddressFilled,
+                loanPosition.loanTokenAmountFilled,
                 loanPosition.positionTokenAmountFilled,
                 loanPosition.collateralTokenAmountFilled)
         );

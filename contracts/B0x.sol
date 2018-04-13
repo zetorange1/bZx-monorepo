@@ -56,7 +56,7 @@ contract B0x is B0xStorage {
         pure
         returns (bool);
 
-    function getInitialMarginRequired(
+    function getInitialCollateralRequired(
         address positionTokenAddress,
         address collateralTokenAddress,
         address oracleAddress,
@@ -135,11 +135,23 @@ contract B0x is B0xStorage {
         external
         returns (bool);
 
+    function withdrawExcessCollateral(
+        bytes32 loanOrderHash,
+        address collateralTokenFilled,
+        uint withdrawAmount)
+        external
+        returns (uint excessCollateral);
+
     function changeCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled)
         external
         returns (bool);
+
+    function withdrawProfit(
+        bytes32 loanOrderHash)
+        external
+        returns (uint profitAmount);
 
     function liquidatePosition(
         bytes32 loanOrderHash,
@@ -151,6 +163,13 @@ contract B0x is B0xStorage {
         bytes32 loanOrderHash)
         external
         returns (bool);
+
+    function getProfitOrLoss(
+        bytes32 loanOrderHash,
+        address trader)
+        public
+        view
+        returns (bool isProfit, uint profitOrLoss, uint positionToLoanAmount, uint positionToLoanRate);
 
     function shouldLiquidate(
         bytes32 loanOrderHash,

@@ -140,9 +140,34 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
         return true;
     }
 
+    function didWithdrawCollateral(
+        bytes32 /* loanOrderHash */,
+        address /* borrower */,
+        uint /* gasUsed */)
+        public
+        onlyB0x
+        updatesEMA(tx.gasprice)
+        returns (bool)
+    {
+        return true;
+    }
+
     function didChangeCollateral(
         bytes32 /* loanOrderHash */,
         address /* borrower */,
+        uint /* gasUsed */)
+        public
+        onlyB0x
+        updatesEMA(tx.gasprice)
+        returns (bool)
+    {
+        return true;
+    }
+
+    function didWithdrawProfit(
+        bytes32 /* loanOrderHash */,
+        address /* borrower */,
+        uint /* profitOrLoss */,
         uint /* gasUsed */)
         public
         onlyB0x
@@ -203,11 +228,12 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
             MAX_FOR_KYBER); // no limit on the dest amount
     }
 
-    function verifyAndDoTrade(
-        address sourceTokenAddress, // typically tradeToken
-        address destTokenAddress,   // typically loanToken
+    function verifyAndLiquidate(
+        address loanTokenAddress,
+        address positionTokenAddress,
         address collateralTokenAddress,
-        uint sourceTokenAmount,
+        uint loanTokenAmount,
+        uint positionTokenAmount,
         uint collateralTokenAmount,
         uint maintenanceMarginAmount)
         public
@@ -217,18 +243,20 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
         if (!shouldLiquidate(
             0x0,
             0x0,
-            sourceTokenAddress,
+            loanTokenAddress,
+            positionTokenAddress,
             collateralTokenAddress,
-            sourceTokenAmount,
+            loanTokenAmount,
+            positionTokenAmount,
             collateralTokenAmount,
             maintenanceMarginAmount)) {
             return 0;
         }
         
         destTokenAmount = _doTrade(
-            sourceTokenAddress,
-            destTokenAddress,
-            sourceTokenAmount,
+            positionTokenAddress,
+            loanTokenAddress,
+            positionTokenAmount,
             MAX_FOR_KYBER); // no limit on the dest amount
     }
 
@@ -270,8 +298,10 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
     function shouldLiquidate(
         bytes32 /* loanOrderHash */,
         address /* trader */,
+        address loanTokenAddress,
         address positionTokenAddress,
         address collateralTokenAddress,
+        uint loanTokenAmount,
         uint positionTokenAmount,
         uint collateralTokenAmount,
         uint maintenanceMarginAmount)
@@ -280,8 +310,10 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
         returns (bool)
     {
         return (getCurrentMarginAmount(
+                loanTokenAddress,
                 positionTokenAddress,
                 collateralTokenAddress,
+                loanTokenAmount,
                 positionTokenAmount,
                 collateralTokenAmount).mul(100).div(maintenanceMarginAmount) <= (liquidationThresholdPercent));
     } 
@@ -304,7 +336,8 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
         returns (uint rate)
     {   
         if (KYBER_CONTRACT == address(0)) {
-            rate = (uint(block.blockhash(block.number-1)) % 100 + 1).mul(10**18);
+            rate = 10**18;
+            //rate = (uint(block.blockhash(block.number-1)) % 100 + 1).mul(10**18);
         } else {
             uint sourceToEther;
             uint etherToDest;
@@ -343,38 +376,87 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
         }
     }
 
+    // returns bool isProfit, uint profitOrLoss, uint positionToLoanAmount, uint positionToLoanRate
+    // the position's profit/loss denominated in loanToken
+    function getProfitOrLoss(
+        address positionTokenAddress,
+        address loanTokenAddress,
+        uint positionTokenAmount,
+        uint loanTokenAmount)
+        public
+        view
+        returns (bool isProfit, uint profitOrLoss, uint positionToLoanAmount, uint positionToLoanRate)
+    {
+        if (positionTokenAddress == loanTokenAddress) {
+            positionToLoanRate = 10**18;
+            positionToLoanAmount = positionTokenAmount;
+            if (positionTokenAmount >= loanTokenAmount) {
+                profitOrLoss = positionTokenAmount - loanTokenAmount;
+                isProfit = true;
+            } else {
+                profitOrLoss = loanTokenAmount - positionTokenAmount;
+                isProfit = false;
+            }
+        } else {
+            positionToLoanRate = getTradeRate(
+                positionTokenAddress,
+                loanTokenAddress
+            );
+            /*if (positionToLoanRate == 0) {
+                return;
+            }*/
+            positionToLoanAmount = positionTokenAmount.mul(positionToLoanRate).div(10**18);
+            if (positionToLoanAmount >= loanTokenAmount) {
+                profitOrLoss = positionToLoanAmount - loanTokenAmount;
+                isProfit = true;
+            } else {
+                profitOrLoss = loanTokenAmount - positionToLoanAmount;
+                isProfit = false;
+            }
+        }
+    }
+
     function getCurrentMarginAmount(
+        address loanTokenAddress,
         address positionTokenAddress,
         address collateralTokenAddress,
+        uint loanTokenAmount,
         uint positionTokenAmount,
         uint collateralTokenAmount)
         public
         view
-        returns (uint currentMarginAmount)
+        returns (uint)
     {
-        uint positionToCollateralRate = getTradeRate(
-            positionTokenAddress,
-            collateralTokenAddress
+        uint collateralToLoanRate = getTradeRate(
+            collateralTokenAddress,
+            loanTokenAddress
         );
-        if (positionToCollateralRate == 0) {
+        if (collateralToLoanRate == 0) {
+            return 0;
+        }
+        uint collateralToLoanAmount = collateralTokenAmount.mul(collateralToLoanRate).div(10**18);
+
+        bool isProfit;
+        uint profitOrLoss;
+        uint positionToLoanAmount;
+        (isProfit, profitOrLoss, positionToLoanAmount,) = getProfitOrLoss(
+            positionTokenAddress,
+            loanTokenAddress,
+            positionTokenAmount,
+            loanTokenAmount);
+        if (positionToLoanAmount == 0) {
             return 0;
         }
 
-        currentMarginAmount = collateralTokenAmount
-                        .mul(10**20)
-                        .div(positionTokenAmount)
-                        .div(positionToCollateralRate);
-
-        /*emit MarginCalc(
-            positionTokenAddress,
-            collateralTokenAddress,
-            this,
-            positionTokenAmount,
-            collateralTokenAmount,
-            currentMarginAmount,
-            positionToCollateralRate,
-            liquidationThresholdPercent
-        );*/
+        if (isProfit) {
+            return (collateralToLoanAmount + profitOrLoss).mul(100).div(positionToLoanAmount);
+        } else {
+            // black-swan check
+            if (profitOrLoss >= collateralToLoanAmount) {
+                return 0;
+            }
+            return (collateralToLoanAmount - profitOrLoss).mul(100).div(positionToLoanAmount);
+        }
     }
 
     /*

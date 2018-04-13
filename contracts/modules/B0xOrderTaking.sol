@@ -166,21 +166,21 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             signature);
     }
 
-    function getInitialMarginRequired(
-        address positionTokenAddress,
+    function getInitialCollateralRequired(
+        address loanTokenAddress,
         address collateralTokenAddress,
         address oracleAddress,
-        uint positionTokenAmount,
+        uint loanTokenAmountFilled,
         uint initialMarginAmount)
         public
         view
         returns (uint collateralTokenAmount)
     {
-        return _getInitialMarginRequired(
-            positionTokenAddress,
+        return _getInitialCollateralRequired(
+            loanTokenAddress,
             collateralTokenAddress,
             oracleAddress,
-            positionTokenAmount,
+            loanTokenAmountFilled,
             initialMarginAmount);
     }
 
@@ -477,7 +477,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             return intOrRevert(0,477);
         }
 
-        uint collateralTokenAmountFilled = _getInitialMarginRequired(
+        uint collateralTokenAmountFilled = _getInitialCollateralRequired(
             loanOrder.loanTokenAddress,
             collateralTokenFilled,
             loanOrder.oracleAddress,
