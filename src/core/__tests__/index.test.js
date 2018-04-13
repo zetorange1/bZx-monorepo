@@ -1,8 +1,6 @@
-import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import B0xJS from "../../core";
 import * as utils from "../../core/utils";
-import * as Errors from "../constants/errors";
 import b0xJS from "./setup";
 import { local as Contracts } from "../../contracts";
 import Accounts from "./accounts";
@@ -35,12 +33,6 @@ describe("getContractInstance", () => {
     expect(tokenContract.options.address.toLowerCase()).toBe(
       Contracts.TestToken0.address.toLowerCase()
     );
-  });
-
-  test("should throw error on incorrect address", async () => {
-    await expect(
-      utils.getContractInstance(b0xJS.web3, EIP20.abi, constants.NULL_ADDRESS)
-    ).rejects.toThrow(Errors.ContractDoesNotExist);
   });
 });
 
