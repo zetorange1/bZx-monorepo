@@ -12,7 +12,10 @@
     "dev": "webpack --watch --config webpack.config.js",
     "build": "webpack --config webpack.config.js"
   },
-  "pre-commit": ["prettier:pre-commit", "lint"],
+  "pre-commit": [
+    "prettier:pre-commit",
+    "lint"
+  ],
   "dependencies": {
     "0x.js": "^0.29.0",
     "@0xproject/assert": "0.0.20",
@@ -24,6 +27,7 @@
     "bn.js": "^4.11.8",
     "debug": "^3.1.0",
     "eth-sig-util": "^1.4.2",
+    "ethereumjs-abi": "^0.6.5",
     "ethereumjs-util": "^5.1.4",
     "fs-extra": "^5.0.0",
     "ganache-cli": "^6.1.0",
