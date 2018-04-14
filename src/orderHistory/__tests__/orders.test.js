@@ -95,6 +95,11 @@ describe("order history", () => {
      the local testnet as the orders made by this address will
       accumulate causing this test to fail */
     test("should return order history", async () => {
+      const {
+        loanTokens,
+        interestTokens
+      } = await FillTestUtils.initAllContractInstances();
+
       const orders = await b0xJS.getOrders({
         loanPartyAddress: traders[0],
         start: 0,
@@ -111,13 +116,13 @@ describe("order history", () => {
         feeRecipientAddress: "0x0000000000000000000000000000000000000000",
         initialMarginAmount: 50,
         interestAmount: 2000000000000000000,
-        interestTokenAddress: "0x609acc8b356894a937fc58f3411f9528de96ecb1",
+        interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
         lenderRelayFee: 1000000000000000,
-        loanTokenAddress: "0x8a063452f7df2614db1bca3a85ef35da40cf0835",
+        loanTokenAddress: loanTokens[0].options.address.toLowerCase(),
         loanTokenAmount: 1e23,
         maintenanceMarginAmount: 25,
         maker: "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
-        oracleAddress: "0x74341e87b1c4db7d5ed95f92b37509f2525a7a90",
+        oracleAddress: b0xJS.addresses.B0xOracle,
         traderRelayFee: 1500000000000000
       });
     });
