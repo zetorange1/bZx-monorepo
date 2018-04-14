@@ -8,7 +8,7 @@ import B0xJS from "../../core";
 
 const { web3 } = b0xJS;
 
-describe("loan positions", () => {
+describe("loanPositions", () => {
   const owner = Accounts[0].address;
   const lenders = [Accounts[5].address, Accounts[7].address];
   const traders = [Accounts[6].address, Accounts[8].address];
@@ -95,6 +95,11 @@ describe("loan positions", () => {
      the local testnet as the orders made by this address will
       accumulate causing this test to fail */
     test("should return loan positions", async () => {
+      const {
+        loanTokens,
+        collateralTokens
+      } = await FillTestUtils.initAllContractInstances();
+
       const loanPositions = await b0xJS.getLoanPositions({
         loanPartyAddress: traders[0],
         start: 0,
@@ -115,12 +120,10 @@ describe("loan positions", () => {
 
       expect(loanPositionsNoRandomFields).toContainEqual({
         active: 1,
-        collateralTokenAddressFilled:
-          "0xf96b018e8de3a229dbaced8439df9e3034e263c1",
+        collateralTokenAddressFilled: collateralTokens[0].options.address.toLowerCase(),
         lender: "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
         loanTokenAmountFilled: 12300000000000000000,
-        positionTokenAddressFilled:
-          "0x8a063452f7df2614db1bca3a85ef35da40cf0835",
+        positionTokenAddressFilled: loanTokens[0].options.address.toLowerCase(),
         positionTokenAmountFilled: 12300000000000000000,
         trader: "0x06cef8e666768cc40cc78cf93d9611019ddcb628"
       });
