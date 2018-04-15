@@ -22,7 +22,7 @@ var run = {
   "should sign and verify 0x order": true,
   "should trade position with 0x order": true,
   "should trade position with oracle": true,
-  "should withdraw profits": true,
+  "should withdraw profits": false,
   /*"should test LoanOrder bytes": false,
   "should test Loan bytes": false,
   "should test Position bytes": false,*/
@@ -63,21 +63,21 @@ const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 const NONNULL_ADDRESS = "0x0000000000000000000000000000000000000001";
 
 contract('B0xTest', function(accounts) {
+  var b0x;
   var vault;
   var oracle;
+  var b0xTo0x;
+
   var oracle_registry;
   var b0x_token;
-  var b0xTo0x;
   var token_registry;
 
-  var b0x;
+  var b0xEvents;
+  var vaultEvents;
+  var oracleEvents;
+  var b0xTo0xEvents;
 
   var test_tokens = [];
-
-  var gasRefundEvent;
-  //var logErrorEvent0x;
-
-  var tx_obj;
 
   var zrx_token;
   var exchange_0x;
@@ -197,11 +197,60 @@ contract('B0xTest', function(accounts) {
   });*/
 
   before('watch events', function () {
-    gasRefundEvent = oracle.GasRefund();
-    //logErrorEvent0x = b0xTo0x.LogErrorUint();
+    b0xEvents = b0x.allEvents({
+      fromBlock: web3.eth.blockNumber,
+      toBlock: 'latest'
+    });
+    vaultEvents = vault.allEvents({
+      fromBlock: web3.eth.blockNumber,
+      toBlock: 'latest'
+    });
+    oracleEvents = oracle.allEvents({
+      fromBlock: web3.eth.blockNumber,
+      toBlock: 'latest'
+    });
+    b0xTo0xEvents = b0xTo0x.allEvents({
+      fromBlock: web3.eth.blockNumber,
+      toBlock: 'latest'
+    });
+    /*b0xEvents.watch(function (error, result) {
+      if(error) {
+        console.err(error);
+      } else {
+        //console.log(result);
+        console.log(txLogsPrint(result));
+        //b0xEvents.stopWatching();
+      }
+    });*/
+
+    /*var b0xEvents;
+    var vaultEvents;
+    var oracleEvents;
+    var b0xTo0xEvents;*/
+    /*oracle.allEvents().watch(function (error, result) {
+      if(error) {
+        console.err(error);
+      } else {
+        console.log(result);
+        //b0xEvents.stopWatching();
+      }
+    });*/
   });
 
-  after(function() {
+  after(async function() {
+    var logs = [];
+    logs = logs.concat(await b0xEvents.get());
+    logs = logs.concat(await vaultEvents.get());
+    logs = logs.concat(await oracleEvents.get());
+    logs = logs.concat(await b0xTo0xEvents.get());
+    
+    console.log(txLogsPrint(logs));
+    
+    b0xEvents.stopWatching();
+    vaultEvents.stopWatching();
+    oracleEvents.stopWatching();
+    b0xTo0xEvents.stopWatching();
+    
     new Promise((resolve, reject) => {
       console.log("b0x_tester :: after balance: "+web3.eth.getBalance(owner_account));
     });
@@ -402,18 +451,14 @@ contract('B0xTest', function(accounts) {
       web3.toWei(12.3, "ether"),
       ECSignature_raw_1,
       {from: trader1_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
-        //console.log(tx);
-        tx_obj = tx;
-        return gasRefundEvent.get();
-      }).then(function(caughtEvents) {
-        console.log(txPrettyPrint(tx_obj,"should take sample loan order (as trader1)",caughtEvents));
-        assert.isOk(tx_obj);
+        console.log(txPrettyPrint(tx,"should take sample loan order (as trader1)"));
+        assert.isOk(tx);
         done();
-      }, function(error) {
+      }), function(error) {
         console.error("error: "+error);
         assert.isOk(false);
         done();
-      });
+      };
   });
 
 (run["should get loan orders (for lender1)"] ? it : it.skip)("should get loan orders (for lender1)", async function() {
@@ -643,18 +688,14 @@ contract('B0xTest', function(accounts) {
       ],
       ECSignature_raw_2,
       {from: lender2_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
-        //console.log(tx);
-        tx_obj = tx;
-        return gasRefundEvent.get();
-      }).then(function(caughtEvents) {
-        console.log(txPrettyPrint(tx_obj,"should take sample loan order (as lender2)",caughtEvents));
-        assert.isOk(tx_obj);
+        console.log(txPrettyPrint(tx,"should take sample loan order (as lender2)"));
+        assert.isOk(tx);
         done();
-      }, function(error) {
+      }), function(error) {
         console.error("error: "+error);
         assert.isOk(false);
         done();
-      });
+      };
   });
 
 
@@ -750,18 +791,14 @@ contract('B0xTest', function(accounts) {
       sample_order_tightlypacked,
       ECSignature_0x_raw,
       {from: trader1_account}).then(function(tx) {
-        //console.log(tx);
-        tx_obj = tx;
-        return gasRefundEvent.get();
-      }).then(function(caughtEvents) {
-        console.log(txPrettyPrint(tx_obj,"should trade position with 0x order",caughtEvents));
-        assert.isOk(true);
+        console.log(txPrettyPrint(tx,"should trade position with 0x order"));
+        assert.isOk(tx);
         done();
-      }, function(error) {
+      }), function(error) {
         console.error(error);
         assert.isOk(false);
         done();
-      });
+      };
   });
 
   (run["should trade position with oracle"] ? it : it.skip)("should trade position with oracle", function(done) {
@@ -769,36 +806,28 @@ contract('B0xTest', function(accounts) {
       OrderHash_b0x_1,
       interestToken2.address,
       {from: trader1_account}).then(function(tx) {
-        //console.log(tx);
-        tx_obj = tx;
-        return gasRefundEvent.get();
-      }).then(function(caughtEvents) {
-        console.log(txPrettyPrint(tx_obj,"should trade position with oracle",caughtEvents));
-        assert.isOk(true);
+        console.log(txPrettyPrint(tx,"should trade position with oracle"));
+        assert.isOk(tx);
         done();
-      }, function(error) {
+      }), function(error) {
         console.error(error);
         assert.isOk(false);
         done();
-      });
+      };
   });
 
   (run["should withdraw profits"] ? it : it.skip)("should withdraw profits", function(done) {
     b0x.withdrawProfit(
       OrderHash_b0x_1,
       {from: trader1_account}).then(function(tx) {
-        //console.log(tx);
-        tx_obj = tx;
-        return gasRefundEvent.get();
-      }).then(function(caughtEvents) {
-        console.log(txPrettyPrint(tx_obj,"should withdraw profits",caughtEvents));
-        assert.isOk(true);
+        console.log(txPrettyPrint(tx,"should withdraw profits"));
+        assert.isOk(tx);
         done();
-      }, function(error) {
+      }), function(error) {
         console.error(error);
         assert.isOk(false);
         done();
-      });
+      };
   });
   
 
@@ -810,17 +839,14 @@ contract('B0xTest', function(accounts) {
         b0x.getLoanOrderLog(
           bts,
           {from: trader1_account, gas: 5000000, gasPrice: web3.toWei(10, "gwei")}).then(function(tx) {
-            tx_obj = tx;
-            return gasRefundEvent.get();
-          }).then(function(caughtEvents) {
-            console.log(txPrettyPrint(tx_obj,"should test LoanOrder bytes",caughtEvents));
-            assert.isOk(tx_obj);
-            done();
-          }, function(error) {
+              console.log(txPrettyPrint(tx,"should test LoanOrder bytes"));
+              assert.isOk(tx);
+              done();
+          }), function(error) {
             console.error(error);
             assert.isOk(false);
             done();
-          });
+          };
       });
   });
 
@@ -834,17 +860,14 @@ contract('B0xTest', function(accounts) {
         b0x.getLoanLog(
           bts,
           {from: trader1_account, gas: 5000000, gasPrice: web3.toWei(22, "gwei")}).then(function(tx) {
-            tx_obj = tx;
-            return gasRefundEvent.get();
-          }).then(function(caughtEvents) {
-            console.log(txPrettyPrint(tx_obj,"should test LoanOrder bytes",caughtEvents));
-            assert.isOk(tx_obj);
-            done();
-          }, function(error) {
+              console.log(txPrettyPrint(tx,"should test LoanOrder bytes"));
+              assert.isOk(tx);
+              done();
+          }), function(error) {
             console.error(error);
             assert.isOk(false);
             done();
-          });
+          };
       });
   });
 
@@ -858,24 +881,40 @@ contract('B0xTest', function(accounts) {
         b0x.getPositionLog(
           bts,
           {from: trader1_account, gas: 5000000, gasPrice: web3.toWei(20, "gwei")}).then(function(tx) {
-            tx_obj = tx;
-            return gasRefundEvent.get();
-          }).then(function(caughtEvents) {
-            console.log(txPrettyPrint(tx_obj,"should test Position bytes",caughtEvents));
-            assert.isOk(tx_obj);
-            done();
-          }, function(error) {
+              console.log(txPrettyPrint(tx,"should test Position bytes"));
+              assert.isOk(tx);
+              done();
+          }), function(error) {
             console.error(error);
             assert.isOk(false);
             done();
-          });
+          };
       });
   });*/
 
 
+  function txLogsPrint(logs) {
+    var ret = "";
+    if (logs === undefined) {
+      logs = [];
+    }
+    if (logs.length > 0) {
+      logs = logs.sort(function(a,b) {return (a.blockNumber > b.blockNumber) ? 1 : ((b.blockNumber > a.blockNumber) ? -1 : 0);} ); 
+      ret = ret + "\n  LOGS --> "+"\n";
+      for (var i=0; i < logs.length; i++) {
+        var log = logs[i];
+        //console.log(log);
+        ret = ret + "  "+i+": "+log.event+" "+JSON.stringify(log.args);
+        if (log.event == "GasRefund") {
+          ret = ret + " -> Refund: "+(log.args.refundAmount/1e18*currentEthPrice).toFixed(2)+"USD @ "+currentEthPrice+"USD/ETH)";
+        }
+        ret = ret + " " + log.transactionHash + " " + log.blockNumber + "\n\n";
+      }
+    }
+    return ret;
+  }
 
-
-  function txPrettyPrint(tx, desc, events) {
+  function txPrettyPrint(tx, desc) {
     var ret = desc + "\n";
     if (tx.tx === undefined) {
       ret = ret + JSON.stringify(tx);
@@ -891,22 +930,8 @@ contract('B0xTest', function(accounts) {
       if (tx.logs === undefined) {
         tx.logs = [];
       }
-      tx.logs = tx.logs.concat(events);
-
-      if (tx.logs.length > 0) {
-        ret = ret + "  LOGS --> "+"\n";
-        for (var i=0; i < tx.logs.length; i++) {
-          ret = ret + "  "+i+": "+tx.logs[i].event+" "+JSON.stringify(tx.logs[i].args);
-          if (tx.logs[i].event == "GasRefund") {
-            ret = ret + " -> Refund: "+(tx.logs[i].args.refundAmount/1e18*currentEthPrice).toFixed(2)+"USD @ "+currentEthPrice+"USD/ETH)\n";
-          }
-          else {
-            ret = ret + "\n";
-          }
-
-
-        }
-      }
+      //tx.logs = tx.logs.concat(events);
+      ret = ret + txLogsPrint(tx.logs);
     }
     return ret;
   }
