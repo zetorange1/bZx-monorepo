@@ -13,7 +13,8 @@ var run = {
   "should take sample loan order (as trader1)": true,
   "should get loan orders (for lender1)": false,
   "should get loan positions (for lender1)": false,
-
+  "should get loan positions (for trader1)": false,
+  
   "should generate loanOrderHash (as trader2)": false,
   "should sign and verify orderHash (as trader2)": false,
   "should take sample loan order (as lender2)": false,
@@ -528,7 +529,7 @@ contract('B0xTest', function(accounts) {
 
   (run["should get loan positions (for lender1)"] ? it : it.skip)("should get loan positions (for lender1)", async function() {
     // return array of arrays: address[], uint[], boolean
-    var data = await b0x.getLoanPositions.call(
+    var data = await b0x.getLoansForLender.call(
       lender1_account,
       0, // starting item
       10 // max number of items returned
@@ -550,6 +551,9 @@ contract('B0xTest', function(accounts) {
       for(var i=0; i < loanPositionObjArray.length; i++) {
         var params = loanPositionObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
         console.log(i+": params.length: "+params.length);
+        if (parseInt("0x"+params[0].substr(24)) == 0) {
+          continue;
+        }
         loanPositions.push({
           lender: "0x"+params[0].substr(24),
           trader: "0x"+params[1].substr(24),
@@ -580,6 +584,66 @@ contract('B0xTest', function(accounts) {
       assert.isOk(true);
     }
   });
+
+  (run["should get loan positions (for trader1)"] ? it : it.skip)("should get loan positions (for trader1)", async function() {
+    // return array of arrays: address[], uint[], boolean
+    var data = await b0x.getLoansForTrader.call(
+      trader1_account,
+      0, // starting item
+      10 // max number of items returned
+    );
+    console.log(data);
+
+    data = data.substr(2); // remove 0x from front
+    const itemCount = 9;
+    const objCount = data.length / 64 / itemCount;
+    var loanPositions = [];
+
+    if (objCount % 1 != 0) { // must be a whole number
+        console.error("error: data length invalid!");
+        assert.isOk(false);
+    }
+    else {
+      var loanPositionObjArray = data.match(new RegExp('.{1,' + (itemCount * 64) + '}', 'g'));
+      console.log("loanPositionObjArray.length: "+loanPositionObjArray.length);
+      for(var i=0; i < loanPositionObjArray.length; i++) {
+        var params = loanPositionObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
+        console.log(i+": params.length: "+params.length);
+        if (parseInt("0x"+params[0].substr(24)) == 0) {
+          continue;
+        }
+        loanPositions.push({
+          lender: "0x"+params[0].substr(24),
+          trader: "0x"+params[1].substr(24),
+          collateralTokenAddressFilled: "0x"+params[2].substr(24),
+          positionTokenAddressFilled: "0x"+params[3].substr(24),
+          loanTokenAmountFilled: parseInt("0x"+params[4]),
+          collateralTokenAmountFilled: parseInt("0x"+params[5]),
+          positionTokenAmountFilled: parseInt("0x"+params[6]),
+          loanStartUnixTimestampSec: parseInt("0x"+params[7]),
+          active: parseInt("0x"+params[8])
+        });
+      }
+
+      /*struct LoanPosition {
+        address lender;
+        address trader;
+        address collateralTokenAddressFilled;
+        address positionTokenAddressFilled;
+        uint loanTokenAmountFilled;
+        uint collateralTokenAmountFilled;
+        uint positionTokenAmountFilled;
+        uint loanStartUnixTimestampSec;
+        bool active;
+      }*/
+
+      console.log(loanPositions);
+
+      assert.isOk(true);
+    }
+  });
+
+
 
   (run["should generate loanOrderHash (as trader2)"] ? it : it.skip)("should generate loanOrderHash (as trader2)", function(done) {
 

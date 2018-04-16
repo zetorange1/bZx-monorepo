@@ -7,6 +7,49 @@ import '../shared/Debugger.sol';
 import '../modifiers/GasTracker.sol';
 
 contract B0xObjects {
+
+    struct LoanOrder {
+        address maker;
+        address loanTokenAddress;
+        address interestTokenAddress;
+        address collateralTokenAddress;
+        address feeRecipientAddress;
+        address oracleAddress;
+        uint loanTokenAmount;
+        uint interestAmount;
+        uint initialMarginAmount;
+        uint maintenanceMarginAmount;
+        uint lenderRelayFee;
+        uint traderRelayFee;
+        uint expirationUnixTimestampSec;
+        bytes32 loanOrderHash;
+    }
+
+    struct LoanPosition {
+        address lender;
+        address trader;
+        address collateralTokenAddressFilled;
+        address positionTokenAddressFilled;
+        uint loanTokenAmountFilled;
+        uint collateralTokenAmountFilled;
+        uint positionTokenAmountFilled;
+        uint loanStartUnixTimestampSec;
+        bool active;
+    }
+
+    struct Counterparty {
+        address counterparty;
+        bytes32 loanOrderHash;
+    }
+
+    struct InterestData {
+        address lender;
+        address interestTokenAddress;
+        uint totalAmountAccrued;
+        uint interestPaidSoFar;
+    }
+
+
     /*event LoanOrderTaken (
         address maker,
         address loanTokenAddress,
@@ -72,47 +115,7 @@ contract B0xObjects {
         uint rate,
         uint otherAmount
     );*/
-    
-    struct LoanOrder {
-        address maker;
-        address loanTokenAddress;
-        address interestTokenAddress;
-        address collateralTokenAddress;
-        address feeRecipientAddress;
-        address oracleAddress;
-        uint loanTokenAmount;
-        uint interestAmount;
-        uint initialMarginAmount;
-        uint maintenanceMarginAmount;
-        uint lenderRelayFee;
-        uint traderRelayFee;
-        uint expirationUnixTimestampSec;
-        bytes32 loanOrderHash;
-    }
 
-    struct LoanPosition {
-        address lender;
-        address trader;
-        address collateralTokenAddressFilled;
-        address positionTokenAddressFilled;
-        uint loanTokenAmountFilled;
-        uint collateralTokenAmountFilled;
-        uint positionTokenAmountFilled;
-        uint loanStartUnixTimestampSec;
-        bool active;
-    }
-
-    struct Counterparty {
-        address counterparty;
-        bytes32 loanOrderHash;
-    }
-
-    struct InterestData {
-        address lender;
-        address interestTokenAddress;
-        uint totalAmountAccrued;
-        uint interestPaidSoFar;
-    }
 
     function buildLoanOrderStruct(
         bytes32 loanOrderHash,
