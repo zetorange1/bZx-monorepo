@@ -146,7 +146,7 @@ export const submitFillOrder = async (
         });
       })
       .on(`error`, error => {
-        alert(error);
+        alert(error.message);
       });
   } else {
     // receipt = await b0x.takeLoanOrderAsLender(order, txOpts);
@@ -162,7 +162,7 @@ export const submitFillOrder = async (
         });
       })
       .on(`error`, error => {
-        alert(error);
+        alert(error.message);
       });
   }
 

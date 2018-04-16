@@ -37,7 +37,7 @@ export default class GenerateOrder extends React.Component {
     maintenanceMarginAmount: 25,
 
     // expiration date/time
-    expirationDate: moment(),
+    expirationDate: moment().add(7, `days`),
 
     // oracles
     oracles: this.props.oracles,
@@ -83,28 +83,34 @@ export default class GenerateOrder extends React.Component {
         this.props.b0x
       );
       const saltedOrderObj = addSalt(orderObject);
+      console.log(saltedOrderObj);
       const orderHash = getHash(saltedOrderObj);
-      const signature = await signOrder(
-        orderHash,
-        this.props.accounts,
-        this.props.b0x
-      );
-      const orderWithSignature = {
-        ...saltedOrderObj,
-        signature
-      };
-      console.log(`orderHash`, orderHash);
-      const finalOrder = await addNetworkId(
-        orderWithSignature,
-        this.props.web3
-      );
-      const isSigValid = await this.props.b0x.isValidSignatureAsync({
-        account: this.props.accounts[0].toLowerCase(),
-        orderHash,
-        signature
-      });
-      console.log(`isSigValid`, isSigValid);
-      this.setState({ orderHash, finalOrder });
+      try {
+        const signature = await signOrder(
+          orderHash,
+          this.props.accounts,
+          this.props.b0x
+        );
+
+        const orderWithSignature = {
+          ...saltedOrderObj,
+          signature
+        };
+        console.log(`orderHash`, orderHash);
+        const finalOrder = await addNetworkId(
+          orderWithSignature,
+          this.props.web3
+        );
+        const isSigValid = await this.props.b0x.isValidSignatureAsync({
+          account: this.props.accounts[0].toLowerCase(),
+          orderHash,
+          signature
+        });
+        console.log(`isSigValid`, isSigValid);
+        this.setState({ orderHash, finalOrder });
+      } catch(e) {
+        console.log(e);
+      }
     }
   };
 

@@ -67,7 +67,7 @@ export default ({
           />
         </DataContainer>
         <DataContainer>
-          <Title>Loan Amount to Fill</Title>
+          <Title>Amount to Borrow</Title>
           <FormControl>
             <InputLabel>Loan amount</InputLabel>
             <Input
