@@ -3,7 +3,7 @@ pragma solidity ^0.4.21;
 
 contract Debugger {
     
-    bool public DEBUG_MODE = true;
+    bool public DEBUG_MODE = false;
     
     event DebugLine(uint lineNumber);
 

@@ -22,7 +22,7 @@ interface WETH_Interface {
 contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0xOwnable {
     using SafeMath for uint256;
 
-    // this is the value the Kyber portal uses when setting a very high maximum number for appr
+    // this is the value the Kyber portal uses when setting a very high maximum number
     uint constant MAX_FOR_KYBER = 57896044618658097711785492504343953926634992332820282019728792003956564819968;
 
     address constant KYBER_ETH_TOKEN_ADDRESS = 0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
@@ -54,7 +54,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
     function B0xOracle(
         address _vault_contract,
         address _kyber_contract,
-        address _weth_contract) 
+        address _weth_contract)
         public
         payable
     {
@@ -534,6 +534,15 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
         emaPeriods = _newEMAPeriods;
     }
 
+    function setDebugMode (
+        bool _debug)
+        public
+        onlyOwner
+    {
+        if (DEBUG_MODE != _debug)
+            DEBUG_MODE = _debug;
+    }
+
     function transferEther(
         address to,
         uint value)
@@ -582,12 +591,12 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
             if (destTokenAmount > maxDestTokenAmount) {
                 destTokenAmount = maxDestTokenAmount;
             }
-            /*if (!_transferToken(
+            if (!_transferToken(
                 destTokenAddress,
                 VAULT_CONTRACT,
                 destTokenAmount)) {
                 revert();
-            }*/
+            }
         } else {
             if (sourceTokenAddress == WETH_CONTRACT) {
                 WETH_Interface(WETH_CONTRACT).withdraw(sourceTokenAmount);

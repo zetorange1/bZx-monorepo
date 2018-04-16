@@ -1,5 +1,6 @@
 
 var TokenRegistry = artifacts.require("TokenRegistry");
+var B0xOracle = artifacts.require("B0xOracle");
 
 var TestToken0 = artifacts.require("TestToken0");
 var TestToken1 = artifacts.require("TestToken1");
@@ -42,6 +43,8 @@ module.exports = function(deployer, network, accounts) {
 			tokens.push(TestToken9);
 
 			var registry = await TokenRegistry.deployed();
+
+			var oracle = await B0xOracle.deployed();
 			
 			var token, name, symbol;
 			for (var i = 0; i <= 9; ++i) {
@@ -55,6 +58,9 @@ module.exports = function(deployer, network, accounts) {
 					symbol,
 					18,
 					"");
+
+				// transfer a large amount to Oracle for trade testing
+				await token.transfer(oracle.address, web3.toWei(1000000, "ether"));
 			}
 		});
 	}

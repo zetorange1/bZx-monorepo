@@ -11,8 +11,8 @@ var run = {
   "should generate loanOrderHash (as lender1)": true,
   "should sign and verify orderHash (as lender1)": true,
   "should take sample loan order (as trader1)": true,
-  "should get loan orders (for lender1)": true,
-  "should get loan positions (for lender1)": true,
+  "should get loan orders (for lender1)": false,
+  "should get loan positions (for lender1)": false,
 
   "should generate loanOrderHash (as trader2)": false,
   "should sign and verify orderHash (as trader2)": false,
@@ -22,7 +22,7 @@ var run = {
   "should sign and verify 0x order": true,
   "should trade position with 0x order": true,
   "should trade position with oracle": true,
-  "should withdraw profits": false,
+  "should withdraw profits": true,
   /*"should test LoanOrder bytes": false,
   "should test Loan bytes": false,
   "should test Position bytes": false,*/

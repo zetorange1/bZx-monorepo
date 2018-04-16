@@ -286,7 +286,8 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         emit LogWithdrawProfit(
             loanOrder.loanOrderHash,
             msg.sender,
-            profitAmount
+            profitAmount,
+            loanPosition.positionTokenAmountFilled
         );
 
         return profitAmount;
@@ -302,17 +303,17 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
     {
         // traders should call closeLoan rather than this function
         if (trader == msg.sender) {
-            return boolOrRevert(false,305);
+            return boolOrRevert(false,306);
         }
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][trader];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return boolOrRevert(false,310);
+            return boolOrRevert(false,311);
         }
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            return boolOrRevert(false,315);
+            return boolOrRevert(false,316);
         }
 
         if (DEBUG_MODE) {
@@ -330,7 +331,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             );
 
             if (loanTokenAmount == 0) {
-                return boolOrRevert(false,333);
+                return boolOrRevert(false,334);
             }
 
             // the loan token becomes the new position token
@@ -348,7 +349,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
                     loanPosition.positionTokenAmountFilled,
                     loanPosition.collateralTokenAmountFilled,
                     loanOrder.maintenanceMarginAmount)) {
-                return boolOrRevert(false,351);
+                return boolOrRevert(false,352);
             }
         }
 
@@ -374,16 +375,16 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
     {
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return boolOrRevert(false,377);
+            return boolOrRevert(false,378);
         }
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            return boolOrRevert(false,382);
+            return boolOrRevert(false,383);
         }
 
         if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
-            return boolOrRevert(false,386);
+            return boolOrRevert(false,387);
         }
 
         return _closeLoan(
@@ -522,10 +523,18 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             interestTime = loanOrder.expirationUnixTimestampSec;
         }
 
+        uint totalAmountAccrued;
+        if (loanPosition.active) {
+            totalAmountAccrued = _getPartialAmountNoError(loanPosition.loanTokenAmountFilled, loanOrder.loanTokenAmount, interestTime.sub(loanPosition.loanStartUnixTimestampSec).mul(loanOrder.interestAmount).div(86400));
+        } else {
+            // this is so, because remaining interest is paid out when the loan is closed
+            totalAmountAccrued = interestPaid[loanOrder.loanOrderHash][loanPosition.trader];
+        }
+
         interestData = InterestData({
             lender: loanPosition.lender,
             interestTokenAddress: loanOrder.interestTokenAddress,
-            totalAmountAccrued: _getPartialAmountNoError(loanPosition.loanTokenAmountFilled, loanOrder.loanTokenAmount, interestTime.sub(loanPosition.loanStartUnixTimestampSec).mul(loanOrder.interestAmount).div(86400)),
+            totalAmountAccrued: totalAmountAccrued,
             interestPaidSoFar: interestPaid[loanOrder.loanOrderHash][loanPosition.trader]
         });
     }
@@ -580,7 +589,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             orders[loanOrder.loanOrderHash].oracleAddress,
             amountPaid
         )) {
-            return intOrRevert(0,583);
+            return intOrRevert(0,592);
         }
 
          // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
@@ -592,7 +601,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             amountPaid,
             gasUsed // initial used gas, collected in modifier
         )) {
-            return intOrRevert(0,595);
+            return intOrRevert(0,604);
         }
 
         return amountPaid;
@@ -607,18 +616,11 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         internal
         returns (bool)
     {
-        loanPosition.active = false;
-
         // pay any remaining interest to the lender
         _payInterest(
             loanOrder,
             loanPosition
         );
-
-        // refund remaining interest to the trader
-        InterestData memory interestData = _getInterest(
-            loanOrder,
-            loanPosition);
 
         uint totalInterestToRefund = _getTotalInterestRequired(
             loanOrder.loanTokenAmount,
@@ -626,15 +628,15 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanOrder.interestAmount,
             loanOrder.expirationUnixTimestampSec,
             loanPosition.loanStartUnixTimestampSec)
-            .sub(interestData.interestPaidSoFar);
+            .sub(interestPaid[loanOrder.loanOrderHash][loanPosition.trader]);
         
         if (totalInterestToRefund > 0) {
             if (! B0xVault(VAULT_CONTRACT).withdrawInterest(
-                interestData.interestTokenAddress,
+                loanOrder.interestTokenAddress,
                 loanPosition.trader,
                 totalInterestToRefund
             )) {
-                return boolOrRevert(false,637);
+                return boolOrRevert(false,639);
             }
         }
 
@@ -647,7 +649,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
                 loanOrder.oracleAddress,
                 loanPosition.collateralTokenAmountFilled
             )) {
-                return boolOrRevert(false,650);
+                return boolOrRevert(false,652);
             }
 
             uint loanTokenAmountCovered;
@@ -667,7 +669,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanPosition.trader,
             loanPosition.collateralTokenAmountFilled
         )) {
-            return boolOrRevert(false,670);
+            return boolOrRevert(false,672);
         }
 
         if (! B0xVault(VAULT_CONTRACT).withdrawFunding(
@@ -675,7 +677,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanPosition.lender,
             loanPosition.positionTokenAmountFilled
         )) {
-            return boolOrRevert(false,678);
+            return boolOrRevert(false,680);
         }
 
         if (! Oracle_Interface(loanOrder.oracleAddress).didCloseLoan(
@@ -684,8 +686,10 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             isLiquidation,
             gasUsed
         )) {
-            return boolOrRevert(false,687);
+            return boolOrRevert(false,689);
         }
+
+        loanPosition.active = false;
 
         return true;
     }

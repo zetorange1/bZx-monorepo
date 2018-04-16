@@ -57,7 +57,8 @@ contract B0xObjects {
     event LogWithdrawProfit(
         bytes32 loanOrderHash,
         address trader,
-        uint profit
+        uint profitWithdrawn,
+        uint remainingPosition
     );
 
     // for debugging
