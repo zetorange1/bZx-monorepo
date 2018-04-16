@@ -86,14 +86,16 @@ export const takeLoanOrderAsTrader = (
     order.salt
   ];
 
-  return b0xContract.methods
+  var txObj = b0xContract.methods
     .takeLoanOrderAsTrader(
       orderAddresses,
       orderValues,
       collateralTokenAddress,
       loanTokenAmountFilled,
       order.signature
-    )
+    );
+  console.log("takeLoanOrderAsTrader: "+txObj.encodeABI());
+  return txObj
     .send({
       from: txOpts.from,
       gas: txOpts.gas,
