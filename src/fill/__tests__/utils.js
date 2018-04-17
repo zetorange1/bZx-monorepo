@@ -188,6 +188,31 @@ export const setupInterestTokens = async ({
   console.log("setupInterestTokens done.");
 };
 
+export const makeOrderAsTrader = ({
+  web3,
+  traders,
+  loanTokens,
+  interestTokens,
+  collateralTokens,
+  loanTokenAmount
+} = {}) =>
+  makeOrder({
+    makerAddress: traders[1],
+    loanTokenAddress: loanTokens[1].options.address.toLowerCase(),
+    interestTokenAddress: interestTokens[1].options.address.toLowerCase(),
+    collateralTokenAddress: collateralTokens[1].options.address.toLowerCase(),
+    feeRecipientAddress: constantsZX.NULL_ADDRESS,
+    loanTokenAmount,
+    interestAmount: web3.utils.toWei("2").toString(),
+    initialMarginAmount: "50",
+    maintenanceMarginAmount: "25",
+    lenderRelayFee: web3.utils.toWei("0.001").toString(),
+    traderRelayFee: web3.utils.toWei("0.0015").toString(),
+    expirationUnixTimestampSec: "2519061340",
+    makerRole: orderConstants.MAKER_ROLE.TRADER,
+    salt: B0xJS.generatePseudoRandomSalt().toString()
+  });
+
 export const makeOrderAsLender = ({
   web3,
   loanTokenAmount = web3.utils.toWei("251").toString(),
