@@ -11,7 +11,6 @@ import * as FillTestUtils from "../../fill/__tests__/utils";
 
 describe("trade", () => {
   const { web3 } = b0xJS;
-  console.log(protocol);
   const zxConstants = pathOr(null, ["development", "ZeroEx"], protocol);
 
   const makerOf0xOrder = Accounts[7].address;
