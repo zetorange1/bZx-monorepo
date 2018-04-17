@@ -234,30 +234,20 @@ describe("filling orders", () => {
         loanTokens,
         interestTokens
       } = await FillTestUtils.initAllContractInstances();
-      const makerAddress = lenders[0];
+
       const takerAddress = traders[0];
       const txOpts = {
         from: takerAddress,
         gas: 1000000,
         gasPrice: web3.utils.toWei("30", "gwei").toString()
       };
-      const expirationUnixTimestampSec = "1719061340";
 
-      const order = makeOrder({
-        makerAddress,
-        loanTokenAddress: loanTokens[0].options.address.toLowerCase(),
-        interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
-        collateralTokenAddress: constantsZX.NULL_ADDRESS,
-        feeRecipientAddress: constantsZX.NULL_ADDRESS,
+      const order = FillTestUtils.makeOrderAsLender({
+        web3,
+        lenders,
         loanTokenAmount,
-        interestAmount: web3.utils.toWei("2").toString(),
-        initialMarginAmount: "50",
-        maintenanceMarginAmount: "25",
-        lenderRelayFee: web3.utils.toWei("0.001").toString(),
-        traderRelayFee: web3.utils.toWei("0.0015").toString(),
-        expirationUnixTimestampSec,
-        makerRole: orderConstants.MAKER_ROLE.LENDER,
-        salt: B0xJS.generatePseudoRandomSalt().toString()
+        loanTokens,
+        interestTokens
       });
 
       expect(() => {
@@ -328,23 +318,13 @@ describe("filling orders", () => {
         gas: 1000000,
         gasPrice: web3.utils.toWei("30", "gwei").toString()
       };
-      const expirationUnixTimestampSec = "1719061340";
 
-      const order = makeOrder({
-        makerAddress,
-        loanTokenAddress: loanTokens[0].options.address.toLowerCase(),
-        interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
-        collateralTokenAddress: constantsZX.NULL_ADDRESS,
-        feeRecipientAddress: constantsZX.NULL_ADDRESS,
+      const order = FillTestUtils.makeOrderAsLender({
+        web3,
         loanTokenAmount,
-        interestAmount: web3.utils.toWei("2").toString(),
-        initialMarginAmount: "50",
-        maintenanceMarginAmount: "25",
-        lenderRelayFee: web3.utils.toWei("0.001").toString(),
-        traderRelayFee: web3.utils.toWei("0.0015").toString(),
-        expirationUnixTimestampSec,
-        makerRole: orderConstants.MAKER_ROLE.LENDER,
-        salt: B0xJS.generatePseudoRandomSalt().toString()
+        lenders,
+        loanTokens,
+        interestTokens
       });
 
       const orderHashHex = B0xJS.getLoanOrderHashHex(order);
