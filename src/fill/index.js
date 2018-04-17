@@ -86,19 +86,17 @@ export const takeLoanOrderAsTrader = (
     order.salt
   ];
 
-  var txObj = b0xContract.methods
-    .takeLoanOrderAsTrader(
-      orderAddresses,
-      orderValues,
-      collateralTokenAddress,
-      loanTokenAmountFilled,
-      order.signature
-    );
-  console.log("takeLoanOrderAsTrader: "+txObj.encodeABI());
-  return txObj
-    .send({
-      from: txOpts.from,
-      gas: txOpts.gas,
-      gasPrice: txOpts.gasPrice
-    });
+  const txObj = b0xContract.methods.takeLoanOrderAsTrader(
+    orderAddresses,
+    orderValues,
+    collateralTokenAddress,
+    loanTokenAmountFilled,
+    order.signature
+  );
+  console.log(`takeLoanOrderAsTrader: ${txObj.encodeABI()}`);
+  return txObj.send({
+    from: txOpts.from,
+    gas: txOpts.gas,
+    gasPrice: txOpts.gasPrice
+  });
 };
