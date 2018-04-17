@@ -20,28 +20,29 @@ describe("trade", () => {
   const { lenders, traders } = FillTestUtils.getAccounts();
 
   describe("tradePositionWith0x", () => {
+    const order0x = {
+      exchangeContractAddress: zxConstants.Exchange,
+      expirationUnixTimestampSec: "2519061340",
+      feeRecipient: constants.NULL_ADDRESS,
+      maker: makerOf0xOrder,
+      makerFee: web3.utils.toWei("0.002", "ether").toString(),
+      makerTokenAddress: maker0xToken1.address,
+      makerTokenAmount: web3.utils.toWei("100", "ether").toString(),
+      salt: B0xJS.generatePseudoRandomSalt().toString(),
+      taker: constants.NULL_ADDRESS,
+      takerFee: web3.utils.toWei("0.0013", "ether").toString(),
+      takerTokenAddress: loanToken1.address,
+      takerTokenAmount: web3.utils.toWei("90", "ether").toString()
+    };
+
+    const orderHash = ZeroEx.getOrderHashHex(order0x);
+
     test("should return a web3 PromiEvent", async () => {
       const {
         loanTokens,
         interestTokens
       } = await FillTestUtils.initAllContractInstances();
 
-      const order0x = {
-        exchangeContractAddress: zxConstants.Exchange,
-        expirationUnixTimestampSec: "2519061340",
-        feeRecipient: constants.NULL_ADDRESS,
-        maker: makerOf0xOrder,
-        makerFee: web3.utils.toWei("0.002", "ether").toString(),
-        makerTokenAddress: maker0xToken1.address,
-        makerTokenAmount: web3.utils.toWei("100", "ether").toString(),
-        salt: B0xJS.generatePseudoRandomSalt().toString(),
-        taker: constants.NULL_ADDRESS,
-        takerFee: web3.utils.toWei("0.0013", "ether").toString(),
-        takerTokenAddress: loanToken1.address,
-        takerTokenAmount: web3.utils.toWei("90", "ether").toString()
-      };
-
-      const orderHash = ZeroEx.getOrderHashHex(order0x);
       expect(ZeroEx.isValidOrderHash(orderHash)).toBe(true);
 
       const signature0x = await b0xJS.signOrderHashAsync(
@@ -75,6 +76,35 @@ describe("trade", () => {
         txOpts
       });
       expectPromiEvent(promiEvent);
+    });
+
+    test("should do something", async () => {
+      const {
+        loanTokens,
+        interestTokens
+      } = await FillTestUtils.initAllContractInstances();
+
+      const signature0x = await b0xJS.signOrderHashAsync(
+        orderHash,
+        makerOf0xOrder
+      );
+
+      const order = FillTestUtils.makeOrderAsLender({
+        web3,
+        lenders,
+        loanTokens,
+        interestTokens
+      });
+      const orderHashB0x = B0xJS.getLoanOrderHashHex(order);
+
+      const txOpts = { from: traders[0] };
+      const tx = await b0xJS.tradePositionWith0x({
+        order0x,
+        signature0x,
+        orderHashB0x,
+        txOpts
+      });
+      console.log(JSON.stringify(tx, null, 2));
     });
   });
 });
