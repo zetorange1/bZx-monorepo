@@ -90,18 +90,52 @@ describe("loanPositions", () => {
     );
   });
 
-  describe("getLoanPositions", async () => {
-    /* NOTE: If you want to re-run this test, you must restart
-     the local testnet as the orders made by this address will
-      accumulate causing this test to fail */
+  describe("getLoansForTrader", async () => {
     test("should return loan positions", async () => {
       const {
         loanTokens,
         collateralTokens
       } = await FillTestUtils.initAllContractInstances();
 
-      const loanPositions = await b0xJS.getLoanPositions({
-        loanPartyAddress: traders[0],
+      const loanPositions = await b0xJS.getLoansForTrader({
+        address: traders[0],
+        start: 0,
+        count: 10
+      });
+
+      /*
+      One thing to keep in mind with tests against takeLoanOrderAsLender or takeLoanOrderAsTrader..
+      to calcuate the amount of collateral token amount required and transfered, b0x does a call to the oracle to get the current exchange rate 
+      (between collateralToken and loanToken), then based on that and the initialMarginAmount, 
+      it calculates and transfers enough collateral token from the trader to satisfy margin requirements. 
+      Since the testnet isn't connected to Kyber to get true token rates, the oracle just randomly generates a bogus rate. 
+      */
+      const loanPositionsNoRandomFields = loanPositions.map(
+        ({ loanStartUnixTimestampSec, collateralTokenAmountFilled, ...rest }) =>
+          rest
+      );
+
+      expect(loanPositionsNoRandomFields).toContainEqual({
+        active: 1,
+        collateralTokenAddressFilled: collateralTokens[0].options.address.toLowerCase(),
+        lender: "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+        loanTokenAmountFilled: 12300000000000000000,
+        positionTokenAddressFilled: loanTokens[0].options.address.toLowerCase(),
+        positionTokenAmountFilled: 12300000000000000000,
+        trader: "0x06cef8e666768cc40cc78cf93d9611019ddcb628"
+      });
+    });
+  });
+
+  describe("getLoansForLender", async () => {
+    test("should return loan positions", async () => {
+      const {
+        loanTokens,
+        collateralTokens
+      } = await FillTestUtils.initAllContractInstances();
+
+      const loanPositions = await b0xJS.getLoansForLender({
+        address: lenders[0],
         start: 0,
         count: 10
       });
