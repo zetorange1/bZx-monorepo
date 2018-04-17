@@ -57,10 +57,10 @@ contract B0x is B0xStorage {
         returns (bool);
 
     function getInitialCollateralRequired(
-        address positionTokenAddress,
+        address loanTokenAddress,
         address collateralTokenAddress,
         address oracleAddress,
-        uint positionTokenAmount,
+        uint loanTokenAmountFilled,
         uint initialMarginAmount)
         public
         view
@@ -79,7 +79,15 @@ contract B0x is B0xStorage {
         view
         returns (bytes);
 
-    function getLoanPositions(
+    function getLoansForLender(
+        address loanParty,
+        uint start,
+        uint count)
+        public
+        view
+        returns (bytes);
+
+    function getLoansForTrader(
         address loanParty,
         uint start,
         uint count)

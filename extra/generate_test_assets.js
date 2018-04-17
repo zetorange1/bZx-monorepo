@@ -77,8 +77,8 @@ Object.keys(addresses).forEach(function(item, index) {
 				jsonContents["B0x"] = {};
 			}
 			jsonContents["B0x"]["networks"] = jsonContent["networks"];
-			delete addresses[item];
-			return;
+			//delete addresses[item];
+			//return;
 		} else if (item == "B0x") {
 			if (!jsonContents["B0x"]) {
 				jsonContents["B0x"] = {};

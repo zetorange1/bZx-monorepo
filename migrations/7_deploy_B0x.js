@@ -19,7 +19,17 @@ module.exports = function(deployer, network, accounts) {
 	deployer.deploy(B0xProxy).then(async function() {
 		var b0xProxy = await B0xProxy.deployed();
 		
-		await b0xProxy.setB0xAddresses(B0xToken.address, B0xVault.address, OracleRegistry.address, B0xTo0x.address);
+		var b0x_token_address;
+		if (network == "ropsten") {
+			b0x_token_address = config["protocol"][network]["B0XToken"];
+		} else {
+			var b0x_token = await B0xToken.deployed();
+			b0x_token_address = B0xToken.address;
+
+			await b0xProxy.setDebugMode(true);
+		}
+
+		await b0xProxy.setB0xAddresses(b0x_token_address, B0xVault.address, OracleRegistry.address, B0xTo0x.address);
 
 		var vault = await B0xVault.deployed();
 		await vault.transferB0xOwnership(b0xProxy.address);

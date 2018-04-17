@@ -259,6 +259,15 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         TOKEN_TRANSFER_PROXY_CONTRACT = _proxy;
     }
 
+    function setDebugMode (
+        bool _debug)
+        public
+        onlyOwner
+    {
+        if (DEBUG_MODE != _debug)
+            DEBUG_MODE = _debug;
+    }
+
     function approveFor (
         address token,
         address spender,        
@@ -271,14 +280,5 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             revert();
 
         return true;
-    }
-
-    function toggleDebugMode (
-        bool _toggle)
-        public
-        onlyOwner
-    {
-        if (DEBUG_MODE != _toggle)
-            DEBUG_MODE = _toggle;
     }
 }

@@ -20,7 +20,7 @@ contract InternalFunctions is B0xStorage {
         view
         returns (uint collateralTokenAmount)
     {
-        uint loanToCollateralRate = Oracle_Interface(oracleAddress).getTradeRate(
+        /*uint loanToCollateralRate = Oracle_Interface(oracleAddress).getTradeRate(
             loanTokenAddress,
             collateralTokenAddress
         );
@@ -31,6 +31,20 @@ contract InternalFunctions is B0xStorage {
         collateralTokenAmount = loanTokenAmountFilled
                                     .mul(loanToCollateralRate)
                                     .div(10**18)
+                                    .mul(initialMarginAmount)
+                                    .div(100);*/
+
+        uint collateralToLoanRate = Oracle_Interface(oracleAddress).getTradeRate(
+            collateralTokenAddress,
+            loanTokenAddress
+        );
+        if (collateralToLoanRate == 0) {
+            return 0;
+        }
+        
+        collateralTokenAmount = loanTokenAmountFilled
+                                    .mul(10**18)
+                                    .div(collateralToLoanRate)
                                     .mul(initialMarginAmount)
                                     .div(100);
     }

@@ -13,12 +13,17 @@ module.exports = function(deployer, network, accounts) {
 	deployer.deploy(TokenRegistry).then(async function() {
 		var registry = await TokenRegistry.deployed();
 		
-		var b0x_token = await B0xToken.deployed();
+		var b0x_token;
+		if (network == "ropsten") {
+			b0x_token = await B0xToken.at(config["protocol"][network]["B0XToken"]);
+		} else {
+			b0x_token = await B0xToken.deployed();
+		}
 		var b0x_token_name = await b0x_token.name.call();
 		var b0x_token_symbol = await b0x_token.symbol.call();
 		
 		await registry.addToken(
-			B0xToken.address,
+			b0x_token.address,
 			b0x_token_name,
 			b0x_token_symbol,
 			18,
