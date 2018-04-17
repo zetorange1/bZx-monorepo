@@ -4,8 +4,7 @@ import B0xJS from "../../core";
 import b0xJS from "../../core/__tests__/setup";
 import makeOrder from "../../core/__tests__/order";
 import * as orderConstants from "../../core/constants/order";
-import * as Utils from "./utils";
-import Accounts from "../../core/__tests__/accounts";
+import * as FillTestUtils from "./utils";
 import { expectPromiEvent } from "../../core/__tests__/utils";
 
 const { web3 } = b0xJS;
@@ -14,9 +13,7 @@ const BAD_SIG =
   "0x056184af8d9bbf1734ddbff840e8be410193a99acab9add00512808250cb40f6423e669f24e65a8ee8af97e1a2abd90644177b39985438ecfee0dd2e7e44f77709";
 
 describe("filling orders", () => {
-  const owner = Accounts[0].address;
-  const lenders = [Accounts[1].address, Accounts[3].address];
-  const traders = [Accounts[2].address, Accounts[4].address];
+  const { owner, lenders, traders } = FillTestUtils.getAccounts();
   const loanTokenAmount = web3.utils.toWei("251").toString();
 
   beforeAll(async () => {
@@ -25,7 +22,7 @@ describe("filling orders", () => {
       collateralTokens,
       interestTokens,
       b0xToken
-    } = await Utils.initAllContractInstances();
+    } = await FillTestUtils.initAllContractInstances();
     const ownerTxOpts = { from: owner };
     const transferAmt = web3.utils.toWei("1000000", "ether");
 
@@ -45,26 +42,26 @@ describe("filling orders", () => {
     console.log("before setting up tokens");
     console.log(balancesBefore.map(bigNum => bigNum.toString()));
 
-    await Utils.setupB0xToken({
+    await FillTestUtils.setupB0xToken({
       b0xToken,
       lenders,
       traders,
       transferAmt,
       ownerTxOpts
     });
-    await Utils.setupLoanTokens({
+    await FillTestUtils.setupLoanTokens({
       loanTokens,
       lenders,
       transferAmt,
       ownerTxOpts
     });
-    await Utils.setupCollateralTokens({
+    await FillTestUtils.setupCollateralTokens({
       collateralTokens,
       traders,
       transferAmt,
       ownerTxOpts
     });
-    await Utils.setupInterestTokens({
+    await FillTestUtils.setupInterestTokens({
       interestTokens,
       traders,
       transferAmt,
@@ -94,7 +91,7 @@ describe("filling orders", () => {
         loanTokens,
         interestTokens,
         collateralTokens
-      } = await Utils.initAllContractInstances();
+      } = await FillTestUtils.initAllContractInstances();
       const makerAddress = traders[1];
       const takerAddress = lenders[1];
       const txOpts = {
@@ -134,7 +131,7 @@ describe("filling orders", () => {
         loanTokens,
         interestTokens,
         collateralTokens
-      } = await Utils.initAllContractInstances();
+      } = await FillTestUtils.initAllContractInstances();
       const makerAddress = traders[1];
       const takerAddress = lenders[1];
       const txOpts = {
@@ -190,7 +187,7 @@ describe("filling orders", () => {
         loanTokens,
         interestTokens,
         collateralTokens
-      } = await Utils.initAllContractInstances();
+      } = await FillTestUtils.initAllContractInstances();
       const makerAddress = traders[1];
       const takerAddress = lenders[1];
       const txOpts = {
@@ -236,7 +233,7 @@ describe("filling orders", () => {
       const {
         loanTokens,
         interestTokens
-      } = await Utils.initAllContractInstances();
+      } = await FillTestUtils.initAllContractInstances();
       const makerAddress = lenders[0];
       const takerAddress = traders[0];
       const txOpts = {
@@ -276,7 +273,7 @@ describe("filling orders", () => {
         loanTokens,
         interestTokens,
         collateralTokens
-      } = await Utils.initAllContractInstances();
+      } = await FillTestUtils.initAllContractInstances();
       const makerAddress = lenders[0];
       const takerAddress = traders[0];
       const txOpts = {
@@ -284,23 +281,12 @@ describe("filling orders", () => {
         gas: 1000000,
         gasPrice: web3.utils.toWei("30", "gwei").toString()
       };
-      const expirationUnixTimestampSec = "1719061340";
 
-      const order = makeOrder({
-        makerAddress,
-        loanTokenAddress: loanTokens[0].options.address.toLowerCase(),
-        interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
-        collateralTokenAddress: constantsZX.NULL_ADDRESS,
-        feeRecipientAddress: constantsZX.NULL_ADDRESS,
-        loanTokenAmount,
-        interestAmount: web3.utils.toWei("2").toString(),
-        initialMarginAmount: "50",
-        maintenanceMarginAmount: "25",
-        lenderRelayFee: web3.utils.toWei("0.001").toString(),
-        traderRelayFee: web3.utils.toWei("0.0015").toString(),
-        expirationUnixTimestampSec,
-        makerRole: orderConstants.MAKER_ROLE.LENDER,
-        salt: B0xJS.generatePseudoRandomSalt().toString()
+      const order = FillTestUtils.makeOrderAsLender({
+        web3,
+        lenders,
+        loanTokens,
+        interestTokens
       });
 
       const orderHashHex = B0xJS.getLoanOrderHashHex(order);
@@ -334,7 +320,7 @@ describe("filling orders", () => {
         loanTokens,
         interestTokens,
         collateralTokens
-      } = await Utils.initAllContractInstances();
+      } = await FillTestUtils.initAllContractInstances();
       const makerAddress = lenders[0];
       const takerAddress = traders[0];
       const txOpts = {

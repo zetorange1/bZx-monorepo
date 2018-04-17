@@ -1,9 +1,13 @@
 import { clone } from "ramda";
+import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
 import { local as Contracts } from "../../contracts";
 import b0xJS from "../../core/__tests__/setup";
+import B0xJS from "../../core/index";
 import * as utils from "../../core/utils";
 import Accounts from "../../core/__tests__/accounts";
 import * as UnlockUtils from "../../core/__tests__/unlock";
+import makeOrder from "../../core/__tests__/order";
+import * as orderConstants from "../../core/constants/order";
 
 export const getContractInstances = contracts => {
   const promises = contracts.map(contract =>
@@ -183,3 +187,33 @@ export const setupInterestTokens = async ({
   await Promise.all(promises);
   console.log("setupInterestTokens done.");
 };
+
+export const makeOrderAsLender = ({
+  web3,
+  loanTokenAmount = web3.utils.toWei("251").toString(),
+  lenders,
+  loanTokens,
+  interestTokens
+} = {}) =>
+  makeOrder({
+    makerAddress: lenders[0],
+    loanTokenAddress: loanTokens[0].options.address.toLowerCase(),
+    interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
+    collateralTokenAddress: constantsZX.NULL_ADDRESS,
+    feeRecipientAddress: constantsZX.NULL_ADDRESS,
+    loanTokenAmount,
+    interestAmount: web3.utils.toWei("2").toString(),
+    initialMarginAmount: "50",
+    maintenanceMarginAmount: "25",
+    lenderRelayFee: web3.utils.toWei("0.001").toString(),
+    traderRelayFee: web3.utils.toWei("0.0015").toString(),
+    expirationUnixTimestampSec: "2519061340",
+    makerRole: orderConstants.MAKER_ROLE.LENDER,
+    salt: B0xJS.generatePseudoRandomSalt().toString()
+  });
+
+export const getAccounts = () => ({
+  owner: Accounts[0].address,
+  lenders: [Accounts[1].address, Accounts[3].address],
+  traders: [Accounts[2].address, Accounts[4].address]
+});

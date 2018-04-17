@@ -23,7 +23,7 @@ export const signOrderHashAsync = async (
 
   if (isParityNode || isTestRpc) {
     // Parity and TestRpc nodes add the personalMessage prefix itself
-    signature = web3.eth.sign(orderHash, signerAddress);
+    signature = await web3.eth.sign(orderHash, signerAddress);
   } else {
     let msgHashHex = orderHash;
     if (shouldAddPersonalMessagePrefix) {
