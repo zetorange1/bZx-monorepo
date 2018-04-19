@@ -90,6 +90,11 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             orderValues0x,
             signiture0x);
 
+        if (sourceTokenUsedAmount < sourceTokenAmountToUse) {
+            // all sourceToken has to be traded
+            voidOrRevert(95); return;
+        }
+
         destTokenAmount = getPartialAmount(
             sourceTokenUsedAmount,
             orderValues0x[1], // takerTokenAmount (aka sourceTokenAmount)
@@ -97,13 +102,8 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         );
 
         // transfer the destToken to the vault
-        if (!EIP20(orderAddresses0x[2]).transfer(vaultAddress, destTokenAmount))
-            revert();
-
-        if (sourceTokenUsedAmount < sourceTokenAmountToUse) {
-            // transfer the unused sourceToken back to the vault
-            if (!EIP20(orderAddresses0x[3]).transfer(vaultAddress, sourceTokenAmountToUse-sourceTokenUsedAmount))
-                revert();
+        if (!EIP20(orderAddresses0x[2]).transfer(vaultAddress, destTokenAmount)) {
+            voidOrRevert(106); return;
         }
 
         destTokenAddress = orderAddresses0x[2]; // makerToken (aka destTokenAddress)
@@ -124,7 +124,7 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
             // The 0x TokenTransferProxy already has unlimited transfer allowance for ZRX from this contract (set during deployment of this contract)
             if (!EIP20(ZRX_TOKEN_CONTRACT).transferFrom(trader, this, orderValues0x[3])) {
                 //LogErrorUint("error: b0x can't transfer ZRX from trader", 0, 0x0);
-                return intOrRevert(0,129);
+                return intOrRevert(0,127);
             }
         }
 
@@ -138,14 +138,14 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         if (!EIP20(orderAddresses0x[3]).approve(
             TOKEN_TRANSFER_PROXY_CONTRACT, 
             EIP20(orderAddresses0x[3]).allowance(this, TOKEN_TRANSFER_PROXY_CONTRACT).add(sourceTokenAmountToUse))) {
-            revert();
+            return intOrRevert(0,141);
         }
 
         uint sourceTokenUsedAmount = Exchange_Interface(EXCHANGE_CONTRACT).fillOrder(
             orderAddresses0x,
             orderValues0x,
             sourceTokenAmountToUse,
-            true, // shouldThrowOnInsufficientBalanceOrAllowance
+            false, // shouldThrowOnInsufficientBalanceOrAllowance
             v,
             r,
             s);
@@ -270,14 +270,15 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
 
     function approveFor (
         address token,
-        address spender,        
+        address spender,
         uint value)
         public
         onlyOwner
         returns (bool)
     {
-        if (!EIP20(token).approve(spender, value))
-            revert();
+        if (!EIP20(token).approve(spender, value)) {
+            return boolOrRevert(false,280);
+        }
 
         return true;
     }

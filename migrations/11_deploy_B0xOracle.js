@@ -14,11 +14,15 @@ module.exports = function(deployer, network, accounts) {
 
 	deployer.deploy(B0xOracle, B0xVault.address, config["protocol"][network]["KyberContractAddress"], config["protocol"][network]["ZeroEx"]["WETH9"]
 		,{from: accounts[0], value: web3.toWei(1, "ether")}).then(async function() { // seeds B0xOracle with 1 Ether
-		
+
 		var b0xProxy = await B0xProxy.deployed();
 
 		var oracle = await B0xOracle.deployed();
 		await oracle.transferB0xOwnership(B0xProxy.address);
+
+		if (network != "mainnet" && network != "ropsten" && network != "kovan" && network != "rinkeby") {
+			await oracle.setDebugMode(true);
+		}
 
 		var registry = await OracleRegistry.deployed();
 		await registry.addOracle(B0xOracle.address,"b0xOracle");

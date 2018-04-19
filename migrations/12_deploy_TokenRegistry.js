@@ -12,16 +12,16 @@ module.exports = function(deployer, network, accounts) {
 
 	deployer.deploy(TokenRegistry).then(async function() {
 		var registry = await TokenRegistry.deployed();
-		
+
 		var b0x_token;
-		if (network == "ropsten") {
+		if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {
 			b0x_token = await B0xToken.at(config["protocol"][network]["B0XToken"]);
 		} else {
 			b0x_token = await B0xToken.deployed();
 		}
 		var b0x_token_name = await b0x_token.name.call();
 		var b0x_token_symbol = await b0x_token.symbol.call();
-		
+
 		await registry.addToken(
 			b0x_token.address,
 			b0x_token_name,
@@ -35,7 +35,7 @@ module.exports = function(deployer, network, accounts) {
 			"ZRX",
 			18,
 			"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAAXNSR0IArs4c6QAAAW5QTFRFAAAAVVVVSUlJNTU1My0tMiwsMi8vMS0tMiwsMSwsMCwsMS0tMC0tMC0tMSwsMCwsMCwsMC0t////MCwsNDAw5OPj7e3tMi4uOTU1RUJCR0NDaWZmgH19lpSUtLKy5+fn6urq7Ovr/v7+/Pz8REBARUFBODU14N/f6enp4+Li5eTkm5qauri41NPT7ezsgX5+goCAsK6uUU1Nr62tOjY27u7u8vHxioeH8vLy9fX19vX19vb2NzMzm5mZMy8vPTo6Y2Bg4eHhZGFhsbCwsrGxZWJi5ubmZmNj6ejonJqatbS0trW1uLe3SEREurm5vLu7vry8wcDAtbOz5eXlxMPDaGVlPzs7a2hoTEhITktLT0xMOzc3Uk5OUk9PVlNTXVpaPDg4PDk5RkNDgX9/MS0tSUVF1dTU1tXV3d3d3t3dSUZGSkdH8PDwUE1NQDw8lJKSycjIlZOT9/f3+Pj4+vr6+/v7QT4+/f39Qz8/ODQ0oHre+wAAABJ0Uk5TAAYHGC0uR4KVlr/H2ePx8vP009oDlQAAAbRJREFUeF6Fk1Wz20AMhZ2kje0k9zY5sh1mZrrMUGZmZmb897XsnW086Yy/F50Za1fyWUn5RyCsRWLxeCyihQPKPCF9kSSLekjxElQT5CGhBj3HozRHdOaSowv0HxaOyPPiu3Hr0PxebZ7NbYmMkKgv7l99D8Hgvqji9qES8/EKBCjuUTpDjOoUcPp/UYQAF3cpu2xecP6Fi+jE1C0AJwfARo6SZypA3+AM3fbP8ecdZSsYL91tvbxDZBRgk3ccCyhhjo3yI+oWbJE2iJkCWHvCKqxoHIYo3kwaJEldA5BjpSkRDj3gOs3wtgXgMquIEuPQAfCJJDUTNq9ZxpQ4h3UA1RMy4d4+bL6yjLsJm7Ap12TGw2/cJatjbokmbEq3STICYDol3CYvAbA+0AxXgZ7bpMYhxzamSGIkG28wYqW5Rj1eATAm5icXOr5ND04vOUYJq/OwKRhEB6XSJDVF5QbVXKvFYxl9oNJNPs//Aiy20aoTo8vnzrStLP3+DAHaT8Vzy4HJ1OlUGQK8ShOjekZusgzBypcdMXLeof0zPGdWf3TOP0vJofUbe//F8V89/+X1Xf+/rJVSubRUnPUAAAAASUVORK5CYII=");
-	
+
 		var WETH = config["protocol"][network]["ZeroEx"]["WETH9"];
 		if (WETH == "") {
 			WETH = config["protocol"][network]["ZeroEx"]["EtherToken"];

@@ -11,7 +11,7 @@ var run = {
   "should generate loanOrderHash (as lender1)": true,
   "should sign and verify orderHash (as lender1)": true,
   "should take sample loan order (as lender1/trader1)": true,
-  "should take sample loan order (as lender1/trader2)": true,
+  "should take sample loan order (as lender1/trader2)": false,
   
   "should generate loanOrderHash (as trader2)": false,
   "should sign and verify orderHash (as trader2)": false,

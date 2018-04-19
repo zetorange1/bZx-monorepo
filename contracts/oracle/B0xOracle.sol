@@ -122,7 +122,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
             interestTokenAddress,
             lender,
             amountOwed.sub(interestFee))) {
-            revert();
+            return boolOrRevert(false,125);
         }
 
         return true;
@@ -271,7 +271,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
     {
         uint collateralTokenBalance = EIP20(collateralTokenAddress).balanceOf.gas(4999)(this); // Changes to state require at least 5000 gas
         if (collateralTokenBalance < collateralTokenAmountUsable) {
-            revert();
+            voidOrRevert(274); return;
         }
         
         loanTokenAmountCovered = _doTrade(
@@ -287,7 +287,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
             collateralTokenAddress,
             VAULT_CONTRACT,
             collateralTokenAmountUsable.sub(collateralTokenAmountUsed))) {
-            revert();
+            voidOrRevert(290); return;
         }
     }
 
@@ -595,7 +595,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
                 destTokenAddress,
                 VAULT_CONTRACT,
                 destTokenAmount)) {
-                revert();
+                return intOrRevert(0,598);
             }
         } else {
             if (sourceTokenAddress == WETH_CONTRACT) {
@@ -618,7 +618,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
                     if (!EIP20(sourceTokenAddress).approve(
                         KYBER_CONTRACT,
                         MAX_FOR_KYBER)) {
-                        revert();
+                        return intOrRevert(0,621);
                     }
                 }
 
@@ -638,7 +638,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
                     destTokenAddress,
                     VAULT_CONTRACT,
                     destTokenAmount)) {
-                    revert();
+                    return intOrRevert(0,641);
                 }
             } else {
                 // re-up the Kyber spend approval if needed
@@ -647,7 +647,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
                     if (!EIP20(sourceTokenAddress).approve(
                         KYBER_CONTRACT,
                         MAX_FOR_KYBER)) {
-                        revert();
+                        return intOrRevert(0,650);
                     }
                 }
                 
@@ -694,7 +694,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
         returns (bool)
     {
         if (!EIP20(tokenAddress).transfer(to, value))
-            revert();
+            return boolOrRevert(false,697);
 
         return true;
     }
