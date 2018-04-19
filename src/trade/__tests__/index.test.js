@@ -78,7 +78,7 @@ describe("trade", () => {
       expectPromiEvent(promiEvent);
     });
 
-    test("should do something", async () => {
+    test("should successfully trade position with 0x", async () => {
       const {
         loanTokens,
         interestTokens
@@ -98,13 +98,15 @@ describe("trade", () => {
       const orderHashB0x = B0xJS.getLoanOrderHashHex(order);
 
       const txOpts = { from: traders[0] };
-      const tx = await b0xJS.tradePositionWith0x({
+      const receipt = await b0xJS.tradePositionWith0x({
         order0x,
         signature0x,
         orderHashB0x,
         txOpts
       });
-      console.log(JSON.stringify(tx, null, 2));
+      console.log(JSON.stringify(receipt, null, 2));
+      const debugLine = pathOr(null, ["events", "DebugLine"], receipt);
+      expect(debugLine).toBe(null);
     });
   });
 });
