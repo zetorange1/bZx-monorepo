@@ -21,6 +21,10 @@ const Pre = styled.pre`
   padding: 12px;
 `;
 
+const IndentedContainer = styled.div`
+  margin-left: 16px;
+`;
+
 const DataPointContainer = styled.div`
   display: flex;
   justify-content: flex-start;
@@ -72,37 +76,43 @@ export default class OrderItem extends React.Component {
     this.setState(p => ({ showRawOrder: !p.showRawOrder }));
 
   render() {
-    const { order, accounts, tokens } = this.props;
+    const { takenOrder, accounts, tokens } = this.props;
     const { showRawOrder } = this.state;
     // const { loanPositions } = this.state;
-    const isMaker = order.maker === accounts[0].toLowerCase();
-    const date = moment(order.expirationUnixTimestampSec * 1000);
+    const isMaker = takenOrder.maker === accounts[0].toLowerCase();
+    const isLender = takenOrder.lender === accounts[0].toLowerCase();
+    const date = moment(takenOrder.expirationUnixTimestampSec * 1000);
     const dateStr = date.format(`MMMM Do YYYY, h:mm a`);
+    const addedDate = moment(takenOrder.addedUnixTimestampSec * 1000);
+    const addedDateStr = addedDate.format(`MMMM Do YYYY, h:mm a`);
+    
+    const fillCount = parseInt(takenOrder.orderTraderCount);
+    const fillsStr = fillCount + (fillCount == 1 ? " trader" : " traders");
 
-    const loanTokenSymbol = getSymbol(tokens, order.loanTokenAddress);
-    const interestTokenSymbol = getSymbol(tokens, order.interestTokenAddress);
+    const loanTokenSymbol = getSymbol(tokens, takenOrder.loanTokenAddress);
+    const interestTokenSymbol = getSymbol(tokens, takenOrder.interestTokenAddress);
     const collateralTokenSymbol = getSymbol(
       tokens,
-      order.collateralTokenAddress
+      takenOrder.collateralTokenAddress
     );
 
     const tokenLinkPrefix = `https://ropsten.etherscan.io/token/`;
-    const loanTokenAddressLink = `${tokenLinkPrefix}${order.loanTokenAddress}`;
+    const loanTokenAddressLink = `${tokenLinkPrefix}${takenOrder.loanTokenAddress}`;
     const interestTokenAddressLink = `${tokenLinkPrefix}${
-      order.interestTokenAddress
+      takenOrder.interestTokenAddress
     }`;
     const collateralTokenAddressLink = `${tokenLinkPrefix}${
-      order.collateralTokenAddress
+      takenOrder.collateralTokenAddress
     }`;
 
     const addressLinkPrefix = `https://ropsten.etherscan.io/address/`;
-    const oracleAddressLink = `${addressLinkPrefix}${order.oracleAddress}`;
+    const oracleAddressLink = `${addressLinkPrefix}${takenOrder.oracleAddress}`;
     const feeRecipientAddressLink = `${addressLinkPrefix}${
-      order.feeRecipientAddress
+      takenOrder.feeRecipientAddress
     }`;
 
     const isUsingRelay =
-      order.feeRecipientAddress !==
+      takenOrder.feeRecipientAddress !==
       `0x0000000000000000000000000000000000000000`;
 
     return (
@@ -111,35 +121,70 @@ export default class OrderItem extends React.Component {
           <DataPointContainer>
             <Label>Order #</Label>
             <DataPoint>
-              <Hash>{order.loanOrderHash}</Hash>
+              <Hash>{takenOrder.loanOrderHash}</Hash>
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Your Role</Label>
-            <DataPoint>{isMaker ? `Maker` : `Taker`}</DataPoint>
+            <DataPoint>{isMaker ? `Maker` : `Taker`} / {isLender ? `Lender` : `Trader`}</DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Loan Amount</Label>
             <DataPoint>
-              {fromBigNumber(order.loanTokenAmount, 1e18)} {loanTokenSymbol}
+              {fromBigNumber(takenOrder.loanTokenAmount, 1e18)} {loanTokenSymbol}
               {` `}(
               <AddressLink href={loanTokenAddressLink}>
-                {order.loanTokenAddress}
+                {takenOrder.loanTokenAddress}
               </AddressLink>)
             </DataPoint>
           </DataPointContainer>
 
+          <IndentedContainer>
+
+            <DataPointContainer>
+              <Label>First Fill</Label>
+              <DataPoint>{`${addedDateStr} (${addedDate.fromNow()})`}</DataPoint>
+            </DataPointContainer>
+
+            <DataPointContainer>
+              <Label>Fill Count</Label>
+              <DataPoint>{fillsStr}</DataPoint>
+            </DataPointContainer>
+
+            <DataPointContainer>
+              <Label>Total Filled</Label>
+              <DataPoint>
+                {fromBigNumber(takenOrder.orderFilledAmount, 1e18)} {loanTokenSymbol}
+              </DataPoint>
+            </DataPointContainer>
+
+            <DataPointContainer>
+              <Label>Total Cancelled</Label>
+              <DataPoint>
+                {fromBigNumber(takenOrder.orderCancelledAmount, 1e18)} {loanTokenSymbol}
+              </DataPoint>
+            </DataPointContainer>
+
+            <DataPointContainer>
+              <Label>Total Remaining</Label>
+              <DataPoint>
+                {fromBigNumber(takenOrder.loanTokenAmount-takenOrder.orderFilledAmount-takenOrder.orderCancelledAmount, 1e18)} {loanTokenSymbol}
+              </DataPoint>
+            </DataPointContainer>
+
+          </IndentedContainer>
+
           <DataPointContainer>
             <Label>Interest Amount</Label>
             <DataPoint>
-              {fromBigNumber(order.interestAmount, 1e18)} {interestTokenSymbol}
+              {fromBigNumber(takenOrder.interestAmount, 1e18)} {interestTokenSymbol}
               {` `}
               per day
               {` `}(
               <AddressLink href={interestTokenAddressLink}>
-                {order.interestTokenAddress}
+                {takenOrder.interestTokenAddress}
               </AddressLink>)
             </DataPoint>
           </DataPointContainer>
@@ -151,7 +196,7 @@ export default class OrderItem extends React.Component {
                 {collateralTokenSymbol}
                 {` `}(
                 <AddressLink href={collateralTokenAddressLink}>
-                  {order.collateralTokenAddress}
+                  {takenOrder.collateralTokenAddress}
                 </AddressLink>)
               </DataPoint>
             ) : (
@@ -161,12 +206,12 @@ export default class OrderItem extends React.Component {
 
           <DataPointContainer>
             <Label>Initial Margin</Label>
-            <DataPoint>{order.initialMarginAmount}%</DataPoint>
+            <DataPoint>{takenOrder.initialMarginAmount}%</DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Maintenance Margin</Label>
-            <DataPoint>{order.maintenanceMarginAmount}%</DataPoint>
+            <DataPoint>{takenOrder.maintenanceMarginAmount}%</DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
@@ -174,7 +219,7 @@ export default class OrderItem extends React.Component {
             <DataPoint>
               <Hash>
                 <AddressLink href={oracleAddressLink}>
-                  {order.oracleAddress}
+                  {takenOrder.oracleAddress}
                 </AddressLink>
               </Hash>
             </DataPoint>
@@ -192,7 +237,7 @@ export default class OrderItem extends React.Component {
                 <DataPoint>
                   <Hash>
                     <AddressLink href={feeRecipientAddressLink}>
-                      {order.feeRecipientAddress}
+                      {takenOrder.feeRecipientAddress}
                     </AddressLink>
                   </Hash>
                 </DataPoint>
@@ -201,14 +246,14 @@ export default class OrderItem extends React.Component {
               <DataPointContainer>
                 <Label>Trader Relay Fee</Label>
                 <DataPoint>
-                  {fromBigNumber(order.lenderRelayFee, 1e18)} B0X
+                  {fromBigNumber(takenOrder.lenderRelayFee, 1e18)} B0X
                 </DataPoint>
               </DataPointContainer>
 
               <DataPointContainer>
                 <Label>Trader Relay Fee</Label>
                 <DataPoint>
-                  {fromBigNumber(order.traderRelayFee, 1e18)} B0X
+                  {fromBigNumber(takenOrder.traderRelayFee, 1e18)} B0X
                 </DataPoint>
               </DataPointContainer>
             </Fragment>
@@ -220,7 +265,7 @@ export default class OrderItem extends React.Component {
               {showRawOrder ? `Hide` : `Show`} raw order
             </a>
           </div>
-          {showRawOrder && <Pre>{JSON.stringify(order, null, 4)}</Pre>}
+          {showRawOrder && <Pre>{JSON.stringify(takenOrder, null, 4)}</Pre>}
           {/* <Pre>{JSON.stringify(loanPositions, null, 4)}</Pre> */}
         </CardContent>
       </Card>
