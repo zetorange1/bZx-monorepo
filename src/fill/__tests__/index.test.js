@@ -134,6 +134,9 @@ describe("filling orders", () => {
         receipt
       );
       expect(loanTokenAmountFilledReturn).toBe(loanTokenAmount);
+
+      const debugLine = pathOr(null, ["events", "DebugLine"], receipt);
+      expect(debugLine).toBe(null);
     });
 
     test("should return a web3 PromiEvent", async () => {
@@ -248,6 +251,9 @@ describe("filling orders", () => {
         receipt
       );
       expect(loanTokenAmountFilledReturn).toBe(loanTokenAmountFilled);
+
+      const debugLine = pathOr(null, ["events", "DebugLine"], receipt);
+      expect(debugLine).toBe(null);
     });
 
     test("should return a web3 PromiEvent", async () => {
