@@ -8,6 +8,7 @@ import { protocol } from "../../../../config/secrets";
 import Accounts from "../../core/__tests__/accounts";
 import { local as Contracts } from "../../contracts";
 import * as FillTestUtils from "../../fill/__tests__/utils";
+import * as TradeTestUtils from "./utils";
 
 describe("trade", () => {
   const { web3 } = b0xJS;
@@ -17,11 +18,26 @@ describe("trade", () => {
   const maker0xToken1 = Contracts.TestToken6;
   const loanToken1 = Contracts.TestToken0;
 
-  const { lenders, traders } = FillTestUtils.getAccounts();
+  const { owner, lenders, traders } = FillTestUtils.getAccounts();
+
+  beforeAll(async () => {
+    await TradeTestUtils.setupAll({
+      owner,
+      traders,
+      makerOf0xOrder,
+      transferAmount: web3.utils.toWei("10000", "ether")
+    });
+    await FillTestUtils.setupAll({
+      owner,
+      lenders,
+      traders,
+      transferAmount: web3.utils.toWei("1000000", "ether")
+    });
+  });
 
   describe("tradePositionWith0x", () => {
     const order0x = {
-      exchangeContractAddress: zxConstants.Exchange,
+      exchangeContractAddress: zxConstants.Exchange.toLowerCase(),
       expirationUnixTimestampSec: "2519061340",
       feeRecipient: constants.NULL_ADDRESS,
       maker: makerOf0xOrder,
@@ -81,13 +97,16 @@ describe("trade", () => {
     test("should successfully trade position with 0x", async () => {
       const {
         loanTokens,
-        interestTokens
+        interestTokens,
+        collateralTokens
       } = await FillTestUtils.initAllContractInstances();
 
-      const signature0x = await b0xJS.signOrderHashAsync(
-        orderHash,
-        makerOf0xOrder
-      );
+      const takerAddress = traders[0];
+      const txOpts = {
+        from: takerAddress,
+        gas: 1000000,
+        gasPrice: web3.utils.toWei("30", "gwei").toString()
+      };
 
       const order = FillTestUtils.makeOrderAsLender({
         web3,
@@ -95,16 +114,42 @@ describe("trade", () => {
         loanTokens,
         interestTokens
       });
-      const orderHashB0x = B0xJS.getLoanOrderHashHex(order);
 
-      const txOpts = { from: traders[0] };
+      const orderHashB0x = B0xJS.getLoanOrderHashHex(order);
+      const signatureB0x = await b0xJS.signOrderHashAsync(
+        orderHashB0x,
+        order.makerAddress
+      );
+      const loanTokenAmountFilled = web3.utils.toWei("12.3");
+      // b0x hash that we give to tradePositionWith0x must belong to a loan that was previously filled, so we fill the loan order here
+      const takeLoanOrderAsTraderReceipt = await b0xJS.takeLoanOrderAsTrader(
+        { ...order, signature: signatureB0x },
+        collateralTokens[0].options.address.toLowerCase(),
+        loanTokenAmountFilled,
+        txOpts
+      );
+
+      console.log(
+        "takeLoanOrderAsTraderReceipt",
+        JSON.stringify(takeLoanOrderAsTraderReceipt, null, 2)
+      );
+
+      expect(
+        pathOr(null, ["events", "DebugLine"], takeLoanOrderAsTraderReceipt)
+      ).toBe(null);
+
+      const signature0x = await b0xJS.signOrderHashAsync(
+        orderHash,
+        makerOf0xOrder
+      );
+
       const receipt = await b0xJS.tradePositionWith0x({
         order0x,
         signature0x,
         orderHashB0x,
         txOpts
       });
-      console.log(JSON.stringify(receipt, null, 2));
+
       const debugLine = pathOr(null, ["events", "DebugLine"], receipt);
       expect(debugLine).toBe(null);
     });
