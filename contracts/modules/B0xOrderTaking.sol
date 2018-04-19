@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.22;
 
 import 'zeppelin-solidity/contracts/math/Math.sol';
 
@@ -14,7 +14,7 @@ import '../interfaces/Oracle_Interface.sol';
 contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
     using SafeMath for uint256;
 
-    function B0xOrderTaking() public {}
+    constructor() public {}
     
     function initialize(
         address _target)
@@ -32,8 +32,6 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         targets[bytes4(keccak256("getOrders(address,uint256,uint256)"))] = _target;
         targets[bytes4(keccak256("getLoansForLender(address,uint256,uint256)"))] = _target;
         targets[bytes4(keccak256("getLoansForTrader(address,uint256,uint256)"))] = _target;
-        targets[bytes4(keccak256("getLoanOrderParts(bytes32)"))] = _target;
-        targets[bytes4(keccak256("getLoanPositionParts(bytes32,address)"))] = _target;
     }
 
     /// @dev Takes the order as trader
@@ -122,7 +120,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            return intOrRevert(0,125);
+            return intOrRevert(0,123);
         }
 
         require(loanOrder.maker == msg.sender);
@@ -204,46 +202,59 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         view
         returns (bytes)
     {
-        uint end = Math.min256(loanList[loanParty].length, start.add(count));
+        uint end = Math.min256(orderList[loanParty].length, start.add(count));
         if (end == 0 || start >= end) {
             return;
         }
 
-        // size of bytes = ((addrs.length(6) + uints.length(7) + 1) * 32) * (end-start)
-        bytes memory data = new bytes(448 * (end - start)); 
+        // all encoded params will be zero-padded to 32 bytes
+        bytes memory data;
 
-        for (uint j=0; j < end-start; j++) {
-            bytes32 loanOrderHash = loanList[loanParty][j+start].loanOrderHash;
-            address[6] memory addrs;
-            uint[7] memory uints;
-            (addrs, uints) = getLoanOrderParts(loanOrderHash);
+        for (uint j=end-start; j > 0; j--) {
+            LoanOrder memory loanOrder = orders[orderList[loanParty][j+start-1]];
 
-            uint i;
-
-            // handles address
-            for(i = 1; i <= addrs.length; i++) {
-                address tmpAddr = addrs[i-1];
-                assembly {
-                    mstore(add(data, mul(add(i, mul(j, 14)), 32)), tmpAddr) // mul(j, 14) since 14 items per loanOrder object
-                }
-            }
-
-            // handles uint
-            for(i = addrs.length+1; i <= addrs.length+uints.length; i++) {
-                uint tmpUint = uints[i-1-addrs.length];
-                assembly {
-                    mstore(add(data, mul(add(i, mul(j, 14)), 32)), tmpUint) // mul(j, 14) since 14 items per loanOrder object
-                }
-            }
-
-            // handles bytes32
-            i = addrs.length + uints.length + 1;
-            assembly {
-                mstore(add(data, mul(add(i, mul(j, 14)), 32)), loanOrderHash) // mul(j, 14) since 14 items per loanOrder object
+            bytes memory tmpBytes = abi.encode(
+                loanOrder.maker,
+                loanOrder.loanTokenAddress,
+                loanOrder.interestTokenAddress,
+                loanOrder.collateralTokenAddress,
+                loanOrder.feeRecipientAddress,
+                loanOrder.oracleAddress,
+                loanOrder.loanTokenAmount,
+                loanOrder.interestAmount,
+                loanOrder.initialMarginAmount,
+                loanOrder.maintenanceMarginAmount,
+                loanOrder.lenderRelayFee,
+                loanOrder.traderRelayFee,
+                loanOrder.expirationUnixTimestampSec,
+                loanOrder.loanOrderHash
+            );
+            tmpBytes = _addExtraOrderData(loanOrder.loanOrderHash, tmpBytes);
+            if (j == end-start) {
+                data = tmpBytes;
+            } else {
+                data = abi.encodePacked(data, tmpBytes);
             }
         }
 
         return data;
+    }
+
+    function _addExtraOrderData(
+        bytes32 loanOrderHash,
+        bytes data)
+        internal
+        view
+        returns (bytes)
+    {
+        bytes memory tmpBytes = abi.encode(
+            orderLender[loanOrderHash],
+            orderFilledAmounts[loanOrderHash],
+            orderCancelledAmounts[loanOrderHash],
+            orderTraders[loanOrderHash].length,
+            loanPositions[loanOrderHash][orderTraders[loanOrderHash][0]].loanStartUnixTimestampSec
+        );
+        return abi.encodePacked(data, tmpBytes);
     }
 
     function getLoansForLender(
@@ -278,67 +289,6 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         );
     }
 
-    function getLoanOrderParts (
-        bytes32 loanOrderHash)
-        public
-        view
-        returns (address[6],uint[7])
-    {
-        LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.maker == address(0)) {
-            return;
-        }
-
-        return (
-            [
-                loanOrder.maker,
-                loanOrder.loanTokenAddress,
-                loanOrder.interestTokenAddress,
-                loanOrder.collateralTokenAddress,
-                loanOrder.feeRecipientAddress,
-                loanOrder.oracleAddress
-            ],
-            [
-                loanOrder.loanTokenAmount,
-                loanOrder.interestAmount,
-                loanOrder.initialMarginAmount,
-                loanOrder.maintenanceMarginAmount,
-                loanOrder.lenderRelayFee,
-                loanOrder.traderRelayFee,
-                loanOrder.expirationUnixTimestampSec
-            ]
-        );
-    }
-
-    function getLoanPositionParts (
-        bytes32 loanOrderHash,
-        address trader)
-        public
-        view
-        returns (address[4], uint[5])
-    {
-        LoanPosition memory loanPosition = loanPositions[loanOrderHash][trader];
-        if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return;
-        }
-
-        return (
-            [
-                loanPosition.lender,
-                loanPosition.trader,
-                loanPosition.collateralTokenAddressFilled,
-                loanPosition.positionTokenAddressFilled
-            ],
-            [
-                loanPosition.loanTokenAmountFilled,
-                loanPosition.collateralTokenAmountFilled,
-                loanPosition.positionTokenAmountFilled,
-                loanPosition.loanStartUnixTimestampSec,
-                loanPosition.active ? 1 : 0
-            ]
-        );
-    }
-
 
     function _takeLoanOrder(
         address[6] orderAddresses,
@@ -359,40 +309,33 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             lender = msg.sender;
             trader = orderAddresses[0]; // maker
         }
-        
+
         bytes32 loanOrderHash = getLoanOrderHash(orderAddresses, orderValues);
         LoanOrder memory loanOrder = orders[loanOrderHash];
+
         if (loanOrder.maker == address(0)) {
             // no previous partial loan fill
             loanOrder = buildLoanOrderStruct(loanOrderHash, orderAddresses, orderValues);
             orders[loanOrder.loanOrderHash] = loanOrder;
-            loanList[lender].push(Counterparty({
-                counterparty: trader,
-                loanOrderHash: loanOrder.loanOrderHash
-            }));
-            loanList[trader].push(Counterparty({
-                counterparty: lender,
-                loanOrderHash: loanOrder.loanOrderHash
-            }));
-        } else {
-            // previous partial/complete loan fill by another trader
-            loanList[trader].push(Counterparty({
-                counterparty: lender,
-                loanOrderHash: loanOrder.loanOrderHash
-            }));
+            
+            orderList[lender].push(loanOrder.loanOrderHash);
+            orderLender[loanOrder.loanOrderHash] = lender;
         }
+
+        orderList[trader].push(loanOrder.loanOrderHash);
+        orderTraders[loanOrder.loanOrderHash].push(trader);
 
         if (!_isValidSignature(
             loanOrder.maker,
             loanOrder.loanOrderHash,
             signature
         )) {
-            return intOrRevert(0,390);
+            return intOrRevert(0,333);
         }
 
         // makerRole (orderValues[7]) and takerRole must not be equal and must have a value <= 1
         if (orderValues[7] > 1 || takerRole > 1 || orderValues[7] == takerRole) {
-            return intOrRevert(0,395);
+            return intOrRevert(0,338);
         }
 
         // A trader can only fill a portion or all of a loanOrder once:
@@ -400,7 +343,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         //  - this avoids potentially large loops when calculating margin reqirements and interest payments
         LoanPosition storage loanPosition = loanPositions[loanOrder.loanOrderHash][trader];
         if (loanPosition.loanTokenAmountFilled != 0) {
-            return intOrRevert(0,403);
+            return intOrRevert(0,346);
         }     
 
         uint collateralTokenAmountFilled = _fillLoanOrder(
@@ -423,7 +366,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         loanPosition.loanStartUnixTimestampSec = block.timestamp;
         loanPosition.active = true;
 
-        emit LoanPositionUpdated (
+        emit LogLoanTaken (
             loanPosition.lender,
             loanPosition.trader,
             loanPosition.collateralTokenAddressFilled,
@@ -442,7 +385,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
                 msg.sender,
                 gasUsed // initial used gas, collected in modifier
             )) {
-                return intOrRevert(0,445);
+                return intOrRevert(0,388);
             }
         }
 
@@ -459,7 +402,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         returns (uint)
     {
         if (!_verifyLoanOrder(loanOrder, collateralTokenFilled, loanTokenAmountFilled)) {
-            return intOrRevert(0,462);
+            return intOrRevert(0,405);
         }
 
         uint collateralTokenAmountFilled = _getInitialCollateralRequired(
@@ -470,7 +413,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             loanOrder.initialMarginAmount
         );
         if (collateralTokenAmountFilled == 0) {
-            return intOrRevert(0,473);
+            return intOrRevert(0,416);
         }
 
         if (! B0xVault(VAULT_CONTRACT).depositCollateral(
@@ -478,7 +421,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             trader,
             collateralTokenAmountFilled
         )) {
-            return intOrRevert(loanTokenAmountFilled,481);
+            return intOrRevert(loanTokenAmountFilled,424);
         }
 
         // total interest required if loan is kept until order expiration
@@ -494,7 +437,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             trader,
             totalInterestRequired
         )) {
-            return intOrRevert(loanTokenAmountFilled,497);
+            return intOrRevert(loanTokenAmountFilled,440);
         }
 
         if (! B0xVault(VAULT_CONTRACT).depositFunding(
@@ -502,7 +445,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             lender,
             loanTokenAmountFilled
         )) {
-            return intOrRevert(loanTokenAmountFilled,505);
+            return intOrRevert(loanTokenAmountFilled,448);
         }
 
         if (loanOrder.feeRecipientAddress != address(0)) {
@@ -515,7 +458,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
                     loanOrder.feeRecipientAddress,
                     paidTraderFee
                 )) {
-                    return intOrRevert(loanTokenAmountFilled,518);
+                    return intOrRevert(loanTokenAmountFilled,461);
                 }
             }
             if (loanOrder.lenderRelayFee > 0) {
@@ -527,7 +470,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
                     loanOrder.feeRecipientAddress,
                     paidLenderFee
                 )) {
-                    return intOrRevert(0,530);
+                    return intOrRevert(0,473);
                 }
             }
         }
@@ -543,34 +486,34 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         returns (bool)
     {
         if (loanOrder.maker == msg.sender) {
-            return boolOrRevert(false,546);
+            return boolOrRevert(false,489);
         }
         if (loanOrder.loanTokenAddress == address(0) 
             || loanOrder.interestTokenAddress == address(0)
             || collateralTokenFilled == address(0)) {
-            return boolOrRevert(false,551);
+            return boolOrRevert(false,494);
         }
 
         if (loanTokenAmountFilled > loanOrder.loanTokenAmount) {
-            return boolOrRevert(false,555);
+            return boolOrRevert(false,498);
         }
 
         if (! OracleRegistry(ORACLE_REGISTRY_CONTRACT).hasOracle(loanOrder.oracleAddress)) {
-            return boolOrRevert(false,559);
+            return boolOrRevert(false,502);
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
             //LogError(uint8(Errors.ORDER_EXPIRED), 0, loanOrder.loanOrderHash);
-            return boolOrRevert(false,564);
+            return boolOrRevert(false,507);
         }
 
         if (loanOrder.maintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= loanOrder.initialMarginAmount) {
-            return boolOrRevert(false,568);
+            return boolOrRevert(false,511);
         }
 
         uint remainingLoanTokenAmount = loanOrder.loanTokenAmount.sub(getUnavailableLoanTokenAmount(loanOrder.loanOrderHash));
         if (remainingLoanTokenAmount < loanTokenAmountFilled) {
-            return boolOrRevert(false,573);
+            return boolOrRevert(false,516);
         }
 
         return true;
@@ -598,79 +541,87 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
 
         orderCancelledAmounts[loanOrder.loanOrderHash] = orderCancelledAmounts[loanOrder.loanOrderHash].add(cancelledLoanTokenAmount);
 
-        // TODO: needs event
+        emit LogLoanCancelled(
+            msg.sender,
+            cancelledLoanTokenAmount,
+            (remainingLoanTokenAmount - cancelledLoanTokenAmount),
+            loanOrder.loanOrderHash
+        );
     
         return cancelledLoanTokenAmount;
     }
 
     function _getLoanPositions(
         address loanParty,
-        uint start,
+        uint /*start*/, // for now start is ignored
         uint count,
         bool forLender)
         internal
         view
         returns (bytes)
     {
-        uint end = Math.min256(loanList[loanParty].length, start.add(count));
-        if (end == 0 || start >= end) {
-            return;
-        }
+        // all encoded params will be zero-padded to 32 bytes
+        bytes memory data;
 
-        // size of bytes = ((addrs.length(4) + uints.length(5)) * 32) * (end-start)
-        bytes memory data = new bytes(288 * (end - start)); 
-
-        for (uint j=0; j < end-start; j++) {
-            bytes32 loanOrderHash = loanList[loanParty][j+start].loanOrderHash;
-            if (loanPositions[loanOrderHash][loanParty].loanTokenAmountFilled == 0) {
-                // loanParty is lender
-                if (!forLender) {
-                    end = end + 1;
-                    if (end <= loanList[loanParty].length) {
-                        continue;
-                    } else {
-                        break;
-                    }
-                }
-
-                // get the counterparty (trader), to retrieve the loan details
-                loanParty = loanList[loanParty][j+start].counterparty; // loanParty is now the trader
-            } else {
-                // loanParty is trader
-                if (forLender) {
-                    end = end + 1;
-                    if (end <= loanList[loanParty].length) {
-                        continue;
-                    } else {
-                        break;
-                    }
-                }
-            }
-            address[4] memory addrs;
-            uint[5] memory uints;
-            (addrs, uints) = getLoanPositionParts(loanOrderHash, loanParty);
-
-            uint i;
-            bytes32 tmp; 
-
-            // handles address
-            for(i = 1; i <= addrs.length; i++) {
-                tmp = bytes32(addrs[i-1]);
-                assembly {
-                    mstore(add(data, mul(add(i, mul(j, 9)), 32)), tmp) // mul(j, 14) since 14 items per loanPosition object
-                }
+        uint itemCount = 0;
+        for (uint j=orderList[loanParty].length; j > 0; j--) {
+            if (forLender && loanParty != orderLender[orderList[loanParty][j-1]]) {
+                continue;
             }
 
-            // handles uint
-            for(i = addrs.length+1; i <= addrs.length+uints.length; i++) {
-                tmp = bytes32(uints[i-1-addrs.length]);
-                assembly {
-                    mstore(add(data, mul(add(i, mul(j, 9)), 32)), tmp) // mul(j, 14) since 14 items per loanPosition object
+            address[] memory traders = orderTraders[orderList[loanParty][j-1]];
+            for (uint i=traders.length; i > 0; i--) {
+                LoanPosition memory loanPosition = loanPositions[orderList[loanParty][j-1]][traders[i-1]];
+                if (!loanPosition.active) {
+                    continue;
                 }
+
+                if (!forLender && loanParty != loanPosition.trader) {
+                    continue;
+                }
+
+                bytes memory tmpBytes = abi.encode(
+                    loanPosition.lender,
+                    loanPosition.trader,
+                    loanPosition.collateralTokenAddressFilled,
+                    loanPosition.positionTokenAddressFilled,
+                    loanPosition.loanTokenAmountFilled,
+                    loanPosition.collateralTokenAmountFilled,
+                    loanPosition.positionTokenAmountFilled,
+                    loanPosition.loanStartUnixTimestampSec,
+                    loanPosition.active
+                );
+                tmpBytes = _addExtraLoanData(orderList[loanParty][j-1], tmpBytes);
+                if (itemCount == 0) {
+                    data = tmpBytes;
+                } else {
+                    data = abi.encodePacked(data, tmpBytes);
+                }
+                itemCount++;
+
+                if (itemCount == count) {
+                    break;
+                }
+            }
+            if (itemCount == count) {
+                break;
             }
         }
 
         return data;
+    }
+
+    function _addExtraLoanData(
+        bytes32 loanOrderHash,
+        bytes data)
+        internal
+        pure
+        returns (bytes)
+    {
+        bytes memory tmpBytes = abi.encode(
+            loanOrderHash
+        );
+        return abi.encodePacked(data, tmpBytes);
     }
 }
 

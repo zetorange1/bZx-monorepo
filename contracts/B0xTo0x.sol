@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.22;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import './interfaces/B0xTo0x_Interface.sol';
@@ -25,7 +25,7 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         revert();
     }
 
-    function B0xTo0x(
+    constructor(
         address _exchange, 
         address _zrxToken,
         address _proxy) 

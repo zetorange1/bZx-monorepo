@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.22;
 
 import 'zeppelin-solidity/contracts/math/Math.sol';
 
@@ -14,7 +14,7 @@ import '../interfaces/B0xTo0x_Interface.sol';
 contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
     using SafeMath for uint256;
 
-    function B0xLoanHealth() public {}
+    constructor() public {}
     
     function initialize(
         address _target)
@@ -690,6 +690,13 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         }
 
         loanPosition.active = false;
+
+        emit LogLoanClosed(
+            loanPosition.lender,
+            loanPosition.trader,
+            isLiquidation,
+            loanOrder.loanOrderHash
+        );
 
         return true;
     }

@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.22;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
@@ -51,7 +51,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
     // "Stuck" Ether can be transfered by the owner using the transferEther function.
     function() public payable {}
 
-    function B0xOracle(
+    constructor(
         address _vault_contract,
         address _kyber_contract,
         address _weth_contract)

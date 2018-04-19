@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.22;
 
 import './modules/B0xStorage.sol';
 
@@ -94,19 +94,6 @@ contract B0x is B0xStorage {
         public
         view
         returns (bytes);
-
-    function getLoanOrderParts (
-        bytes32 loanOrderHash)
-        public
-        view
-        returns (address[6],uint[7]);
-
-    function getLoanPositionParts (
-        bytes32 loanOrderHash,
-        address trader)
-        public
-        view
-        returns (address[4], uint[5]);
 
 
     /*
