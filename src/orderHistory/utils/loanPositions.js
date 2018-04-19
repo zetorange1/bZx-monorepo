@@ -1,7 +1,7 @@
 import { pipe, map } from "ramda";
 import * as Utils from "./index";
 
-const NUM_LOAN_POS_FIELDS = 9;
+const NUM_LOAN_POS_FIELDS = 10;
 const HEX_RADIX = 16;
 
 const getLoanPosition = params => ({
@@ -13,7 +13,8 @@ const getLoanPosition = params => ({
   collateralTokenAmountFilled: parseInt(`0x${params[5]}`, HEX_RADIX),
   positionTokenAmountFilled: parseInt(`0x${params[6]}`, HEX_RADIX),
   loanStartUnixTimestampSec: parseInt(`0x${params[7]}`, HEX_RADIX),
-  active: parseInt(`0x${params[8]}`, HEX_RADIX)
+  active: parseInt(`0x${params[8]}`, HEX_RADIX),
+  loanOrderHash: `0x${params[9]}`,
 });
 
 const checkProperObjCount = Utils.makeCheckProperObjCount(NUM_LOAN_POS_FIELDS);

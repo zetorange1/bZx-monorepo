@@ -1,7 +1,7 @@
 import { pipe, map } from "ramda";
 import * as Utils from "./index";
 
-const NUM_ORDER_FIELDS = 14;
+const NUM_ORDER_FIELDS = 19;
 const HEX_RADIX = 16;
 
 const getOrder = params => ({
@@ -18,7 +18,12 @@ const getOrder = params => ({
   lenderRelayFee: parseInt(`0x${params[10]}`, HEX_RADIX),
   traderRelayFee: parseInt(`0x${params[11]}`, HEX_RADIX),
   expirationUnixTimestampSec: parseInt(`0x${params[12]}`, HEX_RADIX),
-  loanOrderHash: `0x${params[13]}`
+  loanOrderHash: `0x${params[13]}`,
+  lender: `0x${params[14].substr(24)}`,
+  orderFilledAmount: parseInt(`0x${params[15]}`, HEX_RADIX),
+  orderCancelledAmount: parseInt(`0x${params[16]}`, HEX_RADIX),
+  orderTraderCount: parseInt(`0x${params[17]}`, HEX_RADIX),
+  addedUnixTimestampSec: parseInt(`0x${params[18]}`, HEX_RADIX)
 });
 
 const checkProperObjCount = Utils.makeCheckProperObjCount(NUM_ORDER_FIELDS);
