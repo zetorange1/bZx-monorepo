@@ -85,19 +85,25 @@ export default class OrderItem extends React.Component {
     const dateStr = date.format(`MMMM Do YYYY, h:mm a`);
     const addedDate = moment(takenOrder.addedUnixTimestampSec * 1000);
     const addedDateStr = addedDate.format(`MMMM Do YYYY, h:mm a`);
-    
-    const fillCount = parseInt(takenOrder.orderTraderCount);
-    const fillsStr = fillCount + (fillCount == 1 ? " trader" : " traders");
+
+    const fillsStr =
+      takenOrder.orderTraderCount +
+      (takenOrder.orderTraderCount === 1 ? ` trader` : ` traders`);
 
     const loanTokenSymbol = getSymbol(tokens, takenOrder.loanTokenAddress);
-    const interestTokenSymbol = getSymbol(tokens, takenOrder.interestTokenAddress);
+    const interestTokenSymbol = getSymbol(
+      tokens,
+      takenOrder.interestTokenAddress
+    );
     const collateralTokenSymbol = getSymbol(
       tokens,
       takenOrder.collateralTokenAddress
     );
 
     const tokenLinkPrefix = `https://ropsten.etherscan.io/token/`;
-    const loanTokenAddressLink = `${tokenLinkPrefix}${takenOrder.loanTokenAddress}`;
+    const loanTokenAddressLink = `${tokenLinkPrefix}${
+      takenOrder.loanTokenAddress
+    }`;
     const interestTokenAddressLink = `${tokenLinkPrefix}${
       takenOrder.interestTokenAddress
     }`;
@@ -127,13 +133,17 @@ export default class OrderItem extends React.Component {
 
           <DataPointContainer>
             <Label>Your Role</Label>
-            <DataPoint>{isMaker ? `Maker` : `Taker`} / {isLender ? `Lender` : `Trader`}</DataPoint>
+            <DataPoint>
+              {isMaker ? `Maker` : `Taker`} / {isLender ? `Lender` : `Trader`}
+            </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Loan Amount</Label>
             <DataPoint>
-              {fromBigNumber(takenOrder.loanTokenAmount, 1e18)} {loanTokenSymbol}
+              {fromBigNumber(takenOrder.loanTokenAmount, 1e18)}
+              {` `}
+              {loanTokenSymbol}
               {` `}(
               <AddressLink href={loanTokenAddressLink}>
                 {takenOrder.loanTokenAddress}
@@ -142,10 +152,11 @@ export default class OrderItem extends React.Component {
           </DataPointContainer>
 
           <IndentedContainer>
-
             <DataPointContainer>
               <Label>First Fill</Label>
-              <DataPoint>{`${addedDateStr} (${addedDate.fromNow()})`}</DataPoint>
+              <DataPoint>
+                {`${addedDateStr} (${addedDate.fromNow()})`}
+              </DataPoint>
             </DataPointContainer>
 
             <DataPointContainer>
@@ -156,30 +167,42 @@ export default class OrderItem extends React.Component {
             <DataPointContainer>
               <Label>Total Filled</Label>
               <DataPoint>
-                {fromBigNumber(takenOrder.orderFilledAmount, 1e18)} {loanTokenSymbol}
+                {fromBigNumber(takenOrder.orderFilledAmount, 1e18)}
+                {` `}
+                {loanTokenSymbol}
               </DataPoint>
             </DataPointContainer>
 
             <DataPointContainer>
               <Label>Total Cancelled</Label>
               <DataPoint>
-                {fromBigNumber(takenOrder.orderCancelledAmount, 1e18)} {loanTokenSymbol}
+                {fromBigNumber(takenOrder.orderCancelledAmount, 1e18)}
+                {` `}
+                {loanTokenSymbol}
               </DataPoint>
             </DataPointContainer>
 
             <DataPointContainer>
               <Label>Total Remaining</Label>
               <DataPoint>
-                {fromBigNumber(takenOrder.loanTokenAmount-takenOrder.orderFilledAmount-takenOrder.orderCancelledAmount, 1e18)} {loanTokenSymbol}
+                {fromBigNumber(
+                  takenOrder.loanTokenAmount -
+                    takenOrder.orderFilledAmount -
+                    takenOrder.orderCancelledAmount,
+                  1e18
+                )}
+                {` `}
+                {loanTokenSymbol}
               </DataPoint>
             </DataPointContainer>
-
           </IndentedContainer>
 
           <DataPointContainer>
             <Label>Interest Amount</Label>
             <DataPoint>
-              {fromBigNumber(takenOrder.interestAmount, 1e18)} {interestTokenSymbol}
+              {fromBigNumber(takenOrder.interestAmount, 1e18)}
+              {` `}
+              {interestTokenSymbol}
               {` `}
               per day
               {` `}(

@@ -108,7 +108,7 @@ export default class GenerateOrder extends React.Component {
         });
         console.log(`isSigValid`, isSigValid);
         this.setState({ orderHash, finalOrder });
-      } catch(e) {
+      } catch (e) {
         console.log(e);
       }
     }
