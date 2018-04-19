@@ -46,13 +46,13 @@ export const setupB0xToken = async ({
   b0xToken,
   lenders,
   traders,
-  transferAmt,
+  transferAmount,
   ownerTxOpts
 }) => {
   const allAddresses = [...lenders, ...traders];
 
   const b0xTokenPromises = allAddresses.map(address =>
-    b0xToken.methods.transfer(address, transferAmt).send(clone(ownerTxOpts))
+    b0xToken.methods.transfer(address, transferAmount).send(clone(ownerTxOpts))
   );
   const allowancePromises = allAddresses.map(address =>
     b0xJS.setAllowanceUnlimited({
@@ -80,15 +80,15 @@ export const setupB0xToken = async ({
 export const setupLoanTokens = async ({
   loanTokens,
   lenders,
-  transferAmt,
+  transferAmount,
   ownerTxOpts
 }) => {
   const promises = [
     loanTokens[0].methods
-      .transfer(lenders[0], transferAmt)
+      .transfer(lenders[0], transferAmount)
       .send(clone(ownerTxOpts)),
     loanTokens[1].methods
-      .transfer(lenders[1], transferAmt)
+      .transfer(lenders[1], transferAmount)
       .send(clone(ownerTxOpts)),
     b0xJS.setAllowanceUnlimited({
       tokenAddress: loanTokens[0].options.address.toLowerCase(),
@@ -121,15 +121,15 @@ export const setupLoanTokens = async ({
 export const setupCollateralTokens = async ({
   collateralTokens,
   traders,
-  transferAmt,
+  transferAmount,
   ownerTxOpts
 }) => {
   const promises = [
     collateralTokens[0].methods
-      .transfer(traders[0], transferAmt)
+      .transfer(traders[0], transferAmount)
       .send(clone(ownerTxOpts)),
     collateralTokens[1].methods
-      .transfer(traders[1], transferAmt)
+      .transfer(traders[1], transferAmount)
       .send(clone(ownerTxOpts)),
     b0xJS.setAllowanceUnlimited({
       tokenAddress: collateralTokens[0].options.address.toLowerCase(),
@@ -162,15 +162,15 @@ export const setupCollateralTokens = async ({
 export const setupInterestTokens = async ({
   interestTokens,
   traders,
-  transferAmt,
+  transferAmount,
   ownerTxOpts
 }) => {
   const promises = [
     interestTokens[0].methods
-      .transfer(traders[0], transferAmt)
+      .transfer(traders[0], transferAmount)
       .send(clone(ownerTxOpts)),
     interestTokens[1].methods
-      .transfer(traders[1], transferAmt)
+      .transfer(traders[1], transferAmount)
       .send(clone(ownerTxOpts)),
     b0xJS.setAllowanceUnlimited({
       tokenAddress: interestTokens[0].options.address.toLowerCase(),
@@ -242,3 +242,40 @@ export const getAccounts = () => ({
   lenders: [Accounts[1].address, Accounts[3].address],
   traders: [Accounts[2].address, Accounts[4].address]
 });
+
+export const setupAll = async ({ owner, lenders, traders, transferAmount }) => {
+  const {
+    loanTokens,
+    collateralTokens,
+    interestTokens,
+    b0xToken
+  } = await initAllContractInstances();
+
+  const ownerTxOpts = { from: owner };
+
+  await setupB0xToken({
+    b0xToken,
+    lenders,
+    traders,
+    transferAmount,
+    ownerTxOpts
+  });
+  await setupLoanTokens({
+    loanTokens,
+    lenders,
+    transferAmount,
+    ownerTxOpts
+  });
+  await setupCollateralTokens({
+    collateralTokens,
+    traders,
+    transferAmount,
+    ownerTxOpts
+  });
+  await setupInterestTokens({
+    interestTokens,
+    traders,
+    transferAmount,
+    ownerTxOpts
+  });
+};

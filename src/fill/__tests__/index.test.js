@@ -20,8 +20,6 @@ describe("filling orders", () => {
       interestTokens,
       b0xToken
     } = await FillTestUtils.initAllContractInstances();
-    const ownerTxOpts = { from: owner };
-    const transferAmt = web3.utils.toWei("1000000", "ether");
 
     const balancePs = [
       b0xToken,
@@ -39,31 +37,8 @@ describe("filling orders", () => {
     console.log("before setting up tokens");
     console.log(balancesBefore.map(bigNum => bigNum.toString()));
 
-    await FillTestUtils.setupB0xToken({
-      b0xToken,
-      lenders,
-      traders,
-      transferAmt,
-      ownerTxOpts
-    });
-    await FillTestUtils.setupLoanTokens({
-      loanTokens,
-      lenders,
-      transferAmt,
-      ownerTxOpts
-    });
-    await FillTestUtils.setupCollateralTokens({
-      collateralTokens,
-      traders,
-      transferAmt,
-      ownerTxOpts
-    });
-    await FillTestUtils.setupInterestTokens({
-      interestTokens,
-      traders,
-      transferAmt,
-      ownerTxOpts
-    });
+    const transferAmount = web3.utils.toWei("1000000", "ether");
+    await FillTestUtils.setupAll({ owner, lenders, traders, transferAmount });
 
     const balancePs2 = [
       b0xToken,
