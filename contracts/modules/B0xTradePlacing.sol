@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.23;
 
 import 'zeppelin-solidity/contracts/math/Math.sol';
 
@@ -14,7 +14,7 @@ import '../interfaces/B0xTo0x_Interface.sol';
 contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
     using SafeMath for uint256;
 
-    function B0xTradePlacing() public {}
+    constructor() public {}
     
     function initialize(
         address _target)

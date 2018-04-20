@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.23;
 
 import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
@@ -37,11 +37,6 @@ contract B0xObjects {
         bool active;
     }
 
-    struct Counterparty {
-        address counterparty;
-        bytes32 loanOrderHash;
-    }
-
     struct InterestData {
         address lender;
         address interestTokenAddress;
@@ -67,7 +62,7 @@ contract B0xObjects {
         bytes32 loanOrderHash
     );*/
 
-    event LoanPositionUpdated (
+    event LogLoanTaken (
         address lender,
         address trader,
         address collateralTokenAddressFilled,
@@ -77,6 +72,20 @@ contract B0xObjects {
         uint positionTokenAmountFilled,
         uint loanStartUnixTimestampSec,
         bool active,
+        bytes32 loanOrderHash
+    );
+
+    event LogLoanCancelled(
+        address maker,
+        uint cancelLoanTokenAmount,
+        uint remainingLoanTokenAmount,
+        bytes32 loanOrderHash
+    );
+
+    event LogLoanClosed(
+        address lender,
+        address trader,
+        bool isLiquidation,
         bytes32 loanOrderHash
     );
 
@@ -174,11 +183,13 @@ contract B0xStorage is B0xObjects, ReentrancyGuard, Ownable, GasTracker, Debugge
     address public B0XTO0X_CONTRACT;
 
     mapping (bytes32 => LoanOrder) public orders; // mapping of loanOrderHash to taken loanOrders
+    mapping (address => bytes32[]) public orderList; // mapping of lenders and trader addresses to array of loanOrderHashes
+    mapping (bytes32 => address) public orderLender; // mapping of loanOrderHash to lender address
+    mapping (bytes32 => address[]) public orderTraders; // mapping of loanOrderHash to array of trader addresses
     mapping (bytes32 => uint) public orderFilledAmounts; // mapping of loanOrderHash to loanTokenAmount filled
     mapping (bytes32 => uint) public orderCancelledAmounts; // mapping of loanOrderHash to loanTokenAmount cancelled
 
     mapping (bytes32 => mapping (address => LoanPosition)) public loanPositions; // mapping of loanOrderHash to mapping of traders to loanPositions
-    mapping (address => Counterparty[]) public loanList; // mapping of lenders and trader addresses to array of loan Counterparty structs
 
     mapping (bytes32 => mapping (address => uint)) public interestPaid; // mapping of loanOrderHash to mapping of traders to amount of interest paid so far to a lender
 }

@@ -8,5 +8,10 @@ module.exports = function(deployer, network, accounts) {
 	if (network == "develop" || network == "testnet")
 		network = "development";
 
-	deployer.deploy(B0xTo0x, config["protocol"][network]["ZeroEx"]["Exchange"], config["protocol"][network]["ZeroEx"]["ZRXToken"], config["protocol"][network]["ZeroEx"]["TokenTransferProxy"]);
+	deployer.deploy(B0xTo0x, config["protocol"][network]["ZeroEx"]["Exchange"], config["protocol"][network]["ZeroEx"]["ZRXToken"], config["protocol"][network]["ZeroEx"]["TokenTransferProxy"]).then(async function() {
+		if (network != "mainnet" && network != "ropsten" && network != "kovan" && network != "rinkeby") {
+			var b0xTo0x = await B0xTo0x.deployed();
+			await b0xTo0x.setDebugMode(true);
+		}
+	});
 }

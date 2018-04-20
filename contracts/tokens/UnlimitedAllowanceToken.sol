@@ -16,7 +16,7 @@
 
 */
 
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.23;
 
 import 'zeppelin-solidity/contracts/token/ERC827/ERC827Token.sol';
 

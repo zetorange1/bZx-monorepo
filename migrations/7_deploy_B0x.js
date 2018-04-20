@@ -15,12 +15,12 @@ module.exports = function(deployer, network, accounts) {
 	network = network.replace("-fork", "");
 	if (network == "develop" || network == "testnet")
 		network = "development";
-	
+
 	deployer.deploy(B0xProxy).then(async function() {
 		var b0xProxy = await B0xProxy.deployed();
-		
+
 		var b0x_token_address;
-		if (network == "ropsten") {
+		if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {
 			b0x_token_address = config["protocol"][network]["B0XToken"];
 		} else {
 			var b0x_token = await B0xToken.deployed();
