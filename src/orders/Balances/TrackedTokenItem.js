@@ -144,7 +144,7 @@ export default class TrackedTokenItems extends React.Component {
         });
       })
       .on(`error`, error => {
-        alert(error);
+        alert(error.message);
       });
     this.setState({ showSendDialog: false });
     setTimeout(() => updateTrackedTokens(true), 5000);
@@ -159,7 +159,7 @@ export default class TrackedTokenItems extends React.Component {
     const { b0x, token, accounts } = this.props;
     console.log(`approving allowance`);
     console.log(token.name, token.address);
-    this.setState({ approvalLoading: true })
+    this.setState({ approvalLoading: true });
     await b0x
       .setAllowanceUnlimited({
         tokenAddress: token.address,
@@ -175,7 +175,7 @@ export default class TrackedTokenItems extends React.Component {
         });
       })
       .on(`error`, error => {
-        alert(error);
+        alert(error.message);
       });
     setTimeout(() => this.checkAllowance(), 5000);
   };
@@ -184,7 +184,7 @@ export default class TrackedTokenItems extends React.Component {
     const { b0x, token, accounts } = this.props;
     console.log(`unapproving allowance`);
     console.log(token.name, token.address);
-    this.setState({ approvalLoading: true })
+    this.setState({ approvalLoading: true });
     await b0x
       .resetAllowance({
         tokenAddress: token.address,
@@ -200,7 +200,7 @@ export default class TrackedTokenItems extends React.Component {
         });
       })
       .on(`error`, error => {
-        alert(error);
+        alert(error.message);
       });
     setTimeout(() => this.checkAllowance(), 5000);
   };
