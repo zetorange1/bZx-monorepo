@@ -13,6 +13,9 @@ describe("order history", () => {
   const lenders = [Accounts[5].address, Accounts[7].address];
   const traders = [Accounts[6].address, Accounts[8].address];
 
+  const makerAddress = lenders[0];
+  const takerAddress = traders[0];
+
   beforeAll(async () => {
     const {
       loanTokens,
@@ -49,8 +52,6 @@ describe("order history", () => {
       ownerTxOpts
     });
 
-    const makerAddress = lenders[0];
-    const takerAddress = traders[0];
     const txOpts = {
       from: takerAddress,
       gas: 1000000,
@@ -106,23 +107,27 @@ describe("order history", () => {
         count: 10
       });
 
-      const ordersNoLoanOrderHash = orders.map(
-        ({ loanOrderHash, ...rest }) => rest
+      const ordersNoRandomFields = orders.map(
+        ({ loanOrderHash, addedUnixTimestampSec, ...rest }) => rest
       );
 
-      expect(ordersNoLoanOrderHash).toContainEqual({
+      expect(ordersNoRandomFields).toContainEqual({
         collateralTokenAddress: "0x0000000000000000000000000000000000000000",
         expirationUnixTimestampSec: 1719061340,
         feeRecipientAddress: "0x0000000000000000000000000000000000000000",
         initialMarginAmount: 50,
         interestAmount: 2000000000000000000,
         interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
+        lender: makerAddress,
         lenderRelayFee: 1000000000000000,
         loanTokenAddress: loanTokens[0].options.address.toLowerCase(),
         loanTokenAmount: 1e23,
         maintenanceMarginAmount: 25,
-        maker: "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+        maker: makerAddress,
         oracleAddress: b0xJS.addresses.B0xOracle,
+        orderCancelledAmount: 0,
+        orderFilledAmount: 12300000000000000000,
+        orderTraderCount: 1,
         traderRelayFee: 1500000000000000
       });
     });
