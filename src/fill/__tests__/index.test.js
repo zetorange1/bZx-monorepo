@@ -174,14 +174,10 @@ describe("filling orders", () => {
 
       const loanTokenAmountFilledReturn = pathOr(
         null,
-        [
-          "events",
-          "LoanPositionUpdated",
-          "returnValues",
-          "loanTokenAmountFilled"
-        ],
+        ["events", "LogLoanTaken", "returnValues", "loanTokenAmountFilled"],
         receipt
       );
+
       expect(loanTokenAmountFilledReturn).toBe(loanTokenAmount);
     });
 
@@ -318,12 +314,7 @@ describe("filling orders", () => {
       );
       const loanTokenAmountFilledReturn = pathOr(
         null,
-        [
-          "events",
-          "LoanPositionUpdated",
-          "returnValues",
-          "loanTokenAmountFilled"
-        ],
+        ["events", "LogLoanTaken", "returnValues", "loanTokenAmountFilled"],
         receipt
       );
       expect(loanTokenAmountFilledReturn).toBe(loanTokenAmountFilled);
