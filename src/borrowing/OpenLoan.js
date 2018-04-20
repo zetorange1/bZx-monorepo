@@ -11,6 +11,7 @@ import Collapse from "material-ui/transitions/Collapse";
 import CollateralOptions from "./CollateralOptions";
 
 import { COLORS } from "../styles/constants";
+import { fromBigNumber } from "../common/utils";
 
 const CardContent = styled(MuiCardContent)`
   position: relative;
@@ -73,19 +74,36 @@ export default class OpenLoan extends React.Component {
   handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
 
   render() {
-    const collateralTokenAmountFilled = 6.25;
+    // "lender": "0x78dc5d2d739606d31509c31d654056a45185ecb6",
+    // "trader": "0x6ecbe1db9ef729cbe972c83fb886247691fb6beb",
+    // "collateralTokenAddressFilled": "0xdff540fe764855d3175dcfae9d91ae8aee5c6d6f",
+    // "positionTokenAddressFilled": "0x33def1aa867be09809f3a01ce41d5ec1888846c9",
+    // "loanTokenAmountFilled": 20000000000000000000,
+    // "collateralTokenAmountFilled": 10000000000000000000,
+    // "positionTokenAmountFilled": 20000000000000000000,
+    // "loanStartUnixTimestampSec": 1524168793,
+    // "active": 1,
+    // "loanOrderHash": "0xb43e2f6143c6ffef1a7e178c9dda90ed6118a066e34af8a321cb92b0e0f7722e"
+    const {
+      collateralTokenAddressFilled,
+      collateralTokenAmountFilled,
+      positionTokenAddressFilled,
+      positionTokenAmountFilled,
+      loanTokenAmountFilled,
+      loanStartUnixTimestampSec,
+      loanOrderHash,
+      lender
+    } = this.props.data;
     const collateralTokenSymbol = `SYM`;
-    const loanTokenAmountFilled = 12;
     const loanTokenSymbol = `SYM`;
     const interestPaidSoFar = 0.0002;
     const interestTokenSymbol = `SYM`;
-    const filledUnixTimestampSec = 1519283349;
 
     const { zeroExTradeOpened } = this.props;
     const tradeTokenAmountFilled = 123;
     const tradeTokenSymbol = `SYM`;
 
-    const loanOpenedDate = new Date(filledUnixTimestampSec * 1000);
+    const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
     if (this.props.hideDetails) {
       return (
         <Card>
@@ -94,7 +112,7 @@ export default class OpenLoan extends React.Component {
               <Label>Order # </Label>
               <DataPoint>
                 <Hash href="#" target="_blank" rel="noopener noreferrer">
-                  0x0000000000000000000000000000000000000000
+                  {loanOrderHash}
                 </Hash>
               </DataPoint>
             </DataPointContainer>
@@ -103,7 +121,7 @@ export default class OpenLoan extends React.Component {
               <Label>Lender </Label>
               <DataPoint>
                 <Hash href="#" target="_blank" rel="noopener noreferrer">
-                  0x0000000000000000000000000000000000000000
+                  {lender}
                 </Hash>
               </DataPoint>
             </DataPointContainer>
@@ -125,7 +143,7 @@ export default class OpenLoan extends React.Component {
             <Label>Order # </Label>
             <DataPoint>
               <Hash href="#" target="_blank" rel="noopener noreferrer">
-                0x0000000000000000000000000000000000000000
+                {loanOrderHash}
               </Hash>
             </DataPoint>
           </DataPointContainer>
@@ -134,7 +152,7 @@ export default class OpenLoan extends React.Component {
             <Label>Lender </Label>
             <DataPoint>
               <Hash href="#" target="_blank" rel="noopener noreferrer">
-                0x0000000000000000000000000000000000000000
+                {lender}
               </Hash>
             </DataPoint>
           </DataPointContainer>
@@ -151,14 +169,16 @@ export default class OpenLoan extends React.Component {
           <DataPointContainer>
             <Label>Collateral</Label>
             <DataPoint>
-              {collateralTokenAmountFilled} {collateralTokenSymbol}
+              {fromBigNumber(collateralTokenAmountFilled, 1e18)}
+              {` `}
+              {collateralTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Borrowed</Label>
             <DataPoint>
-              {loanTokenAmountFilled} {loanTokenSymbol}
+              {fromBigNumber(loanTokenAmountFilled, 1e18)} {loanTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
