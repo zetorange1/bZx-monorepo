@@ -159,7 +159,8 @@ export default class TrackedTokenItems extends React.Component {
     const { b0x, token, accounts } = this.props;
     console.log(`approving allowance`);
     console.log(token.name, token.address);
-    b0x
+    this.setState({ approvalLoading: true })
+    await b0x
       .setAllowanceUnlimited({
         tokenAddress: token.address,
         ownerAddress: accounts[0].toLowerCase()
@@ -183,7 +184,8 @@ export default class TrackedTokenItems extends React.Component {
     const { b0x, token, accounts } = this.props;
     console.log(`unapproving allowance`);
     console.log(token.name, token.address);
-    b0x
+    this.setState({ approvalLoading: true })
+    await b0x
       .resetAllowance({
         tokenAddress: token.address,
         ownerAddress: accounts[0].toLowerCase()
