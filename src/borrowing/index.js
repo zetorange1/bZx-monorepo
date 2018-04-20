@@ -1,3 +1,4 @@
+/* eslint-disable */
 import Section, { SectionLabel } from "../common/FormSection";
 import OpenLoan from "./OpenLoan";
 import ClosedLoan from "./ClosedLoan";
