@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.22;
+pragma solidity ^0.4.23;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import './modifiers/B0xOwnable.sol';

@@ -16,26 +16,26 @@ module.exports = {
       host: "localhost",
       port: 8545,
       network_id: "50",
-      gas: 4712388,
+      gas: 4700036,
       gasPrice: 20000000000
     },
     testnet: {
       host: "localhost",
       port: 8545,
       network_id: "50",
-      gas: 4712388,
+      gas: 4700036,
       gasPrice: 20000000000
     },
     ropsten: {
       provider: new HDWalletProvider(config["mnemonic"]["ropsten"], "https://ropsten.infura.io/"+config["infura_apikey"]),
       network_id: 3,
-      gas: 4712388,
+      gas: 4700036,
       gasPrice: 20000000000
     },
     /*mainnet: {
       provider: new HDWalletProvider(config["mnemonic"]["mainnet"], "https://mainnet.infura.io/"+config["infura_apikey"]),
       network_id: 1,
-      gas: 4712388,
+      gas: 4700036,
       gasPrice: 20000000000
     }*/
   },

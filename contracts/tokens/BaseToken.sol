@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.22;
+pragma solidity ^0.4.23;
 
 import './UnlimitedAllowanceToken.sol';
 //import './fake/ERC827_AlwaysOwned.sol'; // Testing only! Please remove this and use above for production!
