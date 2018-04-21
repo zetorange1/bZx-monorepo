@@ -121,14 +121,14 @@ describe("trade", () => {
         txOpts
       );
 
-      // console.log(
-      //   "takeLoanOrderAsTraderReceipt",
-      //   JSON.stringify(takeLoanOrderAsTraderReceipt, null, 2)
-      // );
-
       expect(
         pathOr(null, ["events", "DebugLine"], takeLoanOrderAsTraderReceipt)
       ).toBe(null);
+
+      console.log(
+        "takeLoanOrderAsTraderReceipt success"
+        // JSON.stringify(takeLoanOrderAsTraderReceipt, null, 2)
+      );
 
       const signature0x = await b0xJS.signOrderHashAsync(
         orderHash,
