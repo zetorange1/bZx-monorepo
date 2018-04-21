@@ -12,6 +12,13 @@ const setupOrder0xToken = async ({
   transferAmount,
   ownerTxOpts
 }) => {
+  const doesTokenTransferProxyExist = await CoreUtils.doesContractExistAtAddress(
+    b0xJS.web3,
+    zxConstants.TokenTransferProxy.toLowerCase()
+  );
+  if (!doesTokenTransferProxyExist)
+    throw new Error("TokenTransferProxy does not exist.");
+
   const promises = [
     order0xToken.methods
       .transfer(makerOf0xOrder, transferAmount)
