@@ -6,7 +6,6 @@ import B0xJS from "../../core/index";
 import b0xJS from "../../core/__tests__/setup";
 import { protocol } from "../../../../config/secrets";
 import Accounts from "../../core/__tests__/accounts";
-import { local as Contracts } from "../../contracts";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 import * as TradeTestUtils from "./utils";
 
@@ -15,10 +14,13 @@ describe("trade", () => {
   const zxConstants = pathOr(null, ["development", "ZeroEx"], protocol);
 
   const { order0xToken } = TradeTestUtils.initAllContractInstances();
-  const makerOf0xOrder = Accounts[7].address;
-  const maker0xTokenAddress = order0xToken.options.address.toLowerCase();
-  const loanToken = Contracts.TestToken0;
+  const {
+    loanTokens,
+    interestTokens,
+    collateralTokens
+  } = FillTestUtils.initAllContractInstances();
 
+  const makerOf0xOrder = Accounts[7].address;
   const { owner, lenders, traders } = FillTestUtils.getAccounts();
 
   beforeAll(async () => {
@@ -43,23 +45,18 @@ describe("trade", () => {
       feeRecipient: constants.NULL_ADDRESS,
       maker: makerOf0xOrder,
       makerFee: web3.utils.toWei("0.002", "ether").toString(),
-      makerTokenAddress: maker0xTokenAddress,
+      makerTokenAddress: order0xToken.options.address.toLowerCase(),
       makerTokenAmount: web3.utils.toWei("100", "ether").toString(),
       salt: B0xJS.generatePseudoRandomSalt().toString(),
       taker: constants.NULL_ADDRESS,
       takerFee: web3.utils.toWei("0.0013", "ether").toString(),
-      takerTokenAddress: loanToken.address,
+      takerTokenAddress: loanTokens[0].options.address.toLowerCase(),
       takerTokenAmount: web3.utils.toWei("90", "ether").toString()
     };
 
     const orderHash = ZeroEx.getOrderHashHex(order0x);
 
     test("should return a web3 PromiEvent", async () => {
-      const {
-        loanTokens,
-        interestTokens
-      } = FillTestUtils.initAllContractInstances();
-
       expect(ZeroEx.isValidOrderHash(orderHash)).toBe(true);
 
       const signature0x = await b0xJS.signOrderHashAsync(
@@ -96,12 +93,6 @@ describe("trade", () => {
     });
 
     test("should successfully trade position with 0x", async () => {
-      const {
-        loanTokens,
-        interestTokens,
-        collateralTokens
-      } = FillTestUtils.initAllContractInstances();
-
       const takerAddress = traders[0];
       const txOpts = {
         from: takerAddress,

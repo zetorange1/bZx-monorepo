@@ -93,7 +93,7 @@ export const takeLoanOrderAsTrader = (
     loanTokenAmountFilled,
     order.signature
   );
-  console.log(`takeLoanOrderAsTrader: ${txObj.encodeABI()}`);
+  // console.log(`takeLoanOrderAsTrader: ${txObj.encodeABI()}`);
   return txObj.send({
     from: txOpts.from,
     gas: txOpts.gas,
