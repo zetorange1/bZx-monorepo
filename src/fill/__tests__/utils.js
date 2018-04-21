@@ -126,12 +126,20 @@ export const setupCollateralTokens = async ({
     collateralTokens[0].methods
       .transfer(traders[0], transferAmount)
       .send(clone(ownerTxOpts)),
+    collateralTokens[0].methods
+      .transfer(traders[1], transferAmount)
+      .send(clone(ownerTxOpts)),
     collateralTokens[1].methods
       .transfer(traders[1], transferAmount)
       .send(clone(ownerTxOpts)),
     b0xJS.setAllowanceUnlimited({
       tokenAddress: collateralTokens[0].options.address.toLowerCase(),
       ownerAddress: traders[0],
+      spenderAddress: Contracts.B0xVault.address
+    }),
+    b0xJS.setAllowanceUnlimited({
+      tokenAddress: collateralTokens[0].options.address.toLowerCase(),
+      ownerAddress: traders[1],
       spenderAddress: Contracts.B0xVault.address
     }),
     b0xJS.setAllowanceUnlimited({
@@ -167,12 +175,20 @@ export const setupInterestTokens = async ({
     interestTokens[0].methods
       .transfer(traders[0], transferAmount)
       .send(clone(ownerTxOpts)),
+    interestTokens[0].methods
+      .transfer(traders[1], transferAmount)
+      .send(clone(ownerTxOpts)),
     interestTokens[1].methods
       .transfer(traders[1], transferAmount)
       .send(clone(ownerTxOpts)),
     b0xJS.setAllowanceUnlimited({
       tokenAddress: interestTokens[0].options.address.toLowerCase(),
       ownerAddress: traders[0],
+      spenderAddress: Contracts.B0xVault.address
+    }),
+    b0xJS.setAllowanceUnlimited({
+      tokenAddress: interestTokens[0].options.address.toLowerCase(),
+      ownerAddress: traders[1],
       spenderAddress: Contracts.B0xVault.address
     }),
     b0xJS.setAllowanceUnlimited({
