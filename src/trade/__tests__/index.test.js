@@ -135,12 +135,16 @@ describe("trade", () => {
         makerOf0xOrder
       );
 
+      console.log("signature0x", signature0x);
+
       const receipt = await b0xJS.tradePositionWith0x({
         order0x,
         signature0x,
         orderHashB0x,
         txOpts
       });
+
+      console.log("receipt", receipt);
 
       const debugLine = pathOr(null, ["events", "DebugLine"], receipt);
       expect(debugLine).toBe(null);
