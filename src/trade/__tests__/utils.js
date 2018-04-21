@@ -27,7 +27,7 @@ const setupOrder0xToken = async ({
   console.log("setup0xOrderToken done.");
 };
 
-const initAllContractInstances = () => {
+export const initAllContractInstances = () => {
   const order0xToken = CoreUtils.getContractInstance(
     b0xJS.web3,
     Contracts.TestToken7.abi,

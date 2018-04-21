@@ -14,9 +14,10 @@ describe("trade", () => {
   const { web3 } = b0xJS;
   const zxConstants = pathOr(null, ["development", "ZeroEx"], protocol);
 
+  const { order0xToken } = TradeTestUtils.initAllContractInstances();
   const makerOf0xOrder = Accounts[7].address;
-  const maker0xToken1 = Contracts.TestToken6;
-  const loanToken1 = Contracts.TestToken0;
+  const maker0xTokenAddress = order0xToken.options.address.toLowerCase();
+  const loanToken = Contracts.TestToken0;
 
   const { owner, lenders, traders } = FillTestUtils.getAccounts();
 
@@ -42,12 +43,12 @@ describe("trade", () => {
       feeRecipient: constants.NULL_ADDRESS,
       maker: makerOf0xOrder,
       makerFee: web3.utils.toWei("0.002", "ether").toString(),
-      makerTokenAddress: maker0xToken1.address,
+      makerTokenAddress: maker0xTokenAddress,
       makerTokenAmount: web3.utils.toWei("100", "ether").toString(),
       salt: B0xJS.generatePseudoRandomSalt().toString(),
       taker: constants.NULL_ADDRESS,
       takerFee: web3.utils.toWei("0.0013", "ether").toString(),
-      takerTokenAddress: loanToken1.address,
+      takerTokenAddress: loanToken.address,
       takerTokenAmount: web3.utils.toWei("90", "ether").toString()
     };
 
@@ -129,10 +130,10 @@ describe("trade", () => {
         txOpts
       );
 
-      console.log(
-        "takeLoanOrderAsTraderReceipt",
-        JSON.stringify(takeLoanOrderAsTraderReceipt, null, 2)
-      );
+      // console.log(
+      //   "takeLoanOrderAsTraderReceipt",
+      //   JSON.stringify(takeLoanOrderAsTraderReceipt, null, 2)
+      // );
 
       expect(
         pathOr(null, ["events", "DebugLine"], takeLoanOrderAsTraderReceipt)
