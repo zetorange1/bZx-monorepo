@@ -83,8 +83,12 @@ describe("loanPositions", () => {
       Since the testnet isn't connected to Kyber to get true token rates, the oracle just randomly generates a bogus rate. 
       */
       const loanPositionsNoRandomFields = loanPositions.map(
-        ({ loanStartUnixTimestampSec, collateralTokenAmountFilled, ...rest }) =>
-          rest
+        ({
+          loanStartUnixTimestampSec,
+          collateralTokenAmountFilled,
+          loanOrderHash,
+          ...rest
+        }) => rest
       );
 
       expect(loanPositionsNoRandomFields).toContainEqual({
@@ -120,8 +124,12 @@ describe("loanPositions", () => {
       Since the testnet isn't connected to Kyber to get true token rates, the oracle just randomly generates a bogus rate. 
       */
       const loanPositionsNoRandomFields = loanPositions.map(
-        ({ loanStartUnixTimestampSec, collateralTokenAmountFilled, ...rest }) =>
-          rest
+        ({
+          loanStartUnixTimestampSec,
+          collateralTokenAmountFilled,
+          loanOrderHash,
+          ...rest
+        }) => rest
       );
 
       expect(loanPositionsNoRandomFields).toContainEqual({
