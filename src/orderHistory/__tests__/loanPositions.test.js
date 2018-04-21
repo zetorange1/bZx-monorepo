@@ -16,7 +16,7 @@ describe("loanPositions", () => {
       loanTokens,
       collateralTokens,
       interestTokens
-    } = await FillTestUtils.initAllContractInstances();
+    } = FillTestUtils.initAllContractInstances();
 
     const transferAmount = web3.utils.toWei("1000000", "ether");
     await FillTestUtils.setupAll({ owner, lenders, traders, transferAmount });
@@ -67,7 +67,7 @@ describe("loanPositions", () => {
       const {
         loanTokens,
         collateralTokens
-      } = await FillTestUtils.initAllContractInstances();
+      } = FillTestUtils.initAllContractInstances();
 
       const loanPositions = await b0xJS.getLoansForTrader({
         address: traders[0],
@@ -108,7 +108,7 @@ describe("loanPositions", () => {
       const {
         loanTokens,
         collateralTokens
-      } = await FillTestUtils.initAllContractInstances();
+      } = FillTestUtils.initAllContractInstances();
 
       const loanPositions = await b0xJS.getLoansForLender({
         address: lenders[0],

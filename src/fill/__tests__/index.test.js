@@ -19,7 +19,7 @@ describe("filling orders", () => {
       collateralTokens,
       interestTokens,
       b0xToken
-    } = await FillTestUtils.initAllContractInstances();
+    } = FillTestUtils.initAllContractInstances();
 
     const balancePs = [
       b0xToken,
@@ -63,7 +63,7 @@ describe("filling orders", () => {
         loanTokens,
         interestTokens,
         collateralTokens
-      } = await FillTestUtils.initAllContractInstances();
+      } = FillTestUtils.initAllContractInstances();
 
       const takerAddress = lenders[1];
       const txOpts = {
@@ -94,7 +94,7 @@ describe("filling orders", () => {
         loanTokens,
         interestTokens,
         collateralTokens
-      } = await FillTestUtils.initAllContractInstances();
+      } = FillTestUtils.initAllContractInstances();
 
       const takerAddress = lenders[1];
       const txOpts = {
@@ -140,7 +140,7 @@ describe("filling orders", () => {
         loanTokens,
         interestTokens,
         collateralTokens
-      } = await FillTestUtils.initAllContractInstances();
+      } = FillTestUtils.initAllContractInstances();
 
       const takerAddress = lenders[1];
       const txOpts = {
@@ -177,7 +177,7 @@ describe("filling orders", () => {
       const {
         loanTokens,
         interestTokens
-      } = await FillTestUtils.initAllContractInstances();
+      } = FillTestUtils.initAllContractInstances();
 
       const takerAddress = traders[0];
       const txOpts = {
@@ -207,7 +207,7 @@ describe("filling orders", () => {
         loanTokens,
         interestTokens,
         collateralTokens
-      } = await FillTestUtils.initAllContractInstances();
+      } = FillTestUtils.initAllContractInstances();
 
       const takerAddress = traders[0];
       const txOpts = {
@@ -252,7 +252,7 @@ describe("filling orders", () => {
         loanTokens,
         interestTokens,
         collateralTokens
-      } = await FillTestUtils.initAllContractInstances();
+      } = FillTestUtils.initAllContractInstances();
 
       const takerAddress = traders[0];
       const txOpts = {

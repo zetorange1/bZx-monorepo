@@ -9,12 +9,10 @@ import * as UnlockUtils from "../../core/__tests__/unlock";
 import makeOrder from "../../core/__tests__/order";
 import * as orderConstants from "../../core/constants/order";
 
-export const getContractInstances = contracts => {
-  const promises = contracts.map(contract =>
+export const getContractInstances = contracts =>
+  contracts.map(contract =>
     utils.getContractInstance(b0xJS.web3, contract.abi, contract.address)
   );
-  return Promise.all(promises);
-};
 
 export const unlockAllAccounts = () => {
   const promises = Accounts.map(account =>
@@ -23,16 +21,16 @@ export const unlockAllAccounts = () => {
   return Promise.all(promises);
 };
 
-export const initAllContractInstances = async () => {
+export const initAllContractInstances = () => {
   const loanTokenContracts = [Contracts.TestToken0, Contracts.TestToken1];
   const collateralTokenContracts = [Contracts.TestToken2, Contracts.TestToken3];
   const interestTokenContracts = [Contracts.TestToken4, Contracts.TestToken5];
 
-  const loanTokens = await getContractInstances(loanTokenContracts);
-  const collateralTokens = await getContractInstances(collateralTokenContracts);
-  const interestTokens = await getContractInstances(interestTokenContracts);
+  const loanTokens = getContractInstances(loanTokenContracts);
+  const collateralTokens = getContractInstances(collateralTokenContracts);
+  const interestTokens = getContractInstances(interestTokenContracts);
 
-  const b0xToken = await utils.getContractInstance(
+  const b0xToken = utils.getContractInstance(
     b0xJS.web3,
     Contracts.B0xToken.abi,
     Contracts.B0xToken.address
@@ -249,7 +247,7 @@ export const setupAll = async ({ owner, lenders, traders, transferAmount }) => {
     collateralTokens,
     interestTokens,
     b0xToken
-  } = await initAllContractInstances();
+  } = initAllContractInstances();
 
   const ownerTxOpts = { from: owner };
 

@@ -58,7 +58,7 @@ describe("trade", () => {
       const {
         loanTokens,
         interestTokens
-      } = await FillTestUtils.initAllContractInstances();
+      } = FillTestUtils.initAllContractInstances();
 
       expect(ZeroEx.isValidOrderHash(orderHash)).toBe(true);
 
@@ -100,7 +100,7 @@ describe("trade", () => {
         loanTokens,
         interestTokens,
         collateralTokens
-      } = await FillTestUtils.initAllContractInstances();
+      } = FillTestUtils.initAllContractInstances();
 
       const takerAddress = traders[0];
       const txOpts = {

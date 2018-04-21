@@ -19,7 +19,7 @@ describe("order history", () => {
       loanTokens,
       collateralTokens,
       interestTokens
-    } = await FillTestUtils.initAllContractInstances();
+    } = FillTestUtils.initAllContractInstances();
 
     const transferAmount = web3.utils.toWei("1000000", "ether");
     await FillTestUtils.setupAll({ owner, lenders, traders, transferAmount });
@@ -71,7 +71,7 @@ describe("order history", () => {
       const {
         loanTokens,
         interestTokens
-      } = await FillTestUtils.initAllContractInstances();
+      } = FillTestUtils.initAllContractInstances();
 
       const orders = await b0xJS.getOrders({
         loanPartyAddress: traders[0],
