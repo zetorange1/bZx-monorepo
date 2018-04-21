@@ -1,7 +1,7 @@
 import { pipe, map } from "ramda";
 import * as Utils from "./index";
 
-const NUM_LOAN_POS_FIELDS = 9;
+const NUM_LOAN_POS_FIELDS = 10;
 
 const getLoanPosition = params => ({
   ...map(pipe(Utils.substr24, Utils.prepend0x), {
