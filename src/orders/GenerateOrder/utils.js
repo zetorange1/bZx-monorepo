@@ -1,5 +1,5 @@
 import B0xJS from "b0x.js"; // eslint-disable-line
-import { toBigNumber } from "../../common/utils";
+import { toBigNumber, fromBigNumber } from "../../common/utils";
 import getNetworkId from "../../web3/getNetworkId";
 
 export const compileObject = async (web3, state, account, b0x) => {
@@ -81,4 +81,5 @@ export const signOrder = async (orderHash, accounts, b0x) => {
   return signature;
 };
 
-export const getHash = obj => B0xJS.getLoanOrderHashHex(obj);
+export const getOrderHash = obj => B0xJS.getLoanOrderHashHex(obj);
+

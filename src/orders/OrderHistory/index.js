@@ -61,8 +61,9 @@ export default class OrderHistory extends React.Component {
         </InfoContainer>
         <br />
         {orders.length > 0 ? (
-          orders.map(takenOrder => (
+          orders.map((takenOrder, index) => (
             <OrderItem
+              key={index}
               b0x={b0x}
               accounts={accounts}
               tokens={tokens}

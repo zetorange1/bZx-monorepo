@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import NavContent from "./NavContent";
+import packageJson from "../../package.json";
 import { DIMENSIONS, SHADOWS } from "../styles/constants";
 
 const Container = styled.nav`
@@ -56,7 +57,7 @@ const Version = styled.div`
 
 const Nav = () => (
   <div>
-    <Version>Alpha v0.2</Version>
+    <Version>Alpha v{packageJson.version}</Version>
     <Container>
       <Content>
         <NavContent />

@@ -17,8 +17,9 @@ const Container = styled.div`
 `;
 
 const DataContainer = styled.div`
-  width: 180px;
+  width: 230px;
   margin: 24px;
+  text-align: center;
 `;
 
 const Title = styled.div`
@@ -35,11 +36,44 @@ const MoreInfo = styled.span`
   cursor: pointer;
 `;
 
+const CenteredFormHelperText = styled(FormHelperText)`
+  text-align: center !important;
+`;
+
+const FormHelperTextWithDetail = styled(FormHelperText)`
+  display: flex;
+`;
+
+const RightJustified = styled.div`
+  font-size: 0.75rem;
+  position: absolute;
+  right: 0px;
+  max-width: 190px;
+  word-break: break-word;
+  text-align: right;
+`;
+
+const addressLinkPrefix = `https://ropsten.etherscan.io/address/`;
+const AddressLink = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  //display: inline-block;
+  //font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 20ch;
+  color: rgba(0, 0, 0, 0.54);
+`;
+
 export default ({
   tokens,
   fillOrderAmount,
   collateralTokenAddress,
   loanTokenAddress,
+  collateralTokenAmount,
+  collateralRefresh,
   setFillOrderAmount,
   setCollateralTokenAddress
 }) => {
@@ -47,6 +81,25 @@ export default ({
   return (
     <Fragment>
       <Container>
+        <DataContainer>
+          <Title>Amount to Borrow</Title>
+          <FormControl>
+            <InputLabel>Loan amount</InputLabel>
+            <Input
+              type="number"
+              value={fillOrderAmount}
+              onChange={e => setFillOrderAmount(e.target.value)}
+              endAdornment={
+                <InputAdornment position="end">{symbol}</InputAdornment>
+              }
+            />
+            <FormHelperText component="div">
+              <Tooltip title="This sets the amount to be borrowed. It cannot be larger than the amount being loaned above.">
+                <MoreInfo>More Info</MoreInfo>
+              </Tooltip>
+            </FormHelperText>
+          </FormControl>
+        </DataContainer>
         <DataContainer>
           <Tooltip
             title={
@@ -65,24 +118,36 @@ export default ({
             value={collateralTokenAddress}
             setAddress={setCollateralTokenAddress}
           />
+          <CenteredFormHelperText margin="normal" component="div">
+            <AddressLink href={`${addressLinkPrefix}${collateralTokenAddress}`}>
+              Etherscan
+            </AddressLink>
+          </CenteredFormHelperText>
         </DataContainer>
         <DataContainer>
-          <Title>Amount to Borrow</Title>
+          <Title>Collateral Amount</Title>
           <FormControl>
-            <InputLabel>Loan amount</InputLabel>
+            <InputLabel>Collateral token amount</InputLabel>
             <Input
-              type="number"
-              value={fillOrderAmount}
-              onChange={e => setFillOrderAmount(e.target.value)}
+              disabled={true}
+              style={{color: `rgba(0, 0, 0, 0.87)`}}
+              value={collateralTokenAmount}
               endAdornment={
-                <InputAdornment position="end">{symbol}</InputAdornment>
+                <InputAdornment position="end">
+                  {getSymbol(tokens, collateralTokenAddress)}
+                </InputAdornment>
               }
             />
-            <FormHelperText component="div">
-              <Tooltip title="This is the amount borrowed. It cannot be larger than the amount being loaned above.">
+            <FormHelperTextWithDetail component="div">
+              <Tooltip title="This shows an estimated minimum amount of collateral token required to satify the initial margin amount, based on current token prices provided by the chosen oracle. The actual amount will be calculated when the loan order is taken, and the trader must have at least this amount in their wallet to open the loan. It is advised to have at least 10% more than this, to protect for price fluctuations.">
                 <MoreInfo>More Info</MoreInfo>
               </Tooltip>
-            </FormHelperText>
+              <RightJustified>
+                <AddressLink href={``} onClick={collateralRefresh}>
+                  Refresh
+                </AddressLink>
+              </RightJustified>
+            </FormHelperTextWithDetail>
           </FormControl>
         </DataContainer>
       </Container>
