@@ -116,10 +116,11 @@ export default ({
           />
           <FormHelperText component="div">
             <Tooltip
-              title={`${role === `trader` ?
-				  `This sets the amount to be borrowed.` :
-				  `This sets the total amount that can be loaned to one or more traders.`
-			}`}
+              title={`${
+                role === `trader`
+                  ? `This sets the amount to be borrowed.`
+                  : `This sets the total amount that can be loaned to one or more traders.`
+              }`}
             >
               <MoreInfo>More Info</MoreInfo>
             </Tooltip>
@@ -157,7 +158,7 @@ export default ({
             </Tooltip>
             <RightJustified>
               <RightJustifiedText>
-              {interestTotalAmount} {getSymbol(tokens, interestTokenAddress)}
+                {interestTotalAmount} {getSymbol(tokens, interestTokenAddress)}
               </RightJustifiedText>
             </RightJustified>
           </FormHelperTextWithDetail>
@@ -180,8 +181,8 @@ export default ({
           <FormControl margin="normal" fullWidth>
             <InputLabel>Collateral token amount</InputLabel>
             <Input
-              disabled={true}
-              style={{color: `rgba(0, 0, 0, 0.87)`}}
+              disabled
+              style={{ color: `rgba(0, 0, 0, 0.87)` }}
               value={collateralTokenAmount}
               endAdornment={
                 <InputAdornment position="end">
@@ -194,7 +195,7 @@ export default ({
                 <MoreInfo>More Info</MoreInfo>
               </Tooltip>
               <RightJustified>
-                <AddressLink href={``} onClick={collateralRefresh}>
+                <AddressLink href="" onClick={collateralRefresh}>
                   Refresh
                 </AddressLink>
               </RightJustified>

@@ -117,8 +117,9 @@ export default ({
                   This shows an estimated minimum amount of collateral token
                   required to satify the initial margin amount, based on current
                   token prices provided by the chosen oracle. The actual amount
-                  will be calculated when the loan order is taken, and the trader
-                  must have at least this amount in their wallet to open the loan.
+                  will be calculated when the loan order is taken, and the
+                  trader must have at least this amount in their wallet to open
+                  the loan.
                 </div>
               }
             >
@@ -132,7 +133,9 @@ export default ({
               <CoinIcon src={getIconURL(collateralToken)} />
               <CoinLabel>{collateralToken.name}</CoinLabel>
             </CoinInfo>
-            <Tooltip title={<TooltipText>{collateralToken.address}</TooltipText>}>
+            <Tooltip
+              title={<TooltipText>{collateralToken.address}</TooltipText>}
+            >
               <CoinAmount>
                 {collateralTokenAmount} {collateralToken.symbol}
               </CoinAmount>

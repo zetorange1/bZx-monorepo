@@ -25,8 +25,8 @@ const Button = styled(MuiButton)`
 `;
 
 export default class FillOrder extends React.Component {
-  state = { 
-    value: ``, 
+  state = {
+    value: ``,
     showOrderInfo: false
   };
 

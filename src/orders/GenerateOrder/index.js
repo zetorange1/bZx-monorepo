@@ -11,7 +11,10 @@ import Submission from "./Submission";
 import Result from "./Result";
 
 import validateInputs from "./validate";
-import { fromBigNumber, getInitialCollateralRequired } from "../../common/utils";
+import {
+  fromBigNumber,
+  getInitialCollateralRequired
+} from "../../common/utils";
 import {
   compileObject,
   addSalt,
@@ -59,8 +62,14 @@ export default class GenerateOrder extends React.Component {
 
   /* State setters */
 
-  setStateForCollateralAmount = async (loanTokenAddress, collateralTokenAddress, oracleAddress, loanTokenAmount, initialMarginAmount) => {
-    var collateralRequired = `(finish form then reset)`;
+  setStateForCollateralAmount = async (
+    loanTokenAddress,
+    collateralTokenAddress,
+    oracleAddress,
+    loanTokenAmount,
+    initialMarginAmount
+  ) => {
+    let collateralRequired = `(finish form then reset)`;
     if (
       loanTokenAddress &&
       collateralTokenAddress &&
@@ -68,63 +77,66 @@ export default class GenerateOrder extends React.Component {
       loanTokenAmount &&
       initialMarginAmount
     ) {
-        this.setState({ [`collateralTokenAmount`]: "loading..." });
-        var collateralRequired = fromBigNumber(await getInitialCollateralRequired(
+      this.setState({ [`collateralTokenAmount`]: `loading...` });
+      collateralRequired = fromBigNumber(
+        await getInitialCollateralRequired(
           loanTokenAddress,
           collateralTokenAddress,
           oracleAddress,
           loanTokenAmount,
           initialMarginAmount,
           this.props.b0x
-        ), 1e18);
-        console.log(`collateralRequired: `+collateralRequired);
-        if (collateralRequired == 0) {
-          collateralRequired = `(unsupported)`;
-        }
+        ),
+        1e18
+      );
+      console.log(`collateralRequired: ${collateralRequired}`);
+      if (collateralRequired === 0) {
+        collateralRequired = `(unsupported)`;
+      }
     }
     this.setState({ [`collateralTokenAmount`]: collateralRequired });
-  }
+  };
 
   setStateFor = key => value => {
     this.setState({ [key]: value });
-  }
+  };
 
   setStateForInput = key => event =>
     this.setState({ [key]: event.target.value });
 
   setStateForTotalInterest = (interestAmount, expirationDate) => {
-    var totalInterest = 0;
+    let totalInterest = 0;
     if (interestAmount && expirationDate) {
-      var exp = expirationDate.unix();
-      var now = moment().unix();
+      const exp = expirationDate.unix();
+      const now = moment().unix();
       if (exp > now) {
-        totalInterest = (exp-now)/86400 * interestAmount;
+        totalInterest = (exp - now) / 86400 * interestAmount;
       }
     }
     this.setState({ [`interestTotalAmount`]: totalInterest });
-  }
+  };
 
   setStateForInterestAmount = event => {
-    var value = event.target.value;
+    const { value } = event.target;
     this.setState({ [`interestAmount`]: value });
     this.setStateForTotalInterest(value, this.state.expirationDate);
-  }
+  };
 
   setStateForExpirationDate = value => {
     this.setState({ [`expirationDate`]: value });
     this.setStateForTotalInterest(this.state.interestAmount, value);
-  }
+  };
 
   setRole = (e, value) => {
     this.setState({ role: value });
-  }
+  };
 
   setRelayCheckbox = (e, value) =>
     this.setState({ sendToRelayExchange: value });
 
-  refreshCollateralAmount = async (event) => {
+  refreshCollateralAmount = async event => {
     event.preventDefault();
-    if (this.state.role == `trader`) {
+    if (this.state.role === `trader`) {
       this.setStateForCollateralAmount(
         this.state.loanTokenAddress,
         this.state.collateralTokenAddress,
@@ -133,7 +145,7 @@ export default class GenerateOrder extends React.Component {
         this.state.initialMarginAmount
       );
     }
-  }
+  };
 
   /* Submission handler */
 
@@ -215,7 +227,6 @@ export default class GenerateOrder extends React.Component {
           collateralTokenAmount={this.state.collateralTokenAmount}
           interestAmount={this.state.interestAmount}
           interestTotalAmount={this.state.interestTotalAmount}
-
           collateralRefresh={this.refreshCollateralAmount}
         />
 

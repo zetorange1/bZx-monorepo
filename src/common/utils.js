@@ -16,10 +16,11 @@ export const getInitialCollateralRequired = async (
   loanTokenAmountFilled,
   initialMarginAmount,
   b0x
-) => await b0x.getInitialCollateralRequired(
-  loanTokenAddress,
-  collateralTokenAddress,
-  oracleAddress,
-  toBigNumber(loanTokenAmountFilled, 1e18).toFixed(0),
-  initialMarginAmount
-);
+) =>
+  b0x.getInitialCollateralRequired(
+    loanTokenAddress,
+    collateralTokenAddress,
+    oracleAddress,
+    toBigNumber(loanTokenAmountFilled, 1e18).toFixed(0),
+    initialMarginAmount
+  );

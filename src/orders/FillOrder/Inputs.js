@@ -129,8 +129,8 @@ export default ({
           <FormControl>
             <InputLabel>Collateral token amount</InputLabel>
             <Input
-              disabled={true}
-              style={{color: `rgba(0, 0, 0, 0.87)`}}
+              disabled
+              style={{ color: `rgba(0, 0, 0, 0.87)` }}
               value={collateralTokenAmount}
               endAdornment={
                 <InputAdornment position="end">
@@ -143,7 +143,7 @@ export default ({
                 <MoreInfo>More Info</MoreInfo>
               </Tooltip>
               <RightJustified>
-                <AddressLink href={``} onClick={collateralRefresh}>
+                <AddressLink href="" onClick={collateralRefresh}>
                   Refresh
                 </AddressLink>
               </RightJustified>

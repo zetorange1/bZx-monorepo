@@ -2,7 +2,10 @@ import { Fragment } from "react";
 import styled from "styled-components";
 import Button from "material-ui/Button";
 
-import { fromBigNumber, getInitialCollateralRequired } from "../../common/utils";
+import {
+  fromBigNumber,
+  getInitialCollateralRequired
+} from "../../common/utils";
 import Section, { SectionLabel, Divider } from "../../common/FormSection";
 
 import Tokens from "./Tokens";
@@ -37,8 +40,14 @@ export default class FillOrder extends React.Component {
 
   /* State setters */
 
-  setStateForCollateralAmount = async (loanTokenAddress, collateralTokenAddress, oracleAddress, loanTokenAmount, initialMarginAmount) => {
-    var collateralRequired = `(finish form then reset)`;
+  setStateForCollateralAmount = async (
+    loanTokenAddress,
+    collateralTokenAddress,
+    oracleAddress,
+    loanTokenAmount,
+    initialMarginAmount
+  ) => {
+    let collateralRequired = `(finish form then reset)`;
     if (
       loanTokenAddress &&
       collateralTokenAddress &&
@@ -46,39 +55,46 @@ export default class FillOrder extends React.Component {
       loanTokenAmount &&
       initialMarginAmount
     ) {
-        this.setState({ [`collateralTokenAmount`]: "loading..." });
-        var collateralRequired = fromBigNumber(await getInitialCollateralRequired(
+      this.setState({ [`collateralTokenAmount`]: `loading...` });
+      collateralRequired = fromBigNumber(
+        await getInitialCollateralRequired(
           loanTokenAddress,
           collateralTokenAddress,
           oracleAddress,
           loanTokenAmount,
           initialMarginAmount,
           this.props.b0x
-        ), 1e18);
-        console.log(`collateralRequired: `+collateralRequired);
-        if (collateralRequired == 0) {
-          collateralRequired = `(unsupported)`;
-        }
+        ),
+        1e18
+      );
+      console.log(`collateralRequired: ${collateralRequired}`);
+      if (collateralRequired === 0) {
+        collateralRequired = `(unsupported)`;
+      }
     }
     this.setState({ [`collateralTokenAmount`]: collateralRequired });
-  }
+  };
 
   setStateFor = key => value => this.setState({ [key]: value });
 
   refreshCollateralAmountNoEvent = async () => {
     await this.setStateForCollateralAmount(
       this.props.order.loanTokenAddress,
-      this.props.order.makerRole === `0` ? this.state.collateralTokenAddress : this.props.order.collateralTokenAddress,
+      this.props.order.makerRole === `0`
+        ? this.state.collateralTokenAddress
+        : this.props.order.collateralTokenAddress,
       this.props.order.oracleAddress,
-      this.props.order.makerRole === `0` ? this.state.fillOrderAmount : fromBigNumber(this.props.order.loanTokenAmount, 1e18),
+      this.props.order.makerRole === `0`
+        ? this.state.fillOrderAmount
+        : fromBigNumber(this.props.order.loanTokenAmount, 1e18),
       this.props.order.initialMarginAmount
     );
-  }
+  };
 
-  refreshCollateralAmount = async (event) => {
+  refreshCollateralAmount = async event => {
     event.preventDefault();
     await this.refreshCollateralAmountNoEvent();
-  }
+  };
 
   handleSubmit = async () => {
     const { order, tokens, b0x, accounts } = this.props;
