@@ -1,6 +1,6 @@
 {
   "name": "b0x_portal",
-  "version": "1.0.0",
+  "version": "0.0.4",
   "description": "Frontend portal for b0x",
   "main": "portal.js",
   "scripts": {

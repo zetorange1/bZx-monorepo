@@ -38,19 +38,54 @@ const CenteredFormHelperText = styled(FormHelperText)`
   text-align: center !important;
 `;
 
+const FormHelperTextWithDetail = styled(FormHelperText)`
+  display: flex;
+`;
+
+const RightJustified = styled.div`
+  font-size: 0.75rem;
+  position: absolute;
+  right: 0px;
+  max-width: 190px;
+  word-break: break-word;
+  text-align: right;
+`;
+
+const RightJustifiedText = styled.span`
+  font-weight: bold;
+`;
+
+const addressLinkPrefix = `https://ropsten.etherscan.io/address/`;
+const AddressLink = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  //display: inline-block;
+  //font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 20ch;
+  color: rgba(0, 0, 0, 0.54);
+`;
+
 export default ({
   tokens,
   role,
   // state setters
   setStateForAddress,
   setStateForInput,
+  setStateForInterestAmount,
   // address states
   loanTokenAddress,
   interestTokenAddress,
   collateralTokenAddress,
   // amount states
   loanTokenAmount,
-  interestAmount
+  collateralTokenAmount,
+  interestAmount,
+  interestTotalAmount,
+  collateralRefresh
 }) => (
   <Section>
     <SectionLabel>Tokens and Token Amounts</SectionLabel>
@@ -62,6 +97,11 @@ export default ({
           setAddress={setStateForAddress(`loanTokenAddress`)}
           value={loanTokenAddress}
         />
+        <CenteredFormHelperText margin="normal" component="div">
+          <AddressLink href={`${addressLinkPrefix}${loanTokenAddress}`}>
+            Etherscan
+          </AddressLink>
+        </CenteredFormHelperText>
         <FormControl margin="normal" fullWidth>
           <InputLabel>Loan token amount</InputLabel>
           <Input
@@ -76,9 +116,11 @@ export default ({
           />
           <FormHelperText component="div">
             <Tooltip
-              title={`This amount is the total amount being ${
-                role === `trader` ? `borrowed` : `loaned`
-              }.`}
+              title={`${
+                role === `trader`
+                  ? `This sets the amount to be borrowed.`
+                  : `This sets the total amount that can be loaned to one or more traders.`
+              }`}
             >
               <MoreInfo>More Info</MoreInfo>
             </Tooltip>
@@ -93,23 +135,33 @@ export default ({
           setAddress={setStateForAddress(`interestTokenAddress`)}
           value={interestTokenAddress}
         />
+        <CenteredFormHelperText margin="normal" component="div">
+          <AddressLink href={`${addressLinkPrefix}${interestTokenAddress}`}>
+            Etherscan
+          </AddressLink>
+        </CenteredFormHelperText>
         <FormControl margin="normal" fullWidth>
           <InputLabel>Interest amount (per day)</InputLabel>
           <Input
             value={interestAmount}
             type="number"
-            onChange={setStateForInput(`interestAmount`)}
+            onChange={setStateForInterestAmount}
             endAdornment={
               <InputAdornment position="end">
                 {getSymbol(tokens, interestTokenAddress)}
               </InputAdornment>
             }
           />
-          <FormHelperText component="div">
-            <Tooltip title="This amount is prorated if the loan order is closed early by the trader, or if the trader's loan is liquidated.">
+          <FormHelperTextWithDetail component="div">
+            <Tooltip title="This sets the interest paid per day and shows the total interest paid out if the loan were to run from now until expiration. The actual amount earned will be less, based on when the loan is opened, the actual amount borrowed, and if the loan is closed early by the trader or is liquidated.">
               <MoreInfo>More Info</MoreInfo>
             </Tooltip>
-          </FormHelperText>
+            <RightJustified>
+              <RightJustifiedText>
+                {interestTotalAmount} {getSymbol(tokens, interestTokenAddress)}
+              </RightJustifiedText>
+            </RightJustified>
+          </FormHelperTextWithDetail>
         </FormControl>
       </TokenGroup>
 
@@ -122,19 +174,33 @@ export default ({
             value={collateralTokenAddress}
           />
           <CenteredFormHelperText margin="normal" component="div">
-            <Tooltip
-              title={
-                <div style={{ maxWidth: `240px` }}>
-                  This token amount will be calculated when the order is filled
-                  (either partially or fully). It will be set to the amount
-                  needed to satisfy the initial margin amount to cover the
-                  amount of loan token borrowed.
-                </div>
-              }
-            >
-              <MoreInfo>More Info</MoreInfo>
-            </Tooltip>
+            <AddressLink href={`${addressLinkPrefix}${collateralTokenAddress}`}>
+              Etherscan
+            </AddressLink>
           </CenteredFormHelperText>
+          <FormControl margin="normal" fullWidth>
+            <InputLabel>Collateral token amount</InputLabel>
+            <Input
+              disabled
+              style={{ color: `rgba(0, 0, 0, 0.87)` }}
+              value={collateralTokenAmount}
+              endAdornment={
+                <InputAdornment position="end">
+                  {getSymbol(tokens, collateralTokenAddress)}
+                </InputAdornment>
+              }
+            />
+            <FormHelperTextWithDetail component="div">
+              <Tooltip title="This shows an estimated minimum amount of collateral token required to satify the initial margin amount, based on current token prices provided by the chosen oracle. The actual amount will be calculated when the loan order is taken, and the trader must have at least this amount in their wallet to open the loan. It is advised to have at least 10% more than this, to protect for price fluctuations.">
+                <MoreInfo>More Info</MoreInfo>
+              </Tooltip>
+              <RightJustified>
+                <AddressLink href="" onClick={collateralRefresh}>
+                  Refresh
+                </AddressLink>
+              </RightJustified>
+            </FormHelperTextWithDetail>
+          </FormControl>
         </TokenGroup>
       )}
     </Content>

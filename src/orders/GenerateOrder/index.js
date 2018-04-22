@@ -12,10 +12,14 @@ import Result from "./Result";
 
 import validateInputs from "./validate";
 import {
+  fromBigNumber,
+  getInitialCollateralRequired
+} from "../../common/utils";
+import {
   compileObject,
   addSalt,
   signOrder,
-  getHash,
+  getOrderHash,
   addNetworkId
 } from "./utils";
 
@@ -31,6 +35,9 @@ export default class GenerateOrder extends React.Component {
     // token amounts
     loanTokenAmount: ``,
     interestAmount: ``,
+    collateralTokenAmount: `(finish form then reset)`,
+
+    interestTotalAmount: 0,
 
     // margin amounts
     initialMarginAmount: 50,
@@ -55,15 +62,90 @@ export default class GenerateOrder extends React.Component {
 
   /* State setters */
 
-  setStateFor = key => value => this.setState({ [key]: value });
+  setStateForCollateralAmount = async (
+    loanTokenAddress,
+    collateralTokenAddress,
+    oracleAddress,
+    loanTokenAmount,
+    initialMarginAmount
+  ) => {
+    let collateralRequired = `(finish form then reset)`;
+    if (
+      loanTokenAddress &&
+      collateralTokenAddress &&
+      oracleAddress &&
+      loanTokenAmount &&
+      initialMarginAmount
+    ) {
+      this.setState({ [`collateralTokenAmount`]: `loading...` });
+      collateralRequired = fromBigNumber(
+        await getInitialCollateralRequired(
+          loanTokenAddress,
+          collateralTokenAddress,
+          oracleAddress,
+          loanTokenAmount,
+          initialMarginAmount,
+          this.props.b0x
+        ),
+        1e18
+      );
+      console.log(`collateralRequired: ${collateralRequired}`);
+      if (collateralRequired === 0) {
+        collateralRequired = `(unsupported)`;
+      }
+    }
+    this.setState({ [`collateralTokenAmount`]: collateralRequired });
+  };
+
+  setStateFor = key => value => {
+    this.setState({ [key]: value });
+  };
 
   setStateForInput = key => event =>
     this.setState({ [key]: event.target.value });
 
-  setRole = (e, value) => this.setState({ role: value });
+  setStateForTotalInterest = (interestAmount, expirationDate) => {
+    let totalInterest = 0;
+    if (interestAmount && expirationDate) {
+      const exp = expirationDate.unix();
+      const now = moment().unix();
+      if (exp > now) {
+        totalInterest = (exp - now) / 86400 * interestAmount;
+      }
+    }
+    this.setState({ [`interestTotalAmount`]: totalInterest });
+  };
+
+  setStateForInterestAmount = event => {
+    const { value } = event.target;
+    this.setState({ [`interestAmount`]: value });
+    this.setStateForTotalInterest(value, this.state.expirationDate);
+  };
+
+  setStateForExpirationDate = value => {
+    this.setState({ [`expirationDate`]: value });
+    this.setStateForTotalInterest(this.state.interestAmount, value);
+  };
+
+  setRole = (e, value) => {
+    this.setState({ role: value });
+  };
 
   setRelayCheckbox = (e, value) =>
     this.setState({ sendToRelayExchange: value });
+
+  refreshCollateralAmount = async event => {
+    event.preventDefault();
+    if (this.state.role === `trader`) {
+      this.setStateForCollateralAmount(
+        this.state.loanTokenAddress,
+        this.state.collateralTokenAddress,
+        this.state.oracleAddress,
+        this.state.loanTokenAmount,
+        this.state.initialMarginAmount
+      );
+    }
+  };
 
   /* Submission handler */
 
@@ -84,7 +166,7 @@ export default class GenerateOrder extends React.Component {
       );
       const saltedOrderObj = addSalt(orderObject);
       console.log(saltedOrderObj);
-      const orderHash = getHash(saltedOrderObj);
+      const orderHash = getOrderHash(saltedOrderObj);
       try {
         const signature = await signOrder(
           orderHash,
@@ -121,19 +203,31 @@ export default class GenerateOrder extends React.Component {
 
         <Divider />
 
+        <OracleSection
+          oracleAddress={this.state.oracleAddress}
+          setOracleAddress={this.setStateForInput(`oracleAddress`)}
+          oracles={this.state.oracles}
+        />
+
+        <Divider />
+
         <TokensSection
           tokens={this.props.tokens}
           role={this.state.role}
           // state setters
           setStateForAddress={this.setStateFor}
           setStateForInput={this.setStateForInput}
+          setStateForInterestAmount={this.setStateForInterestAmount}
           // address states
           loanTokenAddress={this.state.loanTokenAddress}
           interestTokenAddress={this.state.interestTokenAddress}
           collateralTokenAddress={this.state.collateralTokenAddress}
           // token amounts
           loanTokenAmount={this.state.loanTokenAmount}
+          collateralTokenAmount={this.state.collateralTokenAmount}
           interestAmount={this.state.interestAmount}
+          interestTotalAmount={this.state.interestTotalAmount}
+          collateralRefresh={this.refreshCollateralAmount}
         />
 
         <Divider />
@@ -147,16 +241,8 @@ export default class GenerateOrder extends React.Component {
         <Divider />
 
         <ExpirationSection
-          setExpirationDate={this.setStateFor(`expirationDate`)}
+          setExpirationDate={this.setStateForExpirationDate}
           expirationDate={this.state.expirationDate}
-        />
-
-        <Divider />
-
-        <OracleSection
-          oracleAddress={this.state.oracleAddress}
-          setOracleAddress={this.setStateForInput(`oracleAddress`)}
-          oracles={this.state.oracles}
         />
 
         <Divider />

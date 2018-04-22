@@ -81,4 +81,4 @@ export const signOrder = async (orderHash, accounts, b0x) => {
   return signature;
 };
 
-export const getHash = obj => B0xJS.getLoanOrderHashHex(obj);
+export const getOrderHash = obj => B0xJS.getLoanOrderHashHex(obj);

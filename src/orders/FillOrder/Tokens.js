@@ -12,7 +12,7 @@ const Container = styled.div`
 `;
 
 const TokenContainer = styled.div`
-  width: 180px;
+  width: 250px;
   text-align: center;
   box-sizing: border-box;
 
@@ -67,7 +67,8 @@ export default ({
   loanTokenAmount,
   interestTokenAddress,
   interestAmount,
-  collateralTokenAddress
+  collateralTokenAddress,
+  collateralTokenAmount
 }) => {
   const getTokenInfo = address => tokens.filter(t => t.address === address)[0];
   const loanToken = getTokenInfo(loanTokenAddress);
@@ -113,10 +114,12 @@ export default ({
             <Tooltip
               title={
                 <div style={{ maxWidth: `240px` }}>
-                  This token amount will be calculated when the order is filled
-                  (either partially or fully). It will be set to the amount
-                  needed to satisfy the initial margin amount to cover the
-                  amount of loan token borrowed.
+                  This shows an estimated minimum amount of collateral token
+                  required to satify the initial margin amount, based on current
+                  token prices provided by the chosen oracle. The actual amount
+                  will be calculated when the loan order is taken, and the
+                  trader must have at least this amount in their wallet to open
+                  the loan.
                 </div>
               }
             >
@@ -130,6 +133,13 @@ export default ({
               <CoinIcon src={getIconURL(collateralToken)} />
               <CoinLabel>{collateralToken.name}</CoinLabel>
             </CoinInfo>
+            <Tooltip
+              title={<TooltipText>{collateralToken.address}</TooltipText>}
+            >
+              <CoinAmount>
+                {collateralTokenAmount} {collateralToken.symbol}
+              </CoinAmount>
+            </Tooltip>
           </TokenContainer>
         )}
       </Container>
