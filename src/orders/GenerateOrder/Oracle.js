@@ -53,7 +53,7 @@ export default ({ oracleAddress, setOracleAddress, oracles }) => (
           ))}
         </Select>
         <FormHelperTextWithDetail component="div">
-          <Tooltip title="An estimated amount of collateral token required to satify the initial margin amount, based on current token prices provided by the chosen oracle. The actual amount will be calculated when the loan order is taken, and the trader must have at least this amount in their wallet to open the loan.">
+          <Tooltip title="The oracle contract that will handle asset price discovery and liquidation of positions.">
             <MoreInfo>More Info</MoreInfo>
           </Tooltip>
           <RightJustified>
