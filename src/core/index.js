@@ -96,6 +96,9 @@ export default class B0xJS {
   takeLoanOrderAsTrader = (...props) =>
     fill.takeLoanOrderAsTrader(this, ...props);
 
+  getInitialCollateralRequired = async (...props) =>
+  	fill.getInitialCollateralRequired(this, ...props);
+
   getOrders = async (...props) => orderHistory.getOrders(this, ...props);
   getLoansForLender = async (...props) =>
     orderHistory.getLoansForLender(this, ...props);

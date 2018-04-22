@@ -41,13 +41,20 @@ export const takeLoanOrderAsLender = ({ web3, networkId }, order, txOpts) => {
     order.salt
   ];
 
-  return b0xContract.methods
-    .takeLoanOrderAsLender(orderAddresses, orderValues, order.signature)
-    .send({
-      from: txOpts.from,
-      gas: txOpts.gas,
-      gasPrice: txOpts.gasPrice
-    });
+  const txObj = b0xContract.methods.takeLoanOrderAsLender(
+    orderAddresses,
+    orderValues,
+    order.signature
+  );
+  console.log(`takeLoanOrderAsLender: ${txObj.encodeABI()}`);
+  console.log(JSON.stringify(orderAddresses));
+  console.log(JSON.stringify(orderValues));
+  console.log(JSON.stringify(order.signature));
+  return txObj.send({
+    from: txOpts.from,
+    gas: txOpts.gas,
+    gasPrice: txOpts.gasPrice
+  });
 };
 
 export const takeLoanOrderAsTrader = (
@@ -94,9 +101,41 @@ export const takeLoanOrderAsTrader = (
     order.signature
   );
   console.log(`takeLoanOrderAsTrader: ${txObj.encodeABI()}`);
+  console.log(JSON.stringify(orderAddresses));
+  console.log(JSON.stringify(orderValues));
+  console.log(JSON.stringify(collateralTokenAddress));
+  console.log(JSON.stringify(loanTokenAmountFilled));
+  console.log(JSON.stringify(order.signature));
   return txObj.send({
     from: txOpts.from,
     gas: txOpts.gas,
     gasPrice: txOpts.gasPrice
   });
+};
+
+export const getInitialCollateralRequired = async (
+  { web3, networkId },
+  loanTokenAddress,
+  collateralTokenAddress,
+  oracleAddress,
+  loanTokenAmountFilled,
+  initialMarginAmount
+) => {
+  const b0xContract = await CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).B0x.abi,
+    Addresses.getAddresses(networkId).B0x
+  );
+  try {
+    var initialCollateralRequired = await b0xContract.methods.getInitialCollateralRequired(
+      loanTokenAddress,
+      collateralTokenAddress,
+      oracleAddress,
+      loanTokenAmountFilled,
+      initialMarginAmount
+    ).call();
+  } catch(e) {
+    console.log(e);
+  }
+  return initialCollateralRequired;
 };
