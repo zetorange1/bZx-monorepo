@@ -61,8 +61,7 @@ contract B0xVault is B0xOwnable {
         returns (bool)
     {
         collateral[token][user] = collateral[token][user].add(tokenAmount);
-        if (!EIP20(token).transferFrom(user, this, tokenAmount))
-            revert();
+        EIP20(token).transferFrom(user, this, tokenAmount);
 
         return true;
     }
@@ -76,8 +75,7 @@ contract B0xVault is B0xOwnable {
         returns (bool)
     {
         funding[token][user] = funding[token][user].add(tokenAmount);
-        if (!EIP20(token).transferFrom(user, this, tokenAmount))
-            revert();
+        EIP20(token).transferFrom(user, this, tokenAmount);
 
         return true;
     }
@@ -91,8 +89,7 @@ contract B0xVault is B0xOwnable {
         returns (bool)
     {
         interest[token][user] = interest[token][user].add(tokenAmount);
-        if (!EIP20(token).transferFrom(user, this, tokenAmount))
-            revert();
+        EIP20(token).transferFrom(user, this, tokenAmount);
 
         return true;
     }
@@ -106,8 +103,7 @@ contract B0xVault is B0xOwnable {
         returns (bool)
     {
         collateral[token][user] = collateral[token][user].sub(tokenAmount);
-        if (!EIP20(token).transfer(user, tokenAmount))
-            revert();
+        EIP20(token).transfer(user, tokenAmount);
 
         return true;
     }
@@ -126,9 +122,7 @@ contract B0xVault is B0xOwnable {
             return false;
 
         collateral[token][user] = collateral[token][user].sub(tokenAmount);
-
-        if (!EIP20(token).transfer(oracleAddress, tokenAmount))
-            revert();
+        EIP20(token).transfer(oracleAddress, tokenAmount);
 
         return true;
     }
@@ -142,8 +136,7 @@ contract B0xVault is B0xOwnable {
         returns (bool)
     {
         funding[token][user] = funding[token][user].sub(tokenAmount);
-        if (!EIP20(token).transfer(user, tokenAmount))
-            revert();
+        EIP20(token).transfer(user, tokenAmount);
 
         return true;
     }
@@ -157,8 +150,7 @@ contract B0xVault is B0xOwnable {
         returns (bool)
     {
         interest[token][user] = interest[token][user].sub(tokenAmount);
-        if (!EIP20(token).transfer(user, tokenAmount))
-            revert();
+        EIP20(token).transfer(user, tokenAmount);
 
         return true;
     }
@@ -178,9 +170,7 @@ contract B0xVault is B0xOwnable {
             return false;
 
         interest[token][user] = interest[token][user].sub(tokenAmount);
-
-        if (!EIP20(token).transfer(oracleAddress, tokenAmount))
-            revert();
+        EIP20(token).transfer(oracleAddress, tokenAmount);
 
         return true;
     }
@@ -193,8 +183,7 @@ contract B0xVault is B0xOwnable {
         onlyB0x
         returns (bool)
     {
-        if (!EIP20(token).transfer(to, tokenAmount))
-            revert();
+        EIP20(token).transfer(to, tokenAmount);
 
         return true;
     }
@@ -208,8 +197,7 @@ contract B0xVault is B0xOwnable {
         onlyB0x
         returns (bool)
     {
-        if (!EIP20(token).transferFrom(from, to, tokenAmount))
-            revert();
+        EIP20(token).transferFrom(from, to, tokenAmount);
 
         return true;
     }

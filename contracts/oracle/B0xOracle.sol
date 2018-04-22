@@ -335,7 +335,9 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
         view 
         returns (uint rate)
     {   
-        if (KYBER_CONTRACT == address(0)) {
+        if (sourceTokenAddress == destTokenAddress) {
+            rate = 10**18;
+        } else if (KYBER_CONTRACT == address(0)) {
             rate = 10**18;
             //rate = (uint(block.blockhash(block.number-1)) % 100 + 1).mul(10**18);
         } else {
@@ -427,14 +429,19 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
         view
         returns (uint)
     {
-        uint collateralToLoanRate = getTradeRate(
-            collateralTokenAddress,
-            loanTokenAddress
-        );
-        if (collateralToLoanRate == 0) {
-            return 0;
+        uint collateralToLoanAmount;
+        if (collateralTokenAddress == loanTokenAddress) {
+            collateralToLoanAmount = collateralTokenAmount;
+        } else {
+            uint collateralToLoanRate = getTradeRate(
+                collateralTokenAddress,
+                loanTokenAddress
+            );
+            if (collateralToLoanRate == 0) {
+                return 0;
+            }
+            collateralToLoanAmount = collateralTokenAmount.mul(collateralToLoanRate).div(10**18);
         }
-        uint collateralToLoanAmount = collateralTokenAmount.mul(collateralToLoanRate).div(10**18);
 
         bool isProfit;
         uint profitOrLoss;
@@ -585,7 +592,13 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
         internal
         returns (uint destTokenAmount)
     {
-        if (KYBER_CONTRACT == address(0)) {
+        if (sourceTokenAddress == destTokenAddress) {
+            if (maxDestTokenAmount < MAX_FOR_KYBER) {
+                destTokenAmount = maxDestTokenAmount;
+            } else {
+                destTokenAmount = sourceTokenAmount;
+            }
+        } else if (KYBER_CONTRACT == address(0)) {
             uint tradeRate = getTradeRate(sourceTokenAddress, destTokenAddress);
             destTokenAmount = sourceTokenAmount.mul(tradeRate).div(10**18);
             if (destTokenAmount > maxDestTokenAmount) {
@@ -615,11 +628,9 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
                 // re-up the Kyber spend approval if needed
                 if (EIP20(sourceTokenAddress).allowance.gas(4999)(this, KYBER_CONTRACT) < 
                     MAX_FOR_KYBER) {
-                    if (!EIP20(sourceTokenAddress).approve(
+                    EIP20(sourceTokenAddress).approve(
                         KYBER_CONTRACT,
-                        MAX_FOR_KYBER)) {
-                        return intOrRevert(0,621);
-                    }
+                        MAX_FOR_KYBER);
                 }
 
                 destTokenAmount = KyberNetwork_Interface(KYBER_CONTRACT).trade(
@@ -644,11 +655,9 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
                 // re-up the Kyber spend approval if needed
                 if (EIP20(sourceTokenAddress).allowance.gas(4999)(this, KYBER_CONTRACT) < 
                     MAX_FOR_KYBER) {
-                    if (!EIP20(sourceTokenAddress).approve(
+                    EIP20(sourceTokenAddress).approve(
                         KYBER_CONTRACT,
-                        MAX_FOR_KYBER)) {
-                        return intOrRevert(0,650);
-                    }
+                        MAX_FOR_KYBER);
                 }
                 
                 uint maxDestEtherAmount = maxDestTokenAmount;
@@ -693,8 +702,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
         internal
         returns (bool)
     {
-        if (!EIP20(tokenAddress).transfer(to, value))
-            return boolOrRevert(false,697);
+        EIP20(tokenAddress).transfer(to, value);
 
         return true;
     }

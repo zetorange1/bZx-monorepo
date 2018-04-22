@@ -2,28 +2,29 @@
 var config = require('../../config/secrets.js');
 
 var fs = require("fs");
+var mkdirp = require('mkdirp');
 
 const Web3 = require('web3');
 let web3 = new Web3();
 
 if (!fs.existsSync("./html_public_test")) {
-    fs.mkdirSync("./html_public_test");
+    mkdirp.sync("./html_public_test");
 	proceed();
 } else {
 	var rimraf = require('rimraf');
 	rimraf('./html_public_test', function () {
 		//console.log('done');
-		fs.mkdirSync("./html_public_test");
+		mkdirp.sync("./html_public_test");
 		proceed();
 	});
 }
 
 function proceed() {
 if (!fs.existsSync("./html_public_test/abi")) {
-    fs.mkdirSync("./html_public_test/abi");
+    mkdirp.sync("./html_public_test/abi");
 }
 if (!fs.existsSync("./html_public_test/deployed")) {
-    fs.mkdirSync("./html_public_test/deployed");
+    mkdirp.sync("./html_public_test/deployed");
 }
 
 
