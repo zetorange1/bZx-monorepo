@@ -11,6 +11,7 @@ import '../B0xVault.sol';
 import '../shared/Debugger.sol';
 
 import '../tokens/EIP20.sol';
+import '../tokens/EIP20Wrapper.sol';
 import '../interfaces/Oracle_Interface.sol';
 import '../interfaces/KyberNetwork_Interface.sol';
 
@@ -19,7 +20,7 @@ interface WETH_Interface {
     function withdraw(uint wad) public;
 }
 
-contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0xOwnable {
+contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder, Debugger, B0xOwnable {
     using SafeMath for uint256;
 
     // this is the value the Kyber portal uses when setting a very high maximum number
@@ -122,7 +123,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
             interestTokenAddress,
             lender,
             amountOwed.sub(interestFee))) {
-            return boolOrRevert(false,125);
+            return boolOrRevert(false,126);
         }
 
         return true;
@@ -271,7 +272,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
     {
         uint collateralTokenBalance = EIP20(collateralTokenAddress).balanceOf.gas(4999)(this); // Changes to state require at least 5000 gas
         if (collateralTokenBalance < collateralTokenAmountUsable) {
-            voidOrRevert(274); return;
+            voidOrRevert(275); return;
         }
         
         loanTokenAmountCovered = _doTrade(
@@ -287,7 +288,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
             collateralTokenAddress,
             VAULT_CONTRACT,
             collateralTokenAmountUsable.sub(collateralTokenAmountUsed))) {
-            voidOrRevert(290); return;
+            voidOrRevert(291); return;
         }
     }
 
@@ -608,7 +609,7 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
                 destTokenAddress,
                 VAULT_CONTRACT,
                 destTokenAmount)) {
-                return intOrRevert(0,598);
+                return intOrRevert(0,612);
             }
         } else {
             if (sourceTokenAddress == WETH_CONTRACT) {
@@ -628,7 +629,9 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
                 // re-up the Kyber spend approval if needed
                 if (EIP20(sourceTokenAddress).allowance.gas(4999)(this, KYBER_CONTRACT) < 
                     MAX_FOR_KYBER) {
-                    EIP20(sourceTokenAddress).approve(
+                    
+                    eip20Approve(
+                        sourceTokenAddress,
                         KYBER_CONTRACT,
                         MAX_FOR_KYBER);
                 }
@@ -649,13 +652,15 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
                     destTokenAddress,
                     VAULT_CONTRACT,
                     destTokenAmount)) {
-                    return intOrRevert(0,641);
+                    return intOrRevert(0,655);
                 }
             } else {
                 // re-up the Kyber spend approval if needed
                 if (EIP20(sourceTokenAddress).allowance.gas(4999)(this, KYBER_CONTRACT) < 
                     MAX_FOR_KYBER) {
-                    EIP20(sourceTokenAddress).approve(
+                    
+                    eip20Approve(
+                        sourceTokenAddress,
                         KYBER_CONTRACT,
                         MAX_FOR_KYBER);
                 }
@@ -702,7 +707,10 @@ contract B0xOracle is Oracle_Interface, EMACollector, GasRefunder, Debugger, B0x
         internal
         returns (bool)
     {
-        EIP20(tokenAddress).transfer(to, value);
+        eip20Transfer(
+            tokenAddress,
+            to,
+            value);
 
         return true;
     }

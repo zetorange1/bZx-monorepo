@@ -416,7 +416,8 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             return intOrRevert(0,416);
         }
 
-        if (! B0xVault(VAULT_CONTRACT).depositCollateral(
+        // deposit collateral token
+        if (! B0xVault(VAULT_CONTRACT).depositToken(
             collateralTokenFilled,
             trader,
             collateralTokenAmountFilled
@@ -432,7 +433,9 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             loanOrder.interestAmount,
             loanOrder.expirationUnixTimestampSec,
             block.timestamp);
-        if (! B0xVault(VAULT_CONTRACT).depositInterest(
+
+        // deposit interest token
+        if (! B0xVault(VAULT_CONTRACT).depositToken(
             loanOrder.interestTokenAddress,
             trader,
             totalInterestRequired
@@ -440,7 +443,8 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             return intOrRevert(loanTokenAmountFilled,440);
         }
 
-        if (! B0xVault(VAULT_CONTRACT).depositFunding(
+        // deposit loan token
+        if (! B0xVault(VAULT_CONTRACT).depositToken(
             loanOrder.loanTokenAddress,
             lender,
             loanTokenAmountFilled

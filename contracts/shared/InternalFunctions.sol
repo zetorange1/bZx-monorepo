@@ -159,7 +159,7 @@ contract InternalFunctions is B0xStorage {
         returns (uint)
     {
         // transfer the current position token to the Oracle contract
-        if (!B0xVault(VAULT_CONTRACT).transferToken(
+        if (!B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.positionTokenAddressFilled,
             loanOrder.oracleAddress,
             loanPosition.positionTokenAmountFilled)) {

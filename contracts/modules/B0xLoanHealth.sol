@@ -89,7 +89,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             return boolOrRevert(false,89);
         }
 
-        if (! B0xVault(VAULT_CONTRACT).depositCollateral(
+        if (! B0xVault(VAULT_CONTRACT).depositToken(
             collateralTokenFilled,
             msg.sender,
             depositAmount
@@ -150,7 +150,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         excessCollateral = Math.min256(withdrawAmount, loanPosition.collateralTokenAmountFilled-initialCollateralTokenAmount);
 
         // transfer excess collateral to trader
-        if (! B0xVault(VAULT_CONTRACT).withdrawCollateral(
+        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.collateralTokenAddressFilled,
             msg.sender,
             excessCollateral
@@ -212,7 +212,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         }
 
         // transfer the new collateral token from the trader to the vault
-        if (! B0xVault(VAULT_CONTRACT).depositCollateral(
+        if (! B0xVault(VAULT_CONTRACT).depositToken(
             collateralTokenFilled,
             msg.sender,
             collateralTokenAmountFilled
@@ -221,7 +221,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         }
 
         // transfer the old collateral token from the vault to the trader
-        if (! B0xVault(VAULT_CONTRACT).withdrawCollateral(
+        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.collateralTokenAddressFilled,
             msg.sender,
             loanPosition.collateralTokenAmountFilled
@@ -263,7 +263,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             return intOrRevert(0,263);
         }
 
-        if (! B0xVault(VAULT_CONTRACT).transferToken(
+        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.positionTokenAddressFilled,
             msg.sender,
             profitAmount
@@ -583,9 +583,8 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         interestPaid[loanOrder.loanOrderHash][loanPosition.trader] = interestData.totalAmountAccrued; // since this function will pay all remaining accured interest
         
         // send the interest to the oracle for further processing
-        if (! B0xVault(VAULT_CONTRACT).sendInterestToOracle(
+        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
             interestData.interestTokenAddress,
-            loanPosition.trader,
             orders[loanOrder.loanOrderHash].oracleAddress,
             amountPaid
         )) {
@@ -631,7 +630,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             .sub(interestPaid[loanOrder.loanOrderHash][loanPosition.trader]);
         
         if (totalInterestToRefund > 0) {
-            if (! B0xVault(VAULT_CONTRACT).withdrawInterest(
+            if (! B0xVault(VAULT_CONTRACT).withdrawToken(
                 loanOrder.interestTokenAddress,
                 loanPosition.trader,
                 totalInterestToRefund
@@ -644,7 +643,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         if (loanPosition.positionTokenAmountFilled < loanPosition.loanTokenAmountFilled) {
             // Send all of the collateral token to the oracle to sell to cover loan token losses.
             // Unused collateral should be returned to the vault by the oracle.
-            if (! B0xVault(VAULT_CONTRACT).transferToken(
+            if (! B0xVault(VAULT_CONTRACT).withdrawToken(
                 loanPosition.collateralTokenAddressFilled,
                 loanOrder.oracleAddress,
                 loanPosition.collateralTokenAmountFilled
@@ -664,7 +663,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(collateralTokenAmountUsed);
         }
 
-        if (! B0xVault(VAULT_CONTRACT).withdrawCollateral(
+        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.collateralTokenAddressFilled,
             loanPosition.trader,
             loanPosition.collateralTokenAmountFilled
@@ -672,7 +671,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             return boolOrRevert(false,672);
         }
 
-        if (! B0xVault(VAULT_CONTRACT).withdrawFunding(
+        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.positionTokenAddressFilled, // same as loanTokenAddress
             loanPosition.lender,
             loanPosition.positionTokenAmountFilled

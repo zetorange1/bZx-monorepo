@@ -2,18 +2,18 @@
 
 // set configuration and tests to run
 var run = {
-  "debug mode": true,
+  //"debug mode": true,
   
   //"should check token registry": false,
-  "should check oracle registry": false,
-  "should verify approval": false,
+  //"should check oracle registry": false,
+  //"should verify approval": false,
 
   "should generate loanOrderHash (as lender1)": true,
   "should sign and verify orderHash (as lender1)": true,
   "should take sample loan order (as lender1/trader1)": true,
   "should take sample loan order (as lender1/trader2)": false,
   
-  "should generate loanOrderHash (as trader2)": false,
+  "should generate loanOrderHash (as trader2)": true,
   "should sign and verify orderHash (as trader2)": false,
   "should take sample loan order (as lender2)": false,
 
