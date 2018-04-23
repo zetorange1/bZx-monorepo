@@ -481,7 +481,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         address trader)
         public
         view
-        returns (address lender, address interestTokenAddress, uint totalAmountAccrued, uint interestPaidSoFar) {
+        returns (address lender, address interestTokenAddress, uint interestTotalAccrued, uint interestPaidSoFar) {
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
@@ -501,7 +501,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         return (
             interestData.lender,
             interestData.interestTokenAddress,
-            interestData.totalAmountAccrued,
+            interestData.interestTotalAccrued,
             interestData.interestPaidSoFar
         );
     }
@@ -510,34 +510,6 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
     /*
     * Constant Internal functions
     */
-
-    function _getInterest(
-        LoanOrder loanOrder,
-        LoanPosition loanPosition)
-        internal
-        view
-        returns (InterestData interestData)
-    {
-        uint interestTime = block.timestamp;
-        if (interestTime > loanOrder.expirationUnixTimestampSec) {
-            interestTime = loanOrder.expirationUnixTimestampSec;
-        }
-
-        uint totalAmountAccrued;
-        if (loanPosition.active) {
-            totalAmountAccrued = _getPartialAmountNoError(loanPosition.loanTokenAmountFilled, loanOrder.loanTokenAmount, interestTime.sub(loanPosition.loanStartUnixTimestampSec).mul(loanOrder.interestAmount).div(86400));
-        } else {
-            // this is so, because remaining interest is paid out when the loan is closed
-            totalAmountAccrued = interestPaid[loanOrder.loanOrderHash][loanPosition.trader];
-        }
-
-        interestData = InterestData({
-            lender: loanPosition.lender,
-            interestTokenAddress: loanOrder.interestTokenAddress,
-            totalAmountAccrued: totalAmountAccrued,
-            interestPaidSoFar: interestPaid[loanOrder.loanOrderHash][loanPosition.trader]
-        });
-    }
 
     function _getProfitOrLoss(
         LoanOrder loanOrder,
@@ -575,12 +547,12 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanOrder,
             loanPosition);
 
-        if (interestData.interestPaidSoFar >= interestData.totalAmountAccrued) {
+        if (interestData.interestPaidSoFar >= interestData.interestTotalAccrued) {
             return 0;
         }
 
-        uint amountPaid = interestData.totalAmountAccrued.sub(interestData.interestPaidSoFar);
-        interestPaid[loanOrder.loanOrderHash][loanPosition.trader] = interestData.totalAmountAccrued; // since this function will pay all remaining accured interest
+        uint amountPaid = interestData.interestTotalAccrued.sub(interestData.interestPaidSoFar);
+        interestPaid[loanOrder.loanOrderHash][loanPosition.trader] = interestData.interestTotalAccrued; // since this function will pay all remaining accured interest
         
         // send the interest to the oracle for further processing
         if (! B0xVault(VAULT_CONTRACT).withdrawToken(

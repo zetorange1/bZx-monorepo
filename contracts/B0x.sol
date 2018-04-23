@@ -185,5 +185,5 @@ contract B0x is B0xStorage {
         address trader)
         public
         view
-        returns (address lender, address interestTokenAddress, uint totalAmountAccrued, uint interestPaidSoFar);
+        returns (address lender, address interestTokenAddress, uint interestTotalAccrued, uint interestPaidSoFar);
 }

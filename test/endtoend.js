@@ -13,7 +13,7 @@ var run = {
   "should take sample loan order (as lender1/trader1)": true,
   "should take sample loan order (as lender1/trader2)": false,
   
-  "should generate loanOrderHash (as trader2)": true,
+  "should generate loanOrderHash (as trader2)": false,
   "should sign and verify orderHash (as trader2)": false,
   "should take sample loan order (as lender2)": false,
 
@@ -845,7 +845,7 @@ contract('B0xTest', function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 10;
+    const itemCount = 14;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -872,7 +872,11 @@ contract('B0xTest', function(accounts) {
           positionTokenAmountFilled: parseInt("0x"+params[6]),
           loanStartUnixTimestampSec: parseInt("0x"+params[7]),
           active: parseInt("0x"+params[8]),
-          loanOrderHash: "0x"+params[9]
+          loanOrderHash: "0x"+params[9],
+          loanTokenAddress: "0x"+params[10].substr(24),
+          interestTokenAddress: "0x"+params[11].substr(24),
+          interestTotalAccrued: parseInt("0x"+params[12]),
+          interestPaidSoFar: parseInt("0x"+params[13])
         });
       }
 
@@ -904,7 +908,7 @@ contract('B0xTest', function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 10;
+    const itemCount = 14;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -931,7 +935,11 @@ contract('B0xTest', function(accounts) {
           positionTokenAmountFilled: parseInt("0x"+params[6]),
           loanStartUnixTimestampSec: parseInt("0x"+params[7]),
           active: parseInt("0x"+params[8]),
-          loanOrderHash: "0x"+params[9]
+          loanOrderHash: "0x"+params[9],
+          loanTokenAddress: "0x"+params[10].substr(24),
+          interestTokenAddress: "0x"+params[11].substr(24),
+          interestTotalAccrued: parseInt("0x"+params[12]),
+          interestPaidSoFar: parseInt("0x"+params[13])
         });
       }
 
@@ -963,7 +971,7 @@ contract('B0xTest', function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 10;
+    const itemCount = 14;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -990,7 +998,11 @@ contract('B0xTest', function(accounts) {
           positionTokenAmountFilled: parseInt("0x"+params[6]),
           loanStartUnixTimestampSec: parseInt("0x"+params[7]),
           active: parseInt("0x"+params[8]),
-          loanOrderHash: "0x"+params[9]
+          loanOrderHash: "0x"+params[9],
+          loanTokenAddress: "0x"+params[10].substr(24),
+          interestTokenAddress: "0x"+params[11].substr(24),
+          interestTotalAccrued: parseInt("0x"+params[12]),
+          interestPaidSoFar: parseInt("0x"+params[13])
         });
       }
 

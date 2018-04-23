@@ -595,7 +595,10 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
                     loanPosition.loanStartUnixTimestampSec,
                     loanPosition.active
                 );
-                tmpBytes = _addExtraLoanData(orderList[loanParty][j-1], tmpBytes);
+                tmpBytes = _addExtraLoanData(
+                    orderList[loanParty][j-1],
+                    loanPosition,
+                    tmpBytes);
                 if (itemCount == 0) {
                     data = tmpBytes;
                 } else {
@@ -617,13 +620,21 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
 
     function _addExtraLoanData(
         bytes32 loanOrderHash,
+        LoanPosition loanPosition,
         bytes data)
         internal
-        pure
+        view
         returns (bytes)
     {
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        InterestData memory interestData = _getInterest(loanOrder, loanPosition);
+
         bytes memory tmpBytes = abi.encode(
-            loanOrderHash
+            loanOrderHash,
+            loanOrder.loanTokenAddress,
+            interestData.interestTokenAddress,
+            interestData.interestTotalAccrued,
+            interestData.interestPaidSoFar
         );
         return abi.encodePacked(data, tmpBytes);
     }

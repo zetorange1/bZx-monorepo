@@ -40,27 +40,10 @@ contract B0xObjects {
     struct InterestData {
         address lender;
         address interestTokenAddress;
-        uint totalAmountAccrued;
+        uint interestTotalAccrued;
         uint interestPaidSoFar;
     }
 
-
-    /*event LoanOrderTaken (
-        address maker,
-        address loanTokenAddress,
-        address interestTokenAddress,
-        address collateralTokenAddress,
-        address feeRecipientAddress,
-        address oracleAddress,
-        uint loanTokenAmount,
-        uint interestAmount,
-        uint initialMarginAmount,
-        uint maintenanceMarginAmount,
-        uint lenderRelayFee,
-        uint traderRelayFee,
-        uint expirationUnixTimestampSec,
-        bytes32 loanOrderHash
-    );*/
 
     event LogLoanTaken (
         address lender,
