@@ -115,6 +115,8 @@ describe("loanPositions", () => {
           loanStartUnixTimestampSec,
           collateralTokenAmountFilled,
           loanOrderHash,
+          interestTotalAccrued,
+          interestPaidSoFar,
           ...rest
         }) => rest
       );
@@ -126,7 +128,9 @@ describe("loanPositions", () => {
         loanTokenAmountFilled: 12300000000000000000,
         positionTokenAddressFilled: loanTokens[0].options.address.toLowerCase(),
         positionTokenAmountFilled: 12300000000000000000,
-        trader: "0x06cef8e666768cc40cc78cf93d9611019ddcb628"
+        trader: "0x06cef8e666768cc40cc78cf93d9611019ddcb628",
+        loanTokenAddress: "0xf96b018e8de3a229dbaced8439df9e3034e263c1",
+        interestTokenAddress: "0x4586649629f699f9a4b61d0e962dc3c9025fe488",
       });
     });
   });
@@ -156,6 +160,8 @@ describe("loanPositions", () => {
           loanStartUnixTimestampSec,
           collateralTokenAmountFilled,
           loanOrderHash,
+          interestTotalAccrued,
+          interestPaidSoFar,
           ...rest
         }) => rest
       );
@@ -167,7 +173,9 @@ describe("loanPositions", () => {
         loanTokenAmountFilled: 12300000000000000000,
         positionTokenAddressFilled: loanTokens[0].options.address.toLowerCase(),
         positionTokenAmountFilled: 12300000000000000000,
-        trader: "0x06cef8e666768cc40cc78cf93d9611019ddcb628"
+        trader: "0x06cef8e666768cc40cc78cf93d9611019ddcb628",
+        loanTokenAddress: "0xf96b018e8de3a229dbaced8439df9e3034e263c1",
+        interestTokenAddress: "0x4586649629f699f9a4b61d0e962dc3c9025fe488"
       });
     });
   });
