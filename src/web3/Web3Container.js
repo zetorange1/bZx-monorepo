@@ -64,8 +64,11 @@ export default class Web3Container extends React.Component {
     try {
       oracles = await b0x.getOracleList();
     } catch (err) {
-      alert(`Cannot retrieve oracles.`);
+      alert(
+        `You may be on the wrong network, please check MetaMask and refresh the page.`
+      );
       console.error(err);
+      return;
     }
 
     this.setState({
