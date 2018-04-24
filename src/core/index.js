@@ -109,4 +109,6 @@ export default class B0xJS {
   transferToken = (...props) => transfer.transferToken(this, ...props);
 
   tradePositionWith0x = (...props) => trade.tradePositionWith0x(this, ...props);
+  tradePositionWithOracle = (...props) =>
+    trade.tradePositionWithOracle(this, ...props);
 }

@@ -51,3 +51,23 @@ export const tradePositionWith0x = (
       gasPrice: txOpts.gasPrice
     });
 };
+
+export const tradePositionWithOracle = (
+  { web3, networkId },
+  { orderHash, tokenAddress, txOpts = {} } = {}
+) => {
+  const contracts = getContracts(networkId);
+  const b0xContract = CoreUtils.getContractInstance(
+    web3,
+    contracts.B0x.abi,
+    contracts.B0x.address
+  );
+
+  return b0xContract.methods
+    .tradePositionWithOracle(orderHash, tokenAddress)
+    .send({
+      from: txOpts.from,
+      gas: txOpts.gas,
+      gasPrice: txOpts.gasPrice
+    });
+};
