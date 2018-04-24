@@ -56,7 +56,7 @@ describe("trade", () => {
 
     promiEvent = b0xJS.tradePositionWithOracle({
       orderHash,
-      tokenAddress: interestTokens[1].options.address.toLowerCase(),
+      tradeTokenAddress: interestTokens[1].options.address.toLowerCase(),
       txOpts
     });
   });
@@ -76,6 +76,11 @@ describe("trade", () => {
         tradeTokenAddress: interestTokens[1].options.address.toLowerCase(),
         txOpts: { from: takerAddress }
       });
+
+      console.log(
+        interestTokens[0].options.address,
+        interestTokens[1].options.address
+      );
 
       expect(pathOr(null, ["events", "DebugLine"], receipt)).toBe(null);
 
