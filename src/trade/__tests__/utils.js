@@ -42,7 +42,8 @@ const setupOrder0xToken = async ({
     ownerAddress: makerOf0xOrder,
     spenderAddress: zxConstants.TokenTransferProxy.toLowerCase()
   });
-  console.log(balance.toString(), allowance.toString());
+  console.log("order0xToken", "balance", balance.toString());
+  console.log("order0xToken", "allowance", allowance.toString());
 };
 
 export const initAllContractInstances = () => {

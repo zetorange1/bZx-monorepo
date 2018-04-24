@@ -62,7 +62,6 @@ export const setupB0xToken = async ({
 
   const promises = [...b0xTokenPromises, ...allowancePromises];
   await Promise.all(promises);
-  console.log("setupB0xToken done.");
 
   const balancePs = [...lenders, ...traders].map(address =>
     b0xJS.getBalance({
@@ -72,7 +71,10 @@ export const setupB0xToken = async ({
   );
   const balances = await Promise.all(balancePs);
   const addresses = ["lender0", "lender1", "trader0", "trader1"];
-  addresses.map((address, i) => console.log(address, balances[i].toString()));
+  addresses.map((address, i) =>
+    console.log("b0xToken", address, balances[i].toString())
+  );
+  console.log("setupB0xToken done.");
 };
 
 export const setupLoanTokens = async ({
