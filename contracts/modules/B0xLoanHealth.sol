@@ -89,7 +89,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             return boolOrRevert(false,89);
         }
 
-        if (! B0xVault(VAULT_CONTRACT).depositCollateral(
+        if (! B0xVault(VAULT_CONTRACT).depositToken(
             collateralTokenFilled,
             msg.sender,
             depositAmount
@@ -150,7 +150,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         excessCollateral = Math.min256(withdrawAmount, loanPosition.collateralTokenAmountFilled-initialCollateralTokenAmount);
 
         // transfer excess collateral to trader
-        if (! B0xVault(VAULT_CONTRACT).withdrawCollateral(
+        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.collateralTokenAddressFilled,
             msg.sender,
             excessCollateral
@@ -212,7 +212,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         }
 
         // transfer the new collateral token from the trader to the vault
-        if (! B0xVault(VAULT_CONTRACT).depositCollateral(
+        if (! B0xVault(VAULT_CONTRACT).depositToken(
             collateralTokenFilled,
             msg.sender,
             collateralTokenAmountFilled
@@ -221,7 +221,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         }
 
         // transfer the old collateral token from the vault to the trader
-        if (! B0xVault(VAULT_CONTRACT).withdrawCollateral(
+        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.collateralTokenAddressFilled,
             msg.sender,
             loanPosition.collateralTokenAmountFilled
@@ -263,7 +263,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             return intOrRevert(0,263);
         }
 
-        if (! B0xVault(VAULT_CONTRACT).transferToken(
+        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.positionTokenAddressFilled,
             msg.sender,
             profitAmount
@@ -481,7 +481,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         address trader)
         public
         view
-        returns (address lender, address interestTokenAddress, uint totalAmountAccrued, uint interestPaidSoFar) {
+        returns (address lender, address interestTokenAddress, uint interestTotalAccrued, uint interestPaidSoFar) {
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
@@ -501,7 +501,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         return (
             interestData.lender,
             interestData.interestTokenAddress,
-            interestData.totalAmountAccrued,
+            interestData.interestTotalAccrued,
             interestData.interestPaidSoFar
         );
     }
@@ -510,34 +510,6 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
     /*
     * Constant Internal functions
     */
-
-    function _getInterest(
-        LoanOrder loanOrder,
-        LoanPosition loanPosition)
-        internal
-        view
-        returns (InterestData interestData)
-    {
-        uint interestTime = block.timestamp;
-        if (interestTime > loanOrder.expirationUnixTimestampSec) {
-            interestTime = loanOrder.expirationUnixTimestampSec;
-        }
-
-        uint totalAmountAccrued;
-        if (loanPosition.active) {
-            totalAmountAccrued = _getPartialAmountNoError(loanPosition.loanTokenAmountFilled, loanOrder.loanTokenAmount, interestTime.sub(loanPosition.loanStartUnixTimestampSec).mul(loanOrder.interestAmount).div(86400));
-        } else {
-            // this is so, because remaining interest is paid out when the loan is closed
-            totalAmountAccrued = interestPaid[loanOrder.loanOrderHash][loanPosition.trader];
-        }
-
-        interestData = InterestData({
-            lender: loanPosition.lender,
-            interestTokenAddress: loanOrder.interestTokenAddress,
-            totalAmountAccrued: totalAmountAccrued,
-            interestPaidSoFar: interestPaid[loanOrder.loanOrderHash][loanPosition.trader]
-        });
-    }
 
     function _getProfitOrLoss(
         LoanOrder loanOrder,
@@ -575,17 +547,16 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanOrder,
             loanPosition);
 
-        if (interestData.interestPaidSoFar >= interestData.totalAmountAccrued) {
+        if (interestData.interestPaidSoFar >= interestData.interestTotalAccrued) {
             return 0;
         }
 
-        uint amountPaid = interestData.totalAmountAccrued.sub(interestData.interestPaidSoFar);
-        interestPaid[loanOrder.loanOrderHash][loanPosition.trader] = interestData.totalAmountAccrued; // since this function will pay all remaining accured interest
+        uint amountPaid = interestData.interestTotalAccrued.sub(interestData.interestPaidSoFar);
+        interestPaid[loanOrder.loanOrderHash][loanPosition.trader] = interestData.interestTotalAccrued; // since this function will pay all remaining accured interest
         
         // send the interest to the oracle for further processing
-        if (! B0xVault(VAULT_CONTRACT).sendInterestToOracle(
+        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
             interestData.interestTokenAddress,
-            loanPosition.trader,
             orders[loanOrder.loanOrderHash].oracleAddress,
             amountPaid
         )) {
@@ -631,7 +602,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             .sub(interestPaid[loanOrder.loanOrderHash][loanPosition.trader]);
         
         if (totalInterestToRefund > 0) {
-            if (! B0xVault(VAULT_CONTRACT).withdrawInterest(
+            if (! B0xVault(VAULT_CONTRACT).withdrawToken(
                 loanOrder.interestTokenAddress,
                 loanPosition.trader,
                 totalInterestToRefund
@@ -644,7 +615,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         if (loanPosition.positionTokenAmountFilled < loanPosition.loanTokenAmountFilled) {
             // Send all of the collateral token to the oracle to sell to cover loan token losses.
             // Unused collateral should be returned to the vault by the oracle.
-            if (! B0xVault(VAULT_CONTRACT).transferToken(
+            if (! B0xVault(VAULT_CONTRACT).withdrawToken(
                 loanPosition.collateralTokenAddressFilled,
                 loanOrder.oracleAddress,
                 loanPosition.collateralTokenAmountFilled
@@ -664,7 +635,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(collateralTokenAmountUsed);
         }
 
-        if (! B0xVault(VAULT_CONTRACT).withdrawCollateral(
+        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.collateralTokenAddressFilled,
             loanPosition.trader,
             loanPosition.collateralTokenAmountFilled
@@ -672,7 +643,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             return boolOrRevert(false,672);
         }
 
-        if (! B0xVault(VAULT_CONTRACT).withdrawFunding(
+        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.positionTokenAddressFilled, // same as loanTokenAddress
             loanPosition.lender,
             loanPosition.positionTokenAmountFilled

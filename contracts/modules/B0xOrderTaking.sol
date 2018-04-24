@@ -27,7 +27,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         targets[bytes4(keccak256("cancelLoanOrder(bytes32,uint256)"))] = _target;
         targets[bytes4(keccak256("getLoanOrderHash(address[6],uint256[9])"))] = _target;
         targets[bytes4(keccak256("isValidSignature(address,bytes32,bytes)"))] = _target;
-        targets[bytes4(keccak256("getInitialMarginRequired(address,address,address,uint256,uint256)"))] = _target;
+        targets[bytes4(keccak256("getInitialCollateralRequired(address,address,address,uint256,uint256)"))] = _target;
         targets[bytes4(keccak256("getUnavailableLoanTokenAmount(bytes32)"))] = _target;
         targets[bytes4(keccak256("getOrders(address,uint256,uint256)"))] = _target;
         targets[bytes4(keccak256("getLoansForLender(address,uint256,uint256)"))] = _target;
@@ -35,7 +35,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
     }
 
     /// @dev Takes the order as trader
-    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress collateralTokenAddress, feeRecipientAddress, oracleAddress.
+    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), and salt.
     /// @param collateralTokenFilled Desired address of the collateralTokenAddress the trader wants to use.
     /// @param loanTokenAmountFilled Desired amount of loanToken the trader wants to borrow.
@@ -65,7 +65,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
     }
 
     /// @dev Takes the order as lender
-    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress collateralTokenAddress, feeRecipientAddress, oracleAddress.
+    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), and salt.
     /// @param signature ECDSA signature in raw bytes (rsv).
     /// @return Total amount of loanToken borrowed (uint).
@@ -175,7 +175,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         view
         returns (uint collateralTokenAmount)
     {
-        return _getInitialCollateralRequired(
+        collateralTokenAmount = _getInitialCollateralRequired(
             loanTokenAddress,
             collateralTokenAddress,
             oracleAddress,
@@ -416,7 +416,8 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             return intOrRevert(0,416);
         }
 
-        if (! B0xVault(VAULT_CONTRACT).depositCollateral(
+        // deposit collateral token
+        if (! B0xVault(VAULT_CONTRACT).depositToken(
             collateralTokenFilled,
             trader,
             collateralTokenAmountFilled
@@ -432,7 +433,9 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             loanOrder.interestAmount,
             loanOrder.expirationUnixTimestampSec,
             block.timestamp);
-        if (! B0xVault(VAULT_CONTRACT).depositInterest(
+
+        // deposit interest token
+        if (! B0xVault(VAULT_CONTRACT).depositToken(
             loanOrder.interestTokenAddress,
             trader,
             totalInterestRequired
@@ -440,7 +443,8 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             return intOrRevert(loanTokenAmountFilled,440);
         }
 
-        if (! B0xVault(VAULT_CONTRACT).depositFunding(
+        // deposit loan token
+        if (! B0xVault(VAULT_CONTRACT).depositToken(
             loanOrder.loanTokenAddress,
             lender,
             loanTokenAmountFilled
@@ -591,7 +595,10 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
                     loanPosition.loanStartUnixTimestampSec,
                     loanPosition.active
                 );
-                tmpBytes = _addExtraLoanData(orderList[loanParty][j-1], tmpBytes);
+                tmpBytes = _addExtraLoanData(
+                    orderList[loanParty][j-1],
+                    loanPosition,
+                    tmpBytes);
                 if (itemCount == 0) {
                     data = tmpBytes;
                 } else {
@@ -613,13 +620,21 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
 
     function _addExtraLoanData(
         bytes32 loanOrderHash,
+        LoanPosition loanPosition,
         bytes data)
         internal
-        pure
+        view
         returns (bytes)
     {
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        InterestData memory interestData = _getInterest(loanOrder, loanPosition);
+
         bytes memory tmpBytes = abi.encode(
-            loanOrderHash
+            loanOrderHash,
+            loanOrder.loanTokenAddress,
+            interestData.interestTokenAddress,
+            interestData.interestTotalAccrued,
+            interestData.interestPaidSoFar
         );
         return abi.encodePacked(data, tmpBytes);
     }

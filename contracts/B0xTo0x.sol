@@ -5,11 +5,11 @@ import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import './interfaces/B0xTo0x_Interface.sol';
 import './interfaces/Exchange_Interface.sol';
 import './tokens/EIP20.sol';
+import './tokens/EIP20Wrapper.sol';
 import './modifiers/B0xOwnable.sol';
 import './shared/Debugger.sol';
 
-
-contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
+contract B0xTo0x is B0xTo0x_Interface, EIP20Wrapper, Debugger, B0xOwnable {
     using SafeMath for uint256;
 
     address public EXCHANGE_CONTRACT;
@@ -19,7 +19,6 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
     //event LogErrorUint(string errorTxt, uint errorValue, bytes32 indexed orderHash);
     //event LogErrorAddr(string errorTxt, address errorAddr, bytes32 indexed orderHash);
 
-    // Only the owner (b0x contract) can directly deposit ether
     function() 
         public {
         revert();
@@ -102,9 +101,10 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         );
 
         // transfer the destToken to the vault
-        if (!EIP20(orderAddresses0x[2]).transfer(vaultAddress, destTokenAmount)) {
-            voidOrRevert(106); return;
-        }
+        eip20Transfer(
+            orderAddresses0x[2],
+            vaultAddress,
+            destTokenAmount);
 
         destTokenAddress = orderAddresses0x[2]; // makerToken (aka destTokenAddress)
     }
@@ -122,10 +122,11 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
                 orderValues0x[3] > 0 // takerFee
         ) {
             // The 0x TokenTransferProxy already has unlimited transfer allowance for ZRX from this contract (set during deployment of this contract)
-            if (!EIP20(ZRX_TOKEN_CONTRACT).transferFrom(trader, this, orderValues0x[3])) {
-                //LogErrorUint("error: b0x can't transfer ZRX from trader", 0, 0x0);
-                return intOrRevert(0,127);
-            }
+            eip20TransferFrom(
+                ZRX_TOKEN_CONTRACT,
+                trader,
+                this,
+                orderValues0x[3]);
         }
 
         uint8 v;
@@ -135,11 +136,10 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
 
         // Increase the allowance for 0x Exchange Proxy to transfer the sourceToken needed for the 0x trade
         // orderAddresses0x[3] -> takerToken/sourceToken
-        if (!EIP20(orderAddresses0x[3]).approve(
-            TOKEN_TRANSFER_PROXY_CONTRACT, 
-            EIP20(orderAddresses0x[3]).allowance(this, TOKEN_TRANSFER_PROXY_CONTRACT).add(sourceTokenAmountToUse))) {
-            return intOrRevert(0,141);
-        }
+        eip20Approve(
+            orderAddresses0x[3],
+            TOKEN_TRANSFER_PROXY_CONTRACT,
+            EIP20(orderAddresses0x[3]).allowance(this, TOKEN_TRANSFER_PROXY_CONTRACT).add(sourceTokenAmountToUse));
 
         uint sourceTokenUsedAmount = Exchange_Interface(EXCHANGE_CONTRACT).fillOrder(
             orderAddresses0x,
@@ -276,9 +276,10 @@ contract B0xTo0x is B0xTo0x_Interface, Debugger, B0xOwnable {
         onlyOwner
         returns (bool)
     {
-        if (!EIP20(token).approve(spender, value)) {
-            return boolOrRevert(false,280);
-        }
+        eip20Approve(
+            token,
+            spender,
+            value);
 
         return true;
     }

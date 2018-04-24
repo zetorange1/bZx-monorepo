@@ -49,7 +49,7 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
         }
 
         // transfer the current position token to the B0xTo0x contract
-        if (!B0xVault(VAULT_CONTRACT).transferToken(
+        if (!B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.positionTokenAddressFilled,
             B0XTO0X_CONTRACT,
             loanPosition.positionTokenAmountFilled)) {
@@ -65,7 +65,6 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
             loanPosition.positionTokenAmountFilled,
             orderData0x,
             signiture0x);
-
 
         if (tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled) {
             return intOrRevert(0,71);

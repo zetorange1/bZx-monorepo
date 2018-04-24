@@ -149,6 +149,34 @@ contract InternalFunctions is B0xStorage {
         }
     }
 
+    function _getInterest(
+        LoanOrder loanOrder,
+        LoanPosition loanPosition)
+        internal
+        view
+        returns (InterestData interestData)
+    {
+        uint interestTime = block.timestamp;
+        if (interestTime > loanOrder.expirationUnixTimestampSec) {
+            interestTime = loanOrder.expirationUnixTimestampSec;
+        }
+
+        uint interestTotalAccrued;
+        if (loanPosition.active) {
+            interestTotalAccrued = _getPartialAmountNoError(loanPosition.loanTokenAmountFilled, loanOrder.loanTokenAmount, interestTime.sub(loanPosition.loanStartUnixTimestampSec).mul(loanOrder.interestAmount).div(86400));
+        } else {
+            // this is so, because remaining interest is paid out when the loan is closed
+            interestTotalAccrued = interestPaid[loanOrder.loanOrderHash][loanPosition.trader];
+        }
+
+        interestData = InterestData({
+            lender: loanPosition.lender,
+            interestTokenAddress: loanOrder.interestTokenAddress,
+            interestTotalAccrued: interestTotalAccrued,
+            interestPaidSoFar: interestPaid[loanOrder.loanOrderHash][loanPosition.trader]
+        });
+    }
+
     // Note: The oracle has to fill all the source token, or the trade should fail
     function _tradePositionWithOracle(
         LoanOrder loanOrder,
@@ -159,7 +187,7 @@ contract InternalFunctions is B0xStorage {
         returns (uint)
     {
         // transfer the current position token to the Oracle contract
-        if (!B0xVault(VAULT_CONTRACT).transferToken(
+        if (!B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.positionTokenAddressFilled,
             loanOrder.oracleAddress,
             loanPosition.positionTokenAmountFilled)) {

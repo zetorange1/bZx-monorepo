@@ -24,14 +24,6 @@ contract B0xProxy is B0xStorage, Proxiable {
         revert();
     }
 
-    function replaceContract(
-        address _target)
-        public
-        onlyOwner
-    {
-        _replaceContract(_target);
-    }
-
     function() public {
         address target = targets[msg.sig];
         bytes memory data = msg.data;
@@ -49,6 +41,26 @@ contract B0xProxy is B0xStorage, Proxiable {
     /*
      * Owner only functions
      */
+
+    function replaceContract(
+        address _target)
+        public
+        onlyOwner
+    {
+        _replaceContract(_target);
+    }
+
+    function setTarget(
+        string _funcId,  // example: "takeLoanOrderAsTrader(address[6],uint256[9],address,uint256,bytes)"
+        address _target) // logic contract address
+        public
+        onlyOwner
+        returns(bytes4)
+    {
+        bytes4 f = bytes4(keccak256(_funcId));
+        targets[f] = _target;
+        return f;
+    }
 
     function setB0xAddresses(
         address _b0xToken,
@@ -119,4 +131,17 @@ contract B0xProxy is B0xStorage, Proxiable {
         upgrade(newContract);
         B0xVault(VAULT_CONTRACT).transferOwnership(newContract);
     }*/
+
+    /*
+     * View functions
+     */
+
+    function getTarget(
+        string _funcId) // example: "takeLoanOrderAsTrader(address[6],uint256[9],address,uint256,bytes)"
+        public
+        view
+        returns (address)
+    {
+        return targets[bytes4(keccak256(_funcId))];
+    }
 }
