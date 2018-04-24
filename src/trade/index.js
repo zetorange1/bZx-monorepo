@@ -54,7 +54,7 @@ export const tradePositionWith0x = (
 
 export const tradePositionWithOracle = (
   { web3, networkId },
-  { orderHash, tokenAddress, txOpts = {} } = {}
+  { orderHash, tradeTokenAddress, txOpts = {} } = {}
 ) => {
   const contracts = getContracts(networkId);
   const b0xContract = CoreUtils.getContractInstance(
@@ -64,7 +64,7 @@ export const tradePositionWithOracle = (
   );
 
   return b0xContract.methods
-    .tradePositionWithOracle(orderHash, tokenAddress)
+    .tradePositionWithOracle(orderHash, tradeTokenAddress)
     .send({
       from: txOpts.from,
       gas: txOpts.gas,

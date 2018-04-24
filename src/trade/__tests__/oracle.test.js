@@ -73,7 +73,7 @@ describe("trade", () => {
 
       const receipt = await b0xJS.tradePositionWithOracle({
         orderHash,
-        tokenAddress: interestTokens[1].options.address.toLowerCase(),
+        tradeTokenAddress: interestTokens[1].options.address.toLowerCase(),
         txOpts: { from: takerAddress }
       });
 
