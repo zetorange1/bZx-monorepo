@@ -242,7 +242,7 @@ interface Oracle_Interface {
     /// @param loanTokenAmount The amount of loan token
     /// @param positionTokenAmount The amount of position token
     /// @param collateralTokenAmount The amount of collateral token
-    /// @return The current margin amount
+    /// @return The current margin amount (a percentage -> i.e. 54350000000000000000 == 54.35%)
     function getCurrentMarginAmount(
         address loanTokenAddress,
         address positionTokenAddress,

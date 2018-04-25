@@ -90,6 +90,11 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         );
     }
 
+    /// @dev Cancels remaining (untaken) loan
+    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress.
+    /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), and salt.
+    /// @param cancelLoanTokenAmount The amount of remaining unloaned token to cancel.
+    /// @return The amount of loan token canceled.
     function cancelLoanOrder(
         address[6] orderAddresses,
         uint[9] orderValues,
@@ -110,6 +115,10 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         return _cancelLoanOrder(loanOrder, cancelLoanTokenAmount);
     }
 
+    /// @dev Cancels remaining (untaken) loan
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param cancelLoanTokenAmount The amount of remaining unloaned token to cancel.
+    /// @return The amount of loan token canceled.
     function cancelLoanOrder(
         bytes32 loanOrderHash,
         uint cancelLoanTokenAmount)
@@ -129,11 +138,11 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
     }
 
     /// @dev Calculates Keccak-256 hash of order with specified parameters.
-    /// @param orderAddresses Array of order's maker, loanTokenAddress, interestTokenAddress collateralTokenAddress, and feeRecipientAddress.
+    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), and salt.
     /// @return Keccak-256 hash of loanOrder.
     function getLoanOrderHash(
-        address[6] orderAddresses, 
+        address[6] orderAddresses,
         uint[9] orderValues)
         public
         view
@@ -165,6 +174,12 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             signature);
     }
 
+    /// @dev Calculates the initial collateral required to open the loan.
+    /// @param collateralTokenAddress The collateral token used by the trader.
+    /// @param oracleAddress The oracle address specified in the loan order.
+    /// @param loanTokenAmountFilled The amount of loan token borrowed.
+    /// @param initialMarginAmount The initial margin percentage amount (i.e. 50 == 50%)
+    /// @return The minimum collateral requirement to open the loan.
     function getInitialCollateralRequired(
         address loanTokenAddress,
         address collateralTokenAddress,
@@ -194,6 +209,10 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         return orderFilledAmounts[loanOrderHash].add(orderCancelledAmounts[loanOrderHash]);
     }
 
+    /// @dev Returns a bytestream of order data for a user.
+    /// @param start The starting order in the order list to return.
+    /// @param count The total amount of orders to return if they exist. Amount returned can be less.
+    /// @return A concatenated stream of bytes.
     function getOrders(
         address loanParty,
         uint start,
@@ -240,23 +259,10 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         return data;
     }
 
-    function _addExtraOrderData(
-        bytes32 loanOrderHash,
-        bytes data)
-        internal
-        view
-        returns (bytes)
-    {
-        bytes memory tmpBytes = abi.encode(
-            orderLender[loanOrderHash],
-            orderFilledAmounts[loanOrderHash],
-            orderCancelledAmounts[loanOrderHash],
-            orderTraders[loanOrderHash].length,
-            loanPositions[loanOrderHash][orderTraders[loanOrderHash][0]].loanStartUnixTimestampSec
-        );
-        return abi.encodePacked(data, tmpBytes);
-    }
-
+    /// @dev Returns a bytestream of loan data for a lender.
+    /// @param start The starting loan in the loan list to return.
+    /// @param count The total amount of loans to return if they exist. Amount returned can be less.
+    /// @return A concatenated stream of bytes.
     function getLoansForLender(
         address loanParty,
         uint start,
@@ -273,6 +279,10 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         );
     }
 
+    /// @dev Returns a bytestream of loan data for a trader.
+    /// @param start The starting loan in the loan list to return.
+    /// @param count The total amount of loans to return if they exist. Amount returned can be less.
+    /// @return A concatenated stream of bytes.
     function getLoansForTrader(
         address loanParty,
         uint start,
@@ -289,6 +299,9 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         );
     }
 
+    /*
+    * Internal functions
+    */
 
     function _takeLoanOrder(
         address[6] orderAddresses,
@@ -553,6 +566,23 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         );
     
         return cancelledLoanTokenAmount;
+    }
+
+    function _addExtraOrderData(
+        bytes32 loanOrderHash,
+        bytes data)
+        internal
+        view
+        returns (bytes)
+    {
+        bytes memory tmpBytes = abi.encode(
+            orderLender[loanOrderHash],
+            orderFilledAmounts[loanOrderHash],
+            orderCancelledAmounts[loanOrderHash],
+            orderTraders[loanOrderHash].length,
+            loanPositions[loanOrderHash][orderTraders[loanOrderHash][0]].loanStartUnixTimestampSec
+        );
+        return abi.encodePacked(data, tmpBytes);
     }
 
     function _getLoanPositions(

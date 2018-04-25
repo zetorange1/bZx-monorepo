@@ -32,6 +32,18 @@ module.exports = {
       gas: 4700036,
       gasPrice: 20000000000
     },
+    kovan: {
+      provider: new HDWalletProvider(config["mnemonic"]["kovan"], "https://kovan.infura.io/"+config["infura_apikey"]),
+      network_id: 42,
+      gas: 4700036,
+      gasPrice: 20000000000
+    },
+    rinkeby: {
+      provider: new HDWalletProvider(config["mnemonic"]["rinkeby"], "https://rinkeby.infura.io/"+config["infura_apikey"]),
+      network_id: 4,
+      gas: 4700036,
+      gasPrice: 20000000000
+    },
     /*mainnet: {
       provider: new HDWalletProvider(config["mnemonic"]["mainnet"], "https://mainnet.infura.io/"+config["infura_apikey"]),
       network_id: 1,

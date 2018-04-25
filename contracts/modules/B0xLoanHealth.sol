@@ -34,6 +34,11 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         targets[bytes4(keccak256("getInterest(bytes32,address)"))] = _target;
     }
 
+    /// @dev Pays the lender of a loan the total amount of interest accrued for a loan.
+    /// @dev Note that this function can be safely called by anyone.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param trader The address of the trader/borrower of a loan.
+    /// @return The amount of interest paid out.
     function payInterest(
         bytes32 loanOrderHash,
         address trader)
@@ -61,7 +66,10 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         return amountPaid;
     }
 
-    // Allows the trader to increase the collateral for an open loan
+    /// @dev Allows the trader to increase the collateral for a loan.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param collateralTokenFilled The address of the collateral token used.
+    /// @return depositAmount The amount of additional collateral token to deposit.
     function depositCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
@@ -110,8 +118,11 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         return true;
     }
 
-    // Allows the trader to decrease excess collateral for an open loan
-    // Excess collateral is any amount above the initial margin
+    /// @dev Allows the trader to withdraw excess collateral for a loan.
+    /// @dev Excess collateral is any amount above the initial margin.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param collateralTokenFilled The address of the collateral token used.
+    /// @return withdrawAmount The amount of excess collateral token to withdraw. The actual amount withdrawn will be less if there's less excess.
     function withdrawExcessCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
@@ -170,9 +181,11 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         }
     }
 
-    // Allows the trader to change the collateral token being used for an open loan.
-    // This function will transfer in the initial margin requirement of the new token.
-    // The old token will be refunded to the trader.
+    /// @dev Allows the trader to change the collateral token being used for a loan.
+    /// @dev This function will transfer in the initial margin requirement of the new token and the old token will be refunded to the trader.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param collateralTokenFilled The address of the collateral token used.
+    /// @return True on success
     function changeCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled)
@@ -243,8 +256,10 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         return true;
     }
 
-    // trader can withdraw their profits, if any
-    // profits are paid out from the current positionToken
+    /// @dev Allows the trader to withdraw their profits, if any.
+    /// @dev Profits are paid out from the current positionToken.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @return profitAmount The amount of profit withdrawn
     function withdrawProfit(
         bytes32 loanOrderHash)
         external
@@ -263,6 +278,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             return intOrRevert(0,263);
         }
 
+        // transfer profit to the trader
         if (! B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.positionTokenAddressFilled,
             msg.sender,
@@ -293,6 +309,10 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         return profitAmount;
     }
 
+    /// @dev Checks that a position meets the conditions for liquidation, then closes the position and loan.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param trader The trader of the position
+    /// @return True on success
     function liquidatePosition(
         bytes32 loanOrderHash,
         address trader)
@@ -320,8 +340,8 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             _emitMarginLog(loanOrder, loanPosition);
         }
 
-        // if the position token is not the loan token, then we need to buy back the loan token (if liquidation checks pass),
-        // prior to closing the loan
+        // If the position token is not the loan token, then we need to buy back the loan token,
+        // prior to closing the loan. Liquidation checks will be run in _tradePositionWithOracle.
         if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
             uint loanTokenAmount = _tradePositionWithOracle(
                 loanOrder,
@@ -363,9 +383,11 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         return true;
     }
 
-    // Called by the trader to close their loan early.
-    // This function will fail if the position token is not currently the loan token.
-    // tradePositionWith0x or tradePositionWithOracle should be called first to buy back the loan token if needed
+    /// @dev Called by the trader to close their loan early.
+    /// @dev This function will fail if the position token is not currently the loan token.
+    /// @dev tradePositionWith0x or tradePositionWithOracle should be called first to buy back the loan token if needed
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @return True on success
     function closeLoan(
         bytes32 loanOrderHash)
         external
@@ -399,8 +421,13 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
     * Constant public functions
     */
 
-    // returns bool isProfit, uint profitOrLoss, uint positionToLoanAmount, uint positionToLoanRate
-    // the position's profit/loss denominated in loanToken
+    /// @dev Get the current profit/loss data of a position
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param trader The trader of the position
+    /// @return isProfit False it there's a loss, True otherwise
+    /// @return profitOrLoss The amount of profit or amount of loss (denominated in loanToken)
+    /// @return positionToLoanAmount The value of the position token in loan token units
+    /// @return positionToLoanRate The exchange rate from position token to loan token
     function getProfitOrLoss(
         bytes32 loanOrderHash,
         address trader)
@@ -416,6 +443,10 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanPosition);
     }
 
+    /// @dev Checks the conditions for liquidation with the oracle
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param trader The trader of the position
+    /// @return True if liquidation should occur, false otherwise
     function shouldLiquidate(
         bytes32 loanOrderHash,
         address trader)
@@ -453,7 +484,12 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanOrder.maintenanceMarginAmount);
     }
 
-    // returns initialMarginAmount, maintenanceMarginAmount, currentMarginAmount
+    /// @dev Gets current margin data for the loan
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param trader The trader of the position
+    /// @return initialMarginAmount The initial margin percentage set on the loan order
+    /// @return maintenanceMarginAmount The maintenance margin percentage set on the loan order
+    /// @return currentMarginAmount The current margin percentage, representing the health of the loan (i.e. 54350000000000000000 == 54.35%)
     function getMarginLevels(
         bytes32 loanOrderHash,
         address trader)
@@ -476,6 +512,13 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanPosition));
     }
 
+    /// @dev Gets current interest data for the loan
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param trader The trader of the position
+    /// @return lender The lender in this loan
+    /// @return interestTokenAddress The interset token used in this loan
+    /// @return interestTotalAccrued The total amount of interest that has been earned so far
+    /// @return interestPaidSoFar The amount of earned interest that has been withdrawn
     function getInterest(
         bytes32 loanOrderHash,
         address trader)
@@ -541,39 +584,47 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         LoanOrder loanOrder,
         LoanPosition loanPosition)
         internal
-        returns (uint)
+        returns (uint amountPaid)
     {
         InterestData memory interestData = _getInterest(
             loanOrder,
             loanPosition);
 
         if (interestData.interestPaidSoFar >= interestData.interestTotalAccrued) {
-            return 0;
+            amountPaid = 0;
+        } else {
+            amountPaid = interestData.interestTotalAccrued.sub(interestData.interestPaidSoFar);
+            interestPaid[loanOrder.loanOrderHash][loanPosition.trader] = interestData.interestTotalAccrued; // since this function will pay all remaining accured interest
+            
+            // send the interest to the oracle for further processing
+            if (! B0xVault(VAULT_CONTRACT).withdrawToken(
+                interestData.interestTokenAddress,
+                orders[loanOrder.loanOrderHash].oracleAddress,
+                amountPaid
+            )) {
+                return intOrRevert(0,592);
+            }
+
+            // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
+            if (! Oracle_Interface(loanOrder.oracleAddress).didPayInterest(
+                loanOrder.loanOrderHash,
+                loanPosition.trader,
+                loanPosition.lender,
+                interestData.interestTokenAddress,
+                amountPaid,
+                gasUsed // initial used gas, collected in modifier
+            )) {
+                return intOrRevert(0,604);
+            }
         }
 
-        uint amountPaid = interestData.interestTotalAccrued.sub(interestData.interestPaidSoFar);
-        interestPaid[loanOrder.loanOrderHash][loanPosition.trader] = interestData.interestTotalAccrued; // since this function will pay all remaining accured interest
-        
-        // send the interest to the oracle for further processing
-        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
-            interestData.interestTokenAddress,
-            orders[loanOrder.loanOrderHash].oracleAddress,
-            amountPaid
-        )) {
-            return intOrRevert(0,592);
-        }
-
-         // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
-        if (! Oracle_Interface(loanOrder.oracleAddress).didPayInterest(
+        emit LogPayInterest(
             loanOrder.loanOrderHash,
-            loanPosition.trader,
             loanPosition.lender,
-            interestData.interestTokenAddress,
+            loanPosition.trader,
             amountPaid,
-            gasUsed // initial used gas, collected in modifier
-        )) {
-            return intOrRevert(0,604);
-        }
+            interestData.interestTotalAccrued
+        );
 
         return amountPaid;
     }
@@ -601,6 +652,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanPosition.loanStartUnixTimestampSec)
             .sub(interestPaid[loanOrder.loanOrderHash][loanPosition.trader]);
         
+	    // refund any unused interest to the trader
         if (totalInterestToRefund > 0) {
             if (! B0xVault(VAULT_CONTRACT).withdrawToken(
                 loanOrder.interestTokenAddress,
@@ -635,6 +687,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(collateralTokenAmountUsed);
         }
 
+        // send remaining collateral token back to the trader
         if (! B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.collateralTokenAddressFilled,
             loanPosition.trader,
@@ -643,6 +696,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             return boolOrRevert(false,672);
         }
 
+        // send remaining loan token back to the lender
         if (! B0xVault(VAULT_CONTRACT).withdrawToken(
             loanPosition.positionTokenAddressFilled, // same as loanTokenAddress
             loanPosition.lender,

@@ -96,6 +96,14 @@ contract B0xObjects {
         uint remainingPosition
     );
 
+    event LogPayInterest(
+        bytes32 loanOrderHash,
+        address lender,
+        address trader,
+        uint amountPaid,
+        uint totalAccrued
+    );
+
     // for debugging
     /*event MarginCalc(
         address exposureTokenAddress,
