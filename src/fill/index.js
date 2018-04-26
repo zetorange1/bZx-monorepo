@@ -126,15 +126,18 @@ export const getInitialCollateralRequired = async (
     getContracts(networkId).B0x.abi,
     Addresses.getAddresses(networkId).B0x
   );
+  let initialCollateralRequired = null;
   try {
-    var initialCollateralRequired = await b0xContract.methods.getInitialCollateralRequired(
-      loanTokenAddress,
-      collateralTokenAddress,
-      oracleAddress,
-      loanTokenAmountFilled,
-      initialMarginAmount
-    ).call();
-  } catch(e) {
+    initialCollateralRequired = await b0xContract.methods
+      .getInitialCollateralRequired(
+        loanTokenAddress,
+        collateralTokenAddress,
+        oracleAddress,
+        loanTokenAmountFilled,
+        initialMarginAmount
+      )
+      .call();
+  } catch (e) {
     console.log(e);
   }
   return initialCollateralRequired;

@@ -2,18 +2,18 @@
 
 exports[`addresses should return kovan testnet addresses for networkId 42 1`] = `
 Object {
-  "B0x": "0x66c529139ea5ff2f4e758c28fed902ef78ddf798",
-  "B0xOracle": "0x2f498a9cd5f8a74ed579a95a5ab47f1bf9126bfa",
-  "B0xTo0x": "0x3cb5ee86adcf8fc4301354b58fde01535939a3b5",
-  "B0xToken": "0x14823db576c11e4a54ca9e01ca0b28b18d3d1187",
-  "B0xVault": "0xbe46529e2f3208d35027c809ff1df173b022565d",
+  "B0x": "0xb42114bba7e0b8ab9d5f3b22c3a8fb9387358f7d",
+  "B0xOracle": "0xc1d7848f57816a75f7b6c7dfeed05362bc3c90e8",
+  "B0xTo0x": "0x10354a5daad5f26e39107e469fcf82272c8fce94",
+  "B0xToken": "0xd0c640eed54c3877abb958fa9753f50900325fc5",
+  "B0xVault": "0x98e411bb5c61620ee33419f8114d9d5cd219bbab",
   "EIP20": "",
   "OracleInterface": "",
-  "OracleRegistry": "0x81558e6edf0f7ae1222fd56ad63cffad09dadf64",
-  "TokenRegistry": "0x0dadad008647f0f7b68ffe662135cd714a56698c",
-  "TokenTransferProxy": "0x4e9aad8184de8833365fea970cd9149372fdf1e6",
-  "WETH": "0xc778417e063141139fce010982780140aa0cd5ab",
-  "ZRXToken": "0xa8e9fa8f91e5ae138c74648c9c304f1c75003a8d",
+  "OracleRegistry": "0x5b2c8fc71e79d067d986afcb12441bc3de404977",
+  "TokenRegistry": "0x339951ac545d99700ce075e061ed61c7674ab981",
+  "TokenTransferProxy": "0x087eed4bc1ee3de49befbd66c662b434b15d49d4",
+  "WETH": "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
+  "ZRXToken": "0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570",
 }
 `;
 
