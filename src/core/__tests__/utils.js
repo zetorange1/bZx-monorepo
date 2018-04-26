@@ -7,7 +7,7 @@ export const expectPromiEvent = candidate => {
   expect(candidateFns).toEqual(expect.arrayContaining(requiredFns));
 };
 
-export const makeReplaceRandomFields = randomFields => obj => {
+export const makeReplaceRandomFields = (randomFields = []) => (obj = {}) => {
   const noRandomFields = omit(randomFields, obj);
   const dummyStr = "this is a random field";
   const replaced = randomFields.reduce(
