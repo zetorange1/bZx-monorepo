@@ -13,6 +13,7 @@ import * as orderHistory from "../orderHistory";
 import * as transfer from "../transfer";
 import * as signature from "../signature";
 import * as Errors from "./constants/errors";
+import * as trade from "../trade";
 
 let Web3 = null;
 if (typeof window !== "undefined") {
@@ -97,7 +98,7 @@ export default class B0xJS {
     fill.takeLoanOrderAsTrader(this, ...props);
 
   getInitialCollateralRequired = async (...props) =>
-  	fill.getInitialCollateralRequired(this, ...props);
+    fill.getInitialCollateralRequired(this, ...props);
 
   getOrders = async (...props) => orderHistory.getOrders(this, ...props);
   getLoansForLender = async (...props) =>
@@ -106,4 +107,6 @@ export default class B0xJS {
     orderHistory.getLoansForTrader(this, ...props);
 
   transferToken = (...props) => transfer.transferToken(this, ...props);
+
+  tradePositionWith0x = (...props) => trade.tradePositionWith0x(this, ...props);
 }

@@ -1,53 +1,25 @@
 import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
 import b0xJS from "../../core/__tests__/setup";
-import Accounts from "../../core/__tests__/accounts";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 import makeOrder from "../../core/__tests__/order";
 import * as orderConstants from "../../core/constants/order";
 import B0xJS from "../../core";
+import * as OrderHistoryTestUtils from "./utils";
 
 const { web3 } = b0xJS;
 
 describe("loanPositions", () => {
-  const owner = Accounts[0].address;
-  const lenders = [Accounts[5].address, Accounts[7].address];
-  const traders = [Accounts[6].address, Accounts[8].address];
+  const { owner, lenders, traders } = OrderHistoryTestUtils.getAccounts();
 
   beforeAll(async () => {
     const {
       loanTokens,
       collateralTokens,
-      interestTokens,
-      b0xToken
-    } = await FillTestUtils.initAllContractInstances();
-    const ownerTxOpts = { from: owner };
-    const transferAmt = web3.utils.toWei("1000000", "ether");
+      interestTokens
+    } = FillTestUtils.initAllContractInstances();
 
-    await FillTestUtils.setupB0xToken({
-      b0xToken,
-      lenders,
-      traders,
-      transferAmt,
-      ownerTxOpts
-    });
-    await FillTestUtils.setupLoanTokens({
-      loanTokens,
-      lenders,
-      transferAmt,
-      ownerTxOpts
-    });
-    await FillTestUtils.setupCollateralTokens({
-      collateralTokens,
-      traders,
-      transferAmt,
-      ownerTxOpts
-    });
-    await FillTestUtils.setupInterestTokens({
-      interestTokens,
-      traders,
-      transferAmt,
-      ownerTxOpts
-    });
+    const transferAmount = web3.utils.toWei("1000000", "ether");
+    await FillTestUtils.setupAll({ owner, lenders, traders, transferAmount });
 
     const makerAddress = lenders[0];
     const takerAddress = traders[0];
@@ -95,7 +67,7 @@ describe("loanPositions", () => {
       const {
         loanTokens,
         collateralTokens
-      } = await FillTestUtils.initAllContractInstances();
+      } = FillTestUtils.initAllContractInstances();
 
       const loanPositions = await b0xJS.getLoansForTrader({
         address: traders[0],
@@ -130,7 +102,7 @@ describe("loanPositions", () => {
         positionTokenAmountFilled: 12300000000000000000,
         trader: "0x06cef8e666768cc40cc78cf93d9611019ddcb628",
         loanTokenAddress: "0xf96b018e8de3a229dbaced8439df9e3034e263c1",
-        interestTokenAddress: "0x4586649629f699f9a4b61d0e962dc3c9025fe488",
+        interestTokenAddress: "0x4586649629f699f9a4b61d0e962dc3c9025fe488"
       });
     });
   });
@@ -140,7 +112,7 @@ describe("loanPositions", () => {
       const {
         loanTokens,
         collateralTokens
-      } = await FillTestUtils.initAllContractInstances();
+      } = FillTestUtils.initAllContractInstances();
 
       const loanPositions = await b0xJS.getLoansForLender({
         address: lenders[0],

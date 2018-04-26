@@ -18,18 +18,18 @@ const getLoanPosition = params => ({
   loanTokenAddress: `0x${params[10].substr(24)}`,
   interestTokenAddress: `0x${params[11].substr(24)}`,
   interestTotalAccrued: parseInt(`0x${params[12]}`, HEX_RADIX),
-  interestPaidSoFar: parseInt(`0x${params[13]}`, HEX_RADIX),
+  interestPaidSoFar: parseInt(`0x${params[13]}`, HEX_RADIX)
 });
 
 const checkProperObjCount = Utils.makeCheckProperObjCount(NUM_LOAN_POS_FIELDS);
 const getOrderObjArray = Utils.makeGetOrderObjArray(NUM_LOAN_POS_FIELDS);
 
 export const cleanData = raw =>
-  raw ?
-  pipe(
-    Utils.remove0xPrefix,
-    checkProperObjCount,
-    getOrderObjArray,
-    map(pipe(Utils.getOrderParams, getLoanPosition))
-  )(raw) :
-  [];
+  raw
+    ? pipe(
+        Utils.remove0xPrefix,
+        checkProperObjCount,
+        getOrderObjArray,
+        map(pipe(Utils.getOrderParams, getLoanPosition))
+      )(raw)
+    : [];

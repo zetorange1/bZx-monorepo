@@ -17,7 +17,7 @@
     "lint"
   ],
   "dependencies": {
-    "0x.js": "^0.29.0",
+    "0x.js": "^0.29.2",
     "@0xproject/assert": "0.0.20",
     "@0xproject/json-schemas": "^0.7.11",
     "@0xproject/types": "^0.2.3",
@@ -27,6 +27,7 @@
     "bn.js": "^4.11.8",
     "debug": "^3.1.0",
     "eth-sig-util": "^1.4.2",
+    "ethereumjs-abi": "^0.6.5",
     "ethereumjs-util": "^5.1.4",
     "fs-extra": "^5.0.0",
     "ganache-cli": "^6.1.0",

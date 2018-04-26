@@ -2,39 +2,42 @@ import { pipe, map } from "ramda";
 import * as Utils from "./index";
 
 const NUM_ORDER_FIELDS = 19;
-const HEX_RADIX = 16;
 
 const getOrder = params => ({
-  maker: `0x${params[0].substr(24)}`,
-  loanTokenAddress: `0x${params[1].substr(24)}`,
-  interestTokenAddress: `0x${params[2].substr(24)}`,
-  collateralTokenAddress: `0x${params[3].substr(24)}`,
-  feeRecipientAddress: `0x${params[4].substr(24)}`,
-  oracleAddress: `0x${params[5].substr(24)}`,
-  loanTokenAmount: parseInt(`0x${params[6]}`, HEX_RADIX),
-  interestAmount: parseInt(`0x${params[7]}`, HEX_RADIX),
-  initialMarginAmount: parseInt(`0x${params[8]}`, HEX_RADIX),
-  maintenanceMarginAmount: parseInt(`0x${params[9]}`, HEX_RADIX),
-  lenderRelayFee: parseInt(`0x${params[10]}`, HEX_RADIX),
-  traderRelayFee: parseInt(`0x${params[11]}`, HEX_RADIX),
-  expirationUnixTimestampSec: parseInt(`0x${params[12]}`, HEX_RADIX),
-  loanOrderHash: `0x${params[13]}`,
-  lender: `0x${params[14].substr(24)}`,
-  orderFilledAmount: parseInt(`0x${params[15]}`, HEX_RADIX),
-  orderCancelledAmount: parseInt(`0x${params[16]}`, HEX_RADIX),
-  orderTraderCount: parseInt(`0x${params[17]}`, HEX_RADIX),
-  addedUnixTimestampSec: parseInt(`0x${params[18]}`, HEX_RADIX)
+  ...map(pipe(Utils.substr24, Utils.prepend0x), {
+    maker: params[0],
+    loanTokenAddress: params[1],
+    interestTokenAddress: params[2],
+    collateralTokenAddress: params[3],
+    feeRecipientAddress: params[4],
+    oracleAddress: params[5],
+    lender: params[14]
+  }),
+  ...map(pipe(Utils.prepend0x, Utils.parseIntHex), {
+    loanTokenAmount: params[6],
+    interestAmount: params[7],
+    initialMarginAmount: params[8],
+    maintenanceMarginAmount: params[9],
+    lenderRelayFee: params[10],
+    traderRelayFee: params[11],
+    expirationUnixTimestampSec: params[12],
+    orderFilledAmount: params[15],
+    orderCancelledAmount: params[16],
+    orderTraderCount: params[17],
+    addedUnixTimestampSec: params[18]
+  }),
+  loanOrderHash: Utils.prepend0x(params[13])
 });
 
 const checkProperObjCount = Utils.makeCheckProperObjCount(NUM_ORDER_FIELDS);
 const getOrderObjArray = Utils.makeGetOrderObjArray(NUM_ORDER_FIELDS);
 
 export const cleanData = raw =>
-  raw ?
-  pipe(
-    Utils.remove0xPrefix,
-    checkProperObjCount,
-    getOrderObjArray,
-    map(pipe(Utils.getOrderParams, getOrder))
-  )(raw) :
-  [];
+  raw
+    ? pipe(
+        Utils.remove0xPrefix,
+        checkProperObjCount,
+        getOrderObjArray,
+        map(pipe(Utils.getOrderParams, getOrder))
+      )(raw)
+    : [];

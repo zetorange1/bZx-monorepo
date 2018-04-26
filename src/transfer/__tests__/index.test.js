@@ -13,7 +13,7 @@ describe("transfer", () => {
   let balances = [];
 
   beforeAll(async () => {
-    const { b0xToken } = await FillTestUtils.initAllContractInstances();
+    const { b0xToken } = FillTestUtils.initAllContractInstances();
 
     balances = await TransferTestUtils.getBalances({
       addresses: [from, to],
@@ -23,7 +23,7 @@ describe("transfer", () => {
 
   describe("transferTokens", async () => {
     test("should return total amount of loanToken borrowed and transfer funds correctly", async () => {
-      const { b0xToken } = await FillTestUtils.initAllContractInstances();
+      const { b0xToken } = FillTestUtils.initAllContractInstances();
       const amount = web3.utils.toWei("1").toString();
 
       const receipt = await b0xJS.transferToken({
@@ -49,7 +49,7 @@ describe("transfer", () => {
     });
 
     test("should return a web3 PromiEvent", async () => {
-      const { b0xToken } = await FillTestUtils.initAllContractInstances();
+      const { b0xToken } = FillTestUtils.initAllContractInstances();
       const amount = web3.utils.toWei("1").toString();
 
       const promiEvent = b0xJS.transferToken({
