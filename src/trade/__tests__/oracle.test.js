@@ -1,8 +1,8 @@
-import { pathOr, pipe, omit } from "ramda";
-import { expectPromiEvent } from "../../core/__tests__/utils";
+import { pathOr, pipe } from "ramda";
 import B0xJS from "../../core/index";
 import b0xJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";
+import * as CoreTestUtils from "../../core/__tests__/utils";
 
 describe("trade", () => {
   const { web3 } = b0xJS;
@@ -63,7 +63,7 @@ describe("trade", () => {
 
   describe("tradePositionWithOracle", () => {
     test("should return a web3 PromiEvent", async () => {
-      expectPromiEvent(promiEvent);
+      CoreTestUtils.expectPromiEvent(promiEvent);
     });
 
     test("should successfully trade position with oracle (Kyber)", async () => {
@@ -74,16 +74,10 @@ describe("trade", () => {
       const receipt = await promiEvent;
       const debugLine = pathOr(null, ["events", "DebugLine"], receipt);
 
-      const replaceRandomFields = obj => {
-        const randomFields = ["0", "loanOrderHash"];
-        const noRandomFields = omit(randomFields, obj);
-        const dummyStr = "this is a random field";
-        const replaced = randomFields.reduce(
-          (prev, curr) => ({ ...prev, [curr]: dummyStr }),
-          {}
-        );
-        return { ...noRandomFields, ...replaced };
-      };
+      const replaceRandomFields = CoreTestUtils.makeReplaceRandomFields([
+        "0",
+        "loanOrderHash"
+      ]);
 
       const logMarginLevels = pipe(
         pathOr(null, ["events", "LogMarginLevels", "returnValues"]),
