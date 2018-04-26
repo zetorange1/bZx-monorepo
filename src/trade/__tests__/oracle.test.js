@@ -1,4 +1,4 @@
-import { pathOr } from "ramda";
+import { pathOr, pipe, omit } from "ramda";
 import { expectPromiEvent } from "../../core/__tests__/utils";
 import B0xJS from "../../core/index";
 import b0xJS from "../../core/__tests__/setup";
@@ -72,22 +72,32 @@ describe("trade", () => {
       ).toBe(null);
 
       const receipt = await promiEvent;
-
       const debugLine = pathOr(null, ["events", "DebugLine"], receipt);
-      const logMarginLevels = pathOr(null, [
-        "events",
-        "LogMarginLevels",
-        receipt
-      ]);
-      const logPositionTraded = pathOr(
-        null,
-        ["events", "LogPositionTraded"],
-        receipt
-      );
+
+      const replaceRandomFields = obj => {
+        const randomFields = ["0", "loanOrderHash"];
+        const noRandomFields = omit(randomFields, obj);
+        const dummyStr = "this is a random field";
+        const replaced = randomFields.reduce(
+          (prev, curr) => ({ ...prev, [curr]: dummyStr }),
+          {}
+        );
+        return { ...noRandomFields, ...replaced };
+      };
+
+      const logMarginLevels = pipe(
+        pathOr(null, ["events", "LogMarginLevels", "returnValues"]),
+        replaceRandomFields
+      )(receipt);
+
+      const logPositionTraded = pipe(
+        pathOr(null, ["events", "LogPositionTraded", "returnValues"]),
+        replaceRandomFields
+      )(receipt);
 
       expect(debugLine).toEqual(null);
-      expect(logMarginLevels).not.toEqual(null);
-      expect(logPositionTraded).not.toEqual(null);
+      expect(logMarginLevels).toMatchSnapshot();
+      expect(logPositionTraded).toMatchSnapshot();
     });
   });
 });
