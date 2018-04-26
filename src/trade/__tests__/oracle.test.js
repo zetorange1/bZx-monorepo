@@ -71,23 +71,23 @@ describe("trade", () => {
         pathOr(null, ["events", "DebugLine"], takeLoanOrderAsTraderReceipt)
       ).toBe(null);
 
-      const receipt = await b0xJS.tradePositionWithOracle({
-        orderHash,
-        tradeTokenAddress: interestTokens[1].options.address.toLowerCase(),
-        txOpts: { from: takerAddress }
-      });
+      const receipt = await promiEvent;
 
-      console.log(
-        interestTokens[0].options.address,
-        interestTokens[1].options.address
+      const debugLine = pathOr(null, ["events", "DebugLine"], receipt);
+      const logMarginLevels = pathOr(null, [
+        "events",
+        "LogMarginLevels",
+        receipt
+      ]);
+      const logPositionTraded = pathOr(
+        null,
+        ["events", "LogPositionTraded"],
+        receipt
       );
 
-      expect(pathOr(null, ["events", "DebugLine"], receipt)).toBe(null);
-
-      console.log(
-        "tradePositionWithOracle success",
-        JSON.stringify(receipt, null, 2)
-      );
+      expect(debugLine).toEqual(null);
+      expect(logMarginLevels).not.toEqual(null);
+      expect(logPositionTraded).not.toEqual(null);
     });
   });
 });
