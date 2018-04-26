@@ -316,7 +316,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
                 collateralTokenAddress,
                 loanTokenAmount,
                 positionTokenAmount,
-                collateralTokenAmount).mul(100).div(maintenanceMarginAmount) <= (liquidationThresholdPercent));
+                collateralTokenAmount).div(maintenanceMarginAmount).div(10**16) <= (liquidationThresholdPercent));
     } 
 
     function isTradeSupported(
@@ -339,6 +339,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
         if (sourceTokenAddress == destTokenAddress) {
             rate = 10**18;
         } else if (KYBER_CONTRACT == address(0)) {
+            // SIMULATION MODE //
             rate = 10**18;
             //rate = (uint(block.blockhash(block.number-1)) % 100 + 1).mul(10**18);
         } else {
@@ -419,6 +420,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
         }
     }
 
+    /// @return The current margin amount (a percentage -> i.e. 54350000000000000000 == 54.35%)
     function getCurrentMarginAmount(
         address loanTokenAddress,
         address positionTokenAddress,
@@ -457,13 +459,13 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
         }
 
         if (isProfit) {
-            return (collateralToLoanAmount + profitOrLoss).mul(100).div(positionToLoanAmount);
+            return (collateralToLoanAmount + profitOrLoss).mul(10**20).div(positionToLoanAmount);
         } else {
             // black-swan check
             if (profitOrLoss >= collateralToLoanAmount) {
                 return 0;
             }
-            return (collateralToLoanAmount - profitOrLoss).mul(100).div(positionToLoanAmount);
+            return (collateralToLoanAmount - profitOrLoss).mul(10**20).div(positionToLoanAmount);
         }
     }
 
@@ -600,17 +602,20 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
                 destTokenAmount = sourceTokenAmount;
             }
         } else if (KYBER_CONTRACT == address(0)) {
+            // SIMULATION MODE //
             uint tradeRate = getTradeRate(sourceTokenAddress, destTokenAddress);
             destTokenAmount = sourceTokenAmount.mul(tradeRate).div(10**18);
             if (destTokenAmount > maxDestTokenAmount) {
                 destTokenAmount = maxDestTokenAmount;
             }
-            if (!_transferToken(
+            _transferToken(
+                sourceTokenAddress,
+                owner, // sim mode so sending source to owner to simulate a trade
+                sourceTokenAmount);
+            _transferToken(
                 destTokenAddress,
                 VAULT_CONTRACT,
-                destTokenAmount)) {
-                return intOrRevert(0,612);
-            }
+                destTokenAmount);
         } else {
             if (sourceTokenAddress == WETH_CONTRACT) {
                 WETH_Interface(WETH_CONTRACT).withdraw(sourceTokenAmount);

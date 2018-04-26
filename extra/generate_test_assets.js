@@ -63,6 +63,12 @@ switch(network) {
     case "ropsten":
 		networkId = 3;
         break;
+    case "kovan":
+		networkId = 42;
+        break;
+    case "rinkeby":
+		networkId = 4;
+        break;
     default:
 		networkId = 50;
 }
@@ -95,6 +101,12 @@ Object.keys(addresses).forEach(function(item, index) {
 	}
 });
 
+var MEWAssets = [{
+    "name": "Select a contract...",
+    "address": "",
+    "abi": ' '
+}];
+
 Object.keys(addresses).forEach(function(item, index) {
 	var jsonContent = jsonContents[item];
 
@@ -104,7 +116,12 @@ Object.keys(addresses).forEach(function(item, index) {
 		if (item != "Oracle_Interface" && item != "EIP20") {
 			addresses[item] = web3.toChecksumAddress(jsonContent["networks"][networkId]["address"]);
 		}
+		
+		// sort ABI by name field
+		jsonContent["abi"].sort(function(a,b) {return (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0);} );
+
 		var jsonAsset = {
+			"name": item,
 			"address": addresses[item],
 			"abi": jsonContent["abi"]
 		};
@@ -116,6 +133,14 @@ Object.keys(addresses).forEach(function(item, index) {
 				console.log(item+".json Error: "+err);
 			}
 		});
+
+		if (jsonAsset["name"] && jsonAsset["address"] && (jsonAsset["abi"] !== undefined || jsonAsset["abi"].length > 0)) {
+			MEWAssets.push({
+				"name": item,
+				"address": addresses[item],
+				"abi": JSON.stringify(jsonContent["abi"])
+			});
+		}
 	}
 	catch(err) {
 		console.log(item+".json Error: "+err);
@@ -132,6 +157,11 @@ Object.keys(addresses).forEach(function(item, index) {
 	}
 });
 
+fs.writeFileSync("./html_public_test/mew_"+network+".json", JSON.stringify(MEWAssets), function(err) {
+	if(err) {
+		console.log(item+".json Error: "+err);
+	}
+});
 
 var abiIndex = `
 
@@ -209,6 +239,7 @@ fs.writeFile("./html_public_test/index.html", outHTML, function(err) {
 
 Object.keys(addresses_0x).forEach(function(item, index) {
 	fs.writeFileSync("./html_public_test/deployed/"+item+".json", JSON.stringify({
+		"name": item,
 		"address": addresses_0x[item],
 		"abi": []
 	}), function(err) {

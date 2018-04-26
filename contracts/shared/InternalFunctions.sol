@@ -177,7 +177,6 @@ contract InternalFunctions is B0xStorage {
         });
     }
 
-    // Note: The oracle has to fill all the source token, or the trade should fail
     function _tradePositionWithOracle(
         LoanOrder loanOrder,
         LoanPosition memory loanPosition,
@@ -237,6 +236,7 @@ contract InternalFunctions is B0xStorage {
     }
 
     // returns initialMarginAmount, maintenanceMarginAmount, currentMarginAmount
+    // currentMarginAmount is a percentage -> i.e. 54350000000000000000 == 54.35%
     function _getMarginLevels(
         LoanOrder loanOrder,
         LoanPosition loanPosition)

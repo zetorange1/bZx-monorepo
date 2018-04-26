@@ -29,6 +29,7 @@ var run = {
   "should trade position with 0x order": true,
   "should trade position with oracle": true,
   "should withdraw profits": true,
+  "should pay lender interest": true,
 };
 
 
@@ -1145,6 +1146,21 @@ contract('B0xTest', function(accounts) {
       OrderHash_b0x_1,
       {from: trader1_account}).then(function(tx) {
         console.log(txPrettyPrint(tx,"should withdraw profits"));
+        assert.isOk(tx);
+        done();
+      }), function(error) {
+        console.error(error);
+        assert.isOk(false);
+        done();
+      };
+  });
+
+  (run["should pay lender interest"] ? it : it.skip)("should pay lender interest", function(done) {
+    b0x.payInterest(
+      OrderHash_b0x_1,
+      trader1_account,
+      {from: trader1_account}).then(function(tx) {
+        console.log(txPrettyPrint(tx,"should pay lender interest"));
         assert.isOk(tx);
         done();
       }), function(error) {
