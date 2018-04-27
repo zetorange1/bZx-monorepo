@@ -1,3 +1,4 @@
+/* eslint-disable */
 import styled from "styled-components";
 import MuiCard, {
   CardActions,
@@ -11,6 +12,8 @@ import Collapse from "material-ui/transitions/Collapse";
 import CollateralOptions from "./CollateralOptions";
 
 import { COLORS } from "../styles/constants";
+import { getSymbol } from "../common/tokens";
+import { fromBigNumber } from "../common/utils";
 
 const CardContent = styled(MuiCardContent)`
   position: relative;
@@ -73,19 +76,29 @@ export default class OpenLoan extends React.Component {
   handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
 
   render() {
-    const collateralTokenAmountFilled = 6.25;
-    const collateralTokenSymbol = `SYM`;
-    const loanTokenAmountFilled = 12;
-    const loanTokenSymbol = `SYM`;
-    const interestPaidSoFar = 0.0002;
-    const interestTokenSymbol = `SYM`;
-    const filledUnixTimestampSec = 1519283349;
+    const { tokens } = this.props
+    const {
+      collateralTokenAddressFilled,
+      collateralTokenAmountFilled,
+      positionTokenAddressFilled,
+      positionTokenAmountFilled,
+      interestTokenAddress,
+      interestTotalAccrued,
+      interestPaidSoFar,
+      loanTokenAmountFilled,
+      loanTokenAddress,
+      loanStartUnixTimestampSec,
+      loanOrderHash,
+      lender
+    } = this.props.data;
+    const collateralTokenSymbol = getSymbol(tokens, collateralTokenAddressFilled);
+    const loanTokenSymbol = getSymbol(tokens, loanTokenAddress);;
+    const interestTokenSymbol = getSymbol(tokens, interestTokenAddress);
+    const positionTokenSymbol = getSymbol(tokens, positionTokenAddressFilled)
 
-    const { zeroExTradeOpened } = this.props;
-    const tradeTokenAmountFilled = 123;
-    const tradeTokenSymbol = `SYM`;
+    const tradeOpened = positionTokenAddressFilled !== loanTokenAddress;
 
-    const loanOpenedDate = new Date(filledUnixTimestampSec * 1000);
+    const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
     if (this.props.hideDetails) {
       return (
         <Card>
@@ -94,7 +107,7 @@ export default class OpenLoan extends React.Component {
               <Label>Order # </Label>
               <DataPoint>
                 <Hash href="#" target="_blank" rel="noopener noreferrer">
-                  0x0000000000000000000000000000000000000000
+                  {loanOrderHash}
                 </Hash>
               </DataPoint>
             </DataPointContainer>
@@ -103,7 +116,7 @@ export default class OpenLoan extends React.Component {
               <Label>Lender </Label>
               <DataPoint>
                 <Hash href="#" target="_blank" rel="noopener noreferrer">
-                  0x0000000000000000000000000000000000000000
+                  {lender}
                 </Hash>
               </DataPoint>
             </DataPointContainer>
@@ -123,18 +136,18 @@ export default class OpenLoan extends React.Component {
         <CardContent>
           <DataPointContainer>
             <Label>Order # </Label>
-            <DataPoint>
+            <DataPoint title={loanOrderHash}>
               <Hash href="#" target="_blank" rel="noopener noreferrer">
-                0x0000000000000000000000000000000000000000
+                {loanOrderHash}
               </Hash>
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Lender </Label>
-            <DataPoint>
+            <DataPoint title={lender}>
               <Hash href="#" target="_blank" rel="noopener noreferrer">
-                0x0000000000000000000000000000000000000000
+                {lender}
               </Hash>
             </DataPoint>
           </DataPointContainer>
@@ -151,21 +164,30 @@ export default class OpenLoan extends React.Component {
           <DataPointContainer>
             <Label>Collateral</Label>
             <DataPoint>
-              {collateralTokenAmountFilled} {collateralTokenSymbol}
+              {fromBigNumber(collateralTokenAmountFilled, 1e18)}
+              {` `}
+              {collateralTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Borrowed</Label>
             <DataPoint>
-              {loanTokenAmountFilled} {loanTokenSymbol}
+              {fromBigNumber(loanTokenAmountFilled, 1e18)} {loanTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
-            <Label>Interest Paid</Label>
+            <Label>Interest paid so far</Label>
             <DataPoint>
-              {interestPaidSoFar} {interestTokenSymbol}
+              {fromBigNumber(interestPaidSoFar, 1e18)} {interestTokenSymbol}
+            </DataPoint>
+          </DataPointContainer>
+
+          <DataPointContainer>
+            <Label>Interest accrued (total)</Label>
+            <DataPoint>
+              {fromBigNumber(interestTotalAccrued, 1e18)} {interestTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
@@ -177,16 +199,16 @@ export default class OpenLoan extends React.Component {
         <CardActions>
           <DataPointContainer style={{ marginLeft: `12px` }}>
             <Label>0x trade opened</Label>
-            <DataPoint>{Boolean(zeroExTradeOpened).toString()}</DataPoint>
+            <DataPoint>{Boolean(tradeOpened).toString()}</DataPoint>
           </DataPointContainer>
-          {zeroExTradeOpened && (
-            <DataPointContainer style={{ marginLeft: `12px` }}>
-              <Label>Trade Amount</Label>
-              <DataPoint>
-                {tradeTokenAmountFilled} {tradeTokenSymbol}
-              </DataPoint>
-            </DataPointContainer>
-          )}
+          
+          <DataPointContainer style={{ marginLeft: `12px` }}>
+            <Label>Trade Amount</Label>
+            <DataPoint>
+              {fromBigNumber(positionTokenAmountFilled, 1e18)} {positionTokenSymbol}
+            </DataPoint>
+          </DataPointContainer>
+
           <Button
             style={{ marginLeft: `auto` }}
             onClick={this.handleExpandClick}
@@ -202,7 +224,7 @@ export default class OpenLoan extends React.Component {
           </IconButton>
         </CardActions>
         <Collapse in={this.state.expanded} timeout="auto" unmountOnExit>
-          {zeroExTradeOpened ? (
+          {tradeOpened ? (
             <CardContent>
               <Button variant="raised" color="primary">
                 Close trade with Kyber market order
