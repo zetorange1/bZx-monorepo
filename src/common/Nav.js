@@ -49,7 +49,7 @@ const Content = styled.div`
 // `;
 
 const Version = styled.div`
-  color: #264898;
+  color: #2879ff;
   padding: 12px;
   text-align: right;
   font-weight: bolder;
