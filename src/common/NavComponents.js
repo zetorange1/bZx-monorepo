@@ -2,7 +2,7 @@ import styled from "styled-components";
 import { COLORS } from "../styles/constants";
 
 export const ImgLogo = styled.img`
-  height: 32px;
+  height: 60px;
 `;
 
 export const Logo = styled.div`

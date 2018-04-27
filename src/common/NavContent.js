@@ -73,7 +73,7 @@ class NavContent extends React.Component {
     return (
       <Fragment>
         <a href="https://b0x.network/">
-          <ImgLogo src="https://b0x.network/img/site-logo.svg" />
+          <ImgLogo src="https://b0x.network/img/site-logo_n.svg?v1.0" />
         </a>
         <HorizontalNav>
           <Link href="/orders">

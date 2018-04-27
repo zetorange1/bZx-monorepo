@@ -1,5 +1,5 @@
 export const COLORS = {
-  blue: `#2879ff`,
+  blue: `#264898`,
   white: `#FFFFFF`,
   gray: `grey`
 };
@@ -10,7 +10,7 @@ export const primaryPalette = {
   200: `#94bcff`,
   300: `#69a1ff`,
   400: `#488dff`,
-  500: `#2879ff`,
+  500: `#264898`,
   600: `#2471ff`,
   700: `#1e66ff`,
   800: `#185cff`,
@@ -18,7 +18,7 @@ export const primaryPalette = {
   A100: `#94bcff`,
   A200: `#69a1ff`,
   A400: `#488dff`,
-  A700: `#2879ff`,
+  A700: `#264898`,
   contrastDefaultColor: `light`
 };
 
