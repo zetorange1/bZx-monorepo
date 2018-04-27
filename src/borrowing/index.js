@@ -17,6 +17,7 @@ export default class Borrowing extends React.Component {
       start: 0,
       count: 10
     });
+    console.log(positions)
     this.setState({ positions });
   }
 
@@ -40,6 +41,7 @@ export default class Borrowing extends React.Component {
         </Section>
         <Section>
           <SectionLabel>Closed Loans</SectionLabel>
+          None
           {/* {closedPositions.map(x => <ClosedLoan key={x.id} />)} */}
         </Section>
       </div>
