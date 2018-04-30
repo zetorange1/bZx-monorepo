@@ -94,15 +94,15 @@ describe("loanPositions", () => {
       );
 
       expect(loanPositionsNoRandomFields).toContainEqual({
-        active: 1,
-        collateralTokenAddressFilled: collateralTokens[0].options.address.toLowerCase(),
-        lender: "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
-        loanTokenAmountFilled: 12300000000000000000,
-        positionTokenAddressFilled: loanTokens[0].options.address.toLowerCase(),
-        positionTokenAmountFilled: 12300000000000000000,
-        trader: "0x06cef8e666768cc40cc78cf93d9611019ddcb628",
-        loanTokenAddress: "0xf96b018e8de3a229dbaced8439df9e3034e263c1",
-        interestTokenAddress: "0x4586649629f699f9a4b61d0e962dc3c9025fe488"
+        "active":1,
+        "collateralTokenAddressFilled":"0xb48e1b16829c7f5bd62b76cb878a6bb1c4625d7a",
+        "interestTokenAddress":"0xe704967449b57b2382b7fa482718748c13c63190",
+        "lender":"0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+        "loanTokenAddress":"0x4586649629f699f9a4b61d0e962dc3c9025fe488",
+        "loanTokenAmountFilled":12300000000000000000,
+        "positionTokenAddressFilled":"0x4586649629f699f9a4b61d0e962dc3c9025fe488",
+        "positionTokenAmountFilled":12300000000000000000,
+        "trader":"0x06cef8e666768cc40cc78cf93d9611019ddcb628",
       });
     });
   });
@@ -139,15 +139,15 @@ describe("loanPositions", () => {
       );
 
       expect(loanPositionsNoRandomFields).toContainEqual({
-        active: 1,
-        collateralTokenAddressFilled: collateralTokens[0].options.address.toLowerCase(),
-        lender: "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
-        loanTokenAmountFilled: 12300000000000000000,
-        positionTokenAddressFilled: loanTokens[0].options.address.toLowerCase(),
-        positionTokenAmountFilled: 12300000000000000000,
-        trader: "0x06cef8e666768cc40cc78cf93d9611019ddcb628",
-        loanTokenAddress: "0xf96b018e8de3a229dbaced8439df9e3034e263c1",
-        interestTokenAddress: "0x4586649629f699f9a4b61d0e962dc3c9025fe488"
+        "active":1,
+        "collateralTokenAddressFilled":"0xb48e1b16829c7f5bd62b76cb878a6bb1c4625d7a",
+        "interestTokenAddress":"0xe704967449b57b2382b7fa482718748c13c63190",
+        "lender":"0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+        "loanTokenAddress":"0x4586649629f699f9a4b61d0e962dc3c9025fe488",
+        "loanTokenAmountFilled":12300000000000000000,
+        "positionTokenAddressFilled":"0x4586649629f699f9a4b61d0e962dc3c9025fe488",
+        "positionTokenAmountFilled":12300000000000000000,
+        "trader":"0x06cef8e666768cc40cc78cf93d9611019ddcb628",
       });
     });
   });
