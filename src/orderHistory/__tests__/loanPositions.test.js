@@ -18,7 +18,7 @@ describe("loanPositions", () => {
       interestTokens
     } = FillTestUtils.initAllContractInstances();
 
-    const transferAmount = web3.utils.toWei("1000000", "ether");
+    const transferAmount = web3.utils.toWei("100000", "ether");
     await FillTestUtils.setupAll({ owner, lenders, traders, transferAmount });
 
     const makerAddress = lenders[0];
