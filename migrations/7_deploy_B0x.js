@@ -1,7 +1,7 @@
 
 var B0xProxy = artifacts.require("B0xProxy");
 
-var B0xToken = artifacts.require("B0xToken");
+var TestNetB0xToken = artifacts.require("TestNetB0xToken");
 var B0xVault = artifacts.require("B0xVault");
 var OracleRegistry = artifacts.require("OracleRegistry");
 var B0xTo0x = artifacts.require("B0xTo0x");
@@ -23,8 +23,8 @@ module.exports = function(deployer, network, accounts) {
 		if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {
 			b0x_token_address = config["protocol"][network]["B0XToken"];
 		} else {
-			var b0x_token = await B0xToken.deployed();
-			b0x_token_address = B0xToken.address;
+			var b0x_token = await TestNetB0xToken.deployed();
+			b0x_token_address = TestNetB0xToken.address;
 
 			await b0xProxy.setDebugMode(true);
 		}

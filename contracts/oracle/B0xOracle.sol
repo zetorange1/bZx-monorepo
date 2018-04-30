@@ -338,10 +338,6 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
     {   
         if (sourceTokenAddress == destTokenAddress) {
             rate = 10**18;
-        } else if (KYBER_CONTRACT == address(0)) {
-            // SIMULATION MODE //
-            rate = 10**18;
-            //rate = (uint(block.blockhash(block.number-1)) % 100 + 1).mul(10**18);
         } else {
             uint sourceToEther;
             uint etherToDest;
@@ -601,21 +597,6 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
             } else {
                 destTokenAmount = sourceTokenAmount;
             }
-        } else if (KYBER_CONTRACT == address(0)) {
-            // SIMULATION MODE //
-            uint tradeRate = getTradeRate(sourceTokenAddress, destTokenAddress);
-            destTokenAmount = sourceTokenAmount.mul(tradeRate).div(10**18);
-            if (destTokenAmount > maxDestTokenAmount) {
-                destTokenAmount = maxDestTokenAmount;
-            }
-            _transferToken(
-                sourceTokenAddress,
-                owner, // sim mode so sending source to owner to simulate a trade
-                sourceTokenAmount);
-            _transferToken(
-                destTokenAddress,
-                VAULT_CONTRACT,
-                destTokenAmount);
         } else {
             if (sourceTokenAddress == WETH_CONTRACT) {
                 WETH_Interface(WETH_CONTRACT).withdraw(sourceTokenAmount);
@@ -657,7 +638,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
                     destTokenAddress,
                     VAULT_CONTRACT,
                     destTokenAmount)) {
-                    return intOrRevert(0,655);
+                    return intOrRevert(0,641);
                 }
             } else {
                 // re-up the Kyber spend approval if needed

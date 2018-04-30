@@ -1,5 +1,5 @@
 
-var B0xOracle = artifacts.require("B0xOracle");
+var B0xOracle;
 
 var B0xVault = artifacts.require("B0xVault");
 var B0xProxy = artifacts.require("B0xProxy");
@@ -11,6 +11,12 @@ module.exports = function(deployer, network, accounts) {
 	network = network.replace("-fork", "");
 	if (network == "develop" || network == "testnet")
 		network = "development";
+
+	if (network == "mainnet" || network == "ropsten") {
+		B0xOracle = artifacts.require("B0xOracle");
+	} else {
+		B0xOracle = artifacts.require("TestNetOracle");
+	}
 
 	deployer.deploy(B0xOracle, B0xVault.address, config["protocol"][network]["KyberContractAddress"], config["protocol"][network]["ZeroEx"]["WETH9"]
 		,{from: accounts[0], value: web3.toWei(1, "ether")}).then(async function() { // seeds B0xOracle with 1 Ether

@@ -43,16 +43,16 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            return intOrRevert(0,39);
+            return intOrRevert(0,46);
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
-            return intOrRevert(0,43);
+            return intOrRevert(0,50);
         }
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return intOrRevert(0,48);
+            return intOrRevert(0,55);
         }
 
         // transfer the current position token to the B0xTo0x contract
@@ -60,7 +60,7 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
             loanPosition.positionTokenAddressFilled,
             B0XTO0X_CONTRACT,
             loanPosition.positionTokenAmountFilled)) {
-            return intOrRevert(0,56);
+            return intOrRevert(0,63);
         }
 
         address tradeTokenAddress;
@@ -74,7 +74,7 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
             signiture0x);
 
         if (tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled) {
-            return intOrRevert(0,71);
+            return intOrRevert(0,77);
         }
 
         if (DEBUG_MODE) {
@@ -92,7 +92,7 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
                 loanPosition.positionTokenAmountFilled,
                 loanPosition.collateralTokenAmountFilled,
                 loanOrder.maintenanceMarginAmount)) {
-            return intOrRevert(0,89);
+            return intOrRevert(0,95);
         }
 
         emit LogPositionTraded(
@@ -115,7 +115,7 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
             tradeTokenAmount,
             gasUsed // initial used gas, collected in modifier
         )) {
-            return intOrRevert(0,112);
+            return intOrRevert(0,118);
         }
 
         return tradeTokenAmount;
@@ -135,20 +135,20 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            return intOrRevert(0,128);
+            return intOrRevert(0,138);
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
-            return intOrRevert(0,132);
+            return intOrRevert(0,142);
         }
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return intOrRevert(0,137);
+            return intOrRevert(0,147);
         }
 
         if (tradeTokenAddress == loanPosition.positionTokenAddressFilled) {
-            return intOrRevert(0,141);
+            return intOrRevert(0,151);
         }
 
         if (DEBUG_MODE) {
@@ -166,7 +166,7 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
                 loanPosition.positionTokenAmountFilled,
                 loanPosition.collateralTokenAmountFilled,
                 loanOrder.maintenanceMarginAmount)) {
-            return intOrRevert(0,159);
+            return intOrRevert(0,169);
         }
 
         // check the current token balance of the oracle before sending token to be traded
@@ -182,11 +182,11 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
         // It is assumed that all positionToken will be traded, so the remaining token balance of the oracle 
         // shouldn't be greater than the balance before we sent the token to be traded.
         if (balanceBeforeTrade < EIP20(loanPosition.positionTokenAddressFilled).balanceOf.gas(4999)(loanOrder.oracleAddress)) {
-            return intOrRevert(0,1441);
+            return intOrRevert(0,185);
         }
 
         if (tradeTokenAmount == 0) {
-            return intOrRevert(0,170);
+            return intOrRevert(0,189);
         }
 
         emit LogPositionTraded(
@@ -209,7 +209,7 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
             tradeTokenAmount,
             gasUsed // initial used gas, collected in modifier
         )) {
-            return intOrRevert(0,193);
+            return intOrRevert(0,212);
         }
 
         return tradeTokenAmount;

@@ -1,6 +1,6 @@
 
 var TokenRegistry = artifacts.require("TokenRegistry");
-var B0xOracle = artifacts.require("B0xOracle");
+var TestNetFaucet = artifacts.require("TestNetFaucet");
 
 var TestToken0 = artifacts.require("TestToken0");
 var TestToken1 = artifacts.require("TestToken1");
@@ -17,8 +17,10 @@ module.exports = function(deployer, network, accounts) {
 	network = network.replace("-fork", "");
 	
 	//if (true) return;
-	if (network == "develop" || network == "development" || network == "testnet") {
+	if (network == "develop" || network == "development" || network == "testnet")
 		network = "development";
+
+	if (network != "mainnet" && network != "ropsten") {
 
 		tokens = [];
 		deployer.deploy(TestToken0).then(async function() {
@@ -44,7 +46,7 @@ module.exports = function(deployer, network, accounts) {
 
 			var registry = await TokenRegistry.deployed();
 
-			var oracle = await B0xOracle.deployed();
+			var faucet = await TestNetFaucet.deployed();
 			
 			var token, name, symbol;
 			for (var i = 0; i <= 9; ++i) {
@@ -59,8 +61,8 @@ module.exports = function(deployer, network, accounts) {
 					18,
 					"");
 
-				// transfer a large amount to Oracle for trade testing
-				await token.transfer(oracle.address, web3.toWei(1000000, "ether"));
+				// transfer a large amount to faucet
+				await token.transfer(faucet.address, web3.toWei(100000000000000000, "ether"));
 			}
 		});
 	}

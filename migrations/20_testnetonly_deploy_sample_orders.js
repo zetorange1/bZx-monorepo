@@ -2,8 +2,8 @@
 var B0xProxy = artifacts.require("B0xProxy");
 var B0x = artifacts.require("B0x");
 var B0xVault = artifacts.require("B0xVault");
-var B0xOracle = artifacts.require("B0xOracle");
-var B0xToken = artifacts.require("B0xToken");
+var B0xOracle = artifacts.require("TestNetOracle");
+var TestNetB0xToken = artifacts.require("TestNetB0xToken");
 
 var fs = require('fs');
 
@@ -58,7 +58,7 @@ module.exports = function(deployer, network, accounts) {
 
 			var vault = await B0xVault.deployed();
 			var oracle = await B0xOracle.deployed();
-			var b0x_token = await B0xToken.deployed();
+			var b0x_token = await TestNetB0xToken.deployed();
 
 			for (var i = 0; i < 10; i++) {
 				test_tokens[i] = await artifacts.require("TestToken"+i).deployed();
@@ -82,17 +82,17 @@ module.exports = function(deployer, network, accounts) {
 				(await b0x_token.approve(vault.address, MAX_UINT, {from: lender2_account})),
 				(await b0x_token.approve(vault.address, MAX_UINT, {from: trader1_account})),
 				(await b0x_token.approve(vault.address, MAX_UINT, {from: trader2_account})),
-		  
+
 				(await loanToken1.transfer(lender1_account, web3.toWei(1000000, "ether"), {from: owner_account})),
 				(await loanToken2.transfer(lender2_account, web3.toWei(1000000, "ether"), {from: owner_account})),
 				(await loanToken1.approve(vault.address, MAX_UINT, {from: lender1_account})),
 				(await loanToken2.approve(vault.address, MAX_UINT, {from: lender2_account})),
-				
+
 				(await collateralToken1.transfer(trader1_account, web3.toWei(1000000, "ether"), {from: owner_account})),
 				(await collateralToken2.transfer(trader2_account, web3.toWei(1000000, "ether"), {from: owner_account})),
 				(await collateralToken1.approve(vault.address, MAX_UINT, {from: trader1_account})),
 				(await collateralToken2.approve(vault.address, MAX_UINT, {from: trader2_account})),
-		  
+
 				(await interestToken1.transfer(trader1_account, web3.toWei(1000000, "ether"), {from: owner_account})),
 				(await interestToken1.transfer(trader2_account, web3.toWei(1000000, "ether"), {from: owner_account})),
 				(await interestToken2.transfer(trader2_account, web3.toWei(1000000, "ether"), {from: owner_account})),
@@ -105,7 +105,7 @@ module.exports = function(deployer, network, accounts) {
 				(await zrx_token.transfer(trader2_account, web3.toWei(10000, "ether"), {from: owner_account})),
 				(await zrx_token.approve(b0xTo0x.address, MAX_UINT, {from: trader1_account})),
 				(await zrx_token.approve(b0xTo0x.address, MAX_UINT, {from: trader2_account})),
-		  
+
 				(await maker0xToken1.transfer(makerOf0xOrder_account, web3.toWei(10000, "ether"), {from: owner_account})),
 				(await maker0xToken1.approve(config["protocol"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder_account})),
 				*/
@@ -132,7 +132,7 @@ module.exports = function(deployer, network, accounts) {
 			};
 			//console.log(OrderParams_b0x_1);
 			let OrderHash_b0x_1 = B0xJS.default.getLoanOrderHashHex(OrderParams_b0x_1);
-		  
+
 			/// should sign and verify orderHash (as lender1)
 			const nodeVersion = web3.version.node;
 			//console.log(nodeVersion);
@@ -149,7 +149,7 @@ module.exports = function(deployer, network, accounts) {
 				var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
 				ECSignature_raw_1 = web3.eth.sign(lender1_account, msgHashHex);
 			}
-		  
+
 			/// should take sample loan order (as trader1)
 			b0x.takeLoanOrderAsTrader(
 			[

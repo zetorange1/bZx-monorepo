@@ -46,10 +46,10 @@ var config = require('../../config/secrets.js');
 
 let B0xVault = artifacts.require("B0xVault");
 let B0xTo0x = artifacts.require("B0xTo0x");
-let B0xOracle = artifacts.require("B0xOracle");
+let B0xOracle = artifacts.require("TestNetOracle");
 let B0xOracleRegistry = artifacts.require("OracleRegistry");
 let B0xTokenRegistry = artifacts.require("TokenRegistry");
-let B0xToken = artifacts.require("B0xToken");
+let B0xToken = artifacts.require("TestNetB0xToken");
 let ERC20 = artifacts.require("ERC20"); // for testing with any ERC20 token
 let BaseToken = artifacts.require("BaseToken");
 let Exchange0x = artifacts.require("Exchange_Interface");
