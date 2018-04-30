@@ -112,4 +112,6 @@ export default class B0xJS {
   tradePositionWith0x = (...props) => trade.tradePositionWith0x(this, ...props);
 
   changeCollateral = (...props) => loanHealth.changeCollateral(this, ...props);
+  depositCollateral = (...props) =>
+    loanHealth.depositCollateral(this, ...props);
 }
