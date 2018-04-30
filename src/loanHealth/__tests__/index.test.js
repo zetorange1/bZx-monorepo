@@ -8,20 +8,27 @@ const { web3 } = b0xJS;
 
 describe("loanHealth", () => {
   describe("changeCollateral", () => {
+    const { owner, lenders, traders } = FillTestUtils.getAccounts();
+    const {
+      loanTokens,
+      interestTokens,
+      collateralTokens
+    } = FillTestUtils.initAllContractInstances();
+
     let promiEvent = null;
+    let loanOrderHash = null;
+    let loansBefore = null;
+
+    const collateralTokenAddressBefore = collateralTokens[0].options.address.toLowerCase();
+    const collateralTokenAddressAfter = collateralTokens[1].options.address.toLowerCase();
+
     beforeAll(async () => {
-      const { owner, lenders, traders } = FillTestUtils.getAccounts();
       await FillTestUtils.setupAll({
         owner,
         lenders,
         traders,
-        transferAmount: web3.utils.toWei("10000", "ether")
+        transferAmount: web3.utils.toWei("100", "ether")
       });
-      const {
-        loanTokens,
-        interestTokens,
-        collateralTokens
-      } = FillTestUtils.initAllContractInstances();
 
       const order = FillTestUtils.makeOrderAsLender({
         web3,
@@ -29,7 +36,7 @@ describe("loanHealth", () => {
         loanTokens,
         interestTokens
       });
-      const loanOrderHash = B0xJS.getLoanOrderHashHex(order);
+      loanOrderHash = B0xJS.getLoanOrderHashHex(order);
 
       const signature = await b0xJS.signOrderHashAsync(
         loanOrderHash,
@@ -44,22 +51,55 @@ describe("loanHealth", () => {
       // b0x hash that we give to tradePositionWith0x must belong to a loan that was previously filled, so we fill the loan order here
       const takeLoanOrderAsTraderReceipt = await b0xJS.takeLoanOrderAsTrader(
         { ...order, signature },
-        collateralTokens[0].options.address.toLowerCase(),
+        collateralTokenAddressBefore,
         loanTokenAmountFilled,
         txOpts
       );
 
       expect(
         pathOr(null, ["events", "DebugLine"], takeLoanOrderAsTraderReceipt)
-      ).toBe(null);
+      ).toEqual(null);
+
+      loansBefore = await b0xJS.getLoansForTrader({
+        address: traders[0],
+        start: 0,
+        count: 10
+      });
 
       promiEvent = b0xJS.changeCollateral({
         loanOrderHash,
-        collateralTokenFilled: collateralTokens[1].options.address.toLowerCase()
+        collateralTokenFilled: collateralTokenAddressAfter,
+        txOpts
       });
     });
+
     test("should return promiEvent", () => {
       expectPromiEvent(promiEvent);
+    });
+
+    test("should change collateral successfully", async () => {
+      const receipt = await promiEvent;
+      expect(pathOr(null, ["events", "DebugLine"], receipt)).toEqual(null);
+
+      const loansAfter = await b0xJS.getLoansForTrader({
+        address: traders[0],
+        start: 0,
+        count: 10
+      });
+
+      const [loanBefore] = loansBefore.filter(
+        loan => loan.loanOrderHash === loanOrderHash
+      );
+      const [loanAfter] = loansAfter.filter(
+        loan => loan.loanOrderHash === loanOrderHash
+      );
+
+      expect(loanBefore.collateralTokenAddressFilled).toEqual(
+        collateralTokenAddressBefore
+      );
+      expect(loanAfter.collateralTokenAddressFilled).toEqual(
+        collateralTokenAddressAfter
+      );
     });
   });
 });
