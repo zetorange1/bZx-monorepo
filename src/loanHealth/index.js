@@ -15,3 +15,18 @@ export const changeCollateral = (
     .changeCollateral(loanOrderHash, collateralTokenFilled)
     .send(txOpts);
 };
+
+export const depositCollateral = (
+  { web3, networkId, addresses },
+  { loanOrderHash, collateralTokenFilled, depositAmount, txOpts }
+) => {
+  const b0xContract = CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).B0x.abi,
+    addresses.B0x
+  );
+
+  return b0xContract.methods
+    .depositCollateral(loanOrderHash, collateralTokenFilled, depositAmount)
+    .send(txOpts);
+};
