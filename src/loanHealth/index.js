@@ -30,3 +30,22 @@ export const depositCollateral = (
     .depositCollateral(loanOrderHash, collateralTokenFilled, depositAmount)
     .send(txOpts);
 };
+
+export const withdrawExcessCollateral = (
+  { web3, networkId, addresses },
+  { loanOrderHash, collateralTokenFilled, withdrawAmount, txOpts }
+) => {
+  const b0xContract = CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).B0x.abi,
+    addresses.B0x
+  );
+
+  return b0xContract.methods
+    .withdrawExcessCollateral(
+      loanOrderHash,
+      collateralTokenFilled,
+      withdrawAmount
+    )
+    .send(txOpts);
+};
