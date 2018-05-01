@@ -1,5 +1,5 @@
 import { pathOr } from "ramda";
-// import BigNumber from "bignumber.js";
+import BigNumber from "bignumber.js";
 import B0xJS from "../../core";
 import b0xJS from "../../core/__tests__/setup";
 import { expectPromiEvent } from "../../core/__tests__/utils";
@@ -18,10 +18,11 @@ describe("loanHeath", () => {
 
     let promiEvent = null;
     let loanOrderHash = null;
-    // let loansBefore = null;
+    let loansBefore = null;
+    let loansAfterDeposit = null;
 
     const collateralTokenFilled = collateralTokens[0].options.address.toLowerCase();
-    const depositAmount = web3.utils.toWei("2").toString();
+    const depositAmount = web3.utils.toWei("5").toString();
     const withdrawAmount = web3.utils.toWei("2").toString();
 
     let order = null;
@@ -64,17 +65,23 @@ describe("loanHeath", () => {
         pathOr(null, ["events", "DebugLine"], takeLoanOrderAsTraderReceipt)
       ).toEqual(null);
 
-      //   loansBefore = await b0xJS.getLoansForTrader({
-      //     address: traders[0],
-      //     start: 0,
-      //     count: 10
-      //   });
+      loansBefore = await b0xJS.getLoansForTrader({
+        address: traders[0],
+        start: 0,
+        count: 10
+      });
 
       await b0xJS.depositCollateral({
         loanOrderHash,
         collateralTokenFilled,
         depositAmount,
         txOpts
+      });
+
+      loansAfterDeposit = await b0xJS.getLoansForTrader({
+        address: traders[0],
+        start: 0,
+        count: 10
       });
 
       promiEvent = b0xJS.withdrawExcessCollateral({
@@ -92,6 +99,47 @@ describe("loanHeath", () => {
     test("should withdraw collateral successfully", async () => {
       const receipt = await promiEvent;
       expect(pathOr(null, ["events", "DebugLine"], receipt)).toEqual(null);
+
+      const loansAfterWithdraw = await b0xJS.getLoansForTrader({
+        address: traders[0],
+        start: 0,
+        count: 10
+      });
+
+      const [loanBefore] = loansBefore.filter(
+        loan => loan.loanOrderHash === loanOrderHash
+      );
+      const [loanAfterDeposit] = loansAfterDeposit.filter(
+        loan => loan.loanOrderHash === loanOrderHash
+      );
+      const [loanAfterWithdraw] = loansAfterWithdraw.filter(
+        loan => loan.loanOrderHash === loanOrderHash
+      );
+
+      const initialMarginAmountFrac = Number(order.initialMarginAmount) * 0.01;
+
+      const collateralTokenAmountFilledBefore = new BigNumber(
+        loanBefore.collateralTokenAmountFilled
+      );
+      expect(collateralTokenAmountFilledBefore).toEqual(
+        new BigNumber(loanBefore.loanTokenAmountFilled).times(
+          initialMarginAmountFrac
+        )
+      );
+
+      const collateralTokenAmountFilledAfterDeposit = new BigNumber(
+        loanAfterDeposit.collateralTokenAmountFilled
+      );
+      expect(collateralTokenAmountFilledAfterDeposit).toEqual(
+        collateralTokenAmountFilledBefore.plus(depositAmount)
+      );
+
+      const collateralTokenAmountFilledAfterWithdraw = new BigNumber(
+        loanAfterWithdraw.collateralTokenAmountFilled
+      );
+      expect(collateralTokenAmountFilledAfterWithdraw).toEqual(
+        collateralTokenAmountFilledAfterDeposit.minus(withdrawAmount)
+      );
     });
   });
 });
