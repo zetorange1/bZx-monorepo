@@ -14,6 +14,7 @@ import * as transfer from "../transfer";
 import * as signature from "../signature";
 import * as Errors from "./constants/errors";
 import * as trade from "../trade";
+import * as loanHealth from "../loanHealth";
 
 let Web3 = null;
 if (typeof window !== "undefined") {
@@ -109,6 +110,8 @@ export default class B0xJS {
   transferToken = (...props) => transfer.transferToken(this, ...props);
 
   tradePositionWith0x = (...props) => trade.tradePositionWith0x(this, ...props);
+
+  changeCollateral = (...props) => loanHealth.changeCollateral(this, ...props);
   tradePositionWithOracle = (...props) =>
     trade.tradePositionWithOracle(this, ...props);
 }
