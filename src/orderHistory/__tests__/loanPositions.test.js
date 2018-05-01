@@ -10,14 +10,13 @@ const { web3 } = b0xJS;
 
 describe("loanPositions", () => {
   const { owner, lenders, traders } = OrderHistoryTestUtils.getAccounts();
+  const {
+    loanTokens,
+    collateralTokens,
+    interestTokens
+  } = FillTestUtils.initAllContractInstances();
 
   beforeAll(async () => {
-    const {
-      loanTokens,
-      collateralTokens,
-      interestTokens
-    } = FillTestUtils.initAllContractInstances();
-
     const transferAmount = web3.utils.toWei("100000", "ether");
     await FillTestUtils.setupAll({ owner, lenders, traders, transferAmount });
 
@@ -64,11 +63,6 @@ describe("loanPositions", () => {
 
   describe("getLoansForTrader", async () => {
     test("should return loan positions", async () => {
-      const {
-        loanTokens,
-        collateralTokens
-      } = FillTestUtils.initAllContractInstances();
-
       const loanPositions = await b0xJS.getLoansForTrader({
         address: traders[0],
         start: 0,
@@ -94,26 +88,21 @@ describe("loanPositions", () => {
       );
 
       expect(loanPositionsNoRandomFields).toContainEqual({
-        "active":1,
-        "collateralTokenAddressFilled":"0xb48e1b16829c7f5bd62b76cb878a6bb1c4625d7a",
-        "interestTokenAddress":"0xe704967449b57b2382b7fa482718748c13c63190",
-        "lender":"0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
-        "loanTokenAddress":"0x4586649629f699f9a4b61d0e962dc3c9025fe488",
-        "loanTokenAmountFilled":12300000000000000000,
-        "positionTokenAddressFilled":"0x4586649629f699f9a4b61d0e962dc3c9025fe488",
-        "positionTokenAmountFilled":12300000000000000000,
-        "trader":"0x06cef8e666768cc40cc78cf93d9611019ddcb628",
+        active: 1,
+        collateralTokenAddressFilled: collateralTokens[0].options.address.toLowerCase(),
+        interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
+        lender: "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+        loanTokenAddress: loanTokens[0].options.address.toLowerCase(),
+        loanTokenAmountFilled: 12300000000000000000,
+        positionTokenAddressFilled: loanTokens[0].options.address.toLowerCase(),
+        positionTokenAmountFilled: 12300000000000000000,
+        trader: "0x06cef8e666768cc40cc78cf93d9611019ddcb628"
       });
     });
   });
 
   describe("getLoansForLender", async () => {
     test("should return loan positions", async () => {
-      const {
-        loanTokens,
-        collateralTokens
-      } = FillTestUtils.initAllContractInstances();
-
       const loanPositions = await b0xJS.getLoansForLender({
         address: lenders[0],
         start: 0,
@@ -139,15 +128,15 @@ describe("loanPositions", () => {
       );
 
       expect(loanPositionsNoRandomFields).toContainEqual({
-        "active":1,
-        "collateralTokenAddressFilled":"0xb48e1b16829c7f5bd62b76cb878a6bb1c4625d7a",
-        "interestTokenAddress":"0xe704967449b57b2382b7fa482718748c13c63190",
-        "lender":"0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
-        "loanTokenAddress":"0x4586649629f699f9a4b61d0e962dc3c9025fe488",
-        "loanTokenAmountFilled":12300000000000000000,
-        "positionTokenAddressFilled":"0x4586649629f699f9a4b61d0e962dc3c9025fe488",
-        "positionTokenAmountFilled":12300000000000000000,
-        "trader":"0x06cef8e666768cc40cc78cf93d9611019ddcb628",
+        active: 1,
+        collateralTokenAddressFilled: collateralTokens[0].options.address.toLowerCase(),
+        interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
+        lender: "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+        loanTokenAddress: loanTokens[0].options.address.toLowerCase(),
+        loanTokenAmountFilled: 12300000000000000000,
+        positionTokenAddressFilled: loanTokens[0].options.address.toLowerCase(),
+        positionTokenAmountFilled: 12300000000000000000,
+        trader: "0x06cef8e666768cc40cc78cf93d9611019ddcb628"
       });
     });
   });
