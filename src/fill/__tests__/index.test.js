@@ -37,7 +37,7 @@ describe("filling orders", () => {
     console.log("before setting up tokens");
     console.log(balancesBefore.map(bigNum => bigNum.toString()));
 
-    const transferAmount = web3.utils.toWei("1000000", "ether");
+    const transferAmount = web3.utils.toWei("500", "ether");
     await FillTestUtils.setupAll({ owner, lenders, traders, transferAmount });
 
     const balancePs2 = [

@@ -36,7 +36,7 @@ describe("loanPositions", () => {
   const collateralTokenAddress = collateralTokens[0].options.address.toLowerCase();
 
   beforeAll(async () => {
-    const transferAmount = web3.utils.toWei("100000", "ether");
+    const transferAmount = web3.utils.toWei("500", "ether");
     await FillTestUtils.setupAll({ owner, lenders, traders, transferAmount });
 
     const takerAddress = traders[0];
