@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`trade tradePositionWithOracle should successfully trade position with oracle (Kyber) 1`] = `
+Object {
+  "0": "this is a random field",
+  "1": "0xE36Ea790bc9d7AB70C55260C66D52b1eca985f84",
+  "2": "50",
+  "3": "25",
+  "4": "50000000000000000000",
+  "currentMarginAmount": "50000000000000000000",
+  "initialMarginAmount": "50",
+  "loanOrderHash": "this is a random field",
+  "maintenanceMarginAmount": "25",
+  "trader": "0xE36Ea790bc9d7AB70C55260C66D52b1eca985f84",
+}
+`;
+
+exports[`trade tradePositionWithOracle should successfully trade position with oracle (Kyber) 2`] = `
+Object {
+  "0": "this is a random field",
+  "1": "0xE36Ea790bc9d7AB70C55260C66D52b1eca985f84",
+  "2": "0xF96b018E8dE3A229DbaCed8439DF9e3034e263c1",
+  "3": "0x5D3AD3561A1235273cbCb4E82fCe63A0073d19be",
+  "4": "12300000000000000000",
+  "5": "12300000000000000000",
+  "destTokenAddress": "0x5D3AD3561A1235273cbCb4E82fCe63A0073d19be",
+  "destTokenAmount": "12300000000000000000",
+  "loanOrderHash": "this is a random field",
+  "sourceTokenAddress": "0xF96b018E8dE3A229DbaCed8439DF9e3034e263c1",
+  "sourceTokenAmount": "12300000000000000000",
+  "trader": "0xE36Ea790bc9d7AB70C55260C66D52b1eca985f84",
+}
+`;
