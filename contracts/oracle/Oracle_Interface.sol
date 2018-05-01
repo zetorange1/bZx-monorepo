@@ -30,7 +30,7 @@ interface Oracle_Interface {
         bytes32 loanOrderHash,
         address taker,
         uint gasUsed)
-        public
+        external
         returns (bool);
 
     /// @dev Called by b0x after a position token is traded
@@ -46,7 +46,7 @@ interface Oracle_Interface {
         address tradeTokenAddress,
         uint tradeTokenAmount,
         uint gasUsed)
-        public
+        external
         returns (bool);
 
     /// @dev Called by b0x after interest should be paid to a lender
@@ -66,7 +66,7 @@ interface Oracle_Interface {
         address interestTokenAddress,
         uint amountOwed,
         uint gasUsed)
-        public
+        external
         returns (bool);
 
     /// @dev Called by b0x after a borrower has deposited additional collateral
@@ -79,7 +79,7 @@ interface Oracle_Interface {
         bytes32 loanOrderHash,
         address borrower,
         uint gasUsed)
-        public
+        external
         returns (bool);
 
     /// @dev Called by b0x after a borrower has withdrawn excess collateral
@@ -92,7 +92,7 @@ interface Oracle_Interface {
         bytes32 loanOrderHash,
         address borrower,
         uint gasUsed)
-        public
+        external
         returns (bool);
 
     /// @dev Called by b0x after a borrower has changed the collateral token
@@ -105,7 +105,7 @@ interface Oracle_Interface {
         bytes32 loanOrderHash,
         address borrower,
         uint gasUsed)
-        public
+        external
         returns (bool);
 
     /// @dev Called by b0x after a borrower has withdraw their profits, if any
@@ -119,7 +119,7 @@ interface Oracle_Interface {
         address borrower,
         uint profitOrLoss,
         uint gasUsed)
-        public
+        external
         returns (bool);
 
     /// @dev Called by b0x after a loan is closed
@@ -133,7 +133,7 @@ interface Oracle_Interface {
         address closer,
         bool isLiquidation,
         uint gasUsed)
-        public
+        external
         returns (bool);
 
     /// @dev Liquidates the position on-chain
@@ -145,7 +145,7 @@ interface Oracle_Interface {
         address sourceTokenAddress, // typically tradeToken
         address destTokenAddress,   // typically loanToken
         uint sourceTokenAmount)
-        public
+        external
         returns (uint);
 
     /// @dev Verifies a position has fallen below margin maintenance
@@ -166,7 +166,7 @@ interface Oracle_Interface {
         uint positionTokenAmount,
         uint collateralTokenAmount,
         uint maintenanceMarginAmount)
-        public
+        external
         returns (uint);
 
     /// @dev Liquidates collateral to cover loan losses
@@ -180,7 +180,7 @@ interface Oracle_Interface {
         address loanTokenAddress,
         uint collateralTokenAmountUsable,
         uint loanTokenAmountNeeded)
-        public
+        external
         returns (uint, uint);
 
     /// @dev Checks if a position has fallen below margin
@@ -205,7 +205,7 @@ interface Oracle_Interface {
         uint positionTokenAmount,
         uint collateralTokenAmount,
         uint maintenanceMarginAmount)
-        public
+        external
         view
         returns (bool);
 
@@ -216,7 +216,7 @@ interface Oracle_Interface {
     function getTradeRate(
         address sourceTokenAddress,
         address destTokenAddress)
-        public
+        external
         view 
         returns (uint);
 
@@ -231,7 +231,7 @@ interface Oracle_Interface {
         address loanTokenAddress,
         uint positionTokenAmount,
         uint loanTokenAmount)
-        public
+        external
         view
         returns (bool isProfit, uint profitOrLoss, uint positionToLoanAmount, uint positionToLoanRate);
 
@@ -250,7 +250,7 @@ interface Oracle_Interface {
         uint loanTokenAmount,
         uint positionTokenAmount,
         uint collateralTokenAmount)
-        public
+        external
         view
         returns (uint);
 
@@ -261,7 +261,7 @@ interface Oracle_Interface {
     function isTradeSupported(
         address sourceTokenAddress,
         address destTokenAddress)
-        public
+        external
         view 
         returns (bool);
 }

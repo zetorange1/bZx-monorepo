@@ -1,7 +1,7 @@
 
 pragma solidity ^0.4.23;
 
-import 'zeppelin-solidity/contracts/math/Math.sol';
+import 'openzeppelin-solidity/contracts/math/Math.sol';
 
 import './B0xStorage.sol';
 import './B0xProxyContracts.sol';
@@ -9,7 +9,7 @@ import '../shared/InternalFunctions.sol';
 
 import '../B0xVault.sol';
 import '../oracle/OracleRegistry.sol';
-import '../interfaces/Oracle_Interface.sol';
+import '../oracle/Oracle_Interface.sol';
 
 contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
     using SafeMath for uint256;

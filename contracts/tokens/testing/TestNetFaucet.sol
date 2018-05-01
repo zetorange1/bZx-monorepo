@@ -1,7 +1,7 @@
 
 pragma solidity ^0.4.23;
 
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import '../EIP20Wrapper.sol';
 
 contract TestNetFaucet is EIP20Wrapper, Ownable {
