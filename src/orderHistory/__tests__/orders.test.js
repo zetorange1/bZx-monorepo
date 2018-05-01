@@ -55,12 +55,13 @@ describe("order history", () => {
     );
 
     const loanTokenAmountFilled = web3.utils.toWei("12.3");
-    await b0xJS.takeLoanOrderAsTrader(
+    const receipt = await b0xJS.takeLoanOrderAsTrader(
       { ...order, signature },
       collateralTokens[0].options.address.toLowerCase(),
       loanTokenAmountFilled,
       txOpts
     );
+    console.log(receipt);
   });
 
   describe("getOrders", async () => {
