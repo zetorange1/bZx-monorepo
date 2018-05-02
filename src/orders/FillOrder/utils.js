@@ -59,12 +59,12 @@ export const validateFillOrder = async (
     const collateralToken = tokens.filter(
       t => t.address === collateralTokenAddress
     )[0];
-    const notAllowed = [`ZRX`, `B0X`];
+    const notAllowed = [];
     const collateralTokenNotAllowed = notAllowed.includes(
       collateralToken && collateralToken.symbol
     );
     if (collateralTokenNotAllowed) {
-      alert(`ZRX and B0X is not yet supported for lending or as collateral.`);
+      alert(`These tokens are not yet supported for lending or as collateral.`);
       return false;
     }
 
@@ -139,7 +139,7 @@ export const submitFillOrder = async (
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`https://ropsten.etherscan.io/tx/${hash}`}>
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )
@@ -155,7 +155,7 @@ export const submitFillOrder = async (
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`https://ropsten.etherscan.io/tx/${hash}`}>
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )

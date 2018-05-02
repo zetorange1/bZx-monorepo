@@ -24,7 +24,6 @@ const RightJustified = styled.div`
   text-align: right;
 `;
 
-const addressLinkPrefix = `https://ropsten.etherscan.io/address/`;
 const AddressLink = styled.a.attrs({
   target: `_blank`,
   rel: `noopener noreferrer`
@@ -38,7 +37,7 @@ const AddressLink = styled.a.attrs({
   color: rgba(0, 0, 0, 0.54);
 `;
 
-export default ({ oracleAddress, setOracleAddress, oracles }) => (
+export default ({ oracleAddress, setOracleAddress, oracles, etherscanURL }) => (
   <Section>
     <SectionLabel>Oracle</SectionLabel>
 
@@ -57,7 +56,7 @@ export default ({ oracleAddress, setOracleAddress, oracles }) => (
             <MoreInfo>More Info</MoreInfo>
           </Tooltip>
           <RightJustified>
-            <AddressLink href={`${addressLinkPrefix}${oracleAddress}`}>
+            <AddressLink href={`${etherscanURL}address/${oracleAddress}`}>
               Etherscan
             </AddressLink>
           </RightJustified>

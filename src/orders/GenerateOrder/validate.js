@@ -100,7 +100,7 @@ export default async (b0x, accounts, state, tokens) => {
 
   const coinsAllowed = checkCoinsAllowed(state, tokens);
   if (!coinsAllowed) {
-    alert(`ZRX and B0X is not yet supported for lending or as collateral.`);
+    alert(`These tokens are not yet supported for lending or as collateral.`);
     return false;
   }
 

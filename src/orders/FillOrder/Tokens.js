@@ -82,7 +82,7 @@ export default ({
             <Title>Loan Token</Title>
           </Tooltip>
           <CoinInfo
-            href={`https://ropsten.etherscan.io/token/${loanToken.address}`}
+            href={`${this.props.b0x.etherscanURL}/token/${loanToken.address}`}
           >
             <CoinIcon src={getIconURL(loanToken)} />
             <CoinLabel>{loanToken.name}</CoinLabel>
@@ -98,7 +98,9 @@ export default ({
             <Title>Interest Token</Title>
           </Tooltip>
           <CoinInfo
-            href={`https://ropsten.etherscan.io/token/${interestToken.address}`}
+            href={`${this.props.b0x.etherscanURL}token/${
+              interestToken.address
+            }`}
           >
             <CoinIcon src={getIconURL(interestToken)} />
             <CoinLabel>{interestToken.name}</CoinLabel>
@@ -126,7 +128,7 @@ export default ({
               <Title>Collateral Token</Title>
             </Tooltip>
             <CoinInfo
-              href={`https://ropsten.etherscan.io/token/${
+              href={`${this.props.b0x.etherscanURL}token/${
                 collateralToken.address
               }`}
             >

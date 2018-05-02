@@ -207,6 +207,7 @@ export default class GenerateOrder extends React.Component {
           oracleAddress={this.state.oracleAddress}
           setOracleAddress={this.setStateForInput(`oracleAddress`)}
           oracles={this.state.oracles}
+          etherscanURL={this.props.b0x.etherscanURL}
         />
 
         <Divider />
@@ -228,6 +229,7 @@ export default class GenerateOrder extends React.Component {
           interestAmount={this.state.interestAmount}
           interestTotalAmount={this.state.interestTotalAmount}
           collateralRefresh={this.refreshCollateralAmount}
+          etherscanURL={this.props.b0x.etherscanURL}
         />
 
         <Divider />

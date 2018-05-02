@@ -53,7 +53,6 @@ const RightJustified = styled.div`
   text-align: right;
 `;
 
-const addressLinkPrefix = `https://ropsten.etherscan.io/address/`;
 const AddressLink = styled.a.attrs({
   target: `_blank`,
   rel: `noopener noreferrer`
@@ -119,7 +118,11 @@ export default ({
             setAddress={setCollateralTokenAddress}
           />
           <CenteredFormHelperText margin="normal" component="div">
-            <AddressLink href={`${addressLinkPrefix}${collateralTokenAddress}`}>
+            <AddressLink
+              href={`${
+                this.props.b0x.etherscanURL
+              }/address/${collateralTokenAddress}`}
+            >
               Etherscan
             </AddressLink>
           </CenteredFormHelperText>

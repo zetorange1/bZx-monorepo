@@ -55,7 +55,6 @@ const RightJustifiedText = styled.span`
   font-weight: bold;
 `;
 
-const addressLinkPrefix = `https://ropsten.etherscan.io/address/`;
 const AddressLink = styled.a.attrs({
   target: `_blank`,
   rel: `noopener noreferrer`
@@ -85,7 +84,8 @@ export default ({
   collateralTokenAmount,
   interestAmount,
   interestTotalAmount,
-  collateralRefresh
+  collateralRefresh,
+  etherscanURL
 }) => (
   <Section>
     <SectionLabel>Tokens and Token Amounts</SectionLabel>
@@ -98,7 +98,7 @@ export default ({
           value={loanTokenAddress}
         />
         <CenteredFormHelperText margin="normal" component="div">
-          <AddressLink href={`${addressLinkPrefix}${loanTokenAddress}`}>
+          <AddressLink href={`${etherscanURL}address/${loanTokenAddress}`}>
             Etherscan
           </AddressLink>
         </CenteredFormHelperText>
@@ -136,7 +136,7 @@ export default ({
           value={interestTokenAddress}
         />
         <CenteredFormHelperText margin="normal" component="div">
-          <AddressLink href={`${addressLinkPrefix}${interestTokenAddress}`}>
+          <AddressLink href={`${etherscanURL}address/${interestTokenAddress}`}>
             Etherscan
           </AddressLink>
         </CenteredFormHelperText>
@@ -174,7 +174,9 @@ export default ({
             value={collateralTokenAddress}
           />
           <CenteredFormHelperText margin="normal" component="div">
-            <AddressLink href={`${addressLinkPrefix}${collateralTokenAddress}`}>
+            <AddressLink
+              href={`${etherscanURL}address/${collateralTokenAddress}`}
+            >
               Etherscan
             </AddressLink>
           </CenteredFormHelperText>

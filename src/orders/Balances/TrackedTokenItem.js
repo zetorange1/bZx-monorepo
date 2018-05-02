@@ -15,7 +15,8 @@ import Dialog, {
 import { COLORS } from "../../styles/constants";
 import {
   removeTrackedToken,
-  PERMA_TOKEN_SYMBOLS
+  PERMA_TOKEN_SYMBOLS,
+  FAUCET_TOKEN_SYMBOLS
 } from "../../common/trackedTokens";
 import { fromBigNumber, toBigNumber } from "../../common/utils";
 
@@ -82,6 +83,7 @@ const TxHashLink = styled.a.attrs({
 export default class TrackedTokenItems extends React.Component {
   state = {
     showSendDialog: false,
+    showRequestDialog: false,
     recipientAddress: ``,
     sendAmount: ``,
     approved: null,
@@ -124,6 +126,9 @@ export default class TrackedTokenItems extends React.Component {
   toggleSendDialog = () =>
     this.setState(p => ({ showSendDialog: !p.showSendDialog }));
 
+  toggleRequestDialog = () =>
+    this.setState(p => ({ showRequestDialog: !p.showRequestDialog }));
+
   sendTokens = async () => {
     const { b0x, token, accounts, updateTrackedTokens } = this.props;
     const { recipientAddress, sendAmount } = this.state;
@@ -137,7 +142,7 @@ export default class TrackedTokenItems extends React.Component {
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`https://ropsten.etherscan.io/tx/${hash}`}>
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )
@@ -147,6 +152,32 @@ export default class TrackedTokenItems extends React.Component {
         alert(error.message);
       });
     this.setState({ showSendDialog: false });
+    setTimeout(() => updateTrackedTokens(true), 5000);
+  };
+
+  requestToken = async () => {
+    const { b0x, token, accounts, updateTrackedTokens } = this.props;
+    console.log(`requesting token from testnet faucet`);
+    console.log(token);
+    b0x
+      .requestFaucetToken({
+        tokenAddress: token.address,
+        receiverAddress: accounts[0],
+        txOpts: { from: accounts[0] }
+      })
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        alert(error.message);
+      });
+    this.setState({ showRequestDialog: false });
     setTimeout(() => updateTrackedTokens(true), 5000);
   };
 
@@ -168,7 +199,7 @@ export default class TrackedTokenItems extends React.Component {
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`https://ropsten.etherscan.io/tx/${hash}`}>
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )
@@ -193,7 +224,7 @@ export default class TrackedTokenItems extends React.Component {
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`https://ropsten.etherscan.io/tx/${hash}`}>
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )
@@ -236,9 +267,12 @@ export default class TrackedTokenItems extends React.Component {
     const { name, symbol, iconUrl, address } = this.props.token;
     const { balance } = this.state;
     const isPermaToken = PERMA_TOKEN_SYMBOLS.includes(symbol);
+    const isFaucetToken =
+      FAUCET_TOKEN_SYMBOLS[this.props.b0x.networkName] !== undefined &&
+      FAUCET_TOKEN_SYMBOLS[this.props.b0x.networkName].includes(symbol);
     return (
       <Container>
-        <TokenInfo href={`https://ropsten.etherscan.io/token/${address}`}>
+        <TokenInfo href={`${this.props.b0x.etherscanURL}token/${address}`}>
           <TokenIcon src={iconUrl} />
           <Name>{name}</Name>
         </TokenInfo>
@@ -252,11 +286,24 @@ export default class TrackedTokenItems extends React.Component {
           <div>loading...</div>
         )}
         <ButtonGroup>
+          <Button
+            variant="raised"
+            onClick={this.toggleRequestDialog}
+            style={{
+              visibility: !isFaucetToken ? `hidden` : `unset`,
+              display: !isFaucetToken ? `none` : `unset`
+            }}
+          >
+            Request
+          </Button>
           {this.renderAllowance()}
           <Button
             variant="raised"
             color="primary"
             onClick={this.toggleSendDialog}
+            style={{
+              "margin-left": `12px`
+            }}
           >
             Send
           </Button>
@@ -303,6 +350,25 @@ export default class TrackedTokenItems extends React.Component {
             <Button onClick={this.toggleSendDialog}>Cancel</Button>
             <Button onClick={this.sendTokens} color="primary">
               Send
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog
+          open={this.state.showRequestDialog}
+          onClose={this.toggleRequestDialog}
+        >
+          <DialogTitle>Request {name} from Faucet</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              This will request that 1 (one) {symbol} be transfered to your
+              wallet. If you have requested this token recently, then this
+              transaction may fail.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.toggleRequestDialog}>Cancel</Button>
+            <Button onClick={this.requestToken} color="primary">
+              Request
             </Button>
           </DialogActions>
         </Dialog>

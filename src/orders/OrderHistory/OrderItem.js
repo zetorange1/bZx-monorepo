@@ -100,20 +100,20 @@ export default class OrderItem extends React.Component {
       takenOrder.collateralTokenAddress
     );
 
-    const tokenLinkPrefix = `https://ropsten.etherscan.io/token/`;
-    const loanTokenAddressLink = `${tokenLinkPrefix}${
+    const loanTokenAddressLink = `${this.props.b0x.etherscanURL}token/${
       takenOrder.loanTokenAddress
     }`;
-    const interestTokenAddressLink = `${tokenLinkPrefix}${
+    const interestTokenAddressLink = `${this.props.b0x.etherscanURL}token/${
       takenOrder.interestTokenAddress
     }`;
-    const collateralTokenAddressLink = `${tokenLinkPrefix}${
+    const collateralTokenAddressLink = `${this.props.b0x.etherscanURL}token/${
       takenOrder.collateralTokenAddress
     }`;
 
-    const addressLinkPrefix = `https://ropsten.etherscan.io/address/`;
-    const oracleAddressLink = `${addressLinkPrefix}${takenOrder.oracleAddress}`;
-    const feeRecipientAddressLink = `${addressLinkPrefix}${
+    const oracleAddressLink = `${this.props.b0x.etherscanURL}address/${
+      takenOrder.oracleAddress
+    }`;
+    const feeRecipientAddressLink = `${this.props.b0x.etherscanURL}address/${
       takenOrder.feeRecipientAddress
     }`;
 

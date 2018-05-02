@@ -129,7 +129,7 @@ export default class FillOrder extends React.Component {
           <p>
             This order was created by{` `}
             <Hash
-              href={`https://ropsten.etherscan.io/address/${
+              href={`${this.props.b0x.etherscanURL}address/${
                 order.makerAddress
               }`}
               target="_blank"
