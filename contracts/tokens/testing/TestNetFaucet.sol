@@ -10,7 +10,7 @@ contract TestNetFaucet is EIP20Wrapper, Ownable {
 
     uint public faucetThresholdSecs = 14400; // 4 hours
 
-    mapping (address => uint) public faucetUsers;
+    mapping (address => mapping (address => uint)) public faucetUsers; // mapping of users to mapping of tokens to last request times
 
     function() public payable {}
 
@@ -38,11 +38,11 @@ contract TestNetFaucet is EIP20Wrapper, Ownable {
         public
         returns (bool)
     {
-        require(block.timestamp-faucetUsers[receiver] >= faucetThresholdSecs 
-            && block.timestamp-faucetUsers[msg.sender] >= faucetThresholdSecs);
+        require(block.timestamp-faucetUsers[receiver][getToken] >= faucetThresholdSecs 
+            && block.timestamp-faucetUsers[msg.sender][getToken] >= faucetThresholdSecs);
 
-        faucetUsers[receiver] = block.timestamp;
-        faucetUsers[msg.sender] = block.timestamp;
+        faucetUsers[receiver][getToken] = block.timestamp;
+        faucetUsers[msg.sender][getToken] = block.timestamp;
 
         eip20Transfer(
             getToken,
