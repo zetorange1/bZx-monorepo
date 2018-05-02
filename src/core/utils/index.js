@@ -118,3 +118,24 @@ export const doesConformToSchema = (variableName, value, schema) => {
 };
 
 export const toChecksumAddress = addr => Web3Utils.toChecksumAddress(addr);
+
+export const requestFaucetToken = (
+  { web3, networkId },
+  { tokenAddress, receiverAddress, txOpts }
+) => {
+  const faucetContract = getContractInstance(
+    web3,
+    getContracts(networkId).TestNetFaucet.abi,
+    Addresses.getAddresses(networkId).TestNetFaucet
+  );
+
+  const txObj = faucetContract.methods.faucet(
+    toChecksumAddress(tokenAddress),
+    toChecksumAddress(receiverAddress)
+  );
+  console.log(`requestFaucetToken: ${txObj.encodeABI()}`);
+
+  return txObj.send({
+    from: txOpts.from
+  });
+};

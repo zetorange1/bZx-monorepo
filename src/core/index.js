@@ -39,6 +39,28 @@ export default class B0xJS {
     this.web3 = new Web3(provider);
     this.addresses = addresses;
     this.networkId = networkId;
+    switch (networkId) {
+      case 1:
+        this.networkName = "mainnet";
+        this.etherscanURL = "https://etherscan.io/";
+        break;
+      case 3:
+        this.networkName = "ropsten";
+        this.etherscanURL = "https://ropsten.etherscan.io/";
+        break;
+      case 4:
+        this.networkName = "rinkeby";
+        this.etherscanURL = "https://rinkeby.etherscan.io/";
+        break;
+      case 42:
+        this.networkName = "kovan";
+        this.etherscanURL = "https://kovan.etherscan.io/";
+        break;
+      default: 
+        this.networkName = "local";
+        this.etherscanURL = "";
+        break;
+    }
   }
 
   static getLoanOrderHashHex(order) {
@@ -120,4 +142,7 @@ export default class B0xJS {
     loanHealth.depositCollateral(this, ...props);
   withdrawExcessCollateral = (...props) =>
     loanHealth.withdrawExcessCollateral(this, ...props);
+
+  requestFaucetToken = (...props) => 
+    utils.requestFaucetToken(this, ...props);
 }
