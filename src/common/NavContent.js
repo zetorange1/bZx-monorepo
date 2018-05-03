@@ -89,7 +89,7 @@ class NavContent extends React.Component {
             <NavLink>Bounties</NavLink>
           </Link>
           <a
-            style={{ "text-decoration": `none` }}
+            style={{ textDecoration: `none` }}
             href="https://portal.b0x.network/mew/#contracts"
           >
             <NavLink>Contracts</NavLink>

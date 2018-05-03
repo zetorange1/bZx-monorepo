@@ -24,7 +24,8 @@ export default class Web3Container extends React.Component {
     tokens: null,
     b0x: null,
     accounts: null,
-    oracles: null
+    oracles: null,
+    networkId: null
   };
 
   async componentDidMount() {
@@ -78,7 +79,8 @@ export default class Web3Container extends React.Component {
       tokens,
       b0x,
       accounts,
-      oracles
+      oracles,
+      networkId
     });
   }
 
@@ -90,14 +92,15 @@ export default class Web3Container extends React.Component {
       tokens,
       b0x,
       accounts,
-      oracles
+      oracles,
+      networkId
     } = this.state;
     const { render } = this.props;
     if (loading) {
       return <LoadingContainer>Loading Web3...</LoadingContainer>;
     }
     return web3 ? (
-      render({ web3, zeroEx, tokens, b0x, accounts, oracles })
+      render({ web3, zeroEx, tokens, b0x, accounts, oracles, networkId })
     ) : (
       <GetMetaMask />
     );
