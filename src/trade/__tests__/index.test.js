@@ -31,7 +31,6 @@ describe("trade", () => {
   beforeAll(async () => {
     await TradeTestUtils.setupAll({
       owner,
-      traders,
       makerOf0xOrder,
       transferAmount: web3.utils.toWei("500", "ether")
     });
