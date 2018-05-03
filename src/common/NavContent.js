@@ -88,12 +88,12 @@ class NavContent extends React.Component {
           <Link href="/bounties">
             <NavLink>Bounties</NavLink>
           </Link>
-          <a
+          <NavLink
             style={{ textDecoration: `none` }}
             href="https://portal.b0x.network/mew/#contracts"
           >
-            <NavLink>Contracts</NavLink>
-          </a>
+            Contracts
+          </NavLink>
         </HorizontalNav>
         <HamburgerBtn onClick={this.toggleSideNav}>menu</HamburgerBtn>
         <Overlay show={this.state.showSideNav} onClick={this.toggleSideNav} />
