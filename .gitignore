@@ -5,3 +5,4 @@ secrets.js
 *.test.json
 .DS_Store
 test_network
+.vscode

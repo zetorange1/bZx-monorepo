@@ -14,6 +14,7 @@ import * as transfer from "../transfer";
 import * as signature from "../signature";
 import * as Errors from "./constants/errors";
 import * as trade from "../trade";
+import * as loanHealth from "../loanHealth";
 
 let Web3 = null;
 if (typeof window !== "undefined") {
@@ -38,6 +39,28 @@ export default class B0xJS {
     this.web3 = new Web3(provider);
     this.addresses = addresses;
     this.networkId = networkId;
+    switch (networkId) {
+      case 1:
+        this.networkName = "mainnet";
+        this.etherscanURL = "https://etherscan.io/";
+        break;
+      case 3:
+        this.networkName = "ropsten";
+        this.etherscanURL = "https://ropsten.etherscan.io/";
+        break;
+      case 4:
+        this.networkName = "rinkeby";
+        this.etherscanURL = "https://rinkeby.etherscan.io/";
+        break;
+      case 42:
+        this.networkName = "kovan";
+        this.etherscanURL = "https://kovan.etherscan.io/";
+        break;
+      default: 
+        this.networkName = "local";
+        this.etherscanURL = "";
+        break;
+    }
   }
 
   static getLoanOrderHashHex(order) {
@@ -108,5 +131,18 @@ export default class B0xJS {
 
   transferToken = (...props) => transfer.transferToken(this, ...props);
 
-  tradePositionWith0x = (...props) => trade.tradePositionWith0x(this, ...props);
+  tradePositionWith0x = (...props) => 
+    trade.tradePositionWith0x(this, ...props);
+  tradePositionWithOracle = (...props) =>
+    trade.tradePositionWithOracle(this, ...props);
+
+  changeCollateral = (...props) => 
+    loanHealth.changeCollateral(this, ...props);
+  depositCollateral = (...props) =>
+    loanHealth.depositCollateral(this, ...props);
+  withdrawExcessCollateral = (...props) =>
+    loanHealth.withdrawExcessCollateral(this, ...props);
+
+  requestFaucetToken = (...props) => 
+    utils.requestFaucetToken(this, ...props);
 }

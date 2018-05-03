@@ -33,13 +33,13 @@ describe("trade", () => {
       owner,
       traders,
       makerOf0xOrder,
-      transferAmount: web3.utils.toWei("10000", "ether")
+      transferAmount: web3.utils.toWei("500", "ether")
     });
     await FillTestUtils.setupAll({
       owner,
       lenders,
       traders,
-      transferAmount: web3.utils.toWei("1000000", "ether")
+      transferAmount: web3.utils.toWei("500", "ether")
     });
 
     const orderB0x = FillTestUtils.makeOrderAsLender({
