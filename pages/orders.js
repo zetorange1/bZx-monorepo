@@ -16,6 +16,7 @@ import Balances from "../src/orders/Balances";
 import OrderHistory from "../src/orders/OrderHistory";
 import Web3Container from "../src/web3/Web3Container";
 import { getTrackedTokens } from "../src/common/trackedTokens";
+import NetworkIndicator from "../src/common/NetworkIndicator";
 
 const TABS = [
   { id: `GEN_ORDER`, label: `Generate Order` },
@@ -65,8 +66,9 @@ class Orders extends React.Component {
           <Content>
             <Web3Container
               // eslint-disable-next-line
-              render={({ web3, zeroEx, tokens, b0x, accounts, oracles }) => (
+              render={({ web3, zeroEx, tokens, b0x, accounts, oracles, networkId }) => (
                 <Fragment>
+                  <NetworkIndicator networkId={networkId} />
                   <ContentContainer show={activeTab === `GEN_ORDER`}>
                     <GenerateOrder
                       tokens={tokens}

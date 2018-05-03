@@ -97,12 +97,12 @@ export default ({
           setAddress={setStateForAddress(`loanTokenAddress`)}
           value={loanTokenAddress}
         />
-        <CenteredFormHelperText margin="normal" component="div">
+        <CenteredFormHelperText component="div">
           <AddressLink href={`${etherscanURL}address/${loanTokenAddress}`}>
             Etherscan
           </AddressLink>
         </CenteredFormHelperText>
-        <FormControl margin="normal" fullWidth>
+        <FormControl fullWidth>
           <InputLabel>Loan token amount</InputLabel>
           <Input
             value={loanTokenAmount}
@@ -135,12 +135,12 @@ export default ({
           setAddress={setStateForAddress(`interestTokenAddress`)}
           value={interestTokenAddress}
         />
-        <CenteredFormHelperText margin="normal" component="div">
+        <CenteredFormHelperText component="div">
           <AddressLink href={`${etherscanURL}address/${interestTokenAddress}`}>
             Etherscan
           </AddressLink>
         </CenteredFormHelperText>
-        <FormControl margin="normal" fullWidth>
+        <FormControl fullWidth>
           <InputLabel>Interest amount (per day)</InputLabel>
           <Input
             value={interestAmount}
@@ -173,14 +173,14 @@ export default ({
             setAddress={setStateForAddress(`collateralTokenAddress`)}
             value={collateralTokenAddress}
           />
-          <CenteredFormHelperText margin="normal" component="div">
+          <CenteredFormHelperText component="div">
             <AddressLink
               href={`${etherscanURL}address/${collateralTokenAddress}`}
             >
               Etherscan
             </AddressLink>
           </CenteredFormHelperText>
-          <FormControl margin="normal" fullWidth>
+          <FormControl fullWidth>
             <InputLabel>Collateral token amount</InputLabel>
             <Input
               disabled

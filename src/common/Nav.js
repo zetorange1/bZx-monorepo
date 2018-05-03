@@ -57,6 +57,7 @@ const Version = styled.div`
 
 const Nav = () => (
   <div>
+    <div className="network-indicator" />
     <Version>Alpha v{packageJson.version}</Version>
     <Container>
       <Content>

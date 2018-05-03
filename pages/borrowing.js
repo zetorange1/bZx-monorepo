@@ -4,6 +4,7 @@ import { Card, Header, HeaderTitle, Content } from "../src/common/MainContent";
 import { Divider } from "../src/common/FormSection";
 import PageContent from "../src/borrowing";
 import Web3Container from "../src/web3/Web3Container";
+import NetworkIndicator from "../src/common/NetworkIndicator";
 
 export default class Trading extends React.Component {
   state = { activeTab: undefined };
@@ -20,8 +21,9 @@ export default class Trading extends React.Component {
           </Header>
           <Content>
             <Web3Container
-              render={({ web3, zeroEx, tokens, b0x, accounts }) => (
+              render={({ web3, zeroEx, tokens, b0x, accounts, networkId }) => (
                 <Fragment>
+                  <NetworkIndicator networkId={networkId} />
                   <p>
                     This section will allow a trader (borrower) to manage active
                     loans and view closed loans.

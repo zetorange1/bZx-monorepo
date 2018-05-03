@@ -301,9 +301,7 @@ export default class TrackedTokenItems extends React.Component {
             variant="raised"
             color="primary"
             onClick={this.toggleSendDialog}
-            style={{
-              "margin-left": `12px`
-            }}
+            style={{ marginLeft: `12px` }}
           >
             Send
           </Button>
