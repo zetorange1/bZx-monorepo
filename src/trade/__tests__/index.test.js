@@ -81,7 +81,7 @@ describe("trade", () => {
       salt: B0xJS.generatePseudoRandomSalt().toString(),
       taker: constants.NULL_ADDRESS,
       takerFee: web3.utils.toWei("0.0013", "ether").toString(),
-      takerTokenAddress: loanTokens[0].options.address.toLowerCase(),
+      takerTokenAddress: orderB0x.loanTokenAddress,
       takerTokenAmount: web3.utils.toWei("90", "ether").toString()
     };
 
