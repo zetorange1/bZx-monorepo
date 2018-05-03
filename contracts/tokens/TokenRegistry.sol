@@ -19,7 +19,7 @@
 
 pragma solidity ^0.4.23;
 
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 
 contract TokenRegistry is Ownable {
 

@@ -1,15 +1,38 @@
 
 pragma solidity ^0.4.23;
 
-import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import './interfaces/B0xTo0x_Interface.sol';
-import './interfaces/Exchange_Interface.sol';
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import './tokens/EIP20.sol';
 import './tokens/EIP20Wrapper.sol';
 import './modifiers/B0xOwnable.sol';
 import './shared/Debugger.sol';
 
-contract B0xTo0x is B0xTo0x_Interface, EIP20Wrapper, Debugger, B0xOwnable {
+interface Exchange_Interface {
+    event LogError(uint8 indexed errorId, bytes32 indexed orderHash);
+
+    function fillOrder(
+          address[5] orderAddresses,
+          uint[6] orderValues,
+          uint fillTakerTokenAmount,
+          bool shouldThrowOnInsufficientBalanceOrAllowance,
+          uint8 v,
+          bytes32 r,
+          bytes32 s)
+          external
+          returns (uint filledTakerTokenAmount);
+
+    function isValidSignature(
+        address signer,
+        bytes32 hash,
+        uint8 v,
+        bytes32 r,
+        bytes32 s)
+        external
+        constant
+        returns (bool);
+}
+
+contract B0xTo0x is EIP20Wrapper, Debugger, B0xOwnable {
     using SafeMath for uint256;
 
     address public EXCHANGE_CONTRACT;
@@ -91,7 +114,7 @@ contract B0xTo0x is B0xTo0x_Interface, EIP20Wrapper, Debugger, B0xOwnable {
 
         if (sourceTokenUsedAmount < sourceTokenAmountToUse) {
             // all sourceToken has to be traded
-            voidOrRevert(95); return;
+            voidOrRevert(117); return;
         }
 
         destTokenAmount = getPartialAmount(

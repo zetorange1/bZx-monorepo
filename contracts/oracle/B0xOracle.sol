@@ -1,7 +1,7 @@
 
 pragma solidity ^0.4.23;
 
-import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
 import '../modifiers/B0xOwnable.sol';
 
@@ -12,12 +12,43 @@ import '../shared/Debugger.sol';
 
 import '../tokens/EIP20.sol';
 import '../tokens/EIP20Wrapper.sol';
-import '../interfaces/Oracle_Interface.sol';
-import '../interfaces/KyberNetwork_Interface.sol';
+import './Oracle_Interface.sol';
 
 interface WETH_Interface {
-    function deposit() public payable;
-    function withdraw(uint wad) public;
+    function deposit() external payable;
+    function withdraw(uint wad) external;
+}
+
+interface KyberNetwork_Interface {
+    /// @notice use token address ETH_TOKEN_ADDRESS for ether
+    /// @dev best conversion rate for a pair of tokens, if number of reserves have small differences. randomize
+    /// @param src Src token
+    /// @param dest Destination token
+    /// @return (bestReserve, bestRate). If not available, bestRate returns 0.
+    function findBestRate(address src, address dest, uint srcQty) external view returns(uint, uint);
+
+    /// @notice use token address ETH_TOKEN_ADDRESS for ether
+    /// @dev makes a trade between src and dest token and send dest token to destAddress
+    /// @param src Src token
+    /// @param srcAmount amount of src tokens
+    /// @param dest   Destination token
+    /// @param destAddress Address to send tokens to
+    /// @param maxDestAmount A limit on the amount of dest tokens
+    /// @param minConversionRate The minimal conversion rate. If actual rate is lower, trade is canceled.
+    /// @param walletId is the wallet ID to send part of the fees
+    /// @return amount of actual dest tokens
+    function trade(
+        address src,
+        uint srcAmount,
+        address dest,
+        address destAddress,
+        uint maxDestAmount,
+        uint minConversionRate,
+        address walletId
+    )
+        external
+        payable
+        returns(uint);
 }
 
 contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder, Debugger, B0xOwnable {
@@ -123,7 +154,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
             interestTokenAddress,
             lender,
             amountOwed.sub(interestFee))) {
-            return boolOrRevert(false,126);
+            return boolOrRevert(false,157);
         }
 
         return true;
@@ -272,7 +303,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
     {
         uint collateralTokenBalance = EIP20(collateralTokenAddress).balanceOf.gas(4999)(this); // Changes to state require at least 5000 gas
         if (collateralTokenBalance < collateralTokenAmountUsable) {
-            voidOrRevert(275); return;
+            voidOrRevert(306); return;
         }
         
         loanTokenAmountCovered = _doTrade(
@@ -288,7 +319,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
             collateralTokenAddress,
             VAULT_CONTRACT,
             collateralTokenAmountUsable.sub(collateralTokenAmountUsed))) {
-            voidOrRevert(291); return;
+            voidOrRevert(322); return;
         }
     }
 
@@ -338,10 +369,6 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
     {   
         if (sourceTokenAddress == destTokenAddress) {
             rate = 10**18;
-        } else if (KYBER_CONTRACT == address(0)) {
-            // SIMULATION MODE //
-            rate = 10**18;
-            //rate = (uint(block.blockhash(block.number-1)) % 100 + 1).mul(10**18);
         } else {
             uint sourceToEther;
             uint etherToDest;
@@ -601,21 +628,6 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
             } else {
                 destTokenAmount = sourceTokenAmount;
             }
-        } else if (KYBER_CONTRACT == address(0)) {
-            // SIMULATION MODE //
-            uint tradeRate = getTradeRate(sourceTokenAddress, destTokenAddress);
-            destTokenAmount = sourceTokenAmount.mul(tradeRate).div(10**18);
-            if (destTokenAmount > maxDestTokenAmount) {
-                destTokenAmount = maxDestTokenAmount;
-            }
-            _transferToken(
-                sourceTokenAddress,
-                owner, // sim mode so sending source to owner to simulate a trade
-                sourceTokenAmount);
-            _transferToken(
-                destTokenAddress,
-                VAULT_CONTRACT,
-                destTokenAmount);
         } else {
             if (sourceTokenAddress == WETH_CONTRACT) {
                 WETH_Interface(WETH_CONTRACT).withdraw(sourceTokenAmount);
@@ -657,7 +669,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
                     destTokenAddress,
                     VAULT_CONTRACT,
                     destTokenAmount)) {
-                    return intOrRevert(0,655);
+                    return intOrRevert(0,672);
                 }
             } else {
                 // re-up the Kyber spend approval if needed

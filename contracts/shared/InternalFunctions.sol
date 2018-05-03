@@ -2,10 +2,10 @@
 
 pragma solidity ^0.4.23;
 
-import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import '../modules/B0xStorage.sol';
 import '../B0xVault.sol';
-import "../interfaces/Oracle_Interface.sol";
+import "../oracle/Oracle_Interface.sol";
 
 contract InternalFunctions is B0xStorage {
     using SafeMath for uint256;

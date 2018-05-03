@@ -1,8 +1,8 @@
 
 pragma solidity ^0.4.23;
 
-import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'openzeppelin-solidity/contracts/ReentrancyGuard.sol';
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import '../shared/Debugger.sol';
 import '../modifiers/GasTracker.sol';
 

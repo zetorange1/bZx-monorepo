@@ -1,10 +1,12 @@
 
 pragma solidity ^0.4.23;
 
-import './UnlimitedAllowanceToken.sol';
-//import './fake/ERC827_AlwaysOwned.sol'; // Testing only! Please remove this and use above for production!
+import 'openzeppelin-solidity/contracts/token/ERC20/BurnableToken.sol';
 
-contract BaseToken is UnlimitedAllowanceToken {
+import './UnlimitedAllowanceToken.sol';
+//import './testing/fake/ERC827_AlwaysOwned.sol'; // Testing only! Please remove this and use above for production!
+
+contract BaseToken is UnlimitedAllowanceToken, BurnableToken {
     string public name;
     uint8 public decimals;
     string public symbol;

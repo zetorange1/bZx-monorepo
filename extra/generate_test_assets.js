@@ -37,10 +37,9 @@ var addresses = {
 	"B0xToken": "unknown",
 	"TokenRegistry": "unknown",
 	"OracleRegistry": "unknown",
-
-	"Oracle_Interface": "unknown",
-	"EIP20": "unknown",
+	"TestNetFaucet": "unknown",
 };
+var replacements = {};
 
 var network = "development";
 if (process.argv.length >= 3) {
@@ -52,11 +51,22 @@ var addresses_0x = {
 	"WETH": config["protocol"][network]["ZeroEx"]["WETH9"] != "" ? web3.toChecksumAddress(config["protocol"][network]["ZeroEx"]["WETH9"]) : web3.toChecksumAddress(config["protocol"][network]["ZeroEx"]["EtherToken"]),
 }
 
-if (network == "development") {
-	for(var i=0; i <= 9; i++) {
-		addresses["TestToken"+i] = "unknown";
+if (network != "mainnet") {
+	if (network != "ropsten") {
+		for(var i=0; i <= 9; i++) {
+			addresses["TestToken"+i] = "unknown";
+		}
+		replacements["B0xOracle"] = "TestNetOracle";
+		if (network == "development") {
+			replacements["B0xToken"] = "TestNetB0xToken";
+		}
 	}
+} else {
+	delete addresses["TestNetFaucet"];
 }
+
+addresses["Oracle_Interface"] = "unknown";
+addresses["EIP20"] = "unknown";
 
 var networkId;
 switch(network) {
@@ -75,7 +85,7 @@ switch(network) {
 
 var jsonContents = {};
 Object.keys(addresses).forEach(function(item, index) {
-	var contents = fs.readFileSync("./build/contracts/"+item+".json");
+	var contents = fs.readFileSync("./build/contracts/"+(replacements[item] !== undefined ? replacements[item] : item)+".json");
 	var jsonContent = JSON.parse(contents);
 
 	try {

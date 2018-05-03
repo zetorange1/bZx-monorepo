@@ -1,7 +1,7 @@
 
 pragma solidity ^0.4.23;
 
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 
 // This provides a gatekeeping modifier for functions that can only be used by the b0x contract
 // Since it inherits Ownable provides typical ownership functionality with a slight modification to the transferOwnership function

@@ -2,6 +2,7 @@
 var TokenRegistry = artifacts.require("TokenRegistry");
 
 var B0xToken = artifacts.require("B0xToken");
+var TestNetB0xToken = artifacts.require("TestNetB0xToken");
 
 var config = require('../../config/secrets.js');
 
@@ -17,7 +18,7 @@ module.exports = function(deployer, network, accounts) {
 		if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {
 			b0x_token = await B0xToken.at(config["protocol"][network]["B0XToken"]);
 		} else {
-			b0x_token = await B0xToken.deployed();
+			b0x_token = await TestNetB0xToken.deployed();
 		}
 		var b0x_token_name = await b0x_token.name.call();
 		var b0x_token_symbol = await b0x_token.symbol.call();
