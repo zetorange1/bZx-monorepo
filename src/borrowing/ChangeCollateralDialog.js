@@ -76,6 +76,43 @@ export default class ChangeCollateralDialog extends React.Component {
     setTimeout(() => this.checkAllowance(), 5000);
   };
 
+  executeChange = async () => {
+    const { b0x, web3, accounts, loanOrderHash } = this.props;
+    const { tokenAddress } = this.state;
+    const txOpts = {
+      from: accounts[0],
+      gas: 1000000,
+      gasPrice: web3.utils.toWei(`30`, `gwei`).toString()
+    };
+
+    console.log(`Executing change:`);
+    console.log({
+      loanOrderHash,
+      collateralTokenFilled: tokenAddress,
+      txOpts
+    });
+    await b0x
+      .changeCollateral({
+        loanOrderHash,
+        collateralTokenFilled: tokenAddress,
+        txOpts
+      })
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        alert(error.message);
+      });
+    alert(`Execution complete.`);
+    this.props.onClose();
+  };
+
   render() {
     const { approvalLoading, tokenApproved } = this.state;
     return (
@@ -116,7 +153,12 @@ export default class ChangeCollateralDialog extends React.Component {
               Your old collateral token will automatically be refunded to your
               account.
             </p>
-            <Button variant="raised" color="primary">
+            <Button
+              onClick={this.executeChange}
+              variant="raised"
+              color="primary"
+              disabled={!tokenApproved}
+            >
               Execute change
             </Button>
           </Section>

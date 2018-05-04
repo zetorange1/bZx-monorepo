@@ -22,7 +22,7 @@ export default class Borrowing extends React.Component {
   }
 
   render() {
-    const { b0x, tokens, accounts } = this.props;
+    const { b0x, tokens, accounts, web3 } = this.props;
     const { positions } = this.state;
     const openPositions = positions.filter(p => p.active === 1);
     const closedPositions = positions.filter(p => p.active === 0);
@@ -37,6 +37,7 @@ export default class Borrowing extends React.Component {
               tokens={tokens}
               accounts={accounts}
               data={data}
+              web3={web3}
               zeroExTradeOpened
             />
           ))}
