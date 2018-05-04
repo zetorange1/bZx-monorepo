@@ -4,11 +4,71 @@ import TokenPicker from "../common/TokenPicker";
 import Section, { SectionLabel, Divider } from "../common/FormSection";
 
 export default class ChangeCollateralDialog extends React.Component {
-  state = { tokenAddress: this.props.tokens[0].address };
+  state = {
+    tokenAddress: this.props.tokens[0].address,
+    approvalLoading: false,
+    tokenApproved: false
+  };
 
-  setTokenAddress = tokenAddress => this.setState({ tokenAddress });
+  componentDidMount = async () => {
+    this.checkAllowance();
+  };
+
+  setTokenAddress = tokenAddress => {
+    this.setState({ tokenAddress }, () => {
+      this.checkAllowance();
+    });
+  };
+
+  checkAllowance = async () => {
+    const { tokenAddress } = this.state;
+    const { b0x, accounts, tokens } = this.props;
+    const token = tokens.filter(t => t.address === tokenAddress)[0];
+    console.log(`checking allowance`);
+    console.log(token.name, token.address);
+    const allowance = await b0x.getAllowance({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase()
+    });
+    console.log(`Allowance:`, allowance.toNumber());
+    this.setState({
+      tokenApproved: allowance.toNumber() !== 0,
+      approvalLoading: false
+    });
+  };
+
+  // approve = async () => {
+  //   const { b0x, token, accounts } = this.props;
+  //   console.log(`approving allowance`);
+  //   console.log(token.name, token.address);
+  //   this.setState({ approvalLoading: true });
+  //   await b0x
+  //     .setAllowanceUnlimited({
+  //       tokenAddress: token.address,
+  //       ownerAddress: accounts[0].toLowerCase()
+  //     })
+  //     .once(`transactionHash`, hash => {
+  //       alert(`Transaction submitted, transaction hash:`, {
+  //         component: () => (
+  //           <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+  //             {hash}
+  //           </TxHashLink>
+  //         )
+  //       });
+  //     })
+  //     .on(`error`, error => {
+  //       alert(error.message);
+  //     });
+  //   setTimeout(() => this.checkAllowance(), 5000);
+  // };
+
+  approveToken = async () => {
+    const { tokenAddress } = this.state;
+    alert(`hey`);
+  };
 
   render() {
+    const { approvalLoading, tokenApproved } = this.state;
     return (
       <Dialog open={this.props.open} onClose={this.props.onClose}>
         <DialogTitle>Change Collateral</DialogTitle>
@@ -24,7 +84,19 @@ export default class ChangeCollateralDialog extends React.Component {
           <Divider />
           <Section>
             <SectionLabel>2. Approve the token</SectionLabel>
-            <Button variant="raised">Approve</Button>
+            {approvalLoading ? (
+              <Button variant="raised" disabled>
+                Approving...
+              </Button>
+            ) : (
+              <Button
+                variant="raised"
+                onClick={this.approveToken}
+                disabled={tokenApproved}
+              >
+                {tokenApproved ? `Token Approved` : `Approve Token`}
+              </Button>
+            )}
           </Section>
           <Divider />
           <Section>

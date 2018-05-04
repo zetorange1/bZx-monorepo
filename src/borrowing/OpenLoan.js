@@ -76,7 +76,7 @@ export default class OpenLoan extends React.Component {
   handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
 
   render() {
-    const { tokens } = this.props
+    const { tokens, b0x, accounts } = this.props
     const {
       collateralTokenAddressFilled,
       collateralTokenAmountFilled,
@@ -192,7 +192,7 @@ export default class OpenLoan extends React.Component {
           </DataPointContainer>
 
           <LowerUpperRight>
-            <CollateralOptions tokens={this.props.tokens} />
+            <CollateralOptions tokens={tokens} b0x={b0x} accounts={accounts} />
           </LowerUpperRight>
         </CardContent>
 
