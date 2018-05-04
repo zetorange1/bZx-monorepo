@@ -153,7 +153,7 @@ export default ({
             }
           />
           <FormHelperTextWithDetail component="div">
-            <Tooltip title="This sets the interest paid per day and shows the total interest paid out if the loan were to run from now until expiration. The actual amount earned will be less, based on when the loan is opened, the actual amount borrowed, and if the loan is closed early by the trader or is liquidated.">
+            <Tooltip title="This sets the interest paid per day and shows the total interest paid out if the loan were to run from now until expiration. The actual amount paid out will be less, based on when the loan is opened, the actual amount borrowed, and if the loan is closed early by the trader or is liquidated.">
               <MoreInfo>More Info</MoreInfo>
             </Tooltip>
             <RightJustified>
