@@ -1,7 +1,19 @@
+import styled from "styled-components";
 import Dialog, { DialogTitle, DialogContent } from "material-ui/Dialog";
 import Button from "material-ui/Button";
 import TokenPicker from "../common/TokenPicker";
 import Section, { SectionLabel, Divider } from "../common/FormSection";
+
+const TxHashLink = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  font-family: monospace;
+  display: block;
+  text-overflow: ellipsis;
+  overflow: auto;
+}
+`;
 
 export default class ChangeCollateralDialog extends React.Component {
   state = {
@@ -37,34 +49,31 @@ export default class ChangeCollateralDialog extends React.Component {
     });
   };
 
-  // approve = async () => {
-  //   const { b0x, token, accounts } = this.props;
-  //   console.log(`approving allowance`);
-  //   console.log(token.name, token.address);
-  //   this.setState({ approvalLoading: true });
-  //   await b0x
-  //     .setAllowanceUnlimited({
-  //       tokenAddress: token.address,
-  //       ownerAddress: accounts[0].toLowerCase()
-  //     })
-  //     .once(`transactionHash`, hash => {
-  //       alert(`Transaction submitted, transaction hash:`, {
-  //         component: () => (
-  //           <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
-  //             {hash}
-  //           </TxHashLink>
-  //         )
-  //       });
-  //     })
-  //     .on(`error`, error => {
-  //       alert(error.message);
-  //     });
-  //   setTimeout(() => this.checkAllowance(), 5000);
-  // };
-
   approveToken = async () => {
     const { tokenAddress } = this.state;
-    alert(`hey`);
+    const { b0x, tokens, accounts } = this.props;
+    const token = tokens.filter(t => t.address === tokenAddress)[0];
+    console.log(`approving allowance`);
+    console.log(token.name, token.address);
+    this.setState({ approvalLoading: true });
+    await b0x
+      .setAllowanceUnlimited({
+        tokenAddress: token.address,
+        ownerAddress: accounts[0].toLowerCase()
+      })
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        alert(error.message);
+      });
+    setTimeout(() => this.checkAllowance(), 5000);
   };
 
   render() {
