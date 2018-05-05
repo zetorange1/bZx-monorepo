@@ -107,7 +107,11 @@ export default class ChangeCollateralDialog extends React.Component {
         });
       })
       .on(`error`, error => {
-        alert(error.message);
+        console.error(error);
+        alert(
+          `We were not able to execute your transaction. Please check that you have sufficient tokens.`
+        );
+        this.props.onClose();
       });
     alert(`Execution complete.`);
     this.props.onClose();
