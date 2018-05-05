@@ -13,57 +13,49 @@ describe("filling orders", () => {
   const { owner, lenders, traders } = FillTestUtils.getAccounts();
   const loanTokenAmount = web3.utils.toWei("251").toString();
 
+  const {
+    loanTokens,
+    collateralTokens,
+    interestTokens
+  } = FillTestUtils.initAllContractInstances();
+
+  let promiEvent = null;
+  const loanTokenAmountFilled = web3.utils.toWei("12.3");
+
   beforeAll(async () => {
-    const {
-      loanTokens,
-      collateralTokens,
-      interestTokens,
-      b0xToken
-    } = FillTestUtils.initAllContractInstances();
-
-    const balancePs = [
-      b0xToken,
-      ...loanTokens,
-      ...collateralTokens,
-      ...interestTokens
-    ].map(token =>
-      b0xJS.getBalance({
-        tokenAddress: token.options.address.toLowerCase(),
-        ownerAddress: owner
-      })
-    );
-
-    const balancesBefore = await Promise.all(balancePs);
-    console.log("before setting up tokens");
-    console.log(balancesBefore.map(bigNum => bigNum.toString()));
-
     const transferAmount = web3.utils.toWei("500", "ether");
     await FillTestUtils.setupAll({ owner, lenders, traders, transferAmount });
 
-    const balancePs2 = [
-      b0xToken,
-      ...loanTokens,
-      ...collateralTokens,
-      ...interestTokens
-    ].map(token =>
-      b0xJS.getBalance({
-        tokenAddress: token.options.address.toLowerCase(),
-        ownerAddress: owner
-      })
+    const takerAddress = traders[0];
+    const txOpts = {
+      from: takerAddress,
+      gas: 1000000,
+      gasPrice: web3.utils.toWei("30", "gwei").toString()
+    };
+
+    const order = FillTestUtils.makeOrderAsLender({
+      web3,
+      lenders,
+      loanTokens,
+      interestTokens
+    });
+
+    const orderHashHex = B0xJS.getLoanOrderHashHex(order);
+    const signature = await b0xJS.signOrderHashAsync(
+      orderHashHex,
+      order.makerAddress
     );
 
-    console.log("after setting up tokens");
-    const balancesAfter = await Promise.all(balancePs2);
-    console.log(balancesAfter.map(bigNum => bigNum.toString()));
+    promiEvent = b0xJS.takeLoanOrderAsTrader(
+      { ...order, signature },
+      collateralTokens[0].options.address.toLowerCase(),
+      loanTokenAmountFilled,
+      txOpts
+    );
   });
 
   describe("takeLoanOrderAsTrader", async () => {
     test("should throw an error with an invalid signature", async () => {
-      const {
-        loanTokens,
-        interestTokens
-      } = FillTestUtils.initAllContractInstances();
-
       const takerAddress = traders[0];
       const txOpts = {
         from: takerAddress,
@@ -88,39 +80,7 @@ describe("filling orders", () => {
     });
 
     test("should return total amount of loanToken borrowed", async () => {
-      const {
-        loanTokens,
-        interestTokens,
-        collateralTokens
-      } = FillTestUtils.initAllContractInstances();
-
-      const takerAddress = traders[0];
-      const txOpts = {
-        from: takerAddress,
-        gas: 1000000,
-        gasPrice: web3.utils.toWei("30", "gwei").toString()
-      };
-
-      const order = FillTestUtils.makeOrderAsLender({
-        web3,
-        lenders,
-        loanTokens,
-        interestTokens
-      });
-
-      const orderHashHex = B0xJS.getLoanOrderHashHex(order);
-      const signature = await b0xJS.signOrderHashAsync(
-        orderHashHex,
-        order.makerAddress
-      );
-
-      const loanTokenAmountFilled = web3.utils.toWei("12.3");
-      const receipt = await b0xJS.takeLoanOrderAsTrader(
-        { ...order, signature },
-        collateralTokens[0].options.address.toLowerCase(),
-        loanTokenAmountFilled,
-        txOpts
-      );
+      const receipt = await promiEvent;
       const loanTokenAmountFilledReturn = pathOr(
         null,
         ["events", "LogLoanTaken", "returnValues", "loanTokenAmountFilled"],
@@ -133,40 +93,6 @@ describe("filling orders", () => {
     });
 
     test("should return a web3 PromiEvent", async () => {
-      const {
-        loanTokens,
-        interestTokens,
-        collateralTokens
-      } = FillTestUtils.initAllContractInstances();
-
-      const takerAddress = traders[0];
-      const txOpts = {
-        from: takerAddress,
-        gas: 1000000,
-        gasPrice: web3.utils.toWei("30", "gwei").toString()
-      };
-
-      const order = FillTestUtils.makeOrderAsLender({
-        web3,
-        loanTokenAmount,
-        lenders,
-        loanTokens,
-        interestTokens
-      });
-
-      const orderHashHex = B0xJS.getLoanOrderHashHex(order);
-      const signature = await b0xJS.signOrderHashAsync(
-        orderHashHex,
-        order.makerAddress
-      );
-
-      const loanTokenAmountFilled = web3.utils.toWei("12.3");
-      const promiEvent = b0xJS.takeLoanOrderAsTrader(
-        { ...order, signature },
-        collateralTokens[0].options.address.toLowerCase(),
-        loanTokenAmountFilled,
-        txOpts
-      );
       expectPromiEvent(promiEvent);
     });
   });
