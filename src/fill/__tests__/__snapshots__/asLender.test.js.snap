@@ -1,5 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`filling orders takeLoanOrderAsLender should throw an error with an invalid signature 1`] = `"Invalid signature v value"`;
-
-exports[`filling orders takeLoanOrderAsTrader should throw an error with an invalid signature 1`] = `"Invalid signature v value"`;
