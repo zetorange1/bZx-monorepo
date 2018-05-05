@@ -13,15 +13,24 @@ describe("filling orders", () => {
   const { owner, lenders, traders } = FillTestUtils.getAccounts();
   const loanTokenAmount = web3.utils.toWei("251").toString();
 
+  const {
+    loanTokens,
+    collateralTokens,
+    interestTokens
+  } = FillTestUtils.initAllContractInstances();
+
   let promiEvent = null;
 
-  beforeAll(async () => {
-    const {
-      loanTokens,
-      collateralTokens,
-      interestTokens
-    } = FillTestUtils.initAllContractInstances();
+  const order = FillTestUtils.makeOrderAsTrader({
+    web3,
+    traders,
+    loanTokens,
+    interestTokens,
+    collateralTokens,
+    loanTokenAmount
+  });
 
+  beforeAll(async () => {
     const transferAmount = web3.utils.toWei("500", "ether");
     await FillTestUtils.setupAll({ owner, lenders, traders, transferAmount });
 
@@ -31,15 +40,6 @@ describe("filling orders", () => {
       gas: 1000000,
       gasPrice: web3.utils.toWei("30", "gwei").toString()
     };
-
-    const order = FillTestUtils.makeOrderAsTrader({
-      web3,
-      traders,
-      loanTokens,
-      interestTokens,
-      collateralTokens,
-      loanTokenAmount
-    });
 
     const orderHashHex = B0xJS.getLoanOrderHashHex(order);
     const signature = await b0xJS.signOrderHashAsync(
@@ -52,27 +52,12 @@ describe("filling orders", () => {
 
   describe("takeLoanOrderAsLender", async () => {
     test("should throw an error with an invalid signature", async () => {
-      const {
-        loanTokens,
-        interestTokens,
-        collateralTokens
-      } = FillTestUtils.initAllContractInstances();
-
       const takerAddress = lenders[1];
       const txOpts = {
         from: takerAddress,
         gas: 1000000,
         gasPrice: web3.utils.toWei("30", "gwei").toString()
       };
-
-      const order = FillTestUtils.makeOrderAsTrader({
-        web3,
-        traders,
-        loanTokens,
-        interestTokens,
-        collateralTokens,
-        loanTokenAmount
-      });
 
       expect(() => {
         b0xJS.takeLoanOrderAsLender({ ...order, signature: BAD_SIG }, txOpts);

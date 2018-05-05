@@ -11,7 +11,6 @@ const BAD_SIG =
 
 describe("filling orders", () => {
   const { owner, lenders, traders } = FillTestUtils.getAccounts();
-  const loanTokenAmount = web3.utils.toWei("251").toString();
 
   const {
     loanTokens,
@@ -21,6 +20,13 @@ describe("filling orders", () => {
 
   let promiEvent = null;
   const loanTokenAmountFilled = web3.utils.toWei("12.3");
+
+  const order = FillTestUtils.makeOrderAsLender({
+    web3,
+    lenders,
+    loanTokens,
+    interestTokens
+  });
 
   beforeAll(async () => {
     const transferAmount = web3.utils.toWei("500", "ether");
@@ -32,13 +38,6 @@ describe("filling orders", () => {
       gas: 1000000,
       gasPrice: web3.utils.toWei("30", "gwei").toString()
     };
-
-    const order = FillTestUtils.makeOrderAsLender({
-      web3,
-      lenders,
-      loanTokens,
-      interestTokens
-    });
 
     const orderHashHex = B0xJS.getLoanOrderHashHex(order);
     const signature = await b0xJS.signOrderHashAsync(
@@ -62,14 +61,6 @@ describe("filling orders", () => {
         gas: 1000000,
         gasPrice: web3.utils.toWei("30", "gwei").toString()
       };
-
-      const order = FillTestUtils.makeOrderAsLender({
-        web3,
-        lenders,
-        loanTokenAmount,
-        loanTokens,
-        interestTokens
-      });
 
       expect(() => {
         b0xJS.takeLoanOrderAsTrader({ ...order, signature: BAD_SIG }, txOpts);
