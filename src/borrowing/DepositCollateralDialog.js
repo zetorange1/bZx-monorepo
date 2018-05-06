@@ -10,14 +10,27 @@ export default class DepositCollateralDialog extends React.Component {
   setAmount = e => this.setState({ amount: e.target.value });
 
   depositCollateral = async () => {
-    const { b0x, loanOrderHash, collateralToken } = this.props;
+    const { accounts, web3, b0x, loanOrderHash, collateralToken } = this.props;
     const { amount } = this.state;
 
-    // b0x.depositCollateral({
+    const txOpts = {
+      from: accounts[0],
+      gas: 1000000,
+      gasPrice: web3.utils.toWei(`30`, `gwei`).toString()
+    };
+
+    console.log({
+      loanOrderHash,
+      collateralTokenFilled: collateralToken.address,
+      depositAmount: toBigNumber(amount, 1e18),
+      txOpts
+    });
+
+    // await b0x.depositCollateral({
     //   loanOrderHash,
     //   collateralTokenFilled: collateralToken.address,
     //   depositAmount: toBigNumber(amount, 1e18),
-    //   txOpts: {}
+    //   txOpts
     // });
   };
 
@@ -44,7 +57,12 @@ export default class DepositCollateralDialog extends React.Component {
             />
           </FormControl>
           <br />
-          <Button variant="raised" color="primary" fullWidth>
+          <Button
+            onClick={this.depositCollateral}
+            variant="raised"
+            color="primary"
+            fullWidth
+          >
             Deposit
           </Button>
         </DialogContent>

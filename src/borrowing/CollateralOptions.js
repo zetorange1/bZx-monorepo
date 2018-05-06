@@ -82,8 +82,10 @@ export default class CollateralOptions extends React.Component {
           open={this.state.showDepositCollateralDialog}
           onClose={this.closeDialog(`showDepositCollateralDialog`)}
           b0x={b0x}
+          web3={web3}
           tokens={tokens}
           accounts={accounts}
+          loanOrderHash={loanOrderHash}
           collateralToken={collateralToken}
         />
         <WithdrawCollateralDialog

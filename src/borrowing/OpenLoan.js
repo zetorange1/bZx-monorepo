@@ -92,7 +92,9 @@ export default class OpenLoan extends React.Component {
       lender
     } = this.props.data;
 
-    const collateralToken = tokens.filter(t => t.address === collateralTokenAddressFilled)[0];
+    const collateralToken = tokens.filter(
+      t => t.address === collateralTokenAddressFilled
+    )[0];
     const collateralTokenSymbol = collateralToken.symbol;
     const loanTokenSymbol = getSymbol(tokens, loanTokenAddress);
     const interestTokenSymbol = getSymbol(tokens, interestTokenAddress);
@@ -194,14 +196,14 @@ export default class OpenLoan extends React.Component {
           </DataPointContainer>
 
           <LowerUpperRight>
-<<<<<<< Updated upstream
-            <CollateralOptions tokens={tokens} b0x={b0x} accounts={accounts} web3={web3} loanOrderHash={loanOrderHash} />
-=======
             <CollateralOptions
-              tokens={this.props.tokens}
+              tokens={tokens}
+              b0x={b0x}
+              accounts={accounts}
+              web3={web3}
+              loanOrderHash={loanOrderHash}
               collateralToken={collateralToken}
             />
->>>>>>> Stashed changes
           </LowerUpperRight>
         </CardContent>
 
