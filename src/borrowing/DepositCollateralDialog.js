@@ -2,13 +2,27 @@ import Dialog, { DialogTitle, DialogContent } from "material-ui/Dialog";
 import Input, { InputLabel, InputAdornment } from "material-ui/Input";
 import { FormControl } from "material-ui/Form";
 import Button from "material-ui/Button";
+import { toBigNumber } from "../common/utils";
 
 export default class DepositCollateralDialog extends React.Component {
   state = { amount: 0 };
 
   setAmount = e => this.setState({ amount: e.target.value });
 
+  depositCollateral = async () => {
+    const { b0x, loanOrderHash, collateralToken } = this.props;
+    const { amount } = this.state;
+
+    // b0x.depositCollateral({
+    //   loanOrderHash,
+    //   collateralTokenFilled: collateralToken.address,
+    //   depositAmount: toBigNumber(amount, 1e18),
+    //   txOpts: {}
+    // });
+  };
+
   render() {
+    const { collateralToken } = this.props;
     return (
       <Dialog open={this.props.open} onClose={this.props.onClose}>
         <DialogTitle>Deposit Collateral</DialogTitle>
@@ -22,7 +36,11 @@ export default class DepositCollateralDialog extends React.Component {
               value={this.state.amount}
               type="number"
               onChange={this.setAmount}
-              endAdornment={<InputAdornment position="end">SYM</InputAdornment>}
+              endAdornment={
+                <InputAdornment position="end">
+                  {collateralToken.symbol}
+                </InputAdornment>
+              }
             />
           </FormControl>
           <br />
