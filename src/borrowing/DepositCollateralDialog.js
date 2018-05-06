@@ -1,8 +1,20 @@
+import styled from "styled-components";
 import Dialog, { DialogTitle, DialogContent } from "material-ui/Dialog";
 import Input, { InputLabel, InputAdornment } from "material-ui/Input";
 import { FormControl } from "material-ui/Form";
 import Button from "material-ui/Button";
 import { toBigNumber } from "../common/utils";
+
+const TxHashLink = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  font-family: monospace;
+  display: block;
+  text-overflow: ellipsis;
+  overflow: auto;
+}
+`;
 
 export default class DepositCollateralDialog extends React.Component {
   state = { amount: 0 };
@@ -19,19 +31,38 @@ export default class DepositCollateralDialog extends React.Component {
       gasPrice: web3.utils.toWei(`30`, `gwei`).toString()
     };
 
-    console.log({
-      loanOrderHash,
-      collateralTokenFilled: collateralToken.address,
-      depositAmount: toBigNumber(amount, 1e18),
-      txOpts
-    });
-
-    // await b0x.depositCollateral({
+    // console.log({
     //   loanOrderHash,
     //   collateralTokenFilled: collateralToken.address,
     //   depositAmount: toBigNumber(amount, 1e18),
     //   txOpts
     // });
+
+    await b0x
+      .depositCollateral({
+        loanOrderHash,
+        collateralTokenFilled: collateralToken.address,
+        depositAmount: toBigNumber(amount, 1e18),
+        txOpts
+      })
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        console.error(error.message);
+        alert(
+          `An error occured. Make sure that you have approved the token and have sufficient balance.`
+        );
+        this.props.onClose();
+      });
+    alert(`Execution complete.`);
+    this.props.onClose();
   };
 
   render() {
