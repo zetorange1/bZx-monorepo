@@ -76,7 +76,7 @@ export default class OpenLoan extends React.Component {
   handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
 
   render() {
-    const { tokens, b0x, accounts, web3 } = this.props
+    const { tokens, b0x, accounts, web3 } = this.props;
     const {
       collateralTokenAddressFilled,
       collateralTokenAmountFilled,
@@ -91,10 +91,14 @@ export default class OpenLoan extends React.Component {
       loanOrderHash,
       lender
     } = this.props.data;
-    const collateralTokenSymbol = getSymbol(tokens, collateralTokenAddressFilled);
-    const loanTokenSymbol = getSymbol(tokens, loanTokenAddress);;
+
+    const collateralToken = tokens.filter(
+      t => t.address === collateralTokenAddressFilled
+    )[0];
+    const collateralTokenSymbol = collateralToken.symbol;
+    const loanTokenSymbol = getSymbol(tokens, loanTokenAddress);
     const interestTokenSymbol = getSymbol(tokens, interestTokenAddress);
-    const positionTokenSymbol = getSymbol(tokens, positionTokenAddressFilled)
+    const positionTokenSymbol = getSymbol(tokens, positionTokenAddressFilled);
 
     const tradeOpened = positionTokenAddressFilled !== loanTokenAddress;
 
@@ -192,7 +196,14 @@ export default class OpenLoan extends React.Component {
           </DataPointContainer>
 
           <LowerUpperRight>
-            <CollateralOptions tokens={tokens} b0x={b0x} accounts={accounts} web3={web3} loanOrderHash={loanOrderHash} />
+            <CollateralOptions
+              tokens={tokens}
+              b0x={b0x}
+              accounts={accounts}
+              web3={web3}
+              loanOrderHash={loanOrderHash}
+              collateralToken={collateralToken}
+            />
           </LowerUpperRight>
         </CardContent>
 
@@ -201,11 +212,12 @@ export default class OpenLoan extends React.Component {
             <Label>0x trade opened</Label>
             <DataPoint>{Boolean(tradeOpened).toString()}</DataPoint>
           </DataPointContainer>
-          
+
           <DataPointContainer style={{ marginLeft: `12px` }}>
             <Label>Trade Amount</Label>
             <DataPoint>
-              {fromBigNumber(positionTokenAmountFilled, 1e18)} {positionTokenSymbol}
+              {fromBigNumber(positionTokenAmountFilled, 1e18)}{" "}
+              {positionTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
@@ -247,43 +259,3 @@ export default class OpenLoan extends React.Component {
     );
   }
 }
-
-// - if a 0x trade is not open from funds from the loan, provide something like this: https://0xproject.com/portal/fill
-//   - a trader finds 0x trades from any source, and drops the 0x Order JSON here (note this is a 0x JSON from 0xProject and not to be confused with "LEND ORDER JSON" for b0x)
-//   - the b0x portal reads the 0x JSON and submits the params to the b0x contract "open0xTrade" sol function:
-//     function open0xTrade(
-//       bytes32 lendOrderHash,
-//       address[5] orderAddresses0x,
-//       uint[6] orderValues0x,
-//       uint8 v,
-//       bytes32 r,
-//       bytes32 s)
-//       public
-//       returns (uint);
-
-// - if an 0x trade has been opened using funds from the loan, show a few details about the loan:
-//   - token that was traded and bought using the lend token (tradeTokenAddress)
-//   - trade token amount (tradeTokenAmountFilled)
-//   - should have "Close Trade" button - this calls into b0x to trigger a market order with Kyber to close this trade and buy back the lend token
-//     sol function:
-//       function closeTrade(
-//         bytes32 lendOrderHash)
-//         public
-//         returns (bool tradeSuccess);
-
-//   - optionally, we can provide a form like this https://0xproject.com/portal/fill again, to let the trader close the order with an "opposite" 0x order. this
-//     passes the 0x order json params to b0x similar to above.
-//     sol function:
-//       function closeWith0xTrade(
-//         bytes32 lendOrderHash,
-//         address[5] orderAddresses0x,
-//         uint[6] orderValues0x,
-//         uint8 v,
-//         bytes32 r,
-//         bytes32 s)
-//         public
-//         returns (uint);
-
-// - provide a way to traders to change the current "marginToken of an active loan (via b0x contract function call TBD).
-// - provide a way to traders to "deposit" additional margin token to increase their margin level on active loans (via b0x contract function call TBD).
-// - provide a way for traders to withdraw margin token if and only if it's above "initialMarginAmount" (via b0x contract function call TBD).

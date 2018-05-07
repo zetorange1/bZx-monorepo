@@ -41,7 +41,14 @@ export default class CollateralOptions extends React.Component {
 
   render() {
     const { anchorEl } = this.state;
-    const { b0x, tokens, accounts, web3, loanOrderHash } = this.props;
+    const {
+      b0x,
+      tokens,
+      accounts,
+      web3,
+      loanOrderHash,
+      collateralToken
+    } = this.props;
     return (
       <Fragment>
         <Button variant="raised" onClick={this.handleClick}>
@@ -75,8 +82,11 @@ export default class CollateralOptions extends React.Component {
           open={this.state.showDepositCollateralDialog}
           onClose={this.closeDialog(`showDepositCollateralDialog`)}
           b0x={b0x}
+          web3={web3}
           tokens={tokens}
           accounts={accounts}
+          loanOrderHash={loanOrderHash}
+          collateralToken={collateralToken}
         />
         <WithdrawCollateralDialog
           open={this.state.showWithdrawCollateralDialog}
