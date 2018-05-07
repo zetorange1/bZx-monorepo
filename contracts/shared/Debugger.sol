@@ -79,7 +79,7 @@ contract Debugger {
     }
     */
 
-    function voidOrRevert(uint lineno) 
+    function voidOrRevert(uint lineno)
         internal
     {
         if (!DEBUG_MODE) {
@@ -90,7 +90,7 @@ contract Debugger {
         return;
     }
     
-    function intOrRevert(uint retVal, uint lineno) 
+    function intOrRevert(uint retVal, uint lineno)
         internal 
         returns (uint)
     {
@@ -102,7 +102,7 @@ contract Debugger {
         return retVal;
     }
 
-    function boolOrRevert(bool retVal, uint lineno) 
+    function boolOrRevert(bool retVal, uint lineno)
         internal 
         returns (bool)
     {
