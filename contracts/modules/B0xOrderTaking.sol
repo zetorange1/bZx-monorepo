@@ -129,7 +129,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            return intOrRevert(0,132);
+            return intOrRevert(0,132); // revert("B0xOrderTaking::cancelLoanOrder: loanOrder.maker == address(0)");
         }
 
         require(loanOrder.maker == msg.sender);
@@ -343,12 +343,12 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             loanOrder.loanOrderHash,
             signature
         )) {
-            return intOrRevert(0,346);
+            return intOrRevert(0,346); // revert("B0xOrderTaking::_takeLoanOrder: signature invalid");
         }
 
         // makerRole (orderValues[7]) and takerRole must not be equal and must have a value <= 1
         if (orderValues[7] > 1 || takerRole > 1 || orderValues[7] == takerRole) {
-            return intOrRevert(0,351);
+            return intOrRevert(0,351); // revert("B0xOrderTaking::_takeLoanOrder: orderValues[7] > 1 || takerRole > 1 || orderValues[7] == takerRole");
         }
 
         // A trader can only fill a portion or all of a loanOrder once:
@@ -356,7 +356,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         //  - this avoids potentially large loops when calculating margin reqirements and interest payments
         LoanPosition storage loanPosition = loanPositions[loanOrder.loanOrderHash][trader];
         if (loanPosition.loanTokenAmountFilled != 0) {
-            return intOrRevert(0,359);
+            return intOrRevert(0,359); // revert("B0xOrderTaking::_takeLoanOrder: loanPosition.loanTokenAmountFilled != 0");
         }     
 
         uint collateralTokenAmountFilled = _fillLoanOrder(
@@ -398,7 +398,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
                 msg.sender,
                 gasUsed // initial used gas, collected in modifier
             )) {
-                return intOrRevert(0,401);
+                return intOrRevert(0,401); // revert("B0xOrderTaking::_takeLoanOrder: Oracle_Interface.didTakeOrder failed");
             }
         }
 
@@ -415,7 +415,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         returns (uint)
     {
         if (!_verifyLoanOrder(loanOrder, collateralTokenFilled, loanTokenAmountFilled)) {
-            return intOrRevert(0,418);
+            return intOrRevert(0,418); // revert("B0xOrderTaking::_fillLoanOrder: loan verification failed");
         }
 
         uint collateralTokenAmountFilled = _getInitialCollateralRequired(
@@ -426,7 +426,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             loanOrder.initialMarginAmount
         );
         if (collateralTokenAmountFilled == 0) {
-            return intOrRevert(0,429);
+            return intOrRevert(0,429); // revert("B0xOrderTaking::_fillLoanOrder: collateralTokenAmountFilled == 0");
         }
 
         // deposit collateral token
@@ -435,7 +435,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             trader,
             collateralTokenAmountFilled
         )) {
-            return intOrRevert(loanTokenAmountFilled,438);
+            return intOrRevert(loanTokenAmountFilled,438); // revert("B0xOrderTaking::_fillLoanOrder: B0xVault.depositToken collateral failed");
         }
 
         // total interest required if loan is kept until order expiration
@@ -453,7 +453,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             trader,
             totalInterestRequired
         )) {
-            return intOrRevert(loanTokenAmountFilled,456);
+            return intOrRevert(loanTokenAmountFilled,456); // revert("B0xOrderTaking::_fillLoanOrder: B0xVault.depositToken interest failed");
         }
 
         // deposit loan token
@@ -462,7 +462,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             lender,
             loanTokenAmountFilled
         )) {
-            return intOrRevert(loanTokenAmountFilled,465);
+            return intOrRevert(loanTokenAmountFilled,465); // revert("B0xOrderTaking::_fillLoanOrder: B0xVault.depositToken loan failed");
         }
 
         if (loanOrder.feeRecipientAddress != address(0)) {
@@ -475,7 +475,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
                     loanOrder.feeRecipientAddress,
                     paidTraderFee
                 )) {
-                    return intOrRevert(loanTokenAmountFilled,478);
+                    return intOrRevert(loanTokenAmountFilled,478); // revert("B0xOrderTaking::_fillLoanOrder: B0xVault.transferTokenFrom traderRelayFee failed");
                 }
             }
             if (loanOrder.lenderRelayFee > 0) {
@@ -487,7 +487,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
                     loanOrder.feeRecipientAddress,
                     paidLenderFee
                 )) {
-                    return intOrRevert(0,490);
+                    return intOrRevert(0,490); // revert("B0xOrderTaking::_fillLoanOrder: B0xVault.transferTokenFrom lenderRelayFee failed");
                 }
             }
         }
@@ -503,34 +503,34 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         returns (bool)
     {
         if (loanOrder.maker == msg.sender) {
-            return boolOrRevert(false,506);
+            return boolOrRevert(false,506); // revert("B0xOrderTaking::_verifyLoanOrder: loanOrder.maker == msg.sender");
         }
         if (loanOrder.loanTokenAddress == address(0) 
             || loanOrder.interestTokenAddress == address(0)
             || collateralTokenFilled == address(0)) {
-            return boolOrRevert(false,511);
+            return boolOrRevert(false,511); // revert("B0xOrderTaking::_verifyLoanOrder: loanOrder.loanTokenAddress == address(0) || loanOrder.interestTokenAddress == address(0) || collateralTokenFilled == address(0)");
         }
 
         if (loanTokenAmountFilled > loanOrder.loanTokenAmount) {
-            return boolOrRevert(false,515);
+            return boolOrRevert(false,515); // revert("B0xOrderTaking::_verifyLoanOrder: loanTokenAmountFilled > loanOrder.loanTokenAmount");
         }
 
         if (! OracleRegistry(ORACLE_REGISTRY_CONTRACT).hasOracle(loanOrder.oracleAddress)) {
-            return boolOrRevert(false,519);
+            return boolOrRevert(false,519); // revert("B0xOrderTaking::_verifyLoanOrder: OracleRegistry.hasOracle failed");
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
             //LogError(uint8(Errors.ORDER_EXPIRED), 0, loanOrder.loanOrderHash);
-            return boolOrRevert(false,524);
+            return boolOrRevert(false,524); // revert("B0xOrderTaking::_verifyLoanOrder: block.timestamp >= loanOrder.expirationUnixTimestampSec");
         }
 
         if (loanOrder.maintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= loanOrder.initialMarginAmount) {
-            return boolOrRevert(false,528);
+            return boolOrRevert(false,528); // revert("B0xOrderTaking::_verifyLoanOrder: loanOrder.maintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= loanOrder.initialMarginAmount");
         }
 
         uint remainingLoanTokenAmount = loanOrder.loanTokenAmount.sub(getUnavailableLoanTokenAmount(loanOrder.loanOrderHash));
         if (remainingLoanTokenAmount < loanTokenAmountFilled) {
-            return boolOrRevert(false,533);
+            return boolOrRevert(false,533); // revert("B0xOrderTaking::_verifyLoanOrder: remainingLoanTokenAmount < loanTokenAmountFilled");
         }
 
         return true;

@@ -190,7 +190,7 @@ contract InternalFunctions is B0xStorage {
             loanPosition.positionTokenAddressFilled,
             loanOrder.oracleAddress,
             loanPosition.positionTokenAmountFilled)) {
-            return intOrRevert(0,1441);
+            return intOrRevert(0,1441); // revert("InternalFunctions::_tradePositionWithOracle: B0xVault.withdrawToken failed");
         }
 
         uint tradeTokenAmountReceived;

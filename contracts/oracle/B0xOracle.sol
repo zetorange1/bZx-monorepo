@@ -154,7 +154,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
             interestTokenAddress,
             lender,
             amountOwed.sub(interestFee))) {
-            return boolOrRevert(false,157);
+            return boolOrRevert(false,157); // revert("B0xOracle::didPayInterest: _transferToken failed");
         }
 
         return true;
@@ -303,7 +303,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
     {
         uint collateralTokenBalance = EIP20(collateralTokenAddress).balanceOf.gas(4999)(this); // Changes to state require at least 5000 gas
         if (collateralTokenBalance < collateralTokenAmountUsable) {
-            voidOrRevert(306); return;
+            voidOrRevert(306); return; // revert("B0xOracle::doTradeofCollateral: collateralTokenBalance < collateralTokenAmountUsable");
         }
         
         loanTokenAmountCovered = _doTrade(
@@ -319,7 +319,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
             collateralTokenAddress,
             VAULT_CONTRACT,
             collateralTokenAmountUsable.sub(collateralTokenAmountUsed))) {
-            voidOrRevert(322); return;
+            voidOrRevert(322); return; // revert("B0xOracle::doTradeofCollateral: _transferToken failed");
         }
     }
 
@@ -669,7 +669,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
                     destTokenAddress,
                     VAULT_CONTRACT,
                     destTokenAmount)) {
-                    return intOrRevert(0,672);
+                    return intOrRevert(0,672); // revert("B0xOracle::_doTrade: _transferToken failed");
                 }
             } else {
                 // re-up the Kyber spend approval if needed

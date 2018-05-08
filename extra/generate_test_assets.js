@@ -4,8 +4,7 @@ var config = require('../../config/secrets.js');
 var fs = require("fs");
 var mkdirp = require('mkdirp');
 
-const Web3 = require('web3');
-let web3 = new Web3();
+var web3utils = require('web3-utils');
 
 if (!fs.existsSync("./html_public_test")) {
     mkdirp.sync("./html_public_test");
@@ -47,8 +46,8 @@ if (process.argv.length >= 3) {
 }
 
 var addresses_0x = {
-	"ZRXToken": web3.toChecksumAddress(config["protocol"][network]["ZeroEx"]["ZRXToken"]),
-	"WETH": config["protocol"][network]["ZeroEx"]["WETH9"] != "" ? web3.toChecksumAddress(config["protocol"][network]["ZeroEx"]["WETH9"]) : web3.toChecksumAddress(config["protocol"][network]["ZeroEx"]["EtherToken"]),
+	"ZRXToken": web3utils.toChecksumAddress(config["protocol"][network]["ZeroEx"]["ZRXToken"]),
+	"WETH": config["protocol"][network]["ZeroEx"]["WETH9"] != "" ? web3utils.toChecksumAddress(config["protocol"][network]["ZeroEx"]["WETH9"]) : web3utils.toChecksumAddress(config["protocol"][network]["ZeroEx"]["EtherToken"]),
 }
 
 if (network != "mainnet") {
@@ -124,7 +123,7 @@ Object.keys(addresses).forEach(function(item, index) {
 	try {
 		addresses[item] = "";
 		if (item != "Oracle_Interface" && item != "EIP20") {
-			addresses[item] = web3.toChecksumAddress(jsonContent["networks"][networkId]["address"]);
+			addresses[item] = web3utils.toChecksumAddress(jsonContent["networks"][networkId]["address"]);
 		}
 		
 		// sort ABI by name field

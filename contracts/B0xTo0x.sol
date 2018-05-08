@@ -114,7 +114,7 @@ contract B0xTo0x is EIP20Wrapper, Debugger, B0xOwnable {
 
         if (sourceTokenUsedAmount < sourceTokenAmountToUse) {
             // all sourceToken has to be traded
-            voidOrRevert(117); return;
+            voidOrRevert(117); return; // revert("B0xTo0x::take0xTrade: sourceTokenUsedAmount < sourceTokenAmountToUse");
         }
 
         destTokenAmount = getPartialAmount(
