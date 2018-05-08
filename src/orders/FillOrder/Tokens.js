@@ -61,6 +61,7 @@ const TooltipText = styled.div`
 `;
 
 export default ({
+  b0x,
   tokens,
   role,
   loanTokenAddress,
@@ -82,7 +83,7 @@ export default ({
             <Title>Loan Token</Title>
           </Tooltip>
           <CoinInfo
-            href={`${this.props.b0x.etherscanURL}/token/${loanToken.address}`}
+            href={`${b0x.etherscanURL}/token/${loanToken.address}`}
           >
             <CoinIcon src={getIconURL(loanToken)} />
             <CoinLabel>{loanToken.name}</CoinLabel>
@@ -98,7 +99,7 @@ export default ({
             <Title>Interest Token</Title>
           </Tooltip>
           <CoinInfo
-            href={`${this.props.b0x.etherscanURL}token/${
+            href={`${b0x.etherscanURL}token/${
               interestToken.address
             }`}
           >
@@ -128,7 +129,7 @@ export default ({
               <Title>Collateral Token</Title>
             </Tooltip>
             <CoinInfo
-              href={`${this.props.b0x.etherscanURL}token/${
+              href={`${b0x.etherscanURL}token/${
                 collateralToken.address
               }`}
             >
