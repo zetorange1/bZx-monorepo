@@ -17,7 +17,7 @@ const TxHashLink = styled.a.attrs({
 `;
 
 export default class DepositCollateralDialog extends React.Component {
-  state = { amount: 0 };
+  state = { amount: `` };
 
   setAmount = e => this.setState({ amount: e.target.value });
 
