@@ -1,3 +1,4 @@
+/* global window */
 import styled from "styled-components";
 import { ZeroEx } from "0x.js";
 import B0xJS from "b0x.js"; // eslint-disable-line
@@ -59,6 +60,14 @@ export default class Web3Container extends React.Component {
       alert(`Please unlock your MetaMask account, and then refresh the page.`);
       return;
     }
+
+    // Watch for account change
+    const account = accounts[0];
+    setInterval(async () => {
+      if ((await web3.eth.getAccounts())[0] !== account) {
+        window.location.reload();
+      }
+    }, 500);
 
     // Get oracles
     let oracles;
