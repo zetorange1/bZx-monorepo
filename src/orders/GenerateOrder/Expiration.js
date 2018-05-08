@@ -3,8 +3,8 @@ import { InputLabel } from "material-ui/Input";
 import { IconButton, InputAdornment } from "material-ui";
 import Icon from "material-ui/Icon";
 
-import MomentUtils from 'material-ui-pickers/utils/moment-utils';
-import MuiPickersUtilsProvider from 'material-ui-pickers/utils/MuiPickersUtilsProvider';
+import MomentUtils from "material-ui-pickers/utils/moment-utils";
+import MuiPickersUtilsProvider from "material-ui-pickers/utils/MuiPickersUtilsProvider";
 import { DateTimePicker } from "material-ui-pickers";
 
 import Section, { SectionLabel } from "../../common/FormSection";
