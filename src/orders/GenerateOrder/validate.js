@@ -49,11 +49,18 @@ const checkCoinsApproved = async (b0x, accounts, state) => {
   return a && b;
 };
 
-const checkCoinsAllowed = (state, tokens) => {
+const checkCoinsAllowed = (state, tokens, networkId) => {
   const { loanTokenAddress, collateralTokenAddress, role } = state;
-  const notAllowed = [`ZRX`, `B0X`];
+  const notAllowed = {
+    1: [],
+    3: [`ZRX`, `B0X`],
+    4: [],
+    42: []
+  };
   const loanToken = tokens.filter(t => t.address === loanTokenAddress)[0];
-  const invalidLoanToken = notAllowed.includes(loanToken && loanToken.symbol);
+  const invalidLoanToken = notAllowed[networkId].includes(
+    loanToken && loanToken.symbol
+  );
 
   if (role === `lender`) {
     return !invalidLoanToken;
@@ -64,7 +71,7 @@ const checkCoinsAllowed = (state, tokens) => {
     t => t.address === collateralTokenAddress
   )[0];
 
-  const invalidCollateralToken = notAllowed.includes(
+  const invalidCollateralToken = notAllowed[networkId].includes(
     collateralToken && collateralToken.symbol
   );
 
@@ -98,9 +105,11 @@ export default async (b0x, accounts, state, tokens) => {
     return false;
   }
 
-  const coinsAllowed = checkCoinsAllowed(state, tokens);
+  const coinsAllowed = checkCoinsAllowed(state, tokens, b0x.networkId);
   if (!coinsAllowed) {
-    alert(`These tokens are not yet supported for lending or as collateral.`);
+    alert(
+      `The selected tokens are not yet supported for lending or collateral.`
+    );
     return false;
   }
 

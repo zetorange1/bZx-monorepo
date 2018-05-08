@@ -23,7 +23,11 @@ export default class Trading extends React.Component {
             <Web3Container
               render={({ web3, zeroEx, tokens, b0x, accounts, networkId }) => (
                 <Fragment>
-                  <NetworkIndicator networkId={networkId} />
+                  <NetworkIndicator
+                    networkId={networkId}
+                    accounts={accounts}
+                    etherscanURL={b0x.etherscanURL}
+                  />
                   <p>
                     This section will allow a trader (borrower) to manage active
                     loans and view closed loans.

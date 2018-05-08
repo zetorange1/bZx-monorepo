@@ -68,7 +68,11 @@ class Orders extends React.Component {
               // eslint-disable-next-line
               render={({ web3, zeroEx, tokens, b0x, accounts, oracles, networkId }) => (
                 <Fragment>
-                  <NetworkIndicator networkId={networkId} />
+                  <NetworkIndicator
+                    networkId={networkId}
+                    accounts={accounts}
+                    etherscanURL={b0x.etherscanURL}
+                  />
                   <ContentContainer show={activeTab === `GEN_ORDER`}>
                     <GenerateOrder
                       tokens={tokens}

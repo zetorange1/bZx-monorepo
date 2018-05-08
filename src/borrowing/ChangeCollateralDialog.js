@@ -71,7 +71,7 @@ export default class ChangeCollateralDialog extends React.Component {
         });
       })
       .on(`error`, error => {
-        alert(error.message);
+        console.error(error.message);
       });
     setTimeout(() => this.checkAllowance(), 5000);
   };

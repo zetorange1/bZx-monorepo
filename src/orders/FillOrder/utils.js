@@ -59,12 +59,19 @@ export const validateFillOrder = async (
     const collateralToken = tokens.filter(
       t => t.address === collateralTokenAddress
     )[0];
-    const notAllowed = [];
-    const collateralTokenNotAllowed = notAllowed.includes(
+    const notAllowed = {
+      1: [],
+      3: [`ZRX`, `B0X`],
+      4: [],
+      42: []
+    };
+    const collateralTokenNotAllowed = notAllowed[b0x.networkId].includes(
       collateralToken && collateralToken.symbol
     );
     if (collateralTokenNotAllowed) {
-      alert(`These tokens are not yet supported for lending or as collateral.`);
+      alert(
+        `The selected tokens are not yet supported for lending or collateral.`
+      );
       return false;
     }
 
@@ -146,7 +153,7 @@ export const submitFillOrder = async (
         });
       })
       .on(`error`, error => {
-        alert(error.message);
+        console.error(error.message);
       });
   } else {
     // receipt = await b0x.takeLoanOrderAsLender(order, txOpts);
@@ -162,7 +169,7 @@ export const submitFillOrder = async (
         });
       })
       .on(`error`, error => {
-        alert(error.message);
+        console.error(error.message);
       });
   }
 

@@ -149,7 +149,7 @@ export default class TrackedTokenItems extends React.Component {
         });
       })
       .on(`error`, error => {
-        alert(error.message);
+        console.error(error.message);
       });
     this.setState({ showSendDialog: false });
     setTimeout(() => updateTrackedTokens(true), 5000);
@@ -175,7 +175,7 @@ export default class TrackedTokenItems extends React.Component {
         });
       })
       .on(`error`, error => {
-        alert(error.message);
+        console.error(error.message);
       });
     this.setState({ showRequestDialog: false });
     setTimeout(() => updateTrackedTokens(true), 5000);
@@ -206,7 +206,7 @@ export default class TrackedTokenItems extends React.Component {
         });
       })
       .on(`error`, error => {
-        alert(error.message);
+        console.error(error.message);
       });
     setTimeout(() => this.checkAllowance(), 5000);
   };
@@ -231,7 +231,7 @@ export default class TrackedTokenItems extends React.Component {
         });
       })
       .on(`error`, error => {
-        alert(error.message);
+        console.error(error.message);
       });
     setTimeout(() => this.checkAllowance(), 5000);
   };

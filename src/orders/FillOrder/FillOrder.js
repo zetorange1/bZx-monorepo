@@ -29,7 +29,7 @@ export default class FillOrder extends React.Component {
   state = {
     fillOrderAmount: 0,
     collateralTokenAddress: this.props.tokens[0].address,
-    collateralTokenAmount: `(finish form then reset)`
+    collateralTokenAmount: `(finish form then refresh)`
   };
 
   componentDidMount() {
@@ -47,7 +47,7 @@ export default class FillOrder extends React.Component {
     loanTokenAmount,
     initialMarginAmount
   ) => {
-    let collateralRequired = `(finish form then reset)`;
+    let collateralRequired = `(finish form then refresh)`;
     if (
       loanTokenAddress &&
       collateralTokenAddress &&

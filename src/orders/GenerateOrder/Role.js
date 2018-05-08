@@ -13,8 +13,16 @@ export default ({ role, setRole }) => (
       value={role}
       onChange={setRole}
     >
-      <FormControlLabel value="lender" control={<Radio color="primary" />} label="Lender" />
-      <FormControlLabel value="trader" control={<Radio color="primary" />} label="Trader" />
+      <FormControlLabel
+        value="lender"
+        control={<Radio color="primary" />}
+        label="Lender"
+      />
+      <FormControlLabel
+        value="trader"
+        control={<Radio color="primary" />}
+        label="Trader"
+      />
     </RadioGroup>
   </Section>
 );
