@@ -67,6 +67,7 @@ const AddressLink = styled.a.attrs({
 `;
 
 export default ({
+  b0x,
   tokens,
   fillOrderAmount,
   collateralTokenAddress,
@@ -119,9 +120,7 @@ export default ({
           />
           <CenteredFormHelperText margin="normal" component="div">
             <AddressLink
-              href={`${
-                this.props.b0x.etherscanURL
-              }/address/${collateralTokenAddress}`}
+              href={`${b0x.etherscanURL}/address/${collateralTokenAddress}`}
             >
               Etherscan
             </AddressLink>
@@ -157,24 +156,3 @@ export default ({
     </Fragment>
   );
 };
-
-// {
-//   "b0xAddress": "0x4d3d5c850dd5bd9d6f4adda3dd039a3c8054ca29",
-//   "makerAddress": "0x5409ed021d9299bf6814279a6a1411a7e866a631",
-//   "makerRole": "0",
-//   "networkId": 50,
-//   "loanTokenAddress": "0x6000eca38b8b5bba64986182fe2a69c57f6b5414",
-//   "interestTokenAddress": "0x6000eca38b8b5bba64986182fe2a69c57f6b5414",
-//   "collateralTokenAddress": "0x6000eca38b8b5bba64986182fe2a69c57f6b5414",
-//   "feeRecipientAddress": "0x0000000000000000000000000000000000000000",
-//   "oracleAddress": "0x8ea76477cfaca8f7ea06477fd3c09a740ac6012a",
-//   "loanTokenAmount": "40",
-//   "interestAmount": "41",
-//   "initialMarginAmount": "40",
-//   "maintenanceMarginAmount": "20",
-//   "lenderRelayFee": "0",
-//   "traderRelayFee": "0",
-//   "expirationUnixTimestampSec": "1522395146",
-//   "salt": "45629222935198982854169792985347749558750808557895357318468689301872462703618",
-//   "signature": "0xcada7a2f63f8936d03a01fee5a9a9fe6fb6bc9089644f7e6251ec5212067b96a1af283dd23773e348dd731ae8f3e77707f70bff8f23821e9f5c91b9e4a4060611b"
-// }

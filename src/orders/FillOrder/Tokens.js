@@ -61,6 +61,7 @@ const TooltipText = styled.div`
 `;
 
 export default ({
+  b0x,
   tokens,
   role,
   loanTokenAddress,
@@ -81,9 +82,7 @@ export default ({
           <Tooltip title="This is the total amount being loaned or borrowed.">
             <Title>Loan Token</Title>
           </Tooltip>
-          <CoinInfo
-            href={`${this.props.b0x.etherscanURL}/token/${loanToken.address}`}
-          >
+          <CoinInfo href={`${b0x.etherscanURL}/token/${loanToken.address}`}>
             <CoinIcon src={getIconURL(loanToken)} />
             <CoinLabel>{loanToken.name}</CoinLabel>
           </CoinInfo>
@@ -97,11 +96,7 @@ export default ({
           <Tooltip title="This is the interest amount, paid per day by the borrower.">
             <Title>Interest Token</Title>
           </Tooltip>
-          <CoinInfo
-            href={`${this.props.b0x.etherscanURL}token/${
-              interestToken.address
-            }`}
-          >
+          <CoinInfo href={`${b0x.etherscanURL}token/${interestToken.address}`}>
             <CoinIcon src={getIconURL(interestToken)} />
             <CoinLabel>{interestToken.name}</CoinLabel>
           </CoinInfo>
@@ -128,9 +123,7 @@ export default ({
               <Title>Collateral Token</Title>
             </Tooltip>
             <CoinInfo
-              href={`${this.props.b0x.etherscanURL}token/${
-                collateralToken.address
-              }`}
+              href={`${b0x.etherscanURL}token/${collateralToken.address}`}
             >
               <CoinIcon src={getIconURL(collateralToken)} />
               <CoinLabel>{collateralToken.name}</CoinLabel>

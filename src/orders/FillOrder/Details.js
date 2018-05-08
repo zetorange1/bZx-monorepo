@@ -35,6 +35,7 @@ const Hash = styled.a`
 `;
 
 export default ({
+  b0x,
   oracles,
   initialMarginAmount,
   maintenanceMarginAmount,
@@ -62,7 +63,7 @@ export default ({
           <div>
             {oracle.name} (
             <Hash
-              href={`${this.props.b0x.etherscanURL}address/${oracle.address}`}
+              href={`${b0x.etherscanURL}address/${oracle.address}`}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -75,9 +76,7 @@ export default ({
             <DataContainer>
               <Title>Relay/Exchange address</Title>
               <Hash
-                href={`${
-                  this.props.b0x.etherscanURL
-                }address/${feeRecipientAddress}`}
+                href={`${b0x.etherscanURL}address/${feeRecipientAddress}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >

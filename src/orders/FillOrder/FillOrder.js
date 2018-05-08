@@ -29,7 +29,7 @@ export default class FillOrder extends React.Component {
   state = {
     fillOrderAmount: 0,
     collateralTokenAddress: this.props.tokens[0].address,
-    collateralTokenAmount: `(finish form then reset)`
+    collateralTokenAmount: `(finish form then refresh)`
   };
 
   componentDidMount() {
@@ -47,7 +47,7 @@ export default class FillOrder extends React.Component {
     loanTokenAmount,
     initialMarginAmount
   ) => {
-    let collateralRequired = `(finish form then reset)`;
+    let collateralRequired = `(finish form then refresh)`;
     if (
       loanTokenAddress &&
       collateralTokenAddress &&
@@ -119,7 +119,7 @@ export default class FillOrder extends React.Component {
   };
 
   render() {
-    const { order, tokens } = this.props;
+    const { order, tokens, b0x } = this.props;
     const makerRole = order.makerRole === `0` ? `lender` : `trader`;
     const counterRole = order.makerRole !== `0` ? `lender` : `trader`;
     return (
@@ -129,9 +129,7 @@ export default class FillOrder extends React.Component {
           <p>
             This order was created by{` `}
             <Hash
-              href={`${this.props.b0x.etherscanURL}address/${
-                order.makerAddress
-              }`}
+              href={`${b0x.etherscanURL}address/${order.makerAddress}`}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -142,6 +140,7 @@ export default class FillOrder extends React.Component {
             {counterRole} to fill.
           </p>
           <Tokens
+            b0x={b0x}
             tokens={tokens}
             role={makerRole}
             loanTokenAddress={order.loanTokenAddress}
@@ -152,6 +151,7 @@ export default class FillOrder extends React.Component {
             collateralTokenAmount={this.state.collateralTokenAmount}
           />
           <Details
+            b0x={b0x}
             oracles={this.props.oracles}
             initialMarginAmount={order.initialMarginAmount}
             maintenanceMarginAmount={order.maintenanceMarginAmount}
@@ -174,6 +174,7 @@ export default class FillOrder extends React.Component {
           </SectionLabel>
           {makerRole === `lender` && (
             <Inputs
+              b0x={b0x}
               tokens={tokens}
               fillOrderAmount={this.state.fillOrderAmount}
               collateralTokenAddress={this.state.collateralTokenAddress}

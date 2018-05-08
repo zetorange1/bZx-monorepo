@@ -35,7 +35,7 @@ export default class GenerateOrder extends React.Component {
     // token amounts
     loanTokenAmount: ``,
     interestAmount: ``,
-    collateralTokenAmount: `(finish form then reset)`,
+    collateralTokenAmount: `(finish form then refresh)`,
 
     interestTotalAmount: 0,
 
@@ -69,7 +69,7 @@ export default class GenerateOrder extends React.Component {
     loanTokenAmount,
     initialMarginAmount
   ) => {
-    let collateralRequired = `(finish form then reset)`;
+    let collateralRequired = `(finish form then refresh)`;
     if (
       loanTokenAddress &&
       collateralTokenAddress &&
