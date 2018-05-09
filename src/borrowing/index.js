@@ -1,36 +1,69 @@
-/* eslint-disable */
+import styled from "styled-components";
+import MuiButton from "material-ui/Button";
+
 import Section, { SectionLabel } from "../common/FormSection";
 import OpenLoan from "./OpenLoan";
-import ClosedLoan from "./ClosedLoan";
+// import ClosedLoan from "./ClosedLoan";
 
-const openLoans = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }];
+const InfoContainer = styled.div`
+  display: flex;
+  align-items: center;
+`;
 
-const closedLoans = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }];
+const ShowCount = styled.div`
+  display: inline-block;
+  margin: 6px;
+`;
+
+const Button = styled(MuiButton)`
+  margin: 6px !important;
+`;
 
 export default class Borrowing extends React.Component {
-  state = { positions: [] };
+  state = { loans: [], loading: false, count: 10 };
 
-  async componentDidMount() {
+  componentDidMount() {
+    this.getLoans();
+  }
+
+  getLoans = async () => {
     const { b0x, accounts } = this.props;
-    const positions = await b0x.getLoansForTrader({
+    this.setState({ loans: [], loading: true });
+    const loans = await b0x.getLoansForTrader({
       address: accounts[0],
       start: 0,
-      count: 10
+      count: this.state.count
     });
-    console.log(positions)
-    this.setState({ positions });
-  }
+    console.log(loans);
+    this.setState({ loans, loading: false });
+  };
+
+  increaseCount = () => {
+    this.setState(p => ({ count: p.count + 10 }), this.getLoans);
+  };
 
   render() {
     const { b0x, tokens, accounts, web3 } = this.props;
-    const { positions } = this.state;
-    const openPositions = positions.filter(p => p.active === 1);
-    const closedPositions = positions.filter(p => p.active === 0);
+    const { loans, loading, count } = this.state;
+    const openLoans = loans.filter(p => p.active === 1);
+    const closedLoans = loans.filter(p => p.active === 0);
     return (
       <div>
+        <InfoContainer>
+          <ShowCount>
+            Showing last {count} loans ({loans.length} loans found).
+          </ShowCount>
+          <Button onClick={this.increaseCount} variant="raised" color="primary">
+            Show more
+          </Button>
+          <Button onClick={this.getOrders} variant="raised" disabled={loading}>
+            {loading ? `Refreshing...` : `Refresh`}
+          </Button>
+        </InfoContainer>
+        <br />
         <Section>
-          <SectionLabel>Open Loans</SectionLabel>
-          {openPositions.map(data => (
+          <SectionLabel>Open Loans ({openLoans.length})</SectionLabel>
+          {openLoans.map(data => (
             <OpenLoan
               key={data.loanOrderHash}
               b0x={b0x}
@@ -43,7 +76,7 @@ export default class Borrowing extends React.Component {
           ))}
         </Section>
         <Section>
-          <SectionLabel>Closed Loans</SectionLabel>
+          <SectionLabel>Closed Loans ({closedLoans.length})</SectionLabel>
           None
           {/* {closedPositions.map(x => <ClosedLoan key={x.id} />)} */}
         </Section>
