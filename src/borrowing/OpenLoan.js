@@ -10,6 +10,7 @@ import IconButton from "material-ui/IconButton";
 import Collapse from "material-ui/transitions/Collapse";
 
 import CollateralOptions from "./CollateralOptions";
+import TradeOptions from "./TradeOptions";
 
 import { COLORS } from "../styles/constants";
 import { getSymbol } from "../common/tokens";
@@ -103,38 +104,6 @@ export default class OpenLoan extends React.Component {
     const tradeOpened = positionTokenAddressFilled !== loanTokenAddress;
 
     const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
-    if (this.props.hideDetails) {
-      return (
-        <Card>
-          <CardContent>
-            <DataPointContainer>
-              <Label>Order # </Label>
-              <DataPoint>
-                <Hash href="#" target="_blank" rel="noopener noreferrer">
-                  {loanOrderHash}
-                </Hash>
-              </DataPoint>
-            </DataPointContainer>
-
-            <DataPointContainer>
-              <Label>Lender </Label>
-              <DataPoint>
-                <Hash href="#" target="_blank" rel="noopener noreferrer">
-                  {lender}
-                </Hash>
-              </DataPoint>
-            </DataPointContainer>
-
-            <UpperRight>
-              <Label>Loan Opened</Label>
-              <div title={loanOpenedDate.toUTCString()}>
-                {loanOpenedDate.toLocaleString()}
-              </div>
-            </UpperRight>
-          </CardContent>
-        </Card>
-      );
-    }
     return (
       <Card>
         <CardContent>
@@ -221,40 +190,19 @@ export default class OpenLoan extends React.Component {
             </DataPoint>
           </DataPointContainer>
 
+          <TradeOptions
+            tokens={tokens}
+            b0x={b0x}
+            accounts={accounts}
+            web3={web3}
+            loanOrderHash={loanOrderHash}
+          />
           <Button
-            style={{ marginLeft: `auto` }}
-            onClick={this.handleExpandClick}
+            style={{ marginLeft: `12px` }}
           >
-            Manage 0x trade
+            Close Loan
           </Button>
-          <IconButton onClick={this.handleExpandClick}>
-            <Icon>
-              {this.state.expanded
-                ? `keyboard_arrow_up`
-                : `keyboard_arrow_down`}
-            </Icon>
-          </IconButton>
         </CardActions>
-        <Collapse in={this.state.expanded} timeout="auto" unmountOnExit>
-          {tradeOpened ? (
-            <CardContent>
-              <Button variant="raised" color="primary">
-                Close trade with Kyber market order
-              </Button>
-              <p>Or, you may paste in a 0x order object:</p>
-              <Textarea />
-              <Button variant="raised">Close with 0x counter-trade</Button>
-            </CardContent>
-          ) : (
-            <CardContent>
-              <p>Paste in a 0x order here to open a trade with loaned funds:</p>
-              <Textarea />
-              <Button variant="raised" color="primary">
-                Open a 0x trade
-              </Button>
-            </CardContent>
-          )}
-        </Collapse>
       </Card>
     );
   }
