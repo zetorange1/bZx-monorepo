@@ -45,8 +45,8 @@ export default class Borrowing extends React.Component {
   render() {
     const { b0x, tokens, accounts, web3 } = this.props;
     const { loans, loading, count } = this.state;
-    const openPositions = loans.filter(p => p.active === 1);
-    // const closedPositions = loans.filter(p => p.active === 0);
+    const openLoans = loans.filter(p => p.active === 1);
+    const closedLoans = loans.filter(p => p.active === 0);
     return (
       <div>
         <InfoContainer>
@@ -62,8 +62,8 @@ export default class Borrowing extends React.Component {
         </InfoContainer>
         <br />
         <Section>
-          <SectionLabel>Open Loans</SectionLabel>
-          {openPositions.map(data => (
+          <SectionLabel>Open Loans ({openLoans.length})</SectionLabel>
+          {openLoans.map(data => (
             <OpenLoan
               key={data.loanOrderHash}
               b0x={b0x}
@@ -76,7 +76,7 @@ export default class Borrowing extends React.Component {
           ))}
         </Section>
         <Section>
-          <SectionLabel>Closed Loans</SectionLabel>
+          <SectionLabel>Closed Loans ({closedLoans.length})</SectionLabel>
           None
           {/* {closedPositions.map(x => <ClosedLoan key={x.id} />)} */}
         </Section>
