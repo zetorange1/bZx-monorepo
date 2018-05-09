@@ -16,65 +16,9 @@ const TxHashLink = styled.a.attrs({
 `;
 
 export default class TradeOracleDialog extends React.Component {
-  state = {
-    tokenAddress: this.props.tokens[0].address,
-    approvalLoading: false,
-    tokenApproved: false
-  };
+  state = { tokenAddress: this.props.tokens[0].address };
 
-  componentDidMount = async () => {
-    this.checkAllowance();
-  };
-
-  setTokenAddress = tokenAddress => {
-    this.setState({ tokenAddress }, () => {
-      this.checkAllowance();
-    });
-  };
-
-  checkAllowance = async () => {
-    const { tokenAddress } = this.state;
-    const { b0x, accounts, tokens } = this.props;
-    const token = tokens.filter(t => t.address === tokenAddress)[0];
-    console.log(`checking allowance`);
-    console.log(token.name, token.address);
-    const allowance = await b0x.getAllowance({
-      tokenAddress: token.address,
-      ownerAddress: accounts[0].toLowerCase()
-    });
-    console.log(`Allowance:`, allowance.toNumber());
-    this.setState({
-      tokenApproved: allowance.toNumber() !== 0,
-      approvalLoading: false
-    });
-  };
-
-  approveToken = async () => {
-    const { tokenAddress } = this.state;
-    const { b0x, tokens, accounts } = this.props;
-    const token = tokens.filter(t => t.address === tokenAddress)[0];
-    console.log(`approving allowance`);
-    console.log(token.name, token.address);
-    this.setState({ approvalLoading: true });
-    await b0x
-      .setAllowanceUnlimited({
-        tokenAddress: token.address,
-        ownerAddress: accounts[0].toLowerCase()
-      })
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
-        });
-      })
-      .on(`error`, error => {
-        console.error(error.message);
-      });
-    setTimeout(() => this.checkAllowance(), 5000);
-  };
+  setTokenAddress = tokenAddress => this.setState({ tokenAddress });
 
   executeChange = async () => {
     const { b0x, web3, accounts, loanOrderHash } = this.props;
@@ -116,7 +60,6 @@ export default class TradeOracleDialog extends React.Component {
   };
 
   render() {
-    const { approvalLoading, tokenApproved } = this.state;
     return (
       <Dialog open={this.props.open} onClose={this.props.onClose}>
         <DialogTitle>Execute Trade with Kyber Oracle</DialogTitle>
@@ -131,24 +74,7 @@ export default class TradeOracleDialog extends React.Component {
           </Section>
           <Divider />
           <Section>
-            <SectionLabel>2. Approve the token</SectionLabel>
-            {approvalLoading ? (
-              <Button variant="raised" disabled>
-                Approving...
-              </Button>
-            ) : (
-              <Button
-                variant="raised"
-                onClick={this.approveToken}
-                disabled={tokenApproved}
-              >
-                {tokenApproved ? `Token Approved` : `Approve Token`}
-              </Button>
-            )}
-          </Section>
-          <Divider />
-          <Section>
-            <SectionLabel>3. Execute the change</SectionLabel>
+            <SectionLabel>2. Execute the trade</SectionLabel>
             <p>
               When you click the button below, we will attempt to execute a
               market order trade via Kyber for your target token.
@@ -157,9 +83,8 @@ export default class TradeOracleDialog extends React.Component {
               onClick={this.executeChange}
               variant="raised"
               color="primary"
-              disabled={!tokenApproved}
             >
-              Execute change
+              Execute trade with Kyber
             </Button>
           </Section>
         </DialogContent>
