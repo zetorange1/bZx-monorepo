@@ -76,46 +76,44 @@ export default class TradeOracleDialog extends React.Component {
     setTimeout(() => this.checkAllowance(), 5000);
   };
 
-  // executeChange = async () => {
-  //   const { b0x, web3, accounts, loanOrderHash } = this.props;
-  //   const { tokenAddress } = this.state;
-  //   const txOpts = {
-  //     from: accounts[0],
-  //     gas: 1000000,
-  //     gasPrice: web3.utils.toWei(`30`, `gwei`).toString()
-  //   };
+  executeChange = async () => {
+    const { b0x, web3, accounts, loanOrderHash } = this.props;
+    const { tokenAddress } = this.state;
+    const txOpts = {
+      from: accounts[0],
+      gas: 1000000,
+      gasPrice: web3.utils.toWei(`30`, `gwei`).toString()
+    };
 
-  //   console.log(`Executing change:`);
-  //   console.log({
-  //     loanOrderHash,
-  //     collateralTokenFilled: tokenAddress,
-  //     txOpts
-  //   });
-  //   await b0x
-  //     .changeCollateral({
-  //       loanOrderHash,
-  //       collateralTokenFilled: tokenAddress,
-  //       txOpts
-  //     })
-  //     .once(`transactionHash`, hash => {
-  //       alert(`Transaction submitted, transaction hash:`, {
-  //         component: () => (
-  //           <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
-  //             {hash}
-  //           </TxHashLink>
-  //         )
-  //       });
-  //     })
-  //     .on(`error`, error => {
-  //       console.error(error);
-  //       alert(
-  //         `We were not able to execute your transaction. Please check that you have sufficient tokens.`
-  //       );
-  //       this.props.onClose();
-  //     });
-  //   alert(`Execution complete.`);
-  //   this.props.onClose();
-  // };
+    console.log(`Executing trade with Kyber:`);
+    console.log({
+      orderHash: loanOrderHash,
+      tradeTokenAddress: tokenAddress,
+      txOpts
+    });
+    await b0x
+      .tradePositionWithOracle({
+        orderHash: loanOrderHash,
+        tradeTokenAddress: tokenAddress,
+        txOpts
+      })
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        console.error(error);
+        alert(`We were not able to execute your transaction.`);
+        this.props.onClose();
+      });
+    alert(`Trade execution complete. Please refresh to see changes.`);
+    this.props.onClose();
+  };
 
   render() {
     const { approvalLoading, tokenApproved } = this.state;
