@@ -1,13 +1,9 @@
-/* eslint-disable */
 import styled from "styled-components";
 import MuiCard, {
   CardActions,
   CardContent as MuiCardContent
 } from "material-ui/Card";
 import Button from "material-ui/Button";
-import Icon from "material-ui/Icon";
-import IconButton from "material-ui/IconButton";
-import Collapse from "material-ui/transitions/Collapse";
 
 import CollateralOptions from "./CollateralOptions";
 import TradeOptions from "./TradeOptions";
@@ -63,12 +59,6 @@ const LowerUpperRight = styled.div`
   position: absolute;
   top: 72px;
   right: 16px;
-`;
-
-const Textarea = styled.textarea`
-  width: 100%;
-  height: 120px;
-  margin-bottom: 16px;
 `;
 
 export default class OpenLoan extends React.Component {
@@ -185,7 +175,8 @@ export default class OpenLoan extends React.Component {
           <DataPointContainer style={{ marginLeft: `12px` }}>
             <Label>Trade Amount</Label>
             <DataPoint>
-              {fromBigNumber(positionTokenAmountFilled, 1e18)}{" "}
+              {fromBigNumber(positionTokenAmountFilled, 1e18)}
+              {` `}
               {positionTokenSymbol}
             </DataPoint>
           </DataPointContainer>
@@ -197,11 +188,7 @@ export default class OpenLoan extends React.Component {
             web3={web3}
             loanOrderHash={loanOrderHash}
           />
-          <Button
-            style={{ marginLeft: `12px` }}
-          >
-            Close Loan
-          </Button>
+          <Button style={{ marginLeft: `12px` }}>Close Loan</Button>
         </CardActions>
       </Card>
     );

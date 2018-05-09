@@ -1,7 +1,12 @@
 import styled from "styled-components";
-import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
+import MuiCard, {
+  CardActions,
+  CardContent as MuiCardContent
+} from "material-ui/Card";
 
 import { COLORS } from "../styles/constants";
+import { getSymbol } from "../common/tokens";
+import { fromBigNumber } from "../common/utils";
 
 const CardContent = styled(MuiCardContent)`
   position: relative;
@@ -46,82 +51,117 @@ const UpperRight = styled.div`
   align-items: flex-end;
 `;
 
-export default class OpenLoan extends React.Component {
-  state = { expanded: false };
+// const LowerUpperRight = styled.div`
+//   position: absolute;
+//   top: 72px;
+//   right: 16px;
+// `;
 
-  handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
+export default ({ tokens, data }) => {
+  const {
+    collateralTokenAddressFilled,
+    collateralTokenAmountFilled,
+    positionTokenAddressFilled,
+    positionTokenAmountFilled,
+    interestTokenAddress,
+    interestTotalAccrued,
+    interestPaidSoFar,
+    loanTokenAmountFilled,
+    loanTokenAddress,
+    loanStartUnixTimestampSec,
+    loanOrderHash,
+    lender
+  } = data;
 
-  render() {
-    const collateralTokenAmountFilled = 6.25;
-    const collateralTokenSymbol = `SYM`;
-    const loanTokenAmountFilled = 12;
-    const loanTokenSymbol = `SYM`;
-    const interestPaidSoFar = 0.0002;
-    const interestTokenSymbol = `SYM`;
-    const filledUnixTimestampSec = 1519283349;
-    const closedUnixTimestampSec = 1519283349;
+  const collateralToken = tokens.filter(
+    t => t.address === collateralTokenAddressFilled
+  )[0];
+  const collateralTokenSymbol = collateralToken.symbol;
+  const loanTokenSymbol = getSymbol(tokens, loanTokenAddress);
+  const interestTokenSymbol = getSymbol(tokens, interestTokenAddress);
+  const positionTokenSymbol = getSymbol(tokens, positionTokenAddressFilled);
 
-    const loanClosedDate = new Date(closedUnixTimestampSec * 1000);
-    const loanOpenedDate = new Date(filledUnixTimestampSec * 1000);
-    return (
-      <Card>
-        <CardContent>
-          <DataPointContainer>
-            <Label>Order # </Label>
-            <DataPoint>
-              <Hash href="#" target="_blank" rel="noopener noreferrer">
-                0x0000000000000000000000000000000000000000
-              </Hash>
-            </DataPoint>
-          </DataPointContainer>
+  const tradeOpened = positionTokenAddressFilled !== loanTokenAddress;
 
-          <DataPointContainer>
-            <Label>Lender </Label>
-            <DataPoint>
-              <Hash href="#" target="_blank" rel="noopener noreferrer">
-                0x0000000000000000000000000000000000000000
-              </Hash>
-            </DataPoint>
-          </DataPointContainer>
+  const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
+  return (
+    <Card>
+      <CardContent>
+        <DataPointContainer>
+          <Label>Order # </Label>
+          <DataPoint title={loanOrderHash}>
+            <Hash href="#" target="_blank" rel="noopener noreferrer">
+              {loanOrderHash}
+            </Hash>
+          </DataPoint>
+        </DataPointContainer>
 
-          <UpperRight>
-            <Label>Loan Closed</Label>
-            <div title={loanClosedDate.toUTCString()}>
-              {loanClosedDate.toLocaleString()}
-            </div>
-          </UpperRight>
+        <DataPointContainer>
+          <Label>Lender </Label>
+          <DataPoint title={lender}>
+            <Hash href="#" target="_blank" rel="noopener noreferrer">
+              {lender}
+            </Hash>
+          </DataPoint>
+        </DataPointContainer>
 
-          <hr />
+        <UpperRight>
+          <Label>Loan Opened</Label>
+          <div title={loanOpenedDate.toUTCString()}>
+            {loanOpenedDate.toLocaleString()}
+          </div>
+        </UpperRight>
 
-          <DataPointContainer>
-            <Label>Collateral</Label>
-            <DataPoint>
-              {collateralTokenAmountFilled} {collateralTokenSymbol}
-            </DataPoint>
-          </DataPointContainer>
+        <hr />
 
-          <DataPointContainer>
-            <Label>Borrowed</Label>
-            <DataPoint>
-              {loanTokenAmountFilled} {loanTokenSymbol}
-            </DataPoint>
-          </DataPointContainer>
+        <DataPointContainer>
+          <Label>Collateral</Label>
+          <DataPoint>
+            {fromBigNumber(collateralTokenAmountFilled, 1e18)}
+            {` `}
+            {collateralTokenSymbol}
+          </DataPoint>
+        </DataPointContainer>
 
-          <DataPointContainer>
-            <Label>Interest Paid</Label>
-            <DataPoint>
-              {interestPaidSoFar} {interestTokenSymbol}
-            </DataPoint>
-          </DataPointContainer>
+        <DataPointContainer>
+          <Label>Borrowed</Label>
+          <DataPoint>
+            {fromBigNumber(loanTokenAmountFilled, 1e18)} {loanTokenSymbol}
+          </DataPoint>
+        </DataPointContainer>
 
-          <DataPointContainer>
-            <Label>Loan Opened</Label>
-            <DataPoint title={loanOpenedDate.toUTCString()}>
-              {loanOpenedDate.toLocaleString()}
-            </DataPoint>
-          </DataPointContainer>
-        </CardContent>
-      </Card>
-    );
-  }
-}
+        <DataPointContainer>
+          <Label>Interest paid so far</Label>
+          <DataPoint>
+            {fromBigNumber(interestPaidSoFar, 1e18)} {interestTokenSymbol}
+          </DataPoint>
+        </DataPointContainer>
+
+        <DataPointContainer>
+          <Label>Interest accrued (total)</Label>
+          <DataPoint>
+            {fromBigNumber(interestTotalAccrued, 1e18)} {interestTokenSymbol}
+          </DataPoint>
+        </DataPointContainer>
+
+        {/* <LowerUpperRight>[Collateral Options]</LowerUpperRight> */}
+      </CardContent>
+
+      <CardActions>
+        <DataPointContainer style={{ marginLeft: `12px` }}>
+          <Label>0x trade opened</Label>
+          <DataPoint>{Boolean(tradeOpened).toString()}</DataPoint>
+        </DataPointContainer>
+
+        <DataPointContainer style={{ marginLeft: `12px` }}>
+          <Label>Trade Amount</Label>
+          <DataPoint>
+            {fromBigNumber(positionTokenAmountFilled, 1e18)}
+            {` `}
+            {positionTokenSymbol}
+          </DataPoint>
+        </DataPointContainer>
+      </CardActions>
+    </Card>
+  );
+};
