@@ -23,10 +23,29 @@ export default class TradeOracleDialog extends React.Component {
   executeChange = async () => {
     const { b0x, web3, accounts, loanOrderHash } = this.props;
     const { tokenAddress } = this.state;
+
+    const notAllowed = {
+      1: [],
+      3: [`ZRX`, `B0X`],
+      4: [],
+      42: [`ZRX`, `WETH`]
+    };
+    const tradeToken = this.props.tokens.filter(
+      t => t.address === tokenAddress
+    )[0];
+    if (notAllowed[b0x.networkId].includes(tradeToken && tradeToken.symbol)) {
+      alert(
+        `Token ${
+          tradeToken.symbol
+        } is not yet supported for trading with this oracle. Please choose a different token.`
+      );
+      return;
+    }
+
     const txOpts = {
       from: accounts[0],
       gas: 1000000,
-      gasPrice: web3.utils.toWei(`30`, `gwei`).toString()
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
 
     console.log(`Executing trade with Kyber:`);

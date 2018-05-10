@@ -63,7 +63,7 @@ export const validateFillOrder = async (
       1: [],
       3: [`ZRX`, `B0X`],
       4: [],
-      42: []
+      42: [`ZRX`, `WETH`]
     };
     const collateralTokenNotAllowed = notAllowed[b0x.networkId].includes(
       collateralToken && collateralToken.symbol

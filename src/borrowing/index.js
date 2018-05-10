@@ -59,7 +59,7 @@ export default class Borrowing extends React.Component {
           <Button onClick={this.increaseCount} variant="raised" color="primary">
             Show more
           </Button>
-          <Button onClick={this.getOrders} variant="raised" disabled={loading}>
+          <Button onClick={this.getLoans} variant="raised" disabled={loading}>
             {loading ? `Refreshing...` : `Refresh`}
           </Button>
         </InfoContainer>

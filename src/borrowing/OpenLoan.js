@@ -4,9 +4,11 @@ import MuiCard, {
   CardContent as MuiCardContent
 } from "material-ui/Card";
 import Button from "material-ui/Button";
+import Dialog, { DialogActions, DialogContent } from "material-ui/Dialog";
 
 import CollateralOptions from "./CollateralOptions";
 import TradeOptions from "./TradeOptions";
+import OrderItem from "../orders/OrderHistory/OrderItem";
 
 import { COLORS } from "../styles/constants";
 import { getSymbol } from "../common/tokens";
@@ -62,9 +64,35 @@ const LowerUpperRight = styled.div`
 `;
 
 export default class OpenLoan extends React.Component {
-  state = { expanded: false };
+  state = {
+    expanded: false,
+    showOrderDialog: false,
+    currentHash: ``,
+    currentLoanOrder: undefined
+  };
+
+  // TODO: need to be able to query b0x for just a particular order
+  getOrders = async () => {
+    const { b0x, accounts } = this.props;
+    const orders = await b0x.getOrders({
+      loanPartyAddress: accounts[0].toLowerCase(),
+      start: 0,
+      count: 1
+    });
+    return orders[0];
+  };
 
   handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
+
+  toggleOrderDialog = async event => {
+    event.preventDefault();
+    const cur = await this.getOrders();
+    this.setState(p => ({
+      showOrderDialog: !p.showOrderDialog,
+      currentHash: cur.loanOrderHash,
+      currentLoanOrder: cur
+    }));
+  };
 
   render() {
     const { tokens, b0x, accounts, web3 } = this.props;
@@ -92,24 +120,53 @@ export default class OpenLoan extends React.Component {
     const positionTokenSymbol = getSymbol(tokens, positionTokenAddressFilled);
 
     const tradeOpened = positionTokenAddressFilled !== loanTokenAddress;
-
     const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
+
     return (
       <Card>
         <CardContent>
           <DataPointContainer>
             <Label>Order # </Label>
             <DataPoint title={loanOrderHash}>
-              <Hash href="#" target="_blank" rel="noopener noreferrer">
+              <Hash
+                href="#"
+                onClick={this.toggleOrderDialog}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {loanOrderHash}
               </Hash>
             </DataPoint>
+            <Dialog
+              open={this.state.showOrderDialog}
+              onClose={this.toggleOrderDialog}
+              // style={{width: `1000px`}}
+              fullWidth
+              maxWidth="md"
+            >
+              <DialogContent>
+                <OrderItem
+                  key={this.state.currentHash}
+                  b0x={b0x}
+                  accounts={accounts}
+                  tokens={tokens}
+                  takenOrder={this.state.currentLoanOrder}
+                  noShadow
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={this.toggleOrderDialog}>OK</Button>
+              </DialogActions>
+            </Dialog>
           </DataPointContainer>
-
           <DataPointContainer>
             <Label>Lender </Label>
             <DataPoint title={lender}>
-              <Hash href="#" target="_blank" rel="noopener noreferrer">
+              <Hash
+                href={`${b0x.etherscanURL}address/${lender}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {lender}
               </Hash>
             </DataPoint>
@@ -168,7 +225,7 @@ export default class OpenLoan extends React.Component {
 
         <CardActions>
           <DataPointContainer style={{ marginLeft: `12px` }}>
-            <Label>0x trade opened</Label>
+            <Label>Active Trade</Label>
             <DataPoint>{Boolean(tradeOpened).toString()}</DataPoint>
           </DataPointContainer>
 

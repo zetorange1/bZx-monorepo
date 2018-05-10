@@ -55,7 +55,7 @@ const checkCoinsAllowed = (state, tokens, networkId) => {
     1: [],
     3: [`ZRX`, `B0X`],
     4: [],
-    42: []
+    42: [`ZRX`, `WETH`]
   };
   const loanToken = tokens.filter(t => t.address === loanTokenAddress)[0];
   const invalidLoanToken = notAllowed[networkId].includes(

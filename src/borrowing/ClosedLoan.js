@@ -149,7 +149,7 @@ export default ({ tokens, data }) => {
 
       <CardActions>
         <DataPointContainer style={{ marginLeft: `12px` }}>
-          <Label>0x trade opened</Label>
+          <Label>Active Trade</Label>
           <DataPoint>{Boolean(tradeOpened).toString()}</DataPoint>
         </DataPointContainer>
 

@@ -76,7 +76,7 @@ export default class OrderItem extends React.Component {
     this.setState(p => ({ showRawOrder: !p.showRawOrder }));
 
   render() {
-    const { takenOrder, accounts, tokens } = this.props;
+    const { takenOrder, accounts, tokens, noShadow } = this.props;
     const { showRawOrder } = this.state;
     // const { loanPositions } = this.state;
     const isMaker = takenOrder.maker === accounts[0].toLowerCase();
@@ -122,7 +122,7 @@ export default class OrderItem extends React.Component {
       `0x0000000000000000000000000000000000000000`;
 
     return (
-      <Card>
+      <Card style={noShadow === true ? { boxShadow: `unset` } : {}}>
         <CardContent>
           <DataPointContainer>
             <Label>Order #</Label>
