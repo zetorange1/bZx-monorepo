@@ -56,7 +56,7 @@ export default class B0xJS {
         this.networkName = "kovan";
         this.etherscanURL = "https://kovan.etherscan.io/";
         break;
-      default: 
+      default:
         this.networkName = "local";
         this.etherscanURL = "";
         break;
@@ -131,18 +131,16 @@ export default class B0xJS {
 
   transferToken = (...props) => transfer.transferToken(this, ...props);
 
-  tradePositionWith0x = (...props) => 
-    trade.tradePositionWith0x(this, ...props);
+  tradePositionWith0x = (...props) => trade.tradePositionWith0x(this, ...props);
   tradePositionWithOracle = (...props) =>
     trade.tradePositionWithOracle(this, ...props);
 
-  changeCollateral = (...props) => 
-    loanHealth.changeCollateral(this, ...props);
+  changeCollateral = (...props) => loanHealth.changeCollateral(this, ...props);
   depositCollateral = (...props) =>
     loanHealth.depositCollateral(this, ...props);
   withdrawExcessCollateral = (...props) =>
     loanHealth.withdrawExcessCollateral(this, ...props);
+  closeLoan = (...props) => loanHealth.closeLoan(this, ...props);
 
-  requestFaucetToken = (...props) => 
-    utils.requestFaucetToken(this, ...props);
+  requestFaucetToken = (...props) => utils.requestFaucetToken(this, ...props);
 }
