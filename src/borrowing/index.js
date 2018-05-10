@@ -47,6 +47,9 @@ export default class Borrowing extends React.Component {
     const { loans, loading, count } = this.state;
     const openLoans = loans.filter(p => p.active === 1);
     const closedLoans = loans.filter(p => p.active === 0);
+    if (loans.length === 0) {
+      return <div>No loans found.</div>;
+    }
     return (
       <div>
         <InfoContainer>
