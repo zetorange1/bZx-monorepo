@@ -5,6 +5,8 @@ import ethABI from "ethereumjs-abi";
 import ethUtil from "ethereumjs-util";
 import * as CoreUtils from "../core/utils";
 import { getContracts } from "../contracts";
+import * as ZeroExTradeUtils from "./utils/zeroEx";
+import * as Signature from "../signature";
 
 const makeBN = arg => new BN(arg);
 const padLeft = arg => Web3Utils.padLeft(arg, 64);
@@ -12,8 +14,20 @@ const prepend0x = arg => `0x${arg}`;
 
 export const tradePositionWith0x = (
   { web3, networkId },
-  { order0x, signature0x, orderHashB0x, txOpts }
+  { order0x, orderHashB0x, txOpts }
 ) => {
+  const rpcSig0x = ethUtil.toRpcSig(
+    order0x.signature.v,
+    order0x.signature.r,
+    order0x.signature.s
+  );
+
+  Signature.isValidSignature({
+    account: order0x.maker.address,
+    orderHash: order0x.signature.hash,
+    signature: rpcSig0x
+  });
+
   const contracts = getContracts(networkId);
   const b0xContract = CoreUtils.getContractInstance(
     web3,
@@ -21,21 +35,23 @@ export const tradePositionWith0x = (
     contracts.B0x.address
   );
 
+  const transformedOrder0x = ZeroExTradeUtils.transform0xOrder(order0x);
+
   const values = [
     ...[
-      order0x.maker,
-      order0x.taker,
-      order0x.makerTokenAddress,
-      order0x.takerTokenAddress,
-      order0x.feeRecipient
+      transformedOrder0x.maker,
+      transformedOrder0x.taker,
+      transformedOrder0x.makerTokenAddress,
+      transformedOrder0x.takerTokenAddress,
+      transformedOrder0x.feeRecipient
     ].map(padLeft),
     ...[
-      order0x.makerTokenAmount,
-      order0x.takerTokenAmount,
-      order0x.makerFee,
-      order0x.takerFee,
-      order0x.expirationUnixTimestampSec,
-      order0x.salt
+      transformedOrder0x.makerTokenAmount,
+      transformedOrder0x.takerTokenAmount,
+      transformedOrder0x.makerFee,
+      transformedOrder0x.takerFee,
+      transformedOrder0x.expirationUnixTimestampSec,
+      transformedOrder0x.salt
     ].map(value => pipe(makeBN, padLeft, prepend0x)(value))
   ];
 
@@ -44,7 +60,7 @@ export const tradePositionWith0x = (
   const order0xTightlyPacked = ethUtil.bufferToHex(hashBuff);
 
   return b0xContract.methods
-    .tradePositionWith0x(orderHashB0x, order0xTightlyPacked, signature0x)
+    .tradePositionWith0x(orderHashB0x, order0xTightlyPacked, rpcSig0x)
     .send({
       from: txOpts.from,
       gas: txOpts.gas,
