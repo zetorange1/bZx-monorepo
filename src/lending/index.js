@@ -76,7 +76,14 @@ export default class Borrowing extends React.Component {
         <Section>
           <SectionLabel>Closed Loans ({closedLoans.length})</SectionLabel>
           {closedLoans.map(data => (
-            <LoanItem key={data.loanOrderHash} tokens={tokens} data={data} />
+            <LoanItem
+              key={data.loanOrderHash}
+              b0x={b0x}
+              tokens={tokens}
+              accounts={accounts}
+              data={data}
+              web3={web3}
+            />
           ))}
           {closedLoans.length === 0 && `None`}
         </Section>
