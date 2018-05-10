@@ -1,5 +1,4 @@
 import { pipe, repeat } from "ramda";
-
 import Web3Utils from "web3-utils";
 import BN from "bn.js";
 import ethABI from "ethereumjs-abi";
@@ -7,6 +6,7 @@ import ethUtil from "ethereumjs-util";
 import * as CoreUtils from "../core/utils";
 import { getContracts } from "../contracts";
 import * as ZeroExTradeUtils from "./utils/zeroEx";
+import * as Signature from "../signature";
 
 const makeBN = arg => new BN(arg);
 const padLeft = arg => Web3Utils.padLeft(arg, 64);
@@ -16,6 +16,18 @@ export const tradePositionWith0x = (
   { web3, networkId },
   { order0x, orderHashB0x, txOpts }
 ) => {
+  const rpcSig0x = ethUtil.toRpcSig(
+    order0x.signature.v,
+    order0x.signature.r,
+    order0x.signature.s
+  );
+
+  Signature.isValidSignature({
+    account: order0x.maker.address,
+    orderHash: order0x.signature.hash,
+    signature: rpcSig0x
+  });
+
   const contracts = getContracts(networkId);
   const b0xContract = CoreUtils.getContractInstance(
     web3,
@@ -46,12 +58,6 @@ export const tradePositionWith0x = (
   const types = repeat("bytes32", values.length);
   const hashBuff = ethABI.solidityPack(types, values);
   const order0xTightlyPacked = ethUtil.bufferToHex(hashBuff);
-
-  const rpcSig0x = ethUtil.toRpcSig(
-    order0x.signature.v,
-    order0x.signature.r,
-    order0x.signature.s
-  );
 
   return b0xContract.methods
     .tradePositionWith0x(orderHashB0x, order0xTightlyPacked, rpcSig0x)
