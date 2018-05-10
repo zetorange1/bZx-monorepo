@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
+import Button from "material-ui/Button";
 import { fromBigNumber, toBigNumber } from "../common/utils";
 
 import { COLORS } from "../styles/constants";
@@ -52,12 +53,6 @@ const UpperRight = styled.div`
 //   top: 72px;
 //   right: 16px;
 // `;
-
-const WithdrawLink = styled.a`
-  cursor: pointer;
-  text-decoration: underline;
-  margin-left: 12px;
-`;
 
 export default class LoanItem extends React.Component {
   state = { expanded: false };
@@ -187,14 +182,18 @@ export default class LoanItem extends React.Component {
 
           <DataPointContainer>
             <Label>Available for withdrawal</Label>
-            <DataPoint>
+            <DataPoint style={{ marginRight: `12px` }}>
               {fromBigNumber(availableForWithdrawal, 1e18)}
               {` `}
               {interestToken.symbol}
             </DataPoint>
-            <WithdrawLink href="#" onClick={this.withdrawInterest}>
-              withdraw
-            </WithdrawLink>
+            <Button
+              onClick={this.withdrawInterest}
+              variant="raised"
+              color="primary"
+            >
+              Withdraw
+            </Button>
           </DataPointContainer>
 
           {/* this.props.closed && <br /> */}
