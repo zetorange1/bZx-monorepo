@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
-import { fromBigNumber } from "../common/utils";
+import { fromBigNumber, toBigNumber } from "../common/utils";
 
 import { COLORS } from "../styles/constants";
 
@@ -97,6 +97,10 @@ export default class LoanItem extends React.Component {
       t => t.address === positionTokenAddressFilled
     )[0];
 
+    const availableForWithdrawal = toBigNumber(interestTotalAccrued).minus(
+      toBigNumber(interestPaidSoFar)
+    );
+
     const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
     return (
       <Card>
@@ -181,7 +185,7 @@ export default class LoanItem extends React.Component {
           <DataPointContainer>
             <Label>Available for withdrawal</Label>
             <DataPoint>
-              {fromBigNumber(interestTotalAccrued - interestPaidSoFar, 1e18)}
+              {fromBigNumber(availableForWithdrawal, 1e18)}
               {` `}
               {interestToken.symbol}
             </DataPoint>
