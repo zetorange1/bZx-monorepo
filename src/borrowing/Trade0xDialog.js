@@ -29,7 +29,16 @@ export default class Trade0xDialog extends React.Component {
   executeTrade = async () => {
     const { web3, b0x, accounts, loanOrderHash } = this.props;
     const { value } = this.state;
-    const order0x = JSON.parse(value);
+
+    let order0x;
+    try {
+      order0x = JSON.parse(value);
+    } catch (error) {
+      console.error(error);
+      alert(`Error parsing your JSON order object.`);
+      return;
+    }
+
     const txOpts = {
       from: accounts[0],
       gas: 1000000,
