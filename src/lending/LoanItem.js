@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
+import { fromBigNumber } from "../common/utils";
 
 import { COLORS } from "../styles/constants";
 
@@ -46,6 +47,12 @@ const UpperRight = styled.div`
   align-items: flex-end;
 `;
 
+// const LowerUpperRight = styled.div`
+//   position: absolute;
+//   top: 72px;
+//   right: 16px;
+// `;
+
 const WithdrawLink = styled.a`
   cursor: pointer;
   text-decoration: underline;
@@ -63,17 +70,34 @@ export default class LoanItem extends React.Component {
   };
 
   render() {
-    const collateralTokenAmountFilled = 6.25;
-    const collateralTokenSymbol = `SYM`;
-    const loanTokenAmountFilled = 12;
-    const loanTokenSymbol = `SYM`;
-    const interestPaidSoFar = 0.0002;
-    const interestTokenSymbol = `SYM`;
-    const filledUnixTimestampSec = 1519283349;
-    const closedUnixTimestampSec = 1519283349;
+    const { tokens } = this.props;
+    const {
+      collateralTokenAmountFilled,
+      collateralTokenAddressFilled,
+      interestTokenAddress,
+      interestTotalAccrued,
+      interestPaidSoFar,
+      loanTokenAddress,
+      loanTokenAmountFilled,
+      positionTokenAddressFilled,
+      positionTokenAmountFilled,
+      loanOrderHash,
+      trader,
+      loanStartUnixTimestampSec
+    } = this.props.data;
 
-    const loanClosedDate = new Date(closedUnixTimestampSec * 1000);
-    const loanOpenedDate = new Date(filledUnixTimestampSec * 1000);
+    const collateralToken = tokens.filter(
+      t => t.address === collateralTokenAddressFilled
+    )[0];
+    const interestToken = tokens.filter(
+      t => t.address === interestTokenAddress
+    )[0];
+    const loanToken = tokens.filter(t => t.address === loanTokenAddress)[0];
+    const positionToken = tokens.filter(
+      t => t.address === positionTokenAddressFilled
+    )[0];
+
+    const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
     return (
       <Card>
         <CardContent>
@@ -81,7 +105,7 @@ export default class LoanItem extends React.Component {
             <Label>Order # </Label>
             <DataPoint>
               <Hash href="#" target="_blank" rel="noopener noreferrer">
-                0x0000000000000000000000000000000000000000
+                {loanOrderHash}
               </Hash>
             </DataPoint>
           </DataPointContainer>
@@ -90,7 +114,7 @@ export default class LoanItem extends React.Component {
             <Label>Borrower </Label>
             <DataPoint>
               <Hash href="#" target="_blank" rel="noopener noreferrer">
-                0x0000000000000000000000000000000000000000
+                {trader}
               </Hash>
             </DataPoint>
           </DataPointContainer>
@@ -98,9 +122,9 @@ export default class LoanItem extends React.Component {
           {this.props.closed ? (
             <UpperRight>
               <Label>Loan Closed</Label>
-              <div title={loanClosedDate.toUTCString()}>
-                {loanClosedDate.toLocaleString()}
-              </div>
+              {/* <div title={loanClosedDate.toUTCString()}>
+                    {loanClosedDate.toLocaleString()}
+                  </div> */}
             </UpperRight>
           ) : (
             <UpperRight>
@@ -116,46 +140,66 @@ export default class LoanItem extends React.Component {
           <DataPointContainer>
             <Label>Collateral</Label>
             <DataPoint>
-              {collateralTokenAmountFilled} {collateralTokenSymbol}
+              {fromBigNumber(collateralTokenAmountFilled, 1e18)}
+              {` `}
+              {collateralToken.symbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Borrowed</Label>
             <DataPoint>
-              {loanTokenAmountFilled} {loanTokenSymbol}
+              {fromBigNumber(loanTokenAmountFilled, 1e18)} {loanToken.symbol}
+            </DataPoint>
+          </DataPointContainer>
+
+          <DataPointContainer>
+            <Label>Trade Amount</Label>
+            <DataPoint>
+              {fromBigNumber(positionTokenAmountFilled, 1e18)}
+              {` `}
+              {positionToken.symbol}
             </DataPoint>
           </DataPointContainer>
 
           <br />
 
           <DataPointContainer>
-            <Label>Total Interest Paid</Label>
+            <Label>Total interest accrued</Label>
             <DataPoint>
-              {interestPaidSoFar} {interestTokenSymbol}
+              {fromBigNumber(interestTotalAccrued, 1e18)} {interestToken.symbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
-            <Label>Interest held in b0x</Label>
+            <Label>Total interest withdrawn</Label>
             <DataPoint>
-              {interestPaidSoFar} {interestTokenSymbol}
+              {fromBigNumber(interestPaidSoFar, 1e18)} {interestToken.symbol}
+            </DataPoint>
+          </DataPointContainer>
+
+          <DataPointContainer>
+            <Label>Available for withdrawal</Label>
+            <DataPoint>
+              {fromBigNumber(interestTotalAccrued - interestPaidSoFar, 1e18)}
+              {` `}
+              {interestToken.symbol}
             </DataPoint>
             <WithdrawLink href="#" onClick={this.withdrawInterest}>
               withdraw
             </WithdrawLink>
           </DataPointContainer>
 
-          {this.props.closed && <br />}
+          {/* this.props.closed && <br /> */}
 
-          {this.props.closed && (
+          {/* this.props.closed && (
             <DataPointContainer>
               <Label>Loan Opened</Label>
               <DataPoint title={loanOpenedDate.toUTCString()}>
                 {loanOpenedDate.toLocaleString()}
               </DataPoint>
             </DataPointContainer>
-          )}
+          ) */}
         </CardContent>
       </Card>
     );
