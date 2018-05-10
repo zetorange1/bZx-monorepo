@@ -1,20 +1,18 @@
-/* eslint-disable */
-
 import styled from "styled-components";
 import Dialog, { DialogTitle, DialogContent } from "material-ui/Dialog";
 import Button from "material-ui/Button";
 import Section, { SectionLabel, Divider } from "../common/FormSection";
 
-// const TxHashLink = styled.a.attrs({
-//   target: `_blank`,
-//   rel: `noopener noreferrer`
-// })`
-//   font-family: monospace;
-//   display: block;
-//   text-overflow: ellipsis;
-//   overflow: auto;
-// }
-// `;
+const TxHashLink = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  font-family: monospace;
+  display: block;
+  text-overflow: ellipsis;
+  overflow: auto;
+}
+`;
 
 const TextArea = styled.textarea`
   margin: 12px 0;
@@ -29,9 +27,44 @@ export default class Trade0xDialog extends React.Component {
   handleChange = e => this.setState({ value: e.target.value });
 
   executeTrade = async () => {
+    const { web3, b0x, accounts, loanOrderHash } = this.props;
     const { value } = this.state;
     const order0x = JSON.parse(value);
-    console.log(order0x);
+    const txOpts = {
+      from: accounts[0],
+      gas: 1000000,
+      gasPrice: web3.utils.toWei(`30`, `gwei`).toString()
+    };
+
+    console.log(`Executing 0x trade`);
+    console.log({
+      order0x,
+      orderHashB0x: loanOrderHash,
+      txOpts
+    });
+
+    await b0x
+      .tradePositionWith0x({
+        order0x,
+        orderHashB0x: loanOrderHash,
+        txOpts
+      })
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        console.error(error);
+        alert(`We were not able to execute your transaction.`);
+        this.props.onClose();
+      });
+    alert(`Trade execution complete. Please refresh to see changes.`);
+    this.props.onClose();
   };
 
   render() {
@@ -57,7 +90,11 @@ export default class Trade0xDialog extends React.Component {
               found elsewhere to b0x, so b0x can be the taker on behalf of the
               user.
             </p>
-            <Button onClick={this.executeTrade} variant="raised" color="primary">
+            <Button
+              onClick={this.executeTrade}
+              variant="raised"
+              color="primary"
+            >
               Execute trade
             </Button>
           </Section>
