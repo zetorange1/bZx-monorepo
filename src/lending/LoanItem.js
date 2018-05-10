@@ -86,16 +86,12 @@ export default class LoanItem extends React.Component {
       loanStartUnixTimestampSec
     } = this.props.data;
 
-    const collateralToken = tokens.filter(
-      t => t.address === collateralTokenAddressFilled
-    )[0];
-    const interestToken = tokens.filter(
-      t => t.address === interestTokenAddress
-    )[0];
-    const loanToken = tokens.filter(t => t.address === loanTokenAddress)[0];
-    const positionToken = tokens.filter(
-      t => t.address === positionTokenAddressFilled
-    )[0];
+    const getToken = address => tokens.filter(t => t.address === address)[0];
+
+    const collateralToken = getToken(collateralTokenAddressFilled);
+    const interestToken = getToken(interestTokenAddress);
+    const loanToken = getToken(loanTokenAddress);
+    const positionToken = getToken(positionTokenAddressFilled);
 
     const availableForWithdrawal = toBigNumber(interestTotalAccrued).minus(
       toBigNumber(interestPaidSoFar)
@@ -123,12 +119,12 @@ export default class LoanItem extends React.Component {
             </DataPoint>
           </DataPointContainer>
 
-          {this.props.closed ? (
+          {/* this.props.closed ? (
             <UpperRight>
               <Label>Loan Closed</Label>
-              {/* <div title={loanClosedDate.toUTCString()}>
-                    {loanClosedDate.toLocaleString()}
-                  </div> */}
+              <div title={loanClosedDate.toUTCString()}>
+                {loanClosedDate.toLocaleString()}
+              </div>
             </UpperRight>
           ) : (
             <UpperRight>
@@ -137,7 +133,14 @@ export default class LoanItem extends React.Component {
                 {loanOpenedDate.toLocaleString()}
               </div>
             </UpperRight>
-          )}
+          ) */}
+
+          <UpperRight>
+            <Label>Loan Opened</Label>
+            <div title={loanOpenedDate.toUTCString()}>
+              {loanOpenedDate.toLocaleString()}
+            </div>
+          </UpperRight>
 
           <hr />
 
