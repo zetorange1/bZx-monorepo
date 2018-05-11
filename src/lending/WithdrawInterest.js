@@ -1,10 +1,22 @@
 import { Fragment } from "react";
+import styled from "styled-components";
 import Button from "material-ui/Button";
 import Dialog, { DialogContent } from "material-ui/Dialog";
 import BigNumber from "bignumber.js";
 
 import { fromBigNumber } from "../common/utils";
 import { SectionLabel } from "../common/FormSection";
+
+const TxHashLink = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  font-family: monospace;
+  display: block;
+  text-overflow: ellipsis;
+  overflow: auto;
+}
+`;
 
 export default class WithdrawInterest extends React.Component {
   state = { showDialog: false };
@@ -21,11 +33,28 @@ export default class WithdrawInterest extends React.Component {
       gasPrice: web3.utils.toWei(`30`, `gwei`).toString()
     };
 
-    await b0x.payInterest({
-      loanOrderHash,
-      trader,
-      txOpts
-    });
+    await b0x
+      .payInterest({
+        loanOrderHash,
+        trader,
+        txOpts
+      })
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        console.error(error);
+        alert(`We were not able to execute your transaction.`);
+        this.closeDialog();
+      });
+    alert(`Execution complete.`);
+    this.closeDialog();
   };
 
   render() {
@@ -55,7 +84,7 @@ export default class WithdrawInterest extends React.Component {
             </p>
             <p>Please note that the fee might change in the future.</p>
             <Button
-              onClick={this.executeChange}
+              onClick={this.withdrawInterest}
               variant="raised"
               color="primary"
             >
