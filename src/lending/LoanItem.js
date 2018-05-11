@@ -1,9 +1,10 @@
 import styled from "styled-components";
 import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
-import Button from "material-ui/Button";
 import { fromBigNumber, toBigNumber } from "../common/utils";
 
 import { COLORS } from "../styles/constants";
+
+import WithdrawInterest from "./WithdrawInterest";
 
 const CardContent = styled(MuiCardContent)`
   position: relative;
@@ -65,7 +66,7 @@ export default class LoanItem extends React.Component {
   };
 
   render() {
-    const { tokens } = this.props;
+    const { tokens, b0x, accounts, web3 } = this.props;
     const {
       collateralTokenAmountFilled,
       collateralTokenAddressFilled,
@@ -181,20 +182,25 @@ export default class LoanItem extends React.Component {
           </DataPointContainer>
 
           <DataPointContainer>
-            <Label>Available for withdrawal</Label>
+            <Label>Available for withdrawal (minus fees)</Label>
             <DataPoint style={{ marginRight: `12px` }}>
               {fromBigNumber(availableForWithdrawal, 1e18)}
               {` `}
               {interestToken.symbol}
             </DataPoint>
-            <Button
-              onClick={this.withdrawInterest}
-              variant="raised"
-              color="primary"
-            >
-              Withdraw
-            </Button>
           </DataPointContainer>
+
+          <div style={{ marginTop: `12px` }}>
+            <WithdrawInterest
+              b0x={b0x}
+              trader={trader}
+              availableForWithdrawal={availableForWithdrawal}
+              symbol={interestToken.symbol}
+              accounts={accounts}
+              web3={web3}
+              loanOrderHash={loanOrderHash}
+            />
+          </div>
 
           {/* this.props.closed && <br /> */}
 
