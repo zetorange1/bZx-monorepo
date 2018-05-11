@@ -49,3 +49,16 @@ export const withdrawExcessCollateral = (
     )
     .send(txOpts);
 };
+
+export const payInterest = (
+  { web3, networkId, addresses },
+  { loanOrderHash, trader, txOpts }
+) => {
+  const b0xContract = CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).B0x.abi,
+    addresses.B0x
+  );
+
+  return b0xContract.methods.payInterest(loanOrderHash, trader).send(txOpts);
+};
