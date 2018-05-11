@@ -1,8 +1,9 @@
 import { Fragment } from "react";
 import Button from "material-ui/Button";
-import Dialog, { DialogTitle, DialogContent } from "material-ui/Dialog";
+import Dialog, { DialogContent } from "material-ui/Dialog";
 import BigNumber from "bignumber.js";
 
+import { fromBigNumber } from "../common/utils";
 import { SectionLabel } from "../common/FormSection";
 
 export default class WithdrawInterest extends React.Component {
@@ -49,7 +50,7 @@ export default class WithdrawInterest extends React.Component {
             </p>
             <p>
               <strong>
-                {actualWithdrawalAmount.toString()} {symbol}
+                {fromBigNumber(actualWithdrawalAmount, 1e18)} {symbol}
               </strong>
             </p>
             <p>Please note that the fee might change in the future.</p>
