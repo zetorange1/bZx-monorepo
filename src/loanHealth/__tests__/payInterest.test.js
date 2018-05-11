@@ -108,7 +108,7 @@ describe("loanHealth", () => {
         ownerAddress: lenders[0]
       });
 
-      const balanceDiff = balanceAfter.minus(balanceBefore);
+      const balanceDiff = BigNumber(balanceAfter).minus(balanceBefore);
       const interestPaidDiff = BigNumber(loanAfter.interestPaidSoFar).minus(
         loanBefore.interestPaidSoFar
       );
@@ -116,7 +116,9 @@ describe("loanHealth", () => {
       const feeAdjustment = 0.9; // 10% fee for each new interest withdrawal, will likely change in the future
 
       expect(balanceDiff).toEqual(
-        interestPaidDiff.times(feeAdjustment).integerValue()
+        interestPaidDiff
+          .times(feeAdjustment)
+          .integerValue(BigNumber.ROUND_HALF_DOWN)
       );
     });
   });
