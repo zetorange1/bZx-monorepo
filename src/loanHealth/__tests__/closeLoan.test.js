@@ -28,7 +28,8 @@ describe("loanHealth", () => {
         owner,
         lenders,
         traders,
-        transferAmount: web3.utils.toWei("100", "ether")
+        // tranferAmount must be a sufficiently large amount (probably to pay the fees on loan close)
+        transferAmount: web3.utils.toWei("4000", "ether")
       });
 
       order = FillTestUtils.makeOrderAsLender({
