@@ -81,6 +81,12 @@ describe("loanHealth", () => {
     test("should close loan successfully", async () => {
       const receipt = await promiEvent;
       expect(pathOr(null, ["events", "DebugLine"], receipt)).toEqual(null);
+      expect(pathOr(null, ["events", "LogPayInterest"], receipt)).not.toEqual(
+        null
+      );
+      expect(pathOr(null, ["events", "LogLoanClosed"], receipt)).not.toEqual(
+        null
+      );
 
       const loansAfter = await b0xJS.getLoansForTrader({
         address: traders[0],
