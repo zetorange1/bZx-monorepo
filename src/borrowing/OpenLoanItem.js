@@ -247,7 +247,12 @@ export default class OpenLoan extends React.Component {
             web3={web3}
             loanOrderHash={loanOrderHash}
           />
-          <CloseLoan />
+          <CloseLoan
+            b0x={b0x}
+            accounts={accounts}
+            web3={web3}
+            loanOrderHash={loanOrderHash}
+          />
         </CardActions>
       </Card>
     );

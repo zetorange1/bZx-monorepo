@@ -12,7 +12,6 @@ const TxHashLink = styled.a.attrs({
   display: block;
   text-overflow: ellipsis;
   overflow: auto;
-}
 `;
 
 export default class ChangeCollateralDialog extends React.Component {
