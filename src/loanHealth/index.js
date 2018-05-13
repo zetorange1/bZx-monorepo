@@ -62,3 +62,16 @@ export const payInterest = (
 
   return b0xContract.methods.payInterest(loanOrderHash, trader).send(txOpts);
 };
+
+export const closeLoan = (
+  { web3, networkId, addresses },
+  { loanOrderHash, txOpts }
+) => {
+  const b0xContract = CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).B0x.abi,
+    addresses.B0x
+  );
+
+  return b0xContract.methods.closeLoan(loanOrderHash).send(txOpts);
+};
