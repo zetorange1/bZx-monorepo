@@ -140,7 +140,9 @@ export default class B0xJS {
     loanHealth.depositCollateral(this, ...props);
   withdrawExcessCollateral = (...props) =>
     loanHealth.withdrawExcessCollateral(this, ...props);
+
   closeLoan = (...props) => loanHealth.closeLoan(this, ...props);
+  payInterest = (...props) => loanHealth.payInterest(this, ...props);
 
   requestFaucetToken = (...props) => utils.requestFaucetToken(this, ...props);
 }
