@@ -2,8 +2,8 @@ import styled from "styled-components";
 import MuiButton from "material-ui/Button";
 
 import Section, { SectionLabel } from "../common/FormSection";
-import OpenLoan from "./OpenLoan";
-import ClosedLoan from "./ClosedLoan";
+import OpenLoan from "./OpenLoanItem";
+import ClosedLoan from "./ClosedLoanItem";
 
 const InfoContainer = styled.div`
   display: flex;

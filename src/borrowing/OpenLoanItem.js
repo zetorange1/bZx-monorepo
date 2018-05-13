@@ -8,6 +8,8 @@ import Dialog, { DialogActions, DialogContent } from "material-ui/Dialog";
 
 import CollateralOptions from "./CollateralOptions";
 import TradeOptions from "./TradeOptions";
+import CloseLoan from "./CloseLoan";
+
 import OrderItem from "../orders/OrderHistory/OrderItem";
 
 import { COLORS } from "../styles/constants";
@@ -245,7 +247,12 @@ export default class OpenLoan extends React.Component {
             web3={web3}
             loanOrderHash={loanOrderHash}
           />
-          <Button style={{ marginLeft: `12px` }}>Close Loan</Button>
+          <CloseLoan
+            b0x={b0x}
+            accounts={accounts}
+            web3={web3}
+            loanOrderHash={loanOrderHash}
+          />
         </CardActions>
       </Card>
     );
