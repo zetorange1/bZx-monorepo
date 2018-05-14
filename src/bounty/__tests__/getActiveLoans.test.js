@@ -78,11 +78,11 @@ describe("bounty", () => {
 
       const activeLoans = await b0xJS.getActiveLoans({ start: 0, count: 10 });
 
-      const [activeLoan] = activeLoans.filter(
+      const filtered = activeLoans.filter(
         loan => loan.loanOrderHash === orderHashHex
       );
 
-      expect(activeLoan).toEqual(undefined);
+      expect(filtered.length).toEqual(0);
     });
   });
 });
