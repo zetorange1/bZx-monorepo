@@ -15,6 +15,7 @@ import * as signature from "../signature";
 import * as Errors from "./constants/errors";
 import * as trade from "../trade";
 import * as loanHealth from "../loanHealth";
+import * as bounty from "../bounty";
 
 let Web3 = null;
 if (typeof window !== "undefined") {
@@ -145,4 +146,6 @@ export default class B0xJS {
   payInterest = (...props) => loanHealth.payInterest(this, ...props);
 
   requestFaucetToken = (...props) => utils.requestFaucetToken(this, ...props);
+
+  getActiveLoans = (...props) => bounty.getActiveLoans(this, ...props);
 }
