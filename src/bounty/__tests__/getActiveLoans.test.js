@@ -1,3 +1,4 @@
+import { pathOr } from "ramda";
 import b0xJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 import B0xJS from "../../core";
@@ -6,30 +7,29 @@ const { web3 } = b0xJS;
 
 describe("bounty", () => {
   const { owner, lenders, traders } = FillTestUtils.getAccounts();
-  const loanTokenAmount = web3.utils.toWei("251").toString();
 
   const {
     loanTokens,
-    collateralTokens,
-    interestTokens
+    interestTokens,
+    collateralTokens
   } = FillTestUtils.initAllContractInstances();
 
-  const order = FillTestUtils.makeOrderAsTrader({
+  const order = FillTestUtils.makeOrderAsLender({
     web3,
-    traders,
+    lenders,
     loanTokens,
-    interestTokens,
-    collateralTokens,
-    loanTokenAmount
+    interestTokens
   });
+
+  const collateralTokenFilled = collateralTokens[0].options.address.toLowerCase();
+  const takerAddress = traders[0];
 
   let orderHashHex = null;
 
   beforeAll(async () => {
-    const transferAmount = web3.utils.toWei("500", "ether");
+    const transferAmount = web3.utils.toWei("4000", "ether");
     await FillTestUtils.setupAll({ owner, lenders, traders, transferAmount });
 
-    const takerAddress = lenders[1];
     const txOpts = {
       from: takerAddress,
       gas: 1000000,
@@ -42,7 +42,16 @@ describe("bounty", () => {
       order.makerAddress
     );
 
-    await b0xJS.takeLoanOrderAsLender({ ...order, signature }, txOpts);
+    const loanTokenAmountFilled = web3.utils.toWei("12.3");
+
+    const receipt = await b0xJS.takeLoanOrderAsTrader(
+      { ...order, signature },
+      collateralTokenFilled,
+      loanTokenAmountFilled,
+      txOpts
+    );
+
+    expect(pathOr(null, ["events", "DebugLine"], receipt)).toEqual(null);
   });
 
   describe("getActiveLoans", () => {
@@ -54,7 +63,26 @@ describe("bounty", () => {
       );
 
       expect(activeLoan.loanOrderHash).toEqual(orderHashHex);
-      expect(activeLoan.trader).toEqual(order.makerAddress);
+      expect(activeLoan.trader).toEqual(takerAddress);
+    });
+
+    test("should not return closed loans", async () => {
+      await b0xJS.closeLoan({
+        loanOrderHash: orderHashHex,
+        txOpts: {
+          from: takerAddress,
+          gas: 1000000,
+          gasPrice: web3.utils.toWei("30", "gwei").toString()
+        }
+      });
+
+      const activeLoans = await b0xJS.getActiveLoans({ start: 0, count: 10 });
+
+      const filtered = activeLoans.filter(
+        loan => loan.loanOrderHash === orderHashHex
+      );
+
+      expect(filtered.length).toEqual(0);
     });
   });
 });
