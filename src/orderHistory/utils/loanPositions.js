@@ -1,7 +1,7 @@
 import { pipe, map } from "ramda";
 import * as Utils from "./index";
 
-const NUM_LOAN_POS_FIELDS = 14;
+const NUM_LOAN_POS_FIELDS = 15;
 const HEX_RADIX = 16;
 
 const getLoanPosition = params => ({
@@ -13,12 +13,13 @@ const getLoanPosition = params => ({
   collateralTokenAmountFilled: parseInt(`0x${params[5]}`, HEX_RADIX),
   positionTokenAmountFilled: parseInt(`0x${params[6]}`, HEX_RADIX),
   loanStartUnixTimestampSec: parseInt(`0x${params[7]}`, HEX_RADIX),
-  active: parseInt(`0x${params[8]}`, HEX_RADIX),
-  loanOrderHash: `0x${params[9]}`,
-  loanTokenAddress: `0x${params[10].substr(24)}`,
-  interestTokenAddress: `0x${params[11].substr(24)}`,
-  interestTotalAccrued: parseInt(`0x${params[12]}`, HEX_RADIX),
-  interestPaidSoFar: parseInt(`0x${params[13]}`, HEX_RADIX)
+  index: parseInt(`0x${params[8]}`, HEX_RADIX),
+  active: parseInt(`0x${params[9]}`, HEX_RADIX),
+  loanOrderHash: `0x${params[10]}`,
+  loanTokenAddress: `0x${params[11].substr(24)}`,
+  interestTokenAddress: `0x${params[12].substr(24)}`,
+  interestTotalAccrued: parseInt(`0x${params[13]}`, HEX_RADIX),
+  interestPaidSoFar: parseInt(`0x${params[14]}`, HEX_RADIX)
 });
 
 const checkProperObjCount = Utils.makeCheckProperObjCount(NUM_LOAN_POS_FIELDS);

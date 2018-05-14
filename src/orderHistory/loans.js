@@ -5,7 +5,7 @@ import * as LoanPosUtils from "./utils/loanPositions";
 
 export const getLoansForLender = async (
   { web3, networkId },
-  { address, start, count }
+  { address, count, activeOnly }
 ) => {
   const b0xContract = await CoreUtils.getContractInstance(
     web3,
@@ -14,7 +14,7 @@ export const getLoansForLender = async (
   );
 
   const data = await b0xContract.methods
-    .getLoansForLender(address, start, count)
+    .getLoansForLender(address, count, activeOnly)
     .call();
 
   return LoanPosUtils.cleanData(data);
@@ -22,7 +22,7 @@ export const getLoansForLender = async (
 
 export const getLoansForTrader = async (
   { web3, networkId },
-  { address, start, count }
+  { address, count, activeOnly }
 ) => {
   const b0xContract = await CoreUtils.getContractInstance(
     web3,
@@ -31,7 +31,7 @@ export const getLoansForTrader = async (
   );
 
   const data = await b0xContract.methods
-    .getLoansForTrader(address, start, count)
+    .getLoansForTrader(address, count, activeOnly)
     .call();
 
   return LoanPosUtils.cleanData(data);
