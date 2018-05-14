@@ -83,21 +83,21 @@ describe("loanPositions", () => {
           loanOrderHash,
           interestTotalAccrued,
           interestPaidSoFar,
+          index,
           ...rest
         }) => rest
       );
 
       expect(loanPositionsNoRandomFields).toContainEqual({
-        "active": 1,
-        "collateralTokenAddressFilled": collateralTokenAddress, 
-        "index": 2,
-        "interestTokenAddress": order.interestTokenAddress, 
-        "lender": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872", 
-        "loanTokenAddress": order.loanTokenAddress, 
-        "loanTokenAmountFilled": 12300000000000000000, 
-        "positionTokenAddressFilled": order.loanTokenAddress, 
-        "positionTokenAmountFilled": 12300000000000000000, 
-        "trader": "0x06cef8e666768cc40cc78cf93d9611019ddcb628"
+        active: 1,
+        collateralTokenAddressFilled: collateralTokenAddress,
+        interestTokenAddress: order.interestTokenAddress,
+        lender: "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+        loanTokenAddress: order.loanTokenAddress,
+        loanTokenAmountFilled: 12300000000000000000,
+        positionTokenAddressFilled: order.loanTokenAddress,
+        positionTokenAmountFilled: 12300000000000000000,
+        trader: "0x06cef8e666768cc40cc78cf93d9611019ddcb628"
       });
     });
   });
@@ -124,21 +124,21 @@ describe("loanPositions", () => {
           loanOrderHash,
           interestTotalAccrued,
           interestPaidSoFar,
+          index,
           ...rest
         }) => rest
       );
 
       expect(loanPositionsNoRandomFields).toContainEqual({
-        "active": 1,
-        "collateralTokenAddressFilled": collateralTokenAddress,
-        "index": 2,
-        "interestTokenAddress": order.interestTokenAddress,
-        "lender": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872", 
-        "loanTokenAddress": order.loanTokenAddress, 
-        "loanTokenAmountFilled": 12300000000000000000, 
-        "positionTokenAddressFilled": order.loanTokenAddress, 
-        "positionTokenAmountFilled": 12300000000000000000, 
-        "trader": "0x06cef8e666768cc40cc78cf93d9611019ddcb628"
+        active: 1,
+        collateralTokenAddressFilled: collateralTokenAddress,
+        interestTokenAddress: order.interestTokenAddress,
+        lender: "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+        loanTokenAddress: order.loanTokenAddress,
+        loanTokenAmountFilled: 12300000000000000000,
+        positionTokenAddressFilled: order.loanTokenAddress,
+        positionTokenAmountFilled: 12300000000000000000,
+        trader: "0x06cef8e666768cc40cc78cf93d9611019ddcb628"
       });
     });
   });
