@@ -23,6 +23,8 @@ describe("bounty", () => {
     loanTokenAmount
   });
 
+  let orderHashHex = null;
+
   beforeAll(async () => {
     const transferAmount = web3.utils.toWei("500", "ether");
     await FillTestUtils.setupAll({ owner, lenders, traders, transferAmount });
@@ -34,7 +36,7 @@ describe("bounty", () => {
       gasPrice: web3.utils.toWei("30", "gwei").toString()
     };
 
-    const orderHashHex = B0xJS.getLoanOrderHashHex(order);
+    orderHashHex = B0xJS.getLoanOrderHashHex(order);
     const signature = await b0xJS.signOrderHashAsync(
       orderHashHex,
       order.makerAddress
@@ -46,7 +48,13 @@ describe("bounty", () => {
   describe("getActiveLoans", () => {
     test("should return active loans", async () => {
       const activeLoans = await b0xJS.getActiveLoans({ start: 0, count: 10 });
-      console.log(activeLoans);
+
+      const [activeLoan] = activeLoans.filter(
+        loan => loan.loanOrderHash === orderHashHex
+      );
+
+      expect(activeLoan.loanOrderHash).toEqual(orderHashHex);
+      expect(activeLoan.trader).toEqual(order.makerAddress);
     });
   });
 });
