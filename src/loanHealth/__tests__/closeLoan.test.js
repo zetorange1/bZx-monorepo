@@ -102,7 +102,7 @@ describe("loanHealth", () => {
       );
 
       expect(loanBefore.active).toEqual(1);
-      expect(loanAfter).toEqual(undefined);
+      expect(loanAfter.active).toEqual(0);
     });
   });
 });
