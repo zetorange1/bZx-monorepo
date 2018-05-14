@@ -11,18 +11,19 @@ var run = {
   "should generate loanOrderHash (as lender1)": true,
   "should sign and verify orderHash (as lender1)": true,
   "should take sample loan order (as lender1/trader1)": true,
-  "should take sample loan order (as lender1/trader2)": false,
+  "should take sample loan order (as lender1/trader2)": true,
   
-  "should generate loanOrderHash (as trader2)": false,
-  "should sign and verify orderHash (as trader2)": false,
-  "should take sample loan order (as lender2)": false,
+  "should generate loanOrderHash (as trader2)": true,
+  "should sign and verify orderHash (as trader2)": true,
+  "should take sample loan order (as lender2)": true,
 
-  "should get loan orders (for lender1)": false,
-  "should get loan orders (for lender2)": false,
-  "should get loan orders (for trader2)": false,
-  "should get loan positions (for lender1)": false,
-  "should get loan positions (for trader1)": false,
-  "should get loan positions (for trader2)": false,
+  "should get loan orders (for lender1)": true,
+  "should get loan orders (for lender2)": true,
+  "should get loan orders (for trader2)": true,
+  "should get loan positions (for lender1)": true,
+  "should get loan positions (for trader1)": true,
+  "should get loan positions (for trader2)": true,
+  "should get active loans": true,
 
   "should generate 0x order": true,
   "should sign and verify 0x order": true,
@@ -30,6 +31,9 @@ var run = {
   "should trade position with oracle": true,
   "should withdraw profits": true,
   "should pay lender interest": true,
+
+  "should close loan as (trader2/lender1)": true,
+  "should close loan as (trader2/lender2)": true,
 };
 
 
@@ -764,7 +768,7 @@ contract('B0xTest', function(accounts) {
       assert.isOk(true);
     }
   });
-
+var torders = [];
   (run["should get loan orders (for trader2)"] ? it : it.skip)("should get loan orders (for trader2)", async function() {
     // return array of arrays: address[], uint[], string
     var data = await b0x.getOrders.call(
@@ -811,6 +815,8 @@ contract('B0xTest', function(accounts) {
           orderTraderCount: parseInt("0x"+params[17]),
           addedUnixTimestampSec: parseInt("0x"+params[18])
         });
+
+        torders.push("0x"+params[13]);
       }
 
       /*struct LoanOrder {
@@ -840,13 +846,13 @@ contract('B0xTest', function(accounts) {
     // return array of arrays: address[], uint[], boolean
     var data = await b0x.getLoansForLender.call(
       lender1_account,
-      0, // starting item
-      10 // max number of items returned
+      10, // max number of items returned
+      true // activeOnly
     );
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 14;
+    const itemCount = 15;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -872,12 +878,13 @@ contract('B0xTest', function(accounts) {
           collateralTokenAmountFilled: parseInt("0x"+params[5]),
           positionTokenAmountFilled: parseInt("0x"+params[6]),
           loanStartUnixTimestampSec: parseInt("0x"+params[7]),
-          active: parseInt("0x"+params[8]),
-          loanOrderHash: "0x"+params[9],
-          loanTokenAddress: "0x"+params[10].substr(24),
-          interestTokenAddress: "0x"+params[11].substr(24),
-          interestTotalAccrued: parseInt("0x"+params[12]),
-          interestPaidSoFar: parseInt("0x"+params[13])
+          index: parseInt("0x"+params[8]),
+          active: parseInt("0x"+params[9]),
+          loanOrderHash: "0x"+params[10],
+          loanTokenAddress: "0x"+params[11].substr(24),
+          interestTokenAddress: "0x"+params[12].substr(24),
+          interestTotalAccrued: parseInt("0x"+params[13]),
+          interestPaidSoFar: parseInt("0x"+params[14])
         });
       }
 
@@ -903,13 +910,13 @@ contract('B0xTest', function(accounts) {
     // return array of arrays: address[], uint[], boolean
     var data = await b0x.getLoansForTrader.call(
       trader1_account,
-      0, // starting item
-      10 // max number of items returned
+      10, // max number of items returned
+      false // activeOnly
     );
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 14;
+    const itemCount = 15;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -935,12 +942,13 @@ contract('B0xTest', function(accounts) {
           collateralTokenAmountFilled: parseInt("0x"+params[5]),
           positionTokenAmountFilled: parseInt("0x"+params[6]),
           loanStartUnixTimestampSec: parseInt("0x"+params[7]),
-          active: parseInt("0x"+params[8]),
-          loanOrderHash: "0x"+params[9],
-          loanTokenAddress: "0x"+params[10].substr(24),
-          interestTokenAddress: "0x"+params[11].substr(24),
-          interestTotalAccrued: parseInt("0x"+params[12]),
-          interestPaidSoFar: parseInt("0x"+params[13])
+          index: parseInt("0x"+params[8]),
+          active: parseInt("0x"+params[9]),
+          loanOrderHash: "0x"+params[10],
+          loanTokenAddress: "0x"+params[11].substr(24),
+          interestTokenAddress: "0x"+params[12].substr(24),
+          interestTotalAccrued: parseInt("0x"+params[13]),
+          interestPaidSoFar: parseInt("0x"+params[14])
         });
       }
 
@@ -966,13 +974,13 @@ contract('B0xTest', function(accounts) {
     // return array of arrays: address[], uint[], boolean
     var data = await b0x.getLoansForTrader.call(
       trader2_account,
-      0, // starting item
-      10 // max number of items returned
+      10, // max number of items returned
+      true // activeOnly
     );
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 14;
+    const itemCount = 15;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -998,12 +1006,13 @@ contract('B0xTest', function(accounts) {
           collateralTokenAmountFilled: parseInt("0x"+params[5]),
           positionTokenAmountFilled: parseInt("0x"+params[6]),
           loanStartUnixTimestampSec: parseInt("0x"+params[7]),
-          active: parseInt("0x"+params[8]),
-          loanOrderHash: "0x"+params[9],
-          loanTokenAddress: "0x"+params[10].substr(24),
-          interestTokenAddress: "0x"+params[11].substr(24),
-          interestTotalAccrued: parseInt("0x"+params[12]),
-          interestPaidSoFar: parseInt("0x"+params[13])
+          index: parseInt("0x"+params[8]),
+          active: parseInt("0x"+params[9]),
+          loanOrderHash: "0x"+params[10],
+          loanTokenAddress: "0x"+params[11].substr(24),
+          interestTokenAddress: "0x"+params[12].substr(24),
+          interestTotalAccrued: parseInt("0x"+params[13]),
+          interestPaidSoFar: parseInt("0x"+params[14])
         });
       }
 
@@ -1020,6 +1029,44 @@ contract('B0xTest', function(accounts) {
       }*/
 
       console.log(loanPositions);
+
+      assert.isOk(true);
+    }
+  });
+
+  (run["should get active loans"] ? it : it.skip)("should get active loans", async function() {
+    // return array of arrays: address[], uint[], boolean
+    var data = await b0x.getLoans.call(
+      0, // starting item
+      10 // max number of items returned
+    );
+    console.log(data);
+
+    data = data.substr(2); // remove 0x from front
+    const itemCount = 2;
+    const objCount = data.length / 64 / itemCount;
+    var loans = [];
+
+    if (objCount % 1 != 0) { // must be a whole number
+        console.error("error: data length invalid!");
+        assert.isOk(false);
+    }
+    else {
+      var loansObjArray = data.match(new RegExp('.{1,' + (itemCount * 64) + '}', 'g'));
+      console.log("loansObjArray.length: "+loansObjArray.length);
+      for(var i=0; i < loansObjArray.length; i++) {
+        var params = loansObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
+        console.log(i+": params.length: "+params.length);
+        if (parseInt("0x"+params[0].substr(24)) == 0) {
+          continue;
+        }
+        loans.push({
+          loanOrderHash: "0x"+params[0],
+          trader: "0x"+params[1].substr(24)
+        });
+      }
+
+      console.log(loans);
 
       assert.isOk(true);
     }
@@ -1170,6 +1217,91 @@ contract('B0xTest', function(accounts) {
       };
   });
   
+  (run["should close loan as (trader2/lender1)"] ? it : it.skip)("should close loan as (trader2/lender1)", async function() {
+    for (var i=0; i < torders.length; i++) {
+      await b0x.closeLoan(
+        torders[i],
+        {from: trader2_account}).then(function(tx) {
+          console.log(txPrettyPrint(tx,"should close loan as (trader2/lender1)"));
+          assert.isOk(tx);
+        }), function(error) {
+          console.error(error);
+          assert.isOk(false);
+        };
+    }
+    
+    
+      // return array of arrays: address[], uint[], string
+    var data = await b0x.getOrders.call(
+      trader2_account,
+      0, // starting item
+      10 // max number of items returned
+    );
+    console.log("getOrders(...):");
+    console.log(data);
+
+    data = data.substr(2); // remove 0x from front
+    const itemCount = 19;
+    const objCount = data.length / 64 / itemCount;
+    var orders = [];
+
+    if (objCount % 1 != 0) { // must be a whole number
+        console.error("error: data length invalid!");
+        assert.isOk(false);
+    }
+    else {
+      var orderObjArray = data.match(new RegExp('.{1,' + (itemCount * 64) + '}', 'g'));
+      //console.log("orderObjArray.length: "+orderObjArray.length);
+      for(var i=0; i < orderObjArray.length; i++) {
+        var params = orderObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
+        //console.log(i+": params.length: "+params.length);
+        orders.push({
+          maker: "0x"+params[0].substr(24),
+          loanTokenAddress: "0x"+params[1].substr(24),
+          interestTokenAddress: "0x"+params[2].substr(24),
+          collateralTokenAddress: "0x"+params[3].substr(24),
+          feeRecipientAddress: "0x"+params[4].substr(24),
+          oracleAddress: "0x"+params[5].substr(24),
+          loanTokenAmount: parseInt("0x"+params[6]),
+          interestAmount: parseInt("0x"+params[7]),
+          initialMarginAmount: parseInt("0x"+params[8]),
+          maintenanceMarginAmount: parseInt("0x"+params[9]),
+          lenderRelayFee: parseInt("0x"+params[10]),
+          traderRelayFee: parseInt("0x"+params[11]),
+          expirationUnixTimestampSec: parseInt("0x"+params[12]),
+          loanOrderHash: "0x"+params[13],
+          lender: "0x"+params[14].substr(24),
+          orderFilledAmount: parseInt("0x"+params[15]),
+          orderCancelledAmount: parseInt("0x"+params[16]),
+          orderTraderCount: parseInt("0x"+params[17]),
+          addedUnixTimestampSec: parseInt("0x"+params[18])
+        });
+      }
+
+      /*struct LoanOrder {
+          address maker;
+          address loanTokenAddress;
+          address interestTokenAddress;
+          address collateralTokenAddress;
+          address feeRecipientAddress;
+          address oracleAddress;
+          uint loanTokenAmount;
+          uint interestAmount;
+          uint initialMarginAmount;
+          uint maintenanceMarginAmount;
+          uint lenderRelayFee;
+          uint traderRelayFee;
+          uint expirationUnixTimestampSec;
+          bytes32 loanOrderHash;
+      }*/
+
+      console.log(orders);
+    }
+    
+    
+    //done();
+  });
+
 
 
   function txLogsPrint(logs) {

@@ -725,7 +725,17 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             return boolOrRevert(false,725); // revert("B0xLoanHealth::_closeLoan: Oracle_Interface.didCloseLoan failed");
         }
 
+        // set this loan to inactive
         loanPosition.active = false;
+        
+        // replace loan in list with last loan in array
+        loanList[loanPosition.index] = loanList[loanList.length - 1];
+        
+        // update the position of this replacement
+        loanPositions[loanList[loanPosition.index].loanOrderHash][loanList[loanPosition.index].trader].index = loanPosition.index;
+        
+        // trim array
+        loanList.length--;
 
         emit LogLoanClosed(
             loanPosition.lender,

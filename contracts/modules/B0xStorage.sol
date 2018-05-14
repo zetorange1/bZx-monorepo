@@ -25,6 +25,11 @@ contract B0xObjects {
         bytes32 loanOrderHash;
     }
 
+    struct LoanRef {
+        bytes32 loanOrderHash;
+        address trader;
+    }
+
     struct LoanPosition {
         address lender;
         address trader;
@@ -34,6 +39,7 @@ contract B0xObjects {
         uint collateralTokenAmountFilled;
         uint positionTokenAmountFilled;
         uint loanStartUnixTimestampSec;
+        uint index;
         bool active;
     }
 
@@ -179,8 +185,8 @@ contract B0xStorage is B0xObjects, ReentrancyGuard, Ownable, GasTracker, Debugge
     mapping (bytes32 => address[]) public orderTraders; // mapping of loanOrderHash to array of trader addresses
     mapping (bytes32 => uint) public orderFilledAmounts; // mapping of loanOrderHash to loanTokenAmount filled
     mapping (bytes32 => uint) public orderCancelledAmounts; // mapping of loanOrderHash to loanTokenAmount cancelled
-
     mapping (bytes32 => mapping (address => LoanPosition)) public loanPositions; // mapping of loanOrderHash to mapping of traders to loanPositions
-
     mapping (bytes32 => mapping (address => uint)) public interestPaid; // mapping of loanOrderHash to mapping of traders to amount of interest paid so far to a lender
+
+    LoanRef[] loanList; // array of loans that need to be checked for liquidation or expiration
 }

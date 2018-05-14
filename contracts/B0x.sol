@@ -81,20 +81,26 @@ contract B0x is B0xStorage {
 
     function getLoansForLender(
         address loanParty,
-        uint start,
-        uint count)
+        uint count,
+        bool activeOnly)
         public
         view
         returns (bytes);
 
     function getLoansForTrader(
         address loanParty,
+        uint count,
+        bool activeOnly)
+        public
+        view
+        returns (bytes);
+
+    function getLoans(
         uint start,
         uint count)
         public
         view
         returns (bytes);
-
 
     /*
     * B0xTradePlacer functions
