@@ -118,7 +118,7 @@ describe("loanHealth", () => {
       expect(balanceDiff).toEqual(
         interestPaidDiff
           .times(feeAdjustment)
-          .integerValue(BigNumber.ROUND_HALF_DOWN)
+          .integerValue(BigNumber.ROUND_HALF_UP)
       );
     });
   });
