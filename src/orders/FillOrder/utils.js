@@ -65,6 +65,14 @@ export const validateFillOrder = async (
       4: [],
       42: [`ZRX`, `WETH`]
     };
+
+    // early return if there is no restricted list for this network
+    if (
+      notAllowed[b0x.networkId] === undefined ||
+      notAllowed[b0x.networkId] === []
+    )
+      return true;
+
     const collateralTokenNotAllowed = notAllowed[b0x.networkId].includes(
       collateralToken && collateralToken.symbol
     );
