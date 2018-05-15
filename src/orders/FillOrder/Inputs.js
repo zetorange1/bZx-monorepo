@@ -118,7 +118,7 @@ export default ({
             value={collateralTokenAddress}
             setAddress={setCollateralTokenAddress}
           />
-          <CenteredFormHelperText margin="normal" component="div">
+          <CenteredFormHelperText component="div">
             <AddressLink
               href={`${b0x.etherscanURL}/address/${collateralTokenAddress}`}
             >
