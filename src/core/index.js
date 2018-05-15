@@ -149,4 +149,5 @@ export default class B0xJS {
 
   getActiveLoans = (...props) => bounty.getActiveLoans(this, ...props);
   getMarginLevels = (...props) => bounty.getMarginLevels(this, ...props);
+  liquidateLoan = (...props) => bounty.liquidateLoan(this, ...props);
 }
