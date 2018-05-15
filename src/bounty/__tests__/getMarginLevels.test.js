@@ -56,17 +56,6 @@ describe("bounty", () => {
 
   describe("getMarginLevels", () => {
     test("should return margin levels", async () => {
-      const activeLoans = await b0xJS.getActiveLoans({ start: 0, count: 10 });
-
-      const [activeLoan] = activeLoans.filter(
-        loan => loan.loanOrderHash === orderHashHex
-      );
-
-      expect(activeLoan.loanOrderHash).toEqual(orderHashHex);
-      expect(activeLoan.trader).toEqual(takerAddress);
-    });
-
-    test("should not return closed loans", async () => {
       const marginLevels = await b0xJS.getMarginLevels({
         loanOrderHash: orderHashHex,
         trader: traders[0],
@@ -76,8 +65,7 @@ describe("bounty", () => {
           gasPrice: web3.utils.toWei("30", "gwei").toString()
         }
       });
-
-      console.log(marginLevels);
+      expect(marginLevels).toMatchSnapshot();
     });
   });
 });
