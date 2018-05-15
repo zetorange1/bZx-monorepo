@@ -148,4 +148,5 @@ export default class B0xJS {
   requestFaucetToken = (...props) => utils.requestFaucetToken(this, ...props);
 
   getActiveLoans = (...props) => bounty.getActiveLoans(this, ...props);
+  getMarginLevels = (...props) => bounty.getMarginLevels(this, ...props);
 }
