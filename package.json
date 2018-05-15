@@ -37,6 +37,7 @@
     "build:deploy": "rimraf ./build/contracts && truffle compile && npm run migrate:reset && npm run assets",
     "rebuild:deploy": "truffle compile && npm run migrate:reset",
     "assets": "node ./extra/generate_test_assets.js",
+    "preptestnet": "npm run assets && node-mv ./build/contracts ./test_network/build_contracts && node-mv ./html_public_test/deployed ./test_network/deployed && node-mv ./html_public_test ./test_network/html_public_test",
     "migrate": "truffle migrate",
     "migrate:reset": "truffle migrate --reset",
     "network": "npm run network:deploy && npm run network:deployprev && npm run network:run",
