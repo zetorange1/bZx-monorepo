@@ -1,6 +1,10 @@
+import { Fragment } from "react";
 import styled from "styled-components";
 import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
 import Button from "material-ui/Button";
+import BigNumber from "bignumber.js";
+
+import { fromBigNumber } from "../common/utils";
 
 import { COLORS } from "../styles/constants";
 
@@ -43,7 +47,32 @@ const Label = styled.span`
 `;
 
 export default class LoanItem extends React.Component {
-  state = { expanded: false };
+  state = {
+    loadingMargins: true,
+    initialMarginAmount: null,
+    maintenanceMarginAmount: null,
+    currentMarginAmount: null
+  };
+
+  componentDidMount = async () => {
+    this.getMarginLevels();
+  };
+
+  getMarginLevels = async () => {
+    const { b0x, data } = this.props;
+    this.setState({ loadingMargins: true });
+    const marginLevels = await b0x.getMarginLevels({
+      loanOrderHash: data.loanOrderHash,
+      trader: data.trader
+    });
+    console.log(marginLevels);
+    this.setState({
+      loadingMargins: false,
+      initialMarginAmount: marginLevels.initialMarginAmount,
+      maintenanceMarginAmount: marginLevels.maintenanceMarginAmount,
+      currentMarginAmount: marginLevels.currentMarginAmount
+    });
+  };
 
   handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
 
@@ -54,7 +83,15 @@ export default class LoanItem extends React.Component {
 
   render() {
     const { data, b0x } = this.props;
-    const marginLevel = 1.2;
+    const {
+      loadingMargins,
+      initialMarginAmount,
+      maintenanceMarginAmount,
+      currentMarginAmount
+    } = this.state;
+    const isSafe = BigNumber(currentMarginAmount)
+      .dividedBy(1e18)
+      .gt(maintenanceMarginAmount);
     return (
       <Card>
         <CardContent>
@@ -78,20 +115,43 @@ export default class LoanItem extends React.Component {
             </DataPoint>
           </DataPointContainer>
 
-          <DataPointContainer>
-            <Label>Margin Level </Label>
-            <DataPoint>{marginLevel * 100}%</DataPoint>
-          </DataPointContainer>
+          {loadingMargins ? (
+            <DataPointContainer>Loading margin levels...</DataPointContainer>
+          ) : (
+            <Fragment>
+              <DataPointContainer>
+                <Label>Initial margin</Label>
+                <DataPoint>{initialMarginAmount}%</DataPoint>
+              </DataPointContainer>
 
-          <DataPointContainer>
-            <Button
-              style={{ marginTop: `12px` }}
-              variant="raised"
-              onClick={this.liquidate}
-            >
-              Liquidate
-            </Button>
-          </DataPointContainer>
+              <DataPointContainer>
+                <Label>Maintenance margin</Label>
+                <DataPoint>{maintenanceMarginAmount}%</DataPoint>
+              </DataPointContainer>
+
+              <br />
+
+              <DataPointContainer>
+                <Label>Current margin level</Label>
+                <DataPoint>
+                  {fromBigNumber(currentMarginAmount, 1e18)}%
+                </DataPoint>
+                <DataPoint>{isSafe ? `Safe` : `Unsafe`}</DataPoint>
+              </DataPointContainer>
+            </Fragment>
+          )}
+
+          {!isSafe && (
+            <DataPointContainer>
+              <Button
+                style={{ marginTop: `12px` }}
+                variant="raised"
+                onClick={this.liquidate}
+              >
+                Liquidate
+              </Button>
+            </DataPointContainer>
+          )}
         </CardContent>
       </Card>
     );
