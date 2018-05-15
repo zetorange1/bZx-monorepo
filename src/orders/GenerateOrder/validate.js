@@ -57,6 +57,11 @@ const checkCoinsAllowed = (state, tokens, networkId) => {
     4: [],
     42: [`ZRX`, `WETH`]
   };
+
+  // early return if there is no restricted list for this network
+  if (notAllowed[networkId] === undefined || notAllowed[networkId] === [])
+    return true;
+
   const loanToken = tokens.filter(t => t.address === loanTokenAddress)[0];
   const invalidLoanToken = notAllowed[networkId].includes(
     loanToken && loanToken.symbol
