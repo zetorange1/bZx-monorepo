@@ -56,7 +56,7 @@ describe("bounty", () => {
 
   describe("liquidateLoan", () => {
     test("should liquidate the loan", async () => {
-      const activeLoansBefore = await b0xJS.getActiveLoans({
+      const loansBefore = await b0xJS.getActiveLoans({
         start: 0,
         count: 10
       });
@@ -71,14 +71,17 @@ describe("bounty", () => {
         }
       });
 
-      const activeLoans = await b0xJS.getActiveLoans({ start: 0, count: 10 });
+      const loansAfter = await b0xJS.getActiveLoans({ start: 0, count: 10 });
 
-      const activeLoansAfter = activeLoans.filter(
+      const thisLoanBefore = loansBefore.filter(
+        loan => loan.loanOrderHash === orderHashHex
+      );
+      const thisLoanAfter = loansAfter.filter(
         loan => loan.loanOrderHash === orderHashHex
       );
 
-      expect(activeLoansAfter.length).toEqual(1);
-      expect(activeLoansBefore.length).toEqual(0);
+      expect(thisLoanBefore.length).toEqual(1);
+      expect(thisLoanAfter.length).toEqual(0);
     });
   });
 });
