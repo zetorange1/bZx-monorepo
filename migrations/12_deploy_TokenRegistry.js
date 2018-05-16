@@ -8,11 +8,17 @@ var config = require('../../config/secrets.js');
 
 module.exports = function(deployer, network, accounts) {
 	network = network.replace("-fork", "");
-	if (network == "develop" || network == "testnet")
+	if (network == "develop" || network == "development" || network == "testnet")
 		network = "development";
+	else {
+		// comment out if we need to deploy to other networks
+		web3.eth.getBalance(accounts[0], function(error, balance) {
+			console.log("migrations :: final balance: "+balance);
+		});
+		return; 
+	}
 
-	deployer.deploy(TokenRegistry).then(async function() {
-		var registry = await TokenRegistry.deployed();
+	deployer.deploy(TokenRegistry).then(async function(registry) {
 
 		var b0x_token;
 		if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {

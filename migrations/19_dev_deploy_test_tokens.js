@@ -19,6 +19,10 @@ module.exports = function(deployer, network, accounts) {
 	//if (true) return;
 	if (network == "develop" || network == "development" || network == "testnet")
 		network = "development";
+	else {
+		// comment out if we need to deploy to other networks
+		return; 
+	}
 
 	if (network != "mainnet" && network != "ropsten") {
 

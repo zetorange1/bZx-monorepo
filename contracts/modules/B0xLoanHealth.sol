@@ -346,7 +346,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
                 loanOrder,
                 loanPosition,
                 loanOrder.loanTokenAddress, // tradeTokenAddress
-                true // isLiquidation
+                !DEBUG_MODE // isLiquidation
             );
 
             if (loanTokenAmount == 0) {
@@ -358,17 +358,19 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanPosition.positionTokenAmountFilled = loanTokenAmount;
         } else {
             // verify liquidation checks before proceeding to close the loan
-            if (! Oracle_Interface(loanOrder.oracleAddress).shouldLiquidate(
-                    loanOrderHash,
-                    trader,
-                    loanOrder.loanTokenAddress,
-                    loanPosition.positionTokenAddressFilled,
-                    loanPosition.collateralTokenAddressFilled,
-                    loanPosition.loanTokenAmountFilled,
-                    loanPosition.positionTokenAmountFilled,
-                    loanPosition.collateralTokenAmountFilled,
-                    loanOrder.maintenanceMarginAmount)) {
-                return boolOrRevert(false,371); // revert("B0xLoanHealth::liquidatePosition: liquidation not allowed");
+            if (!DEBUG_MODE) {
+                if (! Oracle_Interface(loanOrder.oracleAddress).shouldLiquidate(
+                        loanOrderHash,
+                        trader,
+                        loanOrder.loanTokenAddress,
+                        loanPosition.positionTokenAddressFilled,
+                        loanPosition.collateralTokenAddressFilled,
+                        loanPosition.loanTokenAmountFilled,
+                        loanPosition.positionTokenAmountFilled,
+                        loanPosition.collateralTokenAmountFilled,
+                        loanOrder.maintenanceMarginAmount)) {
+                    return boolOrRevert(false,371); // revert("B0xLoanHealth::liquidatePosition: liquidation not allowed");
+                }
             }
         }
 

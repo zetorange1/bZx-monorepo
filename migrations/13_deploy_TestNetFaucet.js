@@ -14,11 +14,14 @@ module.exports = function(deployer, network, accounts) {
 	if (network == "mainnet")
 		return;
 
-	if (network == "develop" || network == "testnet")
+	if (network == "develop" || network == "development" || network == "testnet")
 		network = "development";
+	else {
+		// comment out if we need to deploy to other networks
+		return; 
+	}
 
-	deployer.deploy(TestNetFaucet).then(async function() {
-		var testNetFaucet = await TestNetFaucet.deployed();
+	deployer.deploy(TestNetFaucet).then(async function(testNetFaucet) {
 
 		if (network != "ropsten") {
 			var oracle = await TestNetOracle.deployed();

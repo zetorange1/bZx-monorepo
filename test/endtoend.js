@@ -32,7 +32,8 @@ var run = {
   "should withdraw profits": true,
   "should pay lender interest": true,
 
-  "should close loan as (trader1/lender1)": true,
+  "should close loan as (lender1/trader1)": false,
+  "should liquidate position": true,
 };
 
 
@@ -1214,11 +1215,11 @@ contract('B0xTest', function(accounts) {
       };
   });
   
-  (run["should close loan as (trader1/lender1)"] ? it : it.skip)("should close loan as (trader1/lender1)", function(done) {
+  (run["should close loan as (lender1/trader1)"] ? it : it.skip)("should close loan as (lender1/trader1)", function(done) {
     b0x.closeLoan(
       OrderHash_b0x_1,
       {from: trader1_account}).then(function(tx) {
-        console.log(txPrettyPrint(tx,"should close loan as (trader1/lender1)"));
+        console.log(txPrettyPrint(tx,"should close loan as (lender1/trader1)"));
         assert.isOk(tx);
         done();
       }), function(error) {
@@ -1228,6 +1229,20 @@ contract('B0xTest', function(accounts) {
       };
   });
 
+  (run["should liquidate position"] ? it : it.skip)("should liquidate position", function(done) {
+    b0x.liquidatePosition(
+      OrderHash_b0x_1,
+      trader1_account,
+      {from: makerOf0xOrder_account}).then(function(tx) {
+        console.log(txPrettyPrint(tx,"should liquidate position"));
+        assert.isOk(tx);
+        done();
+      }), function(error) {
+        console.error(error);
+        assert.isOk(false);
+        done();
+      };
+  });
 
 
   function txLogsPrint(logs) {

@@ -341,10 +341,6 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
         view
         returns (bool)
     {
-        if (DEBUG_MODE) {
-            return true;
-        }
-
         return (getCurrentMarginAmount(
                 loanTokenAddress,
                 positionTokenAddress,

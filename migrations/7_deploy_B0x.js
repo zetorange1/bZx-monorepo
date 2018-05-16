@@ -16,8 +16,7 @@ module.exports = function(deployer, network, accounts) {
 	if (network == "develop" || network == "testnet")
 		network = "development";
 
-	deployer.deploy(B0xProxy).then(async function() {
-		var b0xProxy = await B0xProxy.deployed();
+	deployer.deploy(B0xProxy).then(async function(b0xProxy) {
 
 		var b0x_token_address;
 		if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {
