@@ -8,6 +8,16 @@ import { fromBigNumber } from "../common/utils";
 
 import { COLORS } from "../styles/constants";
 
+const TxHashLink = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  font-family: monospace;
+  display: block;
+  text-overflow: ellipsis;
+  overflow: auto;
+`;
+
 const CardContent = styled(MuiCardContent)`
   position: relative;
 `;
@@ -76,9 +86,36 @@ export default class LoanItem extends React.Component {
 
   handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
 
-  liquidate = () => {
-    // do stuff to initiate liquidation
-    alert(`liquidate loan`);
+  liquidate = async () => {
+    const { b0x, web3, accounts, data } = this.props;
+    const { loanOrderHash, trader } = data;
+
+    const txOpts = {
+      from: accounts[0],
+      gas: 1000000,
+      gasPrice: web3.utils.toWei(`30`, `gwei`).toString()
+    };
+
+    b0x
+      .liquidateLoan({
+        loanOrderHash,
+        trader,
+        txOpts
+      })
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        console.error(error);
+        alert(`We were not able to liquidate this loan.`);
+      })
+      .then(() => alert(`Loan liquidation execution complete.`));
   };
 
   render() {
@@ -141,17 +178,16 @@ export default class LoanItem extends React.Component {
             </Fragment>
           )}
 
-          {!isSafe && (
-            <DataPointContainer>
-              <Button
-                style={{ marginTop: `12px` }}
-                variant="raised"
-                onClick={this.liquidate}
-              >
-                Liquidate
-              </Button>
-            </DataPointContainer>
-          )}
+          <DataPointContainer>
+            <Button
+              style={{ marginTop: `12px` }}
+              variant="raised"
+              onClick={this.liquidate}
+              disabled={!isSafe}
+            >
+              Liquidate
+            </Button>
+          </DataPointContainer>
         </CardContent>
       </Card>
     );
