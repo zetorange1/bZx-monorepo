@@ -33,3 +33,18 @@ export const getMarginLevels = async (
     currentMarginAmount: data[2]
   };
 };
+
+export const liquidateLoan = async (
+  { web3, networkId, addresses },
+  { loanOrderHash, trader, txOpts }
+) => {
+  const b0xContract = CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).B0x.abi,
+    addresses.B0x
+  );
+
+  return b0xContract.methods
+    .liquidatePosition(loanOrderHash, trader)
+    .send(txOpts);
+};
