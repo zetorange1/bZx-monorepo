@@ -183,7 +183,6 @@ export default class LoanItem extends React.Component {
               style={{ marginTop: `12px` }}
               variant="raised"
               onClick={this.liquidate}
-              disabled={!isSafe}
             >
               Liquidate
             </Button>
