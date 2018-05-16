@@ -34,7 +34,7 @@ export const getMarginLevels = async (
   };
 };
 
-export const liquidateLoan = async (
+export const liquidateLoan = (
   { web3, networkId, addresses },
   { loanOrderHash, trader, txOpts }
 ) => {
