@@ -116,9 +116,7 @@ describe("loanHealth", () => {
       const feeAdjustment = 0.9; // 10% fee for each new interest withdrawal, will likely change in the future
 
       expect(balanceDiff).toEqual(
-        interestPaidDiff
-          .times(feeAdjustment)
-          .integerValue(BigNumber.ROUND_HALF_UP)
+        interestPaidDiff.times(feeAdjustment).integerValue(BigNumber.ROUND_CEIL)
       );
     });
   });
