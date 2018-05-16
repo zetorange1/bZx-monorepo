@@ -2,6 +2,7 @@ import { pathOr } from "ramda";
 import b0xJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 import B0xJS from "../../core";
+import { expectPromiEvent } from "../../core/__tests__/utils";
 
 const { web3 } = b0xJS;
 
@@ -61,7 +62,7 @@ describe("bounty", () => {
         count: 10
       });
 
-      await b0xJS.liquidateLoan({
+      const promiEvent = b0xJS.liquidateLoan({
         loanOrderHash: orderHashHex,
         trader: traders[0],
         txOpts: {
@@ -70,6 +71,8 @@ describe("bounty", () => {
           gasPrice: web3.utils.toWei("30", "gwei").toString()
         }
       });
+
+      expectPromiEvent(promiEvent);
 
       const loansAfter = await b0xJS.getActiveLoans({ start: 0, count: 10 });
 
