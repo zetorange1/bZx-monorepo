@@ -52,7 +52,7 @@ describe("trade", () => {
     const txOpts = {
       from: takerAddress,
       gas: 1000000,
-      gasPrice: web3.utils.toWei("30", "gwei").toString()
+      gasPrice: web3.utils.toWei("5", "gwei").toString()
     };
 
     const loanTokenAmountFilled = web3.utils.toWei("12.3");

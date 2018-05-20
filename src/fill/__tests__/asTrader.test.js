@@ -36,7 +36,7 @@ describe("filling orders", () => {
     const txOpts = {
       from: takerAddress,
       gas: 1000000,
-      gasPrice: web3.utils.toWei("30", "gwei").toString()
+      gasPrice: web3.utils.toWei("5", "gwei").toString()
     };
 
     const orderHashHex = B0xJS.getLoanOrderHashHex(order);
@@ -59,7 +59,7 @@ describe("filling orders", () => {
       const txOpts = {
         from: takerAddress,
         gas: 1000000,
-        gasPrice: web3.utils.toWei("30", "gwei").toString()
+        gasPrice: web3.utils.toWei("5", "gwei").toString()
       };
 
       expect(() => {

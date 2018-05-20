@@ -48,7 +48,7 @@ describe("loanHealth", () => {
       const txOpts = {
         from: traders[0],
         gas: 1000000,
-        gasPrice: web3.utils.toWei("30", "gwei").toString()
+        gasPrice: web3.utils.toWei("5", "gwei").toString()
       };
       const loanTokenAmountFilled = web3.utils.toWei("12.3");
       // b0x hash that we give to tradePositionWith0x must belong to a loan that was previously filled, so we fill the loan order here

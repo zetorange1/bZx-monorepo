@@ -33,7 +33,7 @@ describe("bounty", () => {
     const txOpts = {
       from: takerAddress,
       gas: 1000000,
-      gasPrice: web3.utils.toWei("30", "gwei").toString()
+      gasPrice: web3.utils.toWei("5", "gwei").toString()
     };
 
     orderHashHex = B0xJS.getLoanOrderHashHex(order);
@@ -62,7 +62,7 @@ describe("bounty", () => {
         txOpts: {
           from: lenders[0],
           gas: 1000000,
-          gasPrice: web3.utils.toWei("30", "gwei").toString()
+          gasPrice: web3.utils.toWei("5", "gwei").toString()
         }
       });
       expect(marginLevels).toMatchSnapshot();

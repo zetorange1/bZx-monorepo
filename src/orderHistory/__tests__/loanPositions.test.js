@@ -43,7 +43,7 @@ describe("loanPositions", () => {
     const txOpts = {
       from: takerAddress,
       gas: 1000000,
-      gasPrice: web3.utils.toWei("30", "gwei").toString()
+      gasPrice: web3.utils.toWei("5", "gwei").toString()
     };
 
     const orderHashHex = B0xJS.getLoanOrderHashHex(order);
@@ -71,10 +71,10 @@ describe("loanPositions", () => {
 
       /*
       One thing to keep in mind with tests against takeLoanOrderAsLender or takeLoanOrderAsTrader..
-      to calcuate the amount of collateral token amount required and transfered, b0x does a call to the oracle to get the current exchange rate 
-      (between collateralToken and loanToken), then based on that and the initialMarginAmount, 
-      it calculates and transfers enough collateral token from the trader to satisfy margin requirements. 
-      Since the testnet isn't connected to Kyber to get true token rates, the oracle just randomly generates a bogus rate. 
+      to calcuate the amount of collateral token amount required and transfered, b0x does a call to the oracle to get the current exchange rate
+      (between collateralToken and loanToken), then based on that and the initialMarginAmount,
+      it calculates and transfers enough collateral token from the trader to satisfy margin requirements.
+      Since the testnet isn't connected to Kyber to get true token rates, the oracle just randomly generates a bogus rate.
       */
       const loanPositionsNoRandomFields = loanPositions.map(
         ({
@@ -112,10 +112,10 @@ describe("loanPositions", () => {
 
       /*
       One thing to keep in mind with tests against takeLoanOrderAsLender or takeLoanOrderAsTrader..
-      to calcuate the amount of collateral token amount required and transfered, b0x does a call to the oracle to get the current exchange rate 
-      (between collateralToken and loanToken), then based on that and the initialMarginAmount, 
-      it calculates and transfers enough collateral token from the trader to satisfy margin requirements. 
-      Since the testnet isn't connected to Kyber to get true token rates, the oracle just randomly generates a bogus rate. 
+      to calcuate the amount of collateral token amount required and transfered, b0x does a call to the oracle to get the current exchange rate
+      (between collateralToken and loanToken), then based on that and the initialMarginAmount,
+      it calculates and transfers enough collateral token from the trader to satisfy margin requirements.
+      Since the testnet isn't connected to Kyber to get true token rates, the oracle just randomly generates a bogus rate.
       */
       const loanPositionsNoRandomFields = loanPositions.map(
         ({

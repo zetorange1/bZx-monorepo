@@ -53,7 +53,7 @@ export const takeLoanOrderAsLender = ({ web3, networkId }, order, txOpts) => {
   return txObj.send({
     from: txOpts.from,
     gas: txOpts.gas,
-    gasPrice: txOpts.gasPrice
+    gasPrice: web3.utils.toWei("2", "gwei") //txOpts.gasPrice
   });
 };
 
@@ -109,7 +109,7 @@ export const takeLoanOrderAsTrader = (
   return txObj.send({
     from: txOpts.from,
     gas: txOpts.gas,
-    gasPrice: txOpts.gasPrice
+    gasPrice: web3.utils.toWei("2", "gwei") //txOpts.gasPrice
   });
 };
 

@@ -27,7 +27,7 @@ describe("order history", () => {
     const txOpts = {
       from: takerAddress,
       gas: 1000000,
-      gasPrice: web3.utils.toWei("30", "gwei").toString()
+      gasPrice: web3.utils.toWei("5", "gwei").toString()
     };
     const expirationUnixTimestampSec = "1719061340";
 
