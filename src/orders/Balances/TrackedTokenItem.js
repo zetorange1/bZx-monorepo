@@ -207,6 +207,7 @@ export default class TrackedTokenItems extends React.Component {
       })
       .on(`error`, error => {
         console.error(error.message);
+        this.setState({ approvalLoading: false });
       });
     setTimeout(() => this.checkAllowance(), 5000);
   };
@@ -232,6 +233,7 @@ export default class TrackedTokenItems extends React.Component {
       })
       .on(`error`, error => {
         console.error(error.message);
+        this.setState({ approvalLoading: false });
       });
     setTimeout(() => this.checkAllowance(), 5000);
   };

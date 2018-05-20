@@ -26,7 +26,7 @@ export default class WithdrawCollateralDialog extends React.Component {
     const txOpts = {
       from: accounts[0],
       gas: 1000000,
-      gasPrice: web3.utils.toWei(`30`, `gwei`).toString()
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
     await b0x
       .withdrawExcessCollateral({

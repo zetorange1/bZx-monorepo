@@ -42,7 +42,7 @@ export default class Trade0xDialog extends React.Component {
     const txOpts = {
       from: accounts[0],
       gas: 1000000,
-      gasPrice: web3.utils.toWei(`30`, `gwei`).toString()
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
 
     console.log(`Executing 0x trade`);

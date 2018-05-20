@@ -30,7 +30,7 @@ export default class WithdrawInterest extends React.Component {
     const txOpts = {
       from: accounts[0],
       gas: 1000000,
-      gasPrice: web3.utils.toWei(`30`, `gwei`).toString()
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
 
     await b0x
@@ -75,7 +75,7 @@ export default class WithdrawInterest extends React.Component {
             <p>
               Currently, we are taking a fee of{` `}
               <strong>{currentFee * 100}%</strong>. This means that the actual
-              withdrawal amount will be:
+              withdrawal amount will be at least:
             </p>
             <p>
               <strong>
