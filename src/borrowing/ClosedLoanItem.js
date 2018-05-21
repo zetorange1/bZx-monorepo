@@ -3,6 +3,10 @@ import MuiCard, {
   CardActions,
   CardContent as MuiCardContent
 } from "material-ui/Card";
+import Button from "material-ui/Button";
+import Dialog, { DialogActions, DialogContent } from "material-ui/Dialog";
+
+import OrderItem from "../orders/OrderHistory/OrderItem";
 
 import { COLORS } from "../styles/constants";
 import { getSymbol } from "../common/tokens";
@@ -32,8 +36,8 @@ const Hash = styled.a`
   font-family: monospace;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 20ch;
+  //text-overflow: ellipsis;
+  //max-width: 20ch;
 `;
 
 const Label = styled.span`
@@ -57,111 +61,173 @@ const UpperRight = styled.div`
 //   right: 16px;
 // `;
 
-export default ({ tokens, data }) => {
-  const {
-    collateralTokenAddressFilled,
-    collateralTokenAmountFilled,
-    positionTokenAddressFilled,
-    positionTokenAmountFilled,
-    interestTokenAddress,
-    interestTotalAccrued,
-    interestPaidSoFar,
-    loanTokenAmountFilled,
-    loanTokenAddress,
-    loanStartUnixTimestampSec,
-    loanOrderHash,
-    lender
-  } = data;
+export default class ClosedLoan extends React.Component {
+  state = {
+    showOrderDialog: false,
+    order: undefined
+  };
 
-  const collateralToken = tokens.filter(
-    t => t.address === collateralTokenAddressFilled
-  )[0];
-  const collateralTokenSymbol = collateralToken.symbol;
-  const loanTokenSymbol = getSymbol(tokens, loanTokenAddress);
-  const interestTokenSymbol = getSymbol(tokens, interestTokenAddress);
-  const positionTokenSymbol = getSymbol(tokens, positionTokenAddressFilled);
+  getSingleOrder = async loanOrderHash => {
+    const { b0x } = this.props;
+    const order = await b0x.getSingleOrder({
+      loanOrderHash
+    });
+    return order;
+  };
 
-  const tradeOpened = positionTokenAddressFilled !== loanTokenAddress;
+  toggleOrderDialog = async event => {
+    event.preventDefault();
+    if (event.target.id !== ``) {
+      const order = await this.getSingleOrder(event.target.id);
+      this.setState(p => ({
+        showOrderDialog: !p.showOrderDialog,
+        order
+      }));
+    } else {
+      this.setState(p => ({
+        showOrderDialog: !p.showOrderDialog
+      }));
+    }
+  };
 
-  const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
-  return (
-    <Card>
-      <CardContent>
-        <DataPointContainer>
-          <Label>Order # </Label>
-          <DataPoint title={loanOrderHash}>
-            <Hash href="#" target="_blank" rel="noopener noreferrer">
-              {loanOrderHash}
-            </Hash>
-          </DataPoint>
-        </DataPointContainer>
+  render() {
+    const { tokens, b0x, accounts } = this.props;
+    const {
+      collateralTokenAddressFilled,
+      collateralTokenAmountFilled,
+      positionTokenAddressFilled,
+      positionTokenAmountFilled,
+      interestTokenAddress,
+      interestTotalAccrued,
+      interestPaidSoFar,
+      loanTokenAmountFilled,
+      loanTokenAddress,
+      loanStartUnixTimestampSec,
+      loanOrderHash,
+      lender
+    } = this.props.data;
 
-        <DataPointContainer>
-          <Label>Lender </Label>
-          <DataPoint title={lender}>
-            <Hash href="#" target="_blank" rel="noopener noreferrer">
-              {lender}
-            </Hash>
-          </DataPoint>
-        </DataPointContainer>
+    const collateralToken = tokens.filter(
+      t => t.address === collateralTokenAddressFilled
+    )[0];
+    const collateralTokenSymbol = collateralToken.symbol;
+    const loanTokenSymbol = getSymbol(tokens, loanTokenAddress);
+    const interestTokenSymbol = getSymbol(tokens, interestTokenAddress);
+    const positionTokenSymbol = getSymbol(tokens, positionTokenAddressFilled);
 
-        <UpperRight>
-          <Label>Loan Opened</Label>
-          <div title={loanOpenedDate.toUTCString()}>
-            {loanOpenedDate.toLocaleString()}
-          </div>
-        </UpperRight>
+    const tradeOpened = positionTokenAddressFilled !== loanTokenAddress;
 
-        <hr />
+    const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
 
-        <DataPointContainer>
-          <Label>Collateral</Label>
-          <DataPoint>
-            {fromBigNumber(collateralTokenAmountFilled, 1e18)}
-            {` `}
-            {collateralTokenSymbol}
-          </DataPoint>
-        </DataPointContainer>
+    return (
+      <Card>
+        <CardContent>
+          <DataPointContainer>
+            <Label>Order # </Label>
+            <DataPoint title={loanOrderHash}>
+              <Hash
+                href="#"
+                onClick={this.toggleOrderDialog}
+                target="_blank"
+                rel="noopener noreferrer"
+                id={loanOrderHash}
+              >
+                {loanOrderHash}
+              </Hash>
+            </DataPoint>
+            <Dialog
+              open={this.state.showOrderDialog}
+              onClose={this.toggleOrderDialog}
+              // style={{width: `1000px`}}
+              fullWidth
+              maxWidth="md"
+            >
+              <DialogContent>
+                <OrderItem
+                  key={loanOrderHash}
+                  b0x={b0x}
+                  accounts={accounts}
+                  tokens={tokens}
+                  takenOrder={this.state.order}
+                  noShadow
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={this.toggleOrderDialog}>OK</Button>
+              </DialogActions>
+            </Dialog>
+          </DataPointContainer>
+          <DataPointContainer>
+            <Label>Lender </Label>
+            <DataPoint title={lender}>
+              <Hash
+                href={`${b0x.etherscanURL}address/${lender}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {lender}
+              </Hash>
+            </DataPoint>
+          </DataPointContainer>
 
-        <DataPointContainer>
-          <Label>Borrowed</Label>
-          <DataPoint>
-            {fromBigNumber(loanTokenAmountFilled, 1e18)} {loanTokenSymbol}
-          </DataPoint>
-        </DataPointContainer>
+          <UpperRight>
+            <Label>Loan Opened</Label>
+            <div title={loanOpenedDate.toUTCString()}>
+              {loanOpenedDate.toLocaleString()}
+            </div>
+          </UpperRight>
 
-        <DataPointContainer>
-          <Label>Interest paid so far</Label>
-          <DataPoint>
-            {fromBigNumber(interestPaidSoFar, 1e18)} {interestTokenSymbol}
-          </DataPoint>
-        </DataPointContainer>
+          <hr />
 
-        <DataPointContainer>
-          <Label>Interest accrued (total)</Label>
-          <DataPoint>
-            {fromBigNumber(interestTotalAccrued, 1e18)} {interestTokenSymbol}
-          </DataPoint>
-        </DataPointContainer>
+          <DataPointContainer>
+            <Label>Collateral</Label>
+            <DataPoint>
+              {fromBigNumber(collateralTokenAmountFilled, 1e18)}
+              {` `}
+              {collateralTokenSymbol}
+            </DataPoint>
+          </DataPointContainer>
 
-        {/* <LowerUpperRight>[Collateral Options]</LowerUpperRight> */}
-      </CardContent>
+          <DataPointContainer>
+            <Label>Borrowed</Label>
+            <DataPoint>
+              {fromBigNumber(loanTokenAmountFilled, 1e18)} {loanTokenSymbol}
+            </DataPoint>
+          </DataPointContainer>
 
-      <CardActions>
-        <DataPointContainer style={{ marginLeft: `12px` }}>
-          <Label>Active Trade</Label>
-          <DataPoint>{Boolean(tradeOpened).toString()}</DataPoint>
-        </DataPointContainer>
+          <DataPointContainer>
+            <Label>Interest paid so far</Label>
+            <DataPoint>
+              {fromBigNumber(interestPaidSoFar, 1e18)} {interestTokenSymbol}
+            </DataPoint>
+          </DataPointContainer>
 
-        <DataPointContainer style={{ marginLeft: `12px` }}>
-          <Label>Trade Amount</Label>
-          <DataPoint>
-            {fromBigNumber(positionTokenAmountFilled, 1e18)}
-            {` `}
-            {positionTokenSymbol}
-          </DataPoint>
-        </DataPointContainer>
-      </CardActions>
-    </Card>
-  );
-};
+          <DataPointContainer>
+            <Label>Interest accrued (total)</Label>
+            <DataPoint>
+              {fromBigNumber(interestTotalAccrued, 1e18)} {interestTokenSymbol}
+            </DataPoint>
+          </DataPointContainer>
+
+          {/* <LowerUpperRight>[Collateral Options]</LowerUpperRight> */}
+        </CardContent>
+
+        <CardActions>
+          <DataPointContainer style={{ marginLeft: `12px` }}>
+            <Label>Active Trade</Label>
+            <DataPoint>{Boolean(tradeOpened).toString()}</DataPoint>
+          </DataPointContainer>
+
+          <DataPointContainer style={{ marginLeft: `12px` }}>
+            <Label>Trade Amount</Label>
+            <DataPoint>
+              {fromBigNumber(positionTokenAmountFilled, 1e18)}
+              {` `}
+              {positionTokenSymbol}
+            </DataPoint>
+          </DataPointContainer>
+        </CardActions>
+      </Card>
+    );
+  }
+}

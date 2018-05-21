@@ -1,6 +1,10 @@
 import styled from "styled-components";
 import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
+import Button from "material-ui/Button";
+import Dialog, { DialogActions, DialogContent } from "material-ui/Dialog";
 import { fromBigNumber, toBigNumber } from "../common/utils";
+
+import OrderItem from "../orders/OrderHistory/OrderItem";
 
 import { COLORS } from "../styles/constants";
 
@@ -30,8 +34,8 @@ const Hash = styled.a`
   font-family: monospace;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 20ch;
+  //text-overflow: ellipsis;
+  //max-width: 20ch;
 `;
 
 const Label = styled.span`
@@ -56,9 +60,33 @@ const UpperRight = styled.div`
 // `;
 
 export default class LoanItem extends React.Component {
-  state = { expanded: false };
+  state = {
+    showOrderDialog: false,
+    order: undefined
+  };
 
-  handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
+  getSingleOrder = async loanOrderHash => {
+    const { b0x } = this.props;
+    const order = await b0x.getSingleOrder({
+      loanOrderHash
+    });
+    return order;
+  };
+
+  toggleOrderDialog = async event => {
+    event.preventDefault();
+    if (event.target.id !== ``) {
+      const order = await this.getSingleOrder(event.target.id);
+      this.setState(p => ({
+        showOrderDialog: !p.showOrderDialog,
+        order
+      }));
+    } else {
+      this.setState(p => ({
+        showOrderDialog: !p.showOrderDialog
+      }));
+    }
+  };
 
   withdrawInterest = () => {
     // do stuff to initiate interest withdrawal here
@@ -99,17 +127,47 @@ export default class LoanItem extends React.Component {
         <CardContent>
           <DataPointContainer>
             <Label>Order # </Label>
-            <DataPoint>
-              <Hash href="#" target="_blank" rel="noopener noreferrer">
+            <DataPoint title={loanOrderHash}>
+              <Hash
+                href="#"
+                onClick={this.toggleOrderDialog}
+                target="_blank"
+                rel="noopener noreferrer"
+                id={loanOrderHash}
+              >
                 {loanOrderHash}
               </Hash>
             </DataPoint>
+            <Dialog
+              open={this.state.showOrderDialog}
+              onClose={this.toggleOrderDialog}
+              // style={{width: `1000px`}}
+              fullWidth
+              maxWidth="md"
+            >
+              <DialogContent>
+                <OrderItem
+                  key={loanOrderHash}
+                  b0x={b0x}
+                  accounts={accounts}
+                  tokens={tokens}
+                  takenOrder={this.state.order}
+                  noShadow
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={this.toggleOrderDialog}>OK</Button>
+              </DialogActions>
+            </Dialog>
           </DataPointContainer>
-
           <DataPointContainer>
             <Label>Borrower </Label>
-            <DataPoint>
-              <Hash href="#" target="_blank" rel="noopener noreferrer">
+            <DataPoint title={trader}>
+              <Hash
+                href={`${b0x.etherscanURL}address/${trader}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {trader}
               </Hash>
             </DataPoint>

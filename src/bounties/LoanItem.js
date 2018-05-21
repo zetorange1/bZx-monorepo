@@ -2,7 +2,10 @@ import { Fragment } from "react";
 import styled from "styled-components";
 import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
 import Button from "material-ui/Button";
+import Dialog, { DialogActions, DialogContent } from "material-ui/Dialog";
 import BigNumber from "bignumber.js";
+
+import OrderItem from "../orders/OrderHistory/OrderItem";
 
 import { fromBigNumber } from "../common/utils";
 
@@ -37,18 +40,13 @@ const DataPoint = styled.span`
   margin-left: 16px;
 `;
 
-const OrderHash = styled.span`
-  display: inline-block;
-  font-family: monospace;
-`;
-
 const HashLink = styled.a`
   display: inline-block;
   font-family: monospace;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 20ch;
+  //text-overflow: ellipsis;
+  //max-width: 20ch;
 `;
 
 const Label = styled.span`
@@ -61,7 +59,9 @@ export default class LoanItem extends React.Component {
     loadingMargins: true,
     initialMarginAmount: null,
     maintenanceMarginAmount: null,
-    currentMarginAmount: null
+    currentMarginAmount: null,
+    showOrderDialog: false,
+    order: undefined
   };
 
   componentDidMount = async () => {
@@ -82,6 +82,29 @@ export default class LoanItem extends React.Component {
       maintenanceMarginAmount: marginLevels.maintenanceMarginAmount,
       currentMarginAmount: marginLevels.currentMarginAmount
     });
+  };
+
+  getSingleOrder = async loanOrderHash => {
+    const { b0x } = this.props;
+    const order = await b0x.getSingleOrder({
+      loanOrderHash
+    });
+    return order;
+  };
+
+  toggleOrderDialog = async event => {
+    event.preventDefault();
+    if (event.target.id !== ``) {
+      const order = await this.getSingleOrder(event.target.id);
+      this.setState(p => ({
+        showOrderDialog: !p.showOrderDialog,
+        order
+      }));
+    } else {
+      this.setState(p => ({
+        showOrderDialog: !p.showOrderDialog
+      }));
+    }
   };
 
   handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
@@ -119,7 +142,7 @@ export default class LoanItem extends React.Component {
   };
 
   render() {
-    const { data, b0x } = this.props;
+    const { data, tokens, b0x, accounts } = this.props;
     const {
       loadingMargins,
       initialMarginAmount,
@@ -134,9 +157,38 @@ export default class LoanItem extends React.Component {
         <CardContent>
           <DataPointContainer>
             <Label>Order # </Label>
-            <DataPoint>
-              <OrderHash>{data.loanOrderHash}</OrderHash>
+            <DataPoint title={data.loanOrderHash}>
+              <HashLink
+                href="#"
+                onClick={this.toggleOrderDialog}
+                target="_blank"
+                rel="noopener noreferrer"
+                id={data.loanOrderHash}
+              >
+                {data.loanOrderHash}
+              </HashLink>
             </DataPoint>
+            <Dialog
+              open={this.state.showOrderDialog}
+              onClose={this.toggleOrderDialog}
+              // style={{width: `1000px`}}
+              fullWidth
+              maxWidth="md"
+            >
+              <DialogContent>
+                <OrderItem
+                  key={data.loanOrderHash}
+                  b0x={b0x}
+                  accounts={accounts}
+                  tokens={tokens}
+                  takenOrder={this.state.order}
+                  noShadow
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={this.toggleOrderDialog}>OK</Button>
+              </DialogActions>
+            </Dialog>
           </DataPointContainer>
 
           <DataPointContainer>

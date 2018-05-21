@@ -2,7 +2,7 @@ import styled from "styled-components";
 import MuiButton from "material-ui/Button";
 
 import Section, { SectionLabel } from "../common/FormSection";
-import OpenLoan from "./OpenLoanItem";
+import OpenedLoan from "./OpenLoanItem";
 import ClosedLoan from "./ClosedLoanItem";
 
 const InfoContainer = styled.div`
@@ -67,7 +67,7 @@ export default class Borrowing extends React.Component {
         <Section>
           <SectionLabel>Open Loans ({openLoans.length})</SectionLabel>
           {openLoans.map(data => (
-            <OpenLoan
+            <OpenedLoan
               key={data.loanOrderHash}
               b0x={b0x}
               tokens={tokens}
@@ -80,7 +80,13 @@ export default class Borrowing extends React.Component {
         <Section>
           <SectionLabel>Closed Loans ({closedLoans.length})</SectionLabel>
           {closedLoans.map(data => (
-            <ClosedLoan key={data.loanOrderHash} tokens={tokens} data={data} />
+            <ClosedLoan
+              key={data.loanOrderHash}
+              b0x={b0x}
+              tokens={tokens}
+              accounts={accounts}
+              data={data}
+            />
           ))}
           {closedLoans.length === 0 && `None`}
         </Section>

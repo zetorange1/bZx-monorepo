@@ -40,8 +40,8 @@ const Hash = styled.a`
   font-family: monospace;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 20ch;
+  //text-overflow: ellipsis;
+  //max-width: 20ch;
 `;
 
 const Label = styled.span`
@@ -65,35 +65,33 @@ const LowerUpperRight = styled.div`
   right: 16px;
 `;
 
-export default class OpenLoan extends React.Component {
+export default class OpenedLoan extends React.Component {
   state = {
-    expanded: false,
     showOrderDialog: false,
-    currentHash: ``,
-    currentLoanOrder: undefined
+    order: undefined
   };
 
-  // TODO: need to be able to query b0x for just a particular order
-  getOrders = async () => {
-    const { b0x, accounts } = this.props;
-    const orders = await b0x.getOrders({
-      loanPartyAddress: accounts[0].toLowerCase(),
-      start: 0,
-      count: 1
+  getSingleOrder = async loanOrderHash => {
+    const { b0x } = this.props;
+    const order = await b0x.getSingleOrder({
+      loanOrderHash
     });
-    return orders[0];
+    return order;
   };
-
-  handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
 
   toggleOrderDialog = async event => {
     event.preventDefault();
-    const cur = await this.getOrders();
-    this.setState(p => ({
-      showOrderDialog: !p.showOrderDialog,
-      currentHash: cur.loanOrderHash,
-      currentLoanOrder: cur
-    }));
+    if (event.target.id !== ``) {
+      const order = await this.getSingleOrder(event.target.id);
+      this.setState(p => ({
+        showOrderDialog: !p.showOrderDialog,
+        order
+      }));
+    } else {
+      this.setState(p => ({
+        showOrderDialog: !p.showOrderDialog
+      }));
+    }
   };
 
   render() {
@@ -135,6 +133,7 @@ export default class OpenLoan extends React.Component {
                 onClick={this.toggleOrderDialog}
                 target="_blank"
                 rel="noopener noreferrer"
+                id={loanOrderHash}
               >
                 {loanOrderHash}
               </Hash>
@@ -148,11 +147,11 @@ export default class OpenLoan extends React.Component {
             >
               <DialogContent>
                 <OrderItem
-                  key={this.state.currentHash}
+                  key={loanOrderHash}
                   b0x={b0x}
                   accounts={accounts}
                   tokens={tokens}
-                  takenOrder={this.state.currentLoanOrder}
+                  takenOrder={this.state.order}
                   noShadow
                 />
               </DialogContent>
