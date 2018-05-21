@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import './tokens/EIP20Wrapper.sol';
 import './modifiers/B0xOwnable.sol';

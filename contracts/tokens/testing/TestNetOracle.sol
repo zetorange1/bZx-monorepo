@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import '../../oracle/B0xOracle.sol';
 

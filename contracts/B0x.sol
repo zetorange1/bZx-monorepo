@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import './modules/B0xStorage.sol';
 
@@ -71,10 +71,23 @@ contract B0x is B0xStorage {
         view
         returns (uint);
 
+    function getSingleOrder(
+        bytes32 loanOrderHash)
+        public
+        view
+        returns (bytes);
+
     function getOrders(
         address loanParty,
         uint start,
         uint count)
+        public
+        view
+        returns (bytes);
+
+    function getSingleLoan(
+        bytes32 loanOrderHash,
+        address trader)
         public
         view
         returns (bytes);
@@ -120,14 +133,8 @@ contract B0x is B0xStorage {
         returns (uint);
 
     /*
-    * B0xLoanHealth functions
+    * B0xLoanMaintenance functions
     */
-
-    function payInterest(
-        bytes32 loanOrderHash,
-        address trader)
-        external
-        returns (uint);
 
     function depositCollateral(
         bytes32 loanOrderHash,
@@ -154,6 +161,23 @@ contract B0x is B0xStorage {
         external
         returns (uint profitAmount);
 
+    function getProfitOrLoss(
+        bytes32 loanOrderHash,
+        address trader)
+        public
+        view
+        returns (bool isProfit, uint profitOrLoss, uint positionToLoanAmount, uint positionToLoanRate);
+
+    /*
+    * B0xLoanHealth functions
+    */
+
+    function payInterest(
+        bytes32 loanOrderHash,
+        address trader)
+        external
+        returns (uint);
+
     function liquidatePosition(
         bytes32 loanOrderHash,
         address trader)
@@ -164,13 +188,6 @@ contract B0x is B0xStorage {
         bytes32 loanOrderHash)
         external
         returns (bool);
-
-    function getProfitOrLoss(
-        bytes32 loanOrderHash,
-        address trader)
-        public
-        view
-        returns (bool isProfit, uint profitOrLoss, uint positionToLoanAmount, uint positionToLoanRate);
 
     function shouldLiquidate(
         bytes32 loanOrderHash,

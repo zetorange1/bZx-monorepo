@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import './B0xStorage.sol';
@@ -57,7 +57,7 @@ contract B0xProxy is B0xStorage, Proxiable {
         onlyOwner
         returns(bytes4)
     {
-        bytes4 f = bytes4(keccak256(_funcId));
+        bytes4 f = bytes4(keccak256(abi.encodePacked(_funcId)));
         targets[f] = _target;
         return f;
     }
@@ -142,6 +142,6 @@ contract B0xProxy is B0xStorage, Proxiable {
         view
         returns (address)
     {
-        return targets[bytes4(keccak256(_funcId))];
+        return targets[bytes4(keccak256(abi.encodePacked(_funcId)))];
     }
 }

@@ -1,6 +1,6 @@
 
 
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import '../modules/B0xStorage.sol';
@@ -122,7 +122,7 @@ contract InternalFunctions is B0xStorage {
         bytes32 s;
         (v, r, s) = _getSignatureParts(signature);
         return signer == ecrecover(
-            keccak256("\x19Ethereum Signed Message:\n32", hash),
+            keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)),
             v,
             r,
             s
