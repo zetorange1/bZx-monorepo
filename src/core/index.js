@@ -124,6 +124,7 @@ export default class B0xJS {
   getInitialCollateralRequired = async (...props) =>
     fill.getInitialCollateralRequired(this, ...props);
 
+  getSingleOrder = async (...props) => orderHistory.getSingleOrder(this, ...props);
   getOrders = async (...props) => orderHistory.getOrders(this, ...props);
   getLoansForLender = async (...props) =>
     orderHistory.getLoansForLender(this, ...props);
