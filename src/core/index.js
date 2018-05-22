@@ -124,7 +124,8 @@ export default class B0xJS {
   getInitialCollateralRequired = async (...props) =>
     fill.getInitialCollateralRequired(this, ...props);
 
-  getSingleOrder = async (...props) => orderHistory.getSingleOrder(this, ...props);
+  getSingleOrder = async (...props) =>
+    orderHistory.getSingleOrder(this, ...props);
   getOrders = async (...props) => orderHistory.getOrders(this, ...props);
   getLoansForLender = async (...props) =>
     orderHistory.getLoansForLender(this, ...props);
@@ -142,6 +143,7 @@ export default class B0xJS {
     loanHealth.depositCollateral(this, ...props);
   withdrawExcessCollateral = (...props) =>
     loanHealth.withdrawExcessCollateral(this, ...props);
+  getProfitOrLoss = (...props) => loanHealth.getProfitOrLoss(this, ...props);
 
   closeLoan = (...props) => loanHealth.closeLoan(this, ...props);
   payInterest = (...props) => loanHealth.payInterest(this, ...props);

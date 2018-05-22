@@ -75,3 +75,25 @@ export const closeLoan = (
 
   return b0xContract.methods.closeLoan(loanOrderHash).send(txOpts);
 };
+
+export const getProfitOrLoss = async (
+  { web3, networkId, addresses },
+  { loanOrderHash, trader }
+) => {
+  const b0xContract = await CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).B0x.abi,
+    addresses.B0x
+  );
+
+  const data = await b0xContract.methods
+    .getProfitOrLoss(loanOrderHash, trader)
+    .call();
+
+  return {
+    isProfit: data.isProfit,
+    profitOrLoss: data.profitOrLoss,
+    positionToLoanAmount: data.positionToLoanAmount,
+    positionToLoanRate: data.positionToLoanRate
+  };
+};
