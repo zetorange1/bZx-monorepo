@@ -16,6 +16,8 @@ import { COLORS } from "../styles/constants";
 import { getSymbol } from "../common/tokens";
 import { fromBigNumber } from "../common/utils";
 
+import ProfitOrLoss from "./ProfitOrLoss";
+
 const CardContent = styled(MuiCardContent)`
   position: relative;
 `;
@@ -211,6 +213,14 @@ export default class OpenedLoan extends React.Component {
               {fromBigNumber(interestTotalAccrued, 1e18)} {interestTokenSymbol}
             </DataPoint>
           </DataPointContainer>
+
+          <ProfitOrLoss
+            b0x={b0x}
+            web3={web3}
+            loanOrderHash={loanOrderHash}
+            accounts={accounts}
+            symbol={positionTokenSymbol}
+          />
 
           <LowerUpperRight>
             <CollateralOptions
