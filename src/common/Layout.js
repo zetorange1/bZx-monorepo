@@ -49,7 +49,7 @@ export default class Layout extends React.Component {
 
   showAlert = (text, alertComponent = null) => {
     this.setState({ alertText: text, showAlertDialog: true, alertComponent });
-    console.error(text);
+    console.log(text);
   };
 
   hideAlert = () => this.setState({ showAlertDialog: false });
