@@ -219,6 +219,7 @@ export default class OpenedLoan extends React.Component {
             web3={web3}
             loanOrderHash={loanOrderHash}
             accounts={accounts}
+            symbol={positionTokenSymbol}
           />
 
           <LowerUpperRight>
