@@ -1,0 +1,10 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`loanHealth getProfitOrLoss should retrieve profit or loss successfully 1`] = `
+Object {
+  "isProfit": true,
+  "positionToLoanAmount": "12300000000000000000",
+  "positionToLoanRate": "1000000000000000000",
+  "profitOrLoss": "0",
+}
+`;
