@@ -144,6 +144,7 @@ export default class B0xJS {
   withdrawExcessCollateral = (...props) =>
     loanHealth.withdrawExcessCollateral(this, ...props);
   getProfitOrLoss = (...props) => loanHealth.getProfitOrLoss(this, ...props);
+  withdrawProfit = (...props) => loanHealth.withdrawProfit(this, ...props);
 
   closeLoan = (...props) => loanHealth.closeLoan(this, ...props);
   payInterest = (...props) => loanHealth.payInterest(this, ...props);

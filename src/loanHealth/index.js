@@ -97,3 +97,16 @@ export const getProfitOrLoss = async (
     positionToLoanRate: data.positionToLoanRate
   };
 };
+
+export const withdrawProfit = (
+  { web3, networkId, addresses },
+  { loanOrderHash, txOpts }
+) => {
+  const b0xContract = CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).B0x.abi,
+    addresses.B0x
+  );
+
+  return b0xContract.methods.withdrawProfit(loanOrderHash).send(txOpts);
+};
