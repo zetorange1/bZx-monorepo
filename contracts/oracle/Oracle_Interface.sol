@@ -174,12 +174,16 @@ interface Oracle_Interface {
     /// @param loanTokenAddress The loan token
     /// @param collateralTokenAmountUsable The total amount of collateral usable to cover losses
     /// @param loanTokenAmountNeeded The amount of loan token needed to cover losses
+    /// @param initialMarginAmount The initial margin amount set for the loan
+    /// @param maintenanceMarginAmount The maintenance margin amount set for the loan
     /// @return The amount of destToken bought
     function doTradeofCollateral(
         address collateralTokenAddress,
         address loanTokenAddress,
         uint collateralTokenAmountUsable,
-        uint loanTokenAmountNeeded)
+        uint loanTokenAmountNeeded,
+        uint initialMarginAmount,
+        uint maintenanceMarginAmount)
         external
         returns (uint, uint);
 
@@ -225,7 +229,7 @@ interface Oracle_Interface {
     /// @param loanTokenAddress The token that was loaned
     /// @param positionTokenAmount The amount of position token
     /// @param loanTokenAmount The amount of loan token
-    /// @return isProfit, profitOrLoss (denominated in loanToken), positionToLoanAmount, positionToLoanRate
+    /// @return isProfit, profitOrLoss (denominated in positionToken)
     function getProfitOrLoss(
         address positionTokenAddress,
         address loanTokenAddress,
@@ -233,7 +237,7 @@ interface Oracle_Interface {
         uint loanTokenAmount)
         external
         view
-        returns (bool isProfit, uint profitOrLoss, uint positionToLoanAmount, uint positionToLoanRate);
+        returns (bool isProfit, uint profitOrLoss);
 
     /// @dev Returns the current margin level for this particular loan/position
     /// @param loanTokenAddress The token that was loaned

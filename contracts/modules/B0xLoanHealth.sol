@@ -411,7 +411,9 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
                 loanPosition.collateralTokenAddressFilled,
                 loanOrder.loanTokenAddress,
                 loanPosition.collateralTokenAmountFilled,
-                loanPosition.loanTokenAmountFilled.sub(loanPosition.positionTokenAmountFilled));
+                loanPosition.loanTokenAmountFilled.sub(loanPosition.positionTokenAmountFilled),
+                loanOrder.initialMarginAmount,
+                loanOrder.maintenanceMarginAmount);
             
             loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.add(loanTokenAmountCovered);
             loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(collateralTokenAmountUsed);
@@ -423,7 +425,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanPosition.trader,
             loanPosition.collateralTokenAmountFilled
         )) {
-            return boolOrRevert(false,426); // revert("B0xLoanHealth::_finalizeLoan: B0xVault.withdrawToken collateral failed");
+            return boolOrRevert(false,428); // revert("B0xLoanHealth::_finalizeLoan: B0xVault.withdrawToken collateral failed");
         }
 
         // send remaining loan token back to the lender
@@ -432,7 +434,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanPosition.lender,
             loanPosition.positionTokenAmountFilled
         )) {
-            return boolOrRevert(false,435); // revert("B0xLoanHealth::_finalizeLoan: B0xVault.withdrawToken loan failed");
+            return boolOrRevert(false,437); // revert("B0xLoanHealth::_finalizeLoan: B0xVault.withdrawToken loan failed");
         }
 
         if (! Oracle_Interface(loanOrder.oracleAddress).didCloseLoan(
@@ -441,7 +443,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             isLiquidation,
             gasUsed
         )) {
-            return boolOrRevert(false,444); // revert("B0xLoanHealth::_finalizeLoan: Oracle_Interface.didCloseLoan failed");
+            return boolOrRevert(false,446); // revert("B0xLoanHealth::_finalizeLoan: Oracle_Interface.didCloseLoan failed");
         }
 
         // set this loan to inactive

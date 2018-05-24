@@ -10,14 +10,14 @@ contract EMACollector {
     uint public emaValue; // the last ema calculated
     uint public emaPeriods; // averaging periods for EMA calculation
 
-    event EMAUpdated(uint newEMA);
+    //event EMAUpdated(uint newEMA);
 
     modifier updatesEMA(uint value) {
-        updateEMA(value);
-
         _;
+
+        updateEMA(value);
     }
-    
+
     function updateEMA(uint value) 
         internal {
         /*
@@ -36,6 +36,6 @@ contract EMACollector {
                     ),
                     emaValue / (emaPeriods + 1) * 2     // no overflow
                 );
-        emit EMAUpdated(emaValue);
+        //emit EMAUpdated(emaValue);
     }
 }

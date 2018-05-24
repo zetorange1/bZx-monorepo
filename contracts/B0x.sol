@@ -166,7 +166,7 @@ contract B0x is B0xStorage {
         address trader)
         public
         view
-        returns (bool isProfit, uint profitOrLoss, uint positionToLoanAmount, uint positionToLoanRate);
+        returns (bool isProfit, uint profitOrLoss, address positionTokenAddress);
 
     /*
     * B0xLoanHealth functions

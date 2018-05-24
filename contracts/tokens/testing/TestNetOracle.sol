@@ -22,11 +22,13 @@ contract TestNetOracle is B0xOracle {
     constructor(
         address _vault_contract,
         address _kyber_contract,
-        address _weth_contract)
+        address _weth_contract,
+        address _b0x_token_contract)
         B0xOracle(
             _vault_contract,
             _kyber_contract,
-            _weth_contract)
+            _weth_contract,
+            _b0x_token_contract)
         public
         payable
     {}
@@ -96,5 +98,25 @@ contract TestNetOracle is B0xOracle {
                 VAULT_CONTRACT,
                 destTokenAmount));
         }
+    }
+
+    function _doTradeForEth(
+        address /*sourceTokenAddress*/,
+        uint sourceTokenAmount,
+        address /*receiver*/)
+        internal
+        returns (uint destTokenAmountReceived)
+    {
+        destTokenAmountReceived = sourceTokenAmount;
+    }
+
+    function _doTradeWithEth(
+        address /*destTokenAddress*/,
+        uint destTokenAmountNeeded,
+        address /*receiver*/)
+        internal
+        returns (uint destTokenAmountReceived)
+    {
+        destTokenAmountReceived = destTokenAmountNeeded;
     }
 }

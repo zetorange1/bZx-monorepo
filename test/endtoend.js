@@ -1319,18 +1319,31 @@ contract('B0xTest', function(accounts) {
       };
   });
 
-  (run["should withdraw profits"] ? it : it.skip)("should withdraw profits", function(done) {
-    b0x.withdrawProfit(
+  (run["should withdraw profits"] ? it : it.skip)("should withdraw profits", async function() {
+    console.log("Before profit:");
+    console.log(await b0x.getProfitOrLoss.call(
       OrderHash_b0x_1,
-      {from: trader1_account}).then(function(tx) {
-        console.log(txPrettyPrint(tx,"should withdraw profits"));
-        assert.isOk(tx);
-        done();
-      }), function(error) {
-        console.error(error);
-        assert.isOk(false);
-        done();
-      };
+      trader1_account,
+      {from: lender2_account}));
+    
+    try {
+      var tx = await b0x.withdrawProfit(
+      OrderHash_b0x_1,
+      {from: trader1_account});
+      
+      console.log(txPrettyPrint(tx,"should withdraw profits"));
+
+      console.log("After profit:");
+      console.log(await b0x.getProfitOrLoss.call(
+        OrderHash_b0x_1,
+        trader1_account,
+        {from: lender2_account}));
+
+      assert.isOk(tx);
+    } catch (error) {
+      console.error(error);
+      assert.isOk(false);
+    }
   });
 
   (run["should pay lender interest"] ? it : it.skip)("should pay lender interest", function(done) {
