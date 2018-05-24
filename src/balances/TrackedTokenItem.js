@@ -12,13 +12,13 @@ import Dialog, {
   DialogContentText,
   DialogTitle
 } from "material-ui/Dialog";
-import { COLORS } from "../../styles/constants";
+import { COLORS } from "../styles/constants";
 import {
   removeTrackedToken,
   PERMA_TOKEN_SYMBOLS,
   FAUCET_TOKEN_SYMBOLS
-} from "../../common/trackedTokens";
-import { fromBigNumber, toBigNumber } from "../../common/utils";
+} from "../common/trackedTokens";
+import { fromBigNumber, toBigNumber } from "../common/utils";
 
 const Container = styled.div`
   display: flex;

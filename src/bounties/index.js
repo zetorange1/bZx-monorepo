@@ -18,7 +18,7 @@ const Button = styled(MuiButton)`
   margin: 6px !important;
 `;
 
-export default class Borrowing extends React.Component {
+export default class Bounties extends React.Component {
   state = { loans: [], loading: false, count: 10 };
 
   componentDidMount() {

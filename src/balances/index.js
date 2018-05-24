@@ -1,4 +1,4 @@
-import { Divider } from "../../common/FormSection";
+import { Divider } from "../common/FormSection";
 
 import Ether from "./Ether";
 import TrackedTokens from "./TrackedTokens";

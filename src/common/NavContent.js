@@ -76,6 +76,9 @@ class NavContent extends React.Component {
           <ImgLogo src="https://b0x.network/img/site-logo.svg" />
         </a>
         <HorizontalNav>
+          <Link href="/balances">
+            <NavLink>Balances</NavLink>
+          </Link>
           <Link href="/orders">
             <NavLink>Orders</NavLink>
           </Link>
@@ -99,6 +102,9 @@ class NavContent extends React.Component {
         <Overlay show={this.state.showSideNav} onClick={this.toggleSideNav} />
         <Drawer show={this.state.showSideNav}>
           <VerticalNav>
+            <Link href="/balances">
+              <NavLink>Balances</NavLink>
+            </Link>
             <Link href="/orders">
               <NavLink>Orders</NavLink>
             </Link>

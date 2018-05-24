@@ -1,8 +1,8 @@
 import MuiButton from "material-ui/Button";
 import styled from "styled-components";
-import Section, { SectionLabel } from "../../common/FormSection";
+import Section, { SectionLabel } from "../common/FormSection";
 import TrackedTokenItem from "./TrackedTokenItem";
-import { getIconURL } from "../../common/tokens";
+import { getIconURL } from "../common/tokens";
 
 const Button = styled(MuiButton)`
   margin-right: auto !important;

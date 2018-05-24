@@ -1,10 +1,20 @@
 import styled from "styled-components";
-import Typography from "material-ui/Typography";
-import Section, { SectionLabel } from "../../common/FormSection";
+import Section, { SectionLabel } from "../common/FormSection";
 
 const Container = styled.div`
   width: 100%;
   text-align: left;
+`;
+
+const StyledDiv = styled.div`
+  margin: 0;
+  display: block;
+  color: rgba(0, 0, 0, 0.87);
+  font-size: 0.875rem;
+  font-weight: 400;
+  font-family: "Raleway", sans-serif;
+  line-height: 1.46429em;
+  margin-bottom: 0.35em;
 `;
 
 export default class Ether extends React.Component {
@@ -23,16 +33,16 @@ export default class Ether extends React.Component {
         <SectionLabel>Ether</SectionLabel>
         <Container>
           {showEthBalance ? (
-            <Typography gutterBottom>
+            <StyledDiv>
               Your current Ether balance is{` `}
               <strong>{this.state.ethBalance.toString()} ETH</strong>.
-            </Typography>
+            </StyledDiv>
           ) : (
-            <Typography gutterBottom>
+            <StyledDiv>
               Your current Ether balance is <strong>loading...</strong>.
-            </Typography>
+            </StyledDiv>
           )}
-          <Typography gutterBottom>
+          <StyledDiv>
             But instead of ETH, you will need{` `}
             <a
               href="https://weth.io/"
@@ -43,8 +53,8 @@ export default class Ether extends React.Component {
             </a>
             {` `}
             to trade on b0x.
-          </Typography>
-          <Typography gutterBottom>
+          </StyledDiv>
+          <StyledDiv>
             In order to wrap your ETH, you can make use of the 0x Portal {` `}
             <a
               href="https://0xproject.com/portal/weth"
@@ -53,7 +63,7 @@ export default class Ether extends React.Component {
             >
               ETH wrapper
             </a>.
-          </Typography>
+          </StyledDiv>
         </Container>
       </Section>
     );

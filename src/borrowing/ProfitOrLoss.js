@@ -73,22 +73,23 @@ export default class ProfitOrLoss extends React.Component {
           ) : (
             <Fragment>
               <DataPoint>
-                {!isProfit && `-`}
+                {!isProfit && profit !== 0 && `-`}
                 {fromBigNumber(profit, 1e18)}
                 {` ${symbol}`}
               </DataPoint>
-              {isProfit && (
-                <a
-                  href="#"
-                  style={{ marginLeft: `12px` }}
-                  onClick={e => {
-                    e.preventDefault();
-                    this.openDialog();
-                  }}
-                >
-                  withdraw
-                </a>
-              )}
+              {isProfit &&
+                profit !== 0 && (
+                  <a
+                    href="#"
+                    style={{ marginLeft: `12px` }}
+                    onClick={e => {
+                      e.preventDefault();
+                      this.openDialog();
+                    }}
+                  >
+                    withdraw
+                  </a>
+                )}
             </Fragment>
           )}
         </DataPointContainer>

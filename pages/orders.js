@@ -12,40 +12,23 @@ import {
 } from "../src/common/MainContent";
 import GenerateOrder from "../src/orders/GenerateOrder";
 import FillOrder from "../src/orders/FillOrder";
-import Balances from "../src/orders/Balances";
 import OrderHistory from "../src/orders/OrderHistory";
 import Web3Container from "../src/web3/Web3Container";
-import { getTrackedTokens } from "../src/common/trackedTokens";
 import NetworkIndicator from "../src/common/NetworkIndicator";
 
 const TABS = [
   { id: `GEN_ORDER`, label: `Generate Order` },
   { id: `FILL_ORDER`, label: `Fill Order` },
-  { id: `BALANCES`, label: `Balances` },
   { id: `ORDER_HISTORY`, label: `Order History` }
 ];
 
 class Orders extends React.Component {
-  state = { activeTab: `GEN_ORDER`, trackedTokens: [] };
+  state = { activeTab: `GEN_ORDER` };
 
   changeTab = tabId => this.setState({ activeTab: tabId });
 
-  updateTrackedTokens = tokens => hardRefresh => {
-    if (hardRefresh) {
-      this.setState({ trackedTokens: [] }, () =>
-        this.setState({
-          trackedTokens: getTrackedTokens(tokens)
-        })
-      );
-    } else {
-      this.setState({
-        trackedTokens: getTrackedTokens(tokens)
-      });
-    }
-  };
-
   render() {
-    const { activeTab, trackedTokens } = this.state;
+    const { activeTab } = this.state;
     return (
       <Layout>
         <Card>
@@ -88,16 +71,6 @@ class Orders extends React.Component {
                       oracles={oracles}
                       b0x={b0x}
                       accounts={accounts}
-                    />
-                  </ContentContainer>
-                  <ContentContainer show={activeTab === `BALANCES`}>
-                    <Balances
-                      b0x={b0x}
-                      web3={web3}
-                      accounts={accounts}
-                      tokens={tokens}
-                      trackedTokens={trackedTokens}
-                      updateTrackedTokens={this.updateTrackedTokens(tokens)}
                     />
                   </ContentContainer>
                   <ContentContainer show={activeTab === `ORDER_HISTORY`}>
