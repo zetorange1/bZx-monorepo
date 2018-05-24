@@ -27,7 +27,7 @@ describe("loanHealth", () => {
         owner,
         lenders,
         traders,
-        transferAmount: web3.utils.toWei("100", "ether")
+        transferAmount: web3.utils.toWei("2000", "ether")
       });
 
       const order = FillTestUtils.makeOrderAsLender({
