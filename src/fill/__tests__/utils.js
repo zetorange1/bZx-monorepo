@@ -36,7 +36,6 @@ export const initAllContractInstances = () => {
     Contracts.B0xToken.address
   );
 
-  console.log("initAllContractInstances done.");
   return { loanTokens, collateralTokens, interestTokens, b0xToken };
 };
 
@@ -62,19 +61,6 @@ export const setupB0xToken = async ({
 
   const promises = [...b0xTokenPromises, ...allowancePromises];
   await Promise.all(promises);
-
-  const balancePs = [...lenders, ...traders].map(address =>
-    b0xJS.getBalance({
-      tokenAddress: b0xToken.options.address.toLowerCase(),
-      ownerAddress: address
-    })
-  );
-  const balances = await Promise.all(balancePs);
-  const addresses = ["lender0", "lender1", "trader0", "trader1"];
-  addresses.map((address, i) =>
-    console.log("b0xToken", address, balances[i].toString())
-  );
-  console.log("setupB0xToken done.");
 };
 
 export const setupLoanTokens = async ({
@@ -103,19 +89,6 @@ export const setupLoanTokens = async ({
   ];
 
   await Promise.all(promises);
-  console.log("setupLoanTokens done.");
-
-  const lender0Balance = await b0xJS.getBalance({
-    tokenAddress: loanTokens[0].options.address.toLowerCase(),
-    ownerAddress: lenders[0]
-  });
-  console.log("loanTokens0", lender0Balance.toString());
-
-  const lender1Balance = await b0xJS.getBalance({
-    tokenAddress: loanTokens[1].options.address.toLowerCase(),
-    ownerAddress: lenders[1]
-  });
-  console.log("loanTokens1", lender1Balance.toString());
 };
 
 export const setupCollateralTokens = async ({
@@ -152,19 +125,6 @@ export const setupCollateralTokens = async ({
   ];
 
   await Promise.all(promises);
-  console.log("setupCollateralTokens done.");
-
-  const lender0Balance = await b0xJS.getBalance({
-    tokenAddress: collateralTokens[0].options.address.toLowerCase(),
-    ownerAddress: traders[0]
-  });
-  console.log("collateralTokens0", lender0Balance.toString());
-
-  const lender1Balance = await b0xJS.getBalance({
-    tokenAddress: collateralTokens[1].options.address.toLowerCase(),
-    ownerAddress: traders[1]
-  });
-  console.log("collateralTokens1", lender1Balance.toString());
 };
 
 export const setupInterestTokens = async ({
@@ -201,7 +161,6 @@ export const setupInterestTokens = async ({
   ];
 
   await Promise.all(promises);
-  console.log("setupInterestTokens done.");
 };
 
 export const makeOrderAsTrader = ({
