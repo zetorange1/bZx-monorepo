@@ -31,19 +31,6 @@ const setupOrder0xToken = async ({
   ];
 
   await Promise.all(promises);
-  console.log("setup0xOrderToken done.");
-
-  const balance = await b0xJS.getBalance({
-    tokenAddress: order0xToken.options.address.toLowerCase(),
-    ownerAddress: makerOf0xOrder
-  });
-  const allowance = await b0xJS.getAllowance({
-    tokenAddress: order0xToken.options.address.toLowerCase(),
-    ownerAddress: makerOf0xOrder,
-    spenderAddress: zxConstants.TokenTransferProxy.toLowerCase()
-  });
-  console.log("order0xToken", "balance", balance.toString());
-  console.log("order0xToken", "allowance", allowance.toString());
 };
 
 export const initAllContractInstances = () => {
