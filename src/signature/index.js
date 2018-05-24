@@ -47,7 +47,6 @@ export const signOrderHashAsync = async (
       signerAddress
     );
     if (isValidVRSSignature) {
-      console.log("isValidVRSSignature");
       return ethUtil.toRpcSig(
         ecSignatureVRS.v,
         ecSignatureVRS.r,
@@ -64,7 +63,6 @@ export const signOrderHashAsync = async (
       signerAddress
     );
     if (isValidRSVSignature) {
-      console.log("isValidRSVSignature");
       return ethUtil.toRpcSig(
         ecSignatureRSV.v,
         ecSignatureRSV.r,
