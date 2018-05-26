@@ -3,7 +3,7 @@ import styled from "styled-components";
 import Button from "material-ui/Button";
 import Dialog, { DialogContent } from "material-ui/Dialog";
 import { COLORS } from "../styles/constants";
-import { fromBigNumber, toBigNumber } from "../common/utils";
+import { fromBigNumber } from "../common/utils";
 import { SectionLabel } from "../common/FormSection";
 
 const DataPointContainer = styled.div`
