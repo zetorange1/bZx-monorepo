@@ -11,13 +11,14 @@ const AddressLink = styled.a.attrs({
   color: white;
   display: inline-block;
   margin-bottom: 3px;
+  text-decoration: none;
 `;
 
 const networks = {
-  1: { name: `Mainnet`, color: `#038789` },
-  3: { name: `Ropsten`, color: `#E91550` },
-  4: { name: `Rinkeby`, color: `#EBB33F` },
-  42: { name: `Kovan`, color: `#690496` }
+  1: { name: `Main Net`, color: `#038789` },
+  3: { name: `Ropsten Testnet`, color: `#E91550` },
+  4: { name: `Rinkeby Testnet`, color: `#EBB33F` },
+  42: { name: `Kovan Testnet`, color: `#690496` }
 };
 
 const currentAccount = addr => `${addr.substr(0, 8)} ... ${addr.substr(-6)}`;
@@ -33,16 +34,21 @@ const NetworkIndicator = ({ networkId, accounts, etherscanURL }) => {
   if (nameExists) {
     ToRender = (
       <Fragment>
+        <div className="portal-version">
+          Version Alpha {packageJson.version}
+        </div>
         <div className="network-name">{networks[networkId].name}</div>
         <AddressLink href={addressLink}>{addressText}</AddressLink>
-        <div className="portal-version">Alpha v{packageJson.version}</div>
       </Fragment>
     );
   } else {
     ToRender = (
       <Fragment>
-        <div className="network">Custom Network: {networkId}</div>
-        <div className="portal-version">Alpha v{packageJson.version}</div>
+        <div className="portal-version">
+          Version Alpha {packageJson.version}
+        </div>
+        <div className="network">Private Network {networkId}</div>
+        <AddressLink href={addressLink}>{addressText}</AddressLink>
       </Fragment>
     );
   }

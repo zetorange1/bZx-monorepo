@@ -35,7 +35,7 @@ export const HeaderTitle = styled.h2`
 const HeaderDataDiv = styled.div`
   position: absolute;
   right: 12px;
-  bottom: 12px;
+  top: 12px;
   text-align: right;
   font-size: 14px;
 
