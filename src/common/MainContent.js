@@ -46,13 +46,7 @@ const HeaderDataDiv = styled.div`
   }
 `;
 
-export const HeaderData = () => (
-  <HeaderDataDiv>
-    <div className="network-name">Kovan</div>
-    <div className="network-address">0x1234...1234</div>
-    <div className="portal-version">Alpha v{packageJson.version}</div>
-  </HeaderDataDiv>
-);
+export const HeaderData = () => <HeaderDataDiv className="network-indicator" />;
 
 export const TabGroup = styled.div`
   display: flex;
