@@ -1,6 +1,5 @@
 import styled from "styled-components";
 import NavContent from "./NavContent";
-import packageJson from "../../package.json";
 import { DIMENSIONS, SHADOWS } from "../styles/constants";
 
 const Container = styled.nav`
@@ -41,24 +40,8 @@ const Content = styled.div`
   align-items: center;
 `;
 
-// const Alert = styled.div`
-//   color: white;
-//   background: red;
-//   padding: 12px;
-//   box-shadow: ${SHADOWS.light};
-// `;
-
-const Version = styled.div`
-  color: #2879ff;
-  padding: 12px;
-  text-align: right;
-  font-weight: bolder;
-`;
-
 const Nav = () => (
   <div>
-    <div className="network-indicator" />
-    <Version>Alpha v{packageJson.version}</Version>
     <Container>
       <Content>
         <NavContent />
