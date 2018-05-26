@@ -1,6 +1,12 @@
 import { Fragment } from "react";
 import Layout from "../src/common/Layout";
-import { Card, Header, HeaderTitle, Content } from "../src/common/MainContent";
+import {
+  Card,
+  Header,
+  HeaderTitle,
+  HeaderData,
+  Content
+} from "../src/common/MainContent";
 import PageContent from "../src/balances";
 import Web3Container from "../src/web3/Web3Container";
 import NetworkIndicator from "../src/common/NetworkIndicator";
@@ -32,6 +38,11 @@ export default class Balances extends React.Component {
         <Card>
           <Header>
             <HeaderTitle>Balances</HeaderTitle>
+            <HeaderData>
+              <div className="network-name">Kovan</div>
+              <div className="network-address">0x1234...1234</div>
+              <div className="portal-version">Alpha v0.07</div>
+            </HeaderData>
           </Header>
           <Content>
             <Web3Container

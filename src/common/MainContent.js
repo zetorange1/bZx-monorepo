@@ -22,6 +22,7 @@ export const Header = styled.div`
   background-color: ${COLORS.blue};
   color: ${COLORS.white};
   overflow: auto;
+  position: relative;
 `;
 
 export const HeaderTitle = styled.h2`
@@ -29,6 +30,14 @@ export const HeaderTitle = styled.h2`
   letter-spacing: 8px;
   text-transform: uppercase;
   padding-left: 12px;
+`;
+
+export const HeaderData = styled.div`
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  text-align: right;
 `;
 
 export const TabGroup = styled.div`
