@@ -1,5 +1,6 @@
 import styled, { css } from "styled-components";
 import { COLORS, SHADOWS } from "../styles/constants";
+import packageJson from "../../package.json";
 
 export const Card = styled.div`
   min-height: 600px;
@@ -32,13 +33,26 @@ export const HeaderTitle = styled.h2`
   padding-left: 12px;
 `;
 
-export const HeaderData = styled.div`
+const HeaderDataDiv = styled.div`
   position: absolute;
   top: 12px;
   right: 12px;
   bottom: 12px;
   text-align: right;
+  font-size: 14px;
+
+  & > div {
+    margin-bottom: 3px;
+  }
 `;
+
+export const HeaderData = () => (
+  <HeaderDataDiv>
+    <div className="network-name">Kovan</div>
+    <div className="network-address">0x1234...1234</div>
+    <div className="portal-version">Alpha v{packageJson.version}</div>
+  </HeaderDataDiv>
+);
 
 export const TabGroup = styled.div`
   display: flex;
