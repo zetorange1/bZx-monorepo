@@ -22,6 +22,7 @@ export const Header = styled.div`
   background-color: ${COLORS.blue};
   color: ${COLORS.white};
   overflow: auto;
+  position: relative;
 `;
 
 export const HeaderTitle = styled.h2`
@@ -30,6 +31,20 @@ export const HeaderTitle = styled.h2`
   text-transform: uppercase;
   padding-left: 12px;
 `;
+
+const HeaderDataDiv = styled.div`
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  text-align: right;
+  font-size: 14px;
+
+  & > div {
+    margin-bottom: 3px;
+  }
+`;
+
+export const HeaderData = () => <HeaderDataDiv className="network-indicator" />;
 
 export const TabGroup = styled.div`
   display: flex;
