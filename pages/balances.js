@@ -7,6 +7,7 @@ import {
   HeaderData,
   Content
 } from "../src/common/MainContent";
+import packageJson from "../package.json";
 import PageContent from "../src/balances";
 import Web3Container from "../src/web3/Web3Container";
 import NetworkIndicator from "../src/common/NetworkIndicator";
@@ -41,7 +42,7 @@ export default class Balances extends React.Component {
             <HeaderData>
               <div className="network-name">Kovan</div>
               <div className="network-address">0x1234...1234</div>
-              <div className="portal-version">Alpha v0.07</div>
+              <div className="portal-version">Alpha v{packageJson.version}</div>
             </HeaderData>
           </Header>
           <Content>
