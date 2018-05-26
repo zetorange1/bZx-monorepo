@@ -21,6 +21,17 @@ const Label = styled.span`
   color: ${COLORS.gray};
 `;
 
+const TxHashLink = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  font-family: monospace;
+  display: block;
+  text-overflow: ellipsis;
+  overflow: auto;
+}
+`;
+
 export default class ProfitOrLoss extends React.Component {
   state = {
     loading: true,
@@ -52,8 +63,35 @@ export default class ProfitOrLoss extends React.Component {
     });
   };
 
-  withdrawProfit = () => {
-    alert(`withdraw profit`);
+  withdrawProfit = async () => {
+    const { b0x, accounts, web3, loanOrderHash } = this.props;
+    const txOpts = {
+      from: accounts[0],
+      gas: 1000000,
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+    };
+    await b0x
+      .withdrawProfit({
+        loanOrderHash,
+        txOpts
+      })
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        console.error(error);
+        alert(
+          `We were not able to execute your transaction. Please check the error logs.`
+        );
+        this.closeDialog();
+      });
+    alert(`Execution complete.`);
     this.closeDialog();
   };
 
@@ -73,7 +111,7 @@ export default class ProfitOrLoss extends React.Component {
           ) : (
             <Fragment>
               <DataPoint>
-                {!isProfit && profit !== 0 && `-`}
+                {!isProfit && profit.toString() !== `0` && `-`}
                 {fromBigNumber(profit, 1e18)}
                 {` ${symbol}`}
               </DataPoint>
