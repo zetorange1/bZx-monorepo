@@ -71,7 +71,7 @@ export default class ProfitOrLoss extends React.Component {
       gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
     await b0x
-      .withdrawExcessCollateral({
+      .withdrawProfit({
         loanOrderHash,
         txOpts
       })
