@@ -1,6 +1,5 @@
 import styled, { css } from "styled-components";
 import { COLORS, SHADOWS } from "../styles/constants";
-import packageJson from "../../package.json";
 
 export const Card = styled.div`
   min-height: 600px;
