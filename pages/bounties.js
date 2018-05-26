@@ -1,6 +1,12 @@
 import { Fragment } from "react";
 import Layout from "../src/common/Layout";
-import { Card, Header, HeaderTitle, Content } from "../src/common/MainContent";
+import {
+  Card,
+  Header,
+  HeaderTitle,
+  HeaderData,
+  Content
+} from "../src/common/MainContent";
 import { Divider } from "../src/common/FormSection";
 import PageContent from "../src/bounties";
 import Web3Container from "../src/web3/Web3Container";
@@ -18,6 +24,7 @@ export default class Bounties extends React.Component {
         <Card>
           <Header>
             <HeaderTitle>Bounties</HeaderTitle>
+            <HeaderData />
           </Header>
           <Content>
             <Web3Container

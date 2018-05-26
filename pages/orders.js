@@ -5,6 +5,7 @@ import {
   Card,
   Header,
   HeaderTitle,
+  HeaderData,
   TabGroup,
   Tab,
   Content,
@@ -34,6 +35,7 @@ class Orders extends React.Component {
         <Card>
           <Header>
             <HeaderTitle>Orders</HeaderTitle>
+            <HeaderData />
             <TabGroup>
               {TABS.map(tab => (
                 <Tab
