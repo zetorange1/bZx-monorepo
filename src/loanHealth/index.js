@@ -93,7 +93,6 @@ export const getProfitOrLoss = async (
   return {
     isProfit: data.isProfit,
     profitOrLoss: data.profitOrLoss,
-    positionToLoanAmount: data.positionToLoanAmount,
-    positionToLoanRate: data.positionToLoanRate
+    positionTokenAddress: data.positionTokenAddress
   };
 };
