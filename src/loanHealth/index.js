@@ -96,3 +96,16 @@ export const getProfitOrLoss = async (
     positionTokenAddress: data.positionTokenAddress
   };
 };
+
+export const withdrawProfit = (
+  { web3, networkId, addresses },
+  { loanOrderHash, txOpts }
+) => {
+  const b0xContract = CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).B0x.abi,
+    addresses.B0x
+  );
+
+  return b0xContract.methods.withdrawProfit(loanOrderHash).send(txOpts);
+};
