@@ -20,6 +20,7 @@ const LoadingContainer = styled.div`
 export default class Web3Container extends React.Component {
   state = {
     loading: true,
+    errorMsg: ``,
     web3: null,
     zeroEx: null,
     tokens: null,
@@ -32,7 +33,7 @@ export default class Web3Container extends React.Component {
   async componentDidMount() {
     const web3 = await getWeb3();
     if (!web3) {
-      this.setState({ loading: false });
+      this.setState({ loading: false, errorMsg: `Unable to load Web3.` });
       return;
     }
     const networkId = await getNetworkId(web3);
@@ -42,22 +43,20 @@ export default class Web3Container extends React.Component {
       tokenRegistryContractAddress: b0x.addresses.TokenRegistry
     });
 
-    // Get tokens from the token registry
-    let tokens;
-    try {
-      tokens = await b0x.getTokenList();
-    } catch (err) {
-      alert(
-        `You may be on the wrong network, please check MetaMask and refresh the page.`
-      );
-      console.error(err);
-      return;
-    }
-
     // Get accounts
     const accounts = await web3.eth.getAccounts();
     if (!accounts[0]) {
-      alert(`Please unlock your MetaMask account, and then refresh the page.`);
+      // alert(`Please unlock your MetaMask account, and then refresh the page.`);
+      this.setState({
+        loading: false,
+        errorMsg: `Please unlock your MetaMask account.`
+      });
+      setInterval(async () => {
+        if ((await web3.eth.getAccounts())[0]) {
+          window.location.reload();
+        }
+      }, 500);
+
       return;
     }
 
@@ -74,15 +73,36 @@ export default class Web3Container extends React.Component {
     try {
       oracles = await b0x.getOracleList();
     } catch (err) {
-      alert(
-        `You may be on the wrong network, please check MetaMask and refresh the page.`
-      );
+      /* alert(
+        `You may be on the wrong network. Please check that MetaMask is set to Ropsten Test Network.`
+      ); */
       console.error(err);
+      this.setState({
+        loading: false,
+        errorMsg: `You may be on the wrong network. Please check that MetaMask is set to Ropsten Test Network.`
+      });
+      return;
+    }
+
+    // Get tokens from the token registry
+    let tokens;
+    try {
+      tokens = await b0x.getTokenList();
+    } catch (err) {
+      /* alert(
+        `You may be on the wrong network. Please check that MetaMask is set to Ropsten Test Network.`
+      ); */
+      console.error(err);
+      this.setState({
+        loading: false,
+        errorMsg: `You may be on the wrong network. Please check that MetaMask is set to Ropsten Test Network.`
+      });
       return;
     }
 
     this.setState({
       loading: false,
+      errorMsg: ``,
       web3,
       zeroEx,
       tokens,
@@ -96,6 +116,7 @@ export default class Web3Container extends React.Component {
   render() {
     const {
       loading,
+      errorMsg,
       web3,
       zeroEx,
       tokens,
@@ -107,6 +128,8 @@ export default class Web3Container extends React.Component {
     const { render } = this.props;
     if (loading) {
       return <LoadingContainer>Loading Web3...</LoadingContainer>;
+    } else if (errorMsg) {
+      return <LoadingContainer>{errorMsg}</LoadingContainer>;
     }
     return web3 ? (
       render({ web3, zeroEx, tokens, b0x, accounts, oracles, networkId })
