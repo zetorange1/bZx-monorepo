@@ -46,10 +46,7 @@ export const takeLoanOrderAsLender = ({ web3, networkId }, order, txOpts) => {
     orderValues,
     order.signature
   );
-  console.log(`takeLoanOrderAsLender: ${txObj.encodeABI()}`);
-  console.log(JSON.stringify(orderAddresses));
-  console.log(JSON.stringify(orderValues));
-  console.log(JSON.stringify(order.signature));
+
   return txObj.send({
     from: txOpts.from,
     gas: txOpts.gas,
@@ -100,12 +97,7 @@ export const takeLoanOrderAsTrader = (
     loanTokenAmountFilled,
     order.signature
   );
-  console.log(`takeLoanOrderAsTrader: ${txObj.encodeABI()}`);
-  console.log(JSON.stringify(orderAddresses));
-  console.log(JSON.stringify(orderValues));
-  console.log(JSON.stringify(collateralTokenAddress));
-  console.log(JSON.stringify(loanTokenAmountFilled));
-  console.log(JSON.stringify(order.signature));
+
   return txObj.send({
     from: txOpts.from,
     gas: txOpts.gas,

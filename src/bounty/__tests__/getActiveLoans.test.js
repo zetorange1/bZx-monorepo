@@ -27,7 +27,7 @@ describe("bounty", () => {
   let orderHashHex = null;
 
   beforeAll(async () => {
-    const transferAmount = web3.utils.toWei("4000", "ether");
+    const transferAmount = web3.utils.toWei("10000", "ether");
     await FillTestUtils.setupAll({ owner, lenders, traders, transferAmount });
 
     const txOpts = {

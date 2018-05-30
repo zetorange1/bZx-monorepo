@@ -27,7 +27,7 @@ describe("loanHealth", () => {
         owner,
         lenders,
         traders,
-        transferAmount: web3.utils.toWei("100", "ether")
+        transferAmount: web3.utils.toWei("2000", "ether")
       });
 
       const order = FillTestUtils.makeOrderAsLender({
@@ -48,7 +48,6 @@ describe("loanHealth", () => {
         gasPrice: web3.utils.toWei("5", "gwei").toString()
       };
       const loanTokenAmountFilled = web3.utils.toWei("12.3");
-      // b0x hash that we give to tradePositionWith0x must belong to a loan that was previously filled, so we fill the loan order here
       const takeLoanOrderAsTraderReceipt = await b0xJS.takeLoanOrderAsTrader(
         { ...order, signature },
         collateralTokenAddressBefore,

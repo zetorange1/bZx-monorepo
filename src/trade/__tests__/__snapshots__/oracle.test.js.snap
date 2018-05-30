@@ -19,14 +19,14 @@ exports[`trade tradePositionWithOracle should successfully trade position with o
 Object {
   "0": "this is a random field",
   "1": "0xE36Ea790bc9d7AB70C55260C66D52b1eca985f84",
-  "2": "0x4586649629F699f9A4B61D0e962DC3c9025Fe488",
-  "3": "0xA4b3e1659c473623287b2cc13b194705cd792525",
+  "2": "0xB48E1B16829C7f5Bd62B76cb878A6Bb1c4625D7A",
+  "3": "0x72D5A2213bfE46dF9FbDa08E22f536aC6Ca8907e",
   "4": "12300000000000000000",
   "5": "12300000000000000000",
-  "destTokenAddress": "0xA4b3e1659c473623287b2cc13b194705cd792525",
+  "destTokenAddress": "0x72D5A2213bfE46dF9FbDa08E22f536aC6Ca8907e",
   "destTokenAmount": "12300000000000000000",
   "loanOrderHash": "this is a random field",
-  "sourceTokenAddress": "0x4586649629F699f9A4B61D0e962DC3c9025Fe488",
+  "sourceTokenAddress": "0xB48E1B16829C7f5Bd62B76cb878A6Bb1c4625D7A",
   "sourceTokenAmount": "12300000000000000000",
   "trader": "0xE36Ea790bc9d7AB70C55260C66D52b1eca985f84",
 }
