@@ -6,6 +6,7 @@ import { fromBigNumber, toBigNumber } from "../common/utils";
 
 import OrderItem from "../orders/OrderHistory/OrderItem";
 
+import { getSymbol } from "../common/tokens";
 import { COLORS } from "../styles/constants";
 
 import WithdrawInterest from "./WithdrawInterest";
@@ -110,12 +111,13 @@ export default class LoanItem extends React.Component {
       loanStartUnixTimestampSec
     } = this.props.data;
 
-    const getToken = address => tokens.filter(t => t.address === address)[0];
-
-    const collateralToken = getToken(collateralTokenAddressFilled);
-    const interestToken = getToken(interestTokenAddress);
-    const loanToken = getToken(loanTokenAddress);
-    const positionToken = getToken(positionTokenAddressFilled);
+    const collateralTokenSymbol = getSymbol(
+      tokens,
+      collateralTokenAddressFilled
+    );
+    const loanTokenSymbol = getSymbol(tokens, loanTokenAddress);
+    const interestTokenSymbol = getSymbol(tokens, interestTokenAddress);
+    const positionTokenSymbol = getSymbol(tokens, positionTokenAddressFilled);
 
     const availableForWithdrawal = toBigNumber(interestTotalAccrued).minus(
       toBigNumber(interestPaidSoFar)
@@ -203,14 +205,14 @@ export default class LoanItem extends React.Component {
             <DataPoint>
               {fromBigNumber(collateralTokenAmountFilled, 1e18)}
               {` `}
-              {collateralToken.symbol}
+              {collateralTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Borrowed</Label>
             <DataPoint>
-              {fromBigNumber(loanTokenAmountFilled, 1e18)} {loanToken.symbol}
+              {fromBigNumber(loanTokenAmountFilled, 1e18)} {loanTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
@@ -219,7 +221,7 @@ export default class LoanItem extends React.Component {
             <DataPoint>
               {fromBigNumber(positionTokenAmountFilled, 1e18)}
               {` `}
-              {positionToken.symbol}
+              {positionTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
@@ -228,14 +230,14 @@ export default class LoanItem extends React.Component {
           <DataPointContainer>
             <Label>Total interest accrued</Label>
             <DataPoint>
-              {fromBigNumber(interestTotalAccrued, 1e18)} {interestToken.symbol}
+              {fromBigNumber(interestTotalAccrued, 1e18)} {interestTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Total interest withdrawn</Label>
             <DataPoint>
-              {fromBigNumber(interestPaidSoFar, 1e18)} {interestToken.symbol}
+              {fromBigNumber(interestPaidSoFar, 1e18)} {interestTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
@@ -244,7 +246,7 @@ export default class LoanItem extends React.Component {
             <DataPoint style={{ marginRight: `12px` }}>
               {fromBigNumber(availableForWithdrawal, 1e18)}
               {` `}
-              {interestToken.symbol}
+              {interestTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
@@ -253,7 +255,7 @@ export default class LoanItem extends React.Component {
               b0x={b0x}
               trader={trader}
               availableForWithdrawal={availableForWithdrawal}
-              symbol={interestToken.symbol}
+              symbol={interestTokenSymbol}
               accounts={accounts}
               web3={web3}
               loanOrderHash={loanOrderHash}
