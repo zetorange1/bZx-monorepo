@@ -1,9 +1,11 @@
 
 var B0xProxy = artifacts.require("B0xProxy");
+var B0xTo0x = artifacts.require("B0xTo0x");
 var B0x = artifacts.require("B0x");
 var B0xVault = artifacts.require("B0xVault");
 var B0xOracle = artifacts.require("TestNetOracle");
 var TestNetB0xToken = artifacts.require("TestNetB0xToken");
+var ERC20 = artifacts.require("ERC20"); // for testing with any ERC20 token
 
 var fs = require('fs');
 
@@ -13,8 +15,14 @@ const ethABI = require('ethereumjs-abi');
 const ethUtil = require('ethereumjs-util');
 const _ = require('lodash');
 
-//const Web3Utils = require('web3-utils');
+const Web3Utils = require('web3-utils');
 const B0xJS = require('b0x.js');
+const ZeroEx = require('0x.js');
+
+const config = require('../../config/secrets.js');
+
+const currentGasPrice = 20000000000; // 20 gwei
+const currentEthPrice = 1000; // USD
 
 // this migration will complete when the embedded testnet is being setup (network: testnet)
 
@@ -60,6 +68,9 @@ module.exports = function(deployer, network, accounts) {
 			var oracle = await B0xOracle.deployed();
 			var b0x_token = await TestNetB0xToken.deployed();
 
+			var b0xTo0x = await B0xTo0x.deployed();
+			var zrx_token = await ERC20.at(config["protocol"]["development"]["ZeroEx"]["ZRXToken"]);
+
 			for (var i = 0; i < 10; i++) {
 				test_tokens[i] = await artifacts.require("TestToken"+i).deployed();
 				//console.log("Test Token "+i+" retrieved: "+test_tokens[i].address);
@@ -100,7 +111,6 @@ module.exports = function(deployer, network, accounts) {
 				(await interestToken1.approve(vault.address, MAX_UINT, {from: trader2_account})),
 				(await interestToken2.approve(vault.address, MAX_UINT, {from: trader2_account})),
 
-				/*
 				(await zrx_token.transfer(trader1_account, web3.toWei(10000, "ether"), {from: owner_account})),
 				(await zrx_token.transfer(trader2_account, web3.toWei(10000, "ether"), {from: owner_account})),
 				(await zrx_token.approve(b0xTo0x.address, MAX_UINT, {from: trader1_account})),
@@ -108,7 +118,6 @@ module.exports = function(deployer, network, accounts) {
 
 				(await maker0xToken1.transfer(makerOf0xOrder_account, web3.toWei(10000, "ether"), {from: owner_account})),
 				(await maker0xToken1.approve(config["protocol"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder_account})),
-				*/
 			]);
 
 			/// should take sample loan order (as trader1)
@@ -151,7 +160,7 @@ module.exports = function(deployer, network, accounts) {
 			}
 
 			/// should take sample loan order (as trader1)
-			b0x.takeLoanOrderAsTrader(
+			console.log(await b0x.takeLoanOrderAsTrader(
 			[
 				OrderParams_b0x_1["makerAddress"],
 				OrderParams_b0x_1["loanTokenAddress"],
@@ -174,12 +183,10 @@ module.exports = function(deployer, network, accounts) {
 			collateralToken1.address,
 			web3.toWei(12.3, "ether"),
 			ECSignature_raw_1,
-			{from: trader1_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
-				console.log(tx);
-			});
+			{from: trader1_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")}));
 
 			/// should take sample loan order (as trader2)
-			b0x.takeLoanOrderAsTrader(
+			console.log(await b0x.takeLoanOrderAsTrader(
 				[
 					OrderParams_b0x_1["makerAddress"],
 					OrderParams_b0x_1["loanTokenAddress"],
@@ -202,11 +209,126 @@ module.exports = function(deployer, network, accounts) {
 				collateralToken2.address,
 				web3.toWei(20, "ether"),
 				ECSignature_raw_1,
-				{from: trader2_account, gas: 1000000, gasPrice: web3.toWei(20, "gwei")}).then(function(tx) {
-					console.log(tx);
-				});
+				{from: trader2_account, gas: 1000000, gasPrice: web3.toWei(20, "gwei")}));
+
+				OrderParams_0x = {
+					"exchangeContractAddress": config["protocol"]["development"]["ZeroEx"]["Exchange"],
+					"expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
+					"feeRecipient": NULL_ADDRESS, //"0x1230000000000000000000000000000000000000",
+					"maker": makerOf0xOrder_account,
+					"makerFee": web3.toWei(0.002, "ether").toString(),
+					"makerTokenAddress": maker0xToken1.address,
+					"makerTokenAmount": web3.toWei(100, "ether").toString(),
+					"salt": B0xJS.default.generatePseudoRandomSalt().toString(),
+					"taker": NULL_ADDRESS,
+					"takerFee": web3.toWei(0.0013, "ether").toString(),
+					"takerTokenAddress": loanToken1.address,
+					"takerTokenAmount": web3.toWei(66, "ether").toString(),
+				};
+				console.log(OrderParams_0x);
+			
+				OrderHash_0x = ZeroEx.ZeroEx.getOrderHashHex(OrderParams_0x);
+			
+				if (isParityNode || isTestRpc) {
+					// Parity and TestRpc nodes add the personalMessage prefix itself
+					ECSignature_0x_raw = web3.eth.sign(makerOf0xOrder_account, OrderHash_0x);
+				}
+				else {
+					var orderHashBuff = ethUtil.toBuffer(OrderHash_0x);
+					var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
+					var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
+					ECSignature_0x_raw = web3.eth.sign(makerOf0xOrder_account, msgHashHex);
+				}
+			
+				ECSignature_0x = {
+					"v": parseInt(ECSignature_0x_raw.substring(130,132))+27,
+					"r": "0x"+ECSignature_0x_raw.substring(2,66),
+					"s": "0x"+ECSignature_0x_raw.substring(66,130)
+				};
+				
+				var types = ['bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32'];
+				var values = [
+					Web3Utils.padLeft(OrderParams_0x["maker"], 64),
+					Web3Utils.padLeft(OrderParams_0x["taker"], 64),
+					Web3Utils.padLeft(OrderParams_0x["makerTokenAddress"], 64),
+					Web3Utils.padLeft(OrderParams_0x["takerTokenAddress"], 64),
+					Web3Utils.padLeft(OrderParams_0x["feeRecipient"], 64),
+					'0x'+Web3Utils.padLeft(new BN(OrderParams_0x["makerTokenAmount"]), 64),
+					'0x'+Web3Utils.padLeft(new BN(OrderParams_0x["takerTokenAmount"]), 64),
+					'0x'+Web3Utils.padLeft(new BN(OrderParams_0x["makerFee"]), 64),
+					'0x'+Web3Utils.padLeft(new BN(OrderParams_0x["takerFee"]), 64),
+					'0x'+Web3Utils.padLeft(new BN(OrderParams_0x["expirationUnixTimestampSec"]), 64),
+					'0x'+Web3Utils.padLeft(new BN(OrderParams_0x["salt"]), 64)
+				];
+			
+				//console.log(values);
+				var hashBuff = ethABI.solidityPack(types, values)
+				//console.log(hashBuff);
+				var sample_order_tightlypacked = ethUtil.bufferToHex(hashBuff);
+				//console.log(sample_order_tightlypacked);
+				//console.log(ECSignature_0x_raw);
+			
+				console.log("Before profit:");
+				console.log(await b0x.getProfitOrLoss.call(
+				  OrderHash_b0x_1,
+				  trader1_account,
+				  {from: lender2_account}));
+
+				console.log(txPrettyPrint(await b0x.tradePositionWith0x(
+					OrderHash_b0x_1,
+					sample_order_tightlypacked,
+					ECSignature_0x_raw,
+					{from: trader1_account})),"");
+				console.log("After profit:");
+				console.log(await b0x.getProfitOrLoss.call(
+					OrderHash_b0x_1,
+					trader1_account,
+					{from: lender2_account}));
 		}
 
 		asyncCall();
+	}
+
+	function txLogsPrint(logs) {
+		var ret = "";
+		if (logs === undefined) {
+			logs = [];
+		}
+		if (logs.length > 0) {
+			logs = logs.sort(function(a,b) {return (a.blockNumber > b.blockNumber) ? 1 : ((b.blockNumber > a.blockNumber) ? -1 : 0);} ); 
+			ret = ret + "\n  LOGS --> "+"\n";
+			for (var i=0; i < logs.length; i++) {
+			var log = logs[i];
+			//console.log(log);
+			ret = ret + "  "+i+": "+log.event+" "+JSON.stringify(log.args);
+			if (log.event == "GasRefund") {
+				ret = ret + " -> Refund: "+(log.args.refundAmount/1e18*currentEthPrice).toFixed(2)+"USD @ "+currentEthPrice+"USD/ETH)";
+			}
+			ret = ret + " " + log.transactionHash + " " + log.blockNumber + "\n\n";
+			}
+		}
+		return ret;
+	}
+	
+	function txPrettyPrint(tx, desc) {
+		var ret = desc + "\n";
+		if (tx.tx === undefined) {
+			ret = ret + JSON.stringify(tx);
+		} else {
+			ret = ret + "  tx: "+tx.tx+"\n";
+			if (tx.receipt !== undefined) {
+			ret = ret + "  blockNumber: "+tx.receipt.blockNumber+"\n";
+			ret = ret + "  gasUsed: "+tx.receipt.gasUsed+" -> x"+currentGasPrice+" = "+(tx.receipt.gasUsed*currentGasPrice)+" ("+(tx.receipt.gasUsed*currentGasPrice/1e18*currentEthPrice).toFixed(2)+"USD @ "+currentEthPrice+"USD/ETH)\n";
+			ret = ret + "  cumulativeGasUsed: "+tx.receipt.cumulativeGasUsed+" -> x"+currentGasPrice+" = "+(tx.receipt.cumulativeGasUsed*currentGasPrice)+" ("+(tx.receipt.cumulativeGasUsed*currentGasPrice/1e18*currentEthPrice).toFixed(2)+"USD @ "+currentEthPrice+"USD/ETH)\n";
+			ret = ret + "  status: "+tx.receipt.status+"\n";
+			}
+
+			if (tx.logs === undefined) {
+			tx.logs = [];
+			}
+			//tx.logs = tx.logs.concat(events);
+			ret = ret + txLogsPrint(tx.logs);
+		}
+		return ret;
 	}
 }
