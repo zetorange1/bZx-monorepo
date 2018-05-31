@@ -32,6 +32,7 @@ var run = {
   "should sign and verify 0x order": true,
   "should trade position with 0x order": true,
   "should trade position with oracle": true,
+  "should change collateral (for trader1)": true,
   "should withdraw profits": true,
   "should pay lender interest": true,
 
@@ -1310,6 +1311,21 @@ contract('B0xTest', function(accounts) {
       interestToken2.address,
       {from: trader1_account}).then(function(tx) {
         console.log(txPrettyPrint(tx,"should trade position with oracle"));
+        assert.isOk(tx);
+        done();
+      }), function(error) {
+        console.error(error);
+        assert.isOk(false);
+        done();
+      };
+  });
+
+  (run["should change collateral (for trader1)"] ? it : it.skip)("should change collateral (for trader1)", function(done) {
+    b0x.changeCollateral(
+      OrderHash_b0x_1,
+      interestToken1.address,
+      {from: trader1_account}).then(function(tx) {
+        console.log(txPrettyPrint(tx,"should change collateral (for trader1)"));
         assert.isOk(tx);
         done();
       }), function(error) {
