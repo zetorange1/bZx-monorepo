@@ -90,7 +90,7 @@ export const validateFillOrder = async (
       !trackedTokens.includes(collateralTokenAddress)
     ) {
       alert(
-        `Your interest token or collateral token is not tracked, please add it in the balances tab.`
+        `Your interest token or collateral token is not tracked. Please go to the Balances page and add these tokens.`
       );
       return false;
     }
@@ -99,7 +99,7 @@ export const validateFillOrder = async (
     const { loanTokenAddress } = order;
     if (!trackedTokens.includes(loanTokenAddress)) {
       alert(
-        `Your loan token is not tracked, please add it in the balances tab.`
+        `Your loan token is not tracked. Please go to the Balances page and add this token.`
       );
       return false;
     }
@@ -113,7 +113,7 @@ export const validateFillOrder = async (
   );
   if (!coinsApproved) {
     alert(
-      `Some of your coins are not approved, please check the balances tab.`
+      `Some of your tokens are not approved. Please go to the Balances page and approve these tokens.`
     );
     return false;
   }

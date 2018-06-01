@@ -14,9 +14,19 @@ const TxHashLink = styled.a.attrs({
   overflow: auto;
 `;
 
+const defaultToken = tokens => {
+  let token = tokens.filter(t => t.symbol === `DAI`);
+  if (token.length > 0) {
+    token = token[0]; // eslint-disable-line prefer-destructuring
+  } else {
+    token = tokens[0]; // eslint-disable-line prefer-destructuring
+  }
+  return token;
+};
+
 export default class ChangeCollateralDialog extends React.Component {
   state = {
-    tokenAddress: this.props.tokens[0].address,
+    tokenAddress: defaultToken(this.props.tokens).address,
     approvalLoading: false,
     tokenApproved: false
   };

@@ -1,7 +1,9 @@
+/* global window */
 import { Fragment } from "react";
 import styled from "styled-components";
 import Typography from "material-ui/Typography";
 import MuiButton from "material-ui/Button";
+import queryString from "querystring";
 import { SectionLabel } from "../../common/FormSection";
 import FillOrderPage from "./FillOrder";
 import { getOrderHash } from "./utils";
@@ -30,19 +32,31 @@ export default class FillOrder extends React.Component {
     showOrderInfo: false
   };
 
+  componentDidMount() {
+    const params = queryString.parse(window.location.search);
+    if (params.order !== undefined && params.order !== ``) {
+      this.setState({ value: params.order });
+      this.checkOrder();
+    }
+  }
+
+  checkOrder = () => {
+    try {
+      const JSONOrder = JSON.parse(this.state.value);
+      const hex = getOrderHash(JSONOrder);
+      if (hex) {
+        this.setState({ showOrderInfo: true });
+      } else {
+        alert(`The JSON order is not valid. Please verify what you entered.`);
+      }
+    } catch (e) {
+      alert(`The JSON order is not valid. Please verify what you entered.`);
+    }
+  };
+
   reset = () => this.setState({ showOrderInfo: false });
 
   handleChange = e => this.setState({ value: e.target.value });
-
-  handleSubmit = () => {
-    const JSONOrder = JSON.parse(this.state.value);
-    const hex = getOrderHash(JSONOrder);
-    if (hex) {
-      this.setState({ showOrderInfo: true });
-    } else {
-      alert(`Please check your JSON input.`);
-    }
-  };
 
   render() {
     const { showOrderInfo, value } = this.state;
@@ -70,7 +84,7 @@ export default class FillOrder extends React.Component {
           value={value}
           onChange={this.handleChange}
         />
-        <Button variant="raised" color="primary" onClick={this.handleSubmit}>
+        <Button variant="raised" color="primary" onClick={this.checkOrder}>
           Get Order Info
         </Button>
       </div>

@@ -15,8 +15,20 @@ const TxHashLink = styled.a.attrs({
 }
 `;
 
+const defaultToken = tokens => {
+  let token = tokens.filter(t => t.symbol === `KNC`);
+  if (token.length > 0) {
+    token = token[0]; // eslint-disable-line prefer-destructuring
+  } else {
+    token = tokens[0]; // eslint-disable-line prefer-destructuring
+  }
+  return token;
+};
+
 export default class TradeOracleDialog extends React.Component {
-  state = { tokenAddress: this.props.tokens[0].address };
+  state = {
+    tokenAddress: defaultToken(this.props.tokens).address
+  };
 
   setTokenAddress = tokenAddress => this.setState({ tokenAddress });
 

@@ -25,10 +25,20 @@ const Hash = styled.a`
   font-family: monospace;
 `;
 
+const defaultToken = tokens => {
+  let token = tokens.filter(t => t.symbol === `DAI`);
+  if (token.length > 0) {
+    token = token[0]; // eslint-disable-line prefer-destructuring
+  } else {
+    token = tokens[0]; // eslint-disable-line prefer-destructuring
+  }
+  return token;
+};
+
 export default class FillOrder extends React.Component {
   state = {
     fillOrderAmount: 0,
-    collateralTokenAddress: this.props.tokens[0].address,
+    collateralTokenAddress: defaultToken(this.props.tokens).address,
     collateralTokenAmount: `(finish form then refresh)`
   };
 

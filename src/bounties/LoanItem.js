@@ -151,6 +151,7 @@ export default class LoanItem extends React.Component {
     } = this.state;
     const isSafe = BigNumber(currentMarginAmount)
       .dividedBy(1e18)
+      .plus(5) // start reporting "unsafe" when 5% above maintenance threshold
       .gt(maintenanceMarginAmount);
     return (
       <Card>
@@ -235,6 +236,7 @@ export default class LoanItem extends React.Component {
               style={{ marginTop: `12px` }}
               variant="raised"
               onClick={this.liquidate}
+              disabled={isSafe}
             >
               Liquidate
             </Button>

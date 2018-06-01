@@ -15,8 +15,20 @@ const Container = styled.div`
   }
 `;
 
+const defaultToken = tokens => {
+  let token = tokens.filter(t => t.symbol === `KNC`);
+  if (token.length > 0) {
+    token = token[0]; // eslint-disable-line prefer-destructuring
+  } else {
+    token = tokens[0]; // eslint-disable-line prefer-destructuring
+  }
+  return token;
+};
+
 export default class AddToken extends React.Component {
-  state = { tokenAddress: this.props.tokens[0].address };
+  state = {
+    tokenAddress: defaultToken(this.props.tokens).address
+  };
 
   setTokenAddress = addr => this.setState({ tokenAddress: addr });
 

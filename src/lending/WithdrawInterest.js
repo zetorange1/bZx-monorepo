@@ -66,7 +66,12 @@ export default class WithdrawInterest extends React.Component {
       .integerValue(BigNumber.ROUND_HALF_DOWN);
     return (
       <Fragment>
-        <Button onClick={this.openDialog} variant="raised" color="primary">
+        <Button
+          onClick={this.openDialog}
+          variant="raised"
+          color="primary"
+          disabled={!BigNumber(availableForWithdrawal).gt(0)}
+        >
           Withdraw
         </Button>
         <Dialog open={showDialog} onClose={this.closeDialog}>

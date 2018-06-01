@@ -121,7 +121,7 @@ export default async (b0x, accounts, state, tokens) => {
   const coinsAdded = checkCoinsAdded(state, tokens);
   if (!coinsAdded) {
     alert(
-      `Some of your selected tokens have not been added to the tracked tokens list. Please go to the Balances tab and add these tokens.`
+      `Some of your selected tokens have not been added to the tracked tokens list. Please go to the Balances page and add these tokens.`
     );
     return false;
   }
@@ -129,7 +129,7 @@ export default async (b0x, accounts, state, tokens) => {
   const coinsApproved = await checkCoinsApproved(b0x, accounts, state);
   if (!coinsApproved) {
     alert(
-      `Some of your selected tokens have not been approved. Please go to the Balances tab and approve these tokens.`
+      `Some of your selected tokens have not been approved. Please go to the Balances page and approve these tokens.`
     );
     return false;
   }

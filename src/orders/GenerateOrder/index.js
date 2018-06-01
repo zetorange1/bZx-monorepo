@@ -23,14 +23,44 @@ import {
   addNetworkId
 } from "./utils";
 
+const defaultLoanToken = tokens => {
+  let token = tokens.filter(t => t.symbol === `KNC`);
+  if (token.length > 0) {
+    token = token[0]; // eslint-disable-line prefer-destructuring
+  } else {
+    token = tokens[0]; // eslint-disable-line prefer-destructuring
+  }
+  return token;
+};
+
+const defaultInterestToken = tokens => {
+  let token = tokens.filter(t => t.symbol === `WETH`);
+  if (token.length > 0) {
+    token = token[0]; // eslint-disable-line prefer-destructuring
+  } else {
+    token = tokens[0]; // eslint-disable-line prefer-destructuring
+  }
+  return token;
+};
+
+const defaultCollateralToken = tokens => {
+  let token = tokens.filter(t => t.symbol === `DAI`);
+  if (token.length > 0) {
+    token = token[0]; // eslint-disable-line prefer-destructuring
+  } else {
+    token = tokens[0]; // eslint-disable-line prefer-destructuring
+  }
+  return token;
+};
+
 export default class GenerateOrder extends React.Component {
   state = {
     role: `lender`,
 
     // token addresses
-    loanTokenAddress: this.props.tokens[0].address,
-    interestTokenAddress: this.props.tokens[0].address,
-    collateralTokenAddress: this.props.tokens[0].address,
+    loanTokenAddress: defaultLoanToken(this.props.tokens).address,
+    interestTokenAddress: defaultInterestToken(this.props.tokens).address,
+    collateralTokenAddress: defaultCollateralToken(this.props.tokens).address,
 
     // token amounts
     loanTokenAmount: ``,

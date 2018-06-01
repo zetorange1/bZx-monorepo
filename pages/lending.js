@@ -35,10 +35,7 @@ export default class Lending extends React.Component {
                     accounts={accounts}
                     etherscanURL={b0x.etherscanURL}
                   />
-                  <p>
-                    This section will allow a lender to manage active loans and
-                    view closed loans.
-                  </p>
+                  <p>Manage active loans and view past loans.</p>
                   <Divider />
                   <PageContent
                     web3={web3}

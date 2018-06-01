@@ -36,10 +36,9 @@ export default class Bounties extends React.Component {
                     etherscanURL={b0x.etherscanURL}
                   />
                   <p>
-                    This section will allow bounty hunters to liquidate loans
-                    that have become unsafe. Unsafe loans are open loans where
-                    the value of the collateral has fallen below the requisite
-                    amount (i.e. the maintenance margin amount).
+                    Make margin calls and earn bounty rewards.<br />
+                    If a margin account is under margin maintenance, it needs to
+                    be liquidated.
                   </p>
                   <Divider />
                   <PageContent

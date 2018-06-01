@@ -33,7 +33,7 @@ export default class Web3Container extends React.Component {
   async componentDidMount() {
     const web3 = await getWeb3();
     if (!web3) {
-      this.setState({ loading: false, errorMsg: `Unable to load Web3.` });
+      this.setState({ loading: false, errorMsg: `` });
       return;
     }
     const networkId = await getNetworkId(web3);

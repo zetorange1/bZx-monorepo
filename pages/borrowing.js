@@ -35,10 +35,7 @@ export default class Trading extends React.Component {
                     accounts={accounts}
                     etherscanURL={b0x.etherscanURL}
                   />
-                  <p>
-                    This section will allow a trader (borrower) to manage active
-                    loans and view closed loans.
-                  </p>
+                  <p>Manage your margin account positions.</p>
                   <Divider />
                   <PageContent
                     web3={web3}
