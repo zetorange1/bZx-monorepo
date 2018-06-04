@@ -59,10 +59,10 @@ export const getOrder0xWithSignature = async ({
   const transformedOrder0x = Trade0xUtils.transform0xOrder(order0x);
 
   const orderHash0x = ZeroEx.getOrderHashHex(transformedOrder0x);
-  const signature0x = await b0xJS.signOrderHashAsync(
+  const signature0x = (await b0xJS.signOrderHashAsync(
     orderHash0x,
     transformedOrder0x.maker
-  );
+  )).substr(0, 132);
 
   // rsv is the one that will be valid during automated tests using web3 provider
   const ecSignatureRSV = signatureUtils.parseSignatureHexAsRSV(signature0x);

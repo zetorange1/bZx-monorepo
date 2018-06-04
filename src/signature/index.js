@@ -7,6 +7,18 @@ import * as CoreUtils from "../core/utils";
 import { getContracts } from "../contracts";
 import * as Addresses from "../addresses";
 
+const SignatureTypeStr = Object.freeze({
+  "Illegal": "00",
+  "Invalid": "01",
+  "EIP712": "02",
+  "EthSign": "03",
+  "Caller": "04",
+  "Wallet": "05",
+  "Validator": "06",
+  "PreSigned": "07",
+  "Trezor": "08",
+});
+
 export const signOrderHashAsync = async (
   { web3 },
   orderHash,
@@ -51,12 +63,13 @@ export const signOrderHashAsync = async (
         ecSignatureVRS.v,
         ecSignatureVRS.r,
         ecSignatureVRS.s
-      );
+      ) + SignatureTypeStr.EthSign;
     }
   }
 
   const ecSignatureRSV = signatureUtils.parseSignatureHexAsRSV(signature);
   if (_.includes(validVParamValues, ecSignatureRSV.v)) {
+    
     const isValidRSVSignature = signatureUtils.isValidSignature(
       orderHash,
       ecSignatureRSV,
@@ -67,7 +80,7 @@ export const signOrderHashAsync = async (
         ecSignatureRSV.v,
         ecSignatureRSV.r,
         ecSignatureRSV.s
-      );
+      ) + SignatureTypeStr.EthSign;
     }
   }
 
@@ -75,6 +88,11 @@ export const signOrderHashAsync = async (
 };
 
 export const isValidSignature = ({ account, orderHash, signature }) => {
+
+  // hack to support 0x v2 EthSign SignatureType format
+  // recoverPersonalSignature assumes no SignatureType ending
+  signature = signature.substr(0, 132); // eslint-disable-line no-param-reassign
+  
   const recoveredAccount = sigUtil.recoverPersonalSignature({
     data: orderHash,
     sig: signature
@@ -91,6 +109,11 @@ export const isValidSignatureAsync = async (
     getContracts(networkId).B0x.abi,
     Addresses.getAddresses(networkId).B0x
   );
+  
+  // hack to support 0x v2 EthSign SignatureType format
+  // b0x requires SignatureType ending
+  signature = signature.substr(0, 132) + SignatureTypeStr.EthSign; // eslint-disable-line no-param-reassign
+
   return b0xContract.methods
     .isValidSignature(account, orderHash, signature)
     .call();
