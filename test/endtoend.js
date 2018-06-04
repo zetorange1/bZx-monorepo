@@ -74,6 +74,18 @@ const MAX_UINT = new BigNumber(2).pow(256).minus(1).toString();
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 const NONNULL_ADDRESS = "0x0000000000000000000000000000000000000001";
 
+const SignatureType = Object.freeze({
+    "Illegal": 0,
+    "Invalid": 1,
+    "EIP712": 2,
+    "EthSign": 3,
+    "Caller": 4,
+    "Wallet": 5,
+    "Validator": 6,
+    "PreSigned": 7,
+    "Trezor": 8,
+});
+
 contract('B0xTest', function(accounts) {
   var b0x;
   var vault;
@@ -428,6 +440,9 @@ contract('B0xTest', function(accounts) {
       ECSignature_raw_1 = web3.eth.sign(lender1_account, msgHashHex);
     }
 
+    // add signature type to end
+    ECSignature_raw_1 = ECSignature_raw_1 + toHex(SignatureType.EthSign);
+
     b0x.isValidSignature.call(
       lender1_account, // lender
       OrderHash_b0x_1,
@@ -582,6 +597,9 @@ contract('B0xTest', function(accounts) {
       var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
       ECSignature_raw_2 = web3.eth.sign(trader2_account, msgHashHex);
     }
+
+      // add signature type to end
+    ECSignature_raw_2 = ECSignature_raw_2 + toHex(SignatureType.EthSign);
 
     b0x.isValidSignature.call(
       trader2_account, // lender
@@ -1466,5 +1484,9 @@ contract('B0xTest', function(accounts) {
     var dataHex = signature + coder.encodeParams(types, args);
 
     return dataHex;
+  }
+
+  function toHex(d) {
+    return  ("0"+(Number(d).toString(16))).slice(-2).toUpperCase()
   }
 });

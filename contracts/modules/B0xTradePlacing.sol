@@ -189,17 +189,18 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
             loanOrder,
             loanPosition,
             tradeTokenAddress,
-            false // isLiquidation
+            false, // isLiquidation
+            true // isManual
         );
 
         // It is assumed that all positionToken will be traded, so the remaining token balance of the oracle 
         // shouldn't be greater than the balance before we sent the token to be traded.
         if (balanceBeforeTrade < EIP20(loanPosition.positionTokenAddressFilled).balanceOf.gas(4999)(loanOrder.oracleAddress)) {
-            return intOrRevert(0,198); // revert("B0xTradePlacing::tradePositionWithOracle: balanceBeforeTrade is less");
+            return intOrRevert(0,199); // revert("B0xTradePlacing::tradePositionWithOracle: balanceBeforeTrade is less");
         }
 
         if (tradeTokenAmount == 0) {
-            return intOrRevert(0,202); // revert("B0xTradePlacing::tradePositionWithOracle: tradeTokenAmount == 0");
+            return intOrRevert(0,203); // revert("B0xTradePlacing::tradePositionWithOracle: tradeTokenAmount == 0");
         }
 
         emit LogPositionTraded(
@@ -222,7 +223,7 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
             tradeTokenAmount,
             gasUsed // initial used gas, collected in modifier
         )) {
-            return intOrRevert(0,225); // revert("B0xTradePlacing::tradePositionWithOracle: Oracle_Interface.didTradePosition");
+            return intOrRevert(0,226); // revert("B0xTradePlacing::tradePositionWithOracle: Oracle_Interface.didTradePosition");
         }
 
         return tradeTokenAmount;

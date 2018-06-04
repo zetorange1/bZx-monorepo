@@ -41,7 +41,7 @@ contract B0x is B0xStorage {
         external
         returns (uint);
     
-   function getLoanOrderHash(
+    function getLoanOrderHash(
         address[6] orderAddresses, 
         uint[9] orderValues)
         public

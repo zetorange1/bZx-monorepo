@@ -136,14 +136,26 @@ interface Oracle_Interface {
         external
         returns (bool);
 
-    /// @dev Liquidates the position on-chain
+    /// @dev Places a manual on-chain trade with a liquidity provider
+    /// @param sourceTokenAddress The token being sold
+    /// @param destTokenAddress The token being bought
+    /// @param sourceTokenAmount The amount of token being sold
+    /// @return The amount of destToken bought
+    function doManualTrade(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint sourceTokenAmount)
+        external
+        returns (uint);
+
+    /// @dev Places an automatic on-chain trade with a liquidity provider
     /// @param sourceTokenAddress The token being sold
     /// @param destTokenAddress The token being bought
     /// @param sourceTokenAmount The amount of token being sold
     /// @return The amount of destToken bought
     function doTrade(
-        address sourceTokenAddress, // typically tradeToken
-        address destTokenAddress,   // typically loanToken
+        address sourceTokenAddress,
+        address destTokenAddress,
         uint sourceTokenAmount)
         external
         returns (uint);

@@ -10,6 +10,19 @@ import "../oracle/Oracle_Interface.sol";
 contract InternalFunctions is B0xStorage {
     using SafeMath for uint256;
 
+    // Allowed 0x signature types.
+    enum SignatureType {
+        Illegal,    // 0x00, default value
+        Invalid,    // 0x01
+        EIP712,     // 0x02
+        EthSign,    // 0x03
+        Caller,     // 0x04
+        Wallet,     // 0x05
+        Validator,  // 0x06
+        PreSigned,  // 0x07
+        Trezor      // 0x08
+    }
+
     function _getInitialCollateralRequired(
         address loanTokenAddress,
         address collateralTokenAddress,
@@ -107,7 +120,7 @@ contract InternalFunctions is B0xStorage {
     /// @dev Verifies that an order signature is valid.
     /// @param signer address of signer.
     /// @param hash Signed Keccak-256 hash.
-    /// @param signature ECDSA signature in raw bytes (rsv).
+    /// @param signature ECDSA signature in raw bytes (rsv) + signatureType.
     /// @return Validity of order signature.
     function _isValidSignature(
         address signer,
@@ -117,33 +130,80 @@ contract InternalFunctions is B0xStorage {
         pure
         returns (bool)
     {
+        SignatureType signatureType;
         uint8 v;
-	    bytes32 r;
+        bytes32 r;
         bytes32 s;
-        (v, r, s) = _getSignatureParts(signature);
-        return signer == ecrecover(
-            keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)),
-            v,
-            r,
-            s
-        );
+        (signatureType, v, r, s) = _getSignatureParts(signature);
+
+        // Signature using EIP712
+        if (signatureType == SignatureType.EIP712) {
+            return signer == ecrecover(
+                hash,
+                v,
+                r,
+                s
+            );            
+
+        // Signed using web3.eth_sign
+        } else if (signatureType == SignatureType.EthSign) {
+            return signer == ecrecover(
+                keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)),
+                v,
+                r,
+                s
+            );
+
+        // Signature from Trezor hardware wallet.
+        // It differs from web3.eth_sign in the encoding of message length
+        // (Bitcoin varint encoding vs ascii-decimal, the latter is not
+        // self-terminating which leads to ambiguities).
+        // See also:
+        // https://en.bitcoin.it/wiki/Protocol_documentation#Variable_length_integer
+        // https://github.com/trezor/trezor-mcu/blob/master/firmware/ethereum.c#L602
+        // https://github.com/trezor/trezor-mcu/blob/master/firmware/crypto.c#L36
+        } else if (signatureType == SignatureType.Trezor) {
+            return signer == ecrecover(
+                keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n\x41", hash)),
+                v,
+                r,
+                s
+            );
+        }
+
+        // Anything else is illegal (We do not return false because
+        // the signature may actually be valid, just not in a format
+        // that we currently support. In this case returning false
+        // may lead the caller to incorrectly believe that the
+        // signature was invalid.)
+        revert("UNSUPPORTED_SIGNATURE_TYPE");
     }
 
     /// @param signature ECDSA signature in raw bytes (rsv).
+    /// @dev This supports 0x V2 SignatureType
     function _getSignatureParts(
         bytes signature)
         internal
         pure
         returns (
+            SignatureType signatureType,
             uint8 v,
             bytes32 r,
             bytes32 s)
     {
+        require(
+            signature.length == 66,
+            "INVALID_SIGNATURE_LENGTH"
+        );
+
+        uint8 t;
         assembly {
             r := mload(add(signature, 32))
             s := mload(add(signature, 64))
             v := mload(add(signature, 65))
+            t := mload(add(signature, 66))
         }
+        signatureType = SignatureType(t);
         if (v < 27) {
             v = v + 27;
         }
@@ -181,7 +241,8 @@ contract InternalFunctions is B0xStorage {
         LoanOrder loanOrder,
         LoanPosition memory loanPosition,
         address tradeTokenAddress,
-        bool isLiquidation)
+        bool isLiquidation,
+        bool isManual)
         internal
         returns (uint)
     {
@@ -203,7 +264,13 @@ contract InternalFunctions is B0xStorage {
                 loanPosition.positionTokenAmountFilled,
                 loanPosition.collateralTokenAmountFilled,
                 loanOrder.maintenanceMarginAmount);
-        } else {
+        } else if (isManual) {
+            tradeTokenAmountReceived = Oracle_Interface(loanOrder.oracleAddress).doManualTrade(
+                loanPosition.positionTokenAddressFilled,
+                tradeTokenAddress,
+                loanPosition.positionTokenAmountFilled);
+        } 
+        else {
             tradeTokenAmountReceived = Oracle_Interface(loanOrder.oracleAddress).doTrade(
                 loanPosition.positionTokenAddressFilled,
                 tradeTokenAddress,

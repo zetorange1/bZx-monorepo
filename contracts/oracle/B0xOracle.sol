@@ -81,6 +81,8 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
     // A value of 0 indicates that no threshold exists for this parameter.
     uint public minMaintenanceMarginAmount = 25;
 
+    bool public isManualTradingAllowed = true;
+
     address public VAULT_CONTRACT;
     address public KYBER_CONTRACT;
     address public WETH_CONTRACT;
@@ -165,7 +167,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
             interestTokenAddress,
             lender,
             amountOwed.sub(interestFee))) {
-            return boolOrRevert(false,168); // revert("B0xOracle::didPayInterest: _transferToken failed");
+            return boolOrRevert(false,170); // revert("B0xOracle::didPayInterest: _transferToken failed");
         }
 
         // TODO: Block withdrawal below a certain amount
@@ -269,9 +271,29 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
         return true;
     }
 
+    function doManualTrade(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint sourceTokenAmount)
+        public
+        onlyB0x
+        returns (uint destTokenAmount)
+    {
+        if (isManualTradingAllowed) {
+            destTokenAmount = _doTrade(
+                sourceTokenAddress,
+                destTokenAddress,
+                sourceTokenAmount,
+                MAX_FOR_KYBER); // no limit on the dest amount
+        }
+        else {
+            revert("Manual trading is disabled.");
+        }
+    }
+
     function doTrade(
-        address sourceTokenAddress, // typically tradeToken
-        address destTokenAddress,   // typically loanToken
+        address sourceTokenAddress,
+        address destTokenAddress,
         uint sourceTokenAmount)
         public
         onlyB0x
@@ -329,7 +351,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
     {
         uint collateralTokenBalance = EIP20(collateralTokenAddress).balanceOf.gas(4999)(this); // Changes to state require at least 5000 gas
         if (collateralTokenBalance < collateralTokenAmountUsable) { // sanity check
-            voidOrRevert(332); return; // revert("B0xOracle::doTradeofCollateral: collateralTokenBalance < collateralTokenAmountUsable");
+            voidOrRevert(354); return; // revert("B0xOracle::doTradeofCollateral: collateralTokenBalance < collateralTokenAmountUsable");
         }
 
         // TODO: If collateralTokenAddress is WETH, do just a single trade with funds combined with the insurance fund if needed
@@ -349,7 +371,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
                 collateralTokenAddress,
                 VAULT_CONTRACT,
                 collateralTokenAmountUsable.sub(collateralTokenAmountUsed))) {
-                voidOrRevert(352); return; // revert("B0xOracle::doTradeofCollateral: _transferToken failed");
+                voidOrRevert(374); return; // revert("B0xOracle::doTradeofCollateral: _transferToken failed");
             }
         }
 
@@ -581,6 +603,15 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
         minMaintenanceMarginAmount = newMaintenanceMargin;
     }
 
+    function setManualTradingAllowed (
+        bool _isManualTradingAllowed)
+        public
+        onlyOwner
+    {
+        if (isManualTradingAllowed != _isManualTradingAllowed)
+            isManualTradingAllowed = _isManualTradingAllowed;
+    }
+
     function setVaultContractAddress(
         address newAddress) 
         public
@@ -723,7 +754,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
                     destTokenAddress,
                     VAULT_CONTRACT,
                     destTokenAmount)) {
-                    return intOrRevert(0,726); // revert("B0xOracle::_doTrade: _transferToken failed");
+                    return intOrRevert(0,757); // revert("B0xOracle::_doTrade: _transferToken failed");
                 }
             } else {
                 // re-up the Kyber spend approval if needed
@@ -776,7 +807,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
         uint sourceTokenAmount,
         address receiver)
         internal
-        returns (uint destTokenAmountReceived)
+        returns (uint destEthAmountReceived)
     {
         // re-up the Kyber spend approval if needed
         if (EIP20(sourceTokenAddress).allowance.gas(4999)(this, KYBER_CONTRACT) < 
@@ -788,7 +819,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
                 MAX_FOR_KYBER);
         }
 
-        KyberNetwork_Interface(KYBER_CONTRACT).trade(
+        destEthAmountReceived = KyberNetwork_Interface(KYBER_CONTRACT).trade(
             sourceTokenAddress,
             sourceTokenAmount,
             KYBER_ETH_TOKEN_ADDRESS,

@@ -161,7 +161,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
     /// @dev Verifies that an order signature is valid.
     /// @param signer address of signer.
     /// @param hash Signed Keccak-256 hash.
-    /// @param signature ECDSA signature in raw bytes (rsv).
+    /// @param signature ECDSA signature in raw bytes (rsv) + signatureType.
     /// @return Validity of order signature.
     function isValidSignature(
         address signer,

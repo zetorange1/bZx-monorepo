@@ -24,6 +24,18 @@ const config = require('../../config/secrets.js');
 const currentGasPrice = 20000000000; // 20 gwei
 const currentEthPrice = 1000; // USD
 
+const SignatureType = Object.freeze({
+    "Illegal": 0,
+    "Invalid": 1,
+    "EIP712": 2,
+    "EthSign": 3,
+    "Caller": 4,
+    "Wallet": 5,
+    "Validator": 6,
+    "PreSigned": 7,
+    "Trezor": 8,
+});
+
 // this migration will complete when the embedded testnet is being setup (network: testnet)
 
 module.exports = function(deployer, network, accounts) {
@@ -158,6 +170,9 @@ module.exports = function(deployer, network, accounts) {
 				var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
 				ECSignature_raw_1 = web3.eth.sign(lender1_account, msgHashHex);
 			}
+
+			// add signature type to end
+			ECSignature_raw_1 = ECSignature_raw_1 + toHex(SignatureType.EthSign);
 
 			/// should take sample loan order (as trader1)
 			console.log(await b0x.takeLoanOrderAsTrader(
@@ -330,5 +345,9 @@ module.exports = function(deployer, network, accounts) {
 			ret = ret + txLogsPrint(tx.logs);
 		}
 		return ret;
+	}
+
+	function toHex(d) {
+		return  ("0"+(Number(d).toString(16))).slice(-2).toUpperCase()
 	}
 }
