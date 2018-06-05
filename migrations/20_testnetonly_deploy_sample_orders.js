@@ -19,7 +19,7 @@ const Web3Utils = require('web3-utils');
 const B0xJS = require('b0x.js');
 const ZeroEx = require('0x.js');
 
-const config = require('../../config/secrets.js');
+const config = require('../protocol-config.js');
 
 const currentGasPrice = 20000000000; // 20 gwei
 const currentEthPrice = 1000; // USD
@@ -81,7 +81,7 @@ module.exports = function(deployer, network, accounts) {
 			var b0x_token = await TestNetB0xToken.deployed();
 
 			var b0xTo0x = await B0xTo0x.deployed();
-			var zrx_token = await ERC20.at(config["protocol"]["development"]["ZeroEx"]["ZRXToken"]);
+			var zrx_token = await ERC20.at(config["addresses"]["development"]["ZeroEx"]["ZRXToken"]);
 
 			for (var i = 0; i < 10; i++) {
 				test_tokens[i] = await artifacts.require("TestToken"+i).deployed();
@@ -129,7 +129,7 @@ module.exports = function(deployer, network, accounts) {
 				(await zrx_token.approve(b0xTo0x.address, MAX_UINT, {from: trader2_account})),
 
 				(await maker0xToken1.transfer(makerOf0xOrder_account, web3.toWei(10000, "ether"), {from: owner_account})),
-				(await maker0xToken1.approve(config["protocol"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder_account})),
+				(await maker0xToken1.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder_account})),
 			]);
 
 			/// should take sample loan order (as trader1)
@@ -227,7 +227,7 @@ module.exports = function(deployer, network, accounts) {
 				{from: trader2_account, gas: 1000000, gasPrice: web3.toWei(20, "gwei")}));
 
 				OrderParams_0x = {
-					"exchangeContractAddress": config["protocol"]["development"]["ZeroEx"]["Exchange"],
+					"exchangeContractAddress": config["addresses"]["development"]["ZeroEx"]["Exchange"],
 					"expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
 					"feeRecipient": NULL_ADDRESS, //"0x1230000000000000000000000000000000000000",
 					"maker": makerOf0xOrder_account,
@@ -241,9 +241,9 @@ module.exports = function(deployer, network, accounts) {
 					"takerTokenAmount": web3.toWei(66, "ether").toString(),
 				};
 				console.log(OrderParams_0x);
-			
+
 				OrderHash_0x = ZeroEx.ZeroEx.getOrderHashHex(OrderParams_0x);
-			
+
 				if (isParityNode || isTestRpc) {
 					// Parity and TestRpc nodes add the personalMessage prefix itself
 					ECSignature_0x_raw = web3.eth.sign(makerOf0xOrder_account, OrderHash_0x);
@@ -254,13 +254,13 @@ module.exports = function(deployer, network, accounts) {
 					var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
 					ECSignature_0x_raw = web3.eth.sign(makerOf0xOrder_account, msgHashHex);
 				}
-			
+
 				ECSignature_0x = {
 					"v": parseInt(ECSignature_0x_raw.substring(130,132))+27,
 					"r": "0x"+ECSignature_0x_raw.substring(2,66),
 					"s": "0x"+ECSignature_0x_raw.substring(66,130)
 				};
-				
+
 				var types = ['bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32'];
 				var values = [
 					Web3Utils.padLeft(OrderParams_0x["maker"], 64),
@@ -275,14 +275,14 @@ module.exports = function(deployer, network, accounts) {
 					'0x'+Web3Utils.padLeft(new BN(OrderParams_0x["expirationUnixTimestampSec"]), 64),
 					'0x'+Web3Utils.padLeft(new BN(OrderParams_0x["salt"]), 64)
 				];
-			
+
 				//console.log(values);
 				var hashBuff = ethABI.solidityPack(types, values)
 				//console.log(hashBuff);
 				var sample_order_tightlypacked = ethUtil.bufferToHex(hashBuff);
 				//console.log(sample_order_tightlypacked);
 				//console.log(ECSignature_0x_raw);
-			
+
 				console.log("Before profit:");
 				console.log(await b0x.getProfitOrLoss.call(
 				  OrderHash_b0x_1,
@@ -310,7 +310,7 @@ module.exports = function(deployer, network, accounts) {
 			logs = [];
 		}
 		if (logs.length > 0) {
-			logs = logs.sort(function(a,b) {return (a.blockNumber > b.blockNumber) ? 1 : ((b.blockNumber > a.blockNumber) ? -1 : 0);} ); 
+			logs = logs.sort(function(a,b) {return (a.blockNumber > b.blockNumber) ? 1 : ((b.blockNumber > a.blockNumber) ? -1 : 0);} );
 			ret = ret + "\n  LOGS --> "+"\n";
 			for (var i=0; i < logs.length; i++) {
 			var log = logs[i];
@@ -324,7 +324,7 @@ module.exports = function(deployer, network, accounts) {
 		}
 		return ret;
 	}
-	
+
 	function txPrettyPrint(tx, desc) {
 		var ret = desc + "\n";
 		if (tx.tx === undefined) {

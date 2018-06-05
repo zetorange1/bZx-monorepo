@@ -3,7 +3,20 @@ require('babel-polyfill');
 
 var HDWalletProvider = require("truffle-hdwallet-provider");
 
-var config = require('../config/secrets.js');
+var secrets = "",
+  ropstenMnemonic = "",
+  kovanMnemonic = "",
+  rinkebyMnemonic = "",
+  mainnetMnemonic = "",
+  infuraApikey = "";
+try {
+  secrets = require('../config/secrets.js');
+  ropstenMnemonic = secrets["mnemonic"]["ropsten"],
+  kovanMnemonic = secrets["mnemonic"]["kovan"],
+  rinkebyMnemonic = secrets["mnemonic"]["rinkeby"],
+  mainnetMnemonic = secrets["mnemonic"]["mainnet"],
+  infuraApikey = secrets["infura_apikey"];
+} catch (e) {}
 
 module.exports = {
   migrations_directory: "./migrations",
@@ -27,25 +40,25 @@ module.exports = {
       gasPrice: 20000000000
     },
     ropsten: {
-      provider: new HDWalletProvider(config["mnemonic"]["ropsten"], "https://ropsten.infura.io/"+config["infura_apikey"]),
+      provider: new HDWalletProvider(ropstenMnemonic, "https://ropsten.infura.io/"+infuraApikey),
       network_id: 3,
       gas: 4700036,
       gasPrice: 20000000000
     },
     kovan: {
-      provider: new HDWalletProvider(config["mnemonic"]["kovan"], "https://kovan.infura.io/"+config["infura_apikey"]),
+      provider: new HDWalletProvider(kovanMnemonic, "https://kovan.infura.io/"+infuraApikey),
       network_id: 42,
       gas: 4700036,
       gasPrice: 20000000000
     },
     rinkeby: {
-      provider: new HDWalletProvider(config["mnemonic"]["rinkeby"], "https://rinkeby.infura.io/"+config["infura_apikey"]),
+      provider: new HDWalletProvider(rinkebyMnemonic, "https://rinkeby.infura.io/"+infuraApikey),
       network_id: 4,
       gas: 4700036,
       gasPrice: 20000000000
     },
     /*mainnet: {
-      provider: new HDWalletProvider(config["mnemonic"]["mainnet"], "https://mainnet.infura.io/"+config["infura_apikey"]),
+      provider: new HDWalletProvider(mainnetMnemonic, "https://mainnet.infura.io/"+infuraApikey),
       network_id: 1,
       gas: 4700036,
       gasPrice: 20000000000

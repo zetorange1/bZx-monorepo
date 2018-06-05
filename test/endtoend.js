@@ -3,7 +3,7 @@
 // set configuration and tests to run
 var run = {
   //"debug mode": true,
-  
+
   //"should check token registry": false,
   //"should check oracle registry": false,
   //"should verify approval": false,
@@ -12,7 +12,7 @@ var run = {
   "should sign and verify orderHash (as lender1)": true,
   "should take sample loan order (as lender1/trader1)": true,
   "should take sample loan order (as lender1/trader2)": false,
-  
+
   "should generate loanOrderHash (as trader2)": false,
   "should sign and verify orderHash (as trader2)": false,
   "should take sample loan order (as lender2)": false,
@@ -50,7 +50,7 @@ import Web3Utils from 'web3-utils';
 import B0xJS from 'b0x.js'
 import { ZeroEx } from '0x.js';
 
-var config = require('../../config/secrets.js');
+var config = require('../protocol-config.js');
 
 let B0xVault = artifacts.require("B0xVault");
 let B0xTo0x = artifacts.require("B0xTo0x");
@@ -160,8 +160,8 @@ contract('B0xTest', function(accounts) {
 
       (b0x = await B0x.at((await B0xProxy.deployed()).address)),
 
-      (zrx_token = await ERC20.at(config["protocol"]["development"]["ZeroEx"]["ZRXToken"])),
-      (exchange_0x = await Exchange0x.at(config["protocol"]["development"]["ZeroEx"]["Exchange"])),
+      (zrx_token = await ERC20.at(config["addresses"]["development"]["ZeroEx"]["ZRXToken"])),
+      (exchange_0x = await Exchange0x.at(config["addresses"]["development"]["ZeroEx"]["Exchange"])),
     ]);
   });
 
@@ -195,7 +195,7 @@ contract('B0xTest', function(accounts) {
       (await loanToken2.transfer(lender2_account, web3.toWei(1000000, "ether"), {from: owner_account})),
       (await loanToken1.approve(vault.address, MAX_UINT, {from: lender1_account})),
       (await loanToken2.approve(vault.address, MAX_UINT, {from: lender2_account})),
-      
+
       (await collateralToken1.transfer(trader1_account, web3.toWei(1000000, "ether"), {from: owner_account})),
       (await collateralToken1.transfer(trader2_account, web3.toWei(1000000, "ether"), {from: owner_account})),
       (await collateralToken2.transfer(trader2_account, web3.toWei(1000000, "ether"), {from: owner_account})),
@@ -216,7 +216,7 @@ contract('B0xTest', function(accounts) {
       (await zrx_token.approve(b0xTo0x.address, MAX_UINT, {from: trader2_account})),
 
       (await maker0xToken1.transfer(makerOf0xOrder_account, web3.toWei(10000, "ether"), {from: owner_account})),
-      (await maker0xToken1.approve(config["protocol"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder_account})),
+      (await maker0xToken1.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder_account})),
     ]);
   });
 
@@ -271,14 +271,14 @@ contract('B0xTest', function(accounts) {
     logs = logs.concat(await vaultEvents.get());
     logs = logs.concat(await oracleEvents.get());
     logs = logs.concat(await b0xTo0xEvents.get());
-    
+
     console.log(txLogsPrint(logs));
-    
+
     b0xEvents.stopWatching();
     vaultEvents.stopWatching();
     oracleEvents.stopWatching();
     b0xTo0xEvents.stopWatching();
-    
+
     new Promise((resolve, reject) => {
       console.log("b0x_tester :: after balance: "+web3.eth.getBalance(owner_account));
     });
@@ -313,7 +313,7 @@ contract('B0xTest', function(accounts) {
       stringLengths[j+1] = stringLengths[j+1].toNumber();
       console.log("Token "+i+" name: "+allStrings.substr(stringPos,stringLengths[j+1]));
       stringPos+=stringLengths[j+1];
-      
+
       console.log("Token "+i+" decimals: "+decimals[i].toNumber());
 
       stringLengths[j+2] = stringLengths[j+2].toNumber();
@@ -322,7 +322,7 @@ contract('B0xTest', function(accounts) {
 
       console.log("Token "+i+" address: "+addresses[i]);
     }
-    
+
     assert.isOk(true);
   });
   */
@@ -338,31 +338,31 @@ contract('B0xTest', function(accounts) {
       data[1][i] = data[1][i].toNumber();
       console.log("Oracle "+i+" name: "+data[2].substr(namePos,data[1][i]));
       namePos = namePos+data[1][i];
-      
+
       console.log("Oracle "+i+" address: "+data[0][i]);
     }
-    
+
     assert.isOk(true);
   });
 
   (run["should verify approval"] ? it : it.skip)("should verify approval", async function() {
     var balance = await loanToken1.balanceOf.call(lender1_account);
     console.log("loanToken1 lender1_account: "+balance);
-    
+
     var allowance = await loanToken1.allowance.call(lender1_account, vault.address);
     console.log("loanToken1 allowance: "+allowance);
 
 
     balance = await collateralToken1.balanceOf.call(trader1_account);
     console.log("collateralToken1 trader1_account: "+balance);
-    
+
     allowance = await collateralToken1.allowance.call(trader1_account, vault.address);
     console.log("collateralToken1 allowance: "+allowance);
 
 
     balance = await interestToken1.balanceOf.call(trader1_account);
     console.log("interestToken1 trader1_account: "+balance);
-    
+
     allowance = await interestToken1.allowance.call(trader1_account, vault.address);
     console.log("interestToken1 allowance: "+allowance);
 
@@ -1225,7 +1225,7 @@ contract('B0xTest', function(accounts) {
 
   (run["should generate 0x order"] ? it : it.skip)("should generate 0x order", async function() {
     OrderParams_0x = {
-      "exchangeContractAddress": config["protocol"]["development"]["ZeroEx"]["Exchange"],
+      "exchangeContractAddress": config["addresses"]["development"]["ZeroEx"]["Exchange"],
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
       "feeRecipient": NULL_ADDRESS, //"0x1230000000000000000000000000000000000000",
       "maker": makerOf0xOrder_account,
@@ -1359,12 +1359,12 @@ contract('B0xTest', function(accounts) {
       OrderHash_b0x_1,
       trader1_account,
       {from: lender2_account}));
-    
+
     try {
       var tx = await b0x.withdrawProfit(
       OrderHash_b0x_1,
       {from: trader1_account});
-      
+
       console.log(txPrettyPrint(tx,"should withdraw profits"));
 
       console.log("After profit:");
@@ -1394,7 +1394,7 @@ contract('B0xTest', function(accounts) {
         done();
       };
   });
-  
+
   (run["should close loan as (lender1/trader1)"] ? it : it.skip)("should close loan as (lender1/trader1)", function(done) {
     b0x.closeLoan(
       OrderHash_b0x_1,
@@ -1431,7 +1431,7 @@ contract('B0xTest', function(accounts) {
       logs = [];
     }
     if (logs.length > 0) {
-      logs = logs.sort(function(a,b) {return (a.blockNumber > b.blockNumber) ? 1 : ((b.blockNumber > a.blockNumber) ? -1 : 0);} ); 
+      logs = logs.sort(function(a,b) {return (a.blockNumber > b.blockNumber) ? 1 : ((b.blockNumber > a.blockNumber) ? -1 : 0);} );
       ret = ret + "\n  LOGS --> "+"\n";
       for (var i=0; i < logs.length; i++) {
         var log = logs[i];

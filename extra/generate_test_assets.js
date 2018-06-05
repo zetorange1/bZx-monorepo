@@ -1,5 +1,5 @@
 
-var config = require('../../config/secrets.js');
+var config = require('../protocol-config.js');
 
 var fs = require("fs");
 var mkdirp = require('mkdirp');
@@ -46,8 +46,8 @@ if (process.argv.length >= 3) {
 }
 
 var addresses_0x = {
-	"ZRXToken": web3utils.toChecksumAddress(config["protocol"][network]["ZeroEx"]["ZRXToken"]),
-	"WETH": config["protocol"][network]["ZeroEx"]["WETH9"] != "" ? web3utils.toChecksumAddress(config["protocol"][network]["ZeroEx"]["WETH9"]) : web3utils.toChecksumAddress(config["protocol"][network]["ZeroEx"]["EtherToken"]),
+	"ZRXToken": web3utils.toChecksumAddress(config["addresses"][network]["ZeroEx"]["ZRXToken"]),
+	"WETH": config["addresses"][network]["ZeroEx"]["WETH9"] != "" ? web3utils.toChecksumAddress(config["addresses"][network]["ZeroEx"]["WETH9"]) : web3utils.toChecksumAddress(config["addresses"][network]["ZeroEx"]["EtherToken"]),
 }
 
 if (network != "mainnet") {
@@ -125,7 +125,7 @@ Object.keys(addresses).forEach(function(item, index) {
 		if (item != "Oracle_Interface" && item != "EIP20") {
 			addresses[item] = web3utils.toChecksumAddress(jsonContent["networks"][networkId]["address"]);
 		}
-		
+
 		// sort ABI by name field
 		jsonContent["abi"].sort(function(a,b) {return (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0);} );
 
@@ -134,7 +134,7 @@ Object.keys(addresses).forEach(function(item, index) {
 			"address": addresses[item],
 			"abi": jsonContent["abi"]
 		};
-		
+
 		abi = JSON.stringify(jsonContent["abi"], null, '\t');
 
 		fs.writeFileSync("./html_public_test/deployed/"+item+".json", JSON.stringify(jsonAsset), function(err) {

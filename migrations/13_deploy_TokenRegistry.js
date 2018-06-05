@@ -4,7 +4,7 @@ var TokenRegistry = artifacts.require("TokenRegistry");
 var B0xToken = artifacts.require("B0xToken");
 var TestNetB0xToken = artifacts.require("TestNetB0xToken");
 
-var config = require('../../config/secrets.js');
+var config = require('../protocol-config.js');
 
 module.exports = function(deployer, network, accounts) {
 	network = network.replace("-fork", "");
@@ -15,14 +15,14 @@ module.exports = function(deployer, network, accounts) {
 		web3.eth.getBalance(accounts[0], function(error, balance) {
 			console.log("migrations :: final balance: "+balance);
 		});
-		return; 
+		return;
 	}
 
 	deployer.deploy(TokenRegistry).then(async function(registry) {
 
 		var b0x_token;
 		if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {
-			b0x_token = await B0xToken.at(config["protocol"][network]["B0XToken"]);
+			b0x_token = await B0xToken.at(config["addresses"][network]["B0XToken"]);
 		} else {
 			b0x_token = await TestNetB0xToken.deployed();
 		}
@@ -37,15 +37,15 @@ module.exports = function(deployer, network, accounts) {
 			"data:image/jpeg;base64,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");
 
 		await registry.addToken(
-			config["protocol"][network]["ZeroEx"]["ZRXToken"],
+			config["addresses"][network]["ZeroEx"]["ZRXToken"],
 			"0x Protocol Token",
 			"ZRX",
 			18,
 			"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAAXNSR0IArs4c6QAAAW5QTFRFAAAAVVVVSUlJNTU1My0tMiwsMi8vMS0tMiwsMSwsMCwsMS0tMC0tMC0tMSwsMCwsMCwsMC0t////MCwsNDAw5OPj7e3tMi4uOTU1RUJCR0NDaWZmgH19lpSUtLKy5+fn6urq7Ovr/v7+/Pz8REBARUFBODU14N/f6enp4+Li5eTkm5qauri41NPT7ezsgX5+goCAsK6uUU1Nr62tOjY27u7u8vHxioeH8vLy9fX19vX19vb2NzMzm5mZMy8vPTo6Y2Bg4eHhZGFhsbCwsrGxZWJi5ubmZmNj6ejonJqatbS0trW1uLe3SEREurm5vLu7vry8wcDAtbOz5eXlxMPDaGVlPzs7a2hoTEhITktLT0xMOzc3Uk5OUk9PVlNTXVpaPDg4PDk5RkNDgX9/MS0tSUVF1dTU1tXV3d3d3t3dSUZGSkdH8PDwUE1NQDw8lJKSycjIlZOT9/f3+Pj4+vr6+/v7QT4+/f39Qz8/ODQ0oHre+wAAABJ0Uk5TAAYHGC0uR4KVlr/H2ePx8vP009oDlQAAAbRJREFUeF6Fk1Wz20AMhZ2kje0k9zY5sh1mZrrMUGZmZmb897XsnW086Yy/F50Za1fyWUn5RyCsRWLxeCyihQPKPCF9kSSLekjxElQT5CGhBj3HozRHdOaSowv0HxaOyPPiu3Hr0PxebZ7NbYmMkKgv7l99D8Hgvqji9qES8/EKBCjuUTpDjOoUcPp/UYQAF3cpu2xecP6Fi+jE1C0AJwfARo6SZypA3+AM3fbP8ecdZSsYL91tvbxDZBRgk3ccCyhhjo3yI+oWbJE2iJkCWHvCKqxoHIYo3kwaJEldA5BjpSkRDj3gOs3wtgXgMquIEuPQAfCJJDUTNq9ZxpQ4h3UA1RMy4d4+bL6yjLsJm7Ap12TGw2/cJatjbokmbEq3STICYDol3CYvAbA+0AxXgZ7bpMYhxzamSGIkG28wYqW5Rj1eATAm5icXOr5ND04vOUYJq/OwKRhEB6XSJDVF5QbVXKvFYxl9oNJNPs//Aiy20aoTo8vnzrStLP3+DAHaT8Vzy4HJ1OlUGQK8ShOjekZusgzBypcdMXLeof0zPGdWf3TOP0vJofUbe//F8V89/+X1Xf+/rJVSubRUnPUAAAAASUVORK5CYII=");
 
-		var WETH = config["protocol"][network]["ZeroEx"]["WETH9"];
+		var WETH = config["addresses"][network]["ZeroEx"]["WETH9"];
 		if (WETH == "") {
-			WETH = config["protocol"][network]["ZeroEx"]["EtherToken"];
+			WETH = config["addresses"][network]["ZeroEx"]["EtherToken"];
 		}
 		await registry.addToken(
 			WETH,

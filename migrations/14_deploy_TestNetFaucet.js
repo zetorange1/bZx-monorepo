@@ -7,7 +7,7 @@ var TestNetOracle = artifacts.require("TestNetOracle");
 var B0xToken = artifacts.require("B0xToken");
 var TestNetB0xToken = artifacts.require("TestNetB0xToken");
 
-var config = require('../../config/secrets.js');
+var config = require('../protocol-config.js');
 
 module.exports = function(deployer, network, accounts) {
 	network = network.replace("-fork", "");
@@ -18,7 +18,7 @@ module.exports = function(deployer, network, accounts) {
 		network = "development";
 	else {
 		// comment out if we need to deploy to other networks
-		return; 
+		return;
 	}
 
 	deployer.deploy(TestNetFaucet).then(async function(testNetFaucet) {
@@ -32,7 +32,7 @@ module.exports = function(deployer, network, accounts) {
 		if (DEPOSIT_B0X) {
 			var b0x_token;
 			if (network == "ropsten" || network == "kovan" || network == "rinkeby") {
-				b0x_token = await B0xToken.at(config["protocol"][network]["B0XToken"]);
+				b0x_token = await B0xToken.at(config["addresses"][network]["B0XToken"]);
 			} else {
 				b0x_token = await TestNetB0xToken.deployed();
 			}
