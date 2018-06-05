@@ -37,6 +37,29 @@ export default class Web3Container extends React.Component {
       return;
     }
     const networkId = await getNetworkId(web3);
+
+    // Known networks we actively support should be set here.
+    // Currently only Ropsten is supported.
+    const activeNetworkIds = {
+      3: `Ropsten Test Network`
+    };
+
+    const displayNetworkError = () => {
+      if (activeNetworkIds[networkId]) {
+        this.setState({
+          loading: false,
+          errorMsg: `We are temporarily unable to connect to ${
+            activeNetworkIds[networkId]
+          }. Please try again later.`
+        });
+      } else {
+        this.setState({
+          loading: false,
+          errorMsg: `You may be on the wrong network. Please check that MetaMask is set to Ropsten Test Network.`
+        });
+      }
+    };
+
     const b0x = new B0xJS(web3.currentProvider, { networkId });
     const zeroEx = new ZeroEx(web3.currentProvider, {
       networkId,
@@ -72,15 +95,16 @@ export default class Web3Container extends React.Component {
     let oracles;
     try {
       oracles = await b0x.getOracleList();
+      if (oracles.length === 0) {
+        displayNetworkError();
+        return;
+      }
     } catch (err) {
       /* alert(
         `You may be on the wrong network. Please check that MetaMask is set to Ropsten Test Network.`
       ); */
       console.error(err);
-      this.setState({
-        loading: false,
-        errorMsg: `You may be on the wrong network. Please check that MetaMask is set to Ropsten Test Network.`
-      });
+      displayNetworkError();
       return;
     }
 
@@ -88,15 +112,16 @@ export default class Web3Container extends React.Component {
     let tokens;
     try {
       tokens = await b0x.getTokenList();
+      if (tokens.length === 0) {
+        displayNetworkError();
+        return;
+      }
     } catch (err) {
       /* alert(
         `You may be on the wrong network. Please check that MetaMask is set to Ropsten Test Network.`
       ); */
       console.error(err);
-      this.setState({
-        loading: false,
-        errorMsg: `You may be on the wrong network. Please check that MetaMask is set to Ropsten Test Network.`
-      });
+      displayNetworkError();
       return;
     }
 
