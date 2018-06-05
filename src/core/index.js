@@ -126,7 +126,10 @@ export default class B0xJS {
 
   getSingleOrder = async (...props) =>
     orderHistory.getSingleOrder(this, ...props);
-  getOrders = async (...props) => orderHistory.getOrders(this, ...props);
+  getOrders = async (...props) =>
+    orderHistory.getOrders(this, ...props);
+  getSingleLoan = async (...props) =>
+    orderHistory.getSingleLoan(this, ...props);
   getLoansForLender = async (...props) =>
     orderHistory.getLoansForLender(this, ...props);
   getLoansForTrader = async (...props) =>
