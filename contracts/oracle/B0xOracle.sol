@@ -21,11 +21,13 @@ interface WETH_Interface {
 
 interface KyberNetwork_Interface {
     /// @notice use token address ETH_TOKEN_ADDRESS for ether
-    /// @dev best conversion rate for a pair of tokens, if number of reserves have small differences. randomize
-    /// @param src Src token
-    /// @param dest Destination token
-    /// @return (bestReserve, bestRate). If not available, bestRate returns 0.
-    function findBestRate(address src, address dest, uint srcQty) external view returns(uint, uint);
+    function getExpectedRate(
+        address src,
+        address dest,
+        uint srcQty) 
+        external 
+        view 
+        returns (uint expectedRate, uint slippageRate);
 
     /// @notice use token address ETH_TOKEN_ADDRESS for ether
     /// @dev makes a trade between src and dest token and send dest token to destAddress
@@ -442,7 +444,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
             uint etherToDest;
             
             if (sourceTokenAddress == WETH_CONTRACT) {
-                (, etherToDest) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+                (etherToDest,) = KyberNetwork_Interface(KYBER_CONTRACT).getExpectedRate(
                     KYBER_ETH_TOKEN_ADDRESS,
                     destTokenAddress, 
                     0
@@ -450,7 +452,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
 
                 rate = etherToDest;
             } else if (destTokenAddress == WETH_CONTRACT) {
-                (, sourceToEther) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+                (sourceToEther,) = KyberNetwork_Interface(KYBER_CONTRACT).getExpectedRate(
                     sourceTokenAddress, 
                     KYBER_ETH_TOKEN_ADDRESS,
                     0
@@ -458,13 +460,13 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
 
                 rate = sourceToEther;
             } else {
-                (, sourceToEther) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+                (sourceToEther,) = KyberNetwork_Interface(KYBER_CONTRACT).getExpectedRate(
                     sourceTokenAddress, 
                     KYBER_ETH_TOKEN_ADDRESS,
                     0
                 );
 
-                (, etherToDest) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+                (etherToDest,) = KyberNetwork_Interface(KYBER_CONTRACT).getExpectedRate(
                     KYBER_ETH_TOKEN_ADDRESS,
                     destTokenAddress, 
                     0
@@ -770,7 +772,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
                 uint maxDestEtherAmount = maxDestTokenAmount;
                 if (maxDestTokenAmount < MAX_FOR_KYBER) {
                     uint etherToDest;
-                    (, etherToDest) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+                    (etherToDest,) = KyberNetwork_Interface(KYBER_CONTRACT).getExpectedRate(
                         KYBER_ETH_TOKEN_ADDRESS,
                         destTokenAddress, 
                         0
@@ -838,7 +840,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
         returns (uint destTokenAmountReceived)
     {
         uint etherToDest;
-        (, etherToDest) = KyberNetwork_Interface(KYBER_CONTRACT).findBestRate(
+        (etherToDest,) = KyberNetwork_Interface(KYBER_CONTRACT).getExpectedRate(
             KYBER_ETH_TOKEN_ADDRESS,
             destTokenAddress, 
             0
