@@ -68,7 +68,7 @@ export default class Borrowing extends React.Component {
           <SectionLabel>Open Loans ({openLoans.length})</SectionLabel>
           {openLoans.map(data => (
             <OpenedLoan
-              key={data.loanOrderHash}
+              key={data.loanOrderHash + data.trader}
               b0x={b0x}
               tokens={tokens}
               accounts={accounts}
@@ -81,7 +81,7 @@ export default class Borrowing extends React.Component {
           <SectionLabel>Closed Loans ({closedLoans.length})</SectionLabel>
           {closedLoans.map(data => (
             <ClosedLoan
-              key={data.loanOrderHash}
+              key={data.loanOrderHash + data.trader}
               b0x={b0x}
               tokens={tokens}
               accounts={accounts}

@@ -81,10 +81,10 @@ export default class OrderItem extends React.Component {
     // const { loanPositions } = this.state;
     const isMaker = takenOrder.maker === accounts[0].toLowerCase();
     const isLender = takenOrder.lender === accounts[0].toLowerCase();
-    const date = moment(takenOrder.expirationUnixTimestampSec * 1000);
-    const dateStr = date.format(`MMMM Do YYYY, h:mm a`);
-    const addedDate = moment(takenOrder.addedUnixTimestampSec * 1000);
-    const addedDateStr = addedDate.format(`MMMM Do YYYY, h:mm a`);
+    const date = moment(takenOrder.expirationUnixTimestampSec * 1000).utc();
+    const dateStr = date.format(`MMMM Do YYYY, h:mm a UTC`);
+    const addedDate = moment(takenOrder.addedUnixTimestampSec * 1000).utc();
+    const addedDateStr = addedDate.format(`MMMM Do YYYY, h:mm a UTC`);
 
     const fillsStr =
       takenOrder.orderTraderCount +

@@ -155,6 +155,7 @@ export default class GenerateOrder extends React.Component {
   setStateForExpirationDate = value => {
     this.setState({ [`expirationDate`]: value });
     this.setStateForTotalInterest(this.state.interestAmount, value);
+    console.log(value);
   };
 
   setRole = (e, value) => {

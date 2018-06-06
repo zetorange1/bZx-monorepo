@@ -7,7 +7,7 @@ import Dialog, {
   DialogTitle
 } from "material-ui/Dialog";
 import Nav from "./Nav";
-import Footer from "./Footer";
+// import Footer from "./Footer";
 import { DIMENSIONS } from "../styles/constants";
 
 const Container = styled.div`
@@ -62,7 +62,7 @@ export default class Layout extends React.Component {
         <Content>
           <ContentContainer>{this.props.children}</ContentContainer>
         </Content>
-        <Footer />
+        {/* <Footer /> */}
         <Dialog open={this.state.showAlertDialog}>
           <DialogTitle>Alert</DialogTitle>
           <DialogContent>

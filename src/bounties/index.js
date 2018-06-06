@@ -61,7 +61,7 @@ export default class Bounties extends React.Component {
           <SectionLabel>Active Loans ({loans.length})</SectionLabel>
           {loans.map(data => (
             <LoanItem
-              key={data.loanOrderHash}
+              key={data.loanOrderHash + data.trader}
               b0x={b0x}
               tokens={tokens}
               accounts={accounts}

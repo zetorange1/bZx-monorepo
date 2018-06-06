@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import styled from "styled-components";
 import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
+import moment from "moment";
 import Button from "material-ui/Button";
 import Dialog, { DialogActions, DialogContent } from "material-ui/Dialog";
 import BigNumber from "bignumber.js";
@@ -149,10 +150,13 @@ export default class LoanItem extends React.Component {
       maintenanceMarginAmount,
       currentMarginAmount
     } = this.state;
-    const isSafe = BigNumber(currentMarginAmount)
+    const isUnSafe = !BigNumber(currentMarginAmount)
       .dividedBy(1e18)
       .plus(5) // start reporting "unsafe" when 5% above maintenance threshold
       .gt(maintenanceMarginAmount);
+    const date = moment(data.expirationUnixTimestampSec * 1000).utc();
+    const dateStr = date.format(`MMMM Do YYYY, h:mm a UTC`);
+    const isExpired = moment(moment().utc()).isAfter(date);
     return (
       <Card>
         <CardContent>
@@ -219,14 +223,18 @@ export default class LoanItem extends React.Component {
                 <DataPoint>{maintenanceMarginAmount}%</DataPoint>
               </DataPointContainer>
 
-              <br />
-
               <DataPointContainer>
                 <Label>Current margin level</Label>
                 <DataPoint>
                   {fromBigNumber(currentMarginAmount, 1e18)}%
                 </DataPoint>
-                <DataPoint>{isSafe ? `Safe` : `Unsafe`}</DataPoint>
+              </DataPointContainer>
+
+              <br />
+
+              <DataPointContainer>
+                <Label>Expires</Label>
+                <DataPoint>{`${dateStr} (${date.fromNow()})`}</DataPoint>
               </DataPointContainer>
             </Fragment>
           )}
@@ -236,10 +244,17 @@ export default class LoanItem extends React.Component {
               style={{ marginTop: `12px` }}
               variant="raised"
               onClick={this.liquidate}
-              disabled={isSafe}
+              disabled={!isExpired && !isUnSafe}
             >
               Liquidate
             </Button>
+            <DataPoint style={{ marginTop: `12px` }}>
+              {isExpired // eslint-disable-line no-nested-ternary
+                ? `Loan is Expired`
+                : isUnSafe
+                  ? `Loan is Unsafe`
+                  : `Loan is Safe`}
+            </DataPoint>
           </DataPointContainer>
         </CardContent>
       </Card>
