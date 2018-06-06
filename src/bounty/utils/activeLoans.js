@@ -1,13 +1,14 @@
 import { pipe, map } from "ramda";
 import * as OrderHistoryUtils from "../../orderHistory/utils/index";
 
-const NUM_LOAN_FIELDS = 2;
+const NUM_LOAN_FIELDS = 3;
 
 const getLoan = params => ({
   loanOrderHash: OrderHistoryUtils.prepend0x(params[0]),
   trader: pipe(OrderHistoryUtils.substr24, OrderHistoryUtils.prepend0x)(
     params[1]
-  )
+  ),
+  expirationUnixTimestampSec: OrderHistoryUtils.parseIntHex(params[2])
 });
 
 const checkProperObjCount = OrderHistoryUtils.makeCheckProperObjCount(

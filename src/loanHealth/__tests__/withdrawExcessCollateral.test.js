@@ -18,14 +18,14 @@ describe("loanHeath", () => {
 
     let promiEvent = null;
     let loanOrderHash = null;
-    let loansBefore = null;
-    let loansAfterDeposit = null;
 
     const collateralTokenFilled = collateralTokens[0].options.address.toLowerCase();
     const depositAmount = web3.utils.toWei("5").toString();
     const withdrawAmount = web3.utils.toWei("2").toString();
 
-    let loanBefore, loanAfterDeposit, loanAfterWithdraw;
+    let loanBefore = null;
+    let loanAfterDeposit = null;
+    let loanAfterWithdraw = null;
 
     let order = null;
 
@@ -68,7 +68,7 @@ describe("loanHeath", () => {
       ).toEqual(null);
 
       loanBefore = await b0xJS.getSingleLoan({
-        loanOrderHash: loanOrderHash,
+        loanOrderHash,
         trader: traders[0]
       });
 
@@ -80,7 +80,7 @@ describe("loanHeath", () => {
       });
 
       loanAfterDeposit = await b0xJS.getSingleLoan({
-        loanOrderHash: loanOrderHash,
+        loanOrderHash,
         trader: traders[0]
       });
     
@@ -101,7 +101,7 @@ describe("loanHeath", () => {
       expect(pathOr(null, ["events", "DebugLine"], receipt)).toEqual(null);
 
       loanAfterWithdraw = await b0xJS.getSingleLoan({
-        loanOrderHash: loanOrderHash,
+        loanOrderHash,
         trader: traders[0]
       });
 

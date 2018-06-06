@@ -11,7 +11,7 @@ export const getActiveLoans = async (
     getContracts(networkId).B0x.abi,
     addresses.B0x
   );
-  const data = await b0xContract.methods.getLoans(start, count).call();
+  const data = await b0xContract.methods.getActiveLoans(start, count).call();
   return ActiveLoansUtils.cleanData(data);
 };
 
