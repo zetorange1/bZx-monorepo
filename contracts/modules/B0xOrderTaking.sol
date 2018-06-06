@@ -34,7 +34,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         targets[bytes4(keccak256("getSingleLoan(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("getLoansForLender(address,uint256,bool)"))] = _target;
         targets[bytes4(keccak256("getLoansForTrader(address,uint256,bool)"))] = _target;
-        targets[bytes4(keccak256("getLoans(uint256,uint256)"))] = _target;
+        targets[bytes4(keccak256("getActiveLoans(uint256,uint256)"))] = _target;
     }
 
     /// @dev Takes the order as trader
@@ -379,7 +379,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
     /// @param start The starting loan in the loan list to return.
     /// @param count The total amount of loans to return if they exist. Amount returned can be less.
     /// @return A concatenated stream of LoanRef(loanOrderHash, trader) bytes.
-    function getLoans(
+    function getActiveLoans(
         uint start,
         uint count)
         public
@@ -396,10 +396,12 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
 
         for (uint j=0; j < end-start; j++) {
             LoanRef memory loanRef = loanList[j+start];
+            LoanOrder memory loanOrder = orders[loanRef.loanOrderHash];
 
             bytes memory tmpBytes = abi.encode(
                 loanRef.loanOrderHash,
-                loanRef.trader
+                loanRef.trader,
+                loanOrder.expirationUnixTimestampSec
             );
             if (j == 0) {
                 data = tmpBytes;

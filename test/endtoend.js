@@ -1186,14 +1186,14 @@ contract('B0xTest', function(accounts) {
 
   (run["should get active loans"] ? it : it.skip)("should get active loans", async function() {
 
-    var data = await b0x.getLoans.call(
+    var data = await b0x.getActiveLoans.call(
       0, // starting item
       10 // max number of items returned
     );
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 2;
+    const itemCount = 3;
     const objCount = data.length / 64 / itemCount;
     var loans = [];
 
@@ -1212,7 +1212,8 @@ contract('B0xTest', function(accounts) {
         }
         loans.push({
           loanOrderHash: "0x"+params[0],
-          trader: "0x"+params[1].substr(24)
+          trader: "0x"+params[1].substr(24),
+          expirationUnixTimestampSec: parseInt("0x"+params[2])
         });
       }
 

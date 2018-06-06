@@ -108,7 +108,7 @@ contract B0x is B0xStorage {
         view
         returns (bytes);
 
-    function getLoans(
+    function getActiveLoans(
         uint start,
         uint count)
         public
