@@ -1,15 +1,16 @@
 
 pragma solidity ^0.4.24;
 
-contract EIP20Token {
-    function transfer(address _to, uint _value) public returns (bool success);
-    function transferFrom(address _from, address _to, uint _value) public returns (bool success);
-    function approve(address _spender, uint _value) public returns (bool success);
+interface NonCompliantEIP20 {
+    function transfer(address _to, uint _value) external;
+    function transferFrom(address _from, address _to, uint _value) external;
+    function approve(address _spender, uint _value) external;
 }
 
 /**
- * @title EIP20/ERC20 wrapper
+ * @title EIP20/ERC20 wrapper that will support noncompliant ERC20s
  * @dev see https://github.com/ethereum/EIPs/issues/20
+ * @dev see https://medium.com/coinmonks/missing-return-value-bug-at-least-130-tokens-affected-d67bf08521ca
  */
 contract EIP20Wrapper {
 
@@ -18,13 +19,25 @@ contract EIP20Wrapper {
         address to,
         uint256 value)
         internal
-        returns (bool) {
+        returns (bool result) {
 
-        // bytes4(keccak256("transfer(address,uint256)")) == 0xa9059cbb
-        //require(token.call(0xa9059cbb, to, value));
-        require(EIP20Token(token).transfer(to, value));
+        NonCompliantEIP20(token).transfer(to, value);
 
-        return true;
+        assembly {
+            switch returndatasize()   
+            case 0 {                        // non compliant ERC20
+                result := not(0)            // result is true
+            }
+            case 32 {                       // compliant ERC20
+                returndatacopy(0, 0, 32) 
+                result := mload(0)          // result == returndata of external call
+            }
+            default {                       // not an not an ERC20 token
+                revert(0, 0) 
+            }
+        }
+
+        require(result);
     }
 
     function eip20TransferFrom(
@@ -33,13 +46,25 @@ contract EIP20Wrapper {
         address to,
         uint256 value)
         internal
-        returns (bool) {
+        returns (bool result) {
 
-        // bytes4(keccak256("transferFrom(address,address,uint256)")) == 0x23b872dd
-        //require(token.call(0x23b872dd, from, to, value));
-        require(EIP20Token(token).transferFrom(from, to, value));
-        
-        return true;
+        NonCompliantEIP20(token).transferFrom(from, to, value);
+
+        assembly {
+            switch returndatasize()   
+            case 0 {                        // non compliant ERC20
+                result := not(0)            // result is true
+            }
+            case 32 {                       // compliant ERC20
+                returndatacopy(0, 0, 32) 
+                result := mload(0)          // result == returndata of external call
+            }
+            default {                       // not an not an ERC20 token
+                revert(0, 0) 
+            }
+        }
+
+        require(result);
     }
 
     function eip20Approve(
@@ -47,12 +72,24 @@ contract EIP20Wrapper {
         address spender,
         uint256 value)
         internal
-        returns (bool) {
+        returns (bool result) {
 
-        // bytes4(keccak256("approve(address,uint256)")) == 0x095ea7b3
-        //require(token.call(0x095ea7b3, spender, value));
-        require(EIP20Token(token).approve(spender, value));
+        NonCompliantEIP20(token).approve(spender, value);
 
-        return true;
+        assembly {
+            switch returndatasize()   
+            case 0 {                        // non compliant ERC20
+                result := not(0)            // result is true
+            }
+            case 32 {                       // compliant ERC20
+                returndatacopy(0, 0, 32) 
+                result := mload(0)          // result == returndata of external call
+            }
+            default {                       // not an not an ERC20 token
+                revert(0, 0) 
+            }
+        }
+
+        require(result);
     }
 }

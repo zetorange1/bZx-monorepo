@@ -15,7 +15,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
-    
+
     function initialize(
         address _target)
         public
