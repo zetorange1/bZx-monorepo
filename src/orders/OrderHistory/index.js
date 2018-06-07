@@ -25,12 +25,13 @@ export default class OrderHistory extends React.Component {
 
   getOrders = async () => {
     const { b0x, accounts } = this.props;
-    this.setState({ orders: [], loading: true });
+    this.setState({ loading: true });
     const orders = await b0x.getOrders({
       loanPartyAddress: accounts[0].toLowerCase(),
       start: 0,
       count: this.state.count
     });
+    console.log(orders);
     this.setState({ orders, loading: false });
   };
 
@@ -46,6 +47,22 @@ export default class OrderHistory extends React.Component {
   render() {
     const { b0x, accounts, tokens } = this.props;
     const { orders, loading, count } = this.state;
+    if (orders.length === 0) {
+      return (
+        <div>
+          <InfoContainer>
+            <ShowCount>No loan orders found.</ShowCount>
+            <Button
+              onClick={this.getOrders}
+              variant="raised"
+              disabled={loading}
+            >
+              {loading ? `Refreshing...` : `Refresh`}
+            </Button>
+          </InfoContainer>
+        </div>
+      );
+    }
     return (
       <div>
         <InfoContainer>

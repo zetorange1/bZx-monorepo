@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import styled from "styled-components";
 import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
 import moment from "moment";
+import { BigNumber } from "bignumber.js";
 import { COLORS } from "../../styles/constants";
 import { fromBigNumber } from "../../common/utils";
 import { getSymbol } from "../../common/tokens";
@@ -79,12 +80,26 @@ export default class OrderItem extends React.Component {
     const { takenOrder, accounts, tokens, noShadow } = this.props;
     const { showRawOrder } = this.state;
     // const { loanPositions } = this.state;
+
     const isMaker = takenOrder.maker === accounts[0].toLowerCase();
     const isLender = takenOrder.lender === accounts[0].toLowerCase();
     const date = moment(takenOrder.expirationUnixTimestampSec * 1000).utc();
     const dateStr = date.format(`MMMM Do YYYY, h:mm a UTC`);
     const addedDate = moment(takenOrder.addedUnixTimestampSec * 1000).utc();
     const addedDateStr = addedDate.format(`MMMM Do YYYY, h:mm a UTC`);
+
+    takenOrder.loanTokenAmount = BigNumber(takenOrder.loanTokenAmount).toFixed(
+      0
+    );
+    takenOrder.orderFilledAmount = BigNumber(
+      takenOrder.orderFilledAmount
+    ).toFixed(0);
+    takenOrder.orderCancelledAmount = BigNumber(
+      takenOrder.orderCancelledAmount
+    ).toFixed(0);
+    takenOrder.interestAmount = BigNumber(takenOrder.interestAmount).toFixed(0);
+    takenOrder.lenderRelayFee = BigNumber(takenOrder.lenderRelayFee).toFixed(0);
+    takenOrder.traderRelayFee = BigNumber(takenOrder.traderRelayFee).toFixed(0);
 
     const fillsStr =
       takenOrder.orderTraderCount +

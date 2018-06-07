@@ -27,7 +27,7 @@ export default class Borrowing extends React.Component {
 
   getLoans = async () => {
     const { b0x, accounts } = this.props;
-    this.setState({ loans: [], loading: true });
+    this.setState({ loading: true });
     const loans = await b0x.getLoansForLender({
       address: accounts[0],
       start: 0,
@@ -46,6 +46,18 @@ export default class Borrowing extends React.Component {
     const { loans, loading, count } = this.state;
     const openLoans = loans.filter(p => p.active === 1);
     const closedLoans = loans.filter(p => p.active === 0);
+    if (loans.length === 0) {
+      return (
+        <div>
+          <InfoContainer>
+            <ShowCount>No loans found.</ShowCount>
+            <Button onClick={this.getLoans} variant="raised" disabled={loading}>
+              {loading ? `Refreshing...` : `Refresh`}
+            </Button>
+          </InfoContainer>
+        </div>
+      );
+    }
     return (
       <div>
         <InfoContainer>

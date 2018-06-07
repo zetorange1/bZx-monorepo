@@ -27,7 +27,7 @@ export default class Bounties extends React.Component {
 
   getLoans = async () => {
     const { b0x } = this.props;
-    this.setState({ loans: [], loading: true });
+    this.setState({ loading: true });
     const loans = await b0x.getActiveLoans({
       start: 0,
       count: this.state.count
@@ -43,6 +43,18 @@ export default class Bounties extends React.Component {
   render() {
     const { b0x, tokens, accounts, web3 } = this.props;
     const { loans, loading, count } = this.state;
+    if (loans.length === 0) {
+      return (
+        <div>
+          <InfoContainer>
+            <ShowCount>No loans found.</ShowCount>
+            <Button onClick={this.getLoans} variant="raised" disabled={loading}>
+              {loading ? `Refreshing...` : `Refresh`}
+            </Button>
+          </InfoContainer>
+        </div>
+      );
+    }
     return (
       <div>
         <InfoContainer>
