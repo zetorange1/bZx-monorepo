@@ -2,9 +2,8 @@
 
 exports[`loanHealth getProfitOrLoss should retrieve profit or loss successfully 1`] = `
 Object {
-  "isProfit": true,
-  "positionToLoanAmount": "12300000000000000000",
-  "positionToLoanRate": "1000000000000000000",
+  "isProfit": false,
+  "positionTokenAddress": "0xB48E1B16829C7f5Bd62B76cb878A6Bb1c4625D7A",
   "profitOrLoss": "0",
 }
 `;
