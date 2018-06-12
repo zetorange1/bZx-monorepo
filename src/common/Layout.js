@@ -44,7 +44,13 @@ export default class Layout extends React.Component {
   state = { showAlertDialog: false, alertText: ``, alertComponent: null };
 
   componentDidMount = () => {
-    alert = (text, opts) => this.showAlert(text, opts && opts.component);
+    alert = (text, opts) => {
+      if (text) {
+        this.showAlert(text, opts && opts.component);
+      } else {
+        this.hideAlert();
+      }
+    };
   };
 
   showAlert = (text, alertComponent = null) => {
@@ -58,7 +64,7 @@ export default class Layout extends React.Component {
     const AlertComponent = this.state.alertComponent;
     return (
       <Container>
-        <Nav />
+        {Nav(this.props.changeCard)}
         <Content>
           <ContentContainer>{this.props.children}</ContentContainer>
         </Content>

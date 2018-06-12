@@ -28,6 +28,10 @@ export default class WithdrawCollateralDialog extends React.Component {
       gas: 1000000,
       gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
+
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
     await b0x
       .withdrawExcessCollateral({
         loanOrderHash,

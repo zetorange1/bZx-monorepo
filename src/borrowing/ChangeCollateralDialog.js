@@ -65,6 +65,9 @@ export default class ChangeCollateralDialog extends React.Component {
     console.log(`approving allowance`);
     console.log(token.name, token.address);
     this.setState({ approvalLoading: true });
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
     await b0x
       .setAllowanceUnlimited({
         tokenAddress: token.address,
@@ -81,6 +84,9 @@ export default class ChangeCollateralDialog extends React.Component {
       })
       .on(`error`, error => {
         console.error(error.message);
+        if (error.message.includes(`Condition of use not satisfied`)) {
+          alert();
+        }
       });
     setTimeout(() => this.checkAllowance(), 5000);
   };
@@ -100,6 +106,9 @@ export default class ChangeCollateralDialog extends React.Component {
       collateralTokenFilled: tokenAddress,
       txOpts
     });
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
     await b0x
       .changeCollateral({
         loanOrderHash,

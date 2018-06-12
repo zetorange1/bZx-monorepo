@@ -52,6 +52,9 @@ export default class Trade0xDialog extends React.Component {
       txOpts
     });
 
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
     await b0x
       .tradePositionWith0x({
         order0x,

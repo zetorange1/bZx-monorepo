@@ -33,6 +33,9 @@ export default class WithdrawInterest extends React.Component {
       gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
 
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
     await b0x
       .payInterest({
         loanOrderHash,

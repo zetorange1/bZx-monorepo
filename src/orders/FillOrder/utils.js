@@ -144,6 +144,9 @@ export const submitFillOrder = async (
     //   txOpts
     // );
 
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
     b0x
       .takeLoanOrderAsTrader(
         order,
@@ -162,9 +165,16 @@ export const submitFillOrder = async (
       })
       .on(`error`, error => {
         console.error(error.message);
+        if (error.message.includes(`Condition of use not satisfied`)) {
+          alert();
+        }
       });
   } else {
     // receipt = await b0x.takeLoanOrderAsLender(order, txOpts);
+
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
     b0x
       .takeLoanOrderAsLender(order, txOpts)
       .once(`transactionHash`, hash => {
@@ -178,6 +188,9 @@ export const submitFillOrder = async (
       })
       .on(`error`, error => {
         console.error(error.message);
+        if (error.message.includes(`Condition of use not satisfied`)) {
+          alert();
+        }
       });
   }
 

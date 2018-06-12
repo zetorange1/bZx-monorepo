@@ -1,6 +1,6 @@
 {
   "name": "b0x_portal",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Frontend portal for b0x",
   "main": "portal.js",
   "scripts": {
@@ -32,11 +32,14 @@
   "homepage": "https://github.com/tomcbean/b0x_portal#readme",
   "dependencies": {
     "0x.js": "^0.37.2",
+    "@ledgerhq/hw-transport-u2f": "^4.13.0",
+    "@ledgerhq/web3-subprovider": "^4.14.0",
     "b0x.js": "git+https://github.com/b0xNetwork/b0x.js.git",
     "babel-plugin-styled-components": "^1.5.1",
     "bignumber.js": "^7.0.1",
     "ethereum-blockies-png": "^0.1.2",
     "jss": "^9.8.1",
+    "ledger-wallet-provider": "^2.0.1-beta.2",
     "material-ui": "^1.0.0-beta.45",
     "material-ui-pickers": "^1.0.0-rc.7",
     "moment": "^2.22.1",
@@ -45,7 +48,9 @@
     "react-dom": "^16.3.2",
     "react-jss": "^8.4.0",
     "styled-components": "^3.2.6",
-    "web3": "^1.0.0-beta.34"
+    "trezor-wallet-provider": "^0.2.0",
+    "web3": "^1.0.0-beta.34",
+    "web3-provider-engine": "^14.0.6"
   },
   "devDependencies": {
     "babel-eslint": "^8.2.3",

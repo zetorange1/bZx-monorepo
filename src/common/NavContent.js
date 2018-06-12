@@ -1,5 +1,4 @@
 import { Fragment } from "react";
-import Link from "next/link";
 import styled from "styled-components";
 import { ImgLogo, HorizontalNav, VerticalNav, NavLink } from "./NavComponents";
 
@@ -67,6 +66,11 @@ const Drawer = styled.div`
 class NavContent extends React.Component {
   state = { showSideNav: false };
 
+  changeCardClick = event => {
+    event.preventDefault();
+    this.props.changeCard(event.target.id);
+  };
+
   toggleSideNav = () => this.setState(p => ({ showSideNav: !p.showSideNav }));
 
   render() {
@@ -76,21 +80,21 @@ class NavContent extends React.Component {
           <ImgLogo src="https://b0x.network/img/site-logo.svg" />
         </a>
         <HorizontalNav>
-          <Link href="/balances">
-            <NavLink>Balances</NavLink>
-          </Link>
-          <Link href="/orders">
-            <NavLink>Orders</NavLink>
-          </Link>
-          <Link href="/borrowing">
-            <NavLink>Borrowing</NavLink>
-          </Link>
-          <Link href="/lending">
-            <NavLink>Lending</NavLink>
-          </Link>
-          <Link href="/bounties">
-            <NavLink>Bounties</NavLink>
-          </Link>
+          <NavLink id="Balances" onClick={this.changeCardClick}>
+            Balances
+          </NavLink>
+          <NavLink id="Orders" onClick={this.changeCardClick}>
+            Orders
+          </NavLink>
+          <NavLink id="Borrowing" onClick={this.changeCardClick}>
+            Borrowing
+          </NavLink>
+          <NavLink id="Lending" onClick={this.changeCardClick}>
+            Lending
+          </NavLink>
+          <NavLink id="Bounties" onClick={this.changeCardClick}>
+            Bounties
+          </NavLink>
           <NavLink
             style={{ textDecoration: `none` }}
             href="https://portal.b0x.network/mew/#contracts"
@@ -102,21 +106,21 @@ class NavContent extends React.Component {
         <Overlay show={this.state.showSideNav} onClick={this.toggleSideNav} />
         <Drawer show={this.state.showSideNav}>
           <VerticalNav>
-            <Link href="/balances">
-              <NavLink>Balances</NavLink>
-            </Link>
-            <Link href="/orders">
-              <NavLink>Orders</NavLink>
-            </Link>
-            <Link href="/borrowing">
-              <NavLink>Borrowing</NavLink>
-            </Link>
-            <Link href="/lending">
-              <NavLink>Lending</NavLink>
-            </Link>
-            <Link href="/bounties">
-              <NavLink>Bounties</NavLink>
-            </Link>
+            <NavLink id="Balances" onClick={this.changeCardClick}>
+              Balances
+            </NavLink>
+            <NavLink id="Orders" onClick={this.changeCardClick}>
+              Orders
+            </NavLink>
+            <NavLink id="Borrowing" onClick={this.changeCardClick}>
+              Borrowing
+            </NavLink>
+            <NavLink id="Lending" onClick={this.changeCardClick}>
+              Lending
+            </NavLink>
+            <NavLink id="Bounties" onClick={this.changeCardClick}>
+              Bounties
+            </NavLink>
           </VerticalNav>
           <CloseDrawerBtn onClick={this.toggleSideNav}>close</CloseDrawerBtn>
         </Drawer>

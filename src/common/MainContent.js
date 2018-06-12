@@ -2,6 +2,7 @@ import styled, { css } from "styled-components";
 import { COLORS, SHADOWS } from "../styles/constants";
 
 export const Card = styled.div`
+  display: ${p => (p.show ? `block` : `none`)};
   min-height: 600px;
   box-shadow: ${SHADOWS.card};
   display: flex;
@@ -29,7 +30,9 @@ export const HeaderTitle = styled.h2`
   font-weight: 300;
   letter-spacing: 8px;
   text-transform: uppercase;
+  margin-top: 25px;
   padding-left: 12px;
+  padding-bottom: 12px;
 `;
 
 const HeaderDataDiv = styled.div`

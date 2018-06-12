@@ -38,6 +38,9 @@ export default class DepositCollateralDialog extends React.Component {
     //   txOpts
     // });
 
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
     await b0x
       .depositCollateral({
         loanOrderHash,

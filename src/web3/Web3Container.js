@@ -2,8 +2,9 @@
 import styled from "styled-components";
 import { ZeroEx } from "0x.js";
 import B0xJS from "b0x.js"; // eslint-disable-line
+import ChooseProviderDialog from "./ChooseProviderDialog";
 import getWeb3 from "./getWeb3";
-import GetMetaMask from "./GetMetaMask";
+import NoProviderMessage from "./NoProviderMessage";
 import getNetworkId from "./getNetworkId";
 
 const LoadingContainer = styled.div`
@@ -19,6 +20,7 @@ const LoadingContainer = styled.div`
 
 export default class Web3Container extends React.Component {
   state = {
+    hideChooseProviderDialog: false,
     loading: true,
     errorMsg: ``,
     web3: null,
@@ -30,12 +32,22 @@ export default class Web3Container extends React.Component {
     networkId: null
   };
 
-  async componentDidMount() {
-    const web3 = await getWeb3();
+  async componentWillReceiveProps(nextProps) {
+    if (nextProps.getWeb3) {
+      this.setState({ loading: true, errorMsg: `` });
+      await this.loadWeb3(nextProps.providerName);
+    }
+  }
+
+  loadWeb3 = async providerName => {
+    const web3 = await getWeb3(providerName);
+    this.props.web3Received();
+
     if (!web3) {
-      this.setState({ loading: false, errorMsg: `` });
+      this.setState({ web3: null, loading: false, errorMsg: `` });
       return;
     }
+
     const networkId = await getNetworkId(web3);
 
     // Known networks we actively support should be set here.
@@ -47,49 +59,76 @@ export default class Web3Container extends React.Component {
     const displayNetworkError = () => {
       if (activeNetworkIds[networkId]) {
         this.setState({
+          web3: null,
           loading: false,
           errorMsg: `We are temporarily unable to connect to ${
             activeNetworkIds[networkId]
           }. Please try again later.`
         });
-      } else {
+      } else if (providerName === `MetaMask`) {
         this.setState({
+          web3: null,
           loading: false,
           errorMsg: `You may be on the wrong network. Please check that MetaMask is set to Ropsten Test Network.`
+        });
+      } else {
+        this.setState({
+          web3: null,
+          loading: false,
+          errorMsg: `You may be on the wrong network. Please refresh your browser and try again.`
         });
       }
     };
 
     const b0x = new B0xJS(web3.currentProvider, { networkId });
+    b0x.portalProviderName = providerName; // setting custom field
+
     const zeroEx = new ZeroEx(web3.currentProvider, {
       networkId,
       tokenRegistryContractAddress: b0x.addresses.TokenRegistry
     });
 
     // Get accounts
-    const accounts = await web3.eth.getAccounts();
-    if (!accounts[0]) {
-      // alert(`Please unlock your MetaMask account, and then refresh the page.`);
-      this.setState({
-        loading: false,
-        errorMsg: `Please unlock your MetaMask account.`
-      });
-      setInterval(async () => {
-        if ((await web3.eth.getAccounts())[0]) {
-          window.location.reload();
+    let accounts;
+    try {
+      accounts = await web3.eth.getAccounts();
+      if (!accounts[0]) {
+        if (providerName === `MetaMask`) {
+          this.setState({
+            web3: null,
+            loading: false,
+            errorMsg: `Please unlock your MetaMask account.`
+          });
+          setInterval(async () => {
+            if ((await web3.eth.getAccounts())[0]) {
+              window.location.reload();
+            }
+          }, 500);
+        } else {
+          this.setState({
+            web3: null,
+            loading: false,
+            errorMsg: `We are having trouble accessing your account. Please refresh your browser and try again.`
+          });
         }
-      }, 500);
 
+        return;
+      }
+    } catch (e) {
+      console.log(e);
+      this.setState({ web3: null, loading: false, errorMsg: `` });
       return;
     }
 
-    // Watch for account change
-    const account = accounts[0];
-    setInterval(async () => {
-      if ((await web3.eth.getAccounts())[0] !== account) {
-        window.location.reload();
-      }
-    }, 500);
+    if (providerName === `MetaMask`) {
+      // Watch for account change
+      const account = accounts[0];
+      setInterval(async () => {
+        if ((await web3.eth.getAccounts())[0] !== account) {
+          window.location.reload();
+        }
+      }, 500);
+    }
 
     // Get oracles
     let oracles;
@@ -100,9 +139,6 @@ export default class Web3Container extends React.Component {
         return;
       }
     } catch (err) {
-      /* alert(
-        `You may be on the wrong network. Please check that MetaMask is set to Ropsten Test Network.`
-      ); */
       console.error(err);
       displayNetworkError();
       return;
@@ -117,9 +153,6 @@ export default class Web3Container extends React.Component {
         return;
       }
     } catch (err) {
-      /* alert(
-        `You may be on the wrong network. Please check that MetaMask is set to Ropsten Test Network.`
-      ); */
       console.error(err);
       displayNetworkError();
       return;
@@ -136,10 +169,18 @@ export default class Web3Container extends React.Component {
       oracles,
       networkId
     });
-  }
+  };
+
+  toggleDialog = event => {
+    event.preventDefault();
+    this.setState(p => ({
+      hideChooseProviderDialog: !p.hideChooseProviderDialog
+    }));
+  };
 
   render() {
     const {
+      hideChooseProviderDialog,
       loading,
       errorMsg,
       web3,
@@ -150,16 +191,45 @@ export default class Web3Container extends React.Component {
       oracles,
       networkId
     } = this.state;
-    const { render } = this.props;
+    const { render, providerName, setProvider, clearProvider } = this.props;
+    if (!providerName) {
+      if (hideChooseProviderDialog) {
+        return (
+          <LoadingContainer style={{ display: `inline-block` }}>
+            Please{` `}
+            <a
+              style={{ textDecoration: `none`, display: `inherit` }}
+              href=""
+              onClick={this.toggleDialog}
+            >
+              <div style={{ color: `red` }}>choose</div>
+            </a>
+            {` `}a Web3 provider.
+          </LoadingContainer>
+        );
+      }
+      return (
+        <ChooseProviderDialog
+          open
+          close={this.toggleDialog}
+          setProvider={setProvider}
+        />
+      );
+    }
     if (loading) {
-      return <LoadingContainer>Loading Web3...</LoadingContainer>;
+      return (
+        <LoadingContainer>Connecting to {providerName}...</LoadingContainer>
+      );
     } else if (errorMsg) {
       return <LoadingContainer>{errorMsg}</LoadingContainer>;
     }
     return web3 ? (
       render({ web3, zeroEx, tokens, b0x, accounts, oracles, networkId })
     ) : (
-      <GetMetaMask />
+      <NoProviderMessage
+        providerName={providerName}
+        clearProvider={clearProvider}
+      />
     );
   }
 }

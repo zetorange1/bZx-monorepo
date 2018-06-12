@@ -40,11 +40,11 @@ const Content = styled.div`
   align-items: center;
 `;
 
-const Nav = () => (
+const Nav = changeCard => (
   <div>
     <Container>
       <Content>
-        <NavContent />
+        <NavContent changeCard={changeCard} />
       </Content>
     </Container>
   </div>

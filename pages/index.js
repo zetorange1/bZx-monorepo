@@ -1,11 +1,307 @@
-import React from "react";
-import Router from "next/router";
+import { Fragment } from "react";
+import withRoot from "../lib/material-ui/withRoot";
+import Layout from "../src/common/Layout";
+import {
+  Card,
+  Header,
+  HeaderTitle,
+  HeaderData,
+  TabGroup,
+  Tab,
+  Content,
+  ContentContainer
+} from "../src/common/MainContent";
 
-export default class Index extends React.Component {
-  componentDidMount() {
-    Router.push(`/balances`);
-  }
-  render() {
+import Balances from "../src/balances";
+
+import GenerateOrder from "../src/orders/GenerateOrder";
+import FillOrder from "../src/orders/FillOrder";
+import OrderHistory from "../src/orders/OrderHistory";
+
+import Borrowing from "../src/borrowing";
+
+import Lending from "../src/lending";
+
+import Bounties from "../src/bounties";
+
+import Web3Container from "../src/web3/Web3Container";
+import NetworkIndicator from "../src/common/NetworkIndicator";
+import { Divider } from "../src/common/FormSection";
+import { getTrackedTokens } from "../src/common/trackedTokens";
+
+const TABS = [
+  { id: `Orders_GenOrder`, label: `Generate Order` },
+  { id: `Orders_FillOrder`, label: `Fill Order` },
+  { id: `Orders_OrderHistory`, label: `Order History` }
+];
+
+class Index extends React.Component {
+  state = {
+    activeCard: `Balances`,
+    activeTab: `Orders_GenOrder`,
+    trackedTokens: [],
+    providerName: ``,
+    getWeb3: false
+  };
+
+  setProvider = provider => {
+    switch (provider) {
+      case `MetaMask`:
+      case `Ledger`:
+        this.setState({ providerName: provider, getWeb3: true });
+        break;
+      case `Trezor`:
+      default:
+        this.setState({ providerName: ``, getWeb3: false });
+        break;
+    }
+  };
+
+  changeCard = cardId => this.setState({ activeCard: cardId });
+  changeTab = tabId => this.setState({ activeTab: tabId });
+
+  web3Received = () => this.setState({ getWeb3: false });
+
+  clearProvider = () => {
+    this.setProvider(null);
+  };
+
+  updateTrackedTokens = tokens => hardRefresh => {
+    if (hardRefresh) {
+      this.setState({ trackedTokens: [] }, () =>
+        this.setState({
+          trackedTokens: getTrackedTokens(tokens)
+        })
+      );
+    } else {
+      this.setState({
+        trackedTokens: getTrackedTokens(tokens)
+      });
+    }
+  };
+
+  headerSection = cardId => {
+    switch (cardId) {
+      case `Balances`:
+        return (
+          <Fragment>
+            <HeaderTitle>Balances</HeaderTitle>
+            <HeaderData />
+          </Fragment>
+        );
+        break; // eslint-disable-line no-unreachable
+      case `Orders`:
+        return (
+          <Fragment>
+            <HeaderTitle>Orders</HeaderTitle>
+            <HeaderData />
+            <TabGroup>
+              {TABS.map(tab => (
+                <Tab
+                  key={tab.id}
+                  active={this.state.activeTab === tab.id}
+                  onClick={() => this.changeTab(tab.id)}
+                >
+                  {tab.label}
+                </Tab>
+              ))}
+            </TabGroup>
+          </Fragment>
+        );
+        break; // eslint-disable-line no-unreachable
+      case `Borrowing`:
+        return (
+          <Fragment>
+            <HeaderTitle>Borrowing</HeaderTitle>
+            <HeaderData />
+          </Fragment>
+        );
+        break; // eslint-disable-line no-unreachable
+      case `Lending`:
+        return (
+          <Fragment>
+            <HeaderTitle>Lending</HeaderTitle>
+            <HeaderData />
+          </Fragment>
+        );
+        break; // eslint-disable-line no-unreachable
+      case `Bounties`:
+        return (
+          <Fragment>
+            <HeaderTitle>Bounties</HeaderTitle>
+            <HeaderData />
+          </Fragment>
+        );
+        break; // eslint-disable-line no-unreachable
+      default:
+        break;
+    }
     return null;
+  };
+
+  contentSection = (
+    { web3, zeroEx, tokens, b0x, accounts, oracles, networkId },
+    cardId
+  ) => {
+    switch (cardId) {
+      case `Balances`:
+        return (
+          <Fragment>
+            <NetworkIndicator
+              networkId={networkId}
+              accounts={accounts}
+              etherscanURL={b0x.etherscanURL}
+              providerName={this.state.providerName}
+              clearProvider={this.clearProvider}
+            />
+            <Balances
+              b0x={b0x}
+              web3={web3}
+              accounts={accounts}
+              tokens={tokens}
+              trackedTokens={this.state.trackedTokens}
+              updateTrackedTokens={this.updateTrackedTokens(tokens)}
+            />
+          </Fragment>
+        );
+        break; // eslint-disable-line no-unreachable
+      case `Orders`:
+        return (
+          <Fragment>
+            <NetworkIndicator
+              networkId={networkId}
+              accounts={accounts}
+              etherscanURL={b0x.etherscanURL}
+              providerName={this.state.providerName}
+              clearProvider={this.clearProvider}
+            />
+            <ContentContainer show={this.state.activeTab === `Orders_GenOrder`}>
+              <GenerateOrder
+                tokens={tokens}
+                b0x={b0x}
+                accounts={accounts}
+                web3={web3}
+                oracles={oracles}
+              />
+            </ContentContainer>
+            <ContentContainer
+              show={this.state.activeTab === `Orders_FillOrder`}
+            >
+              <FillOrder
+                tokens={tokens}
+                oracles={oracles}
+                b0x={b0x}
+                accounts={accounts}
+              />
+            </ContentContainer>
+            <ContentContainer
+              show={this.state.activeTab === `Orders_OrderHistory`}
+            >
+              <OrderHistory b0x={b0x} accounts={accounts} tokens={tokens} />
+            </ContentContainer>
+          </Fragment>
+        );
+        break; // eslint-disable-line no-unreachable
+      case `Borrowing`:
+        return (
+          <Fragment>
+            <NetworkIndicator
+              networkId={networkId}
+              accounts={accounts}
+              etherscanURL={b0x.etherscanURL}
+              providerName={this.state.providerName}
+              clearProvider={this.clearProvider}
+            />
+            <Borrowing
+              b0x={b0x}
+              web3={web3}
+              accounts={accounts}
+              tokens={tokens}
+              trackedTokens={this.state.trackedTokens}
+              updateTrackedTokens={this.updateTrackedTokens(tokens)}
+            />
+          </Fragment>
+        );
+        break; // eslint-disable-line no-unreachable
+      case `Lending`:
+        return (
+          <Fragment>
+            <NetworkIndicator
+              networkId={networkId}
+              accounts={accounts}
+              etherscanURL={b0x.etherscanURL}
+              providerName={this.state.providerName}
+              clearProvider={this.clearProvider}
+            />
+            <p>Manage active loans and view past loans.</p>
+            <Divider />
+            <Lending
+              web3={web3}
+              zeroEx={zeroEx}
+              b0x={b0x}
+              accounts={accounts}
+              tokens={tokens}
+            />
+          </Fragment>
+        );
+        break; // eslint-disable-line no-unreachable
+      case `Bounties`:
+        return (
+          <Fragment>
+            <NetworkIndicator
+              networkId={networkId}
+              accounts={accounts}
+              etherscanURL={b0x.etherscanURL}
+            />
+            <p>
+              Make margin calls and earn bounty rewards.<br />
+              If a margin account is under margin maintenance, it needs to be
+              liquidated.
+            </p>
+            <Divider />
+            <Bounties
+              web3={web3}
+              zeroEx={zeroEx}
+              b0x={b0x}
+              accounts={accounts}
+              tokens={tokens}
+            />
+          </Fragment>
+        );
+        break; // eslint-disable-line no-unreachable
+      default:
+        break;
+    }
+    return null;
+  };
+
+  render() {
+    const {
+      activeCard,
+      // activeTab,
+      // trackedTokens,
+      providerName,
+      getWeb3
+    } = this.state;
+    return (
+      <Layout changeCard={this.changeCard}>
+        <Card>
+          <Header>{this.headerSection(activeCard)}</Header>
+          <Content>
+            <Web3Container
+              // eslint-disable-next-line
+              render={({ web3, zeroEx, tokens, b0x, accounts, oracles, networkId }) => this.contentSection({ providerName, web3, zeroEx, tokens, b0x, accounts, oracles, networkId },activeCard)}
+              providerName={providerName}
+              setProvider={this.setProvider}
+              clearProvider={this.clearProvider}
+              getWeb3={getWeb3}
+              web3Received={this.web3Received}
+            />
+          </Content>
+        </Card>
+      </Layout>
+    );
   }
 }
+
+export default withRoot(Index);

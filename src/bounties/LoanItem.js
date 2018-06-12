@@ -120,6 +120,9 @@ export default class LoanItem extends React.Component {
       gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
 
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
     b0x
       .liquidateLoan({
         loanOrderHash,

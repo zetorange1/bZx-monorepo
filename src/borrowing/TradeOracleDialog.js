@@ -66,6 +66,10 @@ export default class TradeOracleDialog extends React.Component {
       tradeTokenAddress: tokenAddress,
       txOpts
     });
+
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
     await b0x
       .tradePositionWithOracle({
         orderHash: loanOrderHash,

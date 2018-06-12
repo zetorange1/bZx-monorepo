@@ -132,6 +132,9 @@ export default class TrackedTokenItems extends React.Component {
   sendTokens = async () => {
     const { b0x, token, accounts, updateTrackedTokens } = this.props;
     const { recipientAddress, sendAmount } = this.state;
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
     b0x
       .transferToken({
         tokenAddress: token.address,
@@ -150,6 +153,9 @@ export default class TrackedTokenItems extends React.Component {
       })
       .on(`error`, error => {
         console.error(error.message);
+        if (error.message.includes(`Condition of use not satisfied`)) {
+          alert();
+        }
       });
     this.setState({ showSendDialog: false });
     setTimeout(() => updateTrackedTokens(true), 5000);
@@ -159,6 +165,9 @@ export default class TrackedTokenItems extends React.Component {
     const { b0x, token, accounts, updateTrackedTokens } = this.props;
     console.log(`requesting token from testnet faucet`);
     console.log(token);
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
     b0x
       .requestFaucetToken({
         tokenAddress: token.address,
@@ -176,6 +185,9 @@ export default class TrackedTokenItems extends React.Component {
       })
       .on(`error`, error => {
         console.error(error.message);
+        if (error.message.includes(`Condition of use not satisfied`)) {
+          alert();
+        }
       });
     this.setState({ showRequestDialog: false });
     setTimeout(() => updateTrackedTokens(true), 5000);
@@ -191,6 +203,9 @@ export default class TrackedTokenItems extends React.Component {
     console.log(`approving allowance`);
     console.log(token.name, token.address);
     this.setState({ approvalLoading: true });
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
     await b0x
       .setAllowanceUnlimited({
         tokenAddress: token.address,
@@ -207,6 +222,9 @@ export default class TrackedTokenItems extends React.Component {
       })
       .on(`error`, error => {
         console.error(error.message);
+        if (error.message.includes(`Condition of use not satisfied`)) {
+          alert();
+        }
         this.setState({ approvalLoading: false });
       });
     setTimeout(() => this.checkAllowance(), 5000);
@@ -217,6 +235,9 @@ export default class TrackedTokenItems extends React.Component {
     console.log(`unapproving allowance`);
     console.log(token.name, token.address);
     this.setState({ approvalLoading: true });
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
     await b0x
       .resetAllowance({
         tokenAddress: token.address,
@@ -233,6 +254,9 @@ export default class TrackedTokenItems extends React.Component {
       })
       .on(`error`, error => {
         console.error(error.message);
+        if (error.message.includes(`Condition of use not satisfied`)) {
+          alert();
+        }
         this.setState({ approvalLoading: false });
       });
     setTimeout(() => this.checkAllowance(), 5000);
