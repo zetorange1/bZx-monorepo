@@ -36,8 +36,8 @@
     "lodash": "^4.17.4",
     "moment": "^2.20.1",
     "ramda": "^0.25.0",
-    "web3": "^1.0.0-beta.30",
-    "web3-utils": "^1.0.0-beta.33",
+    "web3": "^1.0.0-beta.34",
+    "web3-utils": "^1.0.0-beta.34",
     "ziptool": "^1.0.2"
   },
   "devDependencies": {
