@@ -1,4 +1,4 @@
-/* global window */
+// /* global window */
 import styled from "styled-components";
 import { ZeroEx } from "0x.js";
 import B0xJS from "b0x.js"; // eslint-disable-line
@@ -99,9 +99,12 @@ export default class Web3Container extends React.Component {
             loading: false,
             errorMsg: `Please unlock your MetaMask account.`
           });
-          setInterval(async () => {
+          const interval = setInterval(async () => {
             if ((await web3.eth.getAccounts())[0]) {
-              window.location.reload();
+              // window.location.reload();
+              this.setState({ web3: null, loading: true, errorMsg: `` });
+              this.loadWeb3(providerName);
+              clearInterval(interval);
             }
           }, 500);
         } else {
@@ -114,6 +117,7 @@ export default class Web3Container extends React.Component {
 
         return;
       }
+      console.log(`Accounts: ${accounts}`);
     } catch (e) {
       console.log(e);
       this.setState({ web3: null, loading: false, errorMsg: `` });
@@ -123,9 +127,12 @@ export default class Web3Container extends React.Component {
     if (providerName === `MetaMask`) {
       // Watch for account change
       const account = accounts[0];
-      setInterval(async () => {
+      const interval = setInterval(async () => {
         if ((await web3.eth.getAccounts())[0] !== account) {
-          window.location.reload();
+          // window.location.reload();
+          this.setState({ web3: null, loading: true, errorMsg: `` });
+          this.loadWeb3(providerName);
+          clearInterval(interval);
         }
       }, 500);
     }

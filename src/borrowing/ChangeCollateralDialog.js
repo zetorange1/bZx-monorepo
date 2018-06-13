@@ -81,6 +81,7 @@ export default class ChangeCollateralDialog extends React.Component {
             </TxHashLink>
           )
         });
+        setTimeout(() => this.checkAllowance(), 5000);
       })
       .on(`error`, error => {
         console.error(error.message);
@@ -88,7 +89,6 @@ export default class ChangeCollateralDialog extends React.Component {
           alert();
         }
       });
-    setTimeout(() => this.checkAllowance(), 5000);
   };
 
   executeChange = async () => {

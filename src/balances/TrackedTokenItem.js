@@ -219,6 +219,7 @@ export default class TrackedTokenItems extends React.Component {
             </TxHashLink>
           )
         });
+        setTimeout(() => this.checkAllowance(), 5000);
       })
       .on(`error`, error => {
         console.error(error.message);
@@ -227,7 +228,6 @@ export default class TrackedTokenItems extends React.Component {
         }
         this.setState({ approvalLoading: false });
       });
-    setTimeout(() => this.checkAllowance(), 5000);
   };
 
   unapprove = async () => {
@@ -251,6 +251,7 @@ export default class TrackedTokenItems extends React.Component {
             </TxHashLink>
           )
         });
+        setTimeout(() => this.checkAllowance(), 5000);
       })
       .on(`error`, error => {
         console.error(error.message);
@@ -259,7 +260,6 @@ export default class TrackedTokenItems extends React.Component {
         }
         this.setState({ approvalLoading: false });
       });
-    setTimeout(() => this.checkAllowance(), 5000);
   };
 
   renderAllowance = () => {
@@ -347,8 +347,8 @@ export default class TrackedTokenItems extends React.Component {
           <DialogTitle>Send {name}</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              This will trigger a request to send your tokens to another
-              account. You will have to approve this action on MetaMask.
+              This token will be sent to another account. Please specify the
+              recipient address and amount to send.
             </DialogContentText>
             <TextField
               autoFocus

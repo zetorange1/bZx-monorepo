@@ -61,11 +61,23 @@ export const addNetworkId = async (order, web3) => {
 };
 
 export const signOrder = async (orderHash, accounts, b0x) => {
-  const signature = await b0x.signOrderHashAsync(
-    orderHash,
-    accounts[0].toLowerCase(),
-    true
-  );
+  if (b0x.portalProviderName !== `MetaMask`) {
+    alert(`Please confirm this action on your device.`);
+  }
+  let signature;
+  try {
+    signature = await b0x.signOrderHashAsync(
+      orderHash,
+      accounts[0].toLowerCase(),
+      b0x.portalProviderName === `MetaMask`
+    );
+  } catch (e) {
+    console.error(e.message);
+    alert(`Unable to sign this order. Please try again.`);
+    return null;
+  }
+  alert();
+
   const isValidSignature = B0xJS.isValidSignature({
     account: accounts[0].toLowerCase(),
     orderHash,
