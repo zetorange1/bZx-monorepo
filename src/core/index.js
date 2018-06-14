@@ -16,6 +16,7 @@ import * as Errors from "./constants/errors";
 import * as trade from "../trade";
 import * as loanHealth from "../loanHealth";
 import * as bounty from "../bounty";
+import * as weth from "../weth";
 
 let Web3 = null;
 if (typeof window !== "undefined") {
@@ -157,4 +158,7 @@ export default class B0xJS {
   getActiveLoans = (...props) => bounty.getActiveLoans(this, ...props);
   getMarginLevels = (...props) => bounty.getMarginLevels(this, ...props);
   liquidateLoan = (...props) => bounty.liquidateLoan(this, ...props);
+
+  wrapEth = (...props) => weth.wrapEth(this, ...props);
+  unwrapEth = (...props) => weth.unwrapEth(this, ...props);
 }
