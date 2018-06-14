@@ -14,7 +14,11 @@ export default class Balances extends React.Component {
   render() {
     return (
       <div>
-        <Ether web3={this.props.web3} accounts={this.props.accounts} />
+        <Ether
+          web3={this.props.web3}
+          b0x={this.props.b0x}
+          accounts={this.props.accounts}
+        />
         <Divider />
         <TrackedTokens
           tokens={this.props.tokens}

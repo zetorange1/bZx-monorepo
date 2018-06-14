@@ -130,8 +130,14 @@ export default class TrackedTokenItems extends React.Component {
     this.setState(p => ({ showRequestDialog: !p.showRequestDialog }));
 
   sendTokens = async () => {
-    const { b0x, token, accounts, updateTrackedTokens } = this.props;
+    const { web3, b0x, token, accounts, updateTrackedTokens } = this.props;
     const { recipientAddress, sendAmount } = this.state;
+    const txOpts = {
+      from: accounts[0],
+      gas: 100000,
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+    };
+
     if (b0x.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
@@ -140,7 +146,7 @@ export default class TrackedTokenItems extends React.Component {
         tokenAddress: token.address,
         to: recipientAddress.toLowerCase(),
         amount: toBigNumber(sendAmount, 1e18),
-        txOpts: { from: accounts[0] }
+        txOpts
       })
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
@@ -153,7 +159,10 @@ export default class TrackedTokenItems extends React.Component {
       })
       .on(`error`, error => {
         console.error(error.message);
-        if (error.message.includes(`Condition of use not satisfied`)) {
+        if (
+          error.message.includes(`Condition of use not satisfied`) ||
+          error.message.includes(`Invalid status`)
+        ) {
           alert();
         }
       });
@@ -162,7 +171,13 @@ export default class TrackedTokenItems extends React.Component {
   };
 
   requestToken = async () => {
-    const { b0x, token, accounts, updateTrackedTokens } = this.props;
+    const { web3, b0x, token, accounts, updateTrackedTokens } = this.props;
+    const txOpts = {
+      from: accounts[0],
+      gas: 100000,
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+    };
+
     console.log(`requesting token from testnet faucet`);
     console.log(token);
     if (b0x.portalProviderName !== `MetaMask`) {
@@ -172,7 +187,7 @@ export default class TrackedTokenItems extends React.Component {
       .requestFaucetToken({
         tokenAddress: token.address,
         receiverAddress: accounts[0],
-        txOpts: { from: accounts[0] }
+        txOpts
       })
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
@@ -185,7 +200,10 @@ export default class TrackedTokenItems extends React.Component {
       })
       .on(`error`, error => {
         console.error(error.message);
-        if (error.message.includes(`Condition of use not satisfied`)) {
+        if (
+          error.message.includes(`Condition of use not satisfied`) ||
+          error.message.includes(`Invalid status`)
+        ) {
           alert();
         }
       });
@@ -223,7 +241,10 @@ export default class TrackedTokenItems extends React.Component {
       })
       .on(`error`, error => {
         console.error(error.message);
-        if (error.message.includes(`Condition of use not satisfied`)) {
+        if (
+          error.message.includes(`Condition of use not satisfied`) ||
+          error.message.includes(`Invalid status`)
+        ) {
           alert();
         }
         this.setState({ approvalLoading: false });
@@ -255,7 +276,10 @@ export default class TrackedTokenItems extends React.Component {
       })
       .on(`error`, error => {
         console.error(error.message);
-        if (error.message.includes(`Condition of use not satisfied`)) {
+        if (
+          error.message.includes(`Condition of use not satisfied`) ||
+          error.message.includes(`Invalid status`)
+        ) {
           alert();
         }
         this.setState({ approvalLoading: false });

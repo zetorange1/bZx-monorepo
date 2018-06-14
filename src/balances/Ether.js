@@ -1,5 +1,15 @@
 import styled from "styled-components";
+import Button from "material-ui/Button";
+import Input, { InputLabel, InputAdornment } from "material-ui/Input";
+import { FormControl } from "material-ui/Form";
+import Dialog, {
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle
+} from "material-ui/Dialog";
 import Section, { SectionLabel } from "../common/FormSection";
+import { toBigNumber } from "../common/utils";
 
 const Container = styled.div`
   width: 100%;
@@ -17,14 +27,132 @@ const StyledDiv = styled.div`
   margin-bottom: 0.35em;
 `;
 
+const ButtonGroup = styled.div`
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+
+  & > *:first-child {
+    margin-right: 12px;
+  }
+`;
+
+const TxHashLink = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  font-family: monospace;
+  display: block;
+  text-overflow: ellipsis;
+  overflow: auto;
+}
+`;
+
 export default class Ether extends React.Component {
-  state = { ethBalance: null };
+  state = {
+    ethBalance: null,
+    showWrapDialog: false,
+    showUnWrapDialog: false,
+    wrapAmount: ``
+  };
 
   async componentDidMount() {
     const { web3, accounts } = this.props;
     const balanceInWei = await web3.eth.getBalance(accounts[0]);
     this.setState({ ethBalance: balanceInWei / 1e18 });
   }
+
+  setWrapAmount = e => this.setState({ wrapAmount: e.target.value });
+
+  toggleWrapDialog = () =>
+    this.setState(p => ({ showWrapDialog: !p.showWrapDialog }));
+
+  toggleUnWrapDialog = () =>
+    this.setState(p => ({ showUnWrapDialog: !p.showUnWrapDialog }));
+
+  wrapEth = async () => {
+    const { web3, b0x, accounts } = this.props;
+    const { wrapAmount } = this.state;
+    const txOpts = {
+      from: accounts[0],
+      gas: 100000,
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+    };
+
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
+    b0x
+      .wrapEth({
+        amount: toBigNumber(wrapAmount, 1e18),
+        txOpts
+      })
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        console.error(error.message);
+        if (
+          error.message.includes(`Condition of use not satisfied`) ||
+          error.message.includes(`Invalid status`)
+        ) {
+          alert();
+        }
+      });
+    this.setState({ wrapAmount: ``, showWrapDialog: false });
+    setTimeout(async () => {
+      const balanceInWei = await web3.eth.getBalance(accounts[0]);
+      this.setState({ ethBalance: balanceInWei / 1e18 });
+    }, 5000);
+  };
+
+  unwrapEth = async () => {
+    const { web3, b0x, accounts } = this.props;
+    const { wrapAmount } = this.state;
+    const txOpts = {
+      from: accounts[0],
+      gas: 100000,
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+    };
+
+    if (b0x.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
+    b0x
+      .unwrapEth({
+        amount: toBigNumber(wrapAmount, 1e18),
+        txOpts
+      })
+      .once(`transactionHash`, hash => {
+        alert(`Transaction submitted, transaction hash:`, {
+          component: () => (
+            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+              {hash}
+            </TxHashLink>
+          )
+        });
+      })
+      .on(`error`, error => {
+        console.error(error.message);
+        if (
+          error.message.includes(`Condition of use not satisfied`) ||
+          error.message.includes(`Invalid status`)
+        ) {
+          alert();
+        }
+      });
+    this.setState({ wrapAmount: ``, showUnWrapDialog: false });
+    setTimeout(async () => {
+      const balanceInWei = await web3.eth.getBalance(accounts[0]);
+      this.setState({ ethBalance: balanceInWei / 1e18 });
+    }, 5000);
+  };
 
   render() {
     const showEthBalance = this.state.ethBalance !== null;
@@ -54,16 +182,85 @@ export default class Ether extends React.Component {
             {` `}
             to trade on b0x.
           </StyledDiv>
+          <br />
           <StyledDiv>
-            In order to wrap your ETH, you can make use of the 0x Portal {` `}
-            <a
-              href="https://0xproject.com/portal/weth"
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              ETH wrapper
-            </a>.
+            <ButtonGroup>
+              <Button
+                variant="raised"
+                color="primary"
+                onClick={this.toggleWrapDialog}
+                style={{ marginLeft: `12px` }}
+              >
+                Wrap ETH
+              </Button>
+              <Button
+                variant="raised"
+                color="primary"
+                onClick={this.toggleUnWrapDialog}
+                style={{ marginLeft: `12px` }}
+              >
+                UnWrap ETH
+              </Button>
+            </ButtonGroup>
           </StyledDiv>
+          <Dialog
+            open={this.state.showWrapDialog}
+            onClose={this.toggleWrapDialog}
+          >
+            <DialogTitle>Wrap Ether</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                This will wrap ETH into the WETH token. Please specify the the
+                amount of Ether you want to wrap.
+              </DialogContentText>
+              <FormControl fullWidth>
+                <InputLabel>Wrap Amount</InputLabel>
+                <Input
+                  value={this.state.wrapAmount}
+                  type="number"
+                  onChange={this.setWrapAmount}
+                  endAdornment={
+                    <InputAdornment position="end">ETH</InputAdornment>
+                  }
+                />
+              </FormControl>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={this.toggleWrapDialog}>Cancel</Button>
+              <Button onClick={this.wrapEth} color="primary">
+                Wrap
+              </Button>
+            </DialogActions>
+          </Dialog>
+          <Dialog
+            open={this.state.showUnWrapDialog}
+            onClose={this.toggleUnWrapDialog}
+          >
+            <DialogTitle>Unwrap ETH</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                This will unwrap ETH from the WETH token. Please specify the the
+                amount of WETH you want to unwrap.
+              </DialogContentText>
+              <FormControl fullWidth>
+                <InputLabel>Unwrap Amount</InputLabel>
+                <Input
+                  value={this.state.wrapAmount}
+                  type="number"
+                  onChange={this.setWrapAmount}
+                  endAdornment={
+                    <InputAdornment position="end">WETH</InputAdornment>
+                  }
+                />
+              </FormControl>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={this.toggleUnWrapDialog}>Cancel</Button>
+              <Button onClick={this.unwrapEth} color="primary">
+                Unwrap
+              </Button>
+            </DialogActions>
+          </Dialog>
         </Container>
       </Section>
     );

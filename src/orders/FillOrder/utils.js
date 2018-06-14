@@ -165,7 +165,10 @@ export const submitFillOrder = async (
       })
       .on(`error`, error => {
         console.error(error.message);
-        if (error.message.includes(`Condition of use not satisfied`)) {
+        if (
+          error.message.includes(`Condition of use not satisfied`) ||
+          error.message.includes(`Invalid status`)
+        ) {
           alert();
         }
       });
@@ -188,7 +191,10 @@ export const submitFillOrder = async (
       })
       .on(`error`, error => {
         console.error(error.message);
-        if (error.message.includes(`Condition of use not satisfied`)) {
+        if (
+          error.message.includes(`Condition of use not satisfied`) ||
+          error.message.includes(`Invalid status`)
+        ) {
           alert();
         }
       });
