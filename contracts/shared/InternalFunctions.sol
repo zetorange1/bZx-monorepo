@@ -2,10 +2,11 @@
 
 pragma solidity ^0.4.24;
 
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
-import '../modules/B0xStorage.sol';
-import '../B0xVault.sol';
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../modules/B0xStorage.sol";
+import "../B0xVault.sol";
 import "../oracle/Oracle_Interface.sol";
+
 
 contract InternalFunctions is B0xStorage {
     using SafeMath for uint256;
@@ -251,7 +252,7 @@ contract InternalFunctions is B0xStorage {
             loanPosition.positionTokenAddressFilled,
             loanOrder.oracleAddress,
             loanPosition.positionTokenAmountFilled)) {
-            return intOrRevert(0,1441); // revert("InternalFunctions::_tradePositionWithOracle: B0xVault.withdrawToken failed");
+            return intOrRevert(0, 1441); // revert("InternalFunctions::_tradePositionWithOracle: B0xVault.withdrawToken failed");
         }
 
         uint tradeTokenAmountReceived;

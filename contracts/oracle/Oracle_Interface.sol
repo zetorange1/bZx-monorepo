@@ -1,6 +1,7 @@
 
 pragma solidity ^0.4.24;
 
+
 /**
     @title Oracle_Interface, an interface for b0x compatible oracle contracts
 
@@ -19,6 +20,7 @@ pragma solidity ^0.4.24;
 
     !!! Safeguard of user funds should be of the utmost importance !!!
  */
+// solhint-disable-next-line contract-name-camelcase
 interface Oracle_Interface {
 
     /// @dev Called by b0x after a loan order is taken

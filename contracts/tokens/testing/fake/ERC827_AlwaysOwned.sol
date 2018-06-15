@@ -1,7 +1,7 @@
 
 pragma solidity ^0.4.24;
 
-import './ERC20_AlwaysOwned.sol';
+import "./ERC20_AlwaysOwned.sol";
 
 
 /**

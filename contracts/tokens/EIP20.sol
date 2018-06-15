@@ -1,7 +1,8 @@
 
 pragma solidity ^0.4.24;
 
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+
 
 /**
  * @title EIP20/ERC20 interface
@@ -14,6 +15,6 @@ contract EIP20 is ERC20 {
 }
 
 // Testing only! Please remove below and use above for non-dev environments!
-//import './testing/fake/ERC827_AlwaysOwned.sol';
+//import "./testing/fake/ERC827_AlwaysOwned.sol";
 //contract EIP20 is ERC827_AlwaysOwned {}
 

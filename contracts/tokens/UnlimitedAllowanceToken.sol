@@ -18,7 +18,8 @@
 
 pragma solidity ^0.4.24;
 
-import 'openzeppelin-solidity/contracts/token/ERC827/ERC827Token.sol';
+import "openzeppelin-solidity/contracts/token/ERC827/ERC827Token.sol";
+
 
 contract UnlimitedAllowanceToken is ERC827Token {
 

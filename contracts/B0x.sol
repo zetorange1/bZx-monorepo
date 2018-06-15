@@ -1,7 +1,7 @@
 
 pragma solidity ^0.4.24;
 
-import './modules/B0xStorage.sol';
+import "./modules/B0xStorage.sol";
 
 // This interface is meant to used with the deployed B0xProxy contract (modules/B0xProxyContracts.sol) address.
 // js example: var b0x = await B0x.at((await B0xProxy.deployed()).address);

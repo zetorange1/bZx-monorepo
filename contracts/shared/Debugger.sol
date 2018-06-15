@@ -1,8 +1,9 @@
 
 pragma solidity ^0.4.24;
 
+
 contract Debugger {
-    
+// solhint-disable-next-line var-name-mixedcase
     bool public DEBUG_MODE = false;
     
     event DebugLine(uint lineNumber);

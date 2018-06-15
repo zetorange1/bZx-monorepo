@@ -1,12 +1,12 @@
 
 pragma solidity ^0.4.24;
 
-import '../BaseToken.sol';
+import "../BaseToken.sol";
 
 // 1 billion tokens (18 decimal places)
 contract TestToken4 is BaseToken(
-	10**(50+18),
-	"TestToken4", 
-	18,
-	"TEST4"
+    10**(50+18),
+    "TestToken4", 
+    18,
+    "TEST4"
 ) {}

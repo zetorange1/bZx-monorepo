@@ -1,24 +1,28 @@
 
 pragma solidity ^0.4.24;
 
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-import '../modifiers/B0xOwnable.sol';
+import "../modifiers/B0xOwnable.sol";
 
-import '../modifiers/EMACollector.sol';
-import '../modifiers/GasRefunder.sol';
-import '../B0xVault.sol';
-import '../shared/Debugger.sol';
+import "../modifiers/EMACollector.sol";
+import "../modifiers/GasRefunder.sol";
+import "../B0xVault.sol";
+import "../shared/Debugger.sol";
 
-import '../tokens/EIP20.sol';
-import '../tokens/EIP20Wrapper.sol';
-import './Oracle_Interface.sol';
+import "../tokens/EIP20.sol";
+import "../tokens/EIP20Wrapper.sol";
+import "./Oracle_Interface.sol";
 
+
+// solhint-disable-next-line contract-name-camelcase
 interface WETH_Interface {
     function deposit() external payable;
     function withdraw(uint wad) external;
 }
 
+
+// solhint-disable-next-line contract-name-camelcase
 interface KyberNetwork_Interface {
     /// @notice use token address ETH_TOKEN_ADDRESS for ether
     function getExpectedRate(
@@ -53,6 +57,7 @@ interface KyberNetwork_Interface {
         returns(uint);
 }
 
+
 contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder, Debugger, B0xOwnable {
     using SafeMath for uint256;
 
@@ -84,11 +89,12 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
     uint public minMaintenanceMarginAmount = 25;
 
     bool public isManualTradingAllowed = true;
-
+/* solhint-disable var-name-mixedcase */
     address public VAULT_CONTRACT;
     address public KYBER_CONTRACT;
     address public WETH_CONTRACT;
     address public B0X_TOKEN_CONTRACT;
+/* solhint-enable var-name-mixedcase */
 
     mapping (bytes32 => GasData[]) public gasRefunds; // // mapping of loanOrderHash to array of GasData
 
@@ -115,7 +121,6 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
     }
 
     // standard functions
-
     function didTakeOrder(
         bytes32 loanOrderHash,
         address taker,
@@ -169,7 +174,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
             interestTokenAddress,
             lender,
             amountOwed.sub(interestFee))) {
-            return boolOrRevert(false,170); // revert("B0xOracle::didPayInterest: _transferToken failed");
+            return boolOrRevert(false, 170); // revert("B0xOracle::didPayInterest: _transferToken failed");
         }
 
         // TODO: Block withdrawal below a certain amount
@@ -353,7 +358,8 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
     {
         uint collateralTokenBalance = EIP20(collateralTokenAddress).balanceOf.gas(4999)(this); // Changes to state require at least 5000 gas
         if (collateralTokenBalance < collateralTokenAmountUsable) { // sanity check
-            voidOrRevert(354); return; // revert("B0xOracle::doTradeofCollateral: collateralTokenBalance < collateralTokenAmountUsable");
+            voidOrRevert(354);
+            return; // revert("B0xOracle::doTradeofCollateral: collateralTokenBalance < collateralTokenAmountUsable");
         }
 
         // TODO: If collateralTokenAddress is WETH, do just a single trade with funds combined with the insurance fund if needed
@@ -373,7 +379,8 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
                 collateralTokenAddress,
                 VAULT_CONTRACT,
                 collateralTokenAmountUsable.sub(collateralTokenAmountUsed))) {
-                voidOrRevert(374); return; // revert("B0xOracle::doTradeofCollateral: _transferToken failed");
+                voidOrRevert(374);
+                return; // revert("B0xOracle::doTradeofCollateral: _transferToken failed");
             }
         }
 
@@ -411,13 +418,15 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
         view
         returns (bool)
     {
-        return (getCurrentMarginAmount(
+        return (
+            getCurrentMarginAmount(
                 loanTokenAddress,
                 positionTokenAddress,
                 collateralTokenAddress,
                 loanTokenAmount,
                 positionTokenAmount,
-                collateralTokenAmount).div(maintenanceMarginAmount).div(10**16) <= (liquidationThresholdPercent));
+                collateralTokenAmount).div(maintenanceMarginAmount).div(10**16) <= (liquidationThresholdPercent)
+            );
     } 
 
     function isTradeSupported(
@@ -557,7 +566,6 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
     /*
     * Owner functions
     */
-
     function setInterestFeePercent(
         uint newRate) 
         public
@@ -700,7 +708,6 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
     /*
     * Internal functions
     */
-
     function _doTrade(
         address sourceTokenAddress,
         address destTokenAddress,
@@ -756,7 +763,7 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
                     destTokenAddress,
                     VAULT_CONTRACT,
                     destTokenAmount)) {
-                    return intOrRevert(0,757); // revert("B0xOracle::_doTrade: _transferToken failed");
+                    return intOrRevert(0, 757); // revert("B0xOracle::_doTrade: _transferToken failed");
                 }
             } else {
                 // re-up the Kyber spend approval if needed
