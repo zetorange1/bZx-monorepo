@@ -65,7 +65,13 @@ export default ({ expirationDate, setExpirationDate }) => (
         />
       </MuiPickersUtilsProvider>
       <FormHelperTextWithDetail component="div">
-        <Tooltip title="The time displayed is set to your local timezone.">
+        <Tooltip
+          title={
+            <div style={{ maxWidth: `300px` }}>
+              The time displayed is set to your local timezone.
+            </div>
+          }
+        >
           <MoreInfo>More Info</MoreInfo>
         </Tooltip>
         <RightJustified>

@@ -52,7 +52,14 @@ export default ({ oracleAddress, setOracleAddress, oracles, etherscanURL }) => (
           ))}
         </Select>
         <FormHelperTextWithDetail component="div">
-          <Tooltip title="The oracle contract that will handle asset price discovery and liquidation of positions.">
+          <Tooltip
+            title={
+              <div style={{ maxWidth: `240px` }}>
+                The oracle contract that will handle asset price discovery and
+                liquidation of positions.
+              </div>
+            }
+          >
             <MoreInfo>More Info</MoreInfo>
           </Tooltip>
           <RightJustified>

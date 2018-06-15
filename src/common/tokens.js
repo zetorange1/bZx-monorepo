@@ -54,3 +54,11 @@ export const getTokenInfoWithIcon = address => {
   }));
   return tokenArray.filter(token => token.address === address)[0];
 };
+
+export const getTokenBalance = async (b0x, tokenAddress, accounts) => {
+  const balance = await b0x.getBalance({
+    tokenAddress,
+    ownerAddress: accounts[0].toLowerCase()
+  });
+  return balance; // returns a BigNumber
+};

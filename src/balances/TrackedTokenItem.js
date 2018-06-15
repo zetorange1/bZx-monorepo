@@ -80,7 +80,7 @@ const TxHashLink = styled.a.attrs({
 }
 `;
 
-export default class TrackedTokenItems extends React.Component {
+export default class TrackedTokenItem extends React.Component {
   state = {
     showSendDialog: false,
     showRequestDialog: false,

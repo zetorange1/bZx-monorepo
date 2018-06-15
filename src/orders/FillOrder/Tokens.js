@@ -79,7 +79,13 @@ export default ({
     <Fragment>
       <Container>
         <TokenContainer>
-          <Tooltip title="This is the total amount being loaned or borrowed.">
+          <Tooltip
+            title={
+              <div style={{ maxWidth: `300px` }}>
+                This is the total amount being loaned or borrowed.
+              </div>
+            }
+          >
             <Title>Loan Token</Title>
           </Tooltip>
           <CoinInfo href={`${b0x.etherscanURL}/token/${loanToken.address}`}>
@@ -93,7 +99,13 @@ export default ({
           </Tooltip>
         </TokenContainer>
         <TokenContainer>
-          <Tooltip title="This is the interest amount, paid per day by the borrower.">
+          <Tooltip
+            title={
+              <div style={{ maxWidth: `300px` }}>
+                This is the interest amount, paid per day by the borrower.
+              </div>
+            }
+          >
             <Title>Interest Token</Title>
           </Tooltip>
           <CoinInfo href={`${b0x.etherscanURL}token/${interestToken.address}`}>
@@ -102,7 +114,7 @@ export default ({
           </CoinInfo>
           <Tooltip title={<TooltipText>{interestToken.address}</TooltipText>}>
             <CoinAmount>
-              {interestAmount} {interestToken.symbol}
+              {interestAmount} {interestToken.symbol} per day
             </CoinAmount>
           </Tooltip>
         </TokenContainer>
@@ -110,7 +122,7 @@ export default ({
           <TokenContainer>
             <Tooltip
               title={
-                <div style={{ maxWidth: `240px` }}>
+                <div style={{ maxWidth: `300px` }}>
                   This shows an estimated minimum amount of collateral token
                   required to satify the initial margin amount, based on current
                   token prices provided by the chosen oracle. The actual amount

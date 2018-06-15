@@ -77,7 +77,7 @@ export default class FillOrder extends React.Component {
         ),
         1e18
       );
-      console.log(`collateralRequired: ${collateralRequired}`);
+      // console.log(`collateralRequired: ${collateralRequired}`);
       if (collateralRequired === 0) {
         collateralRequired = `(unsupported)`;
       }
@@ -87,6 +87,11 @@ export default class FillOrder extends React.Component {
 
   setStateFor = key => value => this.setState({ [key]: value });
 
+  setCollateralTokenAddress = async value => {
+    await this.setState({ [`collateralTokenAddress`]: value });
+    await this.refreshCollateralAmountNoEvent();
+  };
+
   refreshCollateralAmountNoEvent = async () => {
     await this.setStateForCollateralAmount(
       this.props.order.loanTokenAddress,
@@ -95,7 +100,7 @@ export default class FillOrder extends React.Component {
         : this.props.order.collateralTokenAddress,
       this.props.order.oracleAddress,
       this.props.order.makerRole === `0`
-        ? this.state.fillOrderAmount
+        ? parseInt(this.state.fillOrderAmount, 10)
         : fromBigNumber(this.props.order.loanTokenAmount, 1e18),
       this.props.order.initialMarginAmount
     );
@@ -108,11 +113,18 @@ export default class FillOrder extends React.Component {
 
   handleSubmit = async () => {
     const { order, tokens, b0x, accounts } = this.props;
-    const { fillOrderAmount, collateralTokenAddress } = this.state;
+
+    await this.refreshCollateralAmountNoEvent();
+    const {
+      fillOrderAmount,
+      collateralTokenAddress,
+      collateralTokenAmount
+    } = this.state;
     const isFillOrderValid = await validateFillOrder(
       order,
       fillOrderAmount,
       collateralTokenAddress,
+      collateralTokenAmount,
       tokens,
       b0x,
       accounts
@@ -190,9 +202,7 @@ export default class FillOrder extends React.Component {
               collateralTokenAddress={this.state.collateralTokenAddress}
               loanTokenAddress={order.loanTokenAddress}
               setFillOrderAmount={this.setStateFor(`fillOrderAmount`)}
-              setCollateralTokenAddress={this.setStateFor(
-                `collateralTokenAddress`
-              )}
+              setCollateralTokenAddress={this.setCollateralTokenAddress}
               collateralTokenAmount={this.state.collateralTokenAmount}
               collateralRefresh={this.refreshCollateralAmount}
             />

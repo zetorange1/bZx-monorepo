@@ -165,10 +165,9 @@ export default class GenerateOrder extends React.Component {
   setRelayCheckbox = (e, value) =>
     this.setState({ sendToRelayExchange: value });
 
-  refreshCollateralAmount = async event => {
-    event.preventDefault();
+  refreshCollateralAmount = async () => {
     if (this.state.role === `trader`) {
-      this.setStateForCollateralAmount(
+      await this.setStateForCollateralAmount(
         this.state.loanTokenAddress,
         this.state.collateralTokenAddress,
         this.state.oracleAddress,
@@ -178,9 +177,21 @@ export default class GenerateOrder extends React.Component {
     }
   };
 
+  refreshCollateralAmountEvent = async event => {
+    event.preventDefault();
+    await this.refreshCollateralAmount();
+  };
+
   /* Submission handler */
 
   handleSubmit = async () => {
+    this.setStateForTotalInterest(
+      this.state.interestAmount,
+      this.state.expirationDate
+    );
+
+    await this.refreshCollateralAmount();
+
     const isValid = await validateInputs(
       this.props.b0x,
       this.props.accounts,
@@ -259,7 +270,7 @@ export default class GenerateOrder extends React.Component {
           collateralTokenAmount={this.state.collateralTokenAmount}
           interestAmount={this.state.interestAmount}
           interestTotalAmount={this.state.interestTotalAmount}
-          collateralRefresh={this.refreshCollateralAmount}
+          collateralRefresh={this.refreshCollateralAmountEvent}
           etherscanURL={this.props.b0x.etherscanURL}
         />
 

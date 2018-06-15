@@ -116,11 +116,13 @@ export default ({
           />
           <FormHelperText component="div">
             <Tooltip
-              title={`${
-                role === `trader`
-                  ? `This sets the amount to be borrowed.`
-                  : `This sets the total amount that can be loaned to one or more traders.`
-              }`}
+              title={
+                <div style={{ maxWidth: `300px` }}>
+                  {role === `trader`
+                    ? `This sets the amount to be borrowed.`
+                    : `This sets the total amount that can be loaned to one or more traders.`}
+                </div>
+              }
             >
               <MoreInfo>More Info</MoreInfo>
             </Tooltip>
@@ -153,7 +155,17 @@ export default ({
             }
           />
           <FormHelperTextWithDetail component="div">
-            <Tooltip title="This sets the interest paid per day and shows the total interest paid out if the loan were to run from now until expiration. The actual amount paid out will be less, based on when the loan is opened, the actual amount borrowed, and if the loan is closed early by the trader or is liquidated.">
+            <Tooltip
+              title={
+                <div style={{ maxWidth: `300px` }}>
+                  This sets the interest paid per day and shows the total
+                  interest paid out if the loan were to run from now until
+                  expiration. The actual amount paid out will be less, based on
+                  when the loan is opened, the actual amount borrowed, and if
+                  the loan is closed early by the trader or is liquidated.
+                </div>
+              }
+            >
               <MoreInfo>More Info</MoreInfo>
             </Tooltip>
             <RightJustified>
@@ -193,7 +205,19 @@ export default ({
               }
             />
             <FormHelperTextWithDetail component="div">
-              <Tooltip title="This shows an estimated minimum amount of collateral token required to satify the initial margin amount, based on current token prices provided by the chosen oracle. The actual amount will be calculated when the loan order is taken, and the trader must have at least this amount in their wallet to open the loan. It is advised to have at least 10% more than this, to protect for price fluctuations.">
+              <Tooltip
+                title={
+                  <div style={{ maxWidth: `300px` }}>
+                    This shows an estimated minimum amount of collateral token
+                    required to satify the initial margin amount, based on
+                    current token prices provided by the chosen oracle. The
+                    actual amount will be calculated when the loan order is
+                    taken, and the trader must have at least this amount in
+                    their wallet to open the loan. It is advised to have at
+                    least 10% more than this, to protect for price fluctuations.
+                  </div>
+                }
+              >
                 <MoreInfo>More Info</MoreInfo>
               </Tooltip>
               <RightJustified>

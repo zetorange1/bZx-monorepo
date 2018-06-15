@@ -94,7 +94,14 @@ export default ({
               }
             />
             <FormHelperText component="div">
-              <Tooltip title="This sets the amount to be borrowed. It cannot be larger than the amount being loaned above.">
+              <Tooltip
+                title={
+                  <div style={{ maxWidth: `300px` }}>
+                    This sets the amount to be borrowed. It cannot be larger
+                    than the amount being loaned above.
+                  </div>
+                }
+              >
                 <MoreInfo>More Info</MoreInfo>
               </Tooltip>
             </FormHelperText>
@@ -103,7 +110,7 @@ export default ({
         <DataContainer>
           <Tooltip
             title={
-              <div style={{ maxWidth: `240px` }}>
+              <div style={{ maxWidth: `300px` }}>
                 This token amount will be calculated when the order is filled
                 (either partially or fully). It will be set to the amount needed
                 to satisfy the initial margin amount to cover the amount of loan
@@ -141,7 +148,19 @@ export default ({
               }
             />
             <FormHelperTextWithDetail component="div">
-              <Tooltip title="This shows an estimated minimum amount of collateral token required to satify the initial margin amount, based on current token prices provided by the chosen oracle. The actual amount will be calculated when the loan order is taken, and the trader must have at least this amount in their wallet to open the loan. It is advised to have at least 10% more than this, to protect for price fluctuations.">
+              <Tooltip
+                title={
+                  <div style={{ maxWidth: `300px` }}>
+                    This shows an estimated minimum amount of collateral token
+                    required to satify the initial margin amount, based on
+                    current token prices provided by the chosen oracle. The
+                    actual amount will be calculated when the loan order is
+                    taken, and the trader must have at least this amount in
+                    their wallet to open the loan. It is advised to have at
+                    least 10% more than this, to protect for price fluctuations.
+                  </div>
+                }
+              >
                 <MoreInfo>More Info</MoreInfo>
               </Tooltip>
               <RightJustified>

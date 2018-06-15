@@ -1,4 +1,6 @@
 import { getTrackedTokens } from "../../common/trackedTokens";
+import { getTokenBalance, getSymbol } from "../../common/tokens";
+import { toBigNumber } from "../../common/utils";
 
 const validRange = (min, max, val) => {
   if (val <= max && val >= min) {
@@ -86,7 +88,13 @@ const checkCoinsAllowed = (state, tokens, networkId) => {
 
 export default async (b0x, accounts, state, tokens) => {
   const {
+    role,
+    loanTokenAddress,
+    interestTokenAddress,
+    collateralTokenAddress,
     loanTokenAmount,
+    interestTotalAmount,
+    collateralTokenAmount,
     interestAmount,
     initialMarginAmount,
     maintenanceMarginAmount
@@ -97,8 +105,8 @@ export default async (b0x, accounts, state, tokens) => {
   }
 
   try {
-    validRange(10, 100, initialMarginAmount);
-    validRange(5, 95, maintenanceMarginAmount);
+    validRange(40, 100, initialMarginAmount);
+    validRange(20, 90, maintenanceMarginAmount);
     if (maintenanceMarginAmount > initialMarginAmount) {
       throw Error(
         `The maintenance margin amount cannot be larger than initial margin amount.`
@@ -133,5 +141,53 @@ export default async (b0x, accounts, state, tokens) => {
     );
     return false;
   }
+
+  if (role === `trader`) {
+    const interestTokenBalance = await getTokenBalance(
+      b0x,
+      interestTokenAddress,
+      accounts
+    );
+    if (toBigNumber(interestTotalAmount, 1e18).gt(interestTokenBalance)) {
+      alert(
+        `Your interest token balance is too low. You need at least ${interestTotalAmount} ${getSymbol(
+          tokens,
+          interestTokenAddress
+        )} create this order.`
+      );
+      return false;
+    }
+
+    const collateralTokenBalance = await getTokenBalance(
+      b0x,
+      collateralTokenAddress,
+      accounts
+    );
+    if (toBigNumber(collateralTokenAmount, 1e18).gt(collateralTokenBalance)) {
+      alert(
+        `Your collteral token balance is too low. You need at least ${collateralTokenAmount} ${getSymbol(
+          tokens,
+          collateralTokenAddress
+        )} create this order.`
+      );
+      return false;
+    }
+  } else {
+    const loanTokenBalance = await getTokenBalance(
+      b0x,
+      loanTokenAddress,
+      accounts
+    );
+    if (toBigNumber(loanTokenAmount, 1e18).gt(loanTokenBalance)) {
+      alert(
+        `Your loan token balance is too low. You need at least ${loanTokenAmount} ${getSymbol(
+          tokens,
+          loanTokenAddress
+        )} create this order.`
+      );
+      return false;
+    }
+  }
+
   return true;
 };
