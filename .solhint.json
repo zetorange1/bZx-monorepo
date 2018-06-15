@@ -9,6 +9,9 @@
         "statement-indent": "warn",
         "indent": ["warn", 4],
         "quotes": ["error", "double"],
-        "max-line-length": ["warn", 120]
+        "max-line-length": ["warn", 120],
+        "separate-by-one-line-in-contract": "warn",
+        "space-after-comma": "warn",
+        "func-order": "warn"
     }
 }
