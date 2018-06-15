@@ -1,6 +1,7 @@
 
 pragma solidity ^0.4.24;
 
+
 /**
     @title Oracle_Interface, an interface for b0x compatible oracle contracts
 

@@ -1,11 +1,11 @@
 
 pragma solidity ^0.4.24;
 
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
-import './tokens/EIP20.sol';
-import './tokens/EIP20Wrapper.sol';
-import './modifiers/B0xOwnable.sol';
-import './shared/Debugger.sol';
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "./tokens/EIP20.sol";
+import "./tokens/EIP20Wrapper.sol";
+import "./modifiers/B0xOwnable.sol";
+import "./shared/Debugger.sol";
 
 interface Exchange_Interface {
     event LogError(uint8 indexed errorId, bytes32 indexed orderHash);
@@ -153,7 +153,7 @@ contract B0xTo0x is EIP20Wrapper, Debugger, B0xOwnable {
         }
 
         uint8 v;
-	    bytes32 r;
+        bytes32 r;
         bytes32 s;
         (v, r, s) = getSignatureParts(signature);
 

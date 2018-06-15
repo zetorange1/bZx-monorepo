@@ -19,7 +19,8 @@
 
 pragma solidity ^0.4.24;
 
-import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+
 
 /// @title Oracle Registry - Oracles added to the b0x network by decentralized governance
 contract OracleRegistry is Ownable {
@@ -65,7 +66,6 @@ contract OracleRegistry is Ownable {
         require(_address != address(0));
         _;
     }
-
 
     /// @dev Allows owner to add a new oracle to the registry.
     /// @param _oracle Address of new oracle.
@@ -127,8 +127,6 @@ contract OracleRegistry is Ownable {
         oracleByName[_name] = _oracle;
         oracle.name = _name;
     }
-
-
 
     /// @dev Checks if an oracle exists in the registry
     /// @param _oracle Address of registered oracle.

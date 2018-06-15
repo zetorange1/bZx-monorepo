@@ -1,8 +1,9 @@
 
 pragma solidity ^0.4.24;
 
-import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
-import './B0xStorage.sol';
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "./B0xStorage.sol";
+
 
 contract Proxiable {
     mapping (bytes4 => address) public targets;
@@ -13,6 +14,7 @@ contract Proxiable {
         require(_target.delegatecall(bytes4(keccak256("initialize(address)")), _target));
     }
 }
+
 
 // b0x proxy
 contract B0xProxy is B0xStorage, Proxiable {
@@ -41,7 +43,6 @@ contract B0xProxy is B0xStorage, Proxiable {
     /*
      * Owner only functions
      */
-
     function replaceContract(
         address _target)
         public

@@ -1,6 +1,7 @@
 
 pragma solidity ^0.4.24;
 
+
 contract Debugger {
     
     bool public DEBUG_MODE = false;

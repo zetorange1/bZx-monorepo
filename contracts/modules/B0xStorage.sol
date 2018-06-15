@@ -1,10 +1,11 @@
 
 pragma solidity ^0.4.24;
 
-import 'openzeppelin-solidity/contracts/ReentrancyGuard.sol';
-import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
-import '../shared/Debugger.sol';
-import '../modifiers/GasTracker.sol';
+import "openzeppelin-solidity/contracts/ReentrancyGuard.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../shared/Debugger.sol";
+import "../modifiers/GasTracker.sol";
+
 
 contract B0xObjects {
 
@@ -49,7 +50,6 @@ contract B0xObjects {
         uint interestTotalAccrued;
         uint interestPaidSoFar;
     }
-
 
     event LogLoanTaken (
         address lender,
@@ -122,7 +122,6 @@ contract B0xObjects {
         uint otherAmount
     );*/
 
-
     function buildLoanOrderStruct(
         bytes32 loanOrderHash,
         address[6] addrs,
@@ -169,6 +168,7 @@ contract B0xObjects {
         });
     }*/
 }
+
 
 // b0x shared storage
 contract B0xStorage is B0xObjects, ReentrancyGuard, Ownable, GasTracker, Debugger {

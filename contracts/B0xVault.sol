@@ -1,8 +1,8 @@
 
 pragma solidity ^0.4.24;
 
-import './tokens/EIP20Wrapper.sol';
-import './modifiers/B0xOwnable.sol';
+import "./tokens/EIP20Wrapper.sol";
+import "./modifiers/B0xOwnable.sol";
 
 contract B0xVault is EIP20Wrapper, B0xOwnable {
 
