@@ -1,0 +1,14 @@
+{
+    "extends": "default",
+    "rules": {
+        "bracket-align": "warn",
+        "code-complexity": "warn",
+        "const-name-snakecase": "warn",
+        "expression-indent": "warn",
+        "function-max-lines": "warn",
+        "statement-indent": "warn",
+        "indent": ["warn", 4],
+        "quotes": ["error", "double"],
+        "max-line-length": ["warn", 120]
+    }
+}
