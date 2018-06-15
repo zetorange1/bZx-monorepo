@@ -174,10 +174,12 @@ contract B0xObjects {
 contract B0xStorage is B0xObjects, ReentrancyGuard, Ownable, GasTracker, Debugger {
     uint constant MAX_UINT = 2**256 - 1;
 
+/* solhint-disable var-name-mixedcase */
     address public B0X_TOKEN_CONTRACT;
     address public VAULT_CONTRACT;
     address public ORACLE_REGISTRY_CONTRACT;
     address public B0XTO0X_CONTRACT;
+/* solhint-enable var-name-mixedcase */
 
     mapping (bytes32 => LoanOrder) public orders; // mapping of loanOrderHash to taken loanOrders
     mapping (address => bytes32[]) public orderList; // mapping of lenders and trader addresses to array of loanOrderHashes

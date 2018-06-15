@@ -15,12 +15,14 @@ import "../tokens/EIP20Wrapper.sol";
 import "./Oracle_Interface.sol";
 
 
+// solhint-disable-next-line contract-name-camelcase
 interface WETH_Interface {
     function deposit() external payable;
     function withdraw(uint wad) external;
 }
 
 
+// solhint-disable-next-line contract-name-camelcase
 interface KyberNetwork_Interface {
     /// @notice use token address ETH_TOKEN_ADDRESS for ether
     function getExpectedRate(
@@ -87,11 +89,12 @@ contract B0xOracle is Oracle_Interface, EIP20Wrapper, EMACollector, GasRefunder,
     uint public minMaintenanceMarginAmount = 25;
 
     bool public isManualTradingAllowed = true;
-
+/* solhint-disable var-name-mixedcase */
     address public VAULT_CONTRACT;
     address public KYBER_CONTRACT;
     address public WETH_CONTRACT;
     address public B0X_TOKEN_CONTRACT;
+/* solhint-enable var-name-mixedcase */
 
     mapping (bytes32 => GasData[]) public gasRefunds; // // mapping of loanOrderHash to array of GasData
 

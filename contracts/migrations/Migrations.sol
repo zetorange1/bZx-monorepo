@@ -4,6 +4,7 @@ pragma solidity ^0.4.24;
 
 contract Migrations {
     address public owner;
+// solhint-disable-next-line var-name-mixedcase
     uint public last_completed_migration;
 
     modifier restricted() {
@@ -18,6 +19,7 @@ contract Migrations {
         last_completed_migration = completed;
     }
 
+// solhint-disable-next-line func-param-name-mixedcase
     function upgrade(address new_address) public restricted {
         Migrations upgraded = Migrations(new_address);
         upgraded.setCompleted(last_completed_migration);

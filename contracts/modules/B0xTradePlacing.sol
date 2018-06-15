@@ -13,6 +13,7 @@ import "../oracle/Oracle_Interface.sol";
 import "../tokens/EIP20.sol";
 
 
+// solhint-disable-next-line contract-name-camelcase
 interface B0xTo0x_Interface {
    function take0xTrade(
         address trader,
