@@ -14,6 +14,7 @@ import Expiration from "./Expiration";
 import Inputs from "./Inputs";
 
 import { validateFillOrder, submitFillOrder } from "./utils";
+import { getOrderHash } from "../GenerateOrder/utils";
 
 const SubmitBtn = styled(Button)`
   width: 100%;
@@ -39,13 +40,31 @@ export default class FillOrder extends React.Component {
   state = {
     fillOrderAmount: 0,
     collateralTokenAddress: defaultToken(this.props.tokens).address,
-    collateralTokenAmount: `(finish form then refresh)`
+    collateralTokenAmount: `(finish form then refresh)`,
+    loanTokenAvailable: 0
   };
 
-  componentDidMount() {
+  async componentDidMount() {
     if (this.props.order.makerRole !== `0`) {
       this.refreshCollateralAmountNoEvent();
     }
+
+    try {
+      const orderHash = getOrderHash(this.props.order);
+      // console.log("orderHash: "+orderHash);
+
+      const orderDetail = await this.getSingleOrder(orderHash);
+      console.log(orderDetail);
+      if (Object.keys(orderDetail).length !== 0) {
+        const loanTokenAvailable =
+          orderDetail.loanTokenAmount -
+          orderDetail.orderFilledAmount -
+          orderDetail.orderCancelledAmount;
+        this.setState({ loanTokenAvailable });
+      } else {
+        this.setState({ loanTokenAvailable: this.props.order.loanTokenAmount });
+      }
+    } catch (e) {} // eslint-disable-line no-empty
   }
 
   /* State setters */
@@ -92,6 +111,14 @@ export default class FillOrder extends React.Component {
     await this.refreshCollateralAmountNoEvent();
   };
 
+  getSingleOrder = async loanOrderHash => {
+    const { b0x } = this.props;
+    const order = await b0x.getSingleOrder({
+      loanOrderHash
+    });
+    return order;
+  };
+
   refreshCollateralAmountNoEvent = async () => {
     await this.setStateForCollateralAmount(
       this.props.order.loanTokenAddress,
@@ -100,7 +127,7 @@ export default class FillOrder extends React.Component {
         : this.props.order.collateralTokenAddress,
       this.props.order.oracleAddress,
       this.props.order.makerRole === `0`
-        ? parseInt(this.state.fillOrderAmount, 10)
+        ? fromBigNumber(this.state.fillOrderAmount)
         : fromBigNumber(this.props.order.loanTokenAmount, 1e18),
       this.props.order.initialMarginAmount
     );
@@ -117,12 +144,14 @@ export default class FillOrder extends React.Component {
     await this.refreshCollateralAmountNoEvent();
     const {
       fillOrderAmount,
+      loanTokenAvailable,
       collateralTokenAddress,
       collateralTokenAmount
     } = this.state;
     const isFillOrderValid = await validateFillOrder(
       order,
       fillOrderAmount,
+      loanTokenAvailable,
       collateralTokenAddress,
       collateralTokenAmount,
       tokens,
@@ -166,7 +195,10 @@ export default class FillOrder extends React.Component {
             tokens={tokens}
             role={makerRole}
             loanTokenAddress={order.loanTokenAddress}
-            loanTokenAmount={fromBigNumber(order.loanTokenAmount, 1e18)}
+            loanTokenAvailable={fromBigNumber(
+              this.state.loanTokenAvailable,
+              1e18
+            )}
             interestTokenAddress={order.interestTokenAddress}
             interestAmount={fromBigNumber(order.interestAmount, 1e18)}
             collateralTokenAddress={order.collateralTokenAddress}
@@ -187,34 +219,47 @@ export default class FillOrder extends React.Component {
             expirationUnixTimestampSec={order.expirationUnixTimestampSec}
           />
         </Section>
-        <Divider />
-        <Section>
-          <SectionLabel>
-            {makerRole === `lender`
-              ? `2. Choose parameters and submit`
-              : `2. Submit fill order transaction`}
-          </SectionLabel>
-          {makerRole === `lender` && (
-            <Inputs
-              b0x={b0x}
-              tokens={tokens}
-              fillOrderAmount={this.state.fillOrderAmount}
-              collateralTokenAddress={this.state.collateralTokenAddress}
-              loanTokenAddress={order.loanTokenAddress}
-              setFillOrderAmount={this.setStateFor(`fillOrderAmount`)}
-              setCollateralTokenAddress={this.setCollateralTokenAddress}
-              collateralTokenAmount={this.state.collateralTokenAmount}
-              collateralRefresh={this.refreshCollateralAmount}
-            />
-          )}
-          <SubmitBtn
-            variant="raised"
-            color="primary"
-            onClick={this.handleSubmit}
-          >
-            Fill Order
-          </SubmitBtn>
-        </Section>
+        {this.state.loanTokenAvailable ? (
+          <Fragment>
+            <Divider />
+            <Section>
+              <SectionLabel>
+                {makerRole === `lender`
+                  ? `2. Choose parameters and submit`
+                  : `2. Submit fill order transaction`}
+              </SectionLabel>
+              {makerRole === `lender` && (
+                <Inputs
+                  b0x={b0x}
+                  tokens={tokens}
+                  fillOrderAmount={this.state.fillOrderAmount}
+                  collateralTokenAddress={this.state.collateralTokenAddress}
+                  loanTokenAddress={order.loanTokenAddress}
+                  setFillOrderAmount={this.setStateFor(`fillOrderAmount`)}
+                  setCollateralTokenAddress={this.setCollateralTokenAddress}
+                  collateralTokenAmount={this.state.collateralTokenAmount}
+                  collateralRefresh={this.refreshCollateralAmount}
+                />
+              )}
+              <SubmitBtn
+                variant="raised"
+                color="primary"
+                onClick={this.handleSubmit}
+              >
+                Fill Order
+              </SubmitBtn>
+            </Section>
+          </Fragment>
+        ) : (
+          <Fragment>
+            <Section>
+              <p>
+                This order is completely filled. There is no loan token
+                remaining.
+              </p>
+            </Section>
+          </Fragment>
+        )}
       </Fragment>
     );
   }

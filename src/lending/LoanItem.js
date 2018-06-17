@@ -89,11 +89,6 @@ export default class LoanItem extends React.Component {
     }
   };
 
-  withdrawInterest = () => {
-    // do stuff to initiate interest withdrawal here
-    alert(`withdraw interest`);
-  };
-
   render() {
     const { tokens, b0x, accounts, web3 } = this.props;
     const {

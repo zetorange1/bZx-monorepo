@@ -35,7 +35,7 @@ const TxHashLink = styled.a.attrs({
 export default class ProfitOrLoss extends React.Component {
   state = {
     loading: true,
-    profit: null,
+    profit: 0,
     isProfit: null,
     showDialog: false
   };
@@ -139,7 +139,8 @@ export default class ProfitOrLoss extends React.Component {
           <DialogContent>
             <SectionLabel>Withdraw Profit</SectionLabel>
             <p>
-              This will withdraw {profit} {symbol} from your loan.
+              This will withdraw {fromBigNumber(profit, 1e18)} {symbol} from
+              your loan.
             </p>
             <Button
               onClick={this.withdrawProfit}

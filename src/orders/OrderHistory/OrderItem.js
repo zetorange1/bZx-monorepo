@@ -205,7 +205,7 @@ export default class OrderItem extends React.Component {
                     takenOrder.orderFilledAmount -
                     takenOrder.orderCancelledAmount,
                   1e18
-                )}
+                ).toFixed(0)}
                 {` `}
                 {loanTokenSymbol}
               </DataPoint>

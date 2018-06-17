@@ -50,6 +50,7 @@ export default class WithdrawInterest extends React.Component {
             </TxHashLink>
           )
         });
+        this.closeDialog();
       })
       .on(`error`, error => {
         console.error(error);
@@ -57,7 +58,6 @@ export default class WithdrawInterest extends React.Component {
         this.closeDialog();
       });
     alert(`Execution complete.`);
-    this.closeDialog();
   };
 
   render() {

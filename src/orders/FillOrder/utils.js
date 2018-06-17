@@ -95,6 +95,7 @@ const getTotalInterest = order => {
 export const validateFillOrder = async (
   order,
   fillOrderAmount,
+  loanTokenAvailable,
   collateralTokenAddress,
   collateralTokenAmount,
   tokens,
@@ -117,7 +118,15 @@ export const validateFillOrder = async (
     const makerRole = order.makerRole === `0` ? `lender` : `trader`;
     const trackedTokens = getTrackedTokens(tokens);
     if (makerRole === `lender`) {
-      fillOrderAmount = parseInt(fillOrderAmount, 10); // eslint-disable-line no-param-reassign
+      loanTokenAvailable = toBigNumber(loanTokenAvailable); // eslint-disable-line no-param-reassign
+      fillOrderAmount = toBigNumber(fillOrderAmount); // eslint-disable-line no-param-reassign
+
+      if (!loanTokenAvailable) {
+        alert(
+          `This order is completely filled. There is no loan token remaining.`
+        );
+        return false;
+      }
 
       if (!fillOrderAmount) {
         alert(`Please enter the amount of loan token you want to borrow.`);
@@ -125,10 +134,10 @@ export const validateFillOrder = async (
       }
 
       // TODO: Chcek for partial fills!
-      if (toBigNumber(fillOrderAmount, 1e18).gt(order.loanTokenAmount)) {
+      if (toBigNumber(fillOrderAmount, 1e18).gt(loanTokenAvailable)) {
         alert(
           `You can't borrow more than ${fromBigNumber(
-            order.loanTokenAmount,
+            loanTokenAvailable,
             1e18
           )} ${getSymbol(
             tokens,

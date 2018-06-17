@@ -65,7 +65,7 @@ export default ({
   tokens,
   role,
   loanTokenAddress,
-  loanTokenAmount,
+  loanTokenAvailable,
   interestTokenAddress,
   interestAmount,
   collateralTokenAddress,
@@ -94,7 +94,9 @@ export default ({
           </CoinInfo>
           <Tooltip title={<TooltipText>{loanToken.address}</TooltipText>}>
             <CoinAmount>
-              {loanTokenAmount} {loanToken.symbol}
+              {loanTokenAvailable
+                ? `${loanTokenAvailable} ${loanToken.symbol} Available`
+                : `(order already filled)`}
             </CoinAmount>
           </Tooltip>
         </TokenContainer>
