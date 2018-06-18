@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 
@@ -59,7 +59,7 @@ contract B0xLoanMaintenance is B0xStorage, Proxiable, InternalFunctions {
             return boolOrRevert(false, 58); // revert("B0xLoanHealth::depositCollateral: collateralTokenFilled != loanPosition.collateralTokenAddressFilled");
         }
 
-        if (! B0xVault(VAULT_CONTRACT).depositToken(
+        if (! B0xVault(vaultContract).depositToken(
             collateralTokenFilled,
             msg.sender,
             depositAmount
@@ -123,7 +123,7 @@ contract B0xLoanMaintenance is B0xStorage, Proxiable, InternalFunctions {
         excessCollateral = Math.min256(withdrawAmount, loanPosition.collateralTokenAmountFilled-initialCollateralTokenAmount);
 
         // transfer excess collateral to trader
-        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
+        if (! B0xVault(vaultContract).withdrawToken(
             loanPosition.collateralTokenAddressFilled,
             msg.sender,
             excessCollateral
@@ -187,7 +187,7 @@ contract B0xLoanMaintenance is B0xStorage, Proxiable, InternalFunctions {
         }
 
         // transfer the new collateral token from the trader to the vault
-        if (! B0xVault(VAULT_CONTRACT).depositToken(
+        if (! B0xVault(vaultContract).depositToken(
             collateralTokenFilled,
             msg.sender,
             collateralTokenAmountFilled
@@ -196,7 +196,7 @@ contract B0xLoanMaintenance is B0xStorage, Proxiable, InternalFunctions {
         }
 
         // transfer the old collateral token from the vault to the trader
-        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
+        if (! B0xVault(vaultContract).withdrawToken(
             loanPosition.collateralTokenAddressFilled,
             msg.sender,
             loanPosition.collateralTokenAmountFilled
@@ -241,7 +241,7 @@ contract B0xLoanMaintenance is B0xStorage, Proxiable, InternalFunctions {
         }
 
         // transfer profit to the trader
-        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
+        if (! B0xVault(vaultContract).withdrawToken(
             loanPosition.positionTokenAddressFilled,
             msg.sender,
             profitAmount

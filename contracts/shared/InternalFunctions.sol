@@ -1,6 +1,6 @@
 
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../modules/B0xStorage.sol";
@@ -248,7 +248,7 @@ contract InternalFunctions is B0xStorage {
         returns (uint)
     {
         // transfer the current position token to the Oracle contract
-        if (!B0xVault(VAULT_CONTRACT).withdrawToken(
+        if (!B0xVault(vaultContract).withdrawToken(
             loanPosition.positionTokenAddressFilled,
             loanOrder.oracleAddress,
             loanPosition.positionTokenAmountFilled)) {

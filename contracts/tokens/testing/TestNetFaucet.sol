@@ -1,12 +1,13 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../EIP20Wrapper.sol";
 
+
 contract TestNetFaucet is EIP20Wrapper, Ownable {
 
-    address public ORACLE_CONTRACT;
+    address public oracleContract;
 
     uint public faucetThresholdSecs = 14400; // 4 hours
 
@@ -22,7 +23,7 @@ contract TestNetFaucet is EIP20Wrapper, Ownable {
         public
         returns (bool)
     {
-        require(msg.sender == ORACLE_CONTRACT);
+        require(msg.sender == oracleContract);
 
         eip20Transfer(
             getToken,
@@ -64,7 +65,7 @@ contract TestNetFaucet is EIP20Wrapper, Ownable {
             amount = address(this).balance;
         }
 
-        return (to.send(amount));
+        return (to.send(amount)); // solhint-disable-line check-send-result, multiple-sends
     }
 
     function withdrawToken(
@@ -144,7 +145,7 @@ contract TestNetFaucet is EIP20Wrapper, Ownable {
         public
         onlyOwner
     {
-        require(newAddress != ORACLE_CONTRACT && newAddress != address(0));
-        ORACLE_CONTRACT = newAddress;
+        require(newAddress != oracleContract && newAddress != address(0));
+        oracleContract = newAddress;
     }
 }

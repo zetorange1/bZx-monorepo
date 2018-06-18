@@ -1,5 +1,6 @@
+/* solhint-disable func-order, separate-by-one-line-in-contract */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
 import "./modules/B0xStorage.sol";
 
@@ -114,10 +115,6 @@ contract B0x is B0xStorage {
         public
         view
         returns (bytes);
-
-    /*
-    * B0xTradePlacer functions
-    */
 
     function tradePositionWith0x(
         bytes32 loanOrderHash,

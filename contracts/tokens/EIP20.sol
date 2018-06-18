@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
@@ -15,6 +15,6 @@ contract EIP20 is ERC20 {
 }
 
 // Testing only! Please remove below and use above for non-dev environments!
-//import "./testing/fake/ERC827_AlwaysOwned.sol";
-//contract EIP20 is ERC827_AlwaysOwned {}
+//import "./testing/fake/ERC827AlwaysOwned.sol";
+//contract EIP20 is ERC827AlwaysOwned {}
 

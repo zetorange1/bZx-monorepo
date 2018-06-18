@@ -17,7 +17,7 @@
 
 */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
@@ -38,7 +38,7 @@ contract OracleRegistry is Ownable {
     event LogOracleNameChange(address indexed oracle, string oldName, string newName);
 
     mapping (address => OracleMetadata) public oracles;
-    mapping (string => address) oracleByName;
+    mapping (string => address) internal oracleByName;
 
     address[] public oracleAddresses;
 

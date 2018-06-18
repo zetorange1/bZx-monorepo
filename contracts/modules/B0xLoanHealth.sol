@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 
@@ -285,7 +285,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             interestPaid[loanOrder.loanOrderHash][loanPosition.trader] = interestData.interestTotalAccrued; // since this function will pay all remaining accured interest
             
             // send the interest to the oracle for further processing
-            if (! B0xVault(VAULT_CONTRACT).withdrawToken(
+            if (! B0xVault(vaultContract).withdrawToken(
                 interestData.interestTokenAddress,
                 orders[loanOrder.loanOrderHash].oracleAddress,
                 amountPaid
@@ -385,7 +385,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         
         // refund any unused interest to the trader
         if (totalInterestToRefund > 0) {
-            if (! B0xVault(VAULT_CONTRACT).withdrawToken(
+            if (! B0xVault(vaultContract).withdrawToken(
                 loanOrder.interestTokenAddress,
                 loanPosition.trader,
                 totalInterestToRefund
@@ -398,7 +398,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         if (loanPosition.positionTokenAmountFilled < loanPosition.loanTokenAmountFilled) {
             // Send all of the collateral token to the oracle to sell to cover loan token losses.
             // Unused collateral should be returned to the vault by the oracle.
-            if (! B0xVault(VAULT_CONTRACT).withdrawToken(
+            if (! B0xVault(vaultContract).withdrawToken(
                 loanPosition.collateralTokenAddressFilled,
                 loanOrder.oracleAddress,
                 loanPosition.collateralTokenAmountFilled
@@ -421,7 +421,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         }
 
         // send remaining collateral token back to the trader
-        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
+        if (! B0xVault(vaultContract).withdrawToken(
             loanPosition.collateralTokenAddressFilled,
             loanPosition.trader,
             loanPosition.collateralTokenAmountFilled
@@ -430,7 +430,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         }
 
         // send remaining loan token back to the lender
-        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
+        if (! B0xVault(vaultContract).withdrawToken(
             loanPosition.positionTokenAddressFilled, // same as loanTokenAddress
             loanPosition.lender,
             loanPosition.positionTokenAmountFilled

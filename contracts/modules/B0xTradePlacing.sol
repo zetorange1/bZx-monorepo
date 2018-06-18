@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 
@@ -72,9 +72,9 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
         }
 
         // transfer the current position token to the B0xTo0x contract
-        if (!B0xVault(VAULT_CONTRACT).withdrawToken(
+        if (!B0xVault(vaultContract).withdrawToken(
             loanPosition.positionTokenAddressFilled,
-            B0XTO0X_CONTRACT,
+            b0xTo0xContract,
             loanPosition.positionTokenAmountFilled)) {
             return intOrRevert(0, 76); // revert("B0xTradePlacing::tradePositionWith0x: B0xVault.withdrawToken failed");
         }
@@ -82,9 +82,9 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
         address tradeTokenAddress;
         uint tradeTokenAmount;
         uint positionTokenUsedAmount;
-        (tradeTokenAddress, tradeTokenAmount, positionTokenUsedAmount) = B0xTo0x_Interface(B0XTO0X_CONTRACT).take0xTrade(
+        (tradeTokenAddress, tradeTokenAmount, positionTokenUsedAmount) = B0xTo0x_Interface(b0xTo0xContract).take0xTrade(
             msg.sender, // trader
-            VAULT_CONTRACT,
+            vaultContract,
             loanPosition.positionTokenAmountFilled,
             orderData0x,
             signiture0x);

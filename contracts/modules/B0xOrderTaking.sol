@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 
@@ -550,7 +550,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         }
 
         // deposit collateral token
-        if (! B0xVault(VAULT_CONTRACT).depositToken(
+        if (! B0xVault(vaultContract).depositToken(
             collateralTokenFilled,
             trader,
             collateralTokenAmountFilled
@@ -568,7 +568,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             block.timestamp);
 
         // deposit interest token
-        if (! B0xVault(VAULT_CONTRACT).depositToken(
+        if (! B0xVault(vaultContract).depositToken(
             loanOrder.interestTokenAddress,
             trader,
             totalInterestRequired
@@ -577,7 +577,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         }
 
         // deposit loan token
-        if (! B0xVault(VAULT_CONTRACT).depositToken(
+        if (! B0xVault(vaultContract).depositToken(
             loanOrder.loanTokenAddress,
             lender,
             loanTokenAmountFilled
@@ -589,8 +589,8 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             if (loanOrder.traderRelayFee > 0) {
                 uint paidTraderFee = _getPartialAmountNoError(loanTokenAmountFilled, loanOrder.loanTokenAmount, loanOrder.traderRelayFee);
                 
-                if (! B0xVault(VAULT_CONTRACT).transferTokenFrom(
-                    B0X_TOKEN_CONTRACT, 
+                if (! B0xVault(vaultContract).transferTokenFrom(
+                    b0xTokenContract, 
                     trader,
                     loanOrder.feeRecipientAddress,
                     paidTraderFee
@@ -601,8 +601,8 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             if (loanOrder.lenderRelayFee > 0) {
                 uint paidLenderFee = _getPartialAmountNoError(loanTokenAmountFilled, loanOrder.loanTokenAmount, loanOrder.lenderRelayFee);
                 
-                if (! B0xVault(VAULT_CONTRACT).transferTokenFrom(
-                    B0X_TOKEN_CONTRACT, 
+                if (! B0xVault(vaultContract).transferTokenFrom(
+                    b0xTokenContract, 
                     lender,
                     loanOrder.feeRecipientAddress,
                     paidLenderFee
@@ -635,7 +635,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             return boolOrRevert(false, 633); // revert("B0xOrderTaking::_verifyLoanOrder: loanTokenAmountFilled > loanOrder.loanTokenAmount");
         }
 
-        if (! OracleRegistry(ORACLE_REGISTRY_CONTRACT).hasOracle(loanOrder.oracleAddress)) {
+        if (! OracleRegistry(oracleRegistryContract).hasOracle(loanOrder.oracleAddress)) {
             return boolOrRevert(false, 637); // revert("B0xOrderTaking::_verifyLoanOrder: OracleRegistry.hasOracle failed");
         }
 

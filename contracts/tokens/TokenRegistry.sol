@@ -17,7 +17,7 @@
 
 */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
@@ -45,8 +45,8 @@ contract TokenRegistry is Ownable {
     event LogTokenURLChange(address indexed token, string oldURL, string newURL);
 
     mapping (address => TokenMetadata) public tokens;
-    mapping (string => address) tokenBySymbol;
-    mapping (string => address) tokenByName;
+    mapping (string => address) internal tokenBySymbol;
+    mapping (string => address) internal tokenByName;
 
     address[] public tokenAddresses;
 

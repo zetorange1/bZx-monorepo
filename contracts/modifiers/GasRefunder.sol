@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
@@ -90,12 +90,13 @@ contract GasRefunder {
                 true
             );
         } else {
+            // allow payer.send(refundAmount) to silently fail
             emit GasRefund(
                 payer,
                 gasUsed,
                 gasPrice,
                 refundAmount,
-                payer.send(refundAmount)
+                payer.send(refundAmount) // solhint-disable-line check-send-result
             );
         }
 
