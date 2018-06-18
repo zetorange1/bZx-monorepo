@@ -60,7 +60,7 @@ let B0xTokenRegistry = artifacts.require("TokenRegistry");
 let B0xToken = artifacts.require("TestNetB0xToken");
 let ERC20 = artifacts.require("ERC20"); // for testing with any ERC20 token
 let BaseToken = artifacts.require("BaseToken");
-let Exchange0x = artifacts.require("Exchange_Interface");
+let Exchange0x = artifacts.require("ExchangeInterface");
 
 let B0xProxy = artifacts.require("B0xProxy"); // b0x proxy
 let B0x = artifacts.require("B0x"); // B0x interface

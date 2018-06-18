@@ -1,11 +1,12 @@
 
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
-import '../modules/B0xStorage.sol';
-import '../B0xVault.sol';
-import "../oracle/Oracle_Interface.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../modules/B0xStorage.sol";
+import "../B0xVault.sol";
+import "../oracle/OracleInterface.sol";
+
 
 contract InternalFunctions is B0xStorage {
     using SafeMath for uint256;
@@ -33,7 +34,7 @@ contract InternalFunctions is B0xStorage {
         view
         returns (uint collateralTokenAmount)
     {
-        /*uint loanToCollateralRate = Oracle_Interface(oracleAddress).getTradeRate(
+        /*uint loanToCollateralRate = OracleInterface(oracleAddress).getTradeRate(
             loanTokenAddress,
             collateralTokenAddress
         );
@@ -47,7 +48,7 @@ contract InternalFunctions is B0xStorage {
                                     .mul(initialMarginAmount)
                                     .div(100);*/
 
-        uint collateralToLoanRate = Oracle_Interface(oracleAddress).getTradeRate(
+        uint collateralToLoanRate = OracleInterface(oracleAddress).getTradeRate(
             collateralTokenAddress,
             loanTokenAddress
         );
@@ -247,16 +248,16 @@ contract InternalFunctions is B0xStorage {
         returns (uint)
     {
         // transfer the current position token to the Oracle contract
-        if (!B0xVault(VAULT_CONTRACT).withdrawToken(
+        if (!B0xVault(vaultContract).withdrawToken(
             loanPosition.positionTokenAddressFilled,
             loanOrder.oracleAddress,
             loanPosition.positionTokenAmountFilled)) {
-            return intOrRevert(0,1441); // revert("InternalFunctions::_tradePositionWithOracle: B0xVault.withdrawToken failed");
+            return intOrRevert(0, 1441); // revert("InternalFunctions::_tradePositionWithOracle: B0xVault.withdrawToken failed");
         }
 
         uint tradeTokenAmountReceived;
         if (isLiquidation) {
-            tradeTokenAmountReceived = Oracle_Interface(loanOrder.oracleAddress).verifyAndLiquidate(
+            tradeTokenAmountReceived = OracleInterface(loanOrder.oracleAddress).verifyAndLiquidate(
                 loanOrder.loanTokenAddress,
                 loanPosition.positionTokenAddressFilled,
                 loanPosition.collateralTokenAddressFilled,
@@ -265,13 +266,13 @@ contract InternalFunctions is B0xStorage {
                 loanPosition.collateralTokenAmountFilled,
                 loanOrder.maintenanceMarginAmount);
         } else if (isManual) {
-            tradeTokenAmountReceived = Oracle_Interface(loanOrder.oracleAddress).doManualTrade(
+            tradeTokenAmountReceived = OracleInterface(loanOrder.oracleAddress).doManualTrade(
                 loanPosition.positionTokenAddressFilled,
                 tradeTokenAddress,
                 loanPosition.positionTokenAmountFilled);
         } 
         else {
-            tradeTokenAmountReceived = Oracle_Interface(loanOrder.oracleAddress).doTrade(
+            tradeTokenAmountReceived = OracleInterface(loanOrder.oracleAddress).doTrade(
                 loanPosition.positionTokenAddressFilled,
                 tradeTokenAddress,
                 loanPosition.positionTokenAmountFilled);
@@ -314,7 +315,7 @@ contract InternalFunctions is B0xStorage {
         return (
             loanOrder.initialMarginAmount,
             loanOrder.maintenanceMarginAmount,
-            Oracle_Interface(loanOrder.oracleAddress).getCurrentMarginAmount(
+            OracleInterface(loanOrder.oracleAddress).getCurrentMarginAmount(
                 loanOrder.loanTokenAddress,
                 loanPosition.positionTokenAddressFilled,
                 loanPosition.collateralTokenAddressFilled,

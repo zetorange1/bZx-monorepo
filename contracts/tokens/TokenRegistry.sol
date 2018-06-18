@@ -17,9 +17,10 @@
 
 */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
-import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+
 
 contract TokenRegistry is Ownable {
 
@@ -44,8 +45,8 @@ contract TokenRegistry is Ownable {
     event LogTokenURLChange(address indexed token, string oldURL, string newURL);
 
     mapping (address => TokenMetadata) public tokens;
-    mapping (string => address) tokenBySymbol;
-    mapping (string => address) tokenByName;
+    mapping (string => address) internal tokenBySymbol;
+    mapping (string => address) internal tokenByName;
 
     address[] public tokenAddresses;
 
@@ -81,7 +82,6 @@ contract TokenRegistry is Ownable {
         require(_address != address(0));
         _;
     }
-
 
     /// @dev Allows owner to add a new token to the registry.
     /// @param _token Address of new token.
@@ -194,7 +194,6 @@ contract TokenRegistry is Ownable {
     /*
      * View functions
      */
-
     /// @dev Provides a registered token's address when given the token symbol.
     /// @param _symbol Symbol of registered token.
     /// @return Token's address.

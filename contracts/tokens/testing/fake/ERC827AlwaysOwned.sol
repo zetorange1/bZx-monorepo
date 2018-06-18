@@ -1,7 +1,7 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.22; // solhint-disable-line compiler-fixed, compiler-gt-0_4_23
 
-import './ERC20_AlwaysOwned.sol';
+import "./ERC20AlwaysOwned.sol";
 
 
 /**
@@ -10,7 +10,7 @@ import './ERC20_AlwaysOwned.sol';
 * @dev FAKE ERC827 token where all accounts contain the total supply of the coin (a paradox).
 * @dev Note this is only to facilitate easier testing and should only be used in a private dev network!
 */
-contract ERC827_AlwaysOwned is ERC20_AlwaysOwned {
+contract ERC827AlwaysOwned is ERC20AlwaysOwned {
 
     function approve(address _spender, uint256 _value, bytes _data) public returns (bool) {
         require(_spender != address(this));

@@ -1,7 +1,8 @@
+/* solhint-disable func-order, separate-by-one-line-in-contract */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
-import './modules/B0xStorage.sol';
+import "./modules/B0xStorage.sol";
 
 // This interface is meant to used with the deployed B0xProxy contract (modules/B0xProxyContracts.sol) address.
 // js example: var b0x = await B0x.at((await B0xProxy.deployed()).address);
@@ -114,10 +115,6 @@ contract B0x is B0xStorage {
         public
         view
         returns (bytes);
-
-    /*
-    * B0xTradePlacer functions
-    */
 
     function tradePositionWith0x(
         bytes32 loanOrderHash,

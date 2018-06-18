@@ -1,8 +1,9 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
-import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
-import './B0xStorage.sol';
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "./B0xStorage.sol";
+
 
 contract Proxiable {
     mapping (bytes4 => address) public targets;
@@ -13,6 +14,7 @@ contract Proxiable {
         require(_target.delegatecall(bytes4(keccak256("initialize(address)")), _target));
     }
 }
+
 
 // b0x proxy
 contract B0xProxy is B0xStorage, Proxiable {
@@ -41,7 +43,6 @@ contract B0xProxy is B0xStorage, Proxiable {
     /*
      * Owner only functions
      */
-
     function replaceContract(
         address _target)
         public
@@ -71,10 +72,10 @@ contract B0xProxy is B0xStorage, Proxiable {
         onlyOwner
     {
         if (_b0xToken != address(0) && _vault != address(0) && _oracleregistry != address(0) && _exchange0xWrapper != address(0))
-        B0X_TOKEN_CONTRACT = _b0xToken;
-        VAULT_CONTRACT = _vault;
-        ORACLE_REGISTRY_CONTRACT = _oracleregistry;
-        B0XTO0X_CONTRACT = _exchange0xWrapper;
+        b0xTokenContract = _b0xToken;
+        vaultContract = _vault;
+        oracleRegistryContract = _oracleregistry;
+        b0xTo0xContract = _exchange0xWrapper;
     }
 
     function setDebugMode (
@@ -92,7 +93,7 @@ contract B0xProxy is B0xStorage, Proxiable {
         onlyOwner
     {
         if (_token != address(0))
-            B0X_TOKEN_CONTRACT = _token;
+            b0xTokenContract = _token;
     }
 
     function setVault (
@@ -101,7 +102,7 @@ contract B0xProxy is B0xStorage, Proxiable {
         onlyOwner
     {
         if (_vault != address(0))
-            VAULT_CONTRACT = _vault;
+            vaultContract = _vault;
     }
 
     function setOracleRegistry (
@@ -110,7 +111,7 @@ contract B0xProxy is B0xStorage, Proxiable {
         onlyOwner
     {
         if (_registry != address(0))
-            ORACLE_REGISTRY_CONTRACT = _registry;
+            oracleRegistryContract = _registry;
     }
 
     function set0xExchangeWrapper (
@@ -119,7 +120,7 @@ contract B0xProxy is B0xStorage, Proxiable {
         onlyOwner
     {
         if (_wrapper != address(0))
-            B0XTO0X_CONTRACT = _wrapper;
+            b0xTo0xContract = _wrapper;
     }
 
     /*function upgradeContract (
@@ -129,7 +130,7 @@ contract B0xProxy is B0xStorage, Proxiable {
     {
         require(newContract != address(0) && newContract != address(this));
         upgrade(newContract);
-        B0xVault(VAULT_CONTRACT).transferOwnership(newContract);
+        B0xVault(vaultContract).transferOwnership(newContract);
     }*/
 
     /*

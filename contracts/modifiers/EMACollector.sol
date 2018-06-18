@@ -1,7 +1,8 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+
 
 // supports a single EMA calculated for the inheriting contract
 contract EMACollector {
@@ -29,13 +30,13 @@ contract EMACollector {
 
         // calculate new EMA
         emaValue = 
-                SafeMath.sub(
-                    SafeMath.add(
-                        value / (emaPeriods + 1) * 2,   // no overflow
-                        emaValue
-                    ),
-                    emaValue / (emaPeriods + 1) * 2     // no overflow
-                );
+            SafeMath.sub(
+                SafeMath.add(
+                    value / (emaPeriods + 1) * 2,   // no overflow
+                    emaValue
+                ),
+                emaValue / (emaPeriods + 1) * 2     // no overflow
+            );
         //emit EMAUpdated(emaValue);
     }
 }

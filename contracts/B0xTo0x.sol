@@ -1,13 +1,14 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
-import './tokens/EIP20.sol';
-import './tokens/EIP20Wrapper.sol';
-import './modifiers/B0xOwnable.sol';
-import './shared/Debugger.sol';
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "./tokens/EIP20.sol";
+import "./tokens/EIP20Wrapper.sol";
+import "./modifiers/B0xOwnable.sol";
+import "./shared/Debugger.sol";
 
-interface Exchange_Interface {
+
+interface ExchangeInterface {
     event LogError(uint8 indexed errorId, bytes32 indexed orderHash);
 
     function fillOrder(
@@ -32,12 +33,13 @@ interface Exchange_Interface {
         returns (bool);
 }
 
+
 contract B0xTo0x is EIP20Wrapper, Debugger, B0xOwnable {
     using SafeMath for uint256;
 
-    address public EXCHANGE_CONTRACT;
-    address public ZRX_TOKEN_CONTRACT;
-    address public TOKEN_TRANSFER_PROXY_CONTRACT;
+    address public exchangeContract;
+    address public zrxTokenContract;
+    address public tokenTransferProxyContract;
 
     //event LogErrorUint(string errorTxt, uint errorValue, bytes32 indexed orderHash);
     //event LogErrorAddr(string errorTxt, address errorAddr, bytes32 indexed orderHash);
@@ -53,9 +55,9 @@ contract B0xTo0x is EIP20Wrapper, Debugger, B0xOwnable {
         address _proxy) 
         public 
     {
-        EXCHANGE_CONTRACT = _exchange;
-        ZRX_TOKEN_CONTRACT = _zrxToken;
-        TOKEN_TRANSFER_PROXY_CONTRACT = _proxy;
+        exchangeContract = _exchange;
+        zrxTokenContract = _zrxToken;
+        tokenTransferProxyContract = _proxy;
     }
 
    function take0xTrade(
@@ -114,7 +116,7 @@ contract B0xTo0x is EIP20Wrapper, Debugger, B0xOwnable {
 
         if (sourceTokenUsedAmount < sourceTokenAmountToUse) {
             // all sourceToken has to be traded
-            voidOrRevert(117); return; // revert("B0xTo0x::take0xTrade: sourceTokenUsedAmount < sourceTokenAmountToUse");
+            voidOrRevert(119); return; // revert("B0xTo0x::take0xTrade: sourceTokenUsedAmount < sourceTokenAmountToUse");
         }
 
         destTokenAmount = getPartialAmount(
@@ -146,14 +148,14 @@ contract B0xTo0x is EIP20Wrapper, Debugger, B0xOwnable {
         ) {
             // The 0x TokenTransferProxy already has unlimited transfer allowance for ZRX from this contract (set during deployment of this contract)
             eip20TransferFrom(
-                ZRX_TOKEN_CONTRACT,
+                zrxTokenContract,
                 trader,
                 this,
                 orderValues0x[3]);
         }
 
         uint8 v;
-	    bytes32 r;
+        bytes32 r;
         bytes32 s;
         (v, r, s) = getSignatureParts(signature);
 
@@ -161,10 +163,10 @@ contract B0xTo0x is EIP20Wrapper, Debugger, B0xOwnable {
         // orderAddresses0x[3] -> takerToken/sourceToken
         eip20Approve(
             orderAddresses0x[3],
-            TOKEN_TRANSFER_PROXY_CONTRACT,
-            EIP20(orderAddresses0x[3]).allowance(this, TOKEN_TRANSFER_PROXY_CONTRACT).add(sourceTokenAmountToUse));
+            tokenTransferProxyContract,
+            EIP20(orderAddresses0x[3]).allowance(this, tokenTransferProxyContract).add(sourceTokenAmountToUse));
 
-        uint sourceTokenUsedAmount = Exchange_Interface(EXCHANGE_CONTRACT).fillOrder(
+        uint sourceTokenUsedAmount = ExchangeInterface(exchangeContract).fillOrder(
             orderAddresses0x,
             orderValues0x,
             sourceTokenAmountToUse,
@@ -263,7 +265,7 @@ contract B0xTo0x is EIP20Wrapper, Debugger, B0xOwnable {
         public
         onlyOwner
     {
-        EXCHANGE_CONTRACT = _exchange;
+        exchangeContract = _exchange;
     }
 
     function setZRXToken (
@@ -271,7 +273,7 @@ contract B0xTo0x is EIP20Wrapper, Debugger, B0xOwnable {
         public
         onlyOwner
     {
-        ZRX_TOKEN_CONTRACT = _zrxToken;
+        zrxTokenContract = _zrxToken;
     }
 
     function set0xTokenProxy (
@@ -279,7 +281,7 @@ contract B0xTo0x is EIP20Wrapper, Debugger, B0xOwnable {
         public
         onlyOwner
     {
-        TOKEN_TRANSFER_PROXY_CONTRACT = _proxy;
+        tokenTransferProxyContract = _proxy;
     }
 
     function setDebugMode (

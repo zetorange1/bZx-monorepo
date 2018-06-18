@@ -1,35 +1,37 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
-import '../../oracle/B0xOracle.sol';
+import "../../oracle/B0xOracle.sol";
+
 
 contract Faucet {
     function oracleExchange(
-            address getToken,
-            address receiver,
-            uint getTokenAmount)
-            public
-            returns (bool);
+        address getToken,
+        address receiver,
+        uint getTokenAmount)
+        public
+        returns (bool);
 }
+
 
 contract TestNetOracle is B0xOracle {
     using SafeMath for uint256;
 
-    address public FAUCET_CONTRACT;
+    address public faucetContract;
 
-    function() public payable {}
+    function() public payable {} // solhint-disable-line no-empty-blocks
 
     constructor(
-        address _vault_contract,
-        address _kyber_contract,
-        address _weth_contract,
-        address _b0x_token_contract)
-        B0xOracle(
-            _vault_contract,
-            _kyber_contract,
-            _weth_contract,
-            _b0x_token_contract)
+        address _vaultContract,
+        address _kyberContract,
+        address _wethContract,
+        address _b0xTokenContract)
         public
+        B0xOracle(
+            _vaultContract,
+            _kyberContract,
+            _wethContract,
+            _b0xTokenContract)
         payable
     {}
 
@@ -61,8 +63,8 @@ contract TestNetOracle is B0xOracle {
         public
         onlyOwner
     {
-        require(newAddress != FAUCET_CONTRACT && newAddress != address(0));
-        FAUCET_CONTRACT = newAddress;
+        require(newAddress != faucetContract && newAddress != address(0));
+        faucetContract = newAddress;
     }
 
     /*
@@ -91,11 +93,11 @@ contract TestNetOracle is B0xOracle {
             }
             _transferToken(
                 sourceTokenAddress,
-                FAUCET_CONTRACT,
+                faucetContract,
                 sourceTokenAmount);
-            require(Faucet(FAUCET_CONTRACT).oracleExchange(
+            require(Faucet(faucetContract).oracleExchange(
                 destTokenAddress,
-                VAULT_CONTRACT,
+                vaultContract,
                 destTokenAmount));
         }
     }

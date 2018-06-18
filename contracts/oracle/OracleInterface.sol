@@ -1,8 +1,9 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+
 
 /**
-    @title Oracle_Interface, an interface for b0x compatible oracle contracts
+    @title OracleInterface, an interface for b0x compatible oracle contracts
 
     This interface is meant to be inherited by contracts implementing a 
     compatible oracle solution for b0x. The functions should provide logic
@@ -19,7 +20,8 @@ pragma solidity ^0.4.24;
 
     !!! Safeguard of user funds should be of the utmost importance !!!
  */
-interface Oracle_Interface {
+// solhint-disable-next-line contract-name-camelcase
+interface OracleInterface {
 
     /// @dev Called by b0x after a loan order is taken
     /// @param loanOrderHash A unique hash representing the loan order

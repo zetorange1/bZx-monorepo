@@ -1,10 +1,11 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
-import 'openzeppelin-solidity/contracts/token/ERC20/BurnableToken.sol';
+import "openzeppelin-solidity/contracts/token/ERC20/BurnableToken.sol";
 
-import './UnlimitedAllowanceToken.sol';
-//import './testing/fake/ERC827_AlwaysOwned.sol'; // Testing only! Please remove this and use above for production!
+import "./UnlimitedAllowanceToken.sol";
+//import "./testing/fake/ERC827AlwaysOwned.sol"; // Testing only! Please remove this and use above for production!
+
 
 contract BaseToken is UnlimitedAllowanceToken, BurnableToken {
     string public name;

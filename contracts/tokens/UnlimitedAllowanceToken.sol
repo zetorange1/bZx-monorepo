@@ -16,13 +16,14 @@
 
 */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
-import 'openzeppelin-solidity/contracts/token/ERC827/ERC827Token.sol';
+import "openzeppelin-solidity/contracts/token/ERC827/ERC827Token.sol";
+
 
 contract UnlimitedAllowanceToken is ERC827Token {
 
-    uint constant MAX_UINT = 2**256 - 1;
+    uint internal constant MAX_UINT = 2**256 - 1;
     
     /// @dev ERC20 transferFrom, modified such that an allowance of MAX_UINT represents an unlimited allowance.
     /// @param _from Address to transfer from.

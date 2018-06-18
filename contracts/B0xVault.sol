@@ -1,8 +1,9 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
-import './tokens/EIP20Wrapper.sol';
-import './modifiers/B0xOwnable.sol';
+import "./tokens/EIP20Wrapper.sol";
+import "./modifiers/B0xOwnable.sol";
+
 
 contract B0xVault is EIP20Wrapper, B0xOwnable {
 
@@ -21,7 +22,7 @@ contract B0xVault is EIP20Wrapper, B0xOwnable {
             amount = address(this).balance;
         }
 
-        return (to.send(amount));
+        return (to.send(amount)); // solhint-disable-line check-send-result, multiple-sends
     }
 
     function depositToken(

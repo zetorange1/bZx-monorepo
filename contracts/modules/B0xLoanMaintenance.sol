@@ -1,14 +1,15 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
-import 'openzeppelin-solidity/contracts/math/Math.sol';
+import "openzeppelin-solidity/contracts/math/Math.sol";
 
-import './B0xStorage.sol';
-import './B0xProxyContracts.sol';
-import '../shared/InternalFunctions.sol';
+import "./B0xStorage.sol";
+import "./B0xProxyContracts.sol";
+import "../shared/InternalFunctions.sol";
 
-import '../B0xVault.sol';
-import '../oracle/Oracle_Interface.sol';
+import "../B0xVault.sol";
+import "../oracle/OracleInterface.sol";
+
 
 contract B0xLoanMaintenance is B0xStorage, Proxiable, InternalFunctions {
     using SafeMath for uint256;
@@ -42,38 +43,38 @@ contract B0xLoanMaintenance is B0xStorage, Proxiable, InternalFunctions {
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            return boolOrRevert(false,45); // revert("B0xLoanHealth::depositCollateral: loanOrder.maker == address(0)");
+            return boolOrRevert(false,46); // revert("B0xLoanHealth::depositCollateral: loanOrder.maker == address(0)");
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
-            return boolOrRevert(false,49); // revert("B0xLoanHealth::depositCollateral: block.timestamp >= loanOrder.expirationUnixTimestampSec");
+            return boolOrRevert(false,50); // revert("B0xLoanHealth::depositCollateral: block.timestamp >= loanOrder.expirationUnixTimestampSec");
         }
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return boolOrRevert(false,54); // revert("B0xLoanHealth::depositCollateral: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+            return boolOrRevert(false,55); // revert("B0xLoanHealth::depositCollateral: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
 
         if (collateralTokenFilled != loanPosition.collateralTokenAddressFilled) {
-            return boolOrRevert(false,58); // revert("B0xLoanHealth::depositCollateral: collateralTokenFilled != loanPosition.collateralTokenAddressFilled");
+            return boolOrRevert(false,59); // revert("B0xLoanHealth::depositCollateral: collateralTokenFilled != loanPosition.collateralTokenAddressFilled");
         }
 
-        if (! B0xVault(VAULT_CONTRACT).depositToken(
+        if (! B0xVault(vaultContract).depositToken(
             collateralTokenFilled,
             msg.sender,
             depositAmount
         )) {
-            return boolOrRevert(false,66); // revert("B0xLoanHealth::depositCollateral: B0xVault.depositToken collateral failed");
+            return boolOrRevert(false,67); // revert("B0xLoanHealth::depositCollateral: B0xVault.depositToken collateral failed");
         }
 
         loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.add(depositAmount);
 
-        if (! Oracle_Interface(loanOrder.oracleAddress).didDepositCollateral(
+        if (! OracleInterface(loanOrder.oracleAddress).didDepositCollateral(
             loanOrder.loanOrderHash,
             msg.sender,
             gasUsed // initial used gas, collected in modifier
         )) {
-            return boolOrRevert(false,76); // revert("B0xLoanHealth::depositCollateral: Oracle_Interface.didDepositCollateral failed");
+            return boolOrRevert(false,77); // revert("B0xLoanHealth::depositCollateral: OracleInterface.didDepositCollateral failed");
         }
 
         return true;
@@ -95,16 +96,16 @@ contract B0xLoanMaintenance is B0xStorage, Proxiable, InternalFunctions {
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            return intOrRevert(0,98); // revert("B0xLoanHealth::withdrawExcessCollateral: loanOrder.maker == address(0)");
+            return intOrRevert(0,99); // revert("B0xLoanHealth::withdrawExcessCollateral: loanOrder.maker == address(0)");
         }
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return intOrRevert(0,103); // revert("B0xLoanHealth::withdrawExcessCollateral: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+            return intOrRevert(0,104); // revert("B0xLoanHealth::withdrawExcessCollateral: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
 
         if (collateralTokenFilled != loanPosition.collateralTokenAddressFilled) {
-            return intOrRevert(0,107); // revert("B0xLoanHealth::withdrawExcessCollateral: collateralTokenFilled != loanPosition.collateralTokenAddressFilled");
+            return intOrRevert(0,108); // revert("B0xLoanHealth::withdrawExcessCollateral: collateralTokenFilled != loanPosition.collateralTokenAddressFilled");
         }
 
         // the new collateral amount must be enough to satify the initial margin requirement of the loan
@@ -116,29 +117,29 @@ contract B0xLoanMaintenance is B0xStorage, Proxiable, InternalFunctions {
             loanOrder.initialMarginAmount
         );
         if (initialCollateralTokenAmount == 0 || initialCollateralTokenAmount >= loanPosition.collateralTokenAmountFilled) {
-            return intOrRevert(0,119); // revert("B0xLoanHealth::withdrawExcessCollateral: initialCollateralTokenAmount == 0 || initialCollateralTokenAmount >= loanPosition.collateralTokenAmountFilled");
+            return intOrRevert(0,120); // revert("B0xLoanHealth::withdrawExcessCollateral: initialCollateralTokenAmount == 0 || initialCollateralTokenAmount >= loanPosition.collateralTokenAmountFilled");
         }
 
         excessCollateral = Math.min256(withdrawAmount, loanPosition.collateralTokenAmountFilled-initialCollateralTokenAmount);
 
         // transfer excess collateral to trader
-        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
+        if (! B0xVault(vaultContract).withdrawToken(
             loanPosition.collateralTokenAddressFilled,
             msg.sender,
             excessCollateral
         )) {
-            return intOrRevert(0,130); // revert("B0xLoanHealth::withdrawExcessCollateral: B0xVault.withdrawToken collateral failed");
+            return intOrRevert(0,131); // revert("B0xLoanHealth::withdrawExcessCollateral: B0xVault.withdrawToken collateral failed");
         }
 
         // update stored collateral amount
         loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(excessCollateral);
 
-        if (! Oracle_Interface(loanOrder.oracleAddress).didWithdrawCollateral(
+        if (! OracleInterface(loanOrder.oracleAddress).didWithdrawCollateral(
             loanOrder.loanOrderHash,
             msg.sender,
             gasUsed // initial used gas, collected in modifier
         )) {
-            return intOrRevert(0,141); // revert("B0xLoanHealth::withdrawExcessCollateral: Oracle_Interface.didWithdrawCollateral failed");
+            return intOrRevert(0,142); // revert("B0xLoanHealth::withdrawExcessCollateral: OracleInterface.didWithdrawCollateral failed");
         }
     }
 
@@ -157,20 +158,20 @@ contract B0xLoanMaintenance is B0xStorage, Proxiable, InternalFunctions {
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            return boolOrRevert(false,160); // revert("B0xLoanHealth::changeCollateral: loanOrder.maker == address(0)");
+            return boolOrRevert(false,161); // revert("B0xLoanHealth::changeCollateral: loanOrder.maker == address(0)");
         }
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return boolOrRevert(false,165); // revert("B0xLoanHealth::changeCollateral: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+            return boolOrRevert(false,166); // revert("B0xLoanHealth::changeCollateral: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
 
         if (collateralTokenFilled == address(0) || collateralTokenFilled == loanPosition.collateralTokenAddressFilled) {
-            return boolOrRevert(false,169); // revert("B0xLoanHealth::changeCollateral: collateralTokenFilled == address(0) || collateralTokenFilled == loanPosition.collateralTokenAddressFilled");
+            return boolOrRevert(false,170); // revert("B0xLoanHealth::changeCollateral: collateralTokenFilled == address(0) || collateralTokenFilled == loanPosition.collateralTokenAddressFilled");
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
-            return boolOrRevert(false,173); // revert("B0xLoanHealth::changeCollateral: block.timestamp >= loanOrder.expirationUnixTimestampSec");
+            return boolOrRevert(false,174); // revert("B0xLoanHealth::changeCollateral: block.timestamp >= loanOrder.expirationUnixTimestampSec");
         }
 
         // the new collateral amount must be enough to satify the initial margin requirement of the loan
@@ -182,36 +183,36 @@ contract B0xLoanMaintenance is B0xStorage, Proxiable, InternalFunctions {
             loanOrder.initialMarginAmount
         );
         if (collateralTokenAmountFilled == 0) {
-            return boolOrRevert(false,185); // revert("B0xLoanHealth::changeCollateral: collateralTokenAmountFilled == 0");
+            return boolOrRevert(false,186); // revert("B0xLoanHealth::changeCollateral: collateralTokenAmountFilled == 0");
         }
 
         // transfer the new collateral token from the trader to the vault
-        if (! B0xVault(VAULT_CONTRACT).depositToken(
+        if (! B0xVault(vaultContract).depositToken(
             collateralTokenFilled,
             msg.sender,
             collateralTokenAmountFilled
         )) {
-            return boolOrRevert(false,194); // revert("B0xLoanHealth::changeCollateral: B0xVault.depositToken new collateral failed");
+            return boolOrRevert(false,195); // revert("B0xLoanHealth::changeCollateral: B0xVault.depositToken new collateral failed");
         }
 
         // transfer the old collateral token from the vault to the trader
-        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
+        if (! B0xVault(vaultContract).withdrawToken(
             loanPosition.collateralTokenAddressFilled,
             msg.sender,
             loanPosition.collateralTokenAmountFilled
         )) {
-            return boolOrRevert(false,203); // revert("B0xLoanHealth::changeCollateral: B0xVault.withdrawToken old collateral failed");
+            return boolOrRevert(false,204); // revert("B0xLoanHealth::changeCollateral: B0xVault.withdrawToken old collateral failed");
         }
 
         loanPosition.collateralTokenAddressFilled = collateralTokenFilled;
         loanPosition.collateralTokenAmountFilled = collateralTokenAmountFilled;
 
-        if (! Oracle_Interface(loanOrder.oracleAddress).didChangeCollateral(
+        if (! OracleInterface(loanOrder.oracleAddress).didChangeCollateral(
             loanOrder.loanOrderHash,
             msg.sender,
             gasUsed // initial used gas, collected in modifier
         )) {
-            return boolOrRevert(false,214); // revert("B0xLoanHealth::changeCollateral: Oracle_Interface.didChangeCollateral failed");
+            return boolOrRevert(false,215); // revert("B0xLoanHealth::changeCollateral: OracleInterface.didChangeCollateral failed");
         }
 
         return true;
@@ -236,28 +237,28 @@ contract B0xLoanMaintenance is B0xStorage, Proxiable, InternalFunctions {
             loanOrder,
             loanPosition);
         if (profitAmount == 0 || !isProfit) {
-            return intOrRevert(0,239); // revert("B0xLoanHealth::withdrawProfit: profitAmount == 0 || !isProfit");
+            return intOrRevert(0,240); // revert("B0xLoanHealth::withdrawProfit: profitAmount == 0 || !isProfit");
         }
 
         // transfer profit to the trader
-        if (! B0xVault(VAULT_CONTRACT).withdrawToken(
+        if (! B0xVault(vaultContract).withdrawToken(
             loanPosition.positionTokenAddressFilled,
             msg.sender,
             profitAmount
         )) {
-            return intOrRevert(0,248); // revert("B0xLoanHealth::withdrawProfit: B0xVault.withdrawToken loan failed");
+            return intOrRevert(0,249); // revert("B0xLoanHealth::withdrawProfit: B0xVault.withdrawToken loan failed");
         }
 
         // deduct profit from positionToken balance
         loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(profitAmount);
 
-        if (! Oracle_Interface(loanOrder.oracleAddress).didWithdrawProfit(
+        if (! OracleInterface(loanOrder.oracleAddress).didWithdrawProfit(
             loanOrder.loanOrderHash,
             msg.sender,
             profitAmount,
             gasUsed // initial used gas, collected in modifier
         )) {
-            return intOrRevert(0,260); // revert("B0xLoanHealth::withdrawProfit: Oracle_Interface.didWithdrawProfit failed");
+            return intOrRevert(0,261); // revert("B0xLoanHealth::withdrawProfit: OracleInterface.didWithdrawProfit failed");
         }
 
         emit LogWithdrawProfit(
@@ -273,7 +274,6 @@ contract B0xLoanMaintenance is B0xStorage, Proxiable, InternalFunctions {
     /*
     * Constant public functions
     */
-
     /// @dev Get the current profit/loss data of a position
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position
@@ -298,7 +298,6 @@ contract B0xLoanMaintenance is B0xStorage, Proxiable, InternalFunctions {
     /*
     * Constant Internal functions
     */
-
     function _getProfitOrLoss(
         LoanOrder loanOrder,
         LoanPosition loanPosition)
@@ -314,7 +313,7 @@ contract B0xLoanMaintenance is B0xStorage, Proxiable, InternalFunctions {
             return;
         }
 
-        (isProfit, profitOrLoss) = Oracle_Interface(loanOrder.oracleAddress).getProfitOrLoss(
+        (isProfit, profitOrLoss) = OracleInterface(loanOrder.oracleAddress).getProfitOrLoss(
             loanPosition.positionTokenAddressFilled,
             loanOrder.loanTokenAddress,
             loanPosition.positionTokenAmountFilled,

@@ -68,7 +68,7 @@ if (network != "mainnet") {
 	delete addresses["TestNetFaucet"];
 }
 
-addresses["Oracle_Interface"] = "unknown";
+addresses["OracleInterface"] = "unknown";
 addresses["EIP20"] = "unknown";
 
 var networkId;
@@ -126,7 +126,7 @@ Object.keys(addresses).forEach(function(item, index) {
 	var abi = "[]";
 	try {
 		addresses[item] = "";
-		if (item != "Oracle_Interface" && item != "EIP20") {
+		if (item != "OracleInterface" && item != "EIP20") {
 			addresses[item] = web3utils.toChecksumAddress(jsonContent["networks"][networkId]["address"]);
 		}
 

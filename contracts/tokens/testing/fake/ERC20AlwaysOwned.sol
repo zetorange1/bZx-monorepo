@@ -1,7 +1,7 @@
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
-import 'openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
+import "openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol";
 
 
 /**
@@ -10,13 +10,13 @@ import 'openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
 * @dev FAKE ERC20 token where all accounts contain the total supply of the coin (a paradox).
 * @dev Note this is only to facilitate easier testing and should only be used in a private dev network!
 */
-contract ERC20_AlwaysOwned is StandardToken {
+contract ERC20AlwaysOwned is StandardToken {
 
     string public name;
     uint8 public decimals;
     string public symbol;
 
-    /*function ERC20_AlwaysOwned(
+    /*function ERC20AlwaysOwned(
         uint256 _initialAmount,
         string _tokenName,
         uint8 _decimalUnits,
@@ -32,7 +32,7 @@ contract ERC20_AlwaysOwned is StandardToken {
         return true;
     }
 
-    function balanceOf(address _owner) public constant returns (uint256 balance) {
+    function balanceOf(address _owner) public view returns (uint256 balance) {
         if (_owner == address(0)) {} // to silence warning
         return totalSupply();
     }
