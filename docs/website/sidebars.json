@@ -7,8 +7,7 @@
       "modifiers_B0xOwnable",
       "modifiers_EMACollector",
       "modifiers_GasRefunder",
-      "modifiers_GasTracker",
-      "modifiers_Upgradeable"
+      "modifiers_GasTracker"
     ],
     "MODULES": [
       "modules_B0xLoanHealth",
@@ -25,8 +24,8 @@
       "oracle_B0xOracle",
       "oracle_B0xOracle_KyberNetwork_Interface",
       "oracle_B0xOracle_WETH_Interface",
-      "oracle_OracleRegistry",
-      "oracle_Oracle_Interface"
+      "oracle_OracleInterface",
+      "oracle_OracleRegistry"
     ],
     "SHARED": [
       "shared_Debugger",
@@ -58,13 +57,13 @@
       "tokens_testing_TestToken9"
     ],
     "TOKENS / TESTING / FAKE": [
-      "tokens_testing_fake_ERC20_AlwaysOwned",
-      "tokens_testing_fake_ERC827_AlwaysOwned"
+      "tokens_testing_fake_ERC20AlwaysOwned",
+      "tokens_testing_fake_ERC827AlwaysOwned"
     ],
     "UNCATEGORIZED": [
       "B0x",
       "B0xTo0x",
-      "B0xTo0x_Exchange_Interface",
+      "B0xTo0x_ExchangeInterface",
       "B0xVault"
     ]
   }
