@@ -2,6 +2,10 @@
   "name": "b0x-contracts",
   "version": "0.1.0",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/b0xNetwork/protocol_contracts.git"
+  },
   "devDependencies": {
     "0x-smart-contracts": "git+https://github.com/0xProject/contracts.git",
     "0x.js": "^0.32.4",
@@ -13,9 +17,11 @@
     "babel-preset-stage-0": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
     "babel-preset-stage-3": "^6.24.1",
+    "docusaurus": "^1.2.1",
     "lodash": "^4.17.5",
     "minimist": "^1.2.0",
     "solhint": "^1.2.1",
+    "solidity-docgen": "^0.1.0",
     "web3-utils": "^1.0.0-beta.34"
   },
   "dependencies": {
@@ -36,6 +42,9 @@
     "blockchain:stop": "pkill -9 -f ganache-cli || true",
     "build": "rimraf ./build/contracts && truffle compile",
     "build:deploy": "rimraf ./build/contracts && truffle compile && npm run migrate:reset && npm run assets",
+    "build:docs": "./extra/generate_documentation.sh",
+    "prepublish:gh:docs": "npm run build:docs",
+    "publish:gh:docs": "./extra/publish_gh_documentation.sh",
     "rebuild:deploy": "truffle compile && npm run migrate:reset",
     "assets": "node ./extra/generate_test_assets.js",
     "preptestnet": "rimraf ./test_network/build_contracts && rimraf ./test_network/deployed && rimraf ./test_network/html_public_test && npm run assets && node-mv ./build/contracts ./test_network/build_contracts && node-mv ./html_public_test/deployed ./test_network/deployed && node-mv ./html_public_test ./test_network/html_public_test",
