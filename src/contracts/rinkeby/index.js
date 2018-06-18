@@ -9,7 +9,7 @@ import TokenRegistry from "./TokenRegistry.json";
 import ZRXToken from "./ZRXToken.json";
 import WETH from "./WETH.json";
 import TokenTransferProxy from "./TokenTransferProxy.json";
-import OracleInterace from "./Oracle_Interface.json";
+import OracleInterace from "./OracleInterface.json";
 import TestNetFaucet from "./TestNetFaucet.json";
 
 export default {

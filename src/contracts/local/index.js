@@ -16,7 +16,7 @@ import TestToken7 from "../../../../protocol_contracts/test_network/deployed/Tes
 import TestToken8 from "../../../../protocol_contracts/test_network/deployed/TestToken8.json";
 import TestToken9 from "../../../../protocol_contracts/test_network/deployed/TestToken9.json";
 import TokenRegistry from "../../../../protocol_contracts/test_network/deployed/TokenRegistry.json";
-import OracleInterface from "../../../../protocol_contracts/test_network/deployed/Oracle_Interface.json";
+import OracleInterface from "../../../../protocol_contracts/test_network/deployed/OracleInterface.json";
 import TestNetFaucet from "../../../../protocol_contracts/test_network/deployed/TestNetFaucet.json";
 
 export default {
