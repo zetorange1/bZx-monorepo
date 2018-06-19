@@ -64,7 +64,7 @@ export default class Layout extends React.Component {
     const AlertComponent = this.state.alertComponent;
     return (
       <Container>
-        {Nav(this.props.changeCard)}
+        <Nav {...this.props} />
         <Content>
           <ContentContainer>{this.props.children}</ContentContainer>
         </Content>

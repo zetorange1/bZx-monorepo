@@ -20,7 +20,6 @@ const LoadingContainer = styled.div`
 
 export default class Web3Container extends React.Component {
   state = {
-    hideChooseProviderDialog: false,
     loading: true,
     errorMsg: ``,
     web3: null,
@@ -41,7 +40,6 @@ export default class Web3Container extends React.Component {
 
   loadWeb3 = async providerName => {
     const web3 = await getWeb3(providerName);
-    this.props.web3Received();
 
     if (!web3) {
       this.setState({ web3: null, loading: false, errorMsg: `` });
@@ -165,6 +163,8 @@ export default class Web3Container extends React.Component {
       return;
     }
 
+    this.props.web3Received();
+
     this.setState({
       loading: false,
       errorMsg: ``,
@@ -178,16 +178,8 @@ export default class Web3Container extends React.Component {
     });
   };
 
-  toggleDialog = event => {
-    event.preventDefault();
-    this.setState(p => ({
-      hideChooseProviderDialog: !p.hideChooseProviderDialog
-    }));
-  };
-
   render() {
     const {
-      hideChooseProviderDialog,
       loading,
       errorMsg,
       web3,
@@ -198,7 +190,14 @@ export default class Web3Container extends React.Component {
       oracles,
       networkId
     } = this.state;
-    const { render, providerName, setProvider, clearProvider } = this.props;
+    const {
+      render,
+      providerName,
+      setProvider,
+      clearProvider,
+      toggleProviderDialog,
+      hideChooseProviderDialog
+    } = this.props;
     if (!providerName) {
       if (hideChooseProviderDialog) {
         return (
@@ -207,7 +206,7 @@ export default class Web3Container extends React.Component {
             <a
               style={{ textDecoration: `none`, display: `inherit` }}
               href=""
-              onClick={this.toggleDialog}
+              onClick={toggleProviderDialog}
             >
               <div style={{ color: `red` }}>choose</div>
             </a>
@@ -218,7 +217,7 @@ export default class Web3Container extends React.Component {
       return (
         <ChooseProviderDialog
           open
-          close={this.toggleDialog}
+          close={toggleProviderDialog}
           setProvider={setProvider}
         />
       );

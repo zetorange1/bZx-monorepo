@@ -5,6 +5,9 @@ import {
   Card,
   Header,
   HeaderTitle,
+  HeaderTitleNoProvider,
+  HeaderTitleSiteName,
+  HeaderTitleContext,
   HeaderData,
   TabGroup,
   Tab,
@@ -41,26 +44,43 @@ class Index extends React.Component {
     activeTab: `Orders_GenOrder`,
     trackedTokens: [],
     providerName: ``,
-    getWeb3: false
+    getWeb3: false,
+    web3IsReceived: false,
+    hideChooseProviderDialog: false
   };
 
   setProvider = provider => {
     switch (provider) {
       case `MetaMask`:
       case `Ledger`:
-        this.setState({ providerName: provider, getWeb3: true });
+        this.setState({
+          providerName: provider,
+          getWeb3: true,
+          web3IsReceived: false
+        });
         break;
       case `Trezor`:
       default:
-        this.setState({ providerName: ``, getWeb3: false });
+        this.setState({
+          providerName: ``,
+          getWeb3: false,
+          web3IsReceived: false
+        });
         break;
     }
+  };
+
+  toggleProviderDialog = event => {
+    event.preventDefault();
+    this.setState(p => ({
+      hideChooseProviderDialog: !p.hideChooseProviderDialog
+    }));
   };
 
   changeCard = cardId => this.setState({ activeCard: cardId });
   changeTab = tabId => this.setState({ activeTab: tabId });
 
-  web3Received = () => this.setState({ getWeb3: false });
+  web3Received = () => this.setState({ getWeb3: false, web3IsReceived: true });
 
   clearProvider = () => {
     this.setProvider(null);
@@ -85,7 +105,10 @@ class Index extends React.Component {
       case `Balances`:
         return (
           <Fragment>
-            <HeaderTitle>Balances</HeaderTitle>
+            <HeaderTitle>
+              <HeaderTitleSiteName>b0x Portal</HeaderTitleSiteName>
+              <HeaderTitleContext>Balances</HeaderTitleContext>
+            </HeaderTitle>
             <HeaderData />
           </Fragment>
         );
@@ -93,7 +116,10 @@ class Index extends React.Component {
       case `Orders`:
         return (
           <Fragment>
-            <HeaderTitle>Orders</HeaderTitle>
+            <HeaderTitle>
+              <HeaderTitleSiteName>b0x Portal</HeaderTitleSiteName>
+              <HeaderTitleContext>Orders</HeaderTitleContext>
+            </HeaderTitle>
             <HeaderData />
             <TabGroup>
               {TABS.map(tab => (
@@ -112,7 +138,10 @@ class Index extends React.Component {
       case `Borrowing`:
         return (
           <Fragment>
-            <HeaderTitle>Borrowing</HeaderTitle>
+            <HeaderTitle>
+              <HeaderTitleSiteName>b0x Portal</HeaderTitleSiteName>
+              <HeaderTitleContext>Borrowing</HeaderTitleContext>
+            </HeaderTitle>
             <HeaderData />
           </Fragment>
         );
@@ -120,7 +149,10 @@ class Index extends React.Component {
       case `Lending`:
         return (
           <Fragment>
-            <HeaderTitle>Lending</HeaderTitle>
+            <HeaderTitle>
+              <HeaderTitleSiteName>b0x Portal</HeaderTitleSiteName>
+              <HeaderTitleContext>Lending</HeaderTitleContext>
+            </HeaderTitle>
             <HeaderData />
           </Fragment>
         );
@@ -128,7 +160,10 @@ class Index extends React.Component {
       case `Bounties`:
         return (
           <Fragment>
-            <HeaderTitle>Bounties</HeaderTitle>
+            <HeaderTitle>
+              <HeaderTitleSiteName>b0x Portal</HeaderTitleSiteName>
+              <HeaderTitleContext>Bounties</HeaderTitleContext>
+            </HeaderTitle>
             <HeaderData />
           </Fragment>
         );
@@ -252,6 +287,8 @@ class Index extends React.Component {
               networkId={networkId}
               accounts={accounts}
               etherscanURL={b0x.etherscanURL}
+              providerName={this.state.providerName}
+              clearProvider={this.clearProvider}
             />
             <p>
               Make margin calls and earn bounty rewards.<br />
@@ -281,19 +318,44 @@ class Index extends React.Component {
       // activeTab,
       // trackedTokens,
       providerName,
-      getWeb3
+      getWeb3,
+      web3IsReceived,
+      hideChooseProviderDialog
     } = this.state;
     return (
-      <Layout changeCard={this.changeCard}>
+      <Layout
+        changeCard={this.changeCard}
+        providerName={providerName}
+        web3IsReceived={web3IsReceived}
+      >
         <Card>
-          <Header>{this.headerSection(activeCard)}</Header>
-          <Content>
+          <Header>
+            {!web3IsReceived ? (
+              <Fragment>
+                <HeaderTitleNoProvider>
+                  WELCOME TO THE b0X PORTAL
+                </HeaderTitleNoProvider>
+                <HeaderData />
+              </Fragment>
+            ) : (
+              this.headerSection(activeCard)
+            )}
+          </Header>
+          <Content
+            style={
+              !hideChooseProviderDialog && !web3IsReceived && !getWeb3
+                ? { display: `none` }
+                : {}
+            }
+          >
             <Web3Container
               // eslint-disable-next-line
               render={({ web3, zeroEx, tokens, b0x, accounts, oracles, networkId }) => this.contentSection({ providerName, web3, zeroEx, tokens, b0x, accounts, oracles, networkId },activeCard)}
               providerName={providerName}
               setProvider={this.setProvider}
               clearProvider={this.clearProvider}
+              toggleProviderDialog={this.toggleProviderDialog}
+              hideChooseProviderDialog={hideChooseProviderDialog}
               getWeb3={getWeb3}
               web3Received={this.web3Received}
             />

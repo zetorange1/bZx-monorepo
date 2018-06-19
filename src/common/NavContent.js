@@ -69,6 +69,7 @@ class NavContent extends React.Component {
   changeCardClick = event => {
     event.preventDefault();
     this.props.changeCard(event.target.id);
+    this.setState({ showSideNav: false });
   };
 
   toggleSideNav = () => this.setState(p => ({ showSideNav: !p.showSideNav }));
@@ -79,51 +80,62 @@ class NavContent extends React.Component {
         <a href="https://b0x.network/">
           <ImgLogo src="https://b0x.network/img/site-logo.svg" />
         </a>
-        <HorizontalNav>
-          <NavLink id="Balances" onClick={this.changeCardClick}>
-            Balances
-          </NavLink>
-          <NavLink id="Orders" onClick={this.changeCardClick}>
-            Orders
-          </NavLink>
-          <NavLink id="Borrowing" onClick={this.changeCardClick}>
-            Borrowing
-          </NavLink>
-          <NavLink id="Lending" onClick={this.changeCardClick}>
-            Lending
-          </NavLink>
-          <NavLink id="Bounties" onClick={this.changeCardClick}>
-            Bounties
-          </NavLink>
-          <NavLink
-            style={{ textDecoration: `none` }}
-            href="https://portal.b0x.network/mew/#contracts"
-          >
-            Contracts
-          </NavLink>
-        </HorizontalNav>
-        <HamburgerBtn onClick={this.toggleSideNav}>menu</HamburgerBtn>
-        <Overlay show={this.state.showSideNav} onClick={this.toggleSideNav} />
-        <Drawer show={this.state.showSideNav}>
-          <VerticalNav>
-            <NavLink id="Balances" onClick={this.changeCardClick}>
-              Balances
-            </NavLink>
-            <NavLink id="Orders" onClick={this.changeCardClick}>
-              Orders
-            </NavLink>
-            <NavLink id="Borrowing" onClick={this.changeCardClick}>
-              Borrowing
-            </NavLink>
-            <NavLink id="Lending" onClick={this.changeCardClick}>
-              Lending
-            </NavLink>
-            <NavLink id="Bounties" onClick={this.changeCardClick}>
-              Bounties
-            </NavLink>
-          </VerticalNav>
-          <CloseDrawerBtn onClick={this.toggleSideNav}>close</CloseDrawerBtn>
-        </Drawer>
+        {this.props.web3IsReceived ? (
+          <Fragment>
+            <HorizontalNav>
+              <NavLink id="Balances" onClick={this.changeCardClick}>
+                Balances
+              </NavLink>
+              <NavLink id="Orders" onClick={this.changeCardClick}>
+                Orders
+              </NavLink>
+              <NavLink id="Borrowing" onClick={this.changeCardClick}>
+                Borrowing
+              </NavLink>
+              <NavLink id="Lending" onClick={this.changeCardClick}>
+                Lending
+              </NavLink>
+              <NavLink id="Bounties" onClick={this.changeCardClick}>
+                Bounties
+              </NavLink>
+              <NavLink
+                style={{ textDecoration: `none` }}
+                href="https://portal.b0x.network/mew/#contracts"
+              >
+                Contracts
+              </NavLink>
+            </HorizontalNav>
+            <HamburgerBtn onClick={this.toggleSideNav}>menu</HamburgerBtn>
+            <Overlay
+              show={this.state.showSideNav}
+              onClick={this.toggleSideNav}
+            />
+            <Drawer show={this.state.showSideNav}>
+              <VerticalNav>
+                <NavLink id="Balances" onClick={this.changeCardClick}>
+                  Balances
+                </NavLink>
+                <NavLink id="Orders" onClick={this.changeCardClick}>
+                  Orders
+                </NavLink>
+                <NavLink id="Borrowing" onClick={this.changeCardClick}>
+                  Borrowing
+                </NavLink>
+                <NavLink id="Lending" onClick={this.changeCardClick}>
+                  Lending
+                </NavLink>
+                <NavLink id="Bounties" onClick={this.changeCardClick}>
+                  Bounties
+                </NavLink>
+              </VerticalNav>
+              <CloseDrawerBtn onClick={this.toggleSideNav}>
+                close
+              </CloseDrawerBtn>
+            </Drawer>
+          </Fragment>
+        ) : (
+          ``
+        )}
       </Fragment>
     );
   }

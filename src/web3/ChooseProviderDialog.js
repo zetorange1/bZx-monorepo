@@ -53,7 +53,7 @@ export default class ChooseProviderDialog extends React.Component {
   render() {
     return (
       <Dialog open={this.props.open}>
-        <DialogTitle>Choose Provider</DialogTitle>
+        <DialogTitle>Choose Wallet Provider</DialogTitle>
         <DialogContent style={{ padding: `unset` }}>
           <Container>
             <ProviderContainer>

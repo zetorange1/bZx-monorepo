@@ -3,7 +3,7 @@ import { COLORS, SHADOWS } from "../styles/constants";
 
 export const Card = styled.div`
   display: ${p => (p.show ? `block` : `none`)};
-  min-height: 600px;
+  //min-height: 600px;
   box-shadow: ${SHADOWS.card};
   display: flex;
   flex-direction: column;
@@ -29,10 +29,28 @@ export const Header = styled.div`
 export const HeaderTitle = styled.h2`
   font-weight: 300;
   letter-spacing: 8px;
-  text-transform: uppercase;
+  margin-top: 0;
+  padding-left: 12px;
+  padding-bottom: 0;
+`;
+
+export const HeaderTitleNoProvider = styled.h2`
+  font-weight: 300;
+  letter-spacing: 8px;
+  text-align: center;
   margin-top: 25px;
   padding-left: 12px;
   padding-bottom: 12px;
+`;
+
+export const HeaderTitleSiteName = styled.div`
+  font-size: 14px;
+  font-weight: 700;
+`;
+
+export const HeaderTitleContext = styled.div`
+  padding-top: 25px;
+  text-transform: uppercase;
 `;
 
 const HeaderDataDiv = styled.div`
