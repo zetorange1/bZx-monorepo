@@ -48,22 +48,22 @@ contract OracleRegistry is Ownable {
     }
 
     modifier oracleExists(address _oracle) {
-        require(oracles[_oracle].oracle != address(0));
+        require(oracles[_oracle].oracle != address(0), "OracleRegistry::oracle doesn't exist");
         _;
     }
 
     modifier oracleDoesNotExist(address _oracle) {
-        require(oracles[_oracle].oracle == address(0));
+        require(oracles[_oracle].oracle == address(0), "OracleRegistry::oracle exists");
         _;
     }
 
     modifier nameDoesNotExist(string _name) {
-        require(oracleByName[_name] == address(0));
+        require(oracleByName[_name] == address(0), "OracleRegistry::name exists");
         _;
     }
 
     modifier addressNotNull(address _address) {
-        require(_address != address(0));
+        require(_address != address(0), "OracleRegistry::address is null");
         _;
     }
 
@@ -98,7 +98,7 @@ contract OracleRegistry is Ownable {
         onlyOwner
         oracleExists(_oracle)
     {
-        require(oracleAddresses[_index] == _oracle);
+        require(oracleAddresses[_index] == _oracle, "OracleRegistry::invalid index");
 
         oracleAddresses[_index] = oracleAddresses[oracleAddresses.length - 1];
         oracleAddresses.length -= 1;

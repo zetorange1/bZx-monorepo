@@ -1411,6 +1411,19 @@ contract('B0xTest', function(accounts) {
   });
 
   (run["should liquidate position"] ? it : it.skip)("should liquidate position", function(done) {
+    /*b0x.liquidatePosition.estimateGas(
+      OrderHash_b0x_1,
+      trader1_account,
+      {from: makerOf0xOrder_account}).then(function(tx) {
+        //console.log(txPrettyPrint(tx,"should liquidate position"));
+        console.log(tx);
+      }).catch(function(error) {
+        console.error(error);
+      });
+
+      assert.isOk(true);
+      done();*/
+    
     b0x.liquidatePosition(
       OrderHash_b0x_1,
       trader1_account,
@@ -1418,11 +1431,11 @@ contract('B0xTest', function(accounts) {
         console.log(txPrettyPrint(tx,"should liquidate position"));
         assert.isOk(tx);
         done();
-      }), function(error) {
+      }).catch(function(error) {
         console.error(error);
         assert.isOk(false);
         done();
-      };
+      });
   });
 
 

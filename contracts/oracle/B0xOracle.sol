@@ -8,7 +8,6 @@ import "../modifiers/B0xOwnable.sol";
 import "../modifiers/EMACollector.sol";
 import "../modifiers/GasRefunder.sol";
 import "../B0xVault.sol";
-import "../shared/Debugger.sol";
 
 import "../tokens/EIP20.sol";
 import "../tokens/EIP20Wrapper.sol";
@@ -58,7 +57,7 @@ interface KyberNetwork_Interface {
 }
 
 
-contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, Debugger, B0xOwnable {
+contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, B0xOwnable {
     using SafeMath for uint256;
 
     // this is the value the Kyber portal uses when setting a very high maximum number
@@ -174,7 +173,7 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             interestTokenAddress,
             lender,
             amountOwed.sub(interestFee))) {
-            return boolOrRevert(false,177); // revert("B0xOracle::didPayInterest: _transferToken failed");
+            revert("B0xOracle::didPayInterest: _transferToken failed");
         }
 
         // TODO: Block withdrawal below a certain amount
@@ -358,8 +357,7 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     {
         uint collateralTokenBalance = EIP20(collateralTokenAddress).balanceOf.gas(4999)(this); // Changes to state require at least 5000 gas
         if (collateralTokenBalance < collateralTokenAmountUsable) { // sanity check
-            voidOrRevert(361);
-            return; // revert("B0xOracle::doTradeofCollateral: collateralTokenBalance < collateralTokenAmountUsable");
+            revert("B0xOracle::doTradeofCollateral: collateralTokenBalance < collateralTokenAmountUsable");
         }
 
         // TODO: If collateralTokenAddress is WETH, do just a single trade with funds combined with the insurance fund if needed
@@ -379,8 +377,7 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 collateralTokenAddress,
                 vaultContract,
                 collateralTokenAmountUsable.sub(collateralTokenAmountUsed))) {
-                voidOrRevert(382);
-                return; // revert("B0xOracle::doTradeofCollateral: _transferToken failed");
+                revert("B0xOracle::doTradeofCollateral: _transferToken failed");
             }
         }
 
@@ -666,15 +663,6 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         emaPeriods = _newEMAPeriods;
     }
 
-    function setDebugMode (
-        bool _debug)
-        public
-        onlyOwner
-    {
-        if (DEBUG_MODE != _debug)
-            DEBUG_MODE = _debug;
-    }
-
     function transferEther(
         address to,
         uint value)
@@ -763,7 +751,7 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                     destTokenAddress,
                     vaultContract,
                     destTokenAmount)) {
-                    return intOrRevert(0,766); // revert("B0xOracle::_doTrade: _transferToken failed");
+                    revert("B0xOracle::_doTrade: _transferToken failed");
                 }
             } else {
                 // re-up the Kyber spend approval if needed

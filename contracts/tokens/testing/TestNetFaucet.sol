@@ -23,7 +23,7 @@ contract TestNetFaucet is EIP20Wrapper, Ownable {
         public
         returns (bool)
     {
-        require(msg.sender == oracleContract);
+        require(msg.sender == oracleContract, "TestNetFaucet::oracleExchange: only the oracle can call this function");
 
         eip20Transfer(
             getToken,
@@ -40,7 +40,7 @@ contract TestNetFaucet is EIP20Wrapper, Ownable {
         returns (bool)
     {
         require(block.timestamp-faucetUsers[receiver][getToken] >= faucetThresholdSecs 
-            && block.timestamp-faucetUsers[msg.sender][getToken] >= faucetThresholdSecs);
+            && block.timestamp-faucetUsers[msg.sender][getToken] >= faucetThresholdSecs, "TestNetFaucet::faucet: token requested too recently");
 
         faucetUsers[receiver][getToken] = block.timestamp;
         faucetUsers[msg.sender][getToken] = block.timestamp;

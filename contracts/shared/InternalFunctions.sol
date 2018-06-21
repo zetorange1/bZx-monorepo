@@ -114,7 +114,7 @@ contract InternalFunctions is B0xStorage {
         pure
         returns (uint)
     {
-        require(!_isRoundingError(numerator, denominator, target));
+        require(!_isRoundingError(numerator, denominator, target), "rounding error");
         return _getPartialAmount(numerator, denominator, target);
     }
 
@@ -252,7 +252,7 @@ contract InternalFunctions is B0xStorage {
             loanPosition.positionTokenAddressFilled,
             loanOrder.oracleAddress,
             loanPosition.positionTokenAmountFilled)) {
-            return intOrRevert(0, 1441); // revert("InternalFunctions::_tradePositionWithOracle: B0xVault.withdrawToken failed");
+            revert("InternalFunctions::_tradePositionWithOracle: B0xVault.withdrawToken failed");
         }
 
         uint tradeTokenAmountReceived;

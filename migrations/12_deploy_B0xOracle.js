@@ -33,9 +33,9 @@ module.exports = function(deployer, network, accounts) {
 			var b0xProxy = await B0xProxy.deployed();
 			await oracle.transferB0xOwnership(B0xProxy.address);
 
-			if (network != "mainnet" && network != "ropsten" && network != "kovan" && network != "rinkeby") {
+			/*if (network != "mainnet" && network != "ropsten" && network != "kovan" && network != "rinkeby") {
 				await oracle.setDebugMode(true);
-			}
+			}*/
 
 			var registry = await OracleRegistry.deployed();
 			await registry.addOracle(B0xOracle.address,"b0xOracle");

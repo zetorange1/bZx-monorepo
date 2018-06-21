@@ -39,7 +39,7 @@ contract EIP20Wrapper {
             }
         }
 
-        require(result);
+        require(result, "eip20Transfer failed");
     }
 
     function eip20TransferFrom(
@@ -66,7 +66,7 @@ contract EIP20Wrapper {
             }
         }
 
-        require(result);
+        require(result, "eip20TransferFrom failed");
     }
 
     function eip20Approve(
@@ -92,6 +92,6 @@ contract EIP20Wrapper {
             }
         }
 
-        require(result);
+        require(result, "eip20Approve failed");
     }
 }

@@ -98,7 +98,7 @@ contract TestNetOracle is B0xOracle {
             require(Faucet(faucetContract).oracleExchange(
                 destTokenAddress,
                 vaultContract,
-                destTokenAmount));
+                destTokenAmount), "TestNetFaucet::_doTrade: trade failed");
         }
     }
 

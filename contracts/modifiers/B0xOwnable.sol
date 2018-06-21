@@ -15,7 +15,7 @@ contract B0xOwnable is Ownable {
 
     // modifier reverts if b0xContractAddress isn't set
     modifier onlyB0x() {
-        require(msg.sender == b0xContractAddress);
+        require(msg.sender == b0xContractAddress, "only b0x contracts can call this function");
         _;
     }
 
@@ -24,7 +24,7 @@ contract B0xOwnable is Ownable {
     * @param newB0xContractAddress The b0x contract address to transfer ownership to.
     */
     function transferB0xOwnership(address newB0xContractAddress) public onlyOwner {
-        require(newB0xContractAddress != address(0) && newB0xContractAddress != owner);
+        require(newB0xContractAddress != address(0) && newB0xContractAddress != owner, "transferB0xOwnership::unauthorized");
         emit B0xOwnershipTransferred(b0xContractAddress, newB0xContractAddress);
         b0xContractAddress = newB0xContractAddress;
     }
@@ -35,7 +35,7 @@ contract B0xOwnable is Ownable {
     * This overrides transferOwnership in Ownable to prevent setting the new owner the same as the b0xContract
     */
     function transferOwnership(address newOwner) public onlyOwner {
-        require(newOwner != address(0) && newOwner != b0xContractAddress);
+        require(newOwner != address(0) && newOwner != b0xContractAddress, "transferOwnership::unauthorized");
         emit OwnershipTransferred(owner, newOwner);
         owner = newOwner;
     }

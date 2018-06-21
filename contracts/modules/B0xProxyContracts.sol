@@ -2,6 +2,8 @@
 pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+//import { B0xErrors } from "../libraries/B0xErrors.sol";
+//import "../libraries/B0xErrors.sol";
 import "./B0xStorage.sol";
 
 
@@ -11,7 +13,7 @@ contract Proxiable {
     function initialize(address _target) public;
 
     function _replaceContract(address _target) internal {
-        require(_target.delegatecall(bytes4(keccak256("initialize(address)")), _target));
+        require(_target.delegatecall(bytes4(keccak256("initialize(address)")), _target), "Proxiable::_replaceContract: failed");
     }
 }
 
@@ -122,16 +124,6 @@ contract B0xProxy is B0xStorage, Proxiable {
         if (_wrapper != address(0))
             b0xTo0xContract = _wrapper;
     }
-
-    /*function upgradeContract (
-        address newContract)
-        public
-        onlyOwner
-    {
-        require(newContract != address(0) && newContract != address(this));
-        upgrade(newContract);
-        B0xVault(vaultContract).transferOwnership(newContract);
-    }*/
 
     /*
      * View functions

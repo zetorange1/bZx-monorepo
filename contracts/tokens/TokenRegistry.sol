@@ -59,27 +59,27 @@ contract TokenRegistry is Ownable {
     }
 
     modifier tokenExists(address _token) {
-        require(tokens[_token].token != address(0));
+        require(tokens[_token].token != address(0), "TokenRegistry::token doesn't exist");
         _;
     }
 
     modifier tokenDoesNotExist(address _token) {
-        require(tokens[_token].token == address(0));
+        require(tokens[_token].token == address(0), "TokenRegistry::token exists");
         _;
     }
 
     modifier nameDoesNotExist(string _name) {
-        require(tokenByName[_name] == address(0));
+        require(tokenByName[_name] == address(0), "TokenRegistry::name exists");
         _;
     }
 
     modifier symbolDoesNotExist(string _symbol) {
-        require(tokenBySymbol[_symbol] == address(0));
+        require(tokenBySymbol[_symbol] == address(0), "TokenRegistry::symbol exists");
         _;
     }
 
     modifier addressNotNull(address _address) {
-        require(_address != address(0));
+        require(_address != address(0), "TokenRegistry::address is null");
         _;
     }
 
@@ -128,7 +128,7 @@ contract TokenRegistry is Ownable {
         onlyOwner
         tokenExists(_token)
     {
-        require(tokenAddresses[_index] == _token);
+        require(tokenAddresses[_index] == _token, "TokenRegistry::invalid index");
 
         tokenAddresses[_index] = tokenAddresses[tokenAddresses.length - 1];
         tokenAddresses.length -= 1;

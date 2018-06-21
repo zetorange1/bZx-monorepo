@@ -26,7 +26,7 @@ contract EMACollector {
             EMA: (LastestValue - PreviousEMA) * Multiplier + PreviousEMA 
         */
 
-        require(emaPeriods >= 2);
+        require(emaPeriods >= 2, "emaPeriods < 2");
 
         // calculate new EMA
         emaValue = 

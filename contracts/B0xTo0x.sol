@@ -5,7 +5,6 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./tokens/EIP20.sol";
 import "./tokens/EIP20Wrapper.sol";
 import "./modifiers/B0xOwnable.sol";
-import "./shared/Debugger.sol";
 
 
 interface ExchangeInterface {
@@ -34,7 +33,7 @@ interface ExchangeInterface {
 }
 
 
-contract B0xTo0x is EIP20Wrapper, Debugger, B0xOwnable {
+contract B0xTo0x is EIP20Wrapper, B0xOwnable {
     using SafeMath for uint256;
 
     address public exchangeContract;
@@ -116,7 +115,7 @@ contract B0xTo0x is EIP20Wrapper, Debugger, B0xOwnable {
 
         if (sourceTokenUsedAmount < sourceTokenAmountToUse) {
             // all sourceToken has to be traded
-            voidOrRevert(119); return; // revert("B0xTo0x::take0xTrade: sourceTokenUsedAmount < sourceTokenAmountToUse");
+            revert("B0xTo0x::take0xTrade: sourceTokenUsedAmount < sourceTokenAmountToUse");
         }
 
         destTokenAmount = getPartialAmount(
@@ -282,15 +281,6 @@ contract B0xTo0x is EIP20Wrapper, Debugger, B0xOwnable {
         onlyOwner
     {
         tokenTransferProxyContract = _proxy;
-    }
-
-    function setDebugMode (
-        bool _debug)
-        public
-        onlyOwner
-    {
-        if (DEBUG_MODE != _debug)
-            DEBUG_MODE = _debug;
     }
 
     function approveFor (

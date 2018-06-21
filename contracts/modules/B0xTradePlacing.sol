@@ -59,16 +59,16 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            return intOrRevert(0,62); // revert("B0xTradePlacing::tradePositionWith0x: loanOrder.maker == address(0)");
+            revert("B0xTradePlacing::tradePositionWith0x: loanOrder.maker == address(0)");
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
-            return intOrRevert(0,66); // revert("B0xTradePlacing::tradePositionWith0x: block.timestamp >= loanOrder.expirationUnixTimestampSec");
+            revert("B0xTradePlacing::tradePositionWith0x: block.timestamp >= loanOrder.expirationUnixTimestampSec");
         }
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return intOrRevert(0,71); // revert("B0xTradePlacing::tradePositionWith0x: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+            revert("B0xTradePlacing::tradePositionWith0x: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
 
         // transfer the current position token to the B0xTo0x contract
@@ -76,7 +76,7 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
             loanPosition.positionTokenAddressFilled,
             b0xTo0xContract,
             loanPosition.positionTokenAmountFilled)) {
-            return intOrRevert(0,79); // revert("B0xTradePlacing::tradePositionWith0x: B0xVault.withdrawToken failed");
+            revert("B0xTradePlacing::tradePositionWith0x: B0xVault.withdrawToken failed");
         }
 
         address tradeTokenAddress;
@@ -90,7 +90,7 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
             signiture0x);
 
         if (tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled) {
-            return intOrRevert(0,93); // revert("B0xTradePlacing::tradePositionWith0x: tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled");
+            revert("B0xTradePlacing::tradePositionWith0x: tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled");
         }
 
         if (DEBUG_MODE) {
@@ -108,7 +108,7 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
                 loanPosition.positionTokenAmountFilled,
                 loanPosition.collateralTokenAmountFilled,
                 loanOrder.maintenanceMarginAmount)) {
-            return intOrRevert(0,111); // revert("B0xTradePlacing::tradePositionWith0x: liquidation required");
+            revert("B0xTradePlacing::tradePositionWith0x: liquidation required");
         }
 
         emit LogPositionTraded(
@@ -131,7 +131,7 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
             tradeTokenAmount,
             gasUsed // initial used gas, collected in modifier
         )) {
-            return intOrRevert(0,134); // revert("B0xTradePlacing::tradePositionWith0x: OracleInterface.didTradePosition failed");
+            revert("B0xTradePlacing::tradePositionWith0x: OracleInterface.didTradePosition failed");
         }
 
         return tradeTokenAmount;
@@ -151,20 +151,20 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            return intOrRevert(0,154); // revert("B0xTradePlacing::tradePositionWithOracle: loanOrder.maker == address(0)");
+            revert("B0xTradePlacing::tradePositionWithOracle: loanOrder.maker == address(0)");
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
-            return intOrRevert(0,158); // revert("B0xTradePlacing::tradePositionWithOracle: block.timestamp >= loanOrder.expirationUnixTimestampSec");
+            revert("B0xTradePlacing::tradePositionWithOracle: block.timestamp >= loanOrder.expirationUnixTimestampSec");
         }
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return intOrRevert(0,163); // revert("B0xTradePlacing::tradePositionWithOracle: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+            revert("B0xTradePlacing::tradePositionWithOracle: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
 
         if (tradeTokenAddress == loanPosition.positionTokenAddressFilled) {
-            return intOrRevert(0,167); // revert("B0xTradePlacing::tradePositionWithOracle: tradeTokenAddress == loanPosition.positionTokenAddressFilled");
+            revert("B0xTradePlacing::tradePositionWithOracle: tradeTokenAddress == loanPosition.positionTokenAddressFilled");
         }
 
         if (DEBUG_MODE) {
@@ -182,7 +182,7 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
                 loanPosition.positionTokenAmountFilled,
                 loanPosition.collateralTokenAmountFilled,
                 loanOrder.maintenanceMarginAmount)) {
-            return intOrRevert(0,185); // revert("B0xTradePlacing::tradePositionWithOracle: liquidation required");
+            revert("B0xTradePlacing::tradePositionWithOracle: liquidation required");
         }
 
         // check the current token balance of the oracle before sending token to be traded
@@ -199,11 +199,11 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
         // It is assumed that all positionToken will be traded, so the remaining token balance of the oracle 
         // shouldn't be greater than the balance before we sent the token to be traded.
         if (balanceBeforeTrade < EIP20(loanPosition.positionTokenAddressFilled).balanceOf.gas(4999)(loanOrder.oracleAddress)) {
-            return intOrRevert(0,202); // revert("B0xTradePlacing::tradePositionWithOracle: balanceBeforeTrade is less");
+            revert("B0xTradePlacing::tradePositionWithOracle: balanceBeforeTrade is less");
         }
 
         if (tradeTokenAmount == 0) {
-            return intOrRevert(0,206); // revert("B0xTradePlacing::tradePositionWithOracle: tradeTokenAmount == 0");
+            revert("B0xTradePlacing::tradePositionWithOracle: tradeTokenAmount == 0");
         }
 
         emit LogPositionTraded(
@@ -226,7 +226,7 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
             tradeTokenAmount,
             gasUsed // initial used gas, collected in modifier
         )) {
-            return intOrRevert(0,229); // revert("B0xTradePlacing::tradePositionWithOracle: OracleInterface.didTradePosition");
+            revert("B0xTradePlacing::tradePositionWithOracle: OracleInterface.didTradePosition");
         }
 
         return tradeTokenAmount;

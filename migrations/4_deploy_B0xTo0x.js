@@ -9,8 +9,8 @@ module.exports = function(deployer, network, accounts) {
 		network = "development";
 
 	deployer.deploy(B0xTo0x, config["addresses"][network]["ZeroEx"]["Exchange"], config["addresses"][network]["ZeroEx"]["ZRXToken"], config["addresses"][network]["ZeroEx"]["TokenTransferProxy"]).then(async function(b0xTo0x) {
-		if (network != "mainnet" && network != "ropsten" && network != "kovan" && network != "rinkeby") {
+		/*if (network != "mainnet" && network != "ropsten" && network != "kovan" && network != "rinkeby") {
 			await b0xTo0x.setDebugMode(true);
-		}
+		}*/
 	});
 }
