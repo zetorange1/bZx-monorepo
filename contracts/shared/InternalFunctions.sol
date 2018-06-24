@@ -256,7 +256,7 @@ contract InternalFunctions is B0xStorage {
         }
 
         uint tradeTokenAmountReceived;
-        if (isLiquidation) {
+        if (isLiquidation && block.timestamp < loanOrder.expirationUnixTimestampSec) { // checks for non-expired loan
             tradeTokenAmountReceived = OracleInterface(loanOrder.oracleAddress).verifyAndLiquidate(
                 loanOrder.loanTokenAddress,
                 loanPosition.positionTokenAddressFilled,

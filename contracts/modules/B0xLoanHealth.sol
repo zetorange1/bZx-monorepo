@@ -114,7 +114,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanPosition.positionTokenAmountFilled = loanTokenAmount;
         } else {
             // verify liquidation checks before proceeding to close the loan
-            if (!DEBUG_MODE) {
+            if (!DEBUG_MODE && block.timestamp < loanOrder.expirationUnixTimestampSec) { // checks for non-expired loan
                 if (! OracleInterface(loanOrder.oracleAddress).shouldLiquidate(
                         loanOrderHash,
                         trader,
