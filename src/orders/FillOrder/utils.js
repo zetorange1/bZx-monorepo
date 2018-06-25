@@ -278,85 +278,88 @@ export const validateFillOrder = async (
     return false;
   }
 };
-export const submitFillOrder = async (
+
+export const submitFillOrder = (
   order,
-  fillOrderAmount,
+  loanTokenAmountFilled,
   collateralTokenAddress,
+  web3,
   b0x,
   accounts
 ) => {
-  const txOpts = { from: accounts[0].toLowerCase() };
+  const txOpts = {
+    from: accounts[0],
+    // gas: 1000000, // gas estimated in b0x.js
+    gasPrice: web3.utils.toWei(`1`, `gwei`).toString()
+  };
   const makerIsLender = order.makerRole === `0`;
 
-  console.log(`order`, order);
-  console.log(`txOpts`, txOpts);
-  console.log(`makerIsLender`, makerIsLender);
+  // console.log(`order`, order);
+  // console.log(`txOpts`, txOpts);
+  // console.log(`makerIsLender`, makerIsLender);
 
-  let receipt;
-  if (makerIsLender) {
-    // receipt = await b0x.takeLoanOrderAsTrader(
-    //   order,
-    //   collateralTokenAddress,
-    //   toBigNumber(fillOrderAmount, 1e18),
-    //   txOpts
-    // );
-
-    if (b0x.portalProviderName !== `MetaMask`) {
-      alert(`Please confirm this transaction on your device.`);
-    }
-    b0x
-      .takeLoanOrderAsTrader(
-        order,
-        collateralTokenAddress,
-        toBigNumber(fillOrderAmount, 1e18),
-        txOpts
-      )
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
-        });
-      })
-      .on(`error`, error => {
-        console.error(error.message);
-        if (
-          error.message.includes(`Condition of use not satisfied`) ||
-          error.message.includes(`Invalid status`)
-        ) {
-          alert();
-        }
-      });
-  } else {
-    // receipt = await b0x.takeLoanOrderAsLender(order, txOpts);
-
-    if (b0x.portalProviderName !== `MetaMask`) {
-      alert(`Please confirm this transaction on your device.`);
-    }
-    b0x
-      .takeLoanOrderAsLender(order, txOpts)
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
-        });
-      })
-      .on(`error`, error => {
-        console.error(error.message);
-        if (
-          error.message.includes(`Condition of use not satisfied`) ||
-          error.message.includes(`Invalid status`)
-        ) {
-          alert();
-        }
-      });
+  if (b0x.portalProviderName !== `MetaMask`) {
+    alert(`Please confirm this transaction on your device.`);
   }
 
-  console.log(receipt);
+  let txObj;
+  if (makerIsLender) {
+    txObj = b0x.takeLoanOrderAsTrader({
+      order,
+      collateralTokenAddress,
+      loanTokenAmountFilled: toBigNumber(loanTokenAmountFilled, 1e18),
+      getObject: true
+    });
+  } else {
+    txObj = b0x.takeLoanOrderAsLender({
+      order,
+      getObject: true
+    });
+  }
+
+  try {
+    txObj
+      .estimateGas(txOpts)
+      .then(gas => {
+        console.log(gas);
+        txOpts.gas = gas;
+        txObj
+          .send(txOpts)
+          .once(`transactionHash`, hash => {
+            alert(`Transaction submitted, transaction hash:`, {
+              component: () => (
+                <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+                  {hash}
+                </TxHashLink>
+              )
+            });
+          })
+          .then(() => {
+            console.log();
+            alert(`Your loan has been opened.`);
+          })
+          .catch(error => {
+            console.error(error.message);
+            if (
+              error.message.includes(`Condition of use not satisfied`) ||
+              error.message.includes(`Invalid status`)
+            ) {
+              alert();
+            }
+          });
+      })
+      .catch(error => {
+        console.error(error);
+        alert(
+          `The transaction is failing. This loan cannot be opened at this time.`
+        );
+      });
+  } catch (error) {
+    console.error(error);
+    alert(
+      `The transaction is failing. This loan cannot be opened at this time.`
+    );
+  }
+
   return true;
 };

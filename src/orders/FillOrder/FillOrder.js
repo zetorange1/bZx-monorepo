@@ -139,7 +139,7 @@ export default class FillOrder extends React.Component {
   };
 
   handleSubmit = async () => {
-    const { order, tokens, b0x, accounts } = this.props;
+    const { order, tokens, web3, b0x, accounts } = this.props;
 
     await this.refreshCollateralAmountNoEvent();
     const {
@@ -163,6 +163,7 @@ export default class FillOrder extends React.Component {
         order,
         fillOrderAmount,
         collateralTokenAddress,
+        web3,
         b0x,
         accounts
       );

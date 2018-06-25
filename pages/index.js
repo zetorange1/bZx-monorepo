@@ -226,6 +226,7 @@ class Index extends React.Component {
                 tokens={tokens}
                 oracles={oracles}
                 b0x={b0x}
+                web3={web3}
                 accounts={accounts}
               />
             </ContentContainer>

@@ -68,6 +68,7 @@ export default class FillOrder extends React.Component {
             order={JSON.parse(value)}
             tokens={this.props.tokens}
             oracles={this.props.oracles}
+            web3={this.props.web3}
             b0x={this.props.b0x}
             accounts={this.props.accounts}
           />

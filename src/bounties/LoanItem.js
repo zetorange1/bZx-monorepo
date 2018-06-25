@@ -110,39 +110,63 @@ export default class LoanItem extends React.Component {
 
   handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
 
-  liquidate = async () => {
+  liquidate = () => {
     const { b0x, web3, accounts, data } = this.props;
     const { loanOrderHash, trader } = data;
 
     const txOpts = {
       from: accounts[0],
-      gas: 1000000,
+      // gas: 1000000, // gas estimated in b0x.js
       gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
 
     if (b0x.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    b0x
-      .liquidateLoan({
-        loanOrderHash,
-        trader,
-        txOpts
-      })
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
+
+    const txObj = b0x.liquidateLoan({
+      loanOrderHash,
+      trader,
+      getObject: true
+    });
+
+    try {
+      txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = gas;
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+            })
+            .then(() => {
+              alert(`Loan liquidation complete.`);
+            })
+            .catch(error => {
+              console.error(error);
+              alert(`We were not able to liquidate this loan.`);
+            });
+        })
+        .catch(error => {
+          console.error(error);
+          alert(
+            `The transaction is failing. This loan cannot be liquidated at this time.`
+          );
         });
-      })
-      .on(`error`, error => {
-        console.error(error);
-        alert(`We were not able to liquidate this loan.`);
-      })
-      .then(() => alert(`Loan liquidation execution complete.`));
+    } catch (error) {
+      console.error(error);
+      alert(
+        `The transaction is failing. This loan cannot be liquidated at this time.`
+      );
+    }
   };
 
   render() {
