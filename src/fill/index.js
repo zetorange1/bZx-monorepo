@@ -11,7 +11,10 @@ const checkForValidSignature = order => {
   });
 };
 
-export const takeLoanOrderAsLender = ({ web3, networkId }, order, txOpts) => {
+export const takeLoanOrderAsLender = (
+    { web3, networkId },
+    { order, getObject, txOpts }
+  ) => {
   checkForValidSignature(order);
 
   const b0xContract = CoreUtils.getContractInstance(
@@ -47,19 +50,16 @@ export const takeLoanOrderAsLender = ({ web3, networkId }, order, txOpts) => {
     order.signature
   );
 
-  return txObj.send({
-    from: txOpts.from,
-    gas: txOpts.gas,
-    gasPrice: web3.utils.toWei("2", "gwei") // txOpts.gasPrice
-  });
+  if (getObject) {
+    return txObj;
+  } 
+    return txObj.send(txOpts);
+  
 };
 
 export const takeLoanOrderAsTrader = (
   { web3, networkId },
-  order,
-  collateralTokenAddress,
-  loanTokenAmountFilled,
-  txOpts
+  { order, collateralTokenAddress, loanTokenAmountFilled, getObject, txOpts }
 ) => {
   checkForValidSignature(order);
 
@@ -98,11 +98,11 @@ export const takeLoanOrderAsTrader = (
     order.signature
   );
 
-  return txObj.send({
-    from: txOpts.from,
-    gas: txOpts.gas,
-    gasPrice: web3.utils.toWei("2", "gwei") // txOpts.gasPrice
-  });
+  if (getObject) {
+    return txObj;
+  } 
+    return txObj.send(txOpts);
+  
 };
 
 export const getInitialCollateralRequired = async (
