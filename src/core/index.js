@@ -18,11 +18,7 @@ import * as loanHealth from "../loanHealth";
 import * as bounty from "../bounty";
 import * as weth from "../weth";
 
-let Web3 = null;
-if (typeof window !== "undefined") {
-  // eslint-disable-next-line global-require
-  Web3 = require("web3");
-}
+const Web3 = require("web3"); // eslint-disable global-require
 
 export default class B0xJS {
   static generatePseudoRandomSalt = utils.generatePseudoRandomSalt;

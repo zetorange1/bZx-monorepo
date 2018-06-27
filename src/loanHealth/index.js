@@ -65,7 +65,7 @@ export const payInterest = (
 
 export const closeLoan = (
   { web3, networkId, addresses },
-  { loanOrderHash, txOpts }
+  { loanOrderHash, getObject, txOpts }
 ) => {
   const b0xContract = CoreUtils.getContractInstance(
     web3,
@@ -73,7 +73,13 @@ export const closeLoan = (
     addresses.B0x
   );
 
-  return b0xContract.methods.closeLoan(loanOrderHash).send(txOpts);
+  const txObj = b0xContract.methods
+    .closeLoan(loanOrderHash);
+
+  if (getObject) {
+    return txObj;
+  } 
+    return txObj.send(txOpts);
 };
 
 export const getProfitOrLoss = async (

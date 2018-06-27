@@ -51,5 +51,4 @@ export const liquidateLoan = (
     return txObj;
   } 
     return txObj.send(txOpts);
-  
 };

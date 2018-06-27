@@ -1,4 +1,5 @@
 const path = require("path");
+const nodeExternals = require("webpack-node-externals");
 
 module.exports = {
   entry: "./src/core/index.js",
@@ -12,11 +13,12 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        exclude: /(node_modules)/,
+        exclude: path.resolve(__dirname, 'node_modules/'),
         use: {
           loader: "babel-loader"
         }
       }
     ]
-  }
+  },
+  externals: [nodeExternals()], // in order to ignore all modules in node_modules folder from bundling
 };
