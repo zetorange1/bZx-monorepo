@@ -25,34 +25,60 @@ export default class CloseLoan extends React.Component {
 
     const txOpts = {
       from: accounts[0],
-      gas: 1000000,
-      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+      // gas: 1000000, // gas estimated in b0x.js
+      gasPrice: web3.utils.toWei(`2`, `gwei`).toString()
     };
 
     if (b0x.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await b0x
-      .closeLoan({
-        loanOrderHash,
-        txOpts
-      })
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
+
+    const txObj = await b0x.closeLoan({
+      loanOrderHash,
+      getObject: true
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = gas;
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+            })
+            .then(() => {
+              alert(`Loan closure complete.`);
+              this.closeDialog();
+            })
+            .catch(error => {
+              console.error(error);
+              alert(`We were not able to close your loan.`);
+              this.closeDialog();
+            });
+        })
+        .catch(error => {
+          console.error(error);
+          alert(
+            `The transaction is failing. This loan cannot be closed at this time.`
+          );
+          this.closeDialog();
         });
-      })
-      .on(`error`, error => {
-        console.error(error);
-        alert(`We were not able to close your loan.`);
-        this.closeDialog();
-      });
-    alert(`Loan close execution complete.`);
-    this.closeDialog();
+    } catch (error) {
+      console.error(error);
+      alert(
+        `The transaction is failing. This loan cannot be closed at this time.`
+      );
+      this.closeDialog();
+    }
   };
 
   render() {
