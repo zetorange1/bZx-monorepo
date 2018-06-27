@@ -24,6 +24,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         targets[bytes4(keccak256("payInterest(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("liquidatePosition(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("closeLoan(bytes32)"))] = _target;
+        targets[bytes4(keccak256("forceCloanLoan(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("shouldLiquidate(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("getMarginLevels(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("getInterest(bytes32,address)"))] = _target;
@@ -55,7 +56,8 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         
         uint amountPaid = _payInterest(
             loanOrder,
-            loanPosition
+            loanPosition,
+            true // convert
         );
 
         return amountPaid;
@@ -154,6 +156,77 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanOrderHash,
             gasUsed // initial used gas, collected in modifier
         );
+    }
+
+    function forceCloanLoan(
+        bytes32 loanOrderHash,
+        address trader)
+        public
+        onlyOwner
+        tracksGas
+        returns (bool)
+    { 
+        LoanPosition storage loanPosition = loanPositions[loanOrderHash][trader];
+        require(loanPosition.loanTokenAmountFilled != 0 && loanPosition.active);
+
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        require(loanOrder.maker != address(0));
+
+        _payInterest(
+            loanOrder,
+            loanPosition,
+            false // convert
+        );
+
+        uint totalInterestToRefund = _getTotalInterestRequired(
+            loanOrder.loanTokenAmount,
+            loanPosition.loanTokenAmountFilled,
+            loanOrder.interestAmount,
+            loanOrder.expirationUnixTimestampSec,
+            loanPosition.loanStartUnixTimestampSec)
+            .sub(interestPaid[loanOrder.loanOrderHash][loanPosition.trader]);
+
+        if (totalInterestToRefund > 0) {
+            require(B0xVault(vaultContract).withdrawToken(
+                loanOrder.interestTokenAddress,
+                loanPosition.trader,
+                totalInterestToRefund
+            ));
+        }
+
+        require(B0xVault(vaultContract).withdrawToken(
+            loanPosition.collateralTokenAddressFilled,
+            loanPosition.trader,
+            loanPosition.collateralTokenAmountFilled
+        ));
+
+        require(B0xVault(vaultContract).withdrawToken(
+            loanPosition.positionTokenAddressFilled,
+            loanPosition.lender,
+            loanPosition.positionTokenAmountFilled
+        ));
+
+        loanPosition.active = false;
+        loanList[loanPosition.index] = loanList[loanList.length - 1];
+        loanPositions[loanList[loanPosition.index].loanOrderHash][loanList[loanPosition.index].trader].index = loanPosition.index;
+        loanList.length--;
+
+        emit LogLoanClosed(
+            loanPosition.lender,
+            loanPosition.trader,
+            //msg.sender, // loanCloser
+            false, // isLiquidation
+            loanOrder.loanOrderHash
+        );
+
+        require(OracleInterface(loanOrder.oracleAddress).didCloseLoan(
+            loanOrder.loanOrderHash,
+            msg.sender, // loanCloser
+            false, // isLiquidation
+            gasUsed
+        ));
+
+        return true;
     }
 
     /*
@@ -270,7 +343,8 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
     */
     function _payInterest(
         LoanOrder loanOrder,
-        LoanPosition loanPosition)
+        LoanPosition loanPosition,
+        bool convert)
         internal
         returns (uint amountPaid)
     {
@@ -287,7 +361,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             // send the interest to the oracle for further processing
             if (! B0xVault(vaultContract).withdrawToken(
                 interestData.interestTokenAddress,
-                orders[loanOrder.loanOrderHash].oracleAddress,
+                loanOrder.oracleAddress,
                 amountPaid
             )) {
                 revert("B0xLoanHealth::_payInterest: B0xVault.withdrawToken failed");
@@ -300,6 +374,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
                 loanPosition.lender,
                 interestData.interestTokenAddress,
                 amountPaid,
+                convert,
                 gasUsed // initial used gas, collected in modifier
             )) {
                 revert("B0xLoanHealth::_payInterest: OracleInterface.didPayInterest failed");
@@ -372,7 +447,8 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         // pay any remaining interest to the lender
         _payInterest(
             loanOrder,
-            loanPosition
+            loanPosition,
+            true // convert
         );
 
         uint totalInterestToRefund = _getTotalInterestRequired(
@@ -438,15 +514,6 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             revert("B0xLoanHealth::_finalizeLoan: B0xVault.withdrawToken loan failed");
         }
 
-        if (! OracleInterface(loanOrder.oracleAddress).didCloseLoan(
-            loanOrder.loanOrderHash,
-            msg.sender,
-            isLiquidation,
-            gasUsed
-        )) {
-            revert("B0xLoanHealth::_finalizeLoan: OracleInterface.didCloseLoan failed");
-        }
-
         // set this loan to inactive
         loanPosition.active = false;
         
@@ -462,9 +529,19 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         emit LogLoanClosed(
             loanPosition.lender,
             loanPosition.trader,
+            //msg.sender, // loanCloser
             isLiquidation,
             loanOrder.loanOrderHash
         );
+
+        if (! OracleInterface(loanOrder.oracleAddress).didCloseLoan(
+            loanOrder.loanOrderHash,
+            msg.sender, // loanCloser
+            isLiquidation,
+            gasUsed
+        )) {
+            revert("B0xLoanHealth::_finalizeLoan: OracleInterface.didCloseLoan failed");
+        }
 
         return true;
     }

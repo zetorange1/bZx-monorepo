@@ -158,6 +158,7 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         address lender,
         address interestTokenAddress,
         uint amountOwed,
+        bool convert,
         uint /* gasUsed */)
         public
         onlyB0x
@@ -180,7 +181,7 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         if (interestTokenAddress == wethContract) {
             // interest paid in WETH is withdrawn to Ether
             WETH_Interface(wethContract).withdraw(interestFee);
-        } else if (interestTokenAddress != b0xTokenContract) {
+        } else if (convert && interestTokenAddress != b0xTokenContract) {
             // interest paid in B0X is retained as is, other tokens are sold for Ether
             _doTradeForEth(
                 interestTokenAddress,
@@ -243,7 +244,7 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
     function didCloseLoan(
         bytes32 loanOrderHash,
-        address closer,
+        address loanCloser,
         bool isLiquidation,
         uint gasUsed)
         public
@@ -252,15 +253,6 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         updatesEMA(tx.gasprice)
         returns (bool)
     {
-        // sends gas and bounty reward to bounty hunter
-        if (isLiquidation) {
-            calculateAndSendRefund(
-                closer,
-                gasUsed,
-                emaValue,
-                bountyRewardPercent);
-        }
-        
         // sends gas refunds owed from earlier transactions
         for (uint i=0; i < gasRefunds[loanOrderHash].length; i++) {
             GasData storage gasData = gasRefunds[loanOrderHash][i];
@@ -272,6 +264,15 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                     gasRewardPercent))               
                         gasData.isPaid = true;
             }
+        }
+
+        // sends gas and bounty reward to bounty hunter
+        if (isLiquidation) {
+            calculateAndSendRefund(
+                loanCloser,
+                gasUsed,
+                emaValue,
+                bountyRewardPercent);
         }
         
         return true;

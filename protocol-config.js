@@ -20,7 +20,7 @@ module.exports = {
 				"TokenTransferProxy": "0x4e9aad8184de8833365fea970cd9149372fdf1e6",
 				"WETH9": "0xc778417e063141139fce010982780140aa0cd5ab"
 			},
-			"KyberContractAddress": "0xD19559B3121c1b071481d8813d5dBcDC5869e2e8", // old: "0x0a56d8a49E71da8d7F9C65F95063dB48A3C9560B", // Ropsten (https://ropsten.kyber.network)
+			"KyberContractAddress": "0x2a21728dF01992cCEE34ad8f9c32A0a2AE1e181b", // old: "0xD19559B3121c1b071481d8813d5dBcDC5869e2e8", // old: "0x0a56d8a49E71da8d7F9C65F95063dB48A3C9560B", // Ropsten (https://ropsten.kyber.network)
 			"B0XToken": "0x14823Db576c11e4a54Ca9E01Ca0b28b18D3d1187",
 		},
 		"kovan": {

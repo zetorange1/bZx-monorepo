@@ -38,6 +38,7 @@ var run = {
 
   "should close loan as (lender1/trader1)": false,
   "should liquidate position": true,
+  "should force close loan": false,
 };
 
 
@@ -1429,6 +1430,21 @@ contract('B0xTest', function(accounts) {
       trader1_account,
       {from: makerOf0xOrder_account}).then(function(tx) {
         console.log(txPrettyPrint(tx,"should liquidate position"));
+        assert.isOk(tx);
+        done();
+      }).catch(function(error) {
+        console.error(error);
+        assert.isOk(false);
+        done();
+      });
+  });
+
+  (run["should force close loan"] ? it : it.skip)("should force close loan", function(done) {
+    b0x.forceCloanLoan(
+      OrderHash_b0x_1,
+      trader1_account,
+      {from: owner_account}).then(function(tx) {
+        console.log(txPrettyPrint(tx,"should force close loan"));
         assert.isOk(tx);
         done();
       }).catch(function(error) {

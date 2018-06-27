@@ -73,6 +73,7 @@ contract B0xObjects {
     event LogLoanClosed(
         address lender,
         address trader,
+        //address loanCloser,
         bool isLiquidation,
         bytes32 loanOrderHash
     );

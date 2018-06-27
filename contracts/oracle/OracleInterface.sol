@@ -59,6 +59,7 @@ interface OracleInterface {
     /// @param lender The lender
     /// @param interestTokenAddress The token that will be paid for interest
     /// @param amountOwed The amount interest to pay
+    /// @param convert A boolean indicating if the interest should be converted to Ether
     /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
     /// @return Successful execution of the function
     function didPayInterest(
@@ -67,6 +68,7 @@ interface OracleInterface {
         address lender,
         address interestTokenAddress,
         uint amountOwed,
+        bool convert,
         uint gasUsed)
         external
         returns (bool);
@@ -126,13 +128,13 @@ interface OracleInterface {
 
     /// @dev Called by b0x after a loan is closed
     /// @param loanOrderHash A unique hash representing the loan order.
-    /// @param closer The user that closed the loan
+    /// @param loanCloser The user that closed the loan
     /// @param isLiquidation A boolean indicating if the loan was closed due to liquidation
     /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
     /// @return Successful execution of the function
     function didCloseLoan(
         bytes32 loanOrderHash,
-        address closer,
+        address loanCloser,
         bool isLiquidation,
         uint gasUsed)
         external

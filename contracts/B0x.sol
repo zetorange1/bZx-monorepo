@@ -186,6 +186,12 @@ contract B0x is B0xStorage {
         external
         returns (bool);
 
+    function forceCloanLoan(
+        bytes32 loanOrderHash,
+        address trader)
+        public
+        returns (bool);
+
     function shouldLiquidate(
         bytes32 loanOrderHash,
         address trader)
