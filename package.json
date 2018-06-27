@@ -1,0 +1,18 @@
+{
+  "name": "bounty_hunters",
+  "version": "0.1.0",
+  "private": true,
+  "devDependencies": {},
+  "dependencies": {
+    "b0x.js": "git+https://github.com/b0xNetwork/b0x.js.git",
+    "bignumber.js": "^7.2.1",
+    "minimist": "^1.2.0",
+    "moment": "^2.22.2",
+    "truffle-hdwallet-provider": "^0.0.3",
+    "web3": "^1.0.0-beta.34"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "hunt": "node ./hunt.js --network"
+  }
+}
