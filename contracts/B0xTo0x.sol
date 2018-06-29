@@ -21,6 +21,17 @@ interface ExchangeInterface {
           external
           returns (uint filledTakerTokenAmount);
 
+    function fillOrdersUpTo(
+        address[5][] orderAddresses,
+        uint[6][] orderValues,
+        uint fillTakerTokenAmount,
+        bool shouldThrowOnInsufficientBalanceOrAllowance,
+        uint8[] v,
+        bytes32[] r,
+        bytes32[] s)
+        external
+        returns (uint);
+
     function isValidSignature(
         address signer,
         bytes32 hash,
@@ -64,7 +75,7 @@ contract B0xTo0x is EIP20Wrapper, B0xOwnable {
         address vaultAddress,
         uint sourceTokenAmountToUse,
         bytes orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated
-        bytes signiture0x) // ECDSA of the 0x order
+        bytes signature0x) // ECDSA of the 0x order
         public
         onlyB0x
         returns (
@@ -72,109 +83,93 @@ contract B0xTo0x is EIP20Wrapper, B0xOwnable {
             uint destTokenAmount,
             uint sourceTokenUsedAmount)
     {
-        // address[5], uint[6], bytes (uint8, bytes32, bytes32)
-        address[5] memory orderAddresses0x;
-        uint[6] memory orderValues0x;
-        (orderAddresses0x, orderValues0x) = getOrderValuesFromData(orderData0x);
+        (address[5][] memory orderAddresses0x, uint[6][] memory orderValues0x) = getOrderValuesFromData(orderData0x);
 
-    /*
-        LogErrorAddr("maker", orderAddresses0x[0], 0x0);
-        LogErrorAddr("taker", orderAddresses0x[1], 0x0);
-        LogErrorAddr("makerToken", orderAddresses0x[2], 0x0);
-        LogErrorAddr("takerToken", orderAddresses0x[3], 0x0);
-        LogErrorAddr("feeRecipient", orderAddresses0x[4], 0x0);
-        LogErrorUint("makerTokenAmount", orderValues0x[0], 0x0);
-        LogErrorUint("takerTokenAmount", orderValues0x[1], 0x0);
-        LogErrorUint("makerFee", orderValues0x[2], 0x0);
-        LogErrorUint("takerFee", orderValues0x[3], 0x0);
-        LogErrorUint("expirationTimestampInSec", orderValues0x[4], 0x0);
-        LogErrorUint("salt", orderValues0x[5], 0x0);
-    */
-    
-
-    /*
-        orderAddresses0x[0], // maker
-        orderAddresses0x[1], // taker
-        orderAddresses0x[2], // makerToken
-        orderAddresses0x[3], // takerToken
-        orderAddresses0x[4], // feeRecipient
-        orderValues0x[0],    // makerTokenAmount
-        orderValues0x[1],    // takerTokenAmount
-        orderValues0x[2],    // makerFee
-        orderValues0x[3],    // takerFee
-        orderValues0x[4],    // expirationTimestampInSec
-        orderValues0x[5]     // salt
-    */
-
-        sourceTokenUsedAmount = _take0xTrade(
+        (sourceTokenUsedAmount, destTokenAmount) = _take0xTrade(
             trader,
             sourceTokenAmountToUse,
             orderAddresses0x,
             orderValues0x,
-            signiture0x);
+            signature0x);
 
         if (sourceTokenUsedAmount < sourceTokenAmountToUse) {
             // all sourceToken has to be traded
             revert("B0xTo0x::take0xTrade: sourceTokenUsedAmount < sourceTokenAmountToUse");
         }
 
-        destTokenAmount = getPartialAmount(
-            sourceTokenUsedAmount,
-            orderValues0x[1], // takerTokenAmount (aka sourceTokenAmount)
-            orderValues0x[0] // makerTokenAmount (aka destTokenAmount)
-        );
-
         // transfer the destToken to the vault
         eip20Transfer(
-            orderAddresses0x[2],
+            orderAddresses0x[0][2],
             vaultAddress,
             destTokenAmount);
 
-        destTokenAddress = orderAddresses0x[2]; // makerToken (aka destTokenAddress)
+        destTokenAddress = orderAddresses0x[0][2]; // makerToken (aka destTokenAddress)
     }
 
     function _take0xTrade(
         address trader,
         uint sourceTokenAmountToUse,
-        address[5] orderAddresses0x,
-        uint[6] orderValues0x,
+        address[5][] orderAddresses0x,
+        uint[6][] orderValues0x,
         bytes signature)
         internal
-        returns (uint) 
+        returns (uint sourceTokenUsedAmount, uint destTokenAmount) 
     {
-        if (orderAddresses0x[4] != address(0) && // feeRecipient
-                orderValues0x[3] > 0 // takerFee
-        ) {
+        uint[3] memory summations; // takerTokenAmountTotal, makerTokenAmountTotal, zrxTokenAmount
+
+        for (uint i = 0; i < orderAddresses0x.length; i++) {
+            summations[0] += orderValues0x[0][1]; // takerTokenAmountTotal
+            summations[1] += orderValues0x[0][0]; // makerTokenAmountTotal
+            
+            if (orderAddresses0x[i][4] != address(0) && // feeRecipient
+                    orderValues0x[i][3] > 0 // takerFee
+            ) {
+                summations[2] += orderValues0x[i][3]; // zrxTokenAmount
+            }
+        }
+        if (summations[2] > 0) {
             // The 0x TokenTransferProxy already has unlimited transfer allowance for ZRX from this contract (set during deployment of this contract)
             eip20TransferFrom(
                 zrxTokenContract,
                 trader,
                 this,
-                orderValues0x[3]);
+                summations[2]);
         }
 
-        uint8 v;
-        bytes32 r;
-        bytes32 s;
-        (v, r, s) = getSignatureParts(signature);
+        (uint8[] memory v, bytes32[] memory r, bytes32[] memory s) = getSignatureParts(signature);
 
         // Increase the allowance for 0x Exchange Proxy to transfer the sourceToken needed for the 0x trade
-        // orderAddresses0x[3] -> takerToken/sourceToken
+        // orderAddresses0x[0][3] -> takerToken/sourceToken
         eip20Approve(
-            orderAddresses0x[3],
+            orderAddresses0x[0][3],
             tokenTransferProxyContract,
-            EIP20(orderAddresses0x[3]).allowance(this, tokenTransferProxyContract).add(sourceTokenAmountToUse));
+            EIP20(orderAddresses0x[0][3]).allowance(this, tokenTransferProxyContract).add(sourceTokenAmountToUse));
 
-        uint sourceTokenUsedAmount = ExchangeInterface(exchangeContract).fillOrder(
-            orderAddresses0x,
-            orderValues0x,
-            sourceTokenAmountToUse,
-            false, // shouldThrowOnInsufficientBalanceOrAllowance
-            v,
-            r,
-            s);
+        if (orderAddresses0x.length > 0) {
+            sourceTokenUsedAmount = ExchangeInterface(exchangeContract).fillOrdersUpTo(
+                orderAddresses0x,
+                orderValues0x,
+                sourceTokenAmountToUse,
+                false, // shouldThrowOnInsufficientBalanceOrAllowance
+                v,
+                r,
+                s);
+        } else {
+            sourceTokenUsedAmount = ExchangeInterface(exchangeContract).fillOrder(
+                orderAddresses0x[0],
+                orderValues0x[0],
+                sourceTokenAmountToUse,
+                false, // shouldThrowOnInsufficientBalanceOrAllowance
+                v[0],
+                r[0],
+                s[0]);
+        }
 
-        return sourceTokenUsedAmount;
+        destTokenAmount = getPartialAmount(
+            sourceTokenUsedAmount,
+            summations[0], // takerTokenAmountTotal (aka sourceTokenAmount)
+            summations[1]  // makerTokenAmountTotal (aka destTokenAmount)
+        );
     }
 
     function getOrderValuesFromData(
@@ -182,8 +177,8 @@ contract B0xTo0x is EIP20Wrapper, B0xOwnable {
         public
         pure
         returns (
-            address[5] orderAddresses,
-            uint[6] orderValues) 
+            address[5][] orderAddresses,
+            uint[6][] orderValues) 
     {
         address maker;
         address taker;
@@ -196,53 +191,68 @@ contract B0xTo0x is EIP20Wrapper, B0xOwnable {
         uint takerFee;
         uint expirationTimestampInSec;
         uint salt;
-        assembly {
-            maker := mload(add(orderData0x, 32))
-            taker := mload(add(orderData0x, 64))
-            makerToken := mload(add(orderData0x, 96))
-            takerToken := mload(add(orderData0x, 128))
-            feeRecipient := mload(add(orderData0x, 160))
-            makerTokenAmount := mload(add(orderData0x, 192))
-            takerTokenAmount := mload(add(orderData0x, 224))
-            makerFee := mload(add(orderData0x, 256))
-            takerFee := mload(add(orderData0x, 288))
-            expirationTimestampInSec := mload(add(orderData0x, 320))
-            salt := mload(add(orderData0x, 352))
+        orderAddresses = new address[5][](orderData0x.length/352);
+        orderValues = new uint[6][](orderData0x.length/352);
+        for (uint i = 0; i < orderData0x.length/352; i++) {
+            assembly {
+                maker := mload(add(orderData0x, add(mul(i, 352), 32)))
+                taker := mload(add(orderData0x, add(mul(i, 352), 64)))
+                makerToken := mload(add(orderData0x, add(mul(i, 352), 96)))
+                takerToken := mload(add(orderData0x, add(mul(i, 352), 128)))
+                feeRecipient := mload(add(orderData0x, add(mul(i, 352), 160)))
+                makerTokenAmount := mload(add(orderData0x, add(mul(i, 352), 192)))
+                takerTokenAmount := mload(add(orderData0x, add(mul(i, 352), 224)))
+                makerFee := mload(add(orderData0x, add(mul(i, 352), 256)))
+                takerFee := mload(add(orderData0x, add(mul(i, 352), 288)))
+                expirationTimestampInSec := mload(add(orderData0x, add(mul(i, 352), 320)))
+                salt := mload(add(orderData0x, add(mul(i, 352), 352)))
+            }
+            orderAddresses[i] = [
+                maker,
+                taker,
+                makerToken,
+                takerToken,
+                feeRecipient
+            ];
+            orderValues[i] = [
+                makerTokenAmount,
+                takerTokenAmount,
+                makerFee,
+                takerFee,
+                expirationTimestampInSec,
+                salt
+            ];
         }
-        orderAddresses = [
-            maker,
-            taker,
-            makerToken,
-            takerToken,
-            feeRecipient
-        ];
-        orderValues = [
-            makerTokenAmount,
-            takerTokenAmount,
-            makerFee,
-            takerFee,
-            expirationTimestampInSec,
-            salt
-        ];
     }
 
-    /// @param signature ECDSA signature in raw bytes (rsv).
+    /// @param signatures ECDSA signatures in raw bytes (rsv).
     function getSignatureParts(
-        bytes signature)
+        bytes signatures)
         public
         pure
         returns (
-            uint8 v,
-            bytes32 r,
-            bytes32 s)
+            uint8[] vs,
+            bytes32[] rs,
+            bytes32[] ss)
     {
-        assembly {
-            r := mload(add(signature, 32))
-            s := mload(add(signature, 64))
-            v := mload(add(signature, 65))
-        }
-        if (v < 27) {
-            v = v + 27;
+        vs = new uint8[](signatures.length/65);
+        rs = new bytes32[](signatures.length/65);
+        ss = new bytes32[](signatures.length/65);
+        for (uint i = 0; i < signatures.length/65; i++) {
+            uint8 v;
+            bytes32 r;
+            bytes32 s;
+            assembly {
+                r := mload(add(signatures, add(mul(i, 65), 32)))
+                s := mload(add(signatures, add(mul(i, 65), 64)))
+                v := mload(add(signatures, add(mul(i, 65), 65)))
+            }
+            if (v < 27) {
+                v = v + 27;
+            }
+            vs[i] = v;
+            rs[i] = r;
+            ss[i] = s;
         }
     }
 
@@ -299,3 +309,32 @@ contract B0xTo0x is EIP20Wrapper, B0xOwnable {
         return true;
     }
 }
+
+/*
+    LogErrorAddr("maker", orderAddresses0x[0], 0x0);
+    LogErrorAddr("taker", orderAddresses0x[1], 0x0);
+    LogErrorAddr("makerToken", orderAddresses0x[2], 0x0);
+    LogErrorAddr("takerToken", orderAddresses0x[3], 0x0);
+    LogErrorAddr("feeRecipient", orderAddresses0x[4], 0x0);
+    LogErrorUint("makerTokenAmount", orderValues0x[0], 0x0);
+    LogErrorUint("takerTokenAmount", orderValues0x[1], 0x0);
+    LogErrorUint("makerFee", orderValues0x[2], 0x0);
+    LogErrorUint("takerFee", orderValues0x[3], 0x0);
+    LogErrorUint("expirationTimestampInSec", orderValues0x[4], 0x0);
+    LogErrorUint("salt", orderValues0x[5], 0x0);
+*/
+
+
+/*
+    orderAddresses0x[0], // maker
+    orderAddresses0x[1], // taker
+    orderAddresses0x[2], // makerToken
+    orderAddresses0x[3], // takerToken
+    orderAddresses0x[4], // feeRecipient
+    orderValues0x[0],    // makerTokenAmount
+    orderValues0x[1],    // takerTokenAmount
+    orderValues0x[2],    // makerFee
+    orderValues0x[3],    // takerFee
+    orderValues0x[4],    // expirationTimestampInSec
+    orderValues0x[5]     // salt
+*/

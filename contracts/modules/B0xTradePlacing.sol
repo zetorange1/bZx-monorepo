@@ -19,8 +19,8 @@ interface B0xTo0x_Interface {
         address trader,
         address vaultAddress,
         uint sourceTokenAmountToUse,
-        bytes orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated
-        bytes signiture0x) // ECDSA of the 0x order
+        bytes orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated (multi-order batching allowed)
+        bytes signature0x) // ECDSA of the 0x order (multi-order batching allowed)
         external
         returns (
             address destTokenAddress,
@@ -45,13 +45,13 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
     
     /// @dev Executes a 0x trade using loaned funds.
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param orderData0x 0x order arguments, converted to hex, padded to 32 bytes and concatenated
-    /// @param signiture0x ECDSA of the 0x order
+    /// @param orderData0x 0x order arguments, converted to hex, padded to 32 bytes and concatenated (multi-order batching allowed)
+    /// @param signature0x ECDSA of the 0x order (multi-order batching allowed)
     /// @return The amount of token received in the trade.
     function tradePositionWith0x(
         bytes32 loanOrderHash,
         bytes orderData0x,
-        bytes signiture0x)
+        bytes signature0x)
         external
         nonReentrant
         tracksGas
@@ -87,7 +87,7 @@ contract B0xTradePlacing is B0xStorage, Proxiable, InternalFunctions {
             vaultContract,
             loanPosition.positionTokenAmountFilled,
             orderData0x,
-            signiture0x);
+            signature0x);
 
         if (tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled) {
             revert("B0xTradePlacing::tradePositionWith0x: tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled");

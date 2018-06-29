@@ -119,7 +119,7 @@ contract B0x is B0xStorage {
     function tradePositionWith0x(
         bytes32 loanOrderHash,
         bytes orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated
-        bytes signiture0x) // ECDSA of the 0x order
+        bytes signature0x) // ECDSA of the 0x order
         external
         returns (uint);
 

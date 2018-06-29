@@ -28,9 +28,10 @@ var run = {
   "should get loan positions (for trader2)": false,
   "should get active loans": false,
 
-  "should generate 0x order": true,
-  "should sign and verify 0x order": true,
-  "should trade position with 0x order": true,
+  "should generate 0x orders": true,
+  "should sign and verify 0x orders": true,
+  "should parse 0x order params": false,
+  "should trade position with 0x orders": true,
   "should trade position with oracle": true,
   "should change collateral (for trader1)": true,
   "should withdraw profits": true,
@@ -107,21 +108,15 @@ contract('B0xTest', function(accounts) {
   var zrx_token;
   var exchange_0x;
 
-  var OrderParams_b0x_1;
-  var OrderHash_b0x_1;
-  var ECSignature_raw_1;
-  var ECSignature_1;
+  var OrderParams_b0x_1, OrderParams_b0x_2;
+  var OrderHash_b0x_1, OrderHash_b0x_2;
+  var ECSignature_raw_1, ECSignature_raw_2;
+  var ECSignature_1, ECSignature_2;
 
-  var OrderParams_b0x_2;
-  var OrderHash_b0x_2;
-  var ECSignature_raw_2;
-  var ECSignature_2;
-
-
-  var OrderParams_0x;
-  var OrderHash_0x;
-  var ECSignature_0x_raw;
-  var ECSignature_0x;
+  var OrderParams_0x_1, OrderParams_0x_2;
+  var OrderHash_0x_1, OrderHash_0x_2;
+  var ECSignature_0x_raw_1, ECSignature_0x_raw_2;
+  var ECSignature_0x_1, ECSignature_0x_2;
 
   // account roles
   var owner_account = accounts[0]; // owner/contract creator, holder of all tokens
@@ -129,7 +124,8 @@ contract('B0xTest', function(accounts) {
   var trader1_account = accounts[2]; // trader 1
   var lender2_account = accounts[3]; // lender 2
   var trader2_account = accounts[4]; // trader 2
-  var makerOf0xOrder_account = accounts[7]; // maker of 0x order
+  var makerOf0xOrder1_account = accounts[7]; // maker of 0x order
+  var makerOf0xOrder2_account = accounts[8]; // maker of 0x order
   var relay1_account = accounts[9]; // relay 1
 
   var loanToken1;
@@ -216,8 +212,10 @@ contract('B0xTest', function(accounts) {
       (await zrx_token.approve(b0xTo0x.address, MAX_UINT, {from: trader1_account})),
       (await zrx_token.approve(b0xTo0x.address, MAX_UINT, {from: trader2_account})),
 
-      (await maker0xToken1.transfer(makerOf0xOrder_account, web3.toWei(10000, "ether"), {from: owner_account})),
-      (await maker0xToken1.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder_account})),
+      (await maker0xToken1.transfer(makerOf0xOrder1_account, web3.toWei(10000, "ether"), {from: owner_account})),
+      (await maker0xToken1.transfer(makerOf0xOrder2_account, web3.toWei(10000, "ether"), {from: owner_account})),
+      (await maker0xToken1.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder1_account})),
+      (await maker0xToken1.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder2_account})),
     ]);
   });
 
@@ -1225,29 +1223,48 @@ contract('B0xTest', function(accounts) {
   });
 
 
-  (run["should generate 0x order"] ? it : it.skip)("should generate 0x order", async function() {
-    OrderParams_0x = {
+  (run["should generate 0x orders"] ? it : it.skip)("should generate 0x orders", async function() {
+    OrderParams_0x_1 = {
       "exchangeContractAddress": config["addresses"]["development"]["ZeroEx"]["Exchange"],
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
       "feeRecipient": NULL_ADDRESS, //"0x1230000000000000000000000000000000000000",
-      "maker": makerOf0xOrder_account,
+      "maker": makerOf0xOrder1_account,
       "makerFee": web3.toWei(0.002, "ether").toString(),
+      "makerTokenAddress": maker0xToken1.address,
+      "makerTokenAmount": web3.toWei(2, "ether").toString(),
+      "salt": B0xJS.generatePseudoRandomSalt().toString(),
+      "taker": NULL_ADDRESS,
+      "takerFee": web3.toWei(0.0013, "ether").toString(),
+      "takerTokenAddress": loanToken1.address,
+      "takerTokenAmount": web3.toWei(1.7, "ether").toString(),
+    };
+    console.log("OrderParams_0x_1:");
+    console.log(OrderParams_0x_1);
+
+    OrderParams_0x_2 = {
+      "exchangeContractAddress": config["addresses"]["development"]["ZeroEx"]["Exchange"],
+      "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
+      "feeRecipient": NULL_ADDRESS, //"0x1230000000000000000000000000000000000000",
+      "maker": makerOf0xOrder2_account,
+      "makerFee": web3.toWei(0.0025, "ether").toString(),
       "makerTokenAddress": maker0xToken1.address,
       "makerTokenAmount": web3.toWei(100, "ether").toString(),
       "salt": B0xJS.generatePseudoRandomSalt().toString(),
       "taker": NULL_ADDRESS,
       "takerFee": web3.toWei(0.0013, "ether").toString(),
       "takerTokenAddress": loanToken1.address,
-      "takerTokenAmount": web3.toWei(90, "ether").toString(),
+      "takerTokenAmount": web3.toWei(85, "ether").toString(),
     };
-    console.log(OrderParams_0x);
+    console.log("OrderParams_0x_2:");
+    console.log(OrderParams_0x_2);
 
-    OrderHash_0x = ZeroEx.getOrderHashHex(OrderParams_0x);
+    OrderHash_0x_1 = ZeroEx.getOrderHashHex(OrderParams_0x_1);
+    OrderHash_0x_2 = ZeroEx.getOrderHashHex(OrderParams_0x_2);
 
     assert.isOk(true);
   });
 
-  (run["should sign and verify 0x order"] ? it : it.skip)("should sign and verify 0x order", function(done) {
+  (run["should sign and verify 0x orders"] ? it : it.skip)("should sign and verify 0x orders", async function() {
     const nodeVersion = web3.version.node;
     const isParityNode = _.includes(nodeVersion, 'Parity');
     const isTestRpc = _.includes(nodeVersion, 'TestRPC');
@@ -1256,51 +1273,71 @@ contract('B0xTest', function(accounts) {
 
     if (isParityNode || isTestRpc) {
       // Parity and TestRpc nodes add the personalMessage prefix itself
-      ECSignature_0x_raw = web3.eth.sign(makerOf0xOrder_account, OrderHash_0x);
+      ECSignature_0x_raw_1 = await web3.eth.sign(makerOf0xOrder1_account, OrderHash_0x_1);
+      ECSignature_0x_raw_2 = await web3.eth.sign(makerOf0xOrder2_account, OrderHash_0x_2);
     }
     else {
-      var orderHashBuff = ethUtil.toBuffer(OrderHash_0x);
-      var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
-      var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
-      ECSignature_0x_raw = web3.eth.sign(makerOf0xOrder_account, msgHashHex);
+      var orderHashBuff = await ethUtil.toBuffer(OrderHash_0x_1);
+      var msgHashBuff = await ethUtil.hashPersonalMessage(orderHashBuff);
+      var msgHashHex = await ethUtil.bufferToHex(msgHashBuff);
+      ECSignature_0x_raw_1 = await web3.eth.sign(makerOf0xOrder1_account, msgHashHex);
+
+      orderHashBuff = await ethUtil.toBuffer(OrderHash_0x_2);
+      msgHashBuff = await ethUtil.hashPersonalMessage(orderHashBuff);
+      msgHashHex = await ethUtil.bufferToHex(msgHashBuff);
+      ECSignature_0x_raw_2 = await web3.eth.sign(makerOf0xOrder2_account, msgHashHex);
     }
 
-    ECSignature_0x = {
-      "v": parseInt(ECSignature_0x_raw.substring(130,132))+27,
-      "r": "0x"+ECSignature_0x_raw.substring(2,66),
-      "s": "0x"+ECSignature_0x_raw.substring(66,130)
+    ECSignature_0x_1 = {
+      "v": parseInt(ECSignature_0x_raw_1.substring(130,132))+27,
+      "r": "0x"+ECSignature_0x_raw_1.substring(2,66),
+      "s": "0x"+ECSignature_0x_raw_1.substring(66,130)
     };
 
-    exchange_0x.isValidSignature.call(
-      makerOf0xOrder_account,
-      OrderHash_0x,
-      ECSignature_0x["v"],
-      ECSignature_0x["r"],
-      ECSignature_0x["s"]
-    ).then(function(result) {
-      assert.isOk(result);
-      done();
-    }, function(error) {
+    ECSignature_0x_2 = {
+      "v": parseInt(ECSignature_0x_raw_2.substring(130,132))+27,
+      "r": "0x"+ECSignature_0x_raw_2.substring(2,66),
+      "s": "0x"+ECSignature_0x_raw_2.substring(66,130)
+    };
+
+    try {
+      var result1 = await exchange_0x.isValidSignature.call(
+        makerOf0xOrder1_account,
+        OrderHash_0x_1,
+        ECSignature_0x_1["v"],
+        ECSignature_0x_1["r"],
+        ECSignature_0x_1["s"]
+      );
+
+      var result2 = await exchange_0x.isValidSignature.call(
+        makerOf0xOrder2_account,
+        OrderHash_0x_2,
+        ECSignature_0x_2["v"],
+        ECSignature_0x_2["r"],
+        ECSignature_0x_2["s"]
+      );
+
+      assert.isOk(result1 && result2);
+    } catch (error) {
       console.error(error);
       assert.isOk(false);
-      done();
-    });
+    }
   });
 
-  (run["should trade position with 0x order"] ? it : it.skip)("should trade position with 0x order", function(done) {
+  (run["should parse 0x order params"] ? it : it.skip)("should parse 0x order params", function(done) {
     var types = ['bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32'];
     var values = [
-      Web3Utils.padLeft(OrderParams_0x["maker"], 64),
-      Web3Utils.padLeft(OrderParams_0x["taker"], 64),
-      Web3Utils.padLeft(OrderParams_0x["makerTokenAddress"], 64),
-      Web3Utils.padLeft(OrderParams_0x["takerTokenAddress"], 64),
-      Web3Utils.padLeft(OrderParams_0x["feeRecipient"], 64),
-      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x["makerTokenAmount"]), 64),
-      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x["takerTokenAmount"]), 64),
-      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x["makerFee"]), 64),
-      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x["takerFee"]), 64),
-      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x["expirationUnixTimestampSec"]), 64),
-      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x["salt"]), 64)
+      Web3Utils.padLeft(OrderParams_0x_1["maker"], 64),
+      Web3Utils.padLeft(OrderParams_0x_1["taker"], 64),
+      Web3Utils.padLeft(OrderParams_0x_1["makerTokenAddress"], 64),
+      Web3Utils.padLeft(OrderParams_0x_1["takerTokenAddress"], 64),
+      Web3Utils.padLeft(OrderParams_0x_1["feeRecipient"], 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_1["makerTokenAmount"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_1["takerTokenAmount"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_1["makerFee"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_1["takerFee"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_1["expirationUnixTimestampSec"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_1["salt"]), 64)
     ];
 
     //console.log(values);
@@ -1308,14 +1345,72 @@ contract('B0xTest', function(accounts) {
     //console.log(hashBuff);
     var sample_order_tightlypacked = ethUtil.bufferToHex(hashBuff);
     //console.log(sample_order_tightlypacked);
-    //console.log(ECSignature_0x_raw);
+    //console.log(ECSignature_0x_raw_1);
+    console.log("sample_order_tightlypacked: "+sample_order_tightlypacked);
+    b0xTo0x.getOrderValuesFromData.call(
+      sample_order_tightlypacked,
+      {from: trader1_account}).then(function(values) {
+        console.log(JSON.stringify(values, null, '\t'));
+        assert.isOk(true);
+        done();
+      }), function(error) {
+        console.error(error);
+        assert.isOk(false);
+        done();
+      };
+  });
+
+
+  (run["should trade position with 0x orders"] ? it : it.skip)("should trade position with 0x orders", function(done) {
+    var types = ['bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32','bytes32'];
+
+    var values = [
+      Web3Utils.padLeft(OrderParams_0x_1["maker"], 64),
+      Web3Utils.padLeft(OrderParams_0x_1["taker"], 64),
+      Web3Utils.padLeft(OrderParams_0x_1["makerTokenAddress"], 64),
+      Web3Utils.padLeft(OrderParams_0x_1["takerTokenAddress"], 64),
+      Web3Utils.padLeft(OrderParams_0x_1["feeRecipient"], 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_1["makerTokenAmount"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_1["takerTokenAmount"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_1["makerFee"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_1["takerFee"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_1["expirationUnixTimestampSec"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_1["salt"]), 64)
+    ];
+
+    //console.log(values);
+    var hashBuff = ethABI.solidityPack(types, values)
+    //console.log(hashBuff);
+    var sample_order_tightlypacked_1 = ethUtil.bufferToHex(hashBuff);
+    //console.log(sample_order_tightlypacked);
+    //console.log(ECSignature_0x_raw_1);
+
+    values = [
+      Web3Utils.padLeft(OrderParams_0x_2["maker"], 64),
+      Web3Utils.padLeft(OrderParams_0x_2["taker"], 64),
+      Web3Utils.padLeft(OrderParams_0x_2["makerTokenAddress"], 64),
+      Web3Utils.padLeft(OrderParams_0x_2["takerTokenAddress"], 64),
+      Web3Utils.padLeft(OrderParams_0x_2["feeRecipient"], 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_2["makerTokenAmount"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_2["takerTokenAmount"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_2["makerFee"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_2["takerFee"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_2["expirationUnixTimestampSec"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0x_2["salt"]), 64)
+    ];
+
+    //console.log(values);
+    hashBuff = ethABI.solidityPack(types, values)
+    //console.log(hashBuff);
+    var sample_order_tightlypacked_2 = ethUtil.bufferToHex(hashBuff);
+
 
     b0x.tradePositionWith0x(
       OrderHash_b0x_1,
-      sample_order_tightlypacked,
-      ECSignature_0x_raw,
+      sample_order_tightlypacked_1 + sample_order_tightlypacked_2.substr(2),
+      ECSignature_0x_raw_1 + ECSignature_0x_raw_2.substr(2),
       {from: trader1_account}).then(function(tx) {
-        console.log(txPrettyPrint(tx,"should trade position with 0x order"));
+        console.log(txPrettyPrint(tx,"should trade position with 0x orders"));
         assert.isOk(tx);
         done();
       }), function(error) {
@@ -1415,7 +1510,7 @@ contract('B0xTest', function(accounts) {
     /*b0x.liquidatePosition.estimateGas(
       OrderHash_b0x_1,
       trader1_account,
-      {from: makerOf0xOrder_account}).then(function(tx) {
+      {from: makerOf0xOrder1_account}).then(function(tx) {
         //console.log(txPrettyPrint(tx,"should liquidate position"));
         console.log(tx);
       }).catch(function(error) {
@@ -1428,7 +1523,7 @@ contract('B0xTest', function(accounts) {
     b0x.liquidatePosition(
       OrderHash_b0x_1,
       trader1_account,
-      {from: makerOf0xOrder_account}).then(function(tx) {
+      {from: makerOf0xOrder1_account}).then(function(tx) {
         console.log(txPrettyPrint(tx,"should liquidate position"));
         assert.isOk(tx);
         done();
