@@ -36,25 +36,6 @@ contract TestNetOracle is B0xOracle {
     {}
 
     /*
-    * Public View functions
-    */
-
-    function getTradeRate(
-        address sourceTokenAddress,
-        address destTokenAddress)
-        public
-        view 
-        returns (uint rate)
-    {   
-        if (sourceTokenAddress == destTokenAddress) {
-            rate = 10**18;
-        } else {
-            rate = 10**18;
-            //rate = (uint(block.blockhash(block.number-1)) % 100 + 1).mul(10**18);
-        }
-    }
-
-    /*
     * Owner functions
     */
 
@@ -70,6 +51,24 @@ contract TestNetOracle is B0xOracle {
     /*
     * Internal functions
     */
+
+    function _getExpectedRate(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint /* sourceTokenAmount */)
+        internal
+        view 
+        returns (uint expectedRate, uint slippageRate)
+    {
+        if (sourceTokenAddress == destTokenAddress) {
+            expectedRate = 10**18;
+            slippageRate = 0;
+        } else {
+            expectedRate = 10**18;
+            //expectedRate = (uint(block.blockhash(block.number-1)) % 100 + 1).mul(10**18);
+            slippageRate = 0;
+        }
+    }
 
     function _doTrade(
         address sourceTokenAddress,

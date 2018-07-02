@@ -429,12 +429,21 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
     function isTradeSupported(
         address sourceTokenAddress,
-        address destTokenAddress)
+        address destTokenAddress,
+        uint sourceTokenAmount)
         public
         view 
         returns (bool)
     {
-        return (getTradeRate(sourceTokenAddress, destTokenAddress) > 0);
+        (uint rate, uint slippage) = _getExpectedRate(
+            sourceTokenAddress,
+            destTokenAddress,
+            sourceTokenAmount);
+        
+        if (rate > 0 && (sourceTokenAmount == 0 || slippage > 0))
+            return true;
+        else
+            return false;
     }
 
     function getTradeRate(
@@ -443,45 +452,11 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         public
         view 
         returns (uint rate)
-    {   
-        if (sourceTokenAddress == destTokenAddress) {
-            rate = 10**18;
-        } else {
-            uint sourceToEther;
-            uint etherToDest;
-            
-            if (sourceTokenAddress == wethContract) {
-                (etherToDest,) = KyberNetwork_Interface(kyberContract).getExpectedRate(
-                    KYBER_ETH_TOKEN_ADDRESS,
-                    destTokenAddress, 
-                    0
-                );
-
-                rate = etherToDest;
-            } else if (destTokenAddress == wethContract) {
-                (sourceToEther,) = KyberNetwork_Interface(kyberContract).getExpectedRate(
-                    sourceTokenAddress, 
-                    KYBER_ETH_TOKEN_ADDRESS,
-                    0
-                );
-
-                rate = sourceToEther;
-            } else {
-                (sourceToEther,) = KyberNetwork_Interface(kyberContract).getExpectedRate(
-                    sourceTokenAddress, 
-                    KYBER_ETH_TOKEN_ADDRESS,
-                    0
-                );
-
-                (etherToDest,) = KyberNetwork_Interface(kyberContract).getExpectedRate(
-                    KYBER_ETH_TOKEN_ADDRESS,
-                    destTokenAddress, 
-                    0
-                );
-
-                rate = sourceToEther.mul(etherToDest).div(10**18);
-            }
-        }
+    {
+        (rate,) = _getExpectedRate(
+            sourceTokenAddress,
+            destTokenAddress,
+            0);
     }
 
     // returns bool isProfit, uint profitOrLoss
@@ -499,10 +474,10 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         if (positionTokenAddress == loanTokenAddress) {
             loanToPositionAmount = loanTokenAmount;
         } else {
-            uint positionToLoanRate = getTradeRate(
+            (uint positionToLoanRate,) = _getExpectedRate(
                 positionTokenAddress,
-                loanTokenAddress                                
-            );
+                loanTokenAddress,
+                0);
             if (positionToLoanRate == 0) {
                 return;
             }
@@ -534,10 +509,10 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         if (collateralTokenAddress == loanTokenAddress) {
             collateralToLoanAmount = collateralTokenAmount;
         } else {
-            uint collateralToLoanRate = getTradeRate(
+            (uint collateralToLoanRate,) = _getExpectedRate(
                 collateralTokenAddress,
-                loanTokenAddress
-            );
+                loanTokenAddress,
+                0);
             if (collateralToLoanRate == 0) {
                 return 0;
             }
@@ -548,10 +523,10 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         if (positionTokenAddress == loanTokenAddress) {
             positionToLoanAmount = positionTokenAmount;
         } else {
-            uint positionToLoanRate = getTradeRate(
+            (uint positionToLoanRate,) = _getExpectedRate(
                 positionTokenAddress,
-                loanTokenAddress
-            );
+                loanTokenAddress,
+                0);
             if (positionToLoanRate == 0) {
                 return 0;
             }
@@ -697,6 +672,54 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     /*
     * Internal functions
     */
+
+    // ref: https://github.com/KyberNetwork/smart-contracts/blob/master/integration.md#rate-query
+    function _getExpectedRate(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint sourceTokenAmount)
+        internal
+        view 
+        returns (uint expectedRate, uint slippageRate)
+    {
+        if (sourceTokenAddress == destTokenAddress) {
+            expectedRate = 10**18;
+            slippageRate = 0;
+        } else {
+            if (sourceTokenAddress == wethContract) {
+                (expectedRate, slippageRate) = KyberNetwork_Interface(kyberContract).getExpectedRate(
+                    KYBER_ETH_TOKEN_ADDRESS,
+                    destTokenAddress, 
+                    sourceTokenAmount
+                );
+            } else if (destTokenAddress == wethContract) {
+                (expectedRate, slippageRate) = KyberNetwork_Interface(kyberContract).getExpectedRate(
+                    sourceTokenAddress,
+                    KYBER_ETH_TOKEN_ADDRESS,
+                    sourceTokenAmount
+                );
+            } else {
+                (uint sourceToEther, uint sourceToEtherSlippage) = KyberNetwork_Interface(kyberContract).getExpectedRate(
+                    sourceTokenAddress,
+                    KYBER_ETH_TOKEN_ADDRESS,
+                    sourceTokenAmount
+                );
+                if (sourceTokenAmount > 0) {
+                    sourceTokenAmount = sourceTokenAmount.mul(sourceToEther).div(10**18);
+                }
+
+                (uint etherToDest, uint etherToDestSlippage) = KyberNetwork_Interface(kyberContract).getExpectedRate(
+                    KYBER_ETH_TOKEN_ADDRESS,
+                    destTokenAddress,
+                    sourceTokenAmount
+                );
+
+                expectedRate = sourceToEther.mul(etherToDest).div(10**18);
+                slippageRate = sourceToEtherSlippage.mul(etherToDestSlippage).div(10**18);
+            }
+        }
+    }
+
     function _doTrade(
         address sourceTokenAddress,
         address destTokenAddress,
@@ -805,7 +828,7 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         uint sourceTokenAmount,
         address receiver)
         internal
-        returns (uint destEthAmountReceived)
+        returns (uint)
     {
         // re-up the Kyber spend approval if needed
         if (EIP20(sourceTokenAddress).allowance.gas(4999)(this, kyberContract) < 
@@ -817,7 +840,23 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 MAX_FOR_KYBER);
         }
 
-        destEthAmountReceived = KyberNetwork_Interface(kyberContract).trade(
+        /*destEthAmountReceived = KyberNetwork_Interface(kyberContract).trade(
+            sourceTokenAddress,
+            sourceTokenAmount,
+            KYBER_ETH_TOKEN_ADDRESS,
+            receiver,
+            MAX_FOR_KYBER, // no limit on the dest amount
+            0, // no min coversation rate
+            address(0)
+        );*/
+
+
+        /* the following code is to allow the Kyber trade to fail silently and not revert if it does, preventing a "bubble up" */
+        
+        // bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")) = 0xcb3c28c7
+        bool result = kyberContract.call
+            .gas(gasleft())(
+            0xcb3c28c7,
             sourceTokenAddress,
             sourceTokenAmount,
             KYBER_ETH_TOKEN_ADDRESS,
@@ -826,6 +865,15 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             0, // no min coversation rate
             address(0)
         );
+
+        assembly {
+            let size := returndatasize
+            let ptr := mload(0x40)
+            returndatacopy(ptr, 0, size)
+            switch result
+            case 0 { return(0, 0x20) }
+            default { return(ptr, size) }
+        }
     }
 
     function _doTradeWithEth(
@@ -833,7 +881,7 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         uint destTokenAmountNeeded,
         address receiver)
         internal
-        returns (uint destTokenAmountReceived)
+        returns (uint)
     {
         uint etherToDest;
         (etherToDest,) = KyberNetwork_Interface(kyberContract).getExpectedRate(
@@ -848,7 +896,7 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             ethToSend = address(this).balance;
         }
 
-        destTokenAmountReceived = KyberNetwork_Interface(kyberContract).trade
+        /*destTokenAmountReceived = KyberNetwork_Interface(kyberContract).trade
             .value(ethToSend)( // send Ether along 
             KYBER_ETH_TOKEN_ADDRESS,
             ethToSend,
@@ -857,7 +905,33 @@ contract B0xOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             destTokenAmountNeeded,
             0, // no min coversation rate
             address(0)
+        );*/
+
+
+        /* the following code is to allow the Kyber trade to fail silently and not revert if it does, preventing a "bubble up" */
+
+        // bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")) = 0xcb3c28c7
+        bool result = kyberContract.call
+            .gas(gasleft())
+            .value(ethToSend)( // send Ether along 
+            0xcb3c28c7,
+            KYBER_ETH_TOKEN_ADDRESS,
+            ethToSend,
+            destTokenAddress,
+            receiver,
+            destTokenAmountNeeded,
+            0, // no min coversation rate
+            address(0)
         );
+
+        assembly {
+            let size := returndatasize
+            let ptr := mload(0x40)
+            returndatacopy(ptr, 0, size)
+            switch result
+            case 0 { return(0, 0x20) }
+            default { return(ptr, size) }
+        }
     }
 
     function _transferToken(

@@ -13,7 +13,8 @@ contract Proxiable {
     function initialize(address _target) public;
 
     function _replaceContract(address _target) internal {
-        require(_target.delegatecall(bytes4(keccak256("initialize(address)")), _target), "Proxiable::_replaceContract: failed");
+        // bytes4(keccak256("initialize(address)")) == 0xc4d66de8
+        require(_target.delegatecall(0xc4d66de8, _target), "Proxiable::_replaceContract: failed");
     }
 }
 

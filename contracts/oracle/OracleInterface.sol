@@ -277,10 +277,12 @@ interface OracleInterface {
     /// @dev Checks if the ERC20 token pair is supported by the oracle
     /// @param sourceTokenAddress Token being sold
     /// @param destTokenAddress Token being bought
+    /// @param sourceTokenAmount Amount of token being sold
     /// @return True if price discovery and trading is supported
     function isTradeSupported(
         address sourceTokenAddress,
-        address destTokenAddress)
+        address destTokenAddress,
+        uint sourceTokenAmount)
         external
         view 
         returns (bool);

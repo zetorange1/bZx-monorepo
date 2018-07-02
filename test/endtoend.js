@@ -212,6 +212,11 @@ contract('B0xTest', function(accounts) {
       (await zrx_token.approve(b0xTo0x.address, MAX_UINT, {from: trader1_account})),
       (await zrx_token.approve(b0xTo0x.address, MAX_UINT, {from: trader2_account})),
 
+      (await zrx_token.transfer(makerOf0xOrder1_account, web3.toWei(10000, "ether"), {from: owner_account})),
+      (await zrx_token.transfer(makerOf0xOrder2_account, web3.toWei(10000, "ether"), {from: owner_account})),
+      (await zrx_token.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder1_account})),
+      (await zrx_token.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder2_account})),
+
       (await maker0xToken1.transfer(makerOf0xOrder1_account, web3.toWei(10000, "ether"), {from: owner_account})),
       (await maker0xToken1.transfer(makerOf0xOrder2_account, web3.toWei(10000, "ether"), {from: owner_account})),
       (await maker0xToken1.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder1_account})),
@@ -1227,7 +1232,7 @@ contract('B0xTest', function(accounts) {
     OrderParams_0x_1 = {
       "exchangeContractAddress": config["addresses"]["development"]["ZeroEx"]["Exchange"],
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
-      "feeRecipient": NULL_ADDRESS, //"0x1230000000000000000000000000000000000000",
+      "feeRecipient": NONNULL_ADDRESS,
       "maker": makerOf0xOrder1_account,
       "makerFee": web3.toWei(0.002, "ether").toString(),
       "makerTokenAddress": maker0xToken1.address,
@@ -1244,14 +1249,14 @@ contract('B0xTest', function(accounts) {
     OrderParams_0x_2 = {
       "exchangeContractAddress": config["addresses"]["development"]["ZeroEx"]["Exchange"],
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
-      "feeRecipient": NULL_ADDRESS, //"0x1230000000000000000000000000000000000000",
+      "feeRecipient": NONNULL_ADDRESS,
       "maker": makerOf0xOrder2_account,
-      "makerFee": web3.toWei(0.0025, "ether").toString(),
+      "makerFee": web3.toWei(0.1, "ether").toString(),
       "makerTokenAddress": maker0xToken1.address,
       "makerTokenAmount": web3.toWei(100, "ether").toString(),
       "salt": B0xJS.generatePseudoRandomSalt().toString(),
       "taker": NULL_ADDRESS,
-      "takerFee": web3.toWei(0.0013, "ether").toString(),
+      "takerFee": web3.toWei(0.02, "ether").toString(),
       "takerTokenAddress": loanToken1.address,
       "takerTokenAmount": web3.toWei(85, "ether").toString(),
     };
