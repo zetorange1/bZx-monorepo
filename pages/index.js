@@ -106,7 +106,7 @@ class Index extends React.Component {
         return (
           <Fragment>
             <HeaderTitle>
-              <HeaderTitleSiteName>b0x Portal</HeaderTitleSiteName>
+              <HeaderTitleSiteName>bZx Portal</HeaderTitleSiteName>
               <HeaderTitleContext>Balances</HeaderTitleContext>
             </HeaderTitle>
             <HeaderData />
@@ -117,7 +117,7 @@ class Index extends React.Component {
         return (
           <Fragment>
             <HeaderTitle>
-              <HeaderTitleSiteName>b0x Portal</HeaderTitleSiteName>
+              <HeaderTitleSiteName>bZx Portal</HeaderTitleSiteName>
               <HeaderTitleContext>Orders</HeaderTitleContext>
             </HeaderTitle>
             <HeaderData />
@@ -139,7 +139,7 @@ class Index extends React.Component {
         return (
           <Fragment>
             <HeaderTitle>
-              <HeaderTitleSiteName>b0x Portal</HeaderTitleSiteName>
+              <HeaderTitleSiteName>bZx Portal</HeaderTitleSiteName>
               <HeaderTitleContext>Borrowing</HeaderTitleContext>
             </HeaderTitle>
             <HeaderData />
@@ -150,7 +150,7 @@ class Index extends React.Component {
         return (
           <Fragment>
             <HeaderTitle>
-              <HeaderTitleSiteName>b0x Portal</HeaderTitleSiteName>
+              <HeaderTitleSiteName>bZx Portal</HeaderTitleSiteName>
               <HeaderTitleContext>Lending</HeaderTitleContext>
             </HeaderTitle>
             <HeaderData />
@@ -161,7 +161,7 @@ class Index extends React.Component {
         return (
           <Fragment>
             <HeaderTitle>
-              <HeaderTitleSiteName>b0x Portal</HeaderTitleSiteName>
+              <HeaderTitleSiteName>bZx Portal</HeaderTitleSiteName>
               <HeaderTitleContext>Bounties</HeaderTitleContext>
             </HeaderTitle>
             <HeaderData />
@@ -175,7 +175,7 @@ class Index extends React.Component {
   };
 
   contentSection = (
-    { web3, zeroEx, tokens, b0x, accounts, oracles, networkId },
+    { web3, zeroEx, tokens, bZx, accounts, oracles, networkId },
     cardId
   ) => {
     switch (cardId) {
@@ -185,12 +185,12 @@ class Index extends React.Component {
             <NetworkIndicator
               networkId={networkId}
               accounts={accounts}
-              etherscanURL={b0x.etherscanURL}
+              etherscanURL={bZx.etherscanURL}
               providerName={this.state.providerName}
               clearProvider={this.clearProvider}
             />
             <Balances
-              b0x={b0x}
+              bZx={bZx}
               web3={web3}
               accounts={accounts}
               tokens={tokens}
@@ -206,14 +206,14 @@ class Index extends React.Component {
             <NetworkIndicator
               networkId={networkId}
               accounts={accounts}
-              etherscanURL={b0x.etherscanURL}
+              etherscanURL={bZx.etherscanURL}
               providerName={this.state.providerName}
               clearProvider={this.clearProvider}
             />
             <ContentContainer show={this.state.activeTab === `Orders_GenOrder`}>
               <GenerateOrder
                 tokens={tokens}
-                b0x={b0x}
+                bZx={bZx}
                 accounts={accounts}
                 web3={web3}
                 oracles={oracles}
@@ -225,7 +225,7 @@ class Index extends React.Component {
               <FillOrder
                 tokens={tokens}
                 oracles={oracles}
-                b0x={b0x}
+                bZx={bZx}
                 web3={web3}
                 accounts={accounts}
               />
@@ -233,7 +233,7 @@ class Index extends React.Component {
             <ContentContainer
               show={this.state.activeTab === `Orders_OrderHistory`}
             >
-              <OrderHistory b0x={b0x} accounts={accounts} tokens={tokens} />
+              <OrderHistory bZx={bZx} accounts={accounts} tokens={tokens} />
             </ContentContainer>
           </Fragment>
         );
@@ -244,12 +244,14 @@ class Index extends React.Component {
             <NetworkIndicator
               networkId={networkId}
               accounts={accounts}
-              etherscanURL={b0x.etherscanURL}
+              etherscanURL={bZx.etherscanURL}
               providerName={this.state.providerName}
               clearProvider={this.clearProvider}
             />
+            <p>Manage your margin account positions.</p>
+            <Divider />
             <Borrowing
-              b0x={b0x}
+              bZx={bZx}
               web3={web3}
               accounts={accounts}
               tokens={tokens}
@@ -265,7 +267,7 @@ class Index extends React.Component {
             <NetworkIndicator
               networkId={networkId}
               accounts={accounts}
-              etherscanURL={b0x.etherscanURL}
+              etherscanURL={bZx.etherscanURL}
               providerName={this.state.providerName}
               clearProvider={this.clearProvider}
             />
@@ -274,7 +276,7 @@ class Index extends React.Component {
             <Lending
               web3={web3}
               zeroEx={zeroEx}
-              b0x={b0x}
+              bZx={bZx}
               accounts={accounts}
               tokens={tokens}
             />
@@ -287,7 +289,7 @@ class Index extends React.Component {
             <NetworkIndicator
               networkId={networkId}
               accounts={accounts}
-              etherscanURL={b0x.etherscanURL}
+              etherscanURL={bZx.etherscanURL}
               providerName={this.state.providerName}
               clearProvider={this.clearProvider}
             />
@@ -300,7 +302,7 @@ class Index extends React.Component {
             <Bounties
               web3={web3}
               zeroEx={zeroEx}
-              b0x={b0x}
+              bZx={bZx}
               accounts={accounts}
               tokens={tokens}
             />
@@ -334,7 +336,7 @@ class Index extends React.Component {
             {!web3IsReceived ? (
               <Fragment>
                 <HeaderTitleNoProvider>
-                  WELCOME TO THE b0X PORTAL
+                  WELCOME TO THE bZx PORTAL
                 </HeaderTitleNoProvider>
                 <HeaderData />
               </Fragment>
@@ -351,7 +353,7 @@ class Index extends React.Component {
           >
             <Web3Container
               // eslint-disable-next-line
-              render={({ web3, zeroEx, tokens, b0x, accounts, oracles, networkId }) => this.contentSection({ providerName, web3, zeroEx, tokens, b0x, accounts, oracles, networkId },activeCard)}
+              render={({ web3, zeroEx, tokens, bZx, accounts, oracles, networkId }) => this.contentSection({ providerName, web3, zeroEx, tokens, bZx, accounts, oracles, networkId },activeCard)}
               providerName={providerName}
               setProvider={this.setProvider}
               clearProvider={this.clearProvider}

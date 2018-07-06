@@ -21,7 +21,7 @@ export default class CloseLoan extends React.Component {
   closeDialog = () => this.setState({ showDialog: false });
 
   closeLoan = async () => {
-    const { b0x, web3, accounts, loanOrderHash } = this.props;
+    const { bZx, web3, accounts, loanOrderHash } = this.props;
 
     const txOpts = {
       from: accounts[0],
@@ -29,11 +29,11 @@ export default class CloseLoan extends React.Component {
       gasPrice: web3.utils.toWei(`2`, `gwei`).toString()
     };
 
-    if (b0x.portalProviderName !== `MetaMask`) {
+    if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
 
-    const txObj = await b0x.closeLoan({
+    const txObj = await bZx.closeLoan({
       loanOrderHash,
       getObject: true
     });
@@ -49,7 +49,7 @@ export default class CloseLoan extends React.Component {
             .once(`transactionHash`, hash => {
               alert(`Transaction submitted, transaction hash:`, {
                 component: () => (
-                  <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
                     {hash}
                   </TxHashLink>
                 )

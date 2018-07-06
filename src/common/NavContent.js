@@ -77,7 +77,7 @@ class NavContent extends React.Component {
   render() {
     return (
       <Fragment>
-        <a href="https://b0x.network/">
+        <a href="https://bZx.network/">
           <ImgLogo src="static/logo.svg" />
         </a>
         {this.props.web3IsReceived ? (
@@ -100,7 +100,7 @@ class NavContent extends React.Component {
               </NavLink>
               <NavLink
                 style={{ textDecoration: `none` }}
-                href="https://portal.b0x.network/mew/#contracts"
+                href="https://portal.bZx.network/mew/#contracts"
               >
                 Contracts
               </NavLink>

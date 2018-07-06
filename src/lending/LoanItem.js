@@ -67,8 +67,8 @@ export default class LoanItem extends React.Component {
   };
 
   getSingleOrder = async loanOrderHash => {
-    const { b0x } = this.props;
-    const order = await b0x.getSingleOrder({
+    const { bZx } = this.props;
+    const order = await bZx.getSingleOrder({
       loanOrderHash
     });
     return order;
@@ -90,7 +90,7 @@ export default class LoanItem extends React.Component {
   };
 
   render() {
-    const { tokens, b0x, accounts, web3 } = this.props;
+    const { tokens, bZx, accounts, web3 } = this.props;
     const {
       collateralTokenAmountFilled,
       collateralTokenAddressFilled,
@@ -145,7 +145,7 @@ export default class LoanItem extends React.Component {
               <DialogContent>
                 <OrderItem
                   key={loanOrderHash}
-                  b0x={b0x}
+                  bZx={bZx}
                   accounts={accounts}
                   tokens={tokens}
                   takenOrder={this.state.order}
@@ -161,7 +161,7 @@ export default class LoanItem extends React.Component {
             <Label>Borrower </Label>
             <DataPoint title={trader}>
               <Hash
-                href={`${b0x.etherscanURL}address/${trader}`}
+                href={`${bZx.etherscanURL}address/${trader}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -247,7 +247,7 @@ export default class LoanItem extends React.Component {
 
           <div style={{ marginTop: `12px` }}>
             <WithdrawInterest
-              b0x={b0x}
+              bZx={bZx}
               trader={trader}
               availableForWithdrawal={availableForWithdrawal}
               symbol={interestTokenSymbol}

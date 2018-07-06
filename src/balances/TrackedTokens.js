@@ -17,7 +17,7 @@ const TrackedTokens = ({
   tokens,
   trackedTokens,
   updateTrackedTokens,
-  b0x,
+  bZx,
   accounts
 }) => {
   const tokenData = tokens.filter(t => trackedTokens.includes(t.address));
@@ -37,7 +37,7 @@ const TrackedTokens = ({
             key={token.address}
             token={token}
             updateTrackedTokens={updateTrackedTokens}
-            b0x={b0x}
+            bZx={bZx}
             accounts={accounts}
             tokens={tokens}
           />

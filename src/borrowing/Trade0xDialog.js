@@ -27,7 +27,7 @@ export default class Trade0xDialog extends React.Component {
   handleChange = e => this.setState({ value: e.target.value });
 
   executeTrade = async () => {
-    const { web3, b0x, accounts, loanOrderHash } = this.props;
+    const { web3, bZx, accounts, loanOrderHash } = this.props;
     const { value } = this.state;
 
     let order0x;
@@ -48,23 +48,23 @@ export default class Trade0xDialog extends React.Component {
     console.log(`Executing 0x trade`);
     console.log({
       order0x,
-      orderHashB0x: loanOrderHash,
+      orderHashBZx: loanOrderHash,
       txOpts
     });
 
-    if (b0x.portalProviderName !== `MetaMask`) {
+    if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await b0x
+    await bZx
       .tradePositionWith0x({
         order0x,
-        orderHashB0x: loanOrderHash,
+        orderHashBZx: loanOrderHash,
         txOpts
       })
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )
@@ -99,7 +99,7 @@ export default class Trade0xDialog extends React.Component {
             <SectionLabel>2. Execute the trade</SectionLabel>
             <p>
               This function is for the user to present a pre-existing 0x order
-              found elsewhere to b0x, so b0x can be the taker on behalf of the
+              found elsewhere to bZx, so bZx can be the taker on behalf of the
               user.
             </p>
             <Button

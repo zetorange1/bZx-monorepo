@@ -42,7 +42,7 @@ export default class CollateralOptions extends React.Component {
   render() {
     const { anchorEl } = this.state;
     const {
-      b0x,
+      bZx,
       tokens,
       accounts,
       web3,
@@ -72,7 +72,7 @@ export default class CollateralOptions extends React.Component {
         <ChangeCollateralDialog
           open={this.state.showChangeCollateralDialog}
           onClose={this.closeDialog(`showChangeCollateralDialog`)}
-          b0x={b0x}
+          bZx={bZx}
           web3={web3}
           tokens={tokens}
           accounts={accounts}
@@ -81,7 +81,7 @@ export default class CollateralOptions extends React.Component {
         <DepositCollateralDialog
           open={this.state.showDepositCollateralDialog}
           onClose={this.closeDialog(`showDepositCollateralDialog`)}
-          b0x={b0x}
+          bZx={bZx}
           web3={web3}
           tokens={tokens}
           accounts={accounts}
@@ -91,7 +91,7 @@ export default class CollateralOptions extends React.Component {
         <WithdrawCollateralDialog
           open={this.state.showWithdrawCollateralDialog}
           onClose={this.closeDialog(`showWithdrawCollateralDialog`)}
-          b0x={b0x}
+          bZx={bZx}
           web3={web3}
           tokens={tokens}
           accounts={accounts}

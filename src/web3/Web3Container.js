@@ -1,7 +1,7 @@
 // /* global window */
 import styled from "styled-components";
 import { ZeroEx } from "0x.js";
-import B0xJS from "b0x.js"; // eslint-disable-line
+import BZxJS from "b0x.js"; // eslint-disable-line
 import ChooseProviderDialog from "./ChooseProviderDialog";
 import getWeb3 from "./getWeb3";
 import NoProviderMessage from "./NoProviderMessage";
@@ -25,7 +25,7 @@ export default class Web3Container extends React.Component {
     web3: null,
     zeroEx: null,
     tokens: null,
-    b0x: null,
+    bZx: null,
     accounts: null,
     oracles: null,
     networkId: null
@@ -78,12 +78,12 @@ export default class Web3Container extends React.Component {
       }
     };
 
-    const b0x = new B0xJS(web3.currentProvider, { networkId });
-    b0x.portalProviderName = providerName; // setting custom field
+    const bZx = new BZxJS(web3.currentProvider, { networkId });
+    bZx.portalProviderName = providerName; // setting custom field
 
     const zeroEx = new ZeroEx(web3.currentProvider, {
       networkId,
-      tokenRegistryContractAddress: b0x.addresses.TokenRegistry
+      tokenRegistryContractAddress: bZx.addresses.TokenRegistry
     });
 
     // Get accounts
@@ -138,7 +138,7 @@ export default class Web3Container extends React.Component {
     // Get oracles
     let oracles;
     try {
-      oracles = await b0x.getOracleList();
+      oracles = await bZx.getOracleList();
       if (oracles.length === 0) {
         displayNetworkError();
         return;
@@ -152,7 +152,7 @@ export default class Web3Container extends React.Component {
     // Get tokens from the token registry
     let tokens;
     try {
-      tokens = await b0x.getTokenList();
+      tokens = await bZx.getTokenList();
       if (tokens.length === 0) {
         displayNetworkError();
         return;
@@ -171,7 +171,7 @@ export default class Web3Container extends React.Component {
       web3,
       zeroEx,
       tokens,
-      b0x,
+      bZx,
       accounts,
       oracles,
       networkId
@@ -185,7 +185,7 @@ export default class Web3Container extends React.Component {
       web3,
       zeroEx,
       tokens,
-      b0x,
+      bZx,
       accounts,
       oracles,
       networkId
@@ -230,7 +230,7 @@ export default class Web3Container extends React.Component {
       return <LoadingContainer>{errorMsg}</LoadingContainer>;
     }
     return web3 ? (
-      render({ web3, zeroEx, tokens, b0x, accounts, oracles, networkId })
+      render({ web3, zeroEx, tokens, bZx, accounts, oracles, networkId })
     ) : (
       <NoProviderMessage
         providerName={providerName}

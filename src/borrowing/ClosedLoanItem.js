@@ -68,8 +68,8 @@ export default class ClosedLoan extends React.Component {
   };
 
   getSingleOrder = async loanOrderHash => {
-    const { b0x } = this.props;
-    const order = await b0x.getSingleOrder({
+    const { bZx } = this.props;
+    const order = await bZx.getSingleOrder({
       loanOrderHash
     });
     return order;
@@ -91,7 +91,7 @@ export default class ClosedLoan extends React.Component {
   };
 
   render() {
-    const { tokens, b0x, accounts } = this.props;
+    const { tokens, bZx, accounts } = this.props;
     const {
       collateralTokenAddressFilled,
       collateralTokenAmountFilled,
@@ -145,7 +145,7 @@ export default class ClosedLoan extends React.Component {
               <DialogContent>
                 <OrderItem
                   key={loanOrderHash}
-                  b0x={b0x}
+                  bZx={bZx}
                   accounts={accounts}
                   tokens={tokens}
                   takenOrder={this.state.order}
@@ -161,7 +161,7 @@ export default class ClosedLoan extends React.Component {
             <Label>Lender </Label>
             <DataPoint title={lender}>
               <Hash
-                href={`${b0x.etherscanURL}address/${lender}`}
+                href={`${bZx.etherscanURL}address/${lender}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >

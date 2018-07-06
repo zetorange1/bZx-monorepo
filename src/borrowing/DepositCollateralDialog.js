@@ -22,7 +22,7 @@ export default class DepositCollateralDialog extends React.Component {
   setAmount = e => this.setState({ amount: e.target.value });
 
   depositCollateral = async () => {
-    const { accounts, web3, b0x, loanOrderHash, collateralToken } = this.props;
+    const { accounts, web3, bZx, loanOrderHash, collateralToken } = this.props;
     const { amount } = this.state;
 
     const txOpts = {
@@ -38,10 +38,10 @@ export default class DepositCollateralDialog extends React.Component {
     //   txOpts
     // });
 
-    if (b0x.portalProviderName !== `MetaMask`) {
+    if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await b0x
+    await bZx
       .depositCollateral({
         loanOrderHash,
         collateralTokenFilled: collateralToken.address,
@@ -51,7 +51,7 @@ export default class DepositCollateralDialog extends React.Component {
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )

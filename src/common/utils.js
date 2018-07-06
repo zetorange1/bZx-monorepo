@@ -15,9 +15,9 @@ export const getInitialCollateralRequired = async (
   oracleAddress,
   loanTokenAmountFilled,
   initialMarginAmount,
-  b0x
+  bZx
 ) =>
-  b0x.getInitialCollateralRequired(
+  bZx.getInitialCollateralRequired(
     loanTokenAddress,
     collateralTokenAddress,
     oracleAddress,

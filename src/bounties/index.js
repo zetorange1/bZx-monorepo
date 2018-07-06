@@ -26,9 +26,9 @@ export default class Bounties extends React.Component {
   }
 
   getLoans = async () => {
-    const { b0x } = this.props;
+    const { bZx } = this.props;
     this.setState({ loading: true });
-    const loans = await b0x.getActiveLoans({
+    const loans = await bZx.getActiveLoans({
       start: 0,
       count: this.state.count
     });
@@ -41,7 +41,7 @@ export default class Bounties extends React.Component {
   };
 
   render() {
-    const { b0x, tokens, accounts, web3 } = this.props;
+    const { bZx, tokens, accounts, web3 } = this.props;
     const { loans, loading, count } = this.state;
     if (loans.length === 0) {
       return (
@@ -74,7 +74,7 @@ export default class Bounties extends React.Component {
           {loans.map(data => (
             <LoanItem
               key={data.loanOrderHash + data.trader}
-              b0x={b0x}
+              bZx={bZx}
               tokens={tokens}
               accounts={accounts}
               data={data}

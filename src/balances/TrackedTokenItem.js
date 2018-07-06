@@ -99,8 +99,8 @@ export default class TrackedTokenItem extends React.Component {
   setStateForInput = key => e => this.setState({ [key]: e.target.value });
 
   getBalance = async () => {
-    const { b0x, token, accounts } = this.props;
-    const balance = await b0x.getBalance({
+    const { bZx, token, accounts } = this.props;
+    const balance = await bZx.getBalance({
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase()
     });
@@ -109,10 +109,10 @@ export default class TrackedTokenItem extends React.Component {
   };
 
   checkAllowance = async () => {
-    const { b0x, token, accounts } = this.props;
+    const { bZx, token, accounts } = this.props;
     console.log(`checking allowance`);
     console.log(token.name, token.address);
-    const allowance = await b0x.getAllowance({
+    const allowance = await bZx.getAllowance({
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase()
     });
@@ -130,7 +130,7 @@ export default class TrackedTokenItem extends React.Component {
     this.setState(p => ({ showRequestDialog: !p.showRequestDialog }));
 
   sendTokens = async () => {
-    const { web3, b0x, token, accounts, updateTrackedTokens } = this.props;
+    const { web3, bZx, token, accounts, updateTrackedTokens } = this.props;
     const { recipientAddress, sendAmount } = this.state;
     const txOpts = {
       from: accounts[0],
@@ -138,10 +138,10 @@ export default class TrackedTokenItem extends React.Component {
       gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
 
-    if (b0x.portalProviderName !== `MetaMask`) {
+    if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    b0x
+    bZx
       .transferToken({
         tokenAddress: token.address,
         to: recipientAddress.toLowerCase(),
@@ -151,7 +151,7 @@ export default class TrackedTokenItem extends React.Component {
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )
@@ -171,7 +171,7 @@ export default class TrackedTokenItem extends React.Component {
   };
 
   requestToken = async () => {
-    const { web3, b0x, token, accounts, updateTrackedTokens } = this.props;
+    const { web3, bZx, token, accounts, updateTrackedTokens } = this.props;
     const txOpts = {
       from: accounts[0],
       gas: 100000,
@@ -180,10 +180,10 @@ export default class TrackedTokenItem extends React.Component {
 
     console.log(`requesting token from testnet faucet`);
     console.log(token);
-    if (b0x.portalProviderName !== `MetaMask`) {
+    if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    b0x
+    bZx
       .requestFaucetToken({
         tokenAddress: token.address,
         receiverAddress: accounts[0],
@@ -192,7 +192,7 @@ export default class TrackedTokenItem extends React.Component {
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )
@@ -217,14 +217,14 @@ export default class TrackedTokenItem extends React.Component {
   };
 
   approve = async () => {
-    const { b0x, token, accounts } = this.props;
+    const { bZx, token, accounts } = this.props;
     console.log(`approving allowance`);
     console.log(token.name, token.address);
     this.setState({ approvalLoading: true });
-    if (b0x.portalProviderName !== `MetaMask`) {
+    if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await b0x
+    await bZx
       .setAllowanceUnlimited({
         tokenAddress: token.address,
         ownerAddress: accounts[0].toLowerCase()
@@ -232,7 +232,7 @@ export default class TrackedTokenItem extends React.Component {
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )
@@ -252,14 +252,14 @@ export default class TrackedTokenItem extends React.Component {
   };
 
   unapprove = async () => {
-    const { b0x, token, accounts } = this.props;
+    const { bZx, token, accounts } = this.props;
     console.log(`unapproving allowance`);
     console.log(token.name, token.address);
     this.setState({ approvalLoading: true });
-    if (b0x.portalProviderName !== `MetaMask`) {
+    if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await b0x
+    await bZx
       .resetAllowance({
         tokenAddress: token.address,
         ownerAddress: accounts[0].toLowerCase()
@@ -267,7 +267,7 @@ export default class TrackedTokenItem extends React.Component {
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )
@@ -318,11 +318,11 @@ export default class TrackedTokenItem extends React.Component {
     const { balance } = this.state;
     const isPermaToken = PERMA_TOKEN_SYMBOLS.includes(symbol);
     const isFaucetToken =
-      FAUCET_TOKEN_SYMBOLS[this.props.b0x.networkName] !== undefined &&
-      FAUCET_TOKEN_SYMBOLS[this.props.b0x.networkName].includes(symbol);
+      FAUCET_TOKEN_SYMBOLS[this.props.bZx.networkName] !== undefined &&
+      FAUCET_TOKEN_SYMBOLS[this.props.bZx.networkName].includes(symbol);
     return (
       <Container>
-        <TokenInfo href={`${this.props.b0x.etherscanURL}token/${address}`}>
+        <TokenInfo href={`${this.props.bZx.etherscanURL}token/${address}`}>
           <TokenIcon src={iconUrl} />
           <Name>{name}</Name>
         </TokenInfo>

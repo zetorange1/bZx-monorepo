@@ -71,7 +71,7 @@ export default class Ether extends React.Component {
     this.setState(p => ({ showUnWrapDialog: !p.showUnWrapDialog }));
 
   wrapEth = async () => {
-    const { web3, b0x, accounts } = this.props;
+    const { web3, bZx, accounts } = this.props;
     const { wrapAmount } = this.state;
     const txOpts = {
       from: accounts[0],
@@ -79,10 +79,10 @@ export default class Ether extends React.Component {
       gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
 
-    if (b0x.portalProviderName !== `MetaMask`) {
+    if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    b0x
+    bZx
       .wrapEth({
         amount: toBigNumber(wrapAmount, 1e18),
         txOpts
@@ -90,7 +90,7 @@ export default class Ether extends React.Component {
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )
@@ -113,7 +113,7 @@ export default class Ether extends React.Component {
   };
 
   unwrapEth = async () => {
-    const { web3, b0x, accounts } = this.props;
+    const { web3, bZx, accounts } = this.props;
     const { wrapAmount } = this.state;
     const txOpts = {
       from: accounts[0],
@@ -121,10 +121,10 @@ export default class Ether extends React.Component {
       gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
 
-    if (b0x.portalProviderName !== `MetaMask`) {
+    if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    b0x
+    bZx
       .unwrapEth({
         amount: toBigNumber(wrapAmount, 1e18),
         txOpts
@@ -132,7 +132,7 @@ export default class Ether extends React.Component {
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )
@@ -180,7 +180,7 @@ export default class Ether extends React.Component {
               Wrapped Ether (WETH)
             </a>
             {` `}
-            to trade on b0x.
+            to trade on bZx.
           </StyledDiv>
           <br />
           <StyledDiv>

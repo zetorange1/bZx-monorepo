@@ -1,11 +1,11 @@
 /* globals localStorage */
 
-export const PERMA_TOKEN_SYMBOLS = [`B0X`, `ZRX`, `WETH`];
+export const PERMA_TOKEN_SYMBOLS = [`BZX`, `ZRX`, `WETH`];
 
 export const FAUCET_TOKEN_SYMBOLS = {
-  ropsten: [`B0X`],
+  ropsten: [`BZX`],
   rinkeby: [
-    `B0X`,
+    `BZX`,
     `TEST0`,
     `TEST1`,
     `TEST2`,
@@ -18,7 +18,7 @@ export const FAUCET_TOKEN_SYMBOLS = {
     `TEST9`
   ],
   kovan: [
-    `B0X`,
+    `BZX`,
     `TEST0`,
     `TEST1`,
     `TEST2`,

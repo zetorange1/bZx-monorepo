@@ -1,7 +1,7 @@
 import moment from "moment";
 
 import styled from "styled-components";
-import B0xJS from "b0x.js";  // eslint-disable-line
+import BZxJS from "b0x.js";  // eslint-disable-line
 import { getTrackedTokens } from "../../common/trackedTokens";
 import { getTokenBalance, getSymbol } from "../../common/tokens";
 import { toBigNumber, fromBigNumber } from "../../common/utils";
@@ -17,10 +17,10 @@ const TxHashLink = styled.a.attrs({
 }
 `;
 
-export const getOrderHash = order => B0xJS.getLoanOrderHashHex(order);
+export const getOrderHash = order => BZxJS.getLoanOrderHashHex(order);
 
-const checkAllowance = async (b0x, accounts, tokenAddress) => {
-  const allowance = await b0x.getAllowance({
+const checkAllowance = async (bZx, accounts, tokenAddress) => {
+  const allowance = await bZx.getAllowance({
     tokenAddress,
     ownerAddress: accounts[0].toLowerCase()
   });
@@ -28,7 +28,7 @@ const checkAllowance = async (b0x, accounts, tokenAddress) => {
 };
 
 const checkCoinsApproved = async (
-  b0x,
+  bZx,
   accounts,
   order,
   collateralTokenAddress
@@ -37,13 +37,13 @@ const checkCoinsApproved = async (
   if (makerRole === `lender`) {
     // check that user has approved collateralToken and interestToken
     const { interestTokenAddress } = order;
-    const a = await checkAllowance(b0x, accounts, interestTokenAddress);
-    const b = await checkAllowance(b0x, accounts, collateralTokenAddress);
+    const a = await checkAllowance(bZx, accounts, interestTokenAddress);
+    const b = await checkAllowance(bZx, accounts, collateralTokenAddress);
     return a && b;
   }
   // check that user has approved loanToken
   const { loanTokenAddress } = order;
-  const a = await checkAllowance(b0x, accounts, loanTokenAddress);
+  const a = await checkAllowance(bZx, accounts, loanTokenAddress);
   return a;
 };
 
@@ -99,11 +99,11 @@ export const validateFillOrder = async (
   collateralTokenAddress,
   collateralTokenAmount,
   tokens,
-  b0x,
+  bZx,
   accounts
 ) => {
   try {
-    if (order.networkId !== b0x.networkId) {
+    if (order.networkId !== bZx.networkId) {
       alert(
         `This order was created for ${getNetwork(
           order.networkId
@@ -153,19 +153,19 @@ export const validateFillOrder = async (
       )[0];
       const notAllowed = {
         1: [],
-        3: [`ZRX`, `B0X`],
+        3: [`ZRX`, `BZX`],
         4: [],
         42: [`ZRX`, `WETH`]
       };
 
       // early return if there is no restricted list for this network
       if (
-        notAllowed[b0x.networkId] === undefined ||
-        notAllowed[b0x.networkId] === []
+        notAllowed[bZx.networkId] === undefined ||
+        notAllowed[bZx.networkId] === []
       )
         return true;
 
-      const collateralTokenNotAllowed = notAllowed[b0x.networkId].includes(
+      const collateralTokenNotAllowed = notAllowed[bZx.networkId].includes(
         collateralToken && collateralToken.symbol
       );
       if (collateralTokenNotAllowed) {
@@ -188,7 +188,7 @@ export const validateFillOrder = async (
       }
 
       const collateralTokenBalance = await getTokenBalance(
-        b0x,
+        bZx,
         collateralTokenAddress,
         accounts
       );
@@ -211,7 +211,7 @@ export const validateFillOrder = async (
       }
 
       const interestTokenBalance = await getTokenBalance(
-        b0x,
+        bZx,
         interestTokenAddress,
         accounts
       );
@@ -238,7 +238,7 @@ export const validateFillOrder = async (
       }
 
       const loanTokenBalance = await getTokenBalance(
-        b0x,
+        bZx,
         loanTokenAddress,
         accounts
       );
@@ -256,7 +256,7 @@ export const validateFillOrder = async (
     }
 
     const coinsApproved = await checkCoinsApproved(
-      b0x,
+      bZx,
       accounts,
       order,
       collateralTokenAddress
@@ -284,7 +284,7 @@ export const submitFillOrder = (
   loanTokenAmountFilled,
   collateralTokenAddress,
   web3,
-  b0x,
+  bZx,
   accounts
 ) => {
   const txOpts = {
@@ -298,20 +298,20 @@ export const submitFillOrder = (
   // console.log(`txOpts`, txOpts);
   // console.log(`makerIsLender`, makerIsLender);
 
-  if (b0x.portalProviderName !== `MetaMask`) {
+  if (bZx.portalProviderName !== `MetaMask`) {
     alert(`Please confirm this transaction on your device.`);
   }
 
   let txObj;
   if (makerIsLender) {
-    txObj = b0x.takeLoanOrderAsTrader({
+    txObj = bZx.takeLoanOrderAsTrader({
       order,
       collateralTokenAddress,
       loanTokenAmountFilled: toBigNumber(loanTokenAmountFilled, 1e18),
       getObject: true
     });
   } else {
-    txObj = b0x.takeLoanOrderAsLender({
+    txObj = bZx.takeLoanOrderAsLender({
       order,
       getObject: true
     });
@@ -328,7 +328,7 @@ export const submitFillOrder = (
           .once(`transactionHash`, hash => {
             alert(`Transaction submitted, transaction hash:`, {
               component: () => (
-                <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+                <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
                   {hash}
                 </TxHashLink>
               )

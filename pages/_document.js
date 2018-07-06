@@ -51,7 +51,7 @@ export default class MyDocument extends Document {
     return (
       <html lang="en">
         <Head>
-          <title>b0x Portal</title>
+          <title>bZx Portal</title>
           <link href="/static/favicon.ico" rel="icon" />
           <link
             rel="stylesheet"

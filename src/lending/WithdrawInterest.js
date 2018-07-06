@@ -25,7 +25,7 @@ export default class WithdrawInterest extends React.Component {
   closeDialog = () => this.setState({ showDialog: false });
 
   withdrawInterest = async () => {
-    const { accounts, web3, b0x, loanOrderHash, trader } = this.props;
+    const { accounts, web3, bZx, loanOrderHash, trader } = this.props;
 
     const txOpts = {
       from: accounts[0],
@@ -33,10 +33,10 @@ export default class WithdrawInterest extends React.Component {
       gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
 
-    if (b0x.portalProviderName !== `MetaMask`) {
+    if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await b0x
+    await bZx
       .payInterest({
         loanOrderHash,
         trader,
@@ -45,7 +45,7 @@ export default class WithdrawInterest extends React.Component {
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )

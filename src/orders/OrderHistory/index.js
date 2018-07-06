@@ -24,9 +24,9 @@ export default class OrderHistory extends React.Component {
   }
 
   getOrders = async () => {
-    const { b0x, accounts } = this.props;
+    const { bZx, accounts } = this.props;
     this.setState({ loading: true });
-    const orders = await b0x.getOrders({
+    const orders = await bZx.getOrders({
       loanPartyAddress: accounts[0].toLowerCase(),
       start: 0,
       count: this.state.count
@@ -45,7 +45,7 @@ export default class OrderHistory extends React.Component {
   };
 
   render() {
-    const { b0x, accounts, tokens } = this.props;
+    const { bZx, accounts, tokens } = this.props;
     const { orders, loading, count } = this.state;
     if (orders.length === 0) {
       return (
@@ -81,7 +81,7 @@ export default class OrderHistory extends React.Component {
           orders.map(takenOrder => (
             <OrderItem
               key={takenOrder.loanOrderHash}
-              b0x={b0x}
+              bZx={bZx}
               accounts={accounts}
               tokens={tokens}
               takenOrder={takenOrder}

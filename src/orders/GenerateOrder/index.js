@@ -115,7 +115,7 @@ export default class GenerateOrder extends React.Component {
           oracleAddress,
           loanTokenAmount,
           initialMarginAmount,
-          this.props.b0x
+          this.props.bZx
         ),
         1e18
       );
@@ -193,7 +193,7 @@ export default class GenerateOrder extends React.Component {
     await this.refreshCollateralAmount();
 
     const isValid = await validateInputs(
-      this.props.b0x,
+      this.props.bZx,
       this.props.accounts,
       this.state,
       this.props.tokens
@@ -204,7 +204,7 @@ export default class GenerateOrder extends React.Component {
         this.props.web3,
         this.state,
         this.props.accounts[0],
-        this.props.b0x
+        this.props.bZx
       );
       const saltedOrderObj = addSalt(orderObject);
       console.log(saltedOrderObj);
@@ -213,7 +213,7 @@ export default class GenerateOrder extends React.Component {
         const signature = await signOrder(
           orderHash,
           this.props.accounts,
-          this.props.b0x
+          this.props.bZx
         );
 
         const orderWithSignature = {
@@ -225,7 +225,7 @@ export default class GenerateOrder extends React.Component {
           orderWithSignature,
           this.props.web3
         );
-        const isSigValid = await this.props.b0x.isValidSignatureAsync({
+        const isSigValid = await this.props.bZx.isValidSignatureAsync({
           account: this.props.accounts[0].toLowerCase(),
           orderHash,
           signature
@@ -249,7 +249,7 @@ export default class GenerateOrder extends React.Component {
           oracleAddress={this.state.oracleAddress}
           setOracleAddress={this.setStateForInput(`oracleAddress`)}
           oracles={this.state.oracles}
-          etherscanURL={this.props.b0x.etherscanURL}
+          etherscanURL={this.props.bZx.etherscanURL}
         />
 
         <Divider />
@@ -271,7 +271,7 @@ export default class GenerateOrder extends React.Component {
           interestAmount={this.state.interestAmount}
           interestTotalAmount={this.state.interestTotalAmount}
           collateralRefresh={this.refreshCollateralAmountEvent}
-          etherscanURL={this.props.b0x.etherscanURL}
+          etherscanURL={this.props.bZx.etherscanURL}
         />
 
         <Divider />

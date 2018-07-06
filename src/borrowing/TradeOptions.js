@@ -33,7 +33,7 @@ export default class TradeOptions extends React.Component {
 
   render() {
     const { anchorEl } = this.state;
-    const { b0x, tokens, accounts, web3, loanOrderHash } = this.props;
+    const { bZx, tokens, accounts, web3, loanOrderHash } = this.props;
     return (
       <Fragment>
         <Button
@@ -56,7 +56,7 @@ export default class TradeOptions extends React.Component {
         <Trade0xDialog
           open={this.state.show0xDialog}
           onClose={this.closeDialog(`show0xDialog`)}
-          b0x={b0x}
+          bZx={bZx}
           web3={web3}
           tokens={tokens}
           accounts={accounts}
@@ -65,7 +65,7 @@ export default class TradeOptions extends React.Component {
         <TradeOracleDialog
           open={this.state.showOracleDialog}
           onClose={this.closeDialog(`showOracleDialog`)}
-          b0x={b0x}
+          bZx={bZx}
           web3={web3}
           tokens={tokens}
           accounts={accounts}

@@ -1,11 +1,11 @@
-import B0xJS from "b0x.js"; // eslint-disable-line
+import BZxJS from "b0x.js"; // eslint-disable-line
 import { toBigNumber } from "../../common/utils";
 import getNetworkId from "../../web3/getNetworkId";
 
-export const compileObject = async (web3, state, account, b0x) => {
+export const compileObject = async (web3, state, account, bZx) => {
   const { sendToRelayExchange } = state;
   return {
-    b0xAddress: b0x.addresses.B0x,
+    bZxAddress: bZx.addresses.BZx,
     makerAddress: account.toLowerCase(),
     makerRole: (state.role === `lender` ? 0 : 1).toString(),
 
@@ -45,7 +45,7 @@ export const compileObject = async (web3, state, account, b0x) => {
 };
 
 export const addSalt = obj => {
-  const salt = B0xJS.generatePseudoRandomSalt();
+  const salt = BZxJS.generatePseudoRandomSalt();
   return {
     ...obj,
     salt
@@ -60,16 +60,16 @@ export const addNetworkId = async (order, web3) => {
   };
 };
 
-export const signOrder = async (orderHash, accounts, b0x) => {
-  if (b0x.portalProviderName !== `MetaMask`) {
+export const signOrder = async (orderHash, accounts, bZx) => {
+  if (bZx.portalProviderName !== `MetaMask`) {
     alert(`Please confirm this action on your device.`);
   }
   let signature;
   try {
-    signature = await b0x.signOrderHashAsync(
+    signature = await bZx.signOrderHashAsync(
       orderHash,
       accounts[0].toLowerCase(),
-      b0x.portalProviderName === `MetaMask`
+      bZx.portalProviderName === `MetaMask`
     );
   } catch (e) {
     console.error(e.message);
@@ -78,19 +78,19 @@ export const signOrder = async (orderHash, accounts, b0x) => {
   }
   alert();
 
-  const isValidSignature = B0xJS.isValidSignature({
+  const isValidSignature = BZxJS.isValidSignature({
     account: accounts[0].toLowerCase(),
     orderHash,
     signature
   });
-  const isValidSignatureB0x = await b0x.isValidSignatureAsync({
+  const isValidSignatureBZx = await bZx.isValidSignatureAsync({
     account: accounts[0].toLowerCase(),
     orderHash,
     signature
   });
   console.log(`${signature} isValidSignature`, isValidSignature);
-  console.log(`${signature} isValidSignatureB0x`, isValidSignatureB0x);
+  console.log(`${signature} isValidSignatureBZx`, isValidSignatureBZx);
   return signature;
 };
 
-export const getOrderHash = obj => B0xJS.getLoanOrderHashHex(obj);
+export const getOrderHash = obj => BZxJS.getLoanOrderHashHex(obj);

@@ -33,19 +33,19 @@ export default class TradeOracleDialog extends React.Component {
   setTokenAddress = tokenAddress => this.setState({ tokenAddress });
 
   executeChange = async () => {
-    const { b0x, web3, accounts, loanOrderHash } = this.props;
+    const { bZx, web3, accounts, loanOrderHash } = this.props;
     const { tokenAddress } = this.state;
 
     const notAllowed = {
       1: [],
-      3: [`ZRX`, `B0X`],
+      3: [`ZRX`, `BZX`],
       4: [],
       42: [`ZRX`, `WETH`]
     };
     const tradeToken = this.props.tokens.filter(
       t => t.address === tokenAddress
     )[0];
-    if (notAllowed[b0x.networkId].includes(tradeToken && tradeToken.symbol)) {
+    if (notAllowed[bZx.networkId].includes(tradeToken && tradeToken.symbol)) {
       alert(
         `Token ${
           tradeToken.symbol
@@ -67,11 +67,11 @@ export default class TradeOracleDialog extends React.Component {
       txOpts
     });
 
-    if (b0x.portalProviderName !== `MetaMask`) {
+    if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
 
-    const txObj = await b0x.tradePositionWithOracle({
+    const txObj = await bZx.tradePositionWithOracle({
       orderHash: loanOrderHash,
       tradeTokenAddress: tokenAddress,
       getObject: true
@@ -88,7 +88,7 @@ export default class TradeOracleDialog extends React.Component {
             .once(`transactionHash`, hash => {
               alert(`Transaction submitted, transaction hash:`, {
                 component: () => (
-                  <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
                     {hash}
                   </TxHashLink>
                 )

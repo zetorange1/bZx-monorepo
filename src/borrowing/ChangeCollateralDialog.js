@@ -43,11 +43,11 @@ export default class ChangeCollateralDialog extends React.Component {
 
   checkAllowance = async () => {
     const { tokenAddress } = this.state;
-    const { b0x, accounts, tokens } = this.props;
+    const { bZx, accounts, tokens } = this.props;
     const token = tokens.filter(t => t.address === tokenAddress)[0];
     console.log(`checking allowance`);
     console.log(token.name, token.address);
-    const allowance = await b0x.getAllowance({
+    const allowance = await bZx.getAllowance({
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase()
     });
@@ -60,15 +60,15 @@ export default class ChangeCollateralDialog extends React.Component {
 
   approveToken = async () => {
     const { tokenAddress } = this.state;
-    const { b0x, tokens, accounts } = this.props;
+    const { bZx, tokens, accounts } = this.props;
     const token = tokens.filter(t => t.address === tokenAddress)[0];
     console.log(`approving allowance`);
     console.log(token.name, token.address);
     this.setState({ approvalLoading: true });
-    if (b0x.portalProviderName !== `MetaMask`) {
+    if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await b0x
+    await bZx
       .setAllowanceUnlimited({
         tokenAddress: token.address,
         ownerAddress: accounts[0].toLowerCase()
@@ -76,7 +76,7 @@ export default class ChangeCollateralDialog extends React.Component {
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )
@@ -95,7 +95,7 @@ export default class ChangeCollateralDialog extends React.Component {
   };
 
   executeChange = async () => {
-    const { b0x, web3, accounts, loanOrderHash } = this.props;
+    const { bZx, web3, accounts, loanOrderHash } = this.props;
     const { tokenAddress } = this.state;
     const txOpts = {
       from: accounts[0],
@@ -109,10 +109,10 @@ export default class ChangeCollateralDialog extends React.Component {
       collateralTokenFilled: tokenAddress,
       txOpts
     });
-    if (b0x.portalProviderName !== `MetaMask`) {
+    if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await b0x
+    await bZx
       .changeCollateral({
         loanOrderHash,
         collateralTokenFilled: tokenAddress,
@@ -121,7 +121,7 @@ export default class ChangeCollateralDialog extends React.Component {
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )

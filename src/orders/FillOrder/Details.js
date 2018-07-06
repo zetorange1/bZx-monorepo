@@ -35,7 +35,7 @@ const Hash = styled.a`
 `;
 
 export default ({
-  b0x,
+  bZx,
   oracles,
   initialMarginAmount,
   maintenanceMarginAmount,
@@ -63,7 +63,7 @@ export default ({
           <div>
             {oracle.name} (
             <Hash
-              href={`${b0x.etherscanURL}address/${oracle.address}`}
+              href={`${bZx.etherscanURL}address/${oracle.address}`}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -76,7 +76,7 @@ export default ({
             <DataContainer>
               <Title>Relay/Exchange address</Title>
               <Hash
-                href={`${b0x.etherscanURL}address/${feeRecipientAddress}`}
+                href={`${bZx.etherscanURL}address/${feeRecipientAddress}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -85,11 +85,11 @@ export default ({
             </DataContainer>
             <DataContainer>
               <Title>Lender Relay Fee</Title>
-              <div>{lenderRelayFee} B0X</div>
+              <div>{lenderRelayFee} BZX</div>
             </DataContainer>
             <DataContainer>
               <Title>Trader Relay Fee</Title>
-              <div>{traderRelayFee} B0X</div>
+              <div>{traderRelayFee} BZX</div>
             </DataContainer>
           </Fragment>
         )}

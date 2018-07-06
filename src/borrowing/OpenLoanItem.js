@@ -74,8 +74,8 @@ export default class OpenedLoan extends React.Component {
   };
 
   getSingleOrder = async loanOrderHash => {
-    const { b0x } = this.props;
-    const order = await b0x.getSingleOrder({
+    const { bZx } = this.props;
+    const order = await bZx.getSingleOrder({
       loanOrderHash
     });
     return order;
@@ -97,7 +97,7 @@ export default class OpenedLoan extends React.Component {
   };
 
   render() {
-    const { tokens, b0x, accounts, web3 } = this.props;
+    const { tokens, bZx, accounts, web3 } = this.props;
     const {
       collateralTokenAddressFilled,
       collateralTokenAmountFilled,
@@ -150,7 +150,7 @@ export default class OpenedLoan extends React.Component {
               <DialogContent>
                 <OrderItem
                   key={loanOrderHash}
-                  b0x={b0x}
+                  bZx={bZx}
                   accounts={accounts}
                   tokens={tokens}
                   takenOrder={this.state.order}
@@ -166,7 +166,7 @@ export default class OpenedLoan extends React.Component {
             <Label>Lender </Label>
             <DataPoint title={lender}>
               <Hash
-                href={`${b0x.etherscanURL}address/${lender}`}
+                href={`${bZx.etherscanURL}address/${lender}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -215,7 +215,7 @@ export default class OpenedLoan extends React.Component {
           </DataPointContainer>
 
           <ProfitOrLoss
-            b0x={b0x}
+            bZx={bZx}
             web3={web3}
             loanOrderHash={loanOrderHash}
             accounts={accounts}
@@ -225,7 +225,7 @@ export default class OpenedLoan extends React.Component {
           <LowerUpperRight>
             <CollateralOptions
               tokens={tokens}
-              b0x={b0x}
+              bZx={bZx}
               accounts={accounts}
               web3={web3}
               loanOrderHash={loanOrderHash}
@@ -251,13 +251,13 @@ export default class OpenedLoan extends React.Component {
 
           <TradeOptions
             tokens={tokens}
-            b0x={b0x}
+            bZx={bZx}
             accounts={accounts}
             web3={web3}
             loanOrderHash={loanOrderHash}
           />
           <CloseLoan
-            b0x={b0x}
+            bZx={bZx}
             accounts={accounts}
             web3={web3}
             loanOrderHash={loanOrderHash}

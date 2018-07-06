@@ -67,7 +67,7 @@ const AddressLink = styled.a.attrs({
 `;
 
 export default ({
-  b0x,
+  bZx,
   tokens,
   fillOrderAmount,
   collateralTokenAddress,
@@ -127,7 +127,7 @@ export default ({
           />
           <CenteredFormHelperText component="div">
             <AddressLink
-              href={`${b0x.etherscanURL}/address/${collateralTokenAddress}`}
+              href={`${bZx.etherscanURL}/address/${collateralTokenAddress}`}
             >
               Etherscan
             </AddressLink>

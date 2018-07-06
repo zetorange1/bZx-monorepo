@@ -70,9 +70,9 @@ export default class LoanItem extends React.Component {
   };
 
   getMarginLevels = async () => {
-    const { b0x, data } = this.props;
+    const { bZx, data } = this.props;
     this.setState({ loadingMargins: true });
-    const marginLevels = await b0x.getMarginLevels({
+    const marginLevels = await bZx.getMarginLevels({
       loanOrderHash: data.loanOrderHash,
       trader: data.trader
     });
@@ -86,8 +86,8 @@ export default class LoanItem extends React.Component {
   };
 
   getSingleOrder = async loanOrderHash => {
-    const { b0x } = this.props;
-    const order = await b0x.getSingleOrder({
+    const { bZx } = this.props;
+    const order = await bZx.getSingleOrder({
       loanOrderHash
     });
     return order;
@@ -111,7 +111,7 @@ export default class LoanItem extends React.Component {
   handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
 
   liquidate = () => {
-    const { b0x, web3, accounts, data } = this.props;
+    const { bZx, web3, accounts, data } = this.props;
     const { loanOrderHash, trader } = data;
 
     const txOpts = {
@@ -120,11 +120,11 @@ export default class LoanItem extends React.Component {
       gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
 
-    if (b0x.portalProviderName !== `MetaMask`) {
+    if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
 
-    const txObj = b0x.liquidateLoan({
+    const txObj = bZx.liquidateLoan({
       loanOrderHash,
       trader,
       getObject: true
@@ -141,7 +141,7 @@ export default class LoanItem extends React.Component {
             .once(`transactionHash`, hash => {
               alert(`Transaction submitted, transaction hash:`, {
                 component: () => (
-                  <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
                     {hash}
                   </TxHashLink>
                 )
@@ -170,7 +170,7 @@ export default class LoanItem extends React.Component {
   };
 
   render() {
-    const { data, tokens, b0x, accounts } = this.props;
+    const { data, tokens, bZx, accounts } = this.props;
     const {
       loadingMargins,
       initialMarginAmount,
@@ -210,7 +210,7 @@ export default class LoanItem extends React.Component {
               <DialogContent>
                 <OrderItem
                   key={data.loanOrderHash}
-                  b0x={b0x}
+                  bZx={bZx}
                   accounts={accounts}
                   tokens={tokens}
                   takenOrder={this.state.order}
@@ -227,7 +227,7 @@ export default class LoanItem extends React.Component {
             <Label>Trader </Label>
             <DataPoint>
               <HashLink
-                href={`${b0x.etherscanURL}address/${data.trader}`}
+                href={`${bZx.etherscanURL}address/${data.trader}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >

@@ -23,15 +23,15 @@ const checkCoinsAdded = (
   return a && b;
 };
 
-const checkAllowance = async (b0x, accounts, tokenAddress) => {
-  const allowance = await b0x.getAllowance({
+const checkAllowance = async (bZx, accounts, tokenAddress) => {
+  const allowance = await bZx.getAllowance({
     tokenAddress,
     ownerAddress: accounts[0].toLowerCase()
   });
   return allowance.toNumber() !== 0;
 };
 
-const checkCoinsApproved = async (b0x, accounts, state) => {
+const checkCoinsApproved = async (bZx, accounts, state) => {
   const {
     loanTokenAddress,
     interestTokenAddress,
@@ -40,14 +40,14 @@ const checkCoinsApproved = async (b0x, accounts, state) => {
   } = state;
   if (role === `lender`) {
     const loanTokenAllowed = await checkAllowance(
-      b0x,
+      bZx,
       accounts,
       loanTokenAddress
     );
     return loanTokenAllowed;
   }
-  const a = await checkAllowance(b0x, accounts, interestTokenAddress);
-  const b = await checkAllowance(b0x, accounts, collateralTokenAddress);
+  const a = await checkAllowance(bZx, accounts, interestTokenAddress);
+  const b = await checkAllowance(bZx, accounts, collateralTokenAddress);
   return a && b;
 };
 
@@ -55,7 +55,7 @@ const checkCoinsAllowed = (state, tokens, networkId) => {
   const { loanTokenAddress, collateralTokenAddress, role } = state;
   const notAllowed = {
     1: [],
-    3: [`ZRX`, `B0X`],
+    3: [`ZRX`, `BZX`],
     4: [],
     42: [`ZRX`, `WETH`]
   };
@@ -86,7 +86,7 @@ const checkCoinsAllowed = (state, tokens, networkId) => {
   return !invalid;
 };
 
-export default async (b0x, accounts, state, tokens) => {
+export default async (bZx, accounts, state, tokens) => {
   const {
     role,
     loanTokenAddress,
@@ -118,7 +118,7 @@ export default async (b0x, accounts, state, tokens) => {
     return false;
   }
 
-  const coinsAllowed = checkCoinsAllowed(state, tokens, b0x.networkId);
+  const coinsAllowed = checkCoinsAllowed(state, tokens, bZx.networkId);
   if (!coinsAllowed) {
     alert(
       `The selected tokens are not yet supported for lending or collateral.`
@@ -134,7 +134,7 @@ export default async (b0x, accounts, state, tokens) => {
     return false;
   }
 
-  const coinsApproved = await checkCoinsApproved(b0x, accounts, state);
+  const coinsApproved = await checkCoinsApproved(bZx, accounts, state);
   if (!coinsApproved) {
     alert(
       `Some of your selected tokens have not been approved. Please go to the Balances page and approve these tokens.`
@@ -144,7 +144,7 @@ export default async (b0x, accounts, state, tokens) => {
 
   if (role === `trader`) {
     const interestTokenBalance = await getTokenBalance(
-      b0x,
+      bZx,
       interestTokenAddress,
       accounts
     );
@@ -159,7 +159,7 @@ export default async (b0x, accounts, state, tokens) => {
     }
 
     const collateralTokenBalance = await getTokenBalance(
-      b0x,
+      bZx,
       collateralTokenAddress,
       accounts
     );
@@ -174,7 +174,7 @@ export default async (b0x, accounts, state, tokens) => {
     }
   } else {
     const loanTokenBalance = await getTokenBalance(
-      b0x,
+      bZx,
       loanTokenAddress,
       accounts
     );

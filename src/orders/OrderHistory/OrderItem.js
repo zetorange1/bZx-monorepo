@@ -63,8 +63,8 @@ export default class OrderItem extends React.Component {
   state = { showRawOrder: false };
 
   async componentDidMount() {
-    // const { b0x, accounts } = this.props;
-    // const loanPositions = await b0x.getLoanPositions({
+    // const { bZx, accounts } = this.props;
+    // const loanPositions = await bZx.getLoanPositions({
     //   loanPartyAddress: accounts[0].toLowerCase(),
     //   start: 0,
     //   count: 10
@@ -115,20 +115,20 @@ export default class OrderItem extends React.Component {
       takenOrder.collateralTokenAddress
     );
 
-    const loanTokenAddressLink = `${this.props.b0x.etherscanURL}token/${
+    const loanTokenAddressLink = `${this.props.bZx.etherscanURL}token/${
       takenOrder.loanTokenAddress
     }`;
-    const interestTokenAddressLink = `${this.props.b0x.etherscanURL}token/${
+    const interestTokenAddressLink = `${this.props.bZx.etherscanURL}token/${
       takenOrder.interestTokenAddress
     }`;
-    const collateralTokenAddressLink = `${this.props.b0x.etherscanURL}token/${
+    const collateralTokenAddressLink = `${this.props.bZx.etherscanURL}token/${
       takenOrder.collateralTokenAddress
     }`;
 
-    const oracleAddressLink = `${this.props.b0x.etherscanURL}address/${
+    const oracleAddressLink = `${this.props.bZx.etherscanURL}address/${
       takenOrder.oracleAddress
     }`;
-    const feeRecipientAddressLink = `${this.props.b0x.etherscanURL}address/${
+    const feeRecipientAddressLink = `${this.props.bZx.etherscanURL}address/${
       takenOrder.feeRecipientAddress
     }`;
 
@@ -284,14 +284,14 @@ export default class OrderItem extends React.Component {
               <DataPointContainer>
                 <Label>Trader Relay Fee</Label>
                 <DataPoint>
-                  {fromBigNumber(takenOrder.lenderRelayFee, 1e18)} B0X
+                  {fromBigNumber(takenOrder.lenderRelayFee, 1e18)} BZX
                 </DataPoint>
               </DataPointContainer>
 
               <DataPointContainer>
                 <Label>Trader Relay Fee</Label>
                 <DataPoint>
-                  {fromBigNumber(takenOrder.traderRelayFee, 1e18)} B0X
+                  {fromBigNumber(takenOrder.traderRelayFee, 1e18)} BZX
                 </DataPoint>
               </DataPointContainer>
             </Fragment>

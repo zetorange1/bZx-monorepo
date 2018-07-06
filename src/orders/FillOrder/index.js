@@ -69,7 +69,7 @@ export default class FillOrder extends React.Component {
             tokens={this.props.tokens}
             oracles={this.props.oracles}
             web3={this.props.web3}
-            b0x={this.props.b0x}
+            bZx={this.props.bZx}
             accounts={this.props.accounts}
           />
         </Fragment>

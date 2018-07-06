@@ -45,13 +45,13 @@ export default class ProfitOrLoss extends React.Component {
   };
 
   getProfitOrLoss = async () => {
-    const { b0x, web3, loanOrderHash, accounts } = this.props;
+    const { bZx, web3, loanOrderHash, accounts } = this.props;
     const txOpts = {
       from: accounts[0],
       gas: 1000000,
       gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
-    const data = await b0x.getProfitOrLoss({
+    const data = await bZx.getProfitOrLoss({
       loanOrderHash,
       trader: accounts[0],
       txOpts
@@ -64,17 +64,17 @@ export default class ProfitOrLoss extends React.Component {
   };
 
   withdrawProfit = async () => {
-    const { b0x, accounts, web3, loanOrderHash } = this.props;
+    const { bZx, accounts, web3, loanOrderHash } = this.props;
     const txOpts = {
       from: accounts[0],
       gas: 1000000,
       gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
 
-    if (b0x.portalProviderName !== `MetaMask`) {
+    if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await b0x
+    await bZx
       .withdrawProfit({
         loanOrderHash,
         txOpts
@@ -82,7 +82,7 @@ export default class ProfitOrLoss extends React.Component {
       .once(`transactionHash`, hash => {
         alert(`Transaction submitted, transaction hash:`, {
           component: () => (
-            <TxHashLink href={`${b0x.etherscanURL}tx/${hash}`}>
+            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
               {hash}
             </TxHashLink>
           )

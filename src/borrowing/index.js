@@ -27,9 +27,9 @@ export default class Borrowing extends React.Component {
   }
 
   getLoans = async () => {
-    const { b0x, accounts } = this.props;
+    const { bZx, accounts } = this.props;
     this.setState({ loading: true });
-    const loans = await b0x.getLoansForTrader({
+    const loans = await bZx.getLoansForTrader({
       address: accounts[0],
       start: 0,
       count: this.state.count
@@ -43,7 +43,7 @@ export default class Borrowing extends React.Component {
   };
 
   render() {
-    const { b0x, tokens, accounts, web3 } = this.props;
+    const { bZx, tokens, accounts, web3 } = this.props;
     const { loans, loading, count } = this.state;
     const openLoans = loans.filter(p => p.active === 1);
     const closedLoans = loans.filter(p => p.active === 0);
@@ -78,7 +78,7 @@ export default class Borrowing extends React.Component {
           {openLoans.map(data => (
             <OpenedLoan
               key={data.loanOrderHash + data.trader}
-              b0x={b0x}
+              bZx={bZx}
               tokens={tokens}
               accounts={accounts}
               data={data}
@@ -91,7 +91,7 @@ export default class Borrowing extends React.Component {
           {closedLoans.map(data => (
             <ClosedLoan
               key={data.loanOrderHash + data.trader}
-              b0x={b0x}
+              bZx={bZx}
               tokens={tokens}
               accounts={accounts}
               data={data}
