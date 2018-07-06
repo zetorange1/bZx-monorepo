@@ -78,7 +78,7 @@ class NavContent extends React.Component {
     return (
       <Fragment>
         <a href="https://b0x.network/">
-          <ImgLogo src="https://b0x.network/img/site-logo.svg" />
+          <ImgLogo src="static/logo.svg" />
         </a>
         {this.props.web3IsReceived ? (
           <Fragment>

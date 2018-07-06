@@ -1,5 +1,5 @@
 export const COLORS = {
-  blue: `#2879ff`,
+  blue: `rgb(25, 197, 194)`,
   white: `#FFFFFF`,
   gray: `grey`
 };
@@ -12,7 +12,7 @@ export const primaryPalette = {
   400: `#488dff`,
   500: `#2879ff`,
   600: `#2471ff`,
-  700: `#1e66ff`,
+  700: `#407bf7`,
   800: `#185cff`,
   900: `#0f49ff`,
   A100: `#94bcff`,
