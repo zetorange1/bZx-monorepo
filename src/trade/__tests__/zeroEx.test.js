@@ -42,9 +42,9 @@ describe("trade", () => {
       loanTokens,
       interestTokens
     });
-    const orderHashB0x = B0xJS.getLoanOrderHashHex(orderB0x);
+    const orderHashBZx = B0xJS.getLoanOrderHashHex(orderB0x);
     const signatureB0x = await b0xJS.signOrderHashAsync(
-      orderHashB0x,
+      orderHashBZx,
       orderB0x.makerAddress
     );
 
@@ -75,7 +75,7 @@ describe("trade", () => {
 
     tradePositionWith0xPromiEvent = b0xJS.tradePositionWith0x({
       order0x: order0xWithSignature,
-      orderHashB0x,
+      orderHashBZx,
       txOpts
     });
   });

@@ -3,6 +3,7 @@ import Web3Utils from "web3-utils";
 import BN from "bn.js";
 import ethABI from "ethereumjs-abi";
 import ethUtil from "ethereumjs-util";
+import { ZeroEx } from "0x.js";
 import * as CoreUtils from "../core/utils";
 import { getContracts } from "../contracts";
 import * as ZeroExTradeUtils from "./utils/zeroEx";
@@ -14,17 +15,21 @@ const prepend0x = arg => `0x${arg}`;
 
 export const tradePositionWith0x = (
   { web3, networkId },
-  { order0x, orderHashB0x, txOpts }
+  { order0x, orderHashBZx, getObject, txOpts }
 ) => {
+
   const rpcSig0x = ethUtil.toRpcSig(
-    order0x.signature.v,
-    order0x.signature.r,
-    order0x.signature.s
+    order0x.signedOrder.ecSignature.v,
+    order0x.signedOrder.ecSignature.r,
+    order0x.signedOrder.ecSignature.s
   );
 
+  const transformedOrder0x = ZeroExTradeUtils.transform0xOrder(order0x);
+  const orderHash0x = ZeroEx.getOrderHashHex(transformedOrder0x);
+
   Signature.isValidSignature({
-    account: order0x.maker.address,
-    orderHash: order0x.signature.hash,
+    account: order0x.signedOrder.maker,
+    orderHash: orderHash0x,
     signature: rpcSig0x
   });
 
@@ -34,8 +39,6 @@ export const tradePositionWith0x = (
     contracts.B0x.abi,
     contracts.B0x.address
   );
-
-  const transformedOrder0x = ZeroExTradeUtils.transform0xOrder(order0x);
 
   const values = [
     ...[
@@ -59,13 +62,13 @@ export const tradePositionWith0x = (
   const hashBuff = ethABI.solidityPack(types, values);
   const order0xTightlyPacked = ethUtil.bufferToHex(hashBuff);
 
-  return b0xContract.methods
-    .tradePositionWith0x(orderHashB0x, order0xTightlyPacked, rpcSig0x)
-    .send({
-      from: txOpts.from,
-      gas: txOpts.gas,
-      gasPrice: txOpts.gasPrice
-    });
+  const txObj = b0xContract.methods
+    .tradePositionWith0x(orderHashBZx, order0xTightlyPacked, rpcSig0x);
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
 };
 
 export const tradePositionWithOracle = (
@@ -84,6 +87,6 @@ export const tradePositionWithOracle = (
 
   if (getObject) {
     return txObj;
-  } 
-    return txObj.send(txOpts);
+  }
+  return txObj.send(txOpts);
 };
