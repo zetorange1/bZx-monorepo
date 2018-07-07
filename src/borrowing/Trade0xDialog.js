@@ -49,34 +49,62 @@ export default class Trade0xDialog extends React.Component {
     console.log({
       order0x,
       orderHashBZx: loanOrderHash,
+      getObject: true,
       txOpts
     });
 
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await bZx
-      .tradePositionWith0x({
-        order0x,
-        orderHashBZx: loanOrderHash,
-        txOpts
-      })
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
+
+    const txObj = await bZx.tradePositionWith0x({
+      order0x,
+      orderHashBZx: loanOrderHash,
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = gas;
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+            })
+            .then(() => {
+              alert(`Trade execution complete. Please refresh to see changes.`);
+              this.props.onClose();
+            })
+            .catch(error => {
+              console.error(error);
+              alert(`We were not able to execute this trade.`);
+              this.props.onClose();
+            });
+        })
+        .catch(error => {
+          console.error(error);
+          alert(
+            `The transaction is failing. This trade cannot be executed at this time.`
+          );
+          this.props.onClose();
         });
-      })
-      .on(`error`, error => {
-        console.error(error);
-        alert(`We were not able to execute your transaction.`);
-        this.props.onClose();
-      });
-    alert(`Trade execution complete. Please refresh to see changes.`);
-    this.props.onClose();
+    } catch (error) {
+      console.error(error);
+      alert(
+        `The transaction is failing. This trade cannot be executed at this time.`
+      );
+      this.props.onClose();
+    }
   };
 
   render() {
