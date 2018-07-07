@@ -74,29 +74,52 @@ export default class ProfitOrLoss extends React.Component {
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await bZx
-      .withdrawProfit({
-        loanOrderHash,
-        txOpts
-      })
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
+
+    const txObj = await bZx.withdrawProfit({
+      loanOrderHash,
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = gas;
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+            })
+            .then(() => {
+              alert(`Execution complete.`);
+              this.closeDialog();
+            })
+            .catch(error => {
+              console.error(error);
+              alert(
+                `We were not able to execute your transaction at this time.`
+              );
+              this.closeDialog();
+            });
+        })
+        .catch(error => {
+          console.error(error);
+          alert(`The transaction is failing. Please try again later.`);
+          this.closeDialog();
         });
-      })
-      .on(`error`, error => {
-        console.error(error);
-        alert(
-          `We were not able to execute your transaction. Please check the error logs.`
-        );
-        this.closeDialog();
-      });
-    alert(`Execution complete.`);
-    this.closeDialog();
+    } catch (error) {
+      console.error(error);
+      alert(`The transaction is failing. Please try again later.`);
+      this.closeDialog();
+    }
   };
 
   openDialog = () => this.setState({ showDialog: true });

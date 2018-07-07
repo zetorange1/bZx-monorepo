@@ -36,28 +36,53 @@ export default class WithdrawInterest extends React.Component {
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await bZx
-      .payInterest({
-        loanOrderHash,
-        trader,
-        txOpts
-      })
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
+
+    const txObj = await bZx.payInterest({
+      loanOrderHash,
+      trader,
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = gas;
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+            })
+            .then(() => {
+              alert(`Execution complete.`);
+              this.closeDialog();
+            })
+            .catch(error => {
+              console.error(error);
+              alert(
+                `We were not able to execute your transaction at this time.`
+              );
+              this.closeDialog();
+            });
+        })
+        .catch(error => {
+          console.error(error);
+          alert(`The transaction is failing. Please try again later.`);
+          this.closeDialog();
         });
-        this.closeDialog();
-      })
-      .on(`error`, error => {
-        console.error(error);
-        alert(`We were not able to execute your transaction.`);
-        this.closeDialog();
-      });
-    alert(`Execution complete.`);
+    } catch (error) {
+      console.error(error);
+      alert(`The transaction is failing. Please try again later.`);
+      this.closeDialog();
+    }
   };
 
   render() {

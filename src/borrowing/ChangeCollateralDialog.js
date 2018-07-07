@@ -112,30 +112,53 @@ export default class ChangeCollateralDialog extends React.Component {
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await bZx
-      .changeCollateral({
-        loanOrderHash,
-        collateralTokenFilled: tokenAddress,
-        txOpts
-      })
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
+
+    const txObj = await bZx.changeCollateral({
+      loanOrderHash,
+      collateralTokenFilled: tokenAddress,
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = gas;
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+            })
+            .then(() => {
+              alert(`Execution complete.`);
+              this.props.onClose();
+            })
+            .catch(error => {
+              console.error(error);
+              alert(
+                `We were not able to execute your transaction. Please check that you have sufficient tokens.`
+              );
+              this.props.onClose();
+            });
+        })
+        .catch(error => {
+          console.error(error);
+          alert(`The transaction is failing. Please try again later.`);
+          this.props.onClose();
         });
-      })
-      .on(`error`, error => {
-        console.error(error);
-        alert(
-          `We were not able to execute your transaction. Please check that you have sufficient tokens.`
-        );
-        this.props.onClose();
-      });
-    alert(`Execution complete.`);
-    this.props.onClose();
+    } catch (error) {
+      console.error(error);
+      alert(`The transaction is failing. Please try again later.`);
+      this.props.onClose();
+    }
   };
 
   render() {
