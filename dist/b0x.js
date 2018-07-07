@@ -2467,7 +2467,7 @@ const transform0xOrder = exports.transform0xOrder = ({
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.withdrawProfit = exports.getProfitOrLoss = exports.closeLoan = exports.payInterest = exports.withdrawExcessCollateral = exports.depositCollateral = exports.changeCollateral = undefined;
+exports.getProfitOrLoss = exports.withdrawProfit = exports.closeLoan = exports.payInterest = exports.withdrawExcessCollateral = exports.depositCollateral = exports.changeCollateral = undefined;
 
 var _utils = __webpack_require__(0);
 
@@ -2479,34 +2479,65 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
-const changeCollateral = exports.changeCollateral = ({ web3, networkId, addresses }, { loanOrderHash, collateralTokenFilled, txOpts }) => {
+const changeCollateral = exports.changeCollateral = ({ web3, networkId, addresses }, { loanOrderHash, collateralTokenFilled, getObject, txOpts }) => {
   const b0xContract = CoreUtils.getContractInstance(web3, (0, _contracts.getContracts)(networkId).B0x.abi, addresses.B0x);
 
-  return b0xContract.methods.changeCollateral(loanOrderHash, collateralTokenFilled).send(txOpts);
+  const txObj = b0xContract.methods.changeCollateral(loanOrderHash, collateralTokenFilled);
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
 };
 
-const depositCollateral = exports.depositCollateral = ({ web3, networkId, addresses }, { loanOrderHash, collateralTokenFilled, depositAmount, txOpts }) => {
+const depositCollateral = exports.depositCollateral = ({ web3, networkId, addresses }, { loanOrderHash, collateralTokenFilled, depositAmount, getObject, txOpts }) => {
   const b0xContract = CoreUtils.getContractInstance(web3, (0, _contracts.getContracts)(networkId).B0x.abi, addresses.B0x);
 
-  return b0xContract.methods.depositCollateral(loanOrderHash, collateralTokenFilled, depositAmount).send(txOpts);
+  const txObj = b0xContract.methods.depositCollateral(loanOrderHash, collateralTokenFilled, depositAmount);
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
 };
 
-const withdrawExcessCollateral = exports.withdrawExcessCollateral = ({ web3, networkId, addresses }, { loanOrderHash, collateralTokenFilled, withdrawAmount, txOpts }) => {
+const withdrawExcessCollateral = exports.withdrawExcessCollateral = ({ web3, networkId, addresses }, { loanOrderHash, collateralTokenFilled, withdrawAmount, getObject, txOpts }) => {
   const b0xContract = CoreUtils.getContractInstance(web3, (0, _contracts.getContracts)(networkId).B0x.abi, addresses.B0x);
 
-  return b0xContract.methods.withdrawExcessCollateral(loanOrderHash, collateralTokenFilled, withdrawAmount).send(txOpts);
+  const txObj = b0xContract.methods.withdrawExcessCollateral(loanOrderHash, collateralTokenFilled, withdrawAmount);
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
 };
 
-const payInterest = exports.payInterest = ({ web3, networkId, addresses }, { loanOrderHash, trader, txOpts }) => {
+const payInterest = exports.payInterest = ({ web3, networkId, addresses }, { loanOrderHash, trader, getObject, txOpts }) => {
   const b0xContract = CoreUtils.getContractInstance(web3, (0, _contracts.getContracts)(networkId).B0x.abi, addresses.B0x);
 
-  return b0xContract.methods.payInterest(loanOrderHash, trader).send(txOpts);
+  const txObj = b0xContract.methods.payInterest(loanOrderHash, trader);
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
 };
 
 const closeLoan = exports.closeLoan = ({ web3, networkId, addresses }, { loanOrderHash, getObject, txOpts }) => {
   const b0xContract = CoreUtils.getContractInstance(web3, (0, _contracts.getContracts)(networkId).B0x.abi, addresses.B0x);
 
   const txObj = b0xContract.methods.closeLoan(loanOrderHash);
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
+};
+
+const withdrawProfit = exports.withdrawProfit = ({ web3, networkId, addresses }, { loanOrderHash, getObject, txOpts }) => {
+  const b0xContract = CoreUtils.getContractInstance(web3, (0, _contracts.getContracts)(networkId).B0x.abi, addresses.B0x);
+
+  const txObj = b0xContract.methods.withdrawProfit(loanOrderHash);
 
   if (getObject) {
     return txObj;
@@ -2531,12 +2562,6 @@ const getProfitOrLoss = exports.getProfitOrLoss = (() => {
     return _ref.apply(this, arguments);
   };
 })();
-
-const withdrawProfit = exports.withdrawProfit = ({ web3, networkId, addresses }, { loanOrderHash, txOpts }) => {
-  const b0xContract = CoreUtils.getContractInstance(web3, (0, _contracts.getContracts)(networkId).B0x.abi, addresses.B0x);
-
-  return b0xContract.methods.withdrawProfit(loanOrderHash).send(txOpts);
-};
 
 /***/ }),
 /* 101 */
