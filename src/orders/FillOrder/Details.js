@@ -61,14 +61,20 @@ export default ({
         <DataContainer>
           <Title>Oracle</Title>
           <div>
-            {oracle.name} (
-            <Hash
-              href={`${bZx.etherscanURL}address/${oracle.address}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {oracle.address}
-            </Hash>)
+            {oracle ? (
+              <Fragment>
+                {oracle.name} (
+                <Hash
+                  href={`${bZx.etherscanURL}address/${oracle.address}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {oracle.address}
+                </Hash>)
+              </Fragment>
+            ) : (
+              <Fragment>INVALID</Fragment>
+            )}
           </div>
         </DataContainer>
         {useRelay && (

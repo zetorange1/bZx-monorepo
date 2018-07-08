@@ -99,6 +99,7 @@ export const validateFillOrder = async (
   collateralTokenAddress,
   collateralTokenAmount,
   tokens,
+  oracles,
   bZx,
   accounts
 ) => {
@@ -115,6 +116,20 @@ export const validateFillOrder = async (
       alert(`This is an order you created, so you can't fill it.`);
       return false;
     }
+
+    if (order.expirationUnixTimestampSec <= moment().unix()) {
+      alert(`This order has expired. It can no longer be filled.`);
+      return false;
+    }
+
+    const oracle = oracles.filter(o => o.address === order.oracleAddress)[0];
+    if (!oracle) {
+      alert(
+        `The oracle of this order is no longer active. Please try a different order.`
+      );
+      return false;
+    }
+
     const makerRole = order.makerRole === `0` ? `lender` : `trader`;
     const trackedTokens = getTrackedTokens(tokens);
     if (makerRole === `lender`) {
@@ -351,13 +366,13 @@ export const submitFillOrder = (
       .catch(error => {
         console.error(error);
         alert(
-          `The transaction is failing. This loan cannot be opened at this time.`
+          `The transaction is failing. This loan cannot be opened at this time. Please check the parameters of the order.`
         );
       });
   } catch (error) {
     console.error(error);
     alert(
-      `The transaction is failing. This loan cannot be opened at this time.`
+      `The transaction is failing. This loan cannot be opened at this time. Please check the parameters of the order.`
     );
   }
 

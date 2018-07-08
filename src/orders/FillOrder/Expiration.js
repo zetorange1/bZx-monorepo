@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import styled from "styled-components";
+import moment from "moment";
 
 const Container = styled.div`
   display: flex;
@@ -21,13 +22,14 @@ const Title = styled.div`
 `;
 
 export default ({ expirationUnixTimestampSec }) => {
-  const expiryDate = new Date(expirationUnixTimestampSec * 1000);
+  const expiryDate = moment(expirationUnixTimestampSec * 1000).utc();
+  const expiryDateStr = expiryDate.format(`MMMM Do YYYY, h:mm a UTC`);
   return (
     <Fragment>
       <Container>
         <DataContainer>
           <Title>Expires</Title>
-          <div>{expiryDate.toString()}</div>
+          <div>{`${expiryDateStr} (${expiryDate.fromNow()})`}</div>
         </DataContainer>
       </Container>
     </Fragment>
