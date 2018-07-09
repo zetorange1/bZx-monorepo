@@ -1,11 +1,11 @@
 
-const DEPOSIT_B0X = true;
+const DEPOSIT_BZRX = true;
 
 var TestNetFaucet = artifacts.require("TestNetFaucet");
 var TestNetOracle = artifacts.require("TestNetOracle");
 
-var B0xToken = artifacts.require("B0xToken");
-var TestNetB0xToken = artifacts.require("TestNetB0xToken");
+var BZRxToken = artifacts.require("BZRxToken");
+var TestNetBZRxToken = artifacts.require("TestNetBZRxToken");
 
 var config = require('../protocol-config.js');
 
@@ -29,15 +29,15 @@ module.exports = function(deployer, network, accounts) {
 			await testNetFaucet.setOracleContractAddress(oracle.address);
 		}
 
-		if (DEPOSIT_B0X) {
-			var b0x_token;
+		if (DEPOSIT_BZRX) {
+			var bzrx_token;
 			if (network == "ropsten" || network == "kovan" || network == "rinkeby") {
-				b0x_token = await B0xToken.at(config["addresses"][network]["B0XToken"]);
+				bzrx_token = await BZRxToken.at(config["addresses"][network]["BZRXToken"]);
 			} else {
-				b0x_token = await TestNetB0xToken.deployed();
+				bzrx_token = await TestNetBZRxToken.deployed();
 			}
 
-			await b0x_token.transfer(testNetFaucet.address, web3.toWei(100000000000000000, "ether"));
+			await bzrx_token.transfer(testNetFaucet.address, web3.toWei(100000000000000000, "ether"));
 		}
 	});
 }

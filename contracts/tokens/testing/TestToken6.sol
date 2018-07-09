@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+pragma solidity 0.4.24;
 
 import "../BaseToken.sol";
 

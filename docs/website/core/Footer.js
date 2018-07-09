@@ -64,7 +64,7 @@ class Footer extends React.Component {
               className="github-button"
               href={siteConfig.githubRepository}
               data-icon="octicon-star"
-              data-count-href="/b0xNetwork/protocol_contracts/stargazers"
+              data-count-href="/bZxNetwork/protocol_contracts/stargazers"
               data-show-count={true}
               data-count-aria-label="# stargazers on GitHub"
               aria-label="Star this project on GitHub">

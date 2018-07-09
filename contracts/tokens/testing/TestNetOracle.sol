@@ -1,7 +1,7 @@
 
-pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+pragma solidity 0.4.24;
 
-import "../../oracle/B0xOracle.sol";
+import "../../oracle/BZxOracle.sol";
 
 
 contract Faucet {
@@ -14,7 +14,7 @@ contract Faucet {
 }
 
 
-contract TestNetOracle is B0xOracle {
+contract TestNetOracle is BZxOracle {
     using SafeMath for uint256;
 
     address public faucetContract;
@@ -25,13 +25,13 @@ contract TestNetOracle is B0xOracle {
         address _vaultContract,
         address _kyberContract,
         address _wethContract,
-        address _b0xTokenContract)
+        address _bZRxTokenContract)
         public
-        B0xOracle(
+        BZxOracle(
             _vaultContract,
             _kyberContract,
             _wethContract,
-            _b0xTokenContract)
+            _bZRxTokenContract)
         payable
     {}
 

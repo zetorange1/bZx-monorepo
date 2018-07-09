@@ -21,7 +21,7 @@ module.exports = {
 				"WETH9": "0xc778417e063141139fce010982780140aa0cd5ab"
 			},
 			"KyberContractAddress": "0x2a21728dF01992cCEE34ad8f9c32A0a2AE1e181b", // old: "0xD19559B3121c1b071481d8813d5dBcDC5869e2e8", // old: "0x0a56d8a49E71da8d7F9C65F95063dB48A3C9560B", // Ropsten (https://ropsten.kyber.network)
-			"B0XToken": "0x14823Db576c11e4a54Ca9E01Ca0b28b18D3d1187",
+			"BZRXToken": "0x14823Db576c11e4a54Ca9E01Ca0b28b18D3d1187",
 		},
 		"kovan": {
 			"ZeroEx": {
@@ -33,8 +33,8 @@ module.exports = {
 				"WETH9": "0xd0a1e359811322d97991e03f863a0c30c2cf029c"
 			},
 			"KyberContractAddress": "0x11542D7807DFb2B44937F756b9092c76e814F8eD", // Kovan
-			"B0XToken": "0xe8b6a7FA1976bA6C2D3DD81F063Eb25d521186bb", // old: "0xd0c640eEd54c3877ABb958fa9753F50900325fC5",
-		},		
+			"BZRXToken": "0xe8b6a7FA1976bA6C2D3DD81F063Eb25d521186bb", // old: "0xd0c640eEd54c3877ABb958fa9753F50900325fC5",
+		},
 		"rinkeby": {
 			"ZeroEx": {
 				"ZRXToken": "0x00f58d6d585f84b2d7267940cede30ce2fe6eae8",
@@ -45,7 +45,7 @@ module.exports = {
 				"WETH9": "0xc778417e063141139fce010982780140aa0cd5ab"
 			},
 			"KyberContractAddress": "", // Rinkeby
-			"B0XToken": "0xd0c640eEd54c3877ABb958fa9753F50900325fC5",
+			"BZRXToken": "0xd0c640eEd54c3877ABb958fa9753F50900325fC5",
 		},
 		"mainnet": {
 			"ZeroEx": {
@@ -57,7 +57,7 @@ module.exports = {
 				"WETH9": ""
 			},
 			"KyberContractAddress": "0x964f35fae36d75b1e72770e244f6595b68508cf5", // Mainnet (https://kyber.network)
-			"B0XToken": "",
+			"BZRXToken": "",
 		},
 	}
 }

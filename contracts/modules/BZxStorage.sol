@@ -1,12 +1,12 @@
 
-pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/ReentrancyGuard.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../modifiers/GasTracker.sol";
 
 
-contract B0xObjects {
+contract BZxObjects {
 
     struct LoanOrder {
         address maker;
@@ -170,15 +170,15 @@ contract B0xObjects {
 }
 
 
-// b0x shared storage
-contract B0xStorage is B0xObjects, ReentrancyGuard, Ownable, GasTracker {
+// bZx shared storage
+contract BZxStorage is BZxObjects, ReentrancyGuard, Ownable, GasTracker {
     uint internal constant MAX_UINT = 2**256 - 1;
 
 /* solhint-disable var-name-mixedcase */
-    address public b0xTokenContract;
+    address public bZRxTokenContract;
     address public vaultContract;
     address public oracleRegistryContract;
-    address public b0xTo0xContract;
+    address public bZxTo0xContract;
     bool public DEBUG_MODE = false;
 /* solhint-enable var-name-mixedcase */
 

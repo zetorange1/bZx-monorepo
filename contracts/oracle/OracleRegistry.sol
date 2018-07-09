@@ -1,6 +1,6 @@
 /*
 
-  Copyright 2018 b0x, LLC
+  Copyright 2018 bZx, LLC
   Inspired by TokenRegistry.sol, Copyright 2017 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,12 +17,12 @@
 
 */
 
-pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
-/// @title Oracle Registry - Oracles added to the b0x network by decentralized governance
+/// @title Oracle Registry - Oracles added to the bZx network by decentralized governance
 contract OracleRegistry is Ownable {
 
     event LogAddOracle(

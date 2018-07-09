@@ -1,20 +1,20 @@
 
-pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+pragma solidity 0.4.24;
 
 import "./tokens/EIP20Wrapper.sol";
-import "./modifiers/B0xOwnable.sol";
+import "./modifiers/BZxOwnable.sol";
 
 
-contract B0xVault is EIP20Wrapper, B0xOwnable {
+contract BZxVault is EIP20Wrapper, BZxOwnable {
 
-    // Only the b0x contract can directly deposit ether
-    function() public payable onlyB0x {}
+    // Only the bZx contract can directly deposit ether
+    function() public payable onlyBZx {}
 
     function withdrawEther(
         address to,
         uint value)
         public
-        onlyB0x
+        onlyBZx
         returns (bool)
     {
         uint amount = value;
@@ -30,7 +30,7 @@ contract B0xVault is EIP20Wrapper, B0xOwnable {
         address from,
         uint tokenAmount)
         public
-        onlyB0x
+        onlyBZx
         returns (bool)
     {
         if (tokenAmount == 0) {
@@ -51,7 +51,7 @@ contract B0xVault is EIP20Wrapper, B0xOwnable {
         address to,
         uint tokenAmount)
         public
-        onlyB0x
+        onlyBZx
         returns (bool)
     {
         if (tokenAmount == 0) {
@@ -72,7 +72,7 @@ contract B0xVault is EIP20Wrapper, B0xOwnable {
         address to,
         uint tokenAmount)
         public
-        onlyB0x
+        onlyBZx
         returns (bool)
     {
         if (tokenAmount == 0) {

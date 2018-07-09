@@ -14,22 +14,22 @@ const users = [
 ];
 
 const siteConfig = {
-    title: 'b0x network' /* title for your website */,
+    title: 'bZx network' /* title for your website */,
     subTitle: 'Protocol contracts' /* subtitle for your website */,
-    githubRepository: 'https://github.com/b0xNetwork/protocol_contracts' /*product repository */,
-    githubCompanyRepository: 'https://github.com/b0xNetwork' /*company repository */,
-    contactUs: 'https://b0x.network/' /* contact us */,
-    medium: 'https://medium.com/@b0xNet' /* medium */,
-    twitter: 'https://twitter.com/b0xNet' /* twitter */,
+    githubRepository: 'https://github.com/bZxNetwork/protocol_contracts' /*product repository */,
+    githubCompanyRepository: 'https://github.com/bZxNetwork' /*company repository */,
+    contactUs: 'https://bZx.network/' /* contact us */,
+    medium: 'https://medium.com/@bZxNet' /* medium */,
+    twitter: 'https://twitter.com/bZxNet' /* twitter */,
     stackoverflow: 'https://stackoverflow.com/search?q=protocol+contracts+solidity' /* stackoverflow tags */,
     tagline: 'Documentation for Protocol and Oracle Integration',
 
-    url: 'https://b0xNetwork.github.io/protocol_contracts/' /* your website url */,
+    url: 'https://bZxNetwork.github.io/protocol_contracts/' /* your website url */,
     baseUrl: '/protocol_contracts/' /* base url for your project */,
     projectName: 'protocol_contracts',
 
     // Used for publishing and more
-    organizationName: 'b0xNetwork',
+    organizationName: 'bZxNetwork',
 
     // For top-level user or org sites, the organization is still the same.
     // e.g., for the https://JoelMarcey.github.io site, it would be set like...
@@ -70,7 +70,7 @@ const siteConfig = {
     copyright:
     'Copyright © ' +
     new Date().getFullYear() +
-    ' b0x',
+    ' bZx',
 
     highlight: {
         // Highlight.js theme to use for syntax highlighting in code blocks

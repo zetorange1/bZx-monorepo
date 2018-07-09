@@ -1,20 +1,20 @@
 
-pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+pragma solidity 0.4.24;
 
 
 /**
-    @title OracleInterface, an interface for b0x compatible oracle contracts
+    @title OracleInterface, an interface for bZx compatible oracle contracts
 
     This interface is meant to be inherited by contracts implementing a 
-    compatible oracle solution for b0x. The functions should provide logic
+    compatible oracle solution for bZx. The functions should provide logic
     for price discovery of ERC20 token pairs, and handle the trading of
-    those pairs through an on-chain mechanism. All functions are called by b0x,
+    those pairs through an on-chain mechanism. All functions are called by bZx,
     so all must be implemented. If a function is unneeded in a particular
     use-case, simply return immediately, but with a True value for Boolean
     returns.
 
     Care should be taken to define appropriate levels of security to prevent
-    unauthorized use to functions that would normally be called by the b0x
+    unauthorized use to functions that would normally be called by the bZx
     calling contract. One way of doing this is with the Ownable contract from
     OpenZeppelin.
 
@@ -23,10 +23,10 @@ pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
 // solhint-disable-next-line contract-name-camelcase
 interface OracleInterface {
 
-    /// @dev Called by b0x after a loan order is taken
+    /// @dev Called by bZx after a loan order is taken
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param taker The taker of the loan order
-    /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didTakeOrder(
         bytes32 loanOrderHash,
@@ -35,12 +35,12 @@ interface OracleInterface {
         external
         returns (bool);
 
-    /// @dev Called by b0x after a position token is traded
+    /// @dev Called by bZx after a position token is traded
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader doing the trade
     /// @param tradeTokenAddress The token that was bought in the trade
     /// @param tradeTokenAmount The amount of token that was bought
-    /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didTradePosition(
         bytes32 loanOrderHash,
@@ -51,7 +51,7 @@ interface OracleInterface {
         external
         returns (bool);
 
-    /// @dev Called by b0x after interest should be paid to a lender
+    /// @dev Called by bZx after interest should be paid to a lender
     /// @dev Assume the interest token has already been transfered to
     /// @dev this contract before this function is called.
     /// @param loanOrderHash A unique hash representing the loan order
@@ -60,7 +60,7 @@ interface OracleInterface {
     /// @param interestTokenAddress The token that will be paid for interest
     /// @param amountOwed The amount interest to pay
     /// @param convert A boolean indicating if the interest should be converted to Ether
-    /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didPayInterest(
         bytes32 loanOrderHash,
@@ -73,11 +73,11 @@ interface OracleInterface {
         external
         returns (bool);
 
-    /// @dev Called by b0x after a borrower has deposited additional collateral
+    /// @dev Called by bZx after a borrower has deposited additional collateral
     /// @dev token for an open loan
     /// @param loanOrderHash A unique hash representing the loan order.
     /// @param borrower The borrower
-    /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didDepositCollateral(
         bytes32 loanOrderHash,
@@ -86,11 +86,11 @@ interface OracleInterface {
         external
         returns (bool);
 
-    /// @dev Called by b0x after a borrower has withdrawn excess collateral
+    /// @dev Called by bZx after a borrower has withdrawn excess collateral
     /// @dev token for an open loan
     /// @param loanOrderHash A unique hash representing the loan order.
     /// @param borrower The borrower
-    /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didWithdrawCollateral(
         bytes32 loanOrderHash,
@@ -99,11 +99,11 @@ interface OracleInterface {
         external
         returns (bool);
 
-    /// @dev Called by b0x after a borrower has changed the collateral token
+    /// @dev Called by bZx after a borrower has changed the collateral token
     /// @dev used for an open loan
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param borrower The borrower
-    /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didChangeCollateral(
         bytes32 loanOrderHash,
@@ -112,11 +112,11 @@ interface OracleInterface {
         external
         returns (bool);
 
-    /// @dev Called by b0x after a borrower has withdraw their profits, if any
+    /// @dev Called by bZx after a borrower has withdraw their profits, if any
     /// @dev used for an open loan
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param borrower The borrower
-    /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didWithdrawProfit(
         bytes32 loanOrderHash,
@@ -126,11 +126,11 @@ interface OracleInterface {
         external
         returns (bool);
 
-    /// @dev Called by b0x after a loan is closed
+    /// @dev Called by bZx after a loan is closed
     /// @param loanOrderHash A unique hash representing the loan order.
     /// @param loanCloser The user that closed the loan
     /// @param isLiquidation A boolean indicating if the loan was closed due to liquidation
-    /// @param gasUsed The initial used gas, collected in a modifier in b0x, for optional gas refunds
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didCloseLoan(
         bytes32 loanOrderHash,

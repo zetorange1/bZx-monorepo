@@ -1,10 +1,10 @@
 
-pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-//import { B0xErrors } from "../libraries/B0xErrors.sol";
-//import "../libraries/B0xErrors.sol";
-import "./B0xStorage.sol";
+//import { BZxErrors } from "../libraries/BZxErrors.sol";
+//import "../libraries/BZxErrors.sol";
+import "./BZxStorage.sol";
 
 
 contract Proxiable {
@@ -19,8 +19,8 @@ contract Proxiable {
 }
 
 
-// b0x proxy
-contract B0xProxy is B0xStorage, Proxiable {
+// bZx proxy
+contract BZxProxy is BZxStorage, Proxiable {
 
     function initialize(
         address)
@@ -66,19 +66,19 @@ contract B0xProxy is B0xStorage, Proxiable {
         return f;
     }
 
-    function setB0xAddresses(
-        address _b0xToken,
+    function setBZxAddresses(
+        address _bZRxToken,
         address _vault,
         address _oracleregistry,
         address _exchange0xWrapper) 
         public
         onlyOwner
     {
-        if (_b0xToken != address(0) && _vault != address(0) && _oracleregistry != address(0) && _exchange0xWrapper != address(0))
-        b0xTokenContract = _b0xToken;
+        if (_bZRxToken != address(0) && _vault != address(0) && _oracleregistry != address(0) && _exchange0xWrapper != address(0))
+        bZRxTokenContract = _bZRxToken;
         vaultContract = _vault;
         oracleRegistryContract = _oracleregistry;
-        b0xTo0xContract = _exchange0xWrapper;
+        bZxTo0xContract = _exchange0xWrapper;
     }
 
     function setDebugMode (
@@ -90,13 +90,13 @@ contract B0xProxy is B0xStorage, Proxiable {
             DEBUG_MODE = _debug;
     }
 
-    function setB0xToken (
+    function setBZRxToken (
         address _token)
         public
         onlyOwner
     {
         if (_token != address(0))
-            b0xTokenContract = _token;
+            bZRxTokenContract = _token;
     }
 
     function setVault (
@@ -123,7 +123,7 @@ contract B0xProxy is B0xStorage, Proxiable {
         onlyOwner
     {
         if (_wrapper != address(0))
-            b0xTo0xContract = _wrapper;
+            bZxTo0xContract = _wrapper;
     }
 
     /*

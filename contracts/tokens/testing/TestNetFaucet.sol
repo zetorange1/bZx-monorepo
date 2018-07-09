@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../EIP20Wrapper.sol";
@@ -15,7 +15,7 @@ contract TestNetFaucet is EIP20Wrapper, Ownable {
 
     function() public payable {}
 
-    // Function fully trusts B0xOracle and expects oracle has already deposited a token for exchange
+    // Function fully trusts BZxOracle and expects oracle has already deposited a token for exchange
     function oracleExchange(
         address getToken,
         address receiver,

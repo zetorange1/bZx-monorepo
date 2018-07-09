@@ -1,18 +1,18 @@
 
-pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 
-import "./B0xStorage.sol";
-import "./B0xProxyContracts.sol";
+import "./BZxStorage.sol";
+import "./BZxProxyContracts.sol";
 import "../shared/InternalFunctions.sol";
 
-import "../B0xVault.sol";
+import "../BZxVault.sol";
 import "../oracle/OracleRegistry.sol";
 import "../oracle/OracleInterface.sol";
 
 
-contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
+contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -108,15 +108,10 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         tracksGas
         returns (uint)
     {
-        LoanOrder memory loanOrder = buildLoanOrderStruct(
-            getLoanOrderHash(orderAddresses, orderValues),
-            orderAddresses,
-            orderValues
+        return _cancelLoanOrder(
+            getLoanOrderHash(orderAddresses, orderValues), 
+            cancelLoanTokenAmount
         );
-
-        require(loanOrder.maker == msg.sender, "B0xOrderTaking::cancelLoanOrder: loanOrder.maker != msg.sender");
-
-        return _cancelLoanOrder(loanOrder, cancelLoanTokenAmount);
     }
 
     /// @dev Cancels remaining (untaken) loan
@@ -131,14 +126,10 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         tracksGas
         returns (uint)
     {
-        LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.maker == address(0)) {
-            revert("B0xOrderTaking::cancelLoanOrder: loanOrder.maker == address(0)");
-        }
-
-        require(loanOrder.maker == msg.sender, "B0xOrderTaking::cancelLoanOrder: loanOrder.maker != msg.sender");
-
-        return _cancelLoanOrder(loanOrder, cancelLoanTokenAmount);
+        return _cancelLoanOrder(
+            loanOrderHash, 
+            cancelLoanTokenAmount
+        );
     }
 
     /// @dev Calculates Keccak-256 hash of order with specified parameters.
@@ -462,12 +453,12 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             loanOrder.loanOrderHash,
             signature
         )) {
-            revert("B0xOrderTaking::_takeLoanOrder: signature invalid");
+            revert("BZxOrderTaking::_takeLoanOrder: signature invalid");
         }
 
         // makerRole (orderValues[7]) and takerRole must not be equal and must have a value <= 1
         if (orderValues[7] > 1 || takerRole > 1 || orderValues[7] == takerRole) {
-            revert("B0xOrderTaking::_takeLoanOrder: orderValues[7] > 1 || takerRole > 1 || orderValues[7] == takerRole");
+            revert("BZxOrderTaking::_takeLoanOrder: orderValues[7] > 1 || takerRole > 1 || orderValues[7] == takerRole");
         }
 
         // A trader can only fill a portion or all of a loanOrder once:
@@ -475,7 +466,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         //  - this avoids potentially large loops when calculating margin reqirements and interest payments
         LoanPosition storage loanPosition = loanPositions[loanOrder.loanOrderHash][trader];
         if (loanPosition.loanTokenAmountFilled != 0) {
-            revert("B0xOrderTaking::_takeLoanOrder: loanPosition.loanTokenAmountFilled != 0");
+            revert("BZxOrderTaking::_takeLoanOrder: loanPosition.loanTokenAmountFilled != 0");
         }     
 
         uint collateralTokenAmountFilled = _fillLoanOrder(
@@ -518,7 +509,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
                 msg.sender,
                 gasUsed // initial used gas, collected in modifier
             )) {
-                revert("B0xOrderTaking::_takeLoanOrder: OracleInterface.didTakeOrder failed");
+                revert("BZxOrderTaking::_takeLoanOrder: OracleInterface.didTakeOrder failed");
             }
         }
 
@@ -535,7 +526,7 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         returns (uint)
     {
         if (!_verifyLoanOrder(loanOrder, collateralTokenFilled, loanTokenAmountFilled)) {
-            revert("B0xOrderTaking::_fillLoanOrder: loan verification failed");
+            revert("BZxOrderTaking::_fillLoanOrder: loan verification failed");
         }
 
         uint collateralTokenAmountFilled = _getInitialCollateralRequired(
@@ -546,16 +537,16 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             loanOrder.initialMarginAmount
         );
         if (collateralTokenAmountFilled == 0) {
-            revert("B0xOrderTaking::_fillLoanOrder: collateralTokenAmountFilled == 0");
+            revert("BZxOrderTaking::_fillLoanOrder: collateralTokenAmountFilled == 0");
         }
 
         // deposit collateral token
-        if (! B0xVault(vaultContract).depositToken(
+        if (! BZxVault(vaultContract).depositToken(
             collateralTokenFilled,
             trader,
             collateralTokenAmountFilled
         )) {
-            revert("B0xOrderTaking::_fillLoanOrder: B0xVault.depositToken collateral failed");
+            revert("BZxOrderTaking::_fillLoanOrder: BZxVault.depositToken collateral failed");
         }
 
         // total interest required if loan is kept until order expiration
@@ -568,46 +559,46 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             block.timestamp);
 
         // deposit interest token
-        if (! B0xVault(vaultContract).depositToken(
+        if (! BZxVault(vaultContract).depositToken(
             loanOrder.interestTokenAddress,
             trader,
             totalInterestRequired
         )) {
-            revert("B0xOrderTaking::_fillLoanOrder: B0xVault.depositToken interest failed");
+            revert("BZxOrderTaking::_fillLoanOrder: BZxVault.depositToken interest failed");
         }
 
         // deposit loan token
-        if (! B0xVault(vaultContract).depositToken(
+        if (! BZxVault(vaultContract).depositToken(
             loanOrder.loanTokenAddress,
             lender,
             loanTokenAmountFilled
         )) {
-            revert("B0xOrderTaking::_fillLoanOrder: B0xVault.depositToken loan failed");
+            revert("BZxOrderTaking::_fillLoanOrder: BZxVault.depositToken loan failed");
         }
 
         if (loanOrder.feeRecipientAddress != address(0)) {
             if (loanOrder.traderRelayFee > 0) {
                 uint paidTraderFee = _getPartialAmountNoError(loanTokenAmountFilled, loanOrder.loanTokenAmount, loanOrder.traderRelayFee);
                 
-                if (! B0xVault(vaultContract).transferTokenFrom(
-                    b0xTokenContract, 
+                if (! BZxVault(vaultContract).transferTokenFrom(
+                    bZRxTokenContract, 
                     trader,
                     loanOrder.feeRecipientAddress,
                     paidTraderFee
                 )) {
-                    revert("B0xOrderTaking::_fillLoanOrder: B0xVault.transferTokenFrom traderRelayFee failed");
+                    revert("BZxOrderTaking::_fillLoanOrder: BZxVault.transferTokenFrom traderRelayFee failed");
                 }
             }
             if (loanOrder.lenderRelayFee > 0) {
                 uint paidLenderFee = _getPartialAmountNoError(loanTokenAmountFilled, loanOrder.loanTokenAmount, loanOrder.lenderRelayFee);
                 
-                if (! B0xVault(vaultContract).transferTokenFrom(
-                    b0xTokenContract, 
+                if (! BZxVault(vaultContract).transferTokenFrom(
+                    bZRxTokenContract, 
                     lender,
                     loanOrder.feeRecipientAddress,
                     paidLenderFee
                 )) {
-                    revert("B0xOrderTaking::_fillLoanOrder: B0xVault.transferTokenFrom lenderRelayFee failed");
+                    revert("BZxOrderTaking::_fillLoanOrder: BZxVault.transferTokenFrom lenderRelayFee failed");
                 }
             }
         }
@@ -617,12 +608,18 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
 
     // this cancels any reminaing un-loaned loanToken in the order
     function _cancelLoanOrder(
-        LoanOrder loanOrder,
+        bytes32 loanOrderHash,
         uint cancelLoanTokenAmount)
         internal
         returns (uint)
     {
-        require(loanOrder.loanTokenAmount > 0 && cancelLoanTokenAmount > 0, "B0xOrderTaking::_cancelLoanOrder: invalid params");
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        if (loanOrder.maker == address(0)) {
+            revert("BZxOrderTaking::cancelLoanOrder: loanOrder.maker == address(0)");
+        }
+
+        require(loanOrder.maker == msg.sender, "BZxOrderTaking::_cancelLoanOrder: loanOrder.maker != msg.sender");
+        require(loanOrder.loanTokenAmount > 0 && cancelLoanTokenAmount > 0, "BZxOrderTaking::_cancelLoanOrder: invalid params");
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
             return 0;
@@ -656,34 +653,34 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
         returns (bool)
     {
         if (loanOrder.maker == msg.sender) {
-            revert("B0xOrderTaking::_verifyLoanOrder: loanOrder.maker == msg.sender");
+            revert("BZxOrderTaking::_verifyLoanOrder: loanOrder.maker == msg.sender");
         }
         if (loanOrder.loanTokenAddress == address(0) 
             || loanOrder.interestTokenAddress == address(0)
             || collateralTokenFilled == address(0)) {
-            revert("B0xOrderTaking::_verifyLoanOrder: loanOrder.loanTokenAddress == address(0) || loanOrder.interestTokenAddress == address(0) || collateralTokenFilled == address(0)");
+            revert("BZxOrderTaking::_verifyLoanOrder: loanOrder.loanTokenAddress == address(0) || loanOrder.interestTokenAddress == address(0) || collateralTokenFilled == address(0)");
         }
 
         if (loanTokenAmountFilled > loanOrder.loanTokenAmount) {
-            revert("B0xOrderTaking::_verifyLoanOrder: loanTokenAmountFilled > loanOrder.loanTokenAmount");
+            revert("BZxOrderTaking::_verifyLoanOrder: loanTokenAmountFilled > loanOrder.loanTokenAmount");
         }
 
         if (! OracleRegistry(oracleRegistryContract).hasOracle(loanOrder.oracleAddress)) {
-            revert("B0xOrderTaking::_verifyLoanOrder: OracleRegistry.hasOracle failed");
+            revert("BZxOrderTaking::_verifyLoanOrder: OracleRegistry.hasOracle failed");
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
             //LogError(uint8(Errors.ORDER_EXPIRED), 0, loanOrder.loanOrderHash);
-            revert("B0xOrderTaking::_verifyLoanOrder: block.timestamp >= loanOrder.expirationUnixTimestampSec");
+            revert("BZxOrderTaking::_verifyLoanOrder: block.timestamp >= loanOrder.expirationUnixTimestampSec");
         }
 
         if (loanOrder.maintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= loanOrder.initialMarginAmount) {
-            revert("B0xOrderTaking::_verifyLoanOrder: loanOrder.maintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= loanOrder.initialMarginAmount");
+            revert("BZxOrderTaking::_verifyLoanOrder: loanOrder.maintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= loanOrder.initialMarginAmount");
         }
 
         uint remainingLoanTokenAmount = loanOrder.loanTokenAmount.sub(getUnavailableLoanTokenAmount(loanOrder.loanOrderHash));
         if (remainingLoanTokenAmount < loanTokenAmountFilled) {
-            revert("B0xOrderTaking::_verifyLoanOrder: remainingLoanTokenAmount < loanTokenAmountFilled");
+            revert("BZxOrderTaking::_verifyLoanOrder: remainingLoanTokenAmount < loanTokenAmountFilled");
         }
 
         return true;
@@ -800,6 +797,98 @@ contract B0xOrderTaking is B0xStorage, Proxiable, InternalFunctions {
             interestData.interestPaidSoFar
         );
         return abi.encodePacked(data, tmpBytes);
+    }
+
+    /// @dev Verifies that an order signature is valid.
+    /// @param signer address of signer.
+    /// @param hash Signed Keccak-256 hash.
+    /// @param signature ECDSA signature in raw bytes (rsv) + signatureType.
+    /// @return Validity of order signature.
+    function _isValidSignature(
+        address signer,
+        bytes32 hash,
+        bytes signature)
+        internal
+        pure
+        returns (bool)
+    {
+        SignatureType signatureType;
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
+        (signatureType, v, r, s) = _getSignatureParts(signature);
+
+        // Signature using EIP712
+        if (signatureType == SignatureType.EIP712) {
+            return signer == ecrecover(
+                hash,
+                v,
+                r,
+                s
+            );            
+
+        // Signed using web3.eth_sign
+        } else if (signatureType == SignatureType.EthSign) {
+            return signer == ecrecover(
+                keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)),
+                v,
+                r,
+                s
+            );
+
+        // Signature from Trezor hardware wallet.
+        // It differs from web3.eth_sign in the encoding of message length
+        // (Bitcoin varint encoding vs ascii-decimal, the latter is not
+        // self-terminating which leads to ambiguities).
+        // See also:
+        // https://en.bitcoin.it/wiki/Protocol_documentation#Variable_length_integer
+        // https://github.com/trezor/trezor-mcu/blob/master/firmware/ethereum.c#L602
+        // https://github.com/trezor/trezor-mcu/blob/master/firmware/crypto.c#L36
+        } else if (signatureType == SignatureType.Trezor) {
+            return signer == ecrecover(
+                keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n\x41", hash)),
+                v,
+                r,
+                s
+            );
+        }
+
+        // Anything else is illegal (We do not return false because
+        // the signature may actually be valid, just not in a format
+        // that we currently support. In this case returning false
+        // may lead the caller to incorrectly believe that the
+        // signature was invalid.)
+        revert("UNSUPPORTED_SIGNATURE_TYPE");
+    }
+
+    /// @param signature ECDSA signature in raw bytes (rsv).
+    /// @dev This supports 0x V2 SignatureType
+    function _getSignatureParts(
+        bytes signature)
+        internal
+        pure
+        returns (
+            SignatureType signatureType,
+            uint8 v,
+            bytes32 r,
+            bytes32 s)
+    {
+        require(
+            signature.length == 66,
+            "INVALID_SIGNATURE_LENGTH"
+        );
+
+        uint8 t;
+        assembly {
+            r := mload(add(signature, 32))
+            s := mload(add(signature, 64))
+            v := mload(add(signature, 65))
+            t := mload(add(signature, 66))
+        }
+        signatureType = SignatureType(t);
+        if (v < 27) {
+            v = v + 27;
+        }
     }
 }
 

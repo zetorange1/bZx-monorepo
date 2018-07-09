@@ -28,12 +28,12 @@ if (!fs.existsSync("./html_public_test/deployed")) {
 
 
 var addresses = {
-	"B0x": "unknown",
-	"B0xProxy": "unknown",
-	"B0xVault": "unknown",
-	"B0xTo0x": "unknown",
-	"B0xOracle": "unknown",
-	"B0xToken": "unknown",
+	"BZx": "unknown",
+	"BZxProxy": "unknown",
+	"BZxVault": "unknown",
+	"BZxTo0x": "unknown",
+	"BZxOracle": "unknown",
+	"BZRxToken": "unknown",
 	"TokenRegistry": "unknown",
 	"OracleRegistry": "unknown",
 	"TestNetFaucet": "unknown",
@@ -59,9 +59,9 @@ if (network != "mainnet") {
 		for(var i=0; i <= 9; i++) {
 			addresses["TestToken"+i] = "unknown";
 		}
-		replacements["B0xOracle"] = "TestNetOracle";
+		replacements["BZxOracle"] = "TestNetOracle";
 		if (network == "development") {
-			replacements["B0xToken"] = "TestNetB0xToken";
+			replacements["BZRxToken"] = "TestNetBZRxToken";
 		}
 	}
 } else {
@@ -92,18 +92,18 @@ Object.keys(addresses).forEach(function(item, index) {
 	var jsonContent = JSON.parse(contents);
 
 	try {
-		if (item == "B0xProxy") {
-			if (!jsonContents["B0x"]) {
-				jsonContents["B0x"] = {};
+		if (item == "BZxProxy") {
+			if (!jsonContents["BZx"]) {
+				jsonContents["BZx"] = {};
 			}
-			jsonContents["B0x"]["networks"] = jsonContent["networks"];
+			jsonContents["BZx"]["networks"] = jsonContent["networks"];
 			delete addresses[item];
 			return;
-		} else if (item == "B0x") {
-			if (!jsonContents["B0x"]) {
-				jsonContents["B0x"] = {};
+		} else if (item == "BZx") {
+			if (!jsonContents["BZx"]) {
+				jsonContents["BZx"] = {};
 			}
-			jsonContents["B0x"]["abi"] = jsonContent["abi"];
+			jsonContents["BZx"]["abi"] = jsonContent["abi"];
 			return;
 		}
 
@@ -181,7 +181,7 @@ var abiIndex = `
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>b0x Test Network</title>
+		<title>bZx Test Network</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		</head>
 	<body>
@@ -212,7 +212,7 @@ var outHTML = `
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>b0x Test Network</title>
+		<title>bZx Test Network</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		</head>
 	<body>

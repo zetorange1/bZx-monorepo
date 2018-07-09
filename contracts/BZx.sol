@@ -1,16 +1,16 @@
 /* solhint-disable func-order, separate-by-one-line-in-contract */
 
-pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+pragma solidity 0.4.24;
 
-import "./modules/B0xStorage.sol";
+import "./modules/BZxStorage.sol";
 
-// This interface is meant to used with the deployed B0xProxy contract (modules/B0xProxyContracts.sol) address.
-// js example: var b0x = await B0x.at((await B0xProxy.deployed()).address);
+// This interface is meant to used with the deployed BZxProxy contract (modules/BZxProxyContracts.sol) address.
+// js example: var bZx = await BZx.at((await BZxProxy.deployed()).address);
 
-contract B0x is B0xStorage {
+contract BZx is BZxStorage {
    
     /*
-    * B0xOrderTaking functions
+    * BZxOrderTaking functions
     */
 
     function takeLoanOrderAsTrader(
@@ -130,7 +130,7 @@ contract B0x is B0xStorage {
         returns (uint);
 
     /*
-    * B0xLoanMaintenance functions
+    * BZxLoanMaintenance functions
     */
 
     function depositCollateral(
@@ -166,7 +166,7 @@ contract B0x is B0xStorage {
         returns (bool isProfit, uint profitOrLoss, address positionTokenAddress);
 
     /*
-    * B0xLoanHealth functions
+    * BZxLoanHealth functions
     */
 
     function payInterest(

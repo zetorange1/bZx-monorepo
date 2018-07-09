@@ -1,17 +1,17 @@
 
-pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 
-import "./B0xStorage.sol";
-import "./B0xProxyContracts.sol";
+import "./BZxStorage.sol";
+import "./BZxProxyContracts.sol";
 import "../shared/InternalFunctions.sol";
 
-import "../B0xVault.sol";
+import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 
 
-contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
+contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -45,13 +45,13 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            revert("B0xLoanHealth::payInterest: loanOrder.maker == address(0)");
+            revert("BZxLoanHealth::payInterest: loanOrder.maker == address(0)");
         }
 
         // can still pay any unpaid accured interest after a loan has closed
         LoanPosition memory loanPosition = loanPositions[loanOrderHash][trader];
         if (loanPosition.loanTokenAmountFilled == 0) {
-            revert("B0xLoanHealth::payInterest: loanPosition.loanTokenAmountFilled == 0");
+            revert("BZxLoanHealth::payInterest: loanPosition.loanTokenAmountFilled == 0");
         }
         
         uint amountPaid = _payInterest(
@@ -84,12 +84,12 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][trader];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            revert("B0xLoanHealth::liquidatePosition: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+            revert("BZxLoanHealth::liquidatePosition: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            revert("B0xLoanHealth::liquidatePosition: loanOrder.maker == address(0)");
+            revert("BZxLoanHealth::liquidatePosition: loanOrder.maker == address(0)");
         }
 
         if (DEBUG_MODE) {
@@ -108,7 +108,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             );
 
             if (loanTokenAmount == 0) {
-                revert("B0xLoanHealth::liquidatePosition: loanTokenAmount == 0");
+                revert("BZxLoanHealth::liquidatePosition: loanTokenAmount == 0");
             }
 
             // the loan token becomes the new position token
@@ -127,7 +127,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
                         loanPosition.positionTokenAmountFilled,
                         loanPosition.collateralTokenAmountFilled,
                         loanOrder.maintenanceMarginAmount)) {
-                    revert("B0xLoanHealth::liquidatePosition: liquidation not allowed");
+                    revert("BZxLoanHealth::liquidatePosition: liquidation not allowed");
                 }
             }
         }
@@ -137,7 +137,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             loanPosition, // needs to be storage
             true, // isLiquidation
             gasUsed // initial used gas, collected in modifier
-        ),"B0xLoanHealth::liquidatePosition: _finalizeLoan failed");
+        ),"BZxLoanHealth::liquidatePosition: _finalizeLoan failed");
 
         return true;
     }
@@ -165,7 +165,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         onlyOwner
         tracksGas
         returns (bool)
-    { 
+    {
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][trader];
         require(loanPosition.loanTokenAmountFilled != 0 && loanPosition.active);
 
@@ -187,20 +187,20 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             .sub(interestPaid[loanOrder.loanOrderHash][loanPosition.trader]);
 
         if (totalInterestToRefund > 0) {
-            require(B0xVault(vaultContract).withdrawToken(
+            require(BZxVault(vaultContract).withdrawToken(
                 loanOrder.interestTokenAddress,
                 loanPosition.trader,
                 totalInterestToRefund
             ));
         }
 
-        require(B0xVault(vaultContract).withdrawToken(
+        require(BZxVault(vaultContract).withdrawToken(
             loanPosition.collateralTokenAddressFilled,
             loanPosition.trader,
             loanPosition.collateralTokenAmountFilled
         ));
 
-        require(B0xVault(vaultContract).withdrawToken(
+        require(BZxVault(vaultContract).withdrawToken(
             loanPosition.positionTokenAddressFilled,
             loanPosition.lender,
             loanPosition.positionTokenAmountFilled
@@ -359,12 +359,12 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             interestPaid[loanOrder.loanOrderHash][loanPosition.trader] = interestData.interestTotalAccrued; // since this function will pay all remaining accured interest
             
             // send the interest to the oracle for further processing
-            if (! B0xVault(vaultContract).withdrawToken(
+            if (! BZxVault(vaultContract).withdrawToken(
                 interestData.interestTokenAddress,
                 loanOrder.oracleAddress,
                 amountPaid
             )) {
-                revert("B0xLoanHealth::_payInterest: B0xVault.withdrawToken failed");
+                revert("BZxLoanHealth::_payInterest: BZxVault.withdrawToken failed");
             }
 
             // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
@@ -377,7 +377,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
                 convert,
                 gasUsed // initial used gas, collected in modifier
             )) {
-                revert("B0xLoanHealth::_payInterest: OracleInterface.didPayInterest failed");
+                revert("BZxLoanHealth::_payInterest: OracleInterface.didPayInterest failed");
             }
         }
 
@@ -400,12 +400,12 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
     {
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            revert("B0xLoanHealth::_closeLoan: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+            revert("BZxLoanHealth::_closeLoan: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.maker == address(0)) {
-            revert("B0xLoanHealth::_closeLoan: loanOrder.maker == address(0)");
+            revert("BZxLoanHealth::_closeLoan: loanOrder.maker == address(0)");
         }
 
         // If the position token is not the loan token, then we need to buy back the loan token prior to closing the loan.
@@ -419,7 +419,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             );
 
             if (loanTokenAmount == 0) {
-                revert("B0xLoanHealth::_closeLoan: loanTokenAmount == 0");
+                revert("BZxLoanHealth::_closeLoan: loanTokenAmount == 0");
             }
 
             // the loan token becomes the new position token
@@ -461,12 +461,12 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         
         // refund any unused interest to the trader
         if (totalInterestToRefund > 0) {
-            if (! B0xVault(vaultContract).withdrawToken(
+            if (! BZxVault(vaultContract).withdrawToken(
                 loanOrder.interestTokenAddress,
                 loanPosition.trader,
                 totalInterestToRefund
             )) {
-                revert("B0xLoanHealth::_finalizeLoan: B0xVault.withdrawToken interest failed");
+                revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken interest failed");
             }
         }
 
@@ -474,12 +474,12 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         if (loanPosition.positionTokenAmountFilled < loanPosition.loanTokenAmountFilled) {
             // Send all of the collateral token to the oracle to sell to cover loan token losses.
             // Unused collateral should be returned to the vault by the oracle.
-            if (! B0xVault(vaultContract).withdrawToken(
+            if (! BZxVault(vaultContract).withdrawToken(
                 loanPosition.collateralTokenAddressFilled,
                 loanOrder.oracleAddress,
                 loanPosition.collateralTokenAmountFilled
             )) {
-                revert("B0xLoanHealth::_finalizeLoan: B0xVault.withdrawToken (cover losses) failed");
+                revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken (cover losses) failed");
             }
 
             uint loanTokenAmountCovered;
@@ -497,21 +497,21 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
         }
 
         // send remaining collateral token back to the trader
-        if (! B0xVault(vaultContract).withdrawToken(
+        if (! BZxVault(vaultContract).withdrawToken(
             loanPosition.collateralTokenAddressFilled,
             loanPosition.trader,
             loanPosition.collateralTokenAmountFilled
         )) {
-            revert("B0xLoanHealth::_finalizeLoan: B0xVault.withdrawToken collateral failed");
+            revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken collateral failed");
         }
 
         // send remaining loan token back to the lender
-        if (! B0xVault(vaultContract).withdrawToken(
+        if (! BZxVault(vaultContract).withdrawToken(
             loanPosition.positionTokenAddressFilled, // same as loanTokenAddress
             loanPosition.lender,
             loanPosition.positionTokenAmountFilled
         )) {
-            revert("B0xLoanHealth::_finalizeLoan: B0xVault.withdrawToken loan failed");
+            revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken loan failed");
         }
 
         // set this loan to inactive
@@ -540,7 +540,7 @@ contract B0xLoanHealth is B0xStorage, Proxiable, InternalFunctions {
             isLiquidation,
             gasUsed
         )) {
-            revert("B0xLoanHealth::_finalizeLoan: OracleInterface.didCloseLoan failed");
+            revert("BZxLoanHealth::_finalizeLoan: OracleInterface.didCloseLoan failed");
         }
 
         return true;

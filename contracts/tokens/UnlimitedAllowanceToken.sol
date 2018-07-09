@@ -1,6 +1,6 @@
 /*
   Copyright 2017 ZeroEx Intl.
-  Modifications Copyright 2018 b0x, LLC
+  Modifications Copyright 2018 bZx, LLC
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 */
 
-pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/token/ERC827/ERC827Token.sol";
 

@@ -7,7 +7,7 @@ regex2 = re.compile(r"boolOrRevert\(([^,]+),[^\)]+\)", re.IGNORECASE)
 regex3 = re.compile(r"voidOrRevert\([^\)]+\)", re.IGNORECASE)
 
 
-filename = '../contracts/modules/B0xOrderTaking.sol'
+filename = '../contracts/modules/BZxOrderTaking.sol'
 with open(filename, 'r') as input_file, open(filename+"_new", 'w') as output_file:
     for num, line in enumerate(input_file, 1):
         line = regex1.sub(r"intOrRevert(\1,%s)" % num, line)
@@ -18,7 +18,7 @@ with open(filename, 'r') as input_file, open(filename+"_new", 'w') as output_fil
 shutil.move(filename+"_new", filename)
 
 
-filename = '../contracts/modules/B0xTradePlacing.sol'
+filename = '../contracts/modules/BZxTradePlacing.sol'
 with open(filename, 'r') as input_file, open(filename+"_new", 'w') as output_file:
     for num, line in enumerate(input_file, 1):
         line = regex1.sub(r"intOrRevert(\1,%s)" % num, line)
@@ -29,7 +29,7 @@ with open(filename, 'r') as input_file, open(filename+"_new", 'w') as output_fil
 shutil.move(filename+"_new", filename)
 
 
-filename = '../contracts/modules/B0xLoanMaintenance.sol'
+filename = '../contracts/modules/BZxLoanMaintenance.sol'
 with open(filename, 'r') as input_file, open(filename+"_new", 'w') as output_file:
     for num, line in enumerate(input_file, 1):
         line = regex1.sub(r"intOrRevert(\1,%s)" % num, line)
@@ -40,7 +40,7 @@ with open(filename, 'r') as input_file, open(filename+"_new", 'w') as output_fil
 shutil.move(filename+"_new", filename)
 
 
-filename = '../contracts/modules/B0xLoanHealth.sol'
+filename = '../contracts/modules/BZxLoanHealth.sol'
 with open(filename, 'r') as input_file, open(filename+"_new", 'w') as output_file:
     for num, line in enumerate(input_file, 1):
         line = regex1.sub(r"intOrRevert(\1,%s)" % num, line)
@@ -51,7 +51,7 @@ with open(filename, 'r') as input_file, open(filename+"_new", 'w') as output_fil
 shutil.move(filename+"_new", filename)
 
 
-filename = '../contracts/B0xTo0x.sol'
+filename = '../contracts/BZxTo0x.sol'
 with open(filename, 'r') as input_file, open(filename+"_new", 'w') as output_file:
     for num, line in enumerate(input_file, 1):
         line = regex1.sub(r"intOrRevert(\1,%s)" % num, line)
@@ -62,7 +62,7 @@ with open(filename, 'r') as input_file, open(filename+"_new", 'w') as output_fil
 shutil.move(filename+"_new", filename)
 
 
-filename = '../contracts/oracle/B0xOracle.sol'
+filename = '../contracts/oracle/BZxOracle.sol'
 with open(filename, 'r') as input_file, open(filename+"_new", 'w') as output_file:
     for num, line in enumerate(input_file, 1):
         line = regex1.sub(r"intOrRevert(\1,%s)" % num, line)

@@ -1,10 +1,10 @@
 
-pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./tokens/EIP20.sol";
 import "./tokens/EIP20Wrapper.sol";
-import "./modifiers/B0xOwnable.sol";
+import "./modifiers/BZxOwnable.sol";
 
 
 interface ExchangeInterface {
@@ -44,7 +44,7 @@ interface ExchangeInterface {
 }
 
 
-contract B0xTo0x is EIP20Wrapper, B0xOwnable {
+contract BZxTo0x is EIP20Wrapper, BZxOwnable {
     using SafeMath for uint256;
 
     address public exchangeContract;
@@ -77,7 +77,7 @@ contract B0xTo0x is EIP20Wrapper, B0xOwnable {
         bytes orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated
         bytes signature0x) // ECDSA of the 0x order
         public
-        onlyB0x
+        onlyBZx
         returns (
             address destTokenAddress,
             uint destTokenAmount,
@@ -94,7 +94,7 @@ contract B0xTo0x is EIP20Wrapper, B0xOwnable {
 
         if (sourceTokenUsedAmount < sourceTokenAmountToUse) {
             // all sourceToken has to be traded
-            revert("B0xTo0x::take0xTrade: sourceTokenUsedAmount < sourceTokenAmountToUse");
+            revert("BZxTo0x::take0xTrade: sourceTokenUsedAmount < sourceTokenAmountToUse");
         }
 
         // transfer the destToken to the vault

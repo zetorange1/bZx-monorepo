@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/token/ERC20/BurnableToken.sol";
 

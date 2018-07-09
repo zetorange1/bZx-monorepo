@@ -1,10 +1,10 @@
 
-var B0xProxy = artifacts.require("B0xProxy");
-var B0xTo0x = artifacts.require("B0xTo0x");
-var B0x = artifacts.require("B0x");
-var B0xVault = artifacts.require("B0xVault");
-var B0xOracle = artifacts.require("TestNetOracle");
-var TestNetB0xToken = artifacts.require("TestNetB0xToken");
+var BZxProxy = artifacts.require("BZxProxy");
+var BZxTo0x = artifacts.require("BZxTo0x");
+var BZx = artifacts.require("BZx");
+var BZxVault = artifacts.require("BZxVault");
+var BZxOracle = artifacts.require("TestNetOracle");
+var TestNetBZRxToken = artifacts.require("TestNetBZRxToken");
 var ERC20 = artifacts.require("ERC20"); // for testing with any ERC20 token
 
 var fs = require('fs');
@@ -16,7 +16,7 @@ const ethUtil = require('ethereumjs-util');
 const _ = require('lodash');
 
 const Web3Utils = require('web3-utils');
-const B0xJS = require('b0x.js');
+const BZxJS = require('b0x.js');
 const ZeroEx = require('0x.js');
 
 const config = require('../protocol-config.js');
@@ -67,20 +67,20 @@ module.exports = function(deployer, network, accounts) {
 		var interestToken2;
 		var maker0xToken1;
 
-		var OrderParams_b0x_1;
-		var OrderHash_b0x_1;
+		var OrderParams_bZx_1;
+		var OrderHash_bZx_1;
 		var ECSignature_raw_1;
 		var ECSignature_1;
 
 		async function asyncCall() {
-			var b0xProxy = await B0xProxy.deployed();
-			var b0x = await B0x.at(b0xProxy.address);
+			var bZxProxy = await BZxProxy.deployed();
+			var bZx = await BZx.at(bZxProxy.address);
 
-			var vault = await B0xVault.deployed();
-			var oracle = await B0xOracle.deployed();
-			var b0x_token = await TestNetB0xToken.deployed();
+			var vault = await BZxVault.deployed();
+			var oracle = await BZxOracle.deployed();
+			var bzrx_token = await TestNetBZRxToken.deployed();
 
-			var b0xTo0x = await B0xTo0x.deployed();
+			var bZxTo0x = await BZxTo0x.deployed();
 			var zrx_token = await ERC20.at(config["addresses"]["development"]["ZeroEx"]["ZRXToken"]);
 
 			for (var i = 0; i < 10; i++) {
@@ -97,14 +97,14 @@ module.exports = function(deployer, network, accounts) {
 			maker0xToken1 = test_tokens[5];
 
 			await Promise.all([
-				(await b0x_token.transfer(lender1_account, web3.toWei(1000000, "ether"), {from: owner_account})),
-				(await b0x_token.transfer(lender2_account, web3.toWei(1000000, "ether"), {from: owner_account})),
-				(await b0x_token.transfer(trader1_account, web3.toWei(1000000, "ether"), {from: owner_account})),
-				(await b0x_token.transfer(trader2_account, web3.toWei(1000000, "ether"), {from: owner_account})),
-				(await b0x_token.approve(vault.address, MAX_UINT, {from: lender1_account})),
-				(await b0x_token.approve(vault.address, MAX_UINT, {from: lender2_account})),
-				(await b0x_token.approve(vault.address, MAX_UINT, {from: trader1_account})),
-				(await b0x_token.approve(vault.address, MAX_UINT, {from: trader2_account})),
+				(await bzrx_token.transfer(lender1_account, web3.toWei(1000000, "ether"), {from: owner_account})),
+				(await bzrx_token.transfer(lender2_account, web3.toWei(1000000, "ether"), {from: owner_account})),
+				(await bzrx_token.transfer(trader1_account, web3.toWei(1000000, "ether"), {from: owner_account})),
+				(await bzrx_token.transfer(trader2_account, web3.toWei(1000000, "ether"), {from: owner_account})),
+				(await bzrx_token.approve(vault.address, MAX_UINT, {from: lender1_account})),
+				(await bzrx_token.approve(vault.address, MAX_UINT, {from: lender2_account})),
+				(await bzrx_token.approve(vault.address, MAX_UINT, {from: trader1_account})),
+				(await bzrx_token.approve(vault.address, MAX_UINT, {from: trader2_account})),
 
 				(await loanToken1.transfer(lender1_account, web3.toWei(1000000, "ether"), {from: owner_account})),
 				(await loanToken2.transfer(lender2_account, web3.toWei(1000000, "ether"), {from: owner_account})),
@@ -125,16 +125,16 @@ module.exports = function(deployer, network, accounts) {
 
 				(await zrx_token.transfer(trader1_account, web3.toWei(10000, "ether"), {from: owner_account})),
 				(await zrx_token.transfer(trader2_account, web3.toWei(10000, "ether"), {from: owner_account})),
-				(await zrx_token.approve(b0xTo0x.address, MAX_UINT, {from: trader1_account})),
-				(await zrx_token.approve(b0xTo0x.address, MAX_UINT, {from: trader2_account})),
+				(await zrx_token.approve(bZxTo0x.address, MAX_UINT, {from: trader1_account})),
+				(await zrx_token.approve(bZxTo0x.address, MAX_UINT, {from: trader2_account})),
 
 				(await maker0xToken1.transfer(makerOf0xOrder_account, web3.toWei(10000, "ether"), {from: owner_account})),
 				(await maker0xToken1.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder_account})),
 			]);
 
 			/// should take sample loan order (as trader1)
-			OrderParams_b0x_1 = {
-				"b0xAddress": b0x.address,
+			OrderParams_bZx_1 = {
+				"b0xAddress": bZx.address,
 				"makerAddress": lender1_account, // lender
 				"loanTokenAddress": loanToken1.address,
 				"interestTokenAddress": interestToken1.address,
@@ -149,10 +149,10 @@ module.exports = function(deployer, network, accounts) {
 				"traderRelayFee": web3.toWei(0.0013, "ether").toString(),
 				"expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400*365).toString(),
 				"makerRole": "0", // 0=lender, 1=trader
-				"salt": B0xJS.default.generatePseudoRandomSalt().toString()
+				"salt": BZxJS.default.generatePseudoRandomSalt().toString()
 			};
-			//console.log(OrderParams_b0x_1);
-			let OrderHash_b0x_1 = B0xJS.default.getLoanOrderHashHex(OrderParams_b0x_1);
+			//console.log(OrderParams_bZx_1);
+			let OrderHash_bZx_1 = BZxJS.default.getLoanOrderHashHex(OrderParams_bZx_1);
 
 			/// should sign and verify orderHash (as lender1)
 			const nodeVersion = web3.version.node;
@@ -162,10 +162,10 @@ module.exports = function(deployer, network, accounts) {
 
 			if (isParityNode || isTestRpc) {
 				// Parity and TestRpc nodes add the personalMessage prefix itself
-				ECSignature_raw_1 = web3.eth.sign(lender1_account, OrderHash_b0x_1);
+				ECSignature_raw_1 = web3.eth.sign(lender1_account, OrderHash_bZx_1);
 			}
 			else {
-				var orderHashBuff = ethUtil.toBuffer(OrderHash_b0x_1);
+				var orderHashBuff = ethUtil.toBuffer(OrderHash_bZx_1);
 				var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
 				var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
 				ECSignature_raw_1 = web3.eth.sign(lender1_account, msgHashHex);
@@ -175,25 +175,25 @@ module.exports = function(deployer, network, accounts) {
 			ECSignature_raw_1 = ECSignature_raw_1 + toHex(SignatureType.EthSign);
 
 			/// should take sample loan order (as trader1)
-			console.log(await b0x.takeLoanOrderAsTrader(
+			console.log(await bZx.takeLoanOrderAsTrader(
 			[
-				OrderParams_b0x_1["makerAddress"],
-				OrderParams_b0x_1["loanTokenAddress"],
-				OrderParams_b0x_1["interestTokenAddress"],
-				OrderParams_b0x_1["collateralTokenAddress"],
-				OrderParams_b0x_1["feeRecipientAddress"],
-				OrderParams_b0x_1["oracleAddress"]
+				OrderParams_bZx_1["makerAddress"],
+				OrderParams_bZx_1["loanTokenAddress"],
+				OrderParams_bZx_1["interestTokenAddress"],
+				OrderParams_bZx_1["collateralTokenAddress"],
+				OrderParams_bZx_1["feeRecipientAddress"],
+				OrderParams_bZx_1["oracleAddress"]
 			],
 			[
-				new BN(OrderParams_b0x_1["loanTokenAmount"]),
-				new BN(OrderParams_b0x_1["interestAmount"]),
-				new BN(OrderParams_b0x_1["initialMarginAmount"]),
-				new BN(OrderParams_b0x_1["maintenanceMarginAmount"]),
-				new BN(OrderParams_b0x_1["lenderRelayFee"]),
-				new BN(OrderParams_b0x_1["traderRelayFee"]),
-				new BN(OrderParams_b0x_1["expirationUnixTimestampSec"]),
-				new BN(OrderParams_b0x_1["makerRole"]),
-				new BN(OrderParams_b0x_1["salt"])
+				new BN(OrderParams_bZx_1["loanTokenAmount"]),
+				new BN(OrderParams_bZx_1["interestAmount"]),
+				new BN(OrderParams_bZx_1["initialMarginAmount"]),
+				new BN(OrderParams_bZx_1["maintenanceMarginAmount"]),
+				new BN(OrderParams_bZx_1["lenderRelayFee"]),
+				new BN(OrderParams_bZx_1["traderRelayFee"]),
+				new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
+				new BN(OrderParams_bZx_1["makerRole"]),
+				new BN(OrderParams_bZx_1["salt"])
 			],
 			collateralToken1.address,
 			web3.toWei(12.3, "ether"),
@@ -201,25 +201,25 @@ module.exports = function(deployer, network, accounts) {
 			{from: trader1_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")}));
 
 			/// should take sample loan order (as trader2)
-			console.log(await b0x.takeLoanOrderAsTrader(
+			console.log(await bZx.takeLoanOrderAsTrader(
 				[
-					OrderParams_b0x_1["makerAddress"],
-					OrderParams_b0x_1["loanTokenAddress"],
-					OrderParams_b0x_1["interestTokenAddress"],
-					OrderParams_b0x_1["collateralTokenAddress"],
-					OrderParams_b0x_1["feeRecipientAddress"],
-					OrderParams_b0x_1["oracleAddress"]
+					OrderParams_bZx_1["makerAddress"],
+					OrderParams_bZx_1["loanTokenAddress"],
+					OrderParams_bZx_1["interestTokenAddress"],
+					OrderParams_bZx_1["collateralTokenAddress"],
+					OrderParams_bZx_1["feeRecipientAddress"],
+					OrderParams_bZx_1["oracleAddress"]
 				],
 				[
-					new BN(OrderParams_b0x_1["loanTokenAmount"]),
-					new BN(OrderParams_b0x_1["interestAmount"]),
-					new BN(OrderParams_b0x_1["initialMarginAmount"]),
-					new BN(OrderParams_b0x_1["maintenanceMarginAmount"]),
-					new BN(OrderParams_b0x_1["lenderRelayFee"]),
-					new BN(OrderParams_b0x_1["traderRelayFee"]),
-					new BN(OrderParams_b0x_1["expirationUnixTimestampSec"]),
-					new BN(OrderParams_b0x_1["makerRole"]),
-					new BN(OrderParams_b0x_1["salt"])
+					new BN(OrderParams_bZx_1["loanTokenAmount"]),
+					new BN(OrderParams_bZx_1["interestAmount"]),
+					new BN(OrderParams_bZx_1["initialMarginAmount"]),
+					new BN(OrderParams_bZx_1["maintenanceMarginAmount"]),
+					new BN(OrderParams_bZx_1["lenderRelayFee"]),
+					new BN(OrderParams_bZx_1["traderRelayFee"]),
+					new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
+					new BN(OrderParams_bZx_1["makerRole"]),
+					new BN(OrderParams_bZx_1["salt"])
 				],
 				collateralToken2.address,
 				web3.toWei(20, "ether"),
@@ -234,7 +234,7 @@ module.exports = function(deployer, network, accounts) {
 					"makerFee": web3.toWei(0.002, "ether").toString(),
 					"makerTokenAddress": maker0xToken1.address,
 					"makerTokenAmount": web3.toWei(100, "ether").toString(),
-					"salt": B0xJS.default.generatePseudoRandomSalt().toString(),
+					"salt": BZxJS.default.generatePseudoRandomSalt().toString(),
 					"taker": NULL_ADDRESS,
 					"takerFee": web3.toWei(0.0013, "ether").toString(),
 					"takerTokenAddress": loanToken1.address,
@@ -284,19 +284,19 @@ module.exports = function(deployer, network, accounts) {
 				//console.log(ECSignature_0x_raw);
 
 				console.log("Before profit:");
-				console.log(await b0x.getProfitOrLoss.call(
-				  OrderHash_b0x_1,
+				console.log(await bZx.getProfitOrLoss.call(
+				  OrderHash_bZx_1,
 				  trader1_account,
 				  {from: lender2_account}));
 
-				console.log(txPrettyPrint(await b0x.tradePositionWith0x(
-					OrderHash_b0x_1,
+				console.log(txPrettyPrint(await bZx.tradePositionWith0x(
+					OrderHash_bZx_1,
 					sample_order_tightlypacked,
 					ECSignature_0x_raw,
 					{from: trader1_account})),"");
 				console.log("After profit:");
-				console.log(await b0x.getProfitOrLoss.call(
-					OrderHash_b0x_1,
+				console.log(await bZx.getProfitOrLoss.call(
+					OrderHash_bZx_1,
 					trader1_account,
 					{from: lender2_account}));
 		}

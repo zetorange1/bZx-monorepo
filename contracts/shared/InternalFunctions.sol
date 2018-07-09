@@ -1,14 +1,14 @@
 
 
-pragma solidity ^0.4.24; // solhint-disable-line compiler-fixed
+pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "../modules/B0xStorage.sol";
-import "../B0xVault.sol";
+import "../modules/BZxStorage.sol";
+import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 
 
-contract InternalFunctions is B0xStorage {
+contract InternalFunctions is BZxStorage {
     using SafeMath for uint256;
 
     // Allowed 0x signature types.
@@ -118,98 +118,6 @@ contract InternalFunctions is B0xStorage {
         return _getPartialAmount(numerator, denominator, target);
     }
 
-    /// @dev Verifies that an order signature is valid.
-    /// @param signer address of signer.
-    /// @param hash Signed Keccak-256 hash.
-    /// @param signature ECDSA signature in raw bytes (rsv) + signatureType.
-    /// @return Validity of order signature.
-    function _isValidSignature(
-        address signer,
-        bytes32 hash,
-        bytes signature)
-        internal
-        pure
-        returns (bool)
-    {
-        SignatureType signatureType;
-        uint8 v;
-        bytes32 r;
-        bytes32 s;
-        (signatureType, v, r, s) = _getSignatureParts(signature);
-
-        // Signature using EIP712
-        if (signatureType == SignatureType.EIP712) {
-            return signer == ecrecover(
-                hash,
-                v,
-                r,
-                s
-            );            
-
-        // Signed using web3.eth_sign
-        } else if (signatureType == SignatureType.EthSign) {
-            return signer == ecrecover(
-                keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)),
-                v,
-                r,
-                s
-            );
-
-        // Signature from Trezor hardware wallet.
-        // It differs from web3.eth_sign in the encoding of message length
-        // (Bitcoin varint encoding vs ascii-decimal, the latter is not
-        // self-terminating which leads to ambiguities).
-        // See also:
-        // https://en.bitcoin.it/wiki/Protocol_documentation#Variable_length_integer
-        // https://github.com/trezor/trezor-mcu/blob/master/firmware/ethereum.c#L602
-        // https://github.com/trezor/trezor-mcu/blob/master/firmware/crypto.c#L36
-        } else if (signatureType == SignatureType.Trezor) {
-            return signer == ecrecover(
-                keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n\x41", hash)),
-                v,
-                r,
-                s
-            );
-        }
-
-        // Anything else is illegal (We do not return false because
-        // the signature may actually be valid, just not in a format
-        // that we currently support. In this case returning false
-        // may lead the caller to incorrectly believe that the
-        // signature was invalid.)
-        revert("UNSUPPORTED_SIGNATURE_TYPE");
-    }
-
-    /// @param signature ECDSA signature in raw bytes (rsv).
-    /// @dev This supports 0x V2 SignatureType
-    function _getSignatureParts(
-        bytes signature)
-        internal
-        pure
-        returns (
-            SignatureType signatureType,
-            uint8 v,
-            bytes32 r,
-            bytes32 s)
-    {
-        require(
-            signature.length == 66,
-            "INVALID_SIGNATURE_LENGTH"
-        );
-
-        uint8 t;
-        assembly {
-            r := mload(add(signature, 32))
-            s := mload(add(signature, 64))
-            v := mload(add(signature, 65))
-            t := mload(add(signature, 66))
-        }
-        signatureType = SignatureType(t);
-        if (v < 27) {
-            v = v + 27;
-        }
-    }
-
     function _getInterest(
         LoanOrder loanOrder,
         LoanPosition loanPosition)
@@ -248,11 +156,11 @@ contract InternalFunctions is B0xStorage {
         returns (uint)
     {
         // transfer the current position token to the Oracle contract
-        if (!B0xVault(vaultContract).withdrawToken(
+        if (!BZxVault(vaultContract).withdrawToken(
             loanPosition.positionTokenAddressFilled,
             loanOrder.oracleAddress,
             loanPosition.positionTokenAmountFilled)) {
-            revert("InternalFunctions::_tradePositionWithOracle: B0xVault.withdrawToken failed");
+            revert("InternalFunctions::_tradePositionWithOracle: BZxVault.withdrawToken failed");
         }
 
         uint tradeTokenAmountReceived;

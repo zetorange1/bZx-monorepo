@@ -4,26 +4,26 @@
       "migrations_Migrations"
     ],
     "MODIFIERS": [
-      "modifiers_B0xOwnable",
+      "modifiers_BZxOwnable",
       "modifiers_EMACollector",
       "modifiers_GasRefunder",
       "modifiers_GasTracker"
     ],
     "MODULES": [
-      "modules_B0xLoanHealth",
-      "modules_B0xLoanMaintenance",
-      "modules_B0xOrderTaking",
-      "modules_B0xProxyContracts_B0xProxy",
-      "modules_B0xProxyContracts_Proxiable",
-      "modules_B0xStorage",
-      "modules_B0xStorage_B0xObjects",
-      "modules_B0xTradePlacing",
-      "modules_B0xTradePlacing_B0xTo0x_Interface"
+      "modules_BZxLoanHealth",
+      "modules_BZxLoanMaintenance",
+      "modules_BZxOrderTaking",
+      "modules_BZxProxyContracts_BZxProxy",
+      "modules_BZxProxyContracts_Proxiable",
+      "modules_BZxStorage",
+      "modules_BZxStorage_BZxObjects",
+      "modules_BZxTradePlacing",
+      "modules_BZxTradePlacing_BZxTo0x_Interface"
     ],
     "ORACLE": [
-      "oracle_B0xOracle",
-      "oracle_B0xOracle_KyberNetwork_Interface",
-      "oracle_B0xOracle_WETH_Interface",
+      "oracle_BZxOracle",
+      "oracle_BZxOracle_KyberNetwork_Interface",
+      "oracle_BZxOracle_WETH_Interface",
       "oracle_OracleInterface",
       "oracle_OracleRegistry"
     ],
@@ -38,10 +38,10 @@
       "tokens_EIP20Wrapper_NonCompliantEIP20",
       "tokens_TokenRegistry",
       "tokens_UnlimitedAllowanceToken",
-      "tokens_b0xToken_B0xToken"
+      "tokens_bZRxToken_BZRxToken"
     ],
     "TOKENS / TESTING": [
-      "tokens_testing_TestNetB0xToken",
+      "tokens_testing_TestNetBZRxToken",
       "tokens_testing_TestNetFaucet",
       "tokens_testing_TestNetOracle",
       "tokens_testing_TestNetOracle_Faucet",
@@ -61,10 +61,10 @@
       "tokens_testing_fake_ERC827AlwaysOwned"
     ],
     "UNCATEGORIZED": [
-      "B0x",
-      "B0xTo0x",
-      "B0xTo0x_ExchangeInterface",
-      "B0xVault"
+      "BZx",
+      "BZxTo0x",
+      "BZxTo0x_ExchangeInterface",
+      "BZxVault"
     ]
   }
 }
