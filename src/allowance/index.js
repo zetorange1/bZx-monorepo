@@ -1,6 +1,6 @@
 import { assert } from "@0xproject/assert";
 import { BigNumber } from "@0xproject/utils";
-import * as utils from "../core/utils";
+import * as CoreUtils from "../core/utils";
 import { local as Contracts } from "../contracts";
 import * as Addresses from "../addresses";
 
@@ -13,9 +13,8 @@ export const setAllowance = (
     ownerAddress,
     spenderAddress = Addresses.getAddresses(networkId).B0xVault,
     amountInBaseUnits,
-    txOpts = {
-      gasLimit: 100000
-    }
+    getObject,
+    txOpts
   }
 ) => {
   assert.isETHAddressHex("ownerAddress", ownerAddress);
@@ -23,12 +22,19 @@ export const setAllowance = (
   assert.isETHAddressHex("tokenAddress", tokenAddress);
   assert.isValidBaseUnitAmount("amountInBaseUnits", amountInBaseUnits);
 
-  const tokenContract = utils.getContractInstance(web3, erc20Abi, tokenAddress);
-  return tokenContract.methods.approve(spenderAddress, amountInBaseUnits).send({
-    from: ownerAddress,
-    gas: txOpts.gasLimit,
-    gasPrice: txOpts.gasPrice
-  });
+  const tokenContract = CoreUtils.getContractInstance(
+    web3,
+    erc20Abi,
+    tokenAddress
+  );
+
+  const txObj = tokenContract.methods
+    .approve(spenderAddress, amountInBaseUnits);
+
+  if (getObject) {
+    return txObj;
+  } 
+    return txObj.send(txOpts);
 };
 
 export const getAllowance = async (
@@ -43,7 +49,7 @@ export const getAllowance = async (
   assert.isETHAddressHex("spenderAddress", spenderAddress);
   assert.isETHAddressHex("tokenAddress", tokenAddress);
 
-  const tokenContract = await utils.getContractInstance(
+  const tokenContract = await CoreUtils.getContractInstance(
     web3,
     erc20Abi,
     tokenAddress

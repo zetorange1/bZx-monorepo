@@ -3,7 +3,11 @@ import { getContracts } from "../contracts";
 
 export const wrapEth = (
   { web3, networkId, addresses },
-  { amount, txOpts } = {}
+  { 
+    amount,
+    getObject,
+    txOpts
+  }
 ) => {
   const wethContract = CoreUtils.getContractInstance(
     web3,
@@ -11,13 +15,21 @@ export const wrapEth = (
     addresses.WETH
   );
 
-  return wethContract.methods
-    .deposit().send({ ...txOpts, value: amount });
+  const txObj = wethContract.methods.deposit();
+
+  if (getObject) {
+    return txObj;
+  } 
+    return txObj.send({ ...txOpts, value: amount });
 };
 
 export const unwrapEth = (
   { web3, networkId, addresses },
-  { amount, txOpts } = {}
+  { 
+    amount,
+    getObject,
+    txOpts
+  }
 ) => {
   const wethContract = CoreUtils.getContractInstance(
     web3,
@@ -25,9 +37,11 @@ export const unwrapEth = (
     addresses.WETH
   );
 
-  return wethContract.methods
-    .withdraw(
-      amount
-    )
-    .send(txOpts);
+  const txObj = wethContract.methods
+    .withdraw(amount);
+
+  if (getObject) {
+    return txObj;
+  } 
+    return txObj.send(txOpts);
 };

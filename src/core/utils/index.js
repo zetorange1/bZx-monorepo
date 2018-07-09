@@ -121,7 +121,12 @@ export const toChecksumAddress = addr => Web3Utils.toChecksumAddress(addr);
 
 export const requestFaucetToken = (
   { web3, networkId },
-  { tokenAddress, receiverAddress, txOpts }
+  { 
+    tokenAddress, 
+    receiverAddress, 
+    getObject, 
+    txOpts
+  }
 ) => {
   const faucetContract = getContractInstance(
     web3,
@@ -135,7 +140,8 @@ export const requestFaucetToken = (
   );
   console.log(`requestFaucetToken: ${txObj.encodeABI()}`);
 
-  return txObj.send({
-    from: txOpts.from
-  });
+  if (getObject) {
+    return txObj;
+  } 
+    return txObj.send(txOpts);
 };

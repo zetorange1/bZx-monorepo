@@ -190,15 +190,21 @@ const doesConformToSchema = exports.doesConformToSchema = (variableName, value, 
 
 const toChecksumAddress = exports.toChecksumAddress = addr => _web3Utils2.default.toChecksumAddress(addr);
 
-const requestFaucetToken = exports.requestFaucetToken = ({ web3, networkId }, { tokenAddress, receiverAddress, txOpts }) => {
+const requestFaucetToken = exports.requestFaucetToken = ({ web3, networkId }, {
+  tokenAddress,
+  receiverAddress,
+  getObject,
+  txOpts
+}) => {
   const faucetContract = getContractInstance(web3, (0, _contracts.getContracts)(networkId).TestNetFaucet.abi, Addresses.getAddresses(networkId).TestNetFaucet);
 
   const txObj = faucetContract.methods.faucet(toChecksumAddress(tokenAddress), toChecksumAddress(receiverAddress));
   console.log(`requestFaucetToken: ${txObj.encodeABI()}`);
 
-  return txObj.send({
-    from: txOpts.from
-  });
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
 };
 
 /***/ }),
@@ -1739,7 +1745,7 @@ var _utils = __webpack_require__(6);
 
 var _utils2 = __webpack_require__(0);
 
-var utils = _interopRequireWildcard(_utils2);
+var CoreUtils = _interopRequireWildcard(_utils2);
 
 var _contracts = __webpack_require__(1);
 
@@ -1758,21 +1764,22 @@ const setAllowance = exports.setAllowance = ({ web3, networkId }, {
   ownerAddress,
   spenderAddress = Addresses.getAddresses(networkId).B0xVault,
   amountInBaseUnits,
-  txOpts = {
-    gasLimit: 100000
-  }
+  getObject,
+  txOpts
 }) => {
   _assert.assert.isETHAddressHex("ownerAddress", ownerAddress);
   _assert.assert.isETHAddressHex("spenderAddress", spenderAddress);
   _assert.assert.isETHAddressHex("tokenAddress", tokenAddress);
   _assert.assert.isValidBaseUnitAmount("amountInBaseUnits", amountInBaseUnits);
 
-  const tokenContract = utils.getContractInstance(web3, erc20Abi, tokenAddress);
-  return tokenContract.methods.approve(spenderAddress, amountInBaseUnits).send({
-    from: ownerAddress,
-    gas: txOpts.gasLimit,
-    gasPrice: txOpts.gasPrice
-  });
+  const tokenContract = CoreUtils.getContractInstance(web3, erc20Abi, tokenAddress);
+
+  const txObj = tokenContract.methods.approve(spenderAddress, amountInBaseUnits);
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
 };
 
 const getAllowance = exports.getAllowance = (() => {
@@ -1785,7 +1792,7 @@ const getAllowance = exports.getAllowance = (() => {
     _assert.assert.isETHAddressHex("spenderAddress", spenderAddress);
     _assert.assert.isETHAddressHex("tokenAddress", tokenAddress);
 
-    const tokenContract = yield utils.getContractInstance(web3, erc20Abi, tokenAddress);
+    const tokenContract = yield CoreUtils.getContractInstance(web3, erc20Abi, tokenAddress);
     const allowanceValue = yield tokenContract.methods.allowance(ownerAddress, spenderAddress).call();
     return new _utils.BigNumber(allowanceValue);
   });
@@ -2284,8 +2291,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.transferToken = undefined;
 
-var _ramda = __webpack_require__(3);
-
 var _utils = __webpack_require__(0);
 
 var CoreUtils = _interopRequireWildcard(_utils);
@@ -2298,10 +2303,21 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-const transferToken = exports.transferToken = ({ web3 }, { tokenAddress, to, amount, txOpts } = {}) => {
+const transferToken = exports.transferToken = ({ web3 }, {
+  tokenAddress,
+  to,
+  amount,
+  getObject,
+  txOpts
+}) => {
   const tokenContract = CoreUtils.getContractInstance(web3, _EIP2.default.abi, tokenAddress);
 
-  return tokenContract.methods.transfer(to, amount).send((0, _ramda.clone)(txOpts));
+  const txObj = tokenContract.methods.transfer(to, amount);
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
 };
 
 /***/ }),
@@ -2683,16 +2699,34 @@ var _contracts = __webpack_require__(1);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-const wrapEth = exports.wrapEth = ({ web3, networkId, addresses }, { amount, txOpts } = {}) => {
+const wrapEth = exports.wrapEth = ({ web3, networkId, addresses }, {
+  amount,
+  getObject,
+  txOpts
+}) => {
   const wethContract = CoreUtils.getContractInstance(web3, (0, _contracts.getContracts)(networkId).WETH.abi, addresses.WETH);
 
-  return wethContract.methods.deposit().send(_extends({}, txOpts, { value: amount }));
+  const txObj = wethContract.methods.deposit();
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(_extends({}, txOpts, { value: amount }));
 };
 
-const unwrapEth = exports.unwrapEth = ({ web3, networkId, addresses }, { amount, txOpts } = {}) => {
+const unwrapEth = exports.unwrapEth = ({ web3, networkId, addresses }, {
+  amount,
+  getObject,
+  txOpts
+}) => {
   const wethContract = CoreUtils.getContractInstance(web3, (0, _contracts.getContracts)(networkId).WETH.abi, addresses.WETH);
 
-  return wethContract.methods.withdraw(amount).send(txOpts);
+  const txObj = wethContract.methods.withdraw(amount);
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
 };
 
 /***/ }),
