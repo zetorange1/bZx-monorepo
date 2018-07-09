@@ -132,83 +132,156 @@ export default class TrackedTokenItem extends React.Component {
   sendTokens = async () => {
     const { web3, bZx, token, accounts, updateTrackedTokens } = this.props;
     const { recipientAddress, sendAmount } = this.state;
-    const txOpts = {
-      from: accounts[0],
-      gas: 100000,
-      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
-    };
 
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    bZx
-      .transferToken({
-        tokenAddress: token.address,
-        to: recipientAddress.toLowerCase(),
-        amount: toBigNumber(sendAmount, 1e18),
-        txOpts
-      })
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
+
+    const txOpts = {
+      from: accounts[0],
+      // gas: 100000,
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+    };
+
+    const txObj = await bZx.transferToken({
+      tokenAddress: token.address,
+      to: recipientAddress.toLowerCase(),
+      amount: toBigNumber(sendAmount, 1e18),
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = gas;
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+              this.setState({ showSendDialog: false });
+            })
+            .then(() => {
+              alert(`The tokens have been sent.`);
+              updateTrackedTokens(true);
+            })
+            .catch(error => {
+              console.error(error.message);
+              if (
+                error.message.includes(`Condition of use not satisfied`) ||
+                error.message.includes(`Invalid status`)
+              ) {
+                alert();
+              }
+              this.setState({ showSendDialog: false });
+            });
+        })
+        .catch(error => {
+          console.error(error.message);
+          if (
+            error.message.includes(`Condition of use not satisfied`) ||
+            error.message.includes(`Invalid status`)
+          ) {
+            alert();
+          }
+          this.setState({ showSendDialog: false });
         });
-      })
-      .on(`error`, error => {
-        console.error(error.message);
-        if (
-          error.message.includes(`Condition of use not satisfied`) ||
-          error.message.includes(`Invalid status`)
-        ) {
-          alert();
-        }
-      });
-    this.setState({ showSendDialog: false });
-    setTimeout(() => updateTrackedTokens(true), 5000);
+    } catch (error) {
+      console.error(error.message);
+      if (
+        error.message.includes(`Condition of use not satisfied`) ||
+        error.message.includes(`Invalid status`)
+      ) {
+        alert();
+      }
+      this.setState({ showSendDialog: false });
+    }
   };
 
   requestToken = async () => {
     const { web3, bZx, token, accounts, updateTrackedTokens } = this.props;
-    const txOpts = {
-      from: accounts[0],
-      gas: 100000,
-      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
-    };
 
     console.log(`requesting token from testnet faucet`);
     console.log(token);
+
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    bZx
-      .requestFaucetToken({
-        tokenAddress: token.address,
-        receiverAddress: accounts[0],
-        txOpts
-      })
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
+
+    const txOpts = {
+      from: accounts[0],
+      // gas: 100000,
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+    };
+
+    const txObj = await bZx.requestFaucetToken({
+      tokenAddress: token.address,
+      receiverAddress: accounts[0],
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = gas;
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+              this.setState({ showRequestDialog: false });
+            })
+            .then(() => {
+              alert(`Your request is complete.`);
+              updateTrackedTokens(true);
+            })
+            .catch(error => {
+              console.error(error.message);
+              if (
+                error.message.includes(`Condition of use not satisfied`) ||
+                error.message.includes(`Invalid status`)
+              ) {
+                alert();
+              }
+              this.setState({ showRequestDialog: false });
+            });
+        })
+        .catch(error => {
+          console.error(error.message);
+          if (
+            error.message.includes(`Condition of use not satisfied`) ||
+            error.message.includes(`Invalid status`)
+          ) {
+            alert();
+          }
+          this.setState({ showRequestDialog: false });
         });
-      })
-      .on(`error`, error => {
-        console.error(error.message);
-        if (
-          error.message.includes(`Condition of use not satisfied`) ||
-          error.message.includes(`Invalid status`)
-        ) {
-          alert();
-        }
-      });
-    this.setState({ showRequestDialog: false });
-    setTimeout(() => updateTrackedTokens(true), 5000);
+    } catch (error) {
+      console.error(error.message);
+      if (
+        error.message.includes(`Condition of use not satisfied`) ||
+        error.message.includes(`Invalid status`)
+      ) {
+        alert();
+      }
+      this.setState({ showRequestDialog: false });
+    }
   };
 
   handleRemoveToken = () => {
@@ -217,73 +290,156 @@ export default class TrackedTokenItem extends React.Component {
   };
 
   approve = async () => {
-    const { bZx, token, accounts } = this.props;
+    const { bZx, token, web3, accounts } = this.props;
     console.log(`approving allowance`);
     console.log(token.name, token.address);
     this.setState({ approvalLoading: true });
+
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await bZx
-      .setAllowanceUnlimited({
-        tokenAddress: token.address,
-        ownerAddress: accounts[0].toLowerCase()
-      })
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
+
+    const txOpts = {
+      from: accounts[0],
+      // gas: 1000000,
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+    };
+
+    const txObj = await bZx.setAllowanceUnlimited({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase(),
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = gas;
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+            })
+            .then(() => {
+              alert(`Your token is approved.`);
+              this.checkAllowance();
+            })
+            .catch(error => {
+              console.error(error.message);
+              if (
+                error.message.includes(`Condition of use not satisfied`) ||
+                error.message.includes(`Invalid status`)
+              ) {
+                alert();
+              }
+              this.setState({ approvalLoading: false });
+            });
+        })
+        .catch(error => {
+          console.error(error.message);
+          if (
+            error.message.includes(`Condition of use not satisfied`) ||
+            error.message.includes(`Invalid status`)
+          ) {
+            alert();
+          }
+          this.setState({ approvalLoading: false });
         });
-        setTimeout(() => this.checkAllowance(), 5000);
-      })
-      .on(`error`, error => {
-        console.error(error.message);
-        if (
-          error.message.includes(`Condition of use not satisfied`) ||
-          error.message.includes(`Invalid status`)
-        ) {
-          alert();
-        }
-        this.setState({ approvalLoading: false });
-      });
+    } catch (error) {
+      console.error(error.message);
+      if (
+        error.message.includes(`Condition of use not satisfied`) ||
+        error.message.includes(`Invalid status`)
+      ) {
+        alert();
+      }
+      this.setState({ approvalLoading: false });
+    }
   };
 
   unapprove = async () => {
-    const { bZx, token, accounts } = this.props;
+    const { bZx, token, web3, accounts } = this.props;
     console.log(`unapproving allowance`);
     console.log(token.name, token.address);
     this.setState({ approvalLoading: true });
+
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await bZx
-      .resetAllowance({
-        tokenAddress: token.address,
-        ownerAddress: accounts[0].toLowerCase()
-      })
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
+
+    const txOpts = {
+      from: accounts[0],
+      // gas: 1000000,
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+    };
+
+    const txObj = await bZx.resetAllowance({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase(),
+      getObject: true
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = gas;
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+            })
+            .then(() => {
+              alert(`Your token is un-approved.`);
+              this.checkAllowance();
+            })
+            .catch(error => {
+              console.error(error.message);
+              if (
+                error.message.includes(`Condition of use not satisfied`) ||
+                error.message.includes(`Invalid status`)
+              ) {
+                alert();
+              }
+              this.setState({ approvalLoading: false });
+            });
+        })
+        .catch(error => {
+          console.error(error.message);
+          if (
+            error.message.includes(`Condition of use not satisfied`) ||
+            error.message.includes(`Invalid status`)
+          ) {
+            alert();
+          }
+          this.setState({ approvalLoading: false });
         });
-        setTimeout(() => this.checkAllowance(), 5000);
-      })
-      .on(`error`, error => {
-        console.error(error.message);
-        if (
-          error.message.includes(`Condition of use not satisfied`) ||
-          error.message.includes(`Invalid status`)
-        ) {
-          alert();
-        }
-        this.setState({ approvalLoading: false });
-      });
+    } catch (error) {
+      console.error(error.message);
+      if (
+        error.message.includes(`Condition of use not satisfied`) ||
+        error.message.includes(`Invalid status`)
+      ) {
+        alert();
+      }
+      this.setState({ approvalLoading: false });
+    }
   };
 
   renderAllowance = () => {

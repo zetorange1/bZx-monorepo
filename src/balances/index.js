@@ -26,6 +26,7 @@ export default class Balances extends React.Component {
           updateTrackedTokens={this.props.updateTrackedTokens}
           bZx={this.props.bZx}
           accounts={this.props.accounts}
+          web3={this.props.web3}
         />
         <Divider />
         <AddToken

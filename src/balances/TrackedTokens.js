@@ -18,7 +18,8 @@ const TrackedTokens = ({
   trackedTokens,
   updateTrackedTokens,
   bZx,
-  accounts
+  accounts,
+  web3
 }) => {
   const tokenData = tokens.filter(t => trackedTokens.includes(t.address));
   const tokenDataWithIcon = tokenData.map(t => ({
@@ -40,6 +41,7 @@ const TrackedTokens = ({
             bZx={bZx}
             accounts={accounts}
             tokens={tokens}
+            web3={web3}
           />
         ))}
       </Container>

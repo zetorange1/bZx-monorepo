@@ -73,85 +73,153 @@ export default class Ether extends React.Component {
   wrapEth = async () => {
     const { web3, bZx, accounts } = this.props;
     const { wrapAmount } = this.state;
-    const txOpts = {
-      from: accounts[0],
-      gas: 100000,
-      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
-    };
 
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    bZx
-      .wrapEth({
-        amount: toBigNumber(wrapAmount, 1e18),
-        txOpts
-      })
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
+
+    const txOpts = {
+      from: accounts[0],
+      // gas: 1000000,
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+    };
+
+    const txObj = await bZx.wrapEth({
+      amount: toBigNumber(wrapAmount, 1e18),
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = gas;
+          txObj
+            .send({ ...txOpts, value: toBigNumber(wrapAmount, 1e18) })
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+              this.setState({ wrapAmount: ``, showWrapDialog: false });
+            })
+            .then(async () => {
+              alert(`Your ether is wrapped.`);
+              const balanceInWei = await web3.eth.getBalance(accounts[0]);
+              await this.setState({ ethBalance: balanceInWei / 1e18 });
+            })
+            .catch(error => {
+              console.error(error.message);
+              if (
+                error.message.includes(`Condition of use not satisfied`) ||
+                error.message.includes(`Invalid status`)
+              ) {
+                alert();
+              }
+              this.setState({ wrapAmount: ``, showWrapDialog: false });
+            });
+        })
+        .catch(error => {
+          console.error(error.message);
+          if (
+            error.message.includes(`Condition of use not satisfied`) ||
+            error.message.includes(`Invalid status`)
+          ) {
+            alert();
+          }
+          this.setState({ wrapAmount: ``, showWrapDialog: false });
         });
-      })
-      .on(`error`, error => {
-        console.error(error.message);
-        if (
-          error.message.includes(`Condition of use not satisfied`) ||
-          error.message.includes(`Invalid status`)
-        ) {
-          alert();
-        }
-      });
-    this.setState({ wrapAmount: ``, showWrapDialog: false });
-    setTimeout(async () => {
-      const balanceInWei = await web3.eth.getBalance(accounts[0]);
-      this.setState({ ethBalance: balanceInWei / 1e18 });
-    }, 5000);
+    } catch (error) {
+      console.error(error.message);
+      if (
+        error.message.includes(`Condition of use not satisfied`) ||
+        error.message.includes(`Invalid status`)
+      ) {
+        alert();
+      }
+      this.setState({ wrapAmount: ``, showWrapDialog: false });
+    }
   };
 
   unwrapEth = async () => {
     const { web3, bZx, accounts } = this.props;
     const { wrapAmount } = this.state;
-    const txOpts = {
-      from: accounts[0],
-      gas: 100000,
-      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
-    };
 
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    bZx
-      .unwrapEth({
-        amount: toBigNumber(wrapAmount, 1e18),
-        txOpts
-      })
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
+
+    const txOpts = {
+      from: accounts[0],
+      // gas: 1000000,
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+    };
+
+    const txObj = await bZx.unwrapEth({
+      amount: toBigNumber(wrapAmount, 1e18),
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = gas;
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+              this.setState({ wrapAmount: ``, showUnWrapDialog: false });
+            })
+            .then(async () => {
+              alert(`Your ether is unwrapped.`);
+              const balanceInWei = await web3.eth.getBalance(accounts[0]);
+              await this.setState({ ethBalance: balanceInWei / 1e18 });
+            })
+            .catch(error => {
+              console.error(error.message);
+              if (
+                error.message.includes(`Condition of use not satisfied`) ||
+                error.message.includes(`Invalid status`)
+              ) {
+                alert();
+              }
+              this.setState({ wrapAmount: ``, showUnWrapDialog: false });
+            });
+        })
+        .catch(error => {
+          console.error(error.message);
+          if (
+            error.message.includes(`Condition of use not satisfied`) ||
+            error.message.includes(`Invalid status`)
+          ) {
+            alert();
+          }
+          this.setState({ wrapAmount: ``, showUnWrapDialog: false });
         });
-      })
-      .on(`error`, error => {
-        console.error(error.message);
-        if (
-          error.message.includes(`Condition of use not satisfied`) ||
-          error.message.includes(`Invalid status`)
-        ) {
-          alert();
-        }
-      });
-    this.setState({ wrapAmount: ``, showUnWrapDialog: false });
-    setTimeout(async () => {
-      const balanceInWei = await web3.eth.getBalance(accounts[0]);
-      this.setState({ ethBalance: balanceInWei / 1e18 });
-    }, 5000);
+    } catch (error) {
+      console.error(error.message);
+      if (
+        error.message.includes(`Condition of use not satisfied`) ||
+        error.message.includes(`Invalid status`)
+      ) {
+        alert();
+      }
+      this.setState({ wrapAmount: ``, showUnWrapDialog: false });
+    }
   };
 
   render() {
