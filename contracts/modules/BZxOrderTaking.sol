@@ -15,6 +15,20 @@ import "../oracle/OracleInterface.sol";
 contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
     using SafeMath for uint256;
 
+    // Allowed 0x signature types.
+    enum SignatureType {
+        Illegal,         // 0x00, default value
+        Invalid,         // 0x01
+        EIP712,          // 0x02
+        EthSign,         // 0x03
+        Caller,          // 0x04
+        Wallet,          // 0x05
+        Validator,       // 0x06
+        PreSigned,       // 0x07
+        Trezor,          // 0x08
+        NSignatureTypes  // 0x09, number of signature types. Always leave at end.
+    }
+
     constructor() public {}
 
     function initialize(
@@ -22,20 +36,20 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         public
         onlyOwner
     {
-        targets[bytes4(keccak256("takeLoanOrderAsTrader(address[6],uint256[9],address,uint256,bytes)"))] = _target;
-        targets[bytes4(keccak256("takeLoanOrderAsLender(address[6],uint256[9],bytes)"))] = _target;
-        targets[bytes4(keccak256("cancelLoanOrder(address[6],uint256[9],uint256)"))] = _target;
-        targets[bytes4(keccak256("cancelLoanOrder(bytes32,uint256)"))] = _target;
-        targets[bytes4(keccak256("getLoanOrderHash(address[6],uint256[9])"))] = _target;
-        targets[bytes4(keccak256("isValidSignature(address,bytes32,bytes)"))] = _target;
-        targets[bytes4(keccak256("getInitialCollateralRequired(address,address,address,uint256,uint256)"))] = _target;
-        targets[bytes4(keccak256("getUnavailableLoanTokenAmount(bytes32)"))] = _target;
-        targets[bytes4(keccak256("getSingleOrder(bytes32)"))] = _target;
-        targets[bytes4(keccak256("getOrders(address,uint256,uint256)"))] = _target;
-        targets[bytes4(keccak256("getSingleLoan(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("getLoansForLender(address,uint256,bool)"))] = _target;
-        targets[bytes4(keccak256("getLoansForTrader(address,uint256,bool)"))] = _target;
-        targets[bytes4(keccak256("getActiveLoans(uint256,uint256)"))] = _target;
+        targets[0x8fbbe7a2] = _target; // bytes4(keccak256("takeLoanOrderAsTrader(address[6],uint256[9],address,uint256,bytes)"))
+        targets[0x30769736] = _target; // bytes4(keccak256("takeLoanOrderAsLender(address[6],uint256[9],bytes)"))
+        targets[0xde5d838e] = _target; // bytes4(keccak256("cancelLoanOrder(address[6],uint256[9],uint256)"))
+        targets[0x8c0a1d7c] = _target; // bytes4(keccak256("cancelLoanOrder(bytes32,uint256)"))
+        targets[0x03efed44] = _target; // bytes4(keccak256("getLoanOrderHash(address[6],uint256[9])"))
+        targets[0x238a4d1e] = _target; // bytes4(keccak256("isValidSignature(address,bytes32,bytes)"))
+        targets[0x8823d53c] = _target; // bytes4(keccak256("getInitialCollateralRequired(address,address,address,uint256,uint256)"))
+        targets[0x08e3857c] = _target; // bytes4(keccak256("getUnavailableLoanTokenAmount(bytes32)"))
+        targets[0xd8c73360] = _target; // bytes4(keccak256("getSingleOrder(bytes32)"))
+        targets[0x27b62ad9] = _target; // bytes4(keccak256("getOrders(address,uint256,uint256)"))
+        targets[0x49bd01ca] = _target; // bytes4(keccak256("getSingleLoan(bytes32,address)"))
+        targets[0x512e5f9b] = _target; // bytes4(keccak256("getLoansForLender(address,uint256,bool)"))
+        targets[0x9974d431] = _target; // bytes4(keccak256("getLoansForTrader(address,uint256,bool)"))
+        targets[0x982260bc] = _target; // bytes4(keccak256("getActiveLoans(uint256,uint256)"))
     }
 
     /// @dev Takes the order as trader
@@ -225,7 +239,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             loanOrder.interestTokenAddress,
             loanOrder.collateralTokenAddress,
             loanOrder.feeRecipientAddress,
-            loanOrder.oracleAddress,
+            oracleAddresses[loanOrder.oracleAddress],
             loanOrder.loanTokenAmount,
             loanOrder.interestAmount,
             loanOrder.initialMarginAmount,
@@ -268,7 +282,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
                 loanOrder.interestTokenAddress,
                 loanOrder.collateralTokenAddress,
                 loanOrder.feeRecipientAddress,
-                loanOrder.oracleAddress,
+                oracleAddresses[loanOrder.oracleAddress],
                 loanOrder.loanTokenAmount,
                 loanOrder.interestAmount,
                 loanOrder.initialMarginAmount,
@@ -504,7 +518,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         );
 
         if (collateralTokenAmountFilled > 0) {
-            if (! OracleInterface(loanOrder.oracleAddress).didTakeOrder(
+            if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTakeOrder(
                 loanOrder.loanOrderHash,
                 msg.sender,
                 gasUsed // initial used gas, collected in modifier
@@ -532,7 +546,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         uint collateralTokenAmountFilled = _getInitialCollateralRequired(
             loanOrder.loanTokenAddress,
             collateralTokenFilled,
-            loanOrder.oracleAddress,
+            oracleAddresses[loanOrder.oracleAddress],
             loanTokenAmountFilled,
             loanOrder.initialMarginAmount
         );
@@ -665,8 +679,8 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             revert("BZxOrderTaking::_verifyLoanOrder: loanTokenAmountFilled > loanOrder.loanTokenAmount");
         }
 
-        if (! OracleRegistry(oracleRegistryContract).hasOracle(loanOrder.oracleAddress)) {
-            revert("BZxOrderTaking::_verifyLoanOrder: OracleRegistry.hasOracle failed");
+        if (! OracleRegistry(oracleRegistryContract).hasOracle(loanOrder.oracleAddress) || oracleAddresses[loanOrder.oracleAddress] == address(0)) {
+            revert("BZxOrderTaking::_verifyLoanOrder: Oracle doesn't exist");
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
@@ -846,7 +860,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         // https://github.com/trezor/trezor-mcu/blob/master/firmware/crypto.c#L36
         } else if (signatureType == SignatureType.Trezor) {
             return signer == ecrecover(
-                keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n\x41", hash)),
+                keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n\x20", hash)),
                 v,
                 r,
                 s

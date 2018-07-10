@@ -116,6 +116,10 @@ contract BZx is BZxStorage {
         view
         returns (bytes);
 
+    /*
+    * BZxTradePlacing functions
+    */
+
     function tradePositionWith0x(
         bytes32 loanOrderHash,
         bytes orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated

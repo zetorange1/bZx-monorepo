@@ -39,8 +39,8 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
         public
         onlyOwner
     {
-        targets[bytes4(keccak256("tradePositionWith0x(bytes32,bytes,bytes)"))] = _target;
-        targets[bytes4(keccak256("tradePositionWithOracle(bytes32,address)"))] = _target;
+        targets[0xe92476a6] = _target; // bytes4(keccak256("tradePositionWith0x(bytes32,bytes,bytes)"))
+        targets[0xb3f73c40] = _target; // bytes4(keccak256("tradePositionWithOracle(bytes32,address)"))
     }
     
     /// @dev Executes a 0x trade using loaned funds.
@@ -98,7 +98,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
         }
 
         // trade token has to equal loan token if loan needs to be liquidated
-        if (tradeTokenAddress != loanOrder.loanTokenAddress && OracleInterface(loanOrder.oracleAddress).shouldLiquidate(
+        if (tradeTokenAddress != loanOrder.loanTokenAddress && OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
                 loanOrderHash,
                 msg.sender,
                 loanOrder.loanTokenAddress,
@@ -124,7 +124,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
         loanPosition.positionTokenAddressFilled = tradeTokenAddress;
         loanPosition.positionTokenAmountFilled = tradeTokenAmount;
 
-        if (! OracleInterface(loanOrder.oracleAddress).didTradePosition(
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
             loanOrderHash,
             msg.sender, // trader
             tradeTokenAddress,
@@ -172,7 +172,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
         }
 
         // trade token has to equal loan token if loan needs to be liquidated
-        if (tradeTokenAddress != loanOrder.loanTokenAddress && OracleInterface(loanOrder.oracleAddress).shouldLiquidate(
+        if (tradeTokenAddress != loanOrder.loanTokenAddress && OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
                 loanOrderHash,
                 msg.sender,
                 loanOrder.loanTokenAddress,
@@ -186,7 +186,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
         }
 
         // check the current token balance of the oracle before sending token to be traded
-        uint balanceBeforeTrade = EIP20(loanPosition.positionTokenAddressFilled).balanceOf.gas(4999)(loanOrder.oracleAddress); // Changes to state require at least 5000 gas
+        uint balanceBeforeTrade = EIP20(loanPosition.positionTokenAddressFilled).balanceOf.gas(4999)(oracleAddresses[loanOrder.oracleAddress]); // Changes to state require at least 5000 gas
 
         uint tradeTokenAmount = _tradePositionWithOracle(
             loanOrder,
@@ -198,7 +198,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
 
         // It is assumed that all positionToken will be traded, so the remaining token balance of the oracle 
         // shouldn't be greater than the balance before we sent the token to be traded.
-        if (balanceBeforeTrade < EIP20(loanPosition.positionTokenAddressFilled).balanceOf.gas(4999)(loanOrder.oracleAddress)) {
+        if (balanceBeforeTrade < EIP20(loanPosition.positionTokenAddressFilled).balanceOf.gas(4999)(oracleAddresses[loanOrder.oracleAddress])) {
             revert("BZxTradePlacing::tradePositionWithOracle: balanceBeforeTrade is less");
         }
 
@@ -219,7 +219,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
         loanPosition.positionTokenAddressFilled = tradeTokenAddress;
         loanPosition.positionTokenAmountFilled = tradeTokenAmount;
 
-        if (! OracleInterface(loanOrder.oracleAddress).didTradePosition(
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
             loanOrderHash,
             msg.sender, // trader
             tradeTokenAddress,

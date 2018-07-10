@@ -51,14 +51,6 @@ contract BZxTo0x is EIP20Wrapper, BZxOwnable {
     address public zrxTokenContract;
     address public tokenTransferProxyContract;
 
-    //event LogErrorUint(string errorTxt, uint errorValue, bytes32 indexed orderHash);
-    //event LogErrorAddr(string errorTxt, address errorAddr, bytes32 indexed orderHash);
-
-    function() 
-        public {
-        revert();
-    }
-
     constructor(
         address _exchange, 
         address _zrxToken,
@@ -68,6 +60,11 @@ contract BZxTo0x is EIP20Wrapper, BZxOwnable {
         exchangeContract = _exchange;
         zrxTokenContract = _zrxToken;
         tokenTransferProxyContract = _proxy;
+    }
+
+    function() 
+        public {
+        revert();
     }
 
    function take0xTrade(
@@ -104,72 +101,6 @@ contract BZxTo0x is EIP20Wrapper, BZxOwnable {
             destTokenAmount);
 
         destTokenAddress = orderAddresses0x[0][2]; // makerToken (aka destTokenAddress)
-    }
-
-    function _take0xTrade(
-        address trader,
-        uint sourceTokenAmountToUse,
-        address[5][] orderAddresses0x,
-        uint[6][] orderValues0x,
-        bytes signature)
-        internal
-        returns (uint sourceTokenUsedAmount, uint destTokenAmount) 
-    {
-        uint[3] memory summations; // takerTokenAmountTotal, makerTokenAmountTotal, zrxTokenAmount
-
-        for (uint i = 0; i < orderAddresses0x.length; i++) {
-            summations[0] += orderValues0x[0][1]; // takerTokenAmountTotal
-            summations[1] += orderValues0x[0][0]; // makerTokenAmountTotal
-            
-            if (orderAddresses0x[i][4] != address(0) && // feeRecipient
-                    orderValues0x[i][3] > 0 // takerFee
-            ) {
-                summations[2] += orderValues0x[i][3]; // zrxTokenAmount
-            }
-        }
-        if (summations[2] > 0) {
-            // The 0x TokenTransferProxy already has unlimited transfer allowance for ZRX from this contract (set during deployment of this contract)
-            eip20TransferFrom(
-                zrxTokenContract,
-                trader,
-                this,
-                summations[2]);
-        }
-
-        (uint8[] memory v, bytes32[] memory r, bytes32[] memory s) = getSignatureParts(signature);
-
-        // Increase the allowance for 0x Exchange Proxy to transfer the sourceToken needed for the 0x trade
-        // orderAddresses0x[0][3] -> takerToken/sourceToken
-        eip20Approve(
-            orderAddresses0x[0][3],
-            tokenTransferProxyContract,
-            EIP20(orderAddresses0x[0][3]).allowance(this, tokenTransferProxyContract).add(sourceTokenAmountToUse));
-
-        if (orderAddresses0x.length > 0) {
-            sourceTokenUsedAmount = ExchangeInterface(exchangeContract).fillOrdersUpTo(
-                orderAddresses0x,
-                orderValues0x,
-                sourceTokenAmountToUse,
-                false, // shouldThrowOnInsufficientBalanceOrAllowance
-                v,
-                r,
-                s);
-        } else {
-            sourceTokenUsedAmount = ExchangeInterface(exchangeContract).fillOrder(
-                orderAddresses0x[0],
-                orderValues0x[0],
-                sourceTokenAmountToUse,
-                false, // shouldThrowOnInsufficientBalanceOrAllowance
-                v[0],
-                r[0],
-                s[0]);
-        }
-
-        destTokenAmount = getPartialAmount(
-            sourceTokenUsedAmount,
-            summations[0], // takerTokenAmountTotal (aka sourceTokenAmount)
-            summations[1]  // makerTokenAmountTotal (aka destTokenAmount)
-        );
     }
 
     function getOrderValuesFromData(
@@ -308,33 +239,70 @@ contract BZxTo0x is EIP20Wrapper, BZxOwnable {
 
         return true;
     }
+
+    function _take0xTrade(
+        address trader,
+        uint sourceTokenAmountToUse,
+        address[5][] orderAddresses0x,
+        uint[6][] orderValues0x,
+        bytes signature)
+        internal
+        returns (uint sourceTokenUsedAmount, uint destTokenAmount) 
+    {
+        uint[3] memory summations; // takerTokenAmountTotal, makerTokenAmountTotal, zrxTokenAmount
+
+        for (uint i = 0; i < orderAddresses0x.length; i++) {
+            summations[0] += orderValues0x[0][1]; // takerTokenAmountTotal
+            summations[1] += orderValues0x[0][0]; // makerTokenAmountTotal
+            
+            if (orderAddresses0x[i][4] != address(0) && // feeRecipient
+                    orderValues0x[i][3] > 0 // takerFee
+            ) {
+                summations[2] += orderValues0x[i][3]; // zrxTokenAmount
+            }
+        }
+        if (summations[2] > 0) {
+            // The 0x TokenTransferProxy already has unlimited transfer allowance for ZRX from this contract (set during deployment of this contract)
+            eip20TransferFrom(
+                zrxTokenContract,
+                trader,
+                this,
+                summations[2]);
+        }
+
+        (uint8[] memory v, bytes32[] memory r, bytes32[] memory s) = getSignatureParts(signature);
+
+        // Increase the allowance for 0x Exchange Proxy to transfer the sourceToken needed for the 0x trade
+        // orderAddresses0x[0][3] -> takerToken/sourceToken
+        eip20Approve(
+            orderAddresses0x[0][3],
+            tokenTransferProxyContract,
+            EIP20(orderAddresses0x[0][3]).allowance(this, tokenTransferProxyContract).add(sourceTokenAmountToUse));
+
+        if (orderAddresses0x.length > 0) {
+            sourceTokenUsedAmount = ExchangeInterface(exchangeContract).fillOrdersUpTo(
+                orderAddresses0x,
+                orderValues0x,
+                sourceTokenAmountToUse,
+                false, // shouldThrowOnInsufficientBalanceOrAllowance
+                v,
+                r,
+                s);
+        } else {
+            sourceTokenUsedAmount = ExchangeInterface(exchangeContract).fillOrder(
+                orderAddresses0x[0],
+                orderValues0x[0],
+                sourceTokenAmountToUse,
+                false, // shouldThrowOnInsufficientBalanceOrAllowance
+                v[0],
+                r[0],
+                s[0]);
+        }
+
+        destTokenAmount = getPartialAmount(
+            sourceTokenUsedAmount,
+            summations[0], // takerTokenAmountTotal (aka sourceTokenAmount)
+            summations[1]  // makerTokenAmountTotal (aka destTokenAmount)
+        );
+    }
 }
-
-/*
-    LogErrorAddr("maker", orderAddresses0x[0], 0x0);
-    LogErrorAddr("taker", orderAddresses0x[1], 0x0);
-    LogErrorAddr("makerToken", orderAddresses0x[2], 0x0);
-    LogErrorAddr("takerToken", orderAddresses0x[3], 0x0);
-    LogErrorAddr("feeRecipient", orderAddresses0x[4], 0x0);
-    LogErrorUint("makerTokenAmount", orderValues0x[0], 0x0);
-    LogErrorUint("takerTokenAmount", orderValues0x[1], 0x0);
-    LogErrorUint("makerFee", orderValues0x[2], 0x0);
-    LogErrorUint("takerFee", orderValues0x[3], 0x0);
-    LogErrorUint("expirationTimestampInSec", orderValues0x[4], 0x0);
-    LogErrorUint("salt", orderValues0x[5], 0x0);
-*/
-
-
-/*
-    orderAddresses0x[0], // maker
-    orderAddresses0x[1], // taker
-    orderAddresses0x[2], // makerToken
-    orderAddresses0x[3], // takerToken
-    orderAddresses0x[4], // feeRecipient
-    orderValues0x[0],    // makerTokenAmount
-    orderValues0x[1],    // takerTokenAmount
-    orderValues0x[2],    // makerFee
-    orderValues0x[3],    // takerFee
-    orderValues0x[4],    // expirationTimestampInSec
-    orderValues0x[5]     // salt
-*/

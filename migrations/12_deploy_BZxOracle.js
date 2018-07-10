@@ -32,6 +32,7 @@ module.exports = function(deployer, network, accounts) {
 
 			var bZxProxy = await BZxProxy.deployed();
 			await oracle.transferBZxOwnership(BZxProxy.address);
+			await bZxProxy.setOracleReference(BZxOracle.address, BZxOracle.address);
 
 			/*if (network != "mainnet" && network != "ropsten" && network != "kovan" && network != "rinkeby") {
 				await oracle.setDebugMode(true);

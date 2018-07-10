@@ -24,15 +24,6 @@ interface WETH_Interface {
 // solhint-disable-next-line contract-name-camelcase
 interface KyberNetwork_Interface {
     /// @notice use token address ETH_TOKEN_ADDRESS for ether
-    function getExpectedRate(
-        address src,
-        address dest,
-        uint srcQty) 
-        external 
-        view 
-        returns (uint expectedRate, uint slippageRate);
-
-    /// @notice use token address ETH_TOKEN_ADDRESS for ether
     /// @dev makes a trade between src and dest token and send dest token to destAddress
     /// @param src Src token
     /// @param srcAmount amount of src tokens
@@ -54,6 +45,15 @@ interface KyberNetwork_Interface {
         external
         payable
         returns(uint);
+
+    /// @notice use token address ETH_TOKEN_ADDRESS for ether
+    function getExpectedRate(
+        address src,
+        address dest,
+        uint srcQty) 
+        external 
+        view 
+        returns (uint expectedRate, uint slippageRate);
 }
 
 
@@ -97,10 +97,6 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
     mapping (bytes32 => GasData[]) public gasRefunds; // // mapping of loanOrderHash to array of GasData
 
-    // The contract needs to be able to receive Ether from Kyber trades
-    // "Stuck" Ether can be transfered by the owner using the transferEther function.
-    function() public payable {}
-
     constructor(
         address _vaultContract,
         address _kyberContract,
@@ -118,6 +114,10 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         emaValue = 20 * 10**9 wei; // set an initial price average for gas (20 gwei)
         emaPeriods = 10; // set periods to use for EMA calculation
     }
+
+    // The contract needs to be able to receive Ether from Kyber trades
+    // "Stuck" Ether can be transfered by the owner using the transferEther function.
+    function() public payable {}
 
     // standard functions
     function didTakeOrder(

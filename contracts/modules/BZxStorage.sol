@@ -110,18 +110,6 @@ contract BZxObjects {
         uint totalAccrued
     );
 
-    // for debugging
-    /*event MarginCalc(
-        address exposureTokenAddress,
-        address collateralTokenAddress,
-        address oracleAddress,
-        uint exposureTokenAmount,
-        uint collateralTokenAmount,
-        uint marginAmount,
-        uint rate,
-        uint otherAmount
-    );*/
-
     function buildLoanOrderStruct(
         bytes32 loanOrderHash,
         address[6] addrs,
@@ -188,8 +176,9 @@ contract BZxStorage is BZxObjects, ReentrancyGuard, Ownable, GasTracker {
     mapping (bytes32 => address[]) public orderTraders; // mapping of loanOrderHash to array of trader addresses
     mapping (bytes32 => uint) public orderFilledAmounts; // mapping of loanOrderHash to loanTokenAmount filled
     mapping (bytes32 => uint) public orderCancelledAmounts; // mapping of loanOrderHash to loanTokenAmount cancelled
+    mapping (address => address) public oracleAddresses; // mapping of oracles to their current logic contract
     mapping (bytes32 => mapping (address => LoanPosition)) public loanPositions; // mapping of loanOrderHash to mapping of traders to loanPositions
     mapping (bytes32 => mapping (address => uint)) public interestPaid; // mapping of loanOrderHash to mapping of traders to amount of interest paid so far to a lender
 
-    LoanRef[] loanList; // array of loans that need to be checked for liquidation or expiration
+    LoanRef[] public loanList; // array of loans that need to be checked for liquidation or expiration
 }

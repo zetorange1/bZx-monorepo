@@ -21,11 +21,11 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         public
         onlyOwner
     {
-        targets[bytes4(keccak256("depositCollateral(bytes32,address,uint256)"))] = _target;
-        targets[bytes4(keccak256("withdrawExcessCollateral(bytes32,address,uint256)"))] = _target;
-        targets[bytes4(keccak256("changeCollateral(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("withdrawProfit(bytes32)"))] = _target;
-        targets[bytes4(keccak256("getProfitOrLoss(bytes32,address)"))] = _target;
+        targets[0x52cccdb3] = _target; // bytes4(keccak256("depositCollateral(bytes32,address,uint256)"))
+        targets[0x60056cf9] = _target; // bytes4(keccak256("withdrawExcessCollateral(bytes32,address,uint256)"))
+        targets[0x09c5a317] = _target; // bytes4(keccak256("changeCollateral(bytes32,address)"))
+        targets[0x92a9fe8b] = _target; // bytes4(keccak256("withdrawProfit(bytes32)"))
+        targets[0xb195bdf3] = _target; // bytes4(keccak256("getProfitOrLoss(bytes32,address)"))
     }
 
     /// @dev Allows the trader to increase the collateral for a loan.
@@ -69,7 +69,7 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
 
         loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.add(depositAmount);
 
-        if (! OracleInterface(loanOrder.oracleAddress).didDepositCollateral(
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didDepositCollateral(
             loanOrder.loanOrderHash,
             msg.sender,
             gasUsed // initial used gas, collected in modifier
@@ -112,7 +112,7 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         uint initialCollateralTokenAmount = _getInitialCollateralRequired(
             loanOrder.loanTokenAddress,
             loanPosition.collateralTokenAddressFilled,
-            loanOrder.oracleAddress,
+            oracleAddresses[loanOrder.oracleAddress],
             loanPosition.loanTokenAmountFilled,
             loanOrder.initialMarginAmount
         );
@@ -134,7 +134,7 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         // update stored collateral amount
         loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(excessCollateral);
 
-        if (! OracleInterface(loanOrder.oracleAddress).didWithdrawCollateral(
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didWithdrawCollateral(
             loanOrder.loanOrderHash,
             msg.sender,
             gasUsed // initial used gas, collected in modifier
@@ -178,7 +178,7 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         uint collateralTokenAmountFilled = _getInitialCollateralRequired(
             loanOrder.loanTokenAddress,
             collateralTokenFilled,
-            loanOrder.oracleAddress,
+            oracleAddresses[loanOrder.oracleAddress],
             loanPosition.loanTokenAmountFilled,
             loanOrder.initialMarginAmount
         );
@@ -207,7 +207,7 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         loanPosition.collateralTokenAddressFilled = collateralTokenFilled;
         loanPosition.collateralTokenAmountFilled = collateralTokenAmountFilled;
 
-        if (! OracleInterface(loanOrder.oracleAddress).didChangeCollateral(
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didChangeCollateral(
             loanOrder.loanOrderHash,
             msg.sender,
             gasUsed // initial used gas, collected in modifier
@@ -252,7 +252,7 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         // deduct profit from positionToken balance
         loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(profitAmount);
 
-        if (! OracleInterface(loanOrder.oracleAddress).didWithdrawProfit(
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didWithdrawProfit(
             loanOrder.loanOrderHash,
             msg.sender,
             profitAmount,
@@ -313,7 +313,7 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
             return;
         }
 
-        (isProfit, profitOrLoss) = OracleInterface(loanOrder.oracleAddress).getProfitOrLoss(
+        (isProfit, profitOrLoss) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getProfitOrLoss(
             loanPosition.positionTokenAddressFilled,
             loanOrder.loanTokenAddress,
             loanPosition.positionTokenAmountFilled,

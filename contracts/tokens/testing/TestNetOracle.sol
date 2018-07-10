@@ -19,8 +19,6 @@ contract TestNetOracle is BZxOracle {
 
     address public faucetContract;
 
-    function() public payable {} // solhint-disable-line no-empty-blocks
-
     constructor(
         address _vaultContract,
         address _kyberContract,
@@ -34,6 +32,8 @@ contract TestNetOracle is BZxOracle {
             _bZRxTokenContract)
         payable
     {}
+
+    function() public payable {} // solhint-disable-line no-empty-blocks
 
     /*
     * Owner functions

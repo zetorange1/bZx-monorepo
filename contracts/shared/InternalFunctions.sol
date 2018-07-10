@@ -11,19 +11,6 @@ import "../oracle/OracleInterface.sol";
 contract InternalFunctions is BZxStorage {
     using SafeMath for uint256;
 
-    // Allowed 0x signature types.
-    enum SignatureType {
-        Illegal,    // 0x00, default value
-        Invalid,    // 0x01
-        EIP712,     // 0x02
-        EthSign,    // 0x03
-        Caller,     // 0x04
-        Wallet,     // 0x05
-        Validator,  // 0x06
-        PreSigned,  // 0x07
-        Trezor      // 0x08
-    }
-
     function _getInitialCollateralRequired(
         address loanTokenAddress,
         address collateralTokenAddress,
@@ -158,14 +145,14 @@ contract InternalFunctions is BZxStorage {
         // transfer the current position token to the Oracle contract
         if (!BZxVault(vaultContract).withdrawToken(
             loanPosition.positionTokenAddressFilled,
-            loanOrder.oracleAddress,
+            oracleAddresses[loanOrder.oracleAddress],
             loanPosition.positionTokenAmountFilled)) {
             revert("InternalFunctions::_tradePositionWithOracle: BZxVault.withdrawToken failed");
         }
 
         uint tradeTokenAmountReceived;
         if (isLiquidation && block.timestamp < loanOrder.expirationUnixTimestampSec) { // checks for non-expired loan
-            tradeTokenAmountReceived = OracleInterface(loanOrder.oracleAddress).verifyAndLiquidate(
+            tradeTokenAmountReceived = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).verifyAndLiquidate(
                 loanOrder.loanTokenAddress,
                 loanPosition.positionTokenAddressFilled,
                 loanPosition.collateralTokenAddressFilled,
@@ -174,13 +161,13 @@ contract InternalFunctions is BZxStorage {
                 loanPosition.collateralTokenAmountFilled,
                 loanOrder.maintenanceMarginAmount);
         } else if (isManual) {
-            tradeTokenAmountReceived = OracleInterface(loanOrder.oracleAddress).doManualTrade(
+            tradeTokenAmountReceived = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doManualTrade(
                 loanPosition.positionTokenAddressFilled,
                 tradeTokenAddress,
                 loanPosition.positionTokenAmountFilled);
         } 
         else {
-            tradeTokenAmountReceived = OracleInterface(loanOrder.oracleAddress).doTrade(
+            tradeTokenAmountReceived = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doTrade(
                 loanPosition.positionTokenAddressFilled,
                 tradeTokenAddress,
                 loanPosition.positionTokenAmountFilled);
@@ -223,7 +210,7 @@ contract InternalFunctions is BZxStorage {
         return (
             loanOrder.initialMarginAmount,
             loanOrder.maintenanceMarginAmount,
-            OracleInterface(loanOrder.oracleAddress).getCurrentMarginAmount(
+            OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getCurrentMarginAmount(
                 loanOrder.loanTokenAddress,
                 loanPosition.positionTokenAddressFilled,
                 loanPosition.collateralTokenAddressFilled,

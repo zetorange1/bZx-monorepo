@@ -2,8 +2,6 @@
 pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-//import { BZxErrors } from "../libraries/BZxErrors.sol";
-//import "../libraries/BZxErrors.sol";
 import "./BZxStorage.sol";
 
 
@@ -22,13 +20,6 @@ contract Proxiable {
 // bZx proxy
 contract BZxProxy is BZxStorage, Proxiable {
 
-    function initialize(
-        address)
-        public
-    {
-        revert();
-    }
-
     function() public {
         address target = targets[msg.sig];
         bytes memory data = msg.data;
@@ -41,6 +32,13 @@ contract BZxProxy is BZxStorage, Proxiable {
             case 0 { revert(ptr, size) }
             default { return(ptr, size) }
         }
+    }
+
+    function initialize(
+        address)
+        public
+    {
+        revert();
     }
 
     /*
@@ -115,6 +113,16 @@ contract BZxProxy is BZxStorage, Proxiable {
     {
         if (_registry != address(0))
             oracleRegistryContract = _registry;
+    }
+
+    function setOracleReference (
+        address _oracle,
+        address _logicContract)
+        public
+        onlyOwner
+    {
+        if (oracleAddresses[_oracle] != _logicContract)
+            oracleAddresses[_oracle] = _logicContract;
     }
 
     function set0xExchangeWrapper (

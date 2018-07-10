@@ -21,13 +21,13 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         public
         onlyOwner
     {
-        targets[bytes4(keccak256("payInterest(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("liquidatePosition(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("closeLoan(bytes32)"))] = _target;
-        targets[bytes4(keccak256("forceCloanLoan(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("shouldLiquidate(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("getMarginLevels(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("getInterest(bytes32,address)"))] = _target;
+        targets[0xe7246aa3] = _target; // bytes4(keccak256("payInterest(bytes32,address)"))
+        targets[0xe75a4a2c] = _target; // bytes4(keccak256("liquidatePosition(bytes32,address)"))
+        targets[0xf4ff7d2d] = _target; // bytes4(keccak256("closeLoan(bytes32)"))
+        targets[0x6e46c9bb] = _target; // bytes4(keccak256("forceCloanLoan(bytes32,address)"))
+        targets[0xee73722f] = _target; // bytes4(keccak256("shouldLiquidate(bytes32,address)"))
+        targets[0xdb4d0ae0] = _target; // bytes4(keccak256("getMarginLevels(bytes32,address)"))
+        targets[0x60068e2d] = _target; // bytes4(keccak256("getInterest(bytes32,address)"))
     }
 
     /// @dev Pays the lender of a loan the total amount of interest accrued for a loan.
@@ -117,7 +117,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         } else {
             // verify liquidation checks before proceeding to close the loan
             if (!DEBUG_MODE && block.timestamp < loanOrder.expirationUnixTimestampSec) { // checks for non-expired loan
-                if (! OracleInterface(loanOrder.oracleAddress).shouldLiquidate(
+                if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
                         loanOrderHash,
                         trader,
                         loanOrder.loanTokenAddress,
@@ -219,7 +219,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             loanOrder.loanOrderHash
         );
 
-        require(OracleInterface(loanOrder.oracleAddress).didCloseLoan(
+        require(OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didCloseLoan(
             loanOrder.loanOrderHash,
             msg.sender, // loanCloser
             false, // isLiquidation
@@ -261,7 +261,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             _emitMarginLog(loanOrder, loanPosition);
         }*/
 
-        return OracleInterface(loanOrder.oracleAddress).shouldLiquidate(
+        return OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
             loanOrderHash,
             trader,
             loanOrder.loanTokenAddress,
@@ -361,14 +361,14 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             // send the interest to the oracle for further processing
             if (! BZxVault(vaultContract).withdrawToken(
                 interestData.interestTokenAddress,
-                loanOrder.oracleAddress,
+                oracleAddresses[loanOrder.oracleAddress],
                 amountPaid
             )) {
                 revert("BZxLoanHealth::_payInterest: BZxVault.withdrawToken failed");
             }
 
             // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
-            if (! OracleInterface(loanOrder.oracleAddress).didPayInterest(
+            if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didPayInterest(
                 loanOrder.loanOrderHash,
                 loanPosition.trader,
                 loanPosition.lender,
@@ -476,7 +476,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             // Unused collateral should be returned to the vault by the oracle.
             if (! BZxVault(vaultContract).withdrawToken(
                 loanPosition.collateralTokenAddressFilled,
-                loanOrder.oracleAddress,
+                oracleAddresses[loanOrder.oracleAddress],
                 loanPosition.collateralTokenAmountFilled
             )) {
                 revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken (cover losses) failed");
@@ -484,7 +484,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
 
             uint loanTokenAmountCovered;
             uint collateralTokenAmountUsed;
-            (loanTokenAmountCovered, collateralTokenAmountUsed) = OracleInterface(loanOrder.oracleAddress).doTradeofCollateral(
+            (loanTokenAmountCovered, collateralTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doTradeofCollateral(
                 loanPosition.collateralTokenAddressFilled,
                 loanOrder.loanTokenAddress,
                 loanPosition.collateralTokenAmountFilled,
@@ -534,7 +534,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             loanOrder.loanOrderHash
         );
 
-        if (! OracleInterface(loanOrder.oracleAddress).didCloseLoan(
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didCloseLoan(
             loanOrder.loanOrderHash,
             msg.sender, // loanCloser
             isLiquidation,

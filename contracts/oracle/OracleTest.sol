@@ -6,17 +6,9 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 import "../tokens/EIP20Wrapper.sol";
 
+
 // solhint-disable-next-line contract-name-camelcase
 interface KyberNetwork_Interface {
-    /// @notice use token address ETH_TOKEN_ADDRESS for ether
-    function getExpectedRate(
-        address src,
-        address dest,
-        uint srcQty) 
-        external 
-        view 
-        returns (uint expectedRate, uint slippageRate);
-
     /// @notice use token address ETH_TOKEN_ADDRESS for ether
     /// @dev makes a trade between src and dest token and send dest token to destAddress
     /// @param src Src token
@@ -39,7 +31,17 @@ interface KyberNetwork_Interface {
         external
         payable
         returns(uint);
+
+    /// @notice use token address ETH_TOKEN_ADDRESS for ether
+    function getExpectedRate(
+        address src,
+        address dest,
+        uint srcQty) 
+        external 
+        view 
+        returns (uint expectedRate, uint slippageRate);
 }
+
 
 contract OracleTest is EIP20Wrapper, Ownable {
     using SafeMath for uint256;
@@ -54,9 +56,9 @@ contract OracleTest is EIP20Wrapper, Ownable {
     address public wethContract = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
 /* solhint-enable var-name-mixedcase */
 
-    function() public payable {}
-
     constructor() public payable {}
+
+    function() public payable {}
 
     function testTrade(
         address destTokenAddress,
