@@ -121,10 +121,10 @@ export const toChecksumAddress = addr => Web3Utils.toChecksumAddress(addr);
 
 export const requestFaucetToken = (
   { web3, networkId },
-  { 
-    tokenAddress, 
-    receiverAddress, 
-    getObject, 
+  {
+    tokenAddress,
+    receiverAddress,
+    getObject,
     txOpts
   }
 ) => {
@@ -142,6 +142,6 @@ export const requestFaucetToken = (
 
   if (getObject) {
     return txObj;
-  } 
+  }
     return txObj.send(txOpts);
 };

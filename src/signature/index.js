@@ -69,7 +69,7 @@ export const signOrderHashAsync = async (
 
   const ecSignatureRSV = signatureUtils.parseSignatureHexAsRSV(signature);
   if (_.includes(validVParamValues, ecSignatureRSV.v)) {
-    
+
     const isValidRSVSignature = signatureUtils.isValidSignature(
       orderHash,
       ecSignatureRSV,
@@ -92,7 +92,7 @@ export const isValidSignature = ({ account, orderHash, signature }) => {
   // hack to support 0x v2 EthSign SignatureType format
   // recoverPersonalSignature assumes no SignatureType ending
   signature = signature.substr(0, 132); // eslint-disable-line no-param-reassign
-  
+
   const recoveredAccount = sigUtil.recoverPersonalSignature({
     data: orderHash,
     sig: signature
@@ -109,7 +109,7 @@ export const isValidSignatureAsync = async (
     getContracts(networkId).B0x.abi,
     Addresses.getAddresses(networkId).B0x
   );
-  
+
   // hack to support 0x v2 EthSign SignatureType format
   // b0x requires SignatureType ending
   signature = signature.substr(0, 132) + SignatureTypeStr.EthSign; // eslint-disable-line no-param-reassign

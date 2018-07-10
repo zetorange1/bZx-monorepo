@@ -52,9 +52,9 @@ export const takeLoanOrderAsLender = (
 
   if (getObject) {
     return txObj;
-  } 
+  }
     return txObj.send(txOpts);
-  
+
 };
 
 export const takeLoanOrderAsTrader = (
@@ -100,9 +100,9 @@ export const takeLoanOrderAsTrader = (
 
   if (getObject) {
     return txObj;
-  } 
+  }
     return txObj.send(txOpts);
-  
+
 };
 
 export const getInitialCollateralRequired = async (

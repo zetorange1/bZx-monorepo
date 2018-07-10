@@ -16,7 +16,7 @@ export const changeCollateral = (
 
   if (getObject) {
     return txObj;
-  } 
+  }
     return txObj.send(txOpts);
 };
 
@@ -32,14 +32,14 @@ export const depositCollateral = (
 
   const txObj = b0xContract.methods
     .depositCollateral(
-      loanOrderHash, 
-      collateralTokenFilled, 
+      loanOrderHash,
+      collateralTokenFilled,
       depositAmount
     );
 
   if (getObject) {
     return txObj;
-  } 
+  }
     return txObj.send(txOpts);
 };
 
@@ -62,7 +62,7 @@ export const withdrawExcessCollateral = (
 
   if (getObject) {
     return txObj;
-  } 
+  }
     return txObj.send(txOpts);
 };
 
@@ -81,7 +81,7 @@ export const payInterest = (
 
   if (getObject) {
     return txObj;
-  } 
+  }
     return txObj.send(txOpts);
 };
 
@@ -100,7 +100,7 @@ export const closeLoan = (
 
   if (getObject) {
     return txObj;
-  } 
+  }
     return txObj.send(txOpts);
 };
 
@@ -119,7 +119,7 @@ export const withdrawProfit = (
 
   if (getObject) {
     return txObj;
-  } 
+  }
     return txObj.send(txOpts);
 };
 
