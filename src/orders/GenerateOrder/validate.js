@@ -54,8 +54,8 @@ const checkCoinsApproved = async (bZx, accounts, state) => {
 const checkCoinsAllowed = (state, tokens, networkId) => {
   const { loanTokenAddress, collateralTokenAddress, role } = state;
   const notAllowed = {
-    1: [],
-    3: [`ZRX`, `BZX`],
+    1: [`ZRX`, `BZRXFAKE`],
+    3: [`ZRX`, `BZRX`],
     4: [],
     42: [`ZRX`, `WETH`]
   };
@@ -121,7 +121,8 @@ export default async (bZx, accounts, state, tokens) => {
   const coinsAllowed = checkCoinsAllowed(state, tokens, bZx.networkId);
   if (!coinsAllowed) {
     alert(
-      `The selected tokens are not yet supported for lending or collateral.`
+      // `The selected tokens are not yet supported for lending or collateral.`
+      `Token BZRX is not yet supported for lending or collateral. It can be used to pay interest.`
     );
     return false;
   }

@@ -167,8 +167,8 @@ export const validateFillOrder = async (
         t => t.address === collateralTokenAddress
       )[0];
       const notAllowed = {
-        1: [],
-        3: [`ZRX`, `BZX`],
+        1: [`ZRX`, `BZRXFAKE`],
+        3: [`ZRX`, `BZRX`],
         4: [],
         42: [`ZRX`, `WETH`]
       };
@@ -185,7 +185,7 @@ export const validateFillOrder = async (
       );
       if (collateralTokenNotAllowed) {
         alert(
-          `The selected tokens are not yet supported for lending or collateral.`
+          `Token ${collateralToken.symbol} is not yet supported as collateral.`
         );
         return false;
       }

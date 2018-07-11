@@ -45,11 +45,14 @@ export default ({ oracleAddress, setOracleAddress, oracles, etherscanURL }) => (
       <FormControl>
         <InputLabel>Oracle</InputLabel>
         <Select value={oracleAddress} onChange={setOracleAddress}>
-          {oracles.map(x => (
-            <MenuItem key={x.address} value={x.address}>
-              {x.name} ({x.address.slice(0, 10)}...)
-            </MenuItem>
-          ))}
+          {oracles
+            .slice(0)
+            .reverse()
+            .map(x => (
+              <MenuItem key={x.address} value={x.address}>
+                {x.name} ({x.address.slice(0, 10)}...)
+              </MenuItem>
+            ))}
         </Select>
         <FormHelperTextWithDetail component="div">
           <Tooltip

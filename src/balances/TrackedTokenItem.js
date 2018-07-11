@@ -258,6 +258,10 @@ export default class TrackedTokenItem extends React.Component {
                 error.message.includes(`Invalid status`)
               ) {
                 alert();
+              } else {
+                alert(
+                  `The transaction is failing. If you requested from the faucet recently, please try again later.`
+                );
               }
               this.setState({ showRequestDialog: false });
             });
@@ -269,17 +273,18 @@ export default class TrackedTokenItem extends React.Component {
             error.message.includes(`Invalid status`)
           ) {
             alert();
+          } else {
+            alert(
+              `The transaction is failing. If you requested from the faucet recently, please try again later.`
+            );
           }
           this.setState({ showRequestDialog: false });
         });
     } catch (error) {
-      console.error(error.message);
-      if (
-        error.message.includes(`Condition of use not satisfied`) ||
-        error.message.includes(`Invalid status`)
-      ) {
-        alert();
-      }
+      console.error(error);
+      alert(
+        `The transaction is failing. If you requested from the faucet recently, please try again later.`
+      );
       this.setState({ showRequestDialog: false });
     }
   };

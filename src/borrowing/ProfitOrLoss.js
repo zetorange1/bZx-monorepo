@@ -97,10 +97,10 @@ export default class ProfitOrLoss extends React.Component {
                   </TxHashLink>
                 )
               });
+              this.closeDialog();
             })
             .then(() => {
               alert(`Execution complete.`);
-              this.closeDialog();
             })
             .catch(error => {
               console.error(error);

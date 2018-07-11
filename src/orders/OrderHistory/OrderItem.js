@@ -284,14 +284,14 @@ export default class OrderItem extends React.Component {
               <DataPointContainer>
                 <Label>Trader Relay Fee</Label>
                 <DataPoint>
-                  {fromBigNumber(takenOrder.lenderRelayFee, 1e18)} BZX
+                  {fromBigNumber(takenOrder.lenderRelayFee, 1e18)} BZRX
                 </DataPoint>
               </DataPointContainer>
 
               <DataPointContainer>
                 <Label>Trader Relay Fee</Label>
                 <DataPoint>
-                  {fromBigNumber(takenOrder.traderRelayFee, 1e18)} BZX
+                  {fromBigNumber(takenOrder.traderRelayFee, 1e18)} BZRX
                 </DataPoint>
               </DataPointContainer>
             </Fragment>

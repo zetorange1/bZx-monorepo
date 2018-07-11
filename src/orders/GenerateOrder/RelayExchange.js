@@ -45,7 +45,7 @@ export default ({
             value={lenderRelayFee}
             type="number"
             onChange={setStateForInput(`lenderRelayFee`)}
-            endAdornment={<InputAdornment position="end">BZX</InputAdornment>}
+            endAdornment={<InputAdornment position="end">BZRX</InputAdornment>}
           />
         </FormControl>
         <FormControl margin="normal">
@@ -54,7 +54,7 @@ export default ({
             value={traderRelayFee}
             type="number"
             onChange={setStateForInput(`traderRelayFee`)}
-            endAdornment={<InputAdornment position="end">BZX</InputAdornment>}
+            endAdornment={<InputAdornment position="end">BZRX</InputAdornment>}
           />
         </FormControl>
       </Fragment>

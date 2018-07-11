@@ -37,8 +37,8 @@ export default class TradeOracleDialog extends React.Component {
     const { tokenAddress } = this.state;
 
     const notAllowed = {
-      1: [],
-      3: [`ZRX`, `BZX`],
+      1: [`ZRX`, `BZRXFAKE`],
+      3: [`ZRX`, `BZRX`],
       4: [],
       42: [`ZRX`, `WETH`]
     };
