@@ -356,6 +356,7 @@ export const submitFillOrder = (
           .catch(error => {
             console.error(error.message);
             if (
+              error.message.includes(`denied transaction signature`) ||
               error.message.includes(`Condition of use not satisfied`) ||
               error.message.includes(`Invalid status`)
             ) {

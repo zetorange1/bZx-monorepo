@@ -86,6 +86,7 @@ export default class ChangeCollateralDialog extends React.Component {
       .on(`error`, error => {
         console.error(error.message);
         if (
+          error.message.includes(`denied transaction signature`) ||
           error.message.includes(`Condition of use not satisfied`) ||
           error.message.includes(`Invalid status`)
         ) {

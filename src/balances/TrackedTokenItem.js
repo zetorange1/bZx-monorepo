@@ -176,10 +176,15 @@ export default class TrackedTokenItem extends React.Component {
             .catch(error => {
               console.error(error.message);
               if (
+                error.message.includes(`denied transaction signature`) ||
                 error.message.includes(`Condition of use not satisfied`) ||
                 error.message.includes(`Invalid status`)
               ) {
                 alert();
+              } else {
+                alert(
+                  `The transaction is failing. Please check the amount and try again.`
+                );
               }
               this.setState({ showSendDialog: false });
             });
@@ -187,20 +192,30 @@ export default class TrackedTokenItem extends React.Component {
         .catch(error => {
           console.error(error.message);
           if (
+            error.message.includes(`denied transaction signature`) ||
             error.message.includes(`Condition of use not satisfied`) ||
             error.message.includes(`Invalid status`)
           ) {
             alert();
+          } else {
+            alert(
+              `The transaction is failing. Please check the amount and try again.`
+            );
           }
           this.setState({ showSendDialog: false });
         });
     } catch (error) {
       console.error(error.message);
       if (
+        error.message.includes(`denied transaction signature`) ||
         error.message.includes(`Condition of use not satisfied`) ||
         error.message.includes(`Invalid status`)
       ) {
         alert();
+      } else {
+        alert(
+          `The transaction is failing. Please check the amount and try again.`
+        );
       }
       this.setState({ showSendDialog: false });
     }
@@ -254,6 +269,7 @@ export default class TrackedTokenItem extends React.Component {
             .catch(error => {
               console.error(error.message);
               if (
+                error.message.includes(`denied transaction signature`) ||
                 error.message.includes(`Condition of use not satisfied`) ||
                 error.message.includes(`Invalid status`)
               ) {
@@ -269,6 +285,7 @@ export default class TrackedTokenItem extends React.Component {
         .catch(error => {
           console.error(error.message);
           if (
+            error.message.includes(`denied transaction signature`) ||
             error.message.includes(`Condition of use not satisfied`) ||
             error.message.includes(`Invalid status`)
           ) {
@@ -281,10 +298,18 @@ export default class TrackedTokenItem extends React.Component {
           this.setState({ showRequestDialog: false });
         });
     } catch (error) {
-      console.error(error);
-      alert(
-        `The transaction is failing. If you requested from the faucet recently, please try again later.`
-      );
+      console.error(error.message);
+      if (
+        error.message.includes(`denied transaction signature`) ||
+        error.message.includes(`Condition of use not satisfied`) ||
+        error.message.includes(`Invalid status`)
+      ) {
+        alert();
+      } else {
+        alert(
+          `The transaction is failing. If you requested from the faucet recently, please try again later.`
+        );
+      }
       this.setState({ showRequestDialog: false });
     }
   };
@@ -341,10 +366,13 @@ export default class TrackedTokenItem extends React.Component {
             .catch(error => {
               console.error(error.message);
               if (
+                error.message.includes(`denied transaction signature`) ||
                 error.message.includes(`Condition of use not satisfied`) ||
                 error.message.includes(`Invalid status`)
               ) {
                 alert();
+              } else {
+                alert(`The transaction is failing. Please try again later.`);
               }
               this.setState({ approvalLoading: false });
             });
@@ -352,20 +380,26 @@ export default class TrackedTokenItem extends React.Component {
         .catch(error => {
           console.error(error.message);
           if (
+            error.message.includes(`denied transaction signature`) ||
             error.message.includes(`Condition of use not satisfied`) ||
             error.message.includes(`Invalid status`)
           ) {
             alert();
+          } else {
+            alert(`The transaction is failing. Please try again later.`);
           }
           this.setState({ approvalLoading: false });
         });
     } catch (error) {
       console.error(error.message);
       if (
+        error.message.includes(`denied transaction signature`) ||
         error.message.includes(`Condition of use not satisfied`) ||
         error.message.includes(`Invalid status`)
       ) {
         alert();
+      } else {
+        alert(`The transaction is failing. Please try again later.`);
       }
       this.setState({ approvalLoading: false });
     }
@@ -417,10 +451,13 @@ export default class TrackedTokenItem extends React.Component {
             .catch(error => {
               console.error(error.message);
               if (
+                error.message.includes(`denied transaction signature`) ||
                 error.message.includes(`Condition of use not satisfied`) ||
                 error.message.includes(`Invalid status`)
               ) {
                 alert();
+              } else {
+                alert(`The transaction is failing. Please try again later.`);
               }
               this.setState({ approvalLoading: false });
             });
@@ -428,20 +465,26 @@ export default class TrackedTokenItem extends React.Component {
         .catch(error => {
           console.error(error.message);
           if (
+            error.message.includes(`denied transaction signature`) ||
             error.message.includes(`Condition of use not satisfied`) ||
             error.message.includes(`Invalid status`)
           ) {
             alert();
+          } else {
+            alert(`The transaction is failing. Please try again later.`);
           }
           this.setState({ approvalLoading: false });
         });
     } catch (error) {
       console.error(error.message);
       if (
+        error.message.includes(`denied transaction signature`) ||
         error.message.includes(`Condition of use not satisfied`) ||
         error.message.includes(`Invalid status`)
       ) {
         alert();
+      } else {
+        alert(`The transaction is failing. Please try again later.`);
       }
       this.setState({ approvalLoading: false });
     }
