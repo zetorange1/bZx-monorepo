@@ -42,8 +42,8 @@ module.exports = {
     ropsten: {
       provider: new HDWalletProvider(ropstenMnemonic, "https://ropsten.infura.io/"+infuraApikey),
       network_id: 3,
-      gas: 6700000,
-      gasPrice: 20000000000
+      gas: 5300000,
+      gasPrice: 50000000000
     },
     kovan: {
       provider: new HDWalletProvider(kovanMnemonic, "https://kovan.infura.io/"+infuraApikey),
@@ -57,12 +57,12 @@ module.exports = {
       gas: 6700000,
       gasPrice: 20000000000
     },
-    /*mainnet: {
+    mainnet: {
       provider: new HDWalletProvider(mainnetMnemonic, "https://mainnet.infura.io/"+infuraApikey),
       network_id: 1,
       gas: 6700000,
-      gasPrice: 20000000000
-    }*/
+      gasPrice: 10000000000
+    }
   },
   solc: {
     optimizer: {

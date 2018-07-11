@@ -7,7 +7,6 @@ import "../modifiers/BZxOwnable.sol";
 
 import "../modifiers/EMACollector.sol";
 import "../modifiers/GasRefunder.sol";
-import "../BZxVault.sol";
 
 import "../tokens/EIP20.sol";
 import "../tokens/EIP20Wrapper.sol";
@@ -95,7 +94,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     address public bZRxTokenContract;
 /* solhint-enable var-name-mixedcase */
 
-    mapping (bytes32 => GasData[]) public gasRefunds; // // mapping of loanOrderHash to array of GasData
+    mapping (bytes32 => GasData[]) public gasRefunds; // mapping of loanOrderHash to array of GasData
 
     constructor(
         address _vaultContract,
@@ -111,7 +110,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         bZRxTokenContract = _bZRxTokenContract;
 
         // settings for EMACollector
-        emaValue = 20 * 10**9 wei; // set an initial price average for gas (20 gwei)
+        emaValue = 8 * 10**9 wei; // set an initial price average for gas (8 gwei)
         emaPeriods = 10; // set periods to use for EMA calculation
     }
 
@@ -539,6 +538,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     /*
     * Owner functions
     */
+
     function setInterestFeePercent(
         uint newRate) 
         public
@@ -629,6 +629,14 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     {
         require(newAddress != bZRxTokenContract && newAddress != address(0));
         bZRxTokenContract = newAddress;
+    }
+
+    function setEMAValue (
+        uint _newEMAValue)
+        public
+        onlyOwner {
+        require(_newEMAValue != emaValue);
+        emaValue = _newEMAValue;
     }
 
     function setEMAPeriods (

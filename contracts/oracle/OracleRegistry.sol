@@ -1,6 +1,6 @@
 /*
 
-  Copyright 2018 bZx, LLC
+  Copyright 2018 bZeroX, LLC
   Inspired by TokenRegistry.sol, Copyright 2017 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");

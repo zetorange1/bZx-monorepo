@@ -1,7 +1,7 @@
 /*
 
   Copyright 2017 ZeroEx Intl.
-  Modifications Copyright 2018 bZx, LLC
+  Modifications Copyright 2018 bZeroX, LLC
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.

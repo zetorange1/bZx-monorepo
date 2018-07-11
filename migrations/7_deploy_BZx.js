@@ -22,7 +22,7 @@ module.exports = function(deployer, network, accounts) {
 		if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {
 			bzrx_token_address = config["addresses"][network]["BZRXToken"];
 		} else {
-			var bzrx_token = await TestNetBZRxToken.deployed();
+			await TestNetBZRxToken.deployed();
 			bzrx_token_address = TestNetBZRxToken.address;
 
 			await bZxProxy.setDebugMode(true);

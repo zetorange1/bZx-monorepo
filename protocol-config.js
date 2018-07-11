@@ -21,7 +21,7 @@ module.exports = {
 				"WETH9": "0xc778417e063141139fce010982780140aa0cd5ab"
 			},
 			"KyberContractAddress": "0x818E6FECD516Ecc3849DAf6845e3EC868087B755", // "0x2a21728dF01992cCEE34ad8f9c32A0a2AE1e181b", // old: "0xD19559B3121c1b071481d8813d5dBcDC5869e2e8", // old: "0x0a56d8a49E71da8d7F9C65F95063dB48A3C9560B", // Ropsten (https://ropsten.kyber.network)
-			"BZRXToken": "0x14823Db576c11e4a54Ca9E01Ca0b28b18D3d1187",
+			"BZRXToken": "0xa890bbffea779fd4ff9d28469cfc8f2d35bc620d", //"0x14823Db576c11e4a54Ca9E01Ca0b28b18D3d1187",
 		},
 		"kovan": {
 			"ZeroEx": {
@@ -49,15 +49,15 @@ module.exports = {
 		},
 		"mainnet": {
 			"ZeroEx": {
-				"ZRXToken": "",
-				"EtherToken": "",
-				"Exchange": "",
-				"TokenRegistry": "",
-				"TokenTransferProxy": "",
-				"WETH9": ""
+				"ZRXToken": "0xe41d2489571d322189246dafa5ebde1f4699f498",
+				"EtherToken": "0x2956356cd2a2bf3202f771f50d3d14a367b48070",
+				"Exchange": "0x12459c951127e0c374ff9105dda097662a027093",
+				"TokenRegistry": "0x926a74c5c36adf004c87399e65f75628b0f98d2c",
+				"TokenTransferProxy": "0x8da0d80f5007ef1e431dd2127178d224e32c2ef4",
+				"WETH9": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
 			},
-			"KyberContractAddress": "0x964f35fae36d75b1e72770e244f6595b68508cf5", // Mainnet (https://kyber.network)
-			"BZRXToken": "",
+			"KyberContractAddress": "0x818e6fecd516ecc3849daf6845e3ec868087b755", // Mainnet (https://kyber.network/swap)
+			"BZRXToken": "0x13939ac9F1e0F99872fA873B6E00DE9248ac95A0",
 		},
 	}
 }

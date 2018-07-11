@@ -66,6 +66,7 @@ if (network != "mainnet") {
 	}
 } else {
 	delete addresses["TestNetFaucet"];
+	addresses["BZRXFakeFaucet"] = "unknown";
 }
 
 addresses["OracleInterface"] = "unknown";
@@ -73,7 +74,10 @@ addresses["EIP20"] = "unknown";
 
 var networkId;
 switch(network) {
-    case "ropsten":
+    case "mainnet":
+		networkId = 1;
+        break;
+	case "ropsten":
 		networkId = 3;
         break;
     case "kovan":
