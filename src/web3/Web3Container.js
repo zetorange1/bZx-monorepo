@@ -1,4 +1,5 @@
 // /* global window */
+import { Fragment } from "react";
 import styled from "styled-components";
 import { ZeroEx } from "0x.js";
 import BZxJS from "b0x.js"; // eslint-disable-line
@@ -16,6 +17,18 @@ const LoadingContainer = styled.div`
   flex-direction: column;
   jsutify-content: center;
   align-items; center;
+`;
+
+const CancelButton = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  text-decoration: none;
+  display: inherit;
+`;
+
+const CancelButtonLabel = styled.div`
+  color: red;
 `;
 
 export default class Web3Container extends React.Component {
@@ -37,6 +50,11 @@ export default class Web3Container extends React.Component {
       await this.loadWeb3(nextProps.providerName);
     }
   }
+
+  handleClearProvider = event => {
+    event.preventDefault();
+    this.props.clearProvider();
+  };
 
   loadWeb3 = async providerName => {
     const web3 = await getWeb3(providerName);
@@ -67,7 +85,22 @@ export default class Web3Container extends React.Component {
         this.setState({
           web3: null,
           loading: false,
-          errorMsg: `You may be on the wrong network. Please check that MetaMask is set to Ropsten Test Network.`
+          errorMsg: (
+            <Fragment>
+              <div>
+                You may be on the wrong network. Please check that MetaMask is
+                set to Main Ethereum Network or Ropsten Test Network.<br />
+                <br />
+                <div style={{ display: `inline-block` }}>
+                  You can also{` `}
+                  <CancelButton href="" onClick={this.handleClearProvider}>
+                    <CancelButtonLabel>choose</CancelButtonLabel>
+                  </CancelButton>
+                  {` `}a different provider.
+                </div>
+              </div>
+            </Fragment>
+          )
         });
       } else {
         this.setState({
@@ -95,7 +128,21 @@ export default class Web3Container extends React.Component {
           this.setState({
             web3: null,
             loading: false,
-            errorMsg: `Please unlock your MetaMask account.`
+            errorMsg: (
+              <Fragment>
+                <div>
+                  Please unlock your MetaMask account.<br />
+                  <br />
+                  <div style={{ display: `inline-block` }}>
+                    You can also{` `}
+                    <CancelButton href="" onClick={this.handleClearProvider}>
+                      <CancelButtonLabel>choose</CancelButtonLabel>
+                    </CancelButton>
+                    {` `}a different provider.
+                  </div>
+                </div>
+              </Fragment>
+            )
           });
           const interval = setInterval(async () => {
             if ((await web3.eth.getAccounts())[0]) {

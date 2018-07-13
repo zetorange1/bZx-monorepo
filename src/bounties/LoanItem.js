@@ -179,7 +179,6 @@ export default class LoanItem extends React.Component {
     } = this.state;
     const isUnSafe = !BigNumber(currentMarginAmount)
       .dividedBy(1e18)
-      .plus(5) // start reporting "unsafe" when 5% above maintenance threshold
       .gt(maintenanceMarginAmount);
     const date = moment(data.expirationUnixTimestampSec * 1000).utc();
     const dateStr = date.format(`MMMM Do YYYY, h:mm a UTC`);

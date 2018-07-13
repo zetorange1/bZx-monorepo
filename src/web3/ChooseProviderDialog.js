@@ -64,10 +64,11 @@ export default class ChooseProviderDialog extends React.Component {
               >
                 <ProviderIcon
                   id="MetaMask"
-                  style={{ marginTop: `-12px` }}
+                  style={{ marginTop: `-17.5px` }}
                   src="/static/metamask.png"
                 />
               </ProviderItem>
+              (Mainnet or Ropsten)
             </ProviderContainer>
             <ProviderContainer>
               <ProviderItem

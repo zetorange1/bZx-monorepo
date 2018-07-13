@@ -22,6 +22,24 @@ export default class NoProviderMessage extends React.Component {
     const { providerName } = this.props;
     switch (providerName) {
       case `Ledger`:
+        return (
+          <div>
+            We were unable to access your Ledger wallet.<br />
+            <br />In order to interact with this dApp, please ensure the device
+            is connected to the Ethereum app and you have enabled Contract data
+            and Browser support under settings. Then refresh this page to try
+            again.<br />
+            <br />
+            <div style={{ display: `inline-block` }}>
+              You can also{` `}
+              <CancelButton href="" onClick={this.handleClearProvider}>
+                <CancelButtonLabel>choose</CancelButtonLabel>
+              </CancelButton>
+              {` `}a different provider.
+            </div>
+          </div>
+        );
+        break; // eslint-disable-line no-unreachable
       case `Trezor`:
         return (
           <div>
