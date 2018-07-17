@@ -12,12 +12,6 @@ contract GasRefunder {
     // Note that a throw will prevent a GasRefund event.
     bool public throwOnGasRefundFail = false;
 
-    struct GasData {
-        address payer;
-        uint gasUsed;
-        bool isPaid;
-    }
-
     event GasRefund(address payer, uint gasUsed, uint currentGasPrice, uint refundAmount, bool refundSuccess);
 
     modifier refundsGas(address payer, uint gasPrice, uint gasUsed, uint percentMultiplier)

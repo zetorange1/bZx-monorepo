@@ -21,20 +21,6 @@ contract InternalFunctions is BZxStorage {
         view
         returns (uint collateralTokenAmount)
     {
-        /*uint loanToCollateralRate = OracleInterface(oracleAddress).getTradeRate(
-            loanTokenAddress,
-            collateralTokenAddress
-        );
-        if (loanToCollateralRate == 0) {
-            return 0;
-        }
-        
-        collateralTokenAmount = loanTokenAmountFilled
-                                    .mul(loanToCollateralRate)
-                                    .div(10**18)
-                                    .mul(initialMarginAmount)
-                                    .div(100);*/
-
         uint collateralToLoanRate = OracleInterface(oracleAddress).getTradeRate(
             collateralTokenAddress,
             loanTokenAddress

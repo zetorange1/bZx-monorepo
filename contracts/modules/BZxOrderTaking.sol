@@ -520,8 +520,8 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         if (collateralTokenAmountFilled > 0) {
             if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTakeOrder(
                 loanOrder.loanOrderHash,
-                msg.sender,
-                gasUsed // initial used gas, collected in modifier
+                [loanOrder.loanTokenAddress, collateralTokenFilled, loanOrder.interestTokenAddress, msg.sender],
+                [loanTokenAmountFilled, collateralTokenAmountFilled, loanOrder.interestAmount, gasUsed]
             )) {
                 revert("BZxOrderTaking::_takeLoanOrder: OracleInterface.didTakeOrder failed");
             }

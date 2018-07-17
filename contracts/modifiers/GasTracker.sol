@@ -7,7 +7,8 @@ contract GasTracker {
     uint internal gasUsed;
 
     modifier tracksGas() {
-        gasUsed = gasleft();
+        // tx call 21k gas
+        gasUsed = gasleft() + 21000;
 
         _; // modified function body inserted here
 

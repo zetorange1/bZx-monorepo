@@ -11,6 +11,9 @@ contract EMACollector {
     uint public emaValue; // the last ema calculated
     uint public emaPeriods; // averaging periods for EMA calculation
 
+    uint public outlierMultiplier = 2;
+    uint public outlierAdder = 5**9 wei; // 5 gwei
+
     //event EMAUpdated(uint newEMA);
 
     modifier updatesEMA(uint value) {
@@ -27,6 +30,10 @@ contract EMACollector {
         */
 
         require(emaPeriods >= 2, "emaPeriods < 2");
+
+        // outliers are ignored
+        if (value > emaValue && value >= SafeMath.add(SafeMath.mul(outlierMultiplier, emaValue), outlierAdder))
+            return;
 
         // calculate new EMA
         emaValue = 

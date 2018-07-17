@@ -104,20 +104,22 @@ contract TestNetOracle is BZxOracle {
     function _doTradeForEth(
         address /*sourceTokenAddress*/,
         uint sourceTokenAmount,
-        address /*receiver*/)
+        address /*receiver*/,
+        uint destEthAmountNeeded)
         internal
         returns (uint destTokenAmountReceived)
     {
-        destTokenAmountReceived = sourceTokenAmount;
+        destTokenAmountReceived = destEthAmountNeeded < sourceTokenAmount ? destEthAmountNeeded : sourceTokenAmount;
     }
 
     function _doTradeWithEth(
         address /*destTokenAddress*/,
-        uint destTokenAmountNeeded,
-        address /*receiver*/)
+        uint sourceEthAmount,
+        address, /*receiver*/
+        uint destTokenAmountNeeded)
         internal
         returns (uint destTokenAmountReceived)
     {
-        destTokenAmountReceived = destTokenAmountNeeded;
+        destTokenAmountReceived = destTokenAmountNeeded < sourceEthAmount ? destTokenAmountNeeded : sourceEthAmount;
     }
 }

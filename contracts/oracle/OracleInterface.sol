@@ -25,13 +25,13 @@ interface OracleInterface {
 
     /// @dev Called by bZx after a loan order is taken
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param taker The taker of the loan order
-    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
+    /// @param orderAddresses loanTokenAddress, collateralTokenAddress, interestTokenAddress, taker
+    /// @param orderAmounts loanTokenAmount, collateralTokenAmount, interestTokenAmount, gasUsed
     /// @return Successful execution of the function
     function didTakeOrder(
         bytes32 loanOrderHash,
-        address taker,
-        uint gasUsed)
+        address[4] orderAddresses,
+        uint[4] orderAmounts)
         external
         returns (bool);
 
@@ -185,21 +185,23 @@ interface OracleInterface {
         external
         returns (uint);
 
-    /// @dev Liquidates collateral to cover loan losses
+    /// @dev Liquidates collateral to cover loan losses and does any other processing required by the oracle
     /// @param collateralTokenAddress The collateral token
     /// @param loanTokenAddress The loan token
-    /// @param collateralTokenAmountUsable The total amount of collateral usable to cover losses
+    /// @param collateralTokenAmountUsable The total amount of collateral usable for processing
     /// @param loanTokenAmountNeeded The amount of loan token needed to cover losses
     /// @param initialMarginAmount The initial margin amount set for the loan
     /// @param maintenanceMarginAmount The maintenance margin amount set for the loan
+    /// @param isLiquidation A boolean indicating if the loan was closed due to liquidation
     /// @return The amount of destToken bought
-    function doTradeofCollateral(
+    function processCollateral(
         address collateralTokenAddress,
         address loanTokenAddress,
         uint collateralTokenAmountUsable,
         uint loanTokenAmountNeeded,
         uint initialMarginAmount,
-        uint maintenanceMarginAmount)
+        uint maintenanceMarginAmount,
+        bool isLiquidation)
         external
         returns (uint, uint);
 

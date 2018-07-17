@@ -470,27 +470,25 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             }
         }
 
-        // check if lender is being made whole, and if not attempt to sell collateral token to cover losses
-        if (loanPosition.positionTokenAmountFilled < loanPosition.loanTokenAmountFilled) {
-            // Send all of the collateral token to the oracle to sell to cover loan token losses.
-            // Unused collateral should be returned to the vault by the oracle.
-            if (! BZxVault(vaultContract).withdrawToken(
-                loanPosition.collateralTokenAddressFilled,
-                oracleAddresses[loanOrder.oracleAddress],
-                loanPosition.collateralTokenAmountFilled
-            )) {
-                revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken (cover losses) failed");
-            }
+        // Send collateral to the oracle for processing
+        // Unused collateral should be returned to the trader in didCloseLoan call
+        if (! BZxVault(vaultContract).withdrawToken(
+            loanPosition.collateralTokenAddressFilled,
+            oracleAddresses[loanOrder.oracleAddress],
+            loanPosition.collateralTokenAmountFilled
+        )) {
+            revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken (collateral) failed");
+        }
 
-            uint loanTokenAmountCovered;
-            uint collateralTokenAmountUsed;
-            (loanTokenAmountCovered, collateralTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doTradeofCollateral(
+        if (isLiquidation || loanPosition.positionTokenAmountFilled < loanPosition.loanTokenAmountFilled) {
+            (uint loanTokenAmountCovered, uint collateralTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).processCollateral(
                 loanPosition.collateralTokenAddressFilled,
                 loanOrder.loanTokenAddress,
                 loanPosition.collateralTokenAmountFilled,
-                loanPosition.loanTokenAmountFilled.sub(loanPosition.positionTokenAmountFilled),
+                loanPosition.positionTokenAmountFilled < loanPosition.loanTokenAmountFilled ? loanPosition.loanTokenAmountFilled - loanPosition.positionTokenAmountFilled : 0,
                 loanOrder.initialMarginAmount,
-                loanOrder.maintenanceMarginAmount);
+                loanOrder.maintenanceMarginAmount,
+                isLiquidation);
             
             loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.add(loanTokenAmountCovered);
             loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(collateralTokenAmountUsed);

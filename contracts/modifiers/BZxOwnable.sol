@@ -5,7 +5,7 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 // This provides a gatekeeping modifier for functions that can only be used by the bZx contract
-// Since it inherits Ownable provides typical ownership functionality with a slight modification to the transferOwnership function
+// Since it inherits Ownable it provides typical ownership functionality with a slight modification to the transferOwnership function
 // Setting owner and bZxContractAddress to the same address is not supported.
 contract BZxOwnable is Ownable {
 
