@@ -75,7 +75,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
     uint public bountyRewardPercent = 110;
 
     // An upper bound estimation on the liquidation gas cost
-    uint public gasUpperBound = 300000;
+    uint public gasUpperBound = 600000;
 
     // A threshold of minimum initial margin for loan to be insured by the guarantee fund
     // A value of 0 indicates that no threshold exists for this parameter.
@@ -112,7 +112,6 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
     }
 
     // The contract needs to be able to receive Ether from Kyber trades
-    // "Stuck" Ether can be transfered by the owner using the transferEther function.
     function() public payable {}
 
 
