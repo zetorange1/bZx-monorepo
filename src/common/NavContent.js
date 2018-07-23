@@ -127,6 +127,12 @@ class NavContent extends React.Component {
                 <NavLink id="Bounties" onClick={this.changeCardClick}>
                   Bounties
                 </NavLink>
+                <NavLink
+                  style={{ textDecoration: `none` }}
+                  href="https://portal.bZx.network/mew/#contracts"
+                >
+                  Contracts
+                </NavLink>
               </VerticalNav>
               <CloseDrawerBtn onClick={this.toggleSideNav}>
                 close
