@@ -72,6 +72,11 @@ if (network != "mainnet") {
 addresses["OracleInterface"] = "unknown";
 addresses["EIP20"] = "unknown";
 
+if (config["addresses"][network]["MultiSig"]) {
+	addresses["MultiSig"] = web3utils.toChecksumAddress(config["addresses"][network]["MultiSig"]);
+	replacements["MultiSig"] = "MultiSigWalletWithTimeLockWithCustomValues";
+}
+
 var networkId;
 switch(network) {
     case "mainnet":
@@ -129,10 +134,10 @@ Object.keys(addresses).forEach(function(item, index) {
 
 	var abi = "[]";
 	try {
-		addresses[item] = "";
-		if (item != "OracleInterface" && item != "EIP20") {
+		if (addresses[item] == "unknown")
+			addresses[item] = "";
+		if (jsonContent["networks"][networkId])
 			addresses[item] = web3utils.toChecksumAddress(jsonContent["networks"][networkId]["address"]);
-		}
 
 		// sort ABI by name field
 		jsonContent["abi"].sort(function(a,b) {return (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0);} );
