@@ -15,13 +15,13 @@ var TestToken9 = artifacts.require("TestToken9");
 
 module.exports = function(deployer, network, accounts) {
 	network = network.replace("-fork", "");
-	
+
 	//if (true) return;
-	if (network == "develop" || network == "development" || network == "testnet")
+	if (network == "develop" || network == "development" || network == "testnet" || network == "coverage")
 		network = "development";
 	else {
 		// comment out if we need to deploy to other networks
-		return; 
+		return;
 	}
 
 	if (network != "mainnet" && network != "ropsten") {

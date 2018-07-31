@@ -13,3 +13,6 @@ before_script:
   - sleep 5
 script:
   - npm run test
+after_script:
+  - npm run network-coverage > /dev/null &
+  - travis_wait 40 npm run coverage && cat coverage/lcov.info | coveralls
