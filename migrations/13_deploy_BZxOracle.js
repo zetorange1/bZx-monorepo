@@ -10,7 +10,7 @@ var config = require('../protocol-config.js');
 
 module.exports = function(deployer, network, accounts) {
 	network = network.replace("-fork", "");
-	if (network == "develop" || network == "testnet")
+	if (network == "develop" || network == "testnet" || network == "coverage")
 		network = "development";
 
 	if (network == "mainnet" || network == "ropsten") {

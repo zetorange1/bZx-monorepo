@@ -486,7 +486,7 @@ contract('BZxTest', function(accounts) {
       collateralToken1.address,
       web3.toWei(12.3, "ether"),
       ECSignature_raw_1,
-      {from: trader1_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
+      {from: trader1_account, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
         console.log(txPrettyPrint(tx,"should take sample loan order (as lender1/trader1)"));
         assert.isOk(tx);
         done();
@@ -521,7 +521,7 @@ contract('BZxTest', function(accounts) {
       collateralToken1.address,
       web3.toWei(20, "ether"),
       ECSignature_raw_1,
-      {from: trader2_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
+      {from: trader2_account, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
         console.log(txPrettyPrint(tx,"should take sample loan order (as lender1/trader2)"));
         assert.isOk(tx);
         done();
@@ -642,7 +642,7 @@ contract('BZxTest', function(accounts) {
         new BN(OrderParams_bZx_2["salt"])
       ],
       ECSignature_raw_2,
-      {from: lender2_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
+      {from: lender2_account, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
         console.log(txPrettyPrint(tx,"should take sample loan order (as lender2)"));
         assert.isOk(tx);
         done();
