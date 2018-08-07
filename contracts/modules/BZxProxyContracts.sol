@@ -7,6 +7,8 @@ import "./BZxStorage.sol";
 
 contract Proxiable {
     mapping (bytes4 => address) public targets;
+    
+    mapping (bytes4 => bool) public targetIsPaused;
 
     function initialize(address _target) public;
 
@@ -21,6 +23,8 @@ contract Proxiable {
 contract BZxProxy is BZxStorage, Proxiable {
 
     function() public {
+        require(!targetIsPaused[msg.sig], "Function temporarily paused");
+        
         address target = targets[msg.sig];
         bytes memory data = msg.data;
         assembly {
@@ -61,6 +65,18 @@ contract BZxProxy is BZxStorage, Proxiable {
     {
         bytes4 f = bytes4(keccak256(abi.encodePacked(_funcId)));
         targets[f] = _target;
+        return f;
+    }
+
+    function toggleTargetPause(
+        string _funcId,  // example: "takeLoanOrderAsTrader(address[6],uint256[9],address,uint256,bytes)"
+        bool _isPaused)
+        public
+        onlyOwner
+        returns(bytes4)
+    {
+        bytes4 f = bytes4(keccak256(abi.encodePacked(_funcId)));
+        targetIsPaused[f] = _isPaused;
         return f;
     }
 
@@ -156,5 +172,14 @@ contract BZxProxy is BZxStorage, Proxiable {
         returns (address)
     {
         return targets[bytes4(keccak256(abi.encodePacked(_funcId)))];
+    }
+
+    function getTargetPause(
+        string _funcId) // example: "takeLoanOrderAsTrader(address[6],uint256[9],address,uint256,bytes)"
+        public
+        view
+        returns (bool)
+    {
+        return targetIsPaused[bytes4(keccak256(abi.encodePacked(_funcId)))];
     }
 }
