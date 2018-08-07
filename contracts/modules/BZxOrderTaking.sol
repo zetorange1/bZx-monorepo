@@ -217,6 +217,49 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
     * Internal functions
     */
 
+    function _buildLoanOrderStruct(
+        bytes32 loanOrderHash,
+        address[6] addrs,
+        uint[9] uints) 
+        internal
+        pure
+        returns (LoanOrder) {
+
+        return LoanOrder({
+            maker: addrs[0],
+            loanTokenAddress: addrs[1],
+            interestTokenAddress: addrs[2],
+            collateralTokenAddress: addrs[3],
+            oracleAddress: addrs[5],
+            loanTokenAmount: uints[0],
+            interestAmount: uints[1],
+            initialMarginAmount: uints[2],
+            maintenanceMarginAmount: uints[3],
+            expirationUnixTimestampSec: uints[6],
+            loanOrderHash: loanOrderHash
+        });
+    }
+
+    /*function _buildLoanPositionStruct(
+        address[4] addrs,
+        uint[5] uints)
+        internal
+        pure
+        returns (Loan) {
+
+        return LoanPosition({            
+            lender: addrs[0],
+            trader: addrs[1],
+            collateralTokenAddressFilled: addrs[2],
+            positionTokenAddressFilled: addrs[3],
+            loanTokenAmountFilled: uints[0],
+            collateralTokenAmountFilled: uints[1],
+            positionTokenAmountFilled: uints[2],
+            loanStartUnixTimestampSec: uints[3],
+            active: uints[4] != 0
+        });
+    }*/
+
     function _takeLoanOrder(
         address[6] orderAddresses,
         uint[9] orderValues,
@@ -242,11 +285,17 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
 
         if (loanOrder.maker == address(0)) {
             // no previous partial loan fill
-            loanOrder = buildLoanOrderStruct(loanOrderHash, orderAddresses, orderValues);
+            loanOrder = _buildLoanOrderStruct(loanOrderHash, orderAddresses, orderValues);
             orders[loanOrder.loanOrderHash] = loanOrder;
             
             orderList[lender].push(loanOrder.loanOrderHash);
             orderLender[loanOrder.loanOrderHash] = lender;
+
+            orderFees[loanOrder.loanOrderHash] = LoanOrderFees({
+                feeRecipientAddress: orderAddresses[4],
+                lenderRelayFee: orderValues[4],
+                traderRelayFee: orderValues[5]
+            });
         }
 
         orderList[trader].push(loanOrder.loanOrderHash);
@@ -326,7 +375,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
     }
 
     function _fillLoanOrder(
-        LoanOrder loanOrder,
+        LoanOrder memory loanOrder,
         address trader,
         address lender,
         address collateralTokenFilled,
@@ -385,26 +434,27 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             revert("BZxOrderTaking::_fillLoanOrder: BZxVault.depositToken loan failed");
         }
 
-        if (loanOrder.feeRecipientAddress != address(0)) {
-            if (loanOrder.traderRelayFee > 0) {
-                uint paidTraderFee = _getPartialAmountNoError(loanTokenAmountFilled, loanOrder.loanTokenAmount, loanOrder.traderRelayFee);
+        LoanOrderFees memory loanOrderFees = orderFees[loanOrder.loanOrderHash];
+        if (loanOrderFees.feeRecipientAddress != address(0)) {
+            if (loanOrderFees.traderRelayFee > 0) {
+                uint paidTraderFee = _getPartialAmountNoError(loanTokenAmountFilled, loanOrder.loanTokenAmount, loanOrderFees.traderRelayFee);
                 
                 if (! BZxVault(vaultContract).transferTokenFrom(
                     bZRxTokenContract, 
                     trader,
-                    loanOrder.feeRecipientAddress,
+                    loanOrderFees.feeRecipientAddress,
                     paidTraderFee
                 )) {
                     revert("BZxOrderTaking::_fillLoanOrder: BZxVault.transferTokenFrom traderRelayFee failed");
                 }
             }
-            if (loanOrder.lenderRelayFee > 0) {
-                uint paidLenderFee = _getPartialAmountNoError(loanTokenAmountFilled, loanOrder.loanTokenAmount, loanOrder.lenderRelayFee);
+            if (loanOrderFees.lenderRelayFee > 0) {
+                uint paidLenderFee = _getPartialAmountNoError(loanTokenAmountFilled, loanOrder.loanTokenAmount, loanOrderFees.lenderRelayFee);
                 
                 if (! BZxVault(vaultContract).transferTokenFrom(
                     bZRxTokenContract, 
                     lender,
-                    loanOrder.feeRecipientAddress,
+                    loanOrderFees.feeRecipientAddress,
                     paidLenderFee
                 )) {
                     revert("BZxOrderTaking::_fillLoanOrder: BZxVault.transferTokenFrom lenderRelayFee failed");

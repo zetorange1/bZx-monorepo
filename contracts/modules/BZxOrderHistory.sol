@@ -39,6 +39,7 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
         if (loanOrder.maker == address(0)) {
             return;
         }
+        LoanOrderFees memory loanOrderFees = orderFees[loanOrderHash];
 
         // all encoded params will be zero-padded to 32 bytes
         bytes memory data = abi.encode(
@@ -46,14 +47,14 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
             loanOrder.loanTokenAddress,
             loanOrder.interestTokenAddress,
             loanOrder.collateralTokenAddress,
-            loanOrder.feeRecipientAddress,
+            loanOrderFees.feeRecipientAddress,
             oracleAddresses[loanOrder.oracleAddress],
             loanOrder.loanTokenAmount,
             loanOrder.interestAmount,
             loanOrder.initialMarginAmount,
             loanOrder.maintenanceMarginAmount,
-            loanOrder.lenderRelayFee,
-            loanOrder.traderRelayFee,
+            loanOrderFees.lenderRelayFee,
+            loanOrderFees.traderRelayFee,
             loanOrder.expirationUnixTimestampSec,
             loanOrder.loanOrderHash
         );
@@ -83,20 +84,21 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
 
         for (uint j=end-start; j > 0; j--) {
             LoanOrder memory loanOrder = orders[orderList[loanParty][j+start-1]];
+            LoanOrderFees memory loanOrderFees = orderFees[orderList[loanParty][j+start-1]];
 
             bytes memory tmpBytes = abi.encode(
                 loanOrder.maker,
                 loanOrder.loanTokenAddress,
                 loanOrder.interestTokenAddress,
                 loanOrder.collateralTokenAddress,
-                loanOrder.feeRecipientAddress,
+                loanOrderFees.feeRecipientAddress,
                 oracleAddresses[loanOrder.oracleAddress],
                 loanOrder.loanTokenAmount,
                 loanOrder.interestAmount,
                 loanOrder.initialMarginAmount,
                 loanOrder.maintenanceMarginAmount,
-                loanOrder.lenderRelayFee,
-                loanOrder.traderRelayFee,
+                loanOrderFees.lenderRelayFee,
+                loanOrderFees.traderRelayFee,
                 loanOrder.expirationUnixTimestampSec,
                 loanOrder.loanOrderHash
             );

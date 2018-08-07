@@ -68,15 +68,17 @@ contract BZxProxy is BZxStorage, Proxiable {
         address _bZRxToken,
         address _vault,
         address _oracleregistry,
-        address _exchange0xWrapper) 
+        address _exchange0xWrapper,
+        address _exchange0xV2Wrapper) 
         public
         onlyOwner
     {
-        if (_bZRxToken != address(0) && _vault != address(0) && _oracleregistry != address(0) && _exchange0xWrapper != address(0))
+        if (_bZRxToken != address(0) && _vault != address(0) && _oracleregistry != address(0) && _exchange0xWrapper != address(0) && _exchange0xV2Wrapper != address(0))
         bZRxTokenContract = _bZRxToken;
         vaultContract = _vault;
         oracleRegistryContract = _oracleregistry;
         bZxTo0xContract = _exchange0xWrapper;
+        bZxTo0xV2Contract = _exchange0xV2Wrapper;
     }
 
     function setDebugMode (
@@ -132,6 +134,15 @@ contract BZxProxy is BZxStorage, Proxiable {
     {
         if (_wrapper != address(0))
             bZxTo0xContract = _wrapper;
+    }
+    
+    function set0xV2ExchangeWrapper (
+        address _wrapper)
+        public
+        onlyOwner
+    {
+        if (_wrapper != address(0))
+            bZxTo0xV2Contract = _wrapper;
     }
 
     /*

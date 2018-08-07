@@ -32,6 +32,7 @@ var addresses = {
 	"BZxProxy": "unknown",
 	"BZxVault": "unknown",
 	"BZxTo0x": "unknown",
+	"BZxTo0xV2": "unknown",
 	"BZxOracle": "unknown",
 	"BZRxToken": "unknown",
 	"TokenRegistry": "unknown",

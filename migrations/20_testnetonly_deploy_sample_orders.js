@@ -227,7 +227,7 @@ module.exports = function(deployer, network, accounts) {
 				{from: trader2_account, gas: 1000000, gasPrice: web3.toWei(20, "gwei")}));
 
 				OrderParams_0x = {
-					"exchangeContractAddress": config["addresses"]["development"]["ZeroEx"]["Exchange"],
+					"exchangeContractAddress": config["addresses"]["development"]["ZeroEx"]["ExchangeV1"],
 					"expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
 					"feeRecipient": NULL_ADDRESS, //"0x1230000000000000000000000000000000000000",
 					"maker": makerOf0xOrder_account,

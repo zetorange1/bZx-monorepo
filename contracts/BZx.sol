@@ -1,8 +1,10 @@
 /* solhint-disable func-order, separate-by-one-line-in-contract */
 
 pragma solidity 0.4.24;
+pragma experimental ABIEncoderV2;
 
 import "./modules/BZxStorage.sol";
+import "./ZeroEx/ExchangeV2Interface.sol";
 
 // This interface is meant to used with the deployed BZxProxy contract (modules/BZxProxyContracts.sol) address.
 // js example: var bZx = await BZx.at((await BZxProxy.deployed()).address);
@@ -125,6 +127,13 @@ contract BZx is BZxStorage {
         bytes orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated
         bytes signature0x) // ECDSA of the 0x order
         external
+        returns (uint);
+
+    function tradePositionWith0xV2(
+        bytes32 loanOrderHash,
+        ExchangeV2Interface.OrderV2[] memory orders0x,
+        bytes[] memory signatures0x)
+        public
         returns (uint);
 
     function tradePositionWithOracle(
