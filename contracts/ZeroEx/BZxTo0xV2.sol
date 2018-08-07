@@ -20,6 +20,8 @@ contract BZxTo0xV2 is EIP20Wrapper, BZxOwnable {
         uint256 takerFeePaid
     );
 
+    bool public DEBUG = false;
+    
     address public exchangeV2Contract;
     address public zrxTokenContract;
     address public erc20ProxyContract;
@@ -160,6 +162,14 @@ contract BZxTo0xV2 is EIP20Wrapper, BZxOwnable {
         return true;
     }
 
+    function toggleDebug (
+        bool isDebug)
+        public
+        onlyOwner
+    {
+        DEBUG = isDebug;
+    }
+
     function _take0xV2Trade(
         address trader,
         address sourceTokenAddress,
@@ -213,12 +223,14 @@ contract BZxTo0xV2 is EIP20Wrapper, BZxOwnable {
                 signatures0x[0]);
         }
 
-        emit LogFillResults(
-            fillResults.makerAssetFilledAmount,
-            fillResults.takerAssetFilledAmount,
-            fillResults.makerFeePaid,
-            fillResults.takerFeePaid
-        );
+        if (DEBUG) {
+            emit LogFillResults(
+                fillResults.makerAssetFilledAmount,
+                fillResults.takerAssetFilledAmount,
+                fillResults.makerFeePaid,
+                fillResults.takerFeePaid
+            );
+        }
 
         sourceTokenUsedAmount = fillResults.takerAssetFilledAmount;
         destTokenAmount = fillResults.makerAssetFilledAmount;

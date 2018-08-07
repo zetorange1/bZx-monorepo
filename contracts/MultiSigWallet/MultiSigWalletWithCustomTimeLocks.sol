@@ -108,6 +108,10 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
         customTimeLockFunctions.push("toggleTargetPause(string,bool)");
         customTimeLocks[0x48fcc6db].isSet = true;
         customTimeLocks[0x48fcc6db].secondsTimeLocked = 0;
+
+        customTimeLockFunctions.push("toggleDebug(bool)");
+        customTimeLocks[0x4491645b].isSet = true;
+        customTimeLocks[0x4491645b].secondsTimeLocked = 0;
     }
 
     /// @dev Changes the default duration of the time lock for transactions.
