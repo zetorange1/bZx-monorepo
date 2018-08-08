@@ -1,14 +1,14 @@
 import { pathOr } from "ramda";
 import { expectPromiEvent } from "../../core/__tests__/utils";
-import B0xJS from "../../core/index";
-import b0xJS from "../../core/__tests__/setup";
+import BZxJS from "../../core/index";
+import bZxJS from "../../core/__tests__/setup";
 import Accounts from "../../core/__tests__/accounts";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 import * as TradeTestUtils from "./utils";
 import * as TradeTestUtilsOrder0x from "./utils-order0x";
 
 describe("trade", () => {
-  const { web3 } = b0xJS;
+  const { web3 } = bZxJS;
 
   const { order0xToken } = TradeTestUtils.initAllContractInstances();
   const {
@@ -36,16 +36,16 @@ describe("trade", () => {
       transferAmount: web3.utils.toWei("500", "ether")
     });
 
-    const orderB0x = FillTestUtils.makeOrderAsLender({
+    const orderBZx = FillTestUtils.makeOrderAsLender({
       web3,
       lenders,
       loanTokens,
       interestTokens
     });
-    const orderHashBZx = B0xJS.getLoanOrderHashHex(orderB0x);
-    const signatureB0x = await b0xJS.signOrderHashAsync(
+    const orderHashBZx = BZxJS.getLoanOrderHashHex(orderBZx);
+    const signatureBZx = await bZxJS.signOrderHashAsync(
       orderHashBZx,
-      orderB0x.makerAddress
+      orderBZx.makerAddress
     );
 
     const takerAddress = traders[0];
@@ -56,9 +56,9 @@ describe("trade", () => {
     };
 
     const loanTokenAmountFilled = web3.utils.toWei("12.3");
-    // b0x hash that we give to tradePositionWith0x must belong to a loan that was previously filled, so we fill the loan order here
-    takeLoanOrderAsTraderReceipt = await b0xJS.takeLoanOrderAsTrader(
-      { ...orderB0x, signature: signatureB0x },
+    // bZx hash that we give to tradePositionWith0x must belong to a loan that was previously filled, so we fill the loan order here
+    takeLoanOrderAsTraderReceipt = await bZxJS.takeLoanOrderAsTrader(
+      { ...orderBZx, signature: signatureBZx },
       collateralTokens[0].options.address.toLowerCase(),
       loanTokenAmountFilled,
       txOpts
@@ -69,11 +69,11 @@ describe("trade", () => {
         web3,
         makerAddress: makerOf0xOrder,
         makerTokenAddress: order0xToken.options.address.toLowerCase(),
-        takerTokenAddress: orderB0x.loanTokenAddress
+        takerTokenAddress: orderBZx.loanTokenAddress
       }
     );
 
-    tradePositionWith0xPromiEvent = b0xJS.tradePositionWith0x({
+    tradePositionWith0xPromiEvent = bZxJS.tradePositionWith0x({
       order0x: order0xWithSignature,
       orderHashBZx,
       txOpts

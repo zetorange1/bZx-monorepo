@@ -6,7 +6,7 @@ exports.ValidatorResult = jsonschema_1.ValidatorResult;
 
 const basic_type_schemas_1 = require("@0xproject/json-schemas/lib/schemas/basic_type_schemas.js");
 const ec_signature_schema_1 = require("@0xproject/json-schemas/lib/schemas/ec_signature_schema.js");
-const order_schemas_1 = require("./b0x_order_schemas.js");
+const order_schemas_1 = require("./bZx_order_schemas.js");
 
 exports.schemas = {
   numberSchema: basic_type_schemas_1.numberSchema,

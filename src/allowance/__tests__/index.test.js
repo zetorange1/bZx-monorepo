@@ -2,7 +2,7 @@ import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
 import { pathOr } from "ramda";
 import { local as Contracts } from "../../contracts";
-import b0xJS from "../../core/__tests__/setup";
+import bZxJS from "../../core/__tests__/setup";
 import Accounts from "../../core/__tests__/accounts";
 import { expectPromiEvent } from "../../core/__tests__/utils";
 
@@ -11,7 +11,7 @@ describe("allowance", () => {
   const ownerAddress = Accounts[0].address;
 
   const resetAllowance = async () => {
-    await b0xJS.setAllowance({
+    await bZxJS.setAllowance({
       tokenAddress,
       ownerAddress,
       amountInBaseUnits: new BigNumber(0)
@@ -25,7 +25,7 @@ describe("allowance", () => {
     const ALLOWANCE_AMOUNT = new BigNumber(436);
 
     test("should return receipt with Approval event", async () => {
-      const receipt = await b0xJS.setAllowance({
+      const receipt = await bZxJS.setAllowance({
         tokenAddress,
         ownerAddress,
         amountInBaseUnits: ALLOWANCE_AMOUNT
@@ -41,7 +41,7 @@ describe("allowance", () => {
     });
 
     test("should return a web3 PromiEvent", async () => {
-      const promiEvent = b0xJS.setAllowance({
+      const promiEvent = bZxJS.setAllowance({
         tokenAddress,
         ownerAddress,
         amountInBaseUnits: ALLOWANCE_AMOUNT
@@ -52,14 +52,14 @@ describe("allowance", () => {
     test("should set spender's allowance", async () => {
       const expectedAllowance = ALLOWANCE_AMOUNT;
 
-      await b0xJS.setAllowance({
+      await bZxJS.setAllowance({
         tokenAddress,
         ownerAddress,
 
         amountInBaseUnits: ALLOWANCE_AMOUNT
       });
 
-      const allowance = await b0xJS.getAllowance({
+      const allowance = await bZxJS.getAllowance({
         tokenAddress,
         ownerAddress
       });
@@ -72,12 +72,12 @@ describe("allowance", () => {
     test("should set spender's allowance to maximum value of uint", async () => {
       const expectedAllowance = constants.UNLIMITED_ALLOWANCE_IN_BASE_UNITS;
 
-      await b0xJS.setAllowanceUnlimited({
+      await bZxJS.setAllowanceUnlimited({
         tokenAddress,
         ownerAddress
       });
 
-      const allowance = await b0xJS.getAllowance({
+      const allowance = await bZxJS.getAllowance({
         tokenAddress,
         ownerAddress
       });
@@ -86,7 +86,7 @@ describe("allowance", () => {
     });
 
     test("should return a web3 PromiEvent", async () => {
-      const promiEvent = b0xJS.setAllowanceUnlimited({
+      const promiEvent = bZxJS.setAllowanceUnlimited({
         tokenAddress,
         ownerAddress
       });
@@ -96,7 +96,7 @@ describe("allowance", () => {
 
   describe("getAllowance", () => {
     test("should return allowance", async () => {
-      const res = await b0xJS.getAllowance({
+      const res = await bZxJS.getAllowance({
         tokenAddress,
         ownerAddress
       });
@@ -107,17 +107,17 @@ describe("allowance", () => {
 
   describe("resetAllowance", () => {
     test("should reset allowance", async () => {
-      await b0xJS.setAllowanceUnlimited({
+      await bZxJS.setAllowanceUnlimited({
         tokenAddress,
         ownerAddress
       });
 
-      await b0xJS.resetAllowance({
+      await bZxJS.resetAllowance({
         tokenAddress,
         ownerAddress
       });
 
-      const res = await b0xJS.getAllowance({
+      const res = await bZxJS.getAllowance({
         tokenAddress,
         ownerAddress
       });
@@ -126,7 +126,7 @@ describe("allowance", () => {
     });
 
     test("should return a web3 PromiEvent", async () => {
-      const promiEvent = b0xJS.resetAllowance({
+      const promiEvent = bZxJS.resetAllowance({
         tokenAddress,
         ownerAddress
       });

@@ -2,11 +2,11 @@
 
 exports[`config should use default config when config arg not provided 1`] = `
 Object {
-  "B0x": "0x8726c7414ac023d23348326b47af3205185fd035",
-  "B0xOracle": "0x0d8b0dd11f5d34ed41d556def5f841900d5b1c6b",
-  "B0xTo0x": "0x32eecaf51dfea9618e9bc94e9fbfddb1bbdcba15",
-  "B0xToken": "0x04b5dadd2c0d6a261bfafbc964e0cac48585def3",
-  "B0xVault": "0xb7c9b454221e26880eb9c3101b3295ca7d8279ef",
+  "BZx": "0x8726c7414ac023d23348326b47af3205185fd035",
+  "BZxOracle": "0x0d8b0dd11f5d34ed41d556def5f841900d5b1c6b",
+  "BZxTo0x": "0x32eecaf51dfea9618e9bc94e9fbfddb1bbdcba15",
+  "BZxToken": "0x04b5dadd2c0d6a261bfafbc964e0cac48585def3",
+  "BZxVault": "0xb7c9b454221e26880eb9c3101b3295ca7d8279ef",
   "EIP20": "",
   "OracleInterface": "",
   "OracleRegistry": "0x6000eca38b8b5bba64986182fe2a69c57f6b5414",
@@ -27,11 +27,11 @@ Object {
 
 exports[`config should use provided config 1`] = `
 Object {
-  "B0x": "thisisatest",
-  "B0xOracle": "thisisatest",
-  "B0xTo0x": "thisisatest",
-  "B0xToken": "thisisatest",
-  "B0xVault": "thisisatest",
+  "BZx": "thisisatest",
+  "BZxOracle": "thisisatest",
+  "BZxTo0x": "thisisatest",
+  "BZxToken": "thisisatest",
+  "BZxVault": "thisisatest",
   "EIP20": "thisisatest",
   "OracleInterface": "thisisatest",
   "OracleRegistry": "thisisatest",

@@ -1,9 +1,9 @@
 import { pathOr } from "ramda";
-import B0xJS from "../../core";
-import b0xJS from "../../core/__tests__/setup";
+import BZxJS from "../../core";
+import bZxJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 
-const { web3 } = b0xJS;
+const { web3 } = bZxJS;
 
 describe("loanHealth", () => {
   describe("getProfitOrLoss", () => {
@@ -34,9 +34,9 @@ describe("loanHealth", () => {
         loanTokens,
         interestTokens
       });
-      loanOrderHash = B0xJS.getLoanOrderHashHex(order);
+      loanOrderHash = BZxJS.getLoanOrderHashHex(order);
 
-      const signature = await b0xJS.signOrderHashAsync(
+      const signature = await bZxJS.signOrderHashAsync(
         loanOrderHash,
         order.makerAddress
       );
@@ -46,8 +46,8 @@ describe("loanHealth", () => {
         gasPrice: web3.utils.toWei("5", "gwei").toString()
       };
       const loanTokenAmountFilled = web3.utils.toWei("12.3");
-      // b0x hash that we give to tradePositionWith0x must belong to a loan that was previously filled, so we fill the loan order here
-      const takeLoanOrderAsTraderReceipt = await b0xJS.takeLoanOrderAsTrader(
+      // bZx hash that we give to tradePositionWith0x must belong to a loan that was previously filled, so we fill the loan order here
+      const takeLoanOrderAsTraderReceipt = await bZxJS.takeLoanOrderAsTrader(
         { ...order, signature },
         collateralTokenFilled,
         loanTokenAmountFilled,
@@ -60,7 +60,7 @@ describe("loanHealth", () => {
     });
 
     test("should retrieve profit or loss successfully", async () => {
-      const data = await b0xJS.getProfitOrLoss({
+      const data = await bZxJS.getProfitOrLoss({
         loanOrderHash,
         trader: traders[0]
       });

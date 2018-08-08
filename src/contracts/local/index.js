@@ -1,8 +1,8 @@
-import B0x from "../../../../protocol_contracts/test_network/deployed/BZx.json";
-import B0xOracle from "../../../../protocol_contracts/test_network/deployed/BZxOracle.json";
-import B0xTo0x from "../../../../protocol_contracts/test_network/deployed/BZxTo0x.json";
-import B0xToken from "../../../../protocol_contracts/test_network/deployed/BZRxToken.json";
-import B0xVault from "../../../../protocol_contracts/test_network/deployed/BZxVault.json";
+import BZx from "../../../../protocol_contracts/test_network/deployed/BZx.json";
+import BZxOracle from "../../../../protocol_contracts/test_network/deployed/BZxOracle.json";
+import BZxTo0x from "../../../../protocol_contracts/test_network/deployed/BZxTo0x.json";
+import BZxToken from "../../../../protocol_contracts/test_network/deployed/BZRxToken.json";
+import BZxVault from "../../../../protocol_contracts/test_network/deployed/BZxVault.json";
 import EIP20 from "../../../../protocol_contracts/test_network/deployed/EIP20.json";
 import OracleRegistry from "../../../../protocol_contracts/test_network/deployed/OracleRegistry.json";
 import TestToken0 from "../../../../protocol_contracts/test_network/deployed/TestToken0.json";
@@ -20,11 +20,11 @@ import OracleInterface from "../../../../protocol_contracts/test_network/deploye
 import TestNetFaucet from "../../../../protocol_contracts/test_network/deployed/TestNetFaucet.json";
 
 export default {
-  B0x,
-  B0xOracle,
-  B0xTo0x,
-  B0xToken,
-  B0xVault,
+  BZx,
+  BZxOracle,
+  BZxTo0x,
+  BZxToken,
+  BZxVault,
   EIP20,
   OracleRegistry,
   TestToken0,

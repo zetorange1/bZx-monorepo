@@ -7,13 +7,13 @@ export const getSingleOrder = async (
   { web3, networkId },
   { loanOrderHash }
 ) => {
-  const b0xContract = await CoreUtils.getContractInstance(
+  const bZxContract = await CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    Addresses.getAddresses(networkId).B0x
+    getContracts(networkId).BZx.abi,
+    Addresses.getAddresses(networkId).BZx
   );
 
-  const data = await b0xContract.methods
+  const data = await bZxContract.methods
     .getSingleOrder(loanOrderHash)
     .call();
 
@@ -27,13 +27,13 @@ export const getOrders = async (
   { web3, networkId },
   { loanPartyAddress, start, count }
 ) => {
-  const b0xContract = await CoreUtils.getContractInstance(
+  const bZxContract = await CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    Addresses.getAddresses(networkId).B0x
+    getContracts(networkId).BZx.abi,
+    Addresses.getAddresses(networkId).BZx
   );
 
-  const data = await b0xContract.methods
+  const data = await bZxContract.methods
     .getOrders(loanPartyAddress, start, count)
     .call();
 

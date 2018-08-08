@@ -1,13 +1,13 @@
 import Web3 from "web3";
-import B0xJS from "../../core";
+import BZxJS from "../../core";
 
 describe("config", () => {
   test("should use default config when config arg not provided", () => {
     const networkUrl = "http://localhost:8545";
     const provider = new Web3.providers.HttpProvider(networkUrl);
-    const b0xJS = new B0xJS(provider, { networkId: 50 });
+    const bZxJS = new BZxJS(provider, { networkId: 50 });
 
-    expect(b0xJS.addresses).toMatchSnapshot();
+    expect(bZxJS.addresses).toMatchSnapshot();
   });
 
   test("should use provided config", () => {
@@ -16,11 +16,11 @@ describe("config", () => {
     const config = {
       networkId: 50,
       addresses: {
-        B0x: "thisisatest",
-        B0xOracle: "thisisatest",
-        B0xTo0x: "thisisatest",
-        B0xToken: "thisisatest",
-        B0xVault: "thisisatest",
+        BZx: "thisisatest",
+        BZxOracle: "thisisatest",
+        BZxTo0x: "thisisatest",
+        BZxToken: "thisisatest",
+        BZxVault: "thisisatest",
         EIP20: "thisisatest",
         OracleRegistry: "thisisatest",
         OracleInterface: "thisisatest",
@@ -38,8 +38,8 @@ describe("config", () => {
       }
     };
 
-    const b0xJS = new B0xJS(provider, config);
+    const bZxJS = new BZxJS(provider, config);
 
-    expect(b0xJS.addresses).toMatchSnapshot();
+    expect(bZxJS.addresses).toMatchSnapshot();
   });
 });

@@ -1,8 +1,8 @@
 {
-  "name": "b0x.js",
+  "name": "bZx.js",
   "version": "0.1.0",
   "private": true,
-  "main": "dist/b0x.js",
+  "main": "dist/bZx.js",
   "scripts": {
     "test": "cross-env NODE_ENV=development jest -i",
     "lint": "eslint src test",

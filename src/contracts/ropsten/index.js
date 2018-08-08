@@ -1,8 +1,8 @@
-import B0x from "./BZx.json";
-import B0xOracle from "./BZxOracle.json";
-import B0xTo0x from "./BZxTo0x.json";
-import B0xToken from "./BZRxToken.json";
-import B0xVault from "./BZxVault.json";
+import BZx from "./BZx.json";
+import BZxOracle from "./BZxOracle.json";
+import BZxTo0x from "./BZxTo0x.json";
+import BZxToken from "./BZRxToken.json";
+import BZxVault from "./BZxVault.json";
 import EIP20 from "./EIP20.json";
 import OracleRegistry from "./OracleRegistry.json";
 import TokenRegistry from "./TokenRegistry.json";
@@ -14,11 +14,11 @@ import WETH from "./WETH.json";
 import TokenTransferProxy from "./TokenTransferProxy.json";
 
 export default {
-  B0x,
-  B0xOracle,
-  B0xTo0x,
-  B0xToken,
-  B0xVault,
+  BZx,
+  BZxOracle,
+  BZxTo0x,
+  BZxToken,
+  BZxVault,
   EIP20,
   OracleRegistry,
   TokenRegistry,

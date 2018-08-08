@@ -1,5 +1,5 @@
 import { clone, pathOr } from "ramda";
-import b0xJS from "../../core/__tests__/setup";
+import bZxJS from "../../core/__tests__/setup";
 import { protocol } from "../../../../config/secrets";
 import * as CoreUtils from "../../core/utils";
 import { local as Contracts } from "../../contracts";
@@ -13,7 +13,7 @@ const setupOrder0xToken = async ({
   ownerTxOpts
 }) => {
   const doesTokenTransferProxyExist = await CoreUtils.doesContractExistAtAddress(
-    b0xJS.web3,
+    bZxJS.web3,
     zxConstants.TokenTransferProxy.toLowerCase()
   );
   if (!doesTokenTransferProxyExist)
@@ -23,7 +23,7 @@ const setupOrder0xToken = async ({
     order0xToken.methods
       .transfer(makerOf0xOrder, transferAmount)
       .send(clone(ownerTxOpts)),
-    b0xJS.setAllowanceUnlimited({
+    bZxJS.setAllowanceUnlimited({
       tokenAddress: order0xToken.options.address.toLowerCase(),
       ownerAddress: makerOf0xOrder,
       spenderAddress: zxConstants.TokenTransferProxy.toLowerCase()
@@ -35,7 +35,7 @@ const setupOrder0xToken = async ({
 
 export const initAllContractInstances = () => {
   const order0xToken = CoreUtils.getContractInstance(
-    b0xJS.web3,
+    bZxJS.web3,
     Contracts.TestToken7.abi,
     Contracts.TestToken7.address
   );
@@ -48,7 +48,7 @@ export const setupAll = async ({ owner, makerOf0xOrder, transferAmount }) => {
   const { order0xToken } = initAllContractInstances();
 
   const doesOrder0xTokenExist = await CoreUtils.doesContractExistAtAddress(
-    b0xJS.web3,
+    bZxJS.web3,
     order0xToken.options.address.toLowerCase()
   );
   if (!doesOrder0xTokenExist)

@@ -6,12 +6,12 @@ export const getActiveLoans = async (
   { web3, networkId, addresses },
   { start, count }
 ) => {
-  const b0xContract = CoreUtils.getContractInstance(
+  const bZxContract = CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    addresses.B0x
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
   );
-  const data = await b0xContract.methods.getActiveLoans(start, count).call();
+  const data = await bZxContract.methods.getActiveLoans(start, count).call();
   return ActiveLoansUtils.cleanData(data);
 };
 
@@ -19,12 +19,12 @@ export const getMarginLevels = async (
   { web3, networkId, addresses },
   { loanOrderHash, trader }
 ) => {
-  const b0xContract = CoreUtils.getContractInstance(
+  const bZxContract = CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    addresses.B0x
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
   );
-  const data = await b0xContract.methods
+  const data = await bZxContract.methods
     .getMarginLevels(loanOrderHash, trader)
     .call();
   return {
@@ -38,13 +38,13 @@ export const liquidateLoan = (
   { web3, networkId, addresses },
   { loanOrderHash, trader, getObject, txOpts }
 ) => {
-  const b0xContract = CoreUtils.getContractInstance(
+  const bZxContract = CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    addresses.B0x
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
   );
 
-  const txObj = b0xContract.methods
+  const txObj = bZxContract.methods
     .liquidatePosition(loanOrderHash, trader);
 
   if (getObject) {

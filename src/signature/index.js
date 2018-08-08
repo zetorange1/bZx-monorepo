@@ -104,17 +104,17 @@ export const isValidSignatureAsync = async (
   { web3, networkId },
   { account, orderHash, signature }
 ) => {
-  const b0xContract = await CoreUtils.getContractInstance(
+  const bZxContract = await CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    Addresses.getAddresses(networkId).B0x
+    getContracts(networkId).BZx.abi,
+    Addresses.getAddresses(networkId).BZx
   );
 
   // hack to support 0x v2 EthSign SignatureType format
-  // b0x requires SignatureType ending
+  // bZx requires SignatureType ending
   signature = signature.substr(0, 132) + SignatureTypeStr.EthSign; // eslint-disable-line no-param-reassign
 
-  return b0xContract.methods
+  return bZxContract.methods
     .isValidSignature(account, orderHash, signature)
     .call();
 };

@@ -3,7 +3,7 @@ import { assert } from "@0xproject/assert";
 import { constants } from "0x.js/lib/src/utils/constants";
 import BN from "bn.js";
 import Web3Utils from "web3-utils";
-import { SchemaValidator } from "../../schemas/b0x_json_schemas";
+import { SchemaValidator } from "../../schemas/bZx_json_schemas";
 import { getContracts } from "../../contracts";
 import * as Addresses from "../../addresses";
 
@@ -84,7 +84,7 @@ export const getLoanOrderHashHex = order => {
   const { orderAddresses, orderValues } = getLoanOrderHashArgs(order, true);
 
   const orderHashHex = Web3Utils.soliditySha3(
-    { t: "address", v: order.b0xAddress },
+    { t: "address", v: order.bZxAddress },
     { t: "address[6]", v: orderAddresses },
     { t: "uint256[9]", v: orderValues }
   );
@@ -93,12 +93,12 @@ export const getLoanOrderHashHex = order => {
 
 export const getLoanOrderHashAsync = async ({ web3, networkId }, order) => {
   const { orderAddresses, orderValues } = getLoanOrderHashArgs(order, false);
-  const b0xContract = await getContractInstance(
+  const bZxContract = await getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    Addresses.getAddresses(networkId).B0x
+    getContracts(networkId).BZx.abi,
+    Addresses.getAddresses(networkId).BZx
   );
-  return b0xContract.methods
+  return bZxContract.methods
     .getLoanOrderHash(orderAddresses, orderValues)
     .call();
 };

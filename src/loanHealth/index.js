@@ -5,13 +5,13 @@ export const changeCollateral = (
   { web3, networkId, addresses },
   { loanOrderHash, collateralTokenFilled, getObject, txOpts }
 ) => {
-  const b0xContract = CoreUtils.getContractInstance(
+  const bZxContract = CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    addresses.B0x
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
   );
 
-  const txObj = b0xContract.methods
+  const txObj = bZxContract.methods
     .changeCollateral(loanOrderHash, collateralTokenFilled);
 
   if (getObject) {
@@ -24,13 +24,13 @@ export const depositCollateral = (
   { web3, networkId, addresses },
   { loanOrderHash, collateralTokenFilled, depositAmount, getObject, txOpts }
 ) => {
-  const b0xContract = CoreUtils.getContractInstance(
+  const bZxContract = CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    addresses.B0x
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
   );
 
-  const txObj = b0xContract.methods
+  const txObj = bZxContract.methods
     .depositCollateral(
       loanOrderHash,
       collateralTokenFilled,
@@ -47,13 +47,13 @@ export const withdrawExcessCollateral = (
   { web3, networkId, addresses },
   { loanOrderHash, collateralTokenFilled, withdrawAmount, getObject, txOpts }
 ) => {
-  const b0xContract = CoreUtils.getContractInstance(
+  const bZxContract = CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    addresses.B0x
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
   );
 
-  const txObj = b0xContract.methods
+  const txObj = bZxContract.methods
     .withdrawExcessCollateral(
       loanOrderHash,
       collateralTokenFilled,
@@ -70,13 +70,13 @@ export const payInterest = (
   { web3, networkId, addresses },
   { loanOrderHash, trader, getObject, txOpts }
 ) => {
-  const b0xContract = CoreUtils.getContractInstance(
+  const bZxContract = CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    addresses.B0x
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
   );
 
-  const txObj = b0xContract.methods
+  const txObj = bZxContract.methods
     .payInterest(loanOrderHash, trader);
 
   if (getObject) {
@@ -89,13 +89,13 @@ export const closeLoan = (
   { web3, networkId, addresses },
   { loanOrderHash, getObject, txOpts }
 ) => {
-  const b0xContract = CoreUtils.getContractInstance(
+  const bZxContract = CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    addresses.B0x
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
   );
 
-  const txObj = b0xContract.methods
+  const txObj = bZxContract.methods
     .closeLoan(loanOrderHash);
 
   if (getObject) {
@@ -108,13 +108,13 @@ export const withdrawProfit = (
   { web3, networkId, addresses },
   { loanOrderHash, getObject, txOpts }
 ) => {
-  const b0xContract = CoreUtils.getContractInstance(
+  const bZxContract = CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    addresses.B0x
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
   );
 
-  const txObj = b0xContract.methods
+  const txObj = bZxContract.methods
     .withdrawProfit(loanOrderHash);
 
   if (getObject) {
@@ -127,13 +127,13 @@ export const getProfitOrLoss = async (
   { web3, networkId, addresses },
   { loanOrderHash, trader }
 ) => {
-  const b0xContract = await CoreUtils.getContractInstance(
+  const bZxContract = await CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    addresses.B0x
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
   );
 
-  const data = await b0xContract.methods
+  const data = await bZxContract.methods
     .getProfitOrLoss(loanOrderHash, trader)
     .call();
 

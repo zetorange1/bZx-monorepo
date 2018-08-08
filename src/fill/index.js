@@ -17,10 +17,10 @@ export const takeLoanOrderAsLender = (
   ) => {
   checkForValidSignature(order);
 
-  const b0xContract = CoreUtils.getContractInstance(
+  const bZxContract = CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    Addresses.getAddresses(networkId).B0x
+    getContracts(networkId).BZx.abi,
+    Addresses.getAddresses(networkId).BZx
   );
 
   const orderAddresses = [
@@ -44,7 +44,7 @@ export const takeLoanOrderAsLender = (
     order.salt
   ];
 
-  const txObj = b0xContract.methods.takeLoanOrderAsLender(
+  const txObj = bZxContract.methods.takeLoanOrderAsLender(
     orderAddresses,
     orderValues,
     order.signature
@@ -63,10 +63,10 @@ export const takeLoanOrderAsTrader = (
 ) => {
   checkForValidSignature(order);
 
-  const b0xContract = CoreUtils.getContractInstance(
+  const bZxContract = CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    Addresses.getAddresses(networkId).B0x
+    getContracts(networkId).BZx.abi,
+    Addresses.getAddresses(networkId).BZx
   );
 
   const orderAddresses = [
@@ -90,7 +90,7 @@ export const takeLoanOrderAsTrader = (
     order.salt
   ];
 
-  const txObj = b0xContract.methods.takeLoanOrderAsTrader(
+  const txObj = bZxContract.methods.takeLoanOrderAsTrader(
     orderAddresses,
     orderValues,
     collateralTokenAddress,
@@ -113,14 +113,14 @@ export const getInitialCollateralRequired = async (
   loanTokenAmountFilled,
   initialMarginAmount
 ) => {
-  const b0xContract = await CoreUtils.getContractInstance(
+  const bZxContract = await CoreUtils.getContractInstance(
     web3,
-    getContracts(networkId).B0x.abi,
-    Addresses.getAddresses(networkId).B0x
+    getContracts(networkId).BZx.abi,
+    Addresses.getAddresses(networkId).BZx
   );
   let initialCollateralRequired = null;
   try {
-    initialCollateralRequired = await b0xContract.methods
+    initialCollateralRequired = await bZxContract.methods
       .getInitialCollateralRequired(
         loanTokenAddress,
         collateralTokenAddress,

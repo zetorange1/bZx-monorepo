@@ -1,11 +1,11 @@
 import { pathOr, pipe } from "ramda";
-import B0xJS from "../../core/index";
-import b0xJS from "../../core/__tests__/setup";
+import BZxJS from "../../core/index";
+import bZxJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 import * as CoreTestUtils from "../../core/__tests__/utils";
 
 describe("trade", () => {
-  const { web3 } = b0xJS;
+  const { web3 } = bZxJS;
   const {
     loanTokens,
     interestTokens,
@@ -39,22 +39,22 @@ describe("trade", () => {
       loanTokens,
       interestTokens
     });
-    orderHash = B0xJS.getLoanOrderHashHex(order);
+    orderHash = BZxJS.getLoanOrderHashHex(order);
 
-    // b0x hash that we give to tradePositionWith0x must belong to a loan that was previously filled, so we fill the loan order here
-    const signature = await b0xJS.signOrderHashAsync(
+    // bZx hash that we give to tradePositionWith0x must belong to a loan that was previously filled, so we fill the loan order here
+    const signature = await bZxJS.signOrderHashAsync(
       orderHash,
       order.makerAddress
     );
     const loanTokenAmountFilled = web3.utils.toWei("12.3");
-    takeLoanOrderAsTraderReceipt = await b0xJS.takeLoanOrderAsTrader(
+    takeLoanOrderAsTraderReceipt = await bZxJS.takeLoanOrderAsTrader(
       { ...order, signature },
       collateralTokens[0].options.address.toLowerCase(),
       loanTokenAmountFilled,
       txOpts
     );
 
-    promiEvent = b0xJS.tradePositionWithOracle({
+    promiEvent = bZxJS.tradePositionWithOracle({
       orderHash,
       tradeTokenAddress: interestTokens[1].options.address.toLowerCase(),
       txOpts

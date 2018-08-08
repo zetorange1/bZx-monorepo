@@ -11,7 +11,7 @@ export const setAllowance = (
   {
     tokenAddress,
     ownerAddress,
-    spenderAddress = Addresses.getAddresses(networkId).B0xVault,
+    spenderAddress = Addresses.getAddresses(networkId).BZxVault,
     amountInBaseUnits,
     getObject,
     txOpts
@@ -33,7 +33,7 @@ export const setAllowance = (
 
   if (getObject) {
     return txObj;
-  } 
+  }
     return txObj.send(txOpts);
 };
 
@@ -42,7 +42,7 @@ export const getAllowance = async (
   {
     tokenAddress,
     ownerAddress,
-    spenderAddress = Addresses.getAddresses(networkId).B0xVault
+    spenderAddress = Addresses.getAddresses(networkId).BZxVault
   }
 ) => {
   assert.isETHAddressHex("ownerAddress", ownerAddress);

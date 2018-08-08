@@ -1,21 +1,21 @@
 import { constants } from "0x.js/lib/src/utils/constants";
-import B0xJS from "../../core";
-import b0xJS from "../../core/__tests__/setup";
+import BZxJS from "../../core";
+import bZxJS from "../../core/__tests__/setup";
 import makeOrder from "../../core/__tests__/order";
 import { local as Contracts } from "../../contracts";
 import Accounts from "../../core/__tests__/accounts";
 import * as orderConstants from "../../core/constants/order";
 
-const { web3 } = b0xJS;
+const { web3 } = bZxJS;
 
 describe("signOrderHashAsync", () => {
   test("should sign properly", async () => {
-    const [signerAddressRaw] = await b0xJS.web3.eth.getAccounts();
+    const [signerAddressRaw] = await bZxJS.web3.eth.getAccounts();
     const signerAddress = signerAddressRaw.toLowerCase();
 
-    const orderHash = B0xJS.getLoanOrderHashHex(makeOrder());
-    const signature = await b0xJS.signOrderHashAsync(orderHash, signerAddress);
-    const isValid = B0xJS.isValidSignature({
+    const orderHash = BZxJS.getLoanOrderHashHex(makeOrder());
+    const signature = await bZxJS.signOrderHashAsync(orderHash, signerAddress);
+    const isValid = BZxJS.isValidSignature({
       account: signerAddress,
       orderHash,
       signature
@@ -26,26 +26,26 @@ describe("signOrderHashAsync", () => {
 });
 
 describe("isValidSignature", () => {
-  test("b0xJS result should matach b0x contract result", async () => {
-    const [signerAddressRaw] = await b0xJS.web3.eth.getAccounts();
+  test("bZxJS result should matach bZx contract result", async () => {
+    const [signerAddressRaw] = await bZxJS.web3.eth.getAccounts();
     const signerAddress = signerAddressRaw.toLowerCase();
 
-    const orderHash = B0xJS.getLoanOrderHashHex(makeOrder());
-    const signature = await b0xJS.signOrderHashAsync(orderHash, signerAddress);
+    const orderHash = BZxJS.getLoanOrderHashHex(makeOrder());
+    const signature = await bZxJS.signOrderHashAsync(orderHash, signerAddress);
 
-    const isValidB0xJS = B0xJS.isValidSignature({
+    const isValidBZxJS = BZxJS.isValidSignature({
       account: signerAddress,
       orderHash,
       signature
     });
 
-    const isValidB0x = await b0xJS.isValidSignatureAsync({
+    const isValidBZx = await bZxJS.isValidSignatureAsync({
       account: signerAddress,
       orderHash,
       signature
     });
 
-    expect(isValidB0xJS).toBe(isValidB0x);
+    expect(isValidBZxJS).toBe(isValidBZx);
   });
 });
 
@@ -70,12 +70,12 @@ describe("isValidSignatureAsync", () => {
       traderRelayFee: web3.utils.toWei("0.0015").toString(),
       expirationUnixTimestampSec,
       makerRole: orderConstants.MAKER_ROLE.TRADER,
-      salt: B0xJS.generatePseudoRandomSalt().toString()
+      salt: BZxJS.generatePseudoRandomSalt().toString()
     });
 
-    const orderHash = B0xJS.getLoanOrderHashHex(order);
-    const signature = await b0xJS.signOrderHashAsync(orderHash, makerAddress);
-    const res = await b0xJS.isValidSignatureAsync({
+    const orderHash = BZxJS.getLoanOrderHashHex(order);
+    const signature = await bZxJS.signOrderHashAsync(orderHash, makerAddress);
+    const res = await bZxJS.isValidSignatureAsync({
       account: makerAddress,
       orderHash,
       signature
@@ -104,15 +104,15 @@ describe("isValidSignatureAsync", () => {
       traderRelayFee: web3.utils.toWei("0.0015").toString(),
       expirationUnixTimestampSec,
       makerRole: orderConstants.MAKER_ROLE.TRADER,
-      salt: B0xJS.generatePseudoRandomSalt().toString()
+      salt: BZxJS.generatePseudoRandomSalt().toString()
     });
 
-    const orderHash = B0xJS.getLoanOrderHashHex(order);
-    const signature = await b0xJS.signOrderHashAsync(
+    const orderHash = BZxJS.getLoanOrderHashHex(order);
+    const signature = await bZxJS.signOrderHashAsync(
       orderHash,
       nonMakerAddress
     );
-    const res = await b0xJS.isValidSignatureAsync({
+    const res = await bZxJS.isValidSignatureAsync({
       account: makerAddress,
       orderHash,
       signature

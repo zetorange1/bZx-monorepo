@@ -1,7 +1,7 @@
 exports.loanOrderSchema = {
   id: "/loanOrder",
   properties: {
-    b0xAddress: { $ref: "/Address" },
+    bZxAddress: { $ref: "/Address" },
     makerAddress: { $ref: "/Address" },
     loanTokenAddress: { $ref: "/Address" },
     interestTokenAddress: { $ref: "/Address" },
@@ -19,7 +19,7 @@ exports.loanOrderSchema = {
     salt: { $ref: "/Number" }
   },
   required: [
-    "b0xAddress",
+    "bZxAddress",
     "makerAddress",
     "loanTokenAddress",
     "interestTokenAddress",

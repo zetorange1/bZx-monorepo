@@ -34,10 +34,10 @@ export const tradePositionWith0x = (
   });
 
   const contracts = getContracts(networkId);
-  const b0xContract = CoreUtils.getContractInstance(
+  const bZxContract = CoreUtils.getContractInstance(
     web3,
-    contracts.B0x.abi,
-    contracts.B0x.address
+    contracts.BZx.abi,
+    contracts.BZx.address
   );
 
   const values = [
@@ -62,7 +62,7 @@ export const tradePositionWith0x = (
   const hashBuff = ethABI.solidityPack(types, values);
   const order0xTightlyPacked = ethUtil.bufferToHex(hashBuff);
 
-  const txObj = b0xContract.methods
+  const txObj = bZxContract.methods
     .tradePositionWith0x(orderHashBZx, order0xTightlyPacked, rpcSig0x);
 
   if (getObject) {
@@ -76,13 +76,13 @@ export const tradePositionWithOracle = (
   { orderHash, tradeTokenAddress, getObject, txOpts = {} } = {}
 ) => {
   const contracts = getContracts(networkId);
-  const b0xContract = CoreUtils.getContractInstance(
+  const bZxContract = CoreUtils.getContractInstance(
     web3,
-    contracts.B0x.abi,
-    contracts.B0x.address
+    contracts.BZx.abi,
+    contracts.BZx.address
   );
 
-  const txObj = b0xContract.methods
+  const txObj = bZxContract.methods
     .tradePositionWithOracle(orderHash, tradeTokenAddress);
 
   if (getObject) {

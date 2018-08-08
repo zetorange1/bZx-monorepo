@@ -1,12 +1,12 @@
 import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
-import b0xJS from "../../core/__tests__/setup";
+import bZxJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 import makeOrder from "../../core/__tests__/order";
 import * as orderConstants from "../../core/constants/order";
-import B0xJS from "../../core";
+import BZxJS from "../../core";
 import * as OrderHistoryTestUtils from "./utils";
 
-const { web3 } = b0xJS;
+const { web3 } = bZxJS;
 
 describe("order history", () => {
   const { owner, lenders, traders } = OrderHistoryTestUtils.getAccounts();
@@ -45,17 +45,17 @@ describe("order history", () => {
       traderRelayFee: web3.utils.toWei("0.0015").toString(),
       expirationUnixTimestampSec,
       makerRole: orderConstants.MAKER_ROLE.LENDER,
-      salt: B0xJS.generatePseudoRandomSalt().toString()
+      salt: BZxJS.generatePseudoRandomSalt().toString()
     });
 
-    const orderHashHex = B0xJS.getLoanOrderHashHex(order);
-    const signature = await b0xJS.signOrderHashAsync(
+    const orderHashHex = BZxJS.getLoanOrderHashHex(order);
+    const signature = await bZxJS.signOrderHashAsync(
       orderHashHex,
       makerAddress
     );
 
     const loanTokenAmountFilled = web3.utils.toWei("12.3");
-    await b0xJS.takeLoanOrderAsTrader(
+    await bZxJS.takeLoanOrderAsTrader(
       { ...order, signature },
       collateralTokens[0].options.address.toLowerCase(),
       loanTokenAmountFilled,
@@ -73,7 +73,7 @@ describe("order history", () => {
         interestTokens
       } = FillTestUtils.initAllContractInstances();
 
-      const orders = await b0xJS.getOrders({
+      const orders = await bZxJS.getOrders({
         loanPartyAddress: traders[0],
         start: 0,
         count: 10
@@ -96,7 +96,7 @@ describe("order history", () => {
         loanTokenAmount: 1e23,
         maintenanceMarginAmount: 25,
         maker: makerAddress,
-        oracleAddress: b0xJS.addresses.B0xOracle,
+        oracleAddress: bZxJS.addresses.BZxOracle,
         orderCancelledAmount: 0,
         orderFilledAmount: 12300000000000000000,
         orderTraderCount: 1,

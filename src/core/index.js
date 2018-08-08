@@ -1,7 +1,7 @@
 import { assert } from "@0xproject/assert";
 import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
-import { schemas } from "../schemas/b0x_json_schemas";
+import { schemas } from "../schemas/bZx_json_schemas";
 import * as utils from "./utils";
 import * as tokenRegistry from "../tokenRegistry";
 import EIP20 from "../contracts/EIP20.json";
@@ -20,7 +20,7 @@ import * as weth from "../weth";
 
 const Web3 = require("web3"); // eslint-disable global-require
 
-export default class B0xJS {
+export default class BZxJS {
   static generatePseudoRandomSalt = utils.generatePseudoRandomSalt;
   static noop = utils.noop;
   static toChecksumAddress = utils.toChecksumAddress;

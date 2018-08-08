@@ -3,9 +3,9 @@ import { signatureUtils } from "0x.js/lib/src/utils/signature_utils";
 import { ZeroEx } from "0x.js";
 import { pathOr } from "ramda";
 import { protocol } from "../../../../config/secrets";
-import B0xJS from "../../core/index";
+import BZxJS from "../../core/index";
 import * as Trade0xUtils from "../utils/zeroEx";
-import b0xJS from "../../core/__tests__/setup";
+import bZxJS from "../../core/__tests__/setup";
 
 const zxConstants = pathOr(null, ["development", "ZeroEx"], protocol);
 
@@ -39,7 +39,7 @@ export const getOrder0x = ({
   },
   expiration: "2519061340",
   feeRecipient: constants.NULL_ADDRESS,
-  salt: B0xJS.generatePseudoRandomSalt().toString(),
+  salt: BZxJS.generatePseudoRandomSalt().toString(),
   exchangeContract: zxConstants.Exchange.toLowerCase(),
   networkId: 50
 });
@@ -59,7 +59,7 @@ export const getOrder0xWithSignature = async ({
   const transformedOrder0x = Trade0xUtils.transform0xOrder(order0x);
 
   const orderHash0x = ZeroEx.getOrderHashHex(transformedOrder0x);
-  const signature0x = (await b0xJS.signOrderHashAsync(
+  const signature0x = (await bZxJS.signOrderHashAsync(
     orderHash0x,
     transformedOrder0x.maker
   )).substr(0, 132);

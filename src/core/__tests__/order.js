@@ -26,7 +26,7 @@ export default ({
   makerRole = constants.MAKER_ROLE.LENDER,
   salt = "2019429563929979"
 } = {}) => ({
-  b0xAddress: Contracts.B0x.address,
+  bZxAddress: Contracts.BZx.address,
   makerAddress,
 
   // addresses
@@ -34,7 +34,7 @@ export default ({
   interestTokenAddress,
   collateralTokenAddress,
   feeRecipientAddress,
-  oracleAddress: Contracts.B0xOracle.address,
+  oracleAddress: Contracts.BZxOracle.address,
 
   // token amounts
   loanTokenAmount,

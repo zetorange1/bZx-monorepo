@@ -1,8 +1,8 @@
 import { clone } from "ramda";
 import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
 import { local as Contracts } from "../../contracts";
-import b0xJS from "../../core/__tests__/setup";
-import B0xJS from "../../core/index";
+import bZxJS from "../../core/__tests__/setup";
+import BZxJS from "../../core/index";
 import * as utils from "../../core/utils";
 import Accounts from "../../core/__tests__/accounts";
 import * as UnlockUtils from "../../core/__tests__/unlock";
@@ -11,12 +11,12 @@ import * as orderConstants from "../../core/constants/order";
 
 export const getContractInstances = contracts =>
   contracts.map(contract =>
-    utils.getContractInstance(b0xJS.web3, contract.abi, contract.address)
+    utils.getContractInstance(bZxJS.web3, contract.abi, contract.address)
   );
 
 export const unlockAllAccounts = () => {
   const promises = Accounts.map(account =>
-    UnlockUtils.unlock(b0xJS.web3, account)
+    UnlockUtils.unlock(bZxJS.web3, account)
   );
   return Promise.all(promises);
 };
@@ -30,17 +30,17 @@ export const initAllContractInstances = () => {
   const collateralTokens = getContractInstances(collateralTokenContracts);
   const interestTokens = getContractInstances(interestTokenContracts);
 
-  const b0xToken = utils.getContractInstance(
-    b0xJS.web3,
-    Contracts.B0xToken.abi,
-    Contracts.B0xToken.address
+  const bZxToken = utils.getContractInstance(
+    bZxJS.web3,
+    Contracts.BZxToken.abi,
+    Contracts.BZxToken.address
   );
 
-  return { loanTokens, collateralTokens, interestTokens, b0xToken };
+  return { loanTokens, collateralTokens, interestTokens, bZxToken };
 };
 
-export const setupB0xToken = async ({
-  b0xToken,
+export const setupBZxToken = async ({
+  bZxToken,
   lenders,
   traders,
   transferAmount,
@@ -48,18 +48,18 @@ export const setupB0xToken = async ({
 }) => {
   const allAddresses = [...lenders, ...traders];
 
-  const b0xTokenPromises = allAddresses.map(address =>
-    b0xToken.methods.transfer(address, transferAmount).send(clone(ownerTxOpts))
+  const bZxTokenPromises = allAddresses.map(address =>
+    bZxToken.methods.transfer(address, transferAmount).send(clone(ownerTxOpts))
   );
   const allowancePromises = allAddresses.map(address =>
-    b0xJS.setAllowanceUnlimited({
-      tokenAddress: Contracts.B0xToken.address,
+    bZxJS.setAllowanceUnlimited({
+      tokenAddress: Contracts.BZxToken.address,
       ownerAddress: address,
-      spenderAddress: Contracts.B0xVault.address
+      spenderAddress: Contracts.BZxVault.address
     })
   );
 
-  const promises = [...b0xTokenPromises, ...allowancePromises];
+  const promises = [...bZxTokenPromises, ...allowancePromises];
   await Promise.all(promises);
 };
 
@@ -76,15 +76,15 @@ export const setupLoanTokens = async ({
     loanTokens[1].methods
       .transfer(lenders[1], transferAmount)
       .send(clone(ownerTxOpts)),
-    b0xJS.setAllowanceUnlimited({
+    bZxJS.setAllowanceUnlimited({
       tokenAddress: loanTokens[0].options.address.toLowerCase(),
       ownerAddress: lenders[0],
-      spenderAddress: Contracts.B0xVault.address
+      spenderAddress: Contracts.BZxVault.address
     }),
-    b0xJS.setAllowanceUnlimited({
+    bZxJS.setAllowanceUnlimited({
       tokenAddress: loanTokens[1].options.address.toLowerCase(),
       ownerAddress: lenders[1],
-      spenderAddress: Contracts.B0xVault.address
+      spenderAddress: Contracts.BZxVault.address
     })
   ];
 
@@ -110,25 +110,25 @@ export const setupCollateralTokens = async ({
     collateralTokens[1].methods
       .transfer(traders[1], transferAmount)
       .send(clone(ownerTxOpts)),
-    b0xJS.setAllowanceUnlimited({
+    bZxJS.setAllowanceUnlimited({
       tokenAddress: collateralTokens[0].options.address.toLowerCase(),
       ownerAddress: traders[0],
-      spenderAddress: Contracts.B0xVault.address
+      spenderAddress: Contracts.BZxVault.address
     }),
-    b0xJS.setAllowanceUnlimited({
+    bZxJS.setAllowanceUnlimited({
       tokenAddress: collateralTokens[1].options.address.toLowerCase(),
       ownerAddress: traders[0],
-      spenderAddress: Contracts.B0xVault.address
+      spenderAddress: Contracts.BZxVault.address
     }),
-    b0xJS.setAllowanceUnlimited({
+    bZxJS.setAllowanceUnlimited({
       tokenAddress: collateralTokens[0].options.address.toLowerCase(),
       ownerAddress: traders[1],
-      spenderAddress: Contracts.B0xVault.address
+      spenderAddress: Contracts.BZxVault.address
     }),
-    b0xJS.setAllowanceUnlimited({
+    bZxJS.setAllowanceUnlimited({
       tokenAddress: collateralTokens[1].options.address.toLowerCase(),
       ownerAddress: traders[1],
-      spenderAddress: Contracts.B0xVault.address
+      spenderAddress: Contracts.BZxVault.address
     })
   ];
 
@@ -151,20 +151,20 @@ export const setupInterestTokens = async ({
     interestTokens[1].methods
       .transfer(traders[1], transferAmount)
       .send(clone(ownerTxOpts)),
-    b0xJS.setAllowanceUnlimited({
+    bZxJS.setAllowanceUnlimited({
       tokenAddress: interestTokens[0].options.address.toLowerCase(),
       ownerAddress: traders[0],
-      spenderAddress: Contracts.B0xVault.address
+      spenderAddress: Contracts.BZxVault.address
     }),
-    b0xJS.setAllowanceUnlimited({
+    bZxJS.setAllowanceUnlimited({
       tokenAddress: interestTokens[0].options.address.toLowerCase(),
       ownerAddress: traders[1],
-      spenderAddress: Contracts.B0xVault.address
+      spenderAddress: Contracts.BZxVault.address
     }),
-    b0xJS.setAllowanceUnlimited({
+    bZxJS.setAllowanceUnlimited({
       tokenAddress: interestTokens[1].options.address.toLowerCase(),
       ownerAddress: traders[1],
-      spenderAddress: Contracts.B0xVault.address
+      spenderAddress: Contracts.BZxVault.address
     })
   ];
 
@@ -193,7 +193,7 @@ export const makeOrderAsTrader = ({
     traderRelayFee: web3.utils.toWei("0.0015").toString(),
     expirationUnixTimestampSec: "2519061340",
     makerRole: orderConstants.MAKER_ROLE.TRADER,
-    salt: B0xJS.generatePseudoRandomSalt().toString()
+    salt: BZxJS.generatePseudoRandomSalt().toString()
   });
 
 export const makeOrderAsLender = ({
@@ -217,7 +217,7 @@ export const makeOrderAsLender = ({
     traderRelayFee: web3.utils.toWei("0.0015").toString(),
     expirationUnixTimestampSec: "2519061340",
     makerRole: orderConstants.MAKER_ROLE.LENDER,
-    salt: B0xJS.generatePseudoRandomSalt().toString()
+    salt: BZxJS.generatePseudoRandomSalt().toString()
   });
 
 export const getAccounts = () => ({
@@ -231,13 +231,13 @@ export const setupAll = async ({ owner, lenders, traders, transferAmount }) => {
     loanTokens,
     collateralTokens,
     interestTokens,
-    b0xToken
+    bZxToken
   } = initAllContractInstances();
 
   const ownerTxOpts = { from: owner };
 
-  await setupB0xToken({
-    b0xToken,
+  await setupBZxToken({
+    bZxToken,
     lenders,
     traders,
     transferAmount,

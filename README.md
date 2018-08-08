@@ -1,6 +1,6 @@
-# b0x.js
+# bZx.js
 
-Javascript library for b0x. Allows for interaction with b0x smart contracts on the Ethereum blockchain.
+Javascript library for bZx. Allows for interaction with bZx smart contracts on the Ethereum blockchain.
 
 __Note:__ This project is still under *heavy* construction.
 
@@ -10,13 +10,13 @@ __Note:__ This project is still under *heavy* construction.
 
 2. Run `npm run dev` to start webpack in watch mode.
 
-Whenever a file is saved, webpack rebuilds and outputs `b0x.js` in the `/dist` directory.
+Whenever a file is saved, webpack rebuilds and outputs `bZx.js` in the `/dist` directory.
 
 # Running Tests
 
-1. Clone repo: `git clone https://github.com/b0xNetwork/protocol_contracts`
-    - Note: `protocol_contracts` and `b0x.js` folders must be sibling folders
+1. Clone repo: `git clone https://github.com/bZxNetwork/protocol_contracts`
+    - Note: `protocol_contracts` and `bZx.js` folders must be sibling folders
     
 1. Install dependencies for `protocol_contracts`: `npm install`
 
-1. Run tests for `b0x.js`: `npm test`
+1. Run tests for `bZx.js`: `npm test`

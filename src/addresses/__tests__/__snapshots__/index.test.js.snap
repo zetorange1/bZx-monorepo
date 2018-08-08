@@ -2,11 +2,11 @@
 
 exports[`addresses should return kovan testnet addresses for networkId 42 1`] = `
 Object {
-  "B0x": "0x350cbbb706d1acd3bc9f920401e11db33c7e9c74",
-  "B0xOracle": "0x5859d1b2b9bd6757e82bce6bc69bb03ffa611e60",
-  "B0xTo0x": "0x3da8716483029e0ca72e97e9c5c432920d9bacd1",
-  "B0xToken": "0xe8b6a7fa1976ba6c2d3dd81f063eb25d521186bb",
-  "B0xVault": "0x93ebdf50a085fda6a1186b2bd52c9e1f045d3248",
+  "BZx": "0x350cbbb706d1acd3bc9f920401e11db33c7e9c74",
+  "BZxOracle": "0x5859d1b2b9bd6757e82bce6bc69bb03ffa611e60",
+  "BZxTo0x": "0x3da8716483029e0ca72e97e9c5c432920d9bacd1",
+  "BZxToken": "0xe8b6a7fa1976ba6c2d3dd81f063eb25d521186bb",
+  "BZxVault": "0x93ebdf50a085fda6a1186b2bd52c9e1f045d3248",
   "EIP20": "",
   "OracleInterface": "",
   "OracleRegistry": "0x0000000000000000000000000000000000000000",
@@ -20,11 +20,11 @@ Object {
 
 exports[`addresses should return local testnet addresses for all other networkIds 1`] = `
 Object {
-  "B0x": "0x8726c7414ac023d23348326b47af3205185fd035",
-  "B0xOracle": "0x0d8b0dd11f5d34ed41d556def5f841900d5b1c6b",
-  "B0xTo0x": "0x32eecaf51dfea9618e9bc94e9fbfddb1bbdcba15",
-  "B0xToken": "0x04b5dadd2c0d6a261bfafbc964e0cac48585def3",
-  "B0xVault": "0xb7c9b454221e26880eb9c3101b3295ca7d8279ef",
+  "BZx": "0x8726c7414ac023d23348326b47af3205185fd035",
+  "BZxOracle": "0x0d8b0dd11f5d34ed41d556def5f841900d5b1c6b",
+  "BZxTo0x": "0x32eecaf51dfea9618e9bc94e9fbfddb1bbdcba15",
+  "BZxToken": "0x04b5dadd2c0d6a261bfafbc964e0cac48585def3",
+  "BZxVault": "0xb7c9b454221e26880eb9c3101b3295ca7d8279ef",
   "EIP20": "",
   "OracleInterface": "",
   "OracleRegistry": "0x6000eca38b8b5bba64986182fe2a69c57f6b5414",
@@ -45,11 +45,11 @@ Object {
 
 exports[`addresses should return rinkeby testnet addresses for networkId 4 1`] = `
 Object {
-  "B0x": "0x5a5f9a466c4b43fd3eafab2c5d971168fbeb90b8",
-  "B0xOracle": "0x014ede18fc693ca54838807aa9e7a26621ca0512",
-  "B0xTo0x": "0x797350e9c7dc55d02142105d4a35dde8b9a4e2f6",
-  "B0xToken": "0x14823db576c11e4a54ca9e01ca0b28b18d3d1187",
-  "B0xVault": "0xe020ebe52e05247a504246526d371ab60ddb601a",
+  "BZx": "0x5a5f9a466c4b43fd3eafab2c5d971168fbeb90b8",
+  "BZxOracle": "0x014ede18fc693ca54838807aa9e7a26621ca0512",
+  "BZxTo0x": "0x797350e9c7dc55d02142105d4a35dde8b9a4e2f6",
+  "BZxToken": "0x14823db576c11e4a54ca9e01ca0b28b18d3d1187",
+  "BZxVault": "0xe020ebe52e05247a504246526d371ab60ddb601a",
   "EIP20": "",
   "OracleInterace": "",
   "OracleRegistry": "0x2cf2e5f741cea951283524cd68126f2123881065",

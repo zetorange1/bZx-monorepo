@@ -1,8 +1,8 @@
 import { pathOr } from "ramda";
-import b0xJS from "../../core/__tests__/setup";
+import bZxJS from "../../core/__tests__/setup";
 import { expectPromiEvent } from "../../core/__tests__/utils";
 
-const { web3 } = b0xJS;
+const { web3 } = bZxJS;
 
 describe("loanHeath", () => {
   describe("withdrawProfit", () => {
@@ -19,7 +19,7 @@ describe("loanHeath", () => {
         gasPrice: web3.utils.toWei("5", "gwei").toString()
       };
 
-      promiEvent = b0xJS.withdrawProfit({
+      promiEvent = bZxJS.withdrawProfit({
         loanOrderHash,
         txOpts
       });
