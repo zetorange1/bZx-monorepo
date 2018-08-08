@@ -116,7 +116,7 @@ export default class LoanItem extends React.Component {
 
     const txOpts = {
       from: accounts[0],
-      // gas: 1000000, // gas estimated in b0x.js
+      // gas: 1000000, // gas estimated in bZx.js
       gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
     };
 

@@ -1,7 +1,7 @@
 import moment from "moment";
 
 import styled from "styled-components";
-import BZxJS from "b0x.js";  // eslint-disable-line
+import BZxJS from "bZx.js";  // eslint-disable-line
 import { getTrackedTokens } from "../../common/trackedTokens";
 import { getTokenBalance, getSymbol } from "../../common/tokens";
 import { toBigNumber, fromBigNumber } from "../../common/utils";
@@ -304,7 +304,7 @@ export const submitFillOrder = (
 ) => {
   const txOpts = {
     from: accounts[0],
-    // gas: 1000000, // gas estimated in b0x.js
+    // gas: 1000000, // gas estimated in bZx.js
     gasPrice: web3.utils.toWei(`1`, `gwei`).toString()
   };
   const makerIsLender = order.makerRole === `0`;

@@ -1,11 +1,11 @@
-import BZxJS from "b0x.js"; // eslint-disable-line
+import BZxJS from "bZx.js"; // eslint-disable-line
 import { toBigNumber } from "../../common/utils";
 import getNetworkId from "../../web3/getNetworkId";
 
 export const compileObject = async (web3, state, account, bZx) => {
   const { sendToRelayExchange } = state;
   return {
-    b0xAddress: bZx.addresses.B0x,
+    bZxAddress: bZx.addresses.BZx,
     makerAddress: account.toLowerCase(),
     makerRole: (state.role === `lender` ? 0 : 1).toString(),
 

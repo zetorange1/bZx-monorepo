@@ -1,6 +1,6 @@
-# b0x Portal
+# bZx Portal
 
-Frontend portal for the b0x network.
+Frontend portal for the bZx network.
 
 __Note:__ This project is still under *heavy* construction.
 
@@ -16,21 +16,21 @@ Screenshots:
 
 ## Development Setup
 
-1. Link the `b0x.js` library as per instructions below.
+1. Link the `bZx.js` library as per instructions below.
 
 2. Run `npm install` at the project root.
 
 3. Run `npm run dev` to start up the development server.
 
-### Link b0x.js
+### Link bZx.js
 
-This portal depends on b0x.js, which is a javascript library for interfacing with the b0x network.
+This portal depends on bZx.js, which is a javascript library for interfacing with the bZx network.
 
 In order to interface with the development version of this library, you'll need to link it with `npm link`.
 
-1. Navigate to the `b0x.js` repository, and type `npm link` in the command line.
+1. Navigate to the `bZx.js` repository, and type `npm link` in the command line.
 
-2. Navigate back to this repository, and type `npm link b0x.js` to link the module for this project.
+2. Navigate back to this repository, and type `npm link bZx.js` to link the module for this project.
 
 ### Visual Studio Code
 

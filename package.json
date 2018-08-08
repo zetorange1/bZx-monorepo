@@ -1,7 +1,7 @@
 {
-  "name": "b0x_portal",
+  "name": "bZx_portal",
   "version": "0.1.0",
-  "description": "Frontend portal for b0x",
+  "description": "Frontend portal for bZx",
   "main": "portal.js",
   "scripts": {
     "test": "jest",
@@ -21,18 +21,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tomcbean/b0x_portal.git"
+    "url": "git+https://github.com/tomcbean/bZx_portal.git"
   },
   "keywords": [],
   "author": "",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/tomcbean/b0x_portal/issues"
+    "url": "https://github.com/tomcbean/bZx_portal/issues"
   },
-  "homepage": "https://github.com/tomcbean/b0x_portal#readme",
+  "homepage": "https://github.com/tomcbean/bZx_portal#readme",
   "dependencies": {
     "0x.js": "^0.37.2",
-    "b0x.js": "git+https://github.com/b0xNetwork/b0x.js.git",
+    "bZx.js": "git+https://github.com/bZxNetwork/bZx.js.git",
     "babel-plugin-styled-components": "^1.5.1",
     "bignumber.js": "^7.0.1",
     "ethereum-blockies-png": "^0.1.2",
