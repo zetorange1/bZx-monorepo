@@ -45,7 +45,10 @@ export default class TradeOracleDialog extends React.Component {
     const tradeToken = this.props.tokens.filter(
       t => t.address === tokenAddress
     )[0];
-    if (notAllowed[bZx.networkId].includes(tradeToken && tradeToken.symbol)) {
+    if (
+      notAllowed[bZx.networkId] &&
+      notAllowed[bZx.networkId].includes(tradeToken && tradeToken.symbol)
+    ) {
       alert(
         `Token ${
           tradeToken.symbol
