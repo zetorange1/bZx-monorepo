@@ -31,6 +31,25 @@ contract BZx is BZxStorage {
         external
         returns (uint);
 
+    function pushLoanOrderOnChain(
+        address[6] orderAddresses,
+        uint[9] orderValues,
+        bytes signature)        
+        external
+        returns (bytes32);
+    
+    function takeLoanOrderOnChainAsTrader(
+        bytes32 loanOrderHash,
+        address collateralTokenFilled,
+        uint loanTokenAmountFilled)
+        external
+        returns (uint);
+    
+    function takeLoanOrderOnChainAsLender(
+        bytes32 loanOrderHash)
+        external
+        returns (uint);
+
     function cancelLoanOrder(
         address[6] orderAddresses,
         uint[9] orderValues,

@@ -19,6 +19,7 @@ contract BZxObjects {
         uint initialMarginAmount;
         uint maintenanceMarginAmount;
         uint expirationUnixTimestampSec;
+        uint makerRole;
         bytes32 loanOrderHash;
     }
 
@@ -52,6 +53,17 @@ contract BZxObjects {
         uint interestTotalAccrued;
         uint interestPaidSoFar;
     }
+
+    event LogLoanAdded (
+        bytes32 loanOrderHash,
+        address adder,
+        address maker,
+        address feeRecipientAddress,
+        uint lenderRelayFee,
+        uint traderRelayFee,
+        uint expirationUnixTimestampSec,
+        uint makerRole
+    );
 
     event LogLoanTaken (
         address lender,

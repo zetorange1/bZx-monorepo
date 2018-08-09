@@ -10,8 +10,9 @@ var run = {
 
   "should generate loanOrderHash (as lender1)": true,
   "should sign and verify orderHash (as lender1)": true,
+  "should push sample loan order on chain": true,
   "should take sample loan order (as lender1/trader1)": true,
-  "should take sample loan order (as lender1/trader2)": false,
+  "should take sample loan order (as lender1/trader2) on chain": true,
 
   "should generate loanOrderHash (as trader2)": false,
   "should sign and verify orderHash (as trader2)": false,
@@ -521,6 +522,39 @@ contract('BZxTest', function(accounts) {
     });
   });
 
+  (run["should push sample loan order on chain"] ? it : it.skip)("should push sample loan order on chain", function(done) {
+    bZx.pushLoanOrderOnChain(
+      [
+        OrderParams_bZx_1["makerAddress"],
+        OrderParams_bZx_1["loanTokenAddress"],
+        OrderParams_bZx_1["interestTokenAddress"],
+        OrderParams_bZx_1["collateralTokenAddress"],
+        OrderParams_bZx_1["feeRecipientAddress"],
+        OrderParams_bZx_1["oracleAddress"]
+      ],
+      [
+        new BN(OrderParams_bZx_1["loanTokenAmount"]),
+        new BN(OrderParams_bZx_1["interestAmount"]),
+        new BN(OrderParams_bZx_1["initialMarginAmount"]),
+        new BN(OrderParams_bZx_1["maintenanceMarginAmount"]),
+        new BN(OrderParams_bZx_1["lenderRelayFee"]),
+        new BN(OrderParams_bZx_1["traderRelayFee"]),
+        new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
+        new BN(OrderParams_bZx_1["makerRole"]),
+        new BN(OrderParams_bZx_1["salt"])
+      ],
+      ECSignature_raw_1,
+      {from: makerOf0xOrder2_account, gas: 1000000, gasPrice: web3.toWei(10, "gwei")}).then(function(tx) {
+        console.log(txPrettyPrint(tx,"should push sample loan order on chain"));
+        assert.isOk(tx);
+        done();
+      }), function(error) {
+        console.error("error: "+error);
+        assert.isOk(false);
+        done();
+      };
+  });
+
   (run["should take sample loan order (as lender1/trader1)"] ? it : it.skip)("should take sample loan order (as lender1/trader1)", function(done) {
     bZx.takeLoanOrderAsTrader(
       [
@@ -556,32 +590,13 @@ contract('BZxTest', function(accounts) {
       };
   });
 
-  (run["should take sample loan order (as lender1/trader2)"] ? it : it.skip)("should take sample loan order (as lender1/trader2)", function(done) {
-    bZx.takeLoanOrderAsTrader(
-      [
-        OrderParams_bZx_1["makerAddress"],
-        OrderParams_bZx_1["loanTokenAddress"],
-        OrderParams_bZx_1["interestTokenAddress"],
-        OrderParams_bZx_1["collateralTokenAddress"],
-        OrderParams_bZx_1["feeRecipientAddress"],
-        OrderParams_bZx_1["oracleAddress"]
-      ],
-      [
-        new BN(OrderParams_bZx_1["loanTokenAmount"]),
-        new BN(OrderParams_bZx_1["interestAmount"]),
-        new BN(OrderParams_bZx_1["initialMarginAmount"]),
-        new BN(OrderParams_bZx_1["maintenanceMarginAmount"]),
-        new BN(OrderParams_bZx_1["lenderRelayFee"]),
-        new BN(OrderParams_bZx_1["traderRelayFee"]),
-        new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
-        new BN(OrderParams_bZx_1["makerRole"]),
-        new BN(OrderParams_bZx_1["salt"])
-      ],
+  (run["should take sample loan order (as lender1/trader2) on chain"] ? it : it.skip)("should take sample loan order (as lender1/trader2) on chain", function(done) {
+    bZx.takeLoanOrderOnChainAsTrader(
+      OrderHash_bZx_1,
       collateralToken1.address,
       web3.toWei(20, "ether"),
-      ECSignature_raw_1,
       {from: trader2_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
-        console.log(txPrettyPrint(tx,"should take sample loan order (as lender1/trader2)"));
+        console.log(txPrettyPrint(tx,"should take sample loan order (as lender1/trader2) on chain"));
         assert.isOk(tx);
         done();
       }), function(error) {

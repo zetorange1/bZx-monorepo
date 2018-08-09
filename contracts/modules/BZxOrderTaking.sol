@@ -38,6 +38,9 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
     {
         targets[0x8fbbe7a2] = _target; // bytes4(keccak256("takeLoanOrderAsTrader(address[6],uint256[9],address,uint256,bytes)"))
         targets[0x30769736] = _target; // bytes4(keccak256("takeLoanOrderAsLender(address[6],uint256[9],bytes)"))
+        targets[0xfee20c18] = _target; // bytes4(keccak256("pushLoanOrderOnChain(address[6],uint256[9],bytes)"))
+        targets[0x60e2fbe3] = _target; // bytes4(keccak256("takeLoanOrderOnChainAsTrader(bytes32,address,uint256)"))
+        targets[0xd6cc0c14] = _target; // bytes4(keccak256("takeLoanOrderOnChainAsLender(bytes32)"))
         targets[0xde5d838e] = _target; // bytes4(keccak256("cancelLoanOrder(address[6],uint256[9],uint256)"))
         targets[0x8c0a1d7c] = _target; // bytes4(keccak256("cancelLoanOrder(bytes32,uint256)"))
         targets[0x03efed44] = _target; // bytes4(keccak256("getLoanOrderHash(address[6],uint256[9])"))
@@ -66,12 +69,15 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         tracksGas
         returns (uint)
     {
-        return _takeLoanOrder(
+        bytes32 loanOrderHash = _addLoanOrder(
             orderAddresses,
             orderValues,
+            signature);
+
+        return _takeLoanOrder(
+            loanOrderHash,
             collateralTokenFilled,
             loanTokenAmountFilled,
-            signature,
             1 // takerRole
         );
     }
@@ -92,12 +98,77 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         tracksGas
         returns (uint)
     {
-        return _takeLoanOrder(
+        bytes32 loanOrderHash = _addLoanOrder(
             orderAddresses,
             orderValues,
+            signature);
+
+        return _takeLoanOrder(
+            loanOrderHash,
             orderAddresses[3], // collateralTokenFilled
             orderValues[0], // loanTokenAmountFilled
-            signature,
+            0 // takerRole
+        );
+    }
+
+    /// @dev Pushes an order on chain
+    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress.
+    /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), and salt.
+    /// @param signature ECDSA signature in raw bytes (rsv).
+    /// @return A unique hash representing the loan order.
+    function pushLoanOrderOnChain(
+        address[6] orderAddresses,
+        uint[9] orderValues,
+        bytes signature)        
+        external
+        nonReentrant
+        //tracksGas
+        returns (bytes32)
+    {
+        return _addLoanOrder(
+            orderAddresses,
+            orderValues,
+            signature);
+    }
+
+    /// @dev Takes the order as trader that's already pushed on chain
+    /// @param loanOrderHash A unique hash representing the loan order.
+    /// @return Total amount of loanToken borrowed (uint).
+    /// @dev Traders can take a portion of the total coin being lended (loanTokenAmountFilled).
+    /// @dev Traders also specify the token that will fill the margin requirement if they are taking the order.
+    function takeLoanOrderOnChainAsTrader(
+        bytes32 loanOrderHash,
+        address collateralTokenFilled,
+        uint loanTokenAmountFilled)
+        external
+        nonReentrant
+        tracksGas
+        returns (uint)
+    {
+        return _takeLoanOrder(
+            loanOrderHash,
+            collateralTokenFilled,
+            loanTokenAmountFilled,
+            1 // takerRole
+        );
+    }
+
+    /// @dev Takes the order as lender that's already pushed on chain
+    /// @param loanOrderHash A unique hash representing the loan order.
+    /// @return Total amount of loanToken borrowed (uint).
+    /// @dev Lenders have to fill the entire desired amount the trader wants to borrow.
+    /// @dev This makes loanTokenAmountFilled = loanOrder.loanTokenAmount.
+    function takeLoanOrderOnChainAsLender(
+        bytes32 loanOrderHash)
+        external
+        nonReentrant
+        tracksGas
+        returns (uint)
+    {
+        return _takeLoanOrder(
+            loanOrderHash,
+            orders[loanOrderHash].collateralTokenAddress,
+            orders[loanOrderHash].loanTokenAmount,
             0 // takerRole
         );
     }
@@ -236,6 +307,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             initialMarginAmount: uints[2],
             maintenanceMarginAmount: uints[3],
             expirationUnixTimestampSec: uints[6],
+            makerRole: uints[7],
             loanOrderHash: loanOrderHash
         });
     }
@@ -260,42 +332,85 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         });
     }*/
 
-    function _takeLoanOrder(
+    function _addLoanOrder(
         address[6] orderAddresses,
         uint[9] orderValues,
-        address collateralTokenFilled,
-        uint loanTokenAmountFilled,
-        bytes signature,
-        uint takerRole) // (0=lender, 1=trader)
+        bytes signature)
         internal
-        returns (uint)
+        returns (bytes32 loanOrderHash)
     {
-        address lender;
-        address trader;
-        if (takerRole == 1) { // trader
-            lender = orderAddresses[0]; // maker
-            trader = msg.sender;
-        } else { // lender
-            lender = msg.sender;
-            trader = orderAddresses[0]; // maker
-        }
-
-        bytes32 loanOrderHash = getLoanOrderHash(orderAddresses, orderValues);
-        LoanOrder memory loanOrder = orders[loanOrderHash];
-
-        if (loanOrder.maker == address(0)) {
-            // no previous partial loan fill
-            loanOrder = _buildLoanOrderStruct(loanOrderHash, orderAddresses, orderValues);
-            orders[loanOrder.loanOrderHash] = loanOrder;
+        loanOrderHash = getLoanOrderHash(orderAddresses, orderValues);
+        if (orders[loanOrderHash].maker == address(0)) {
+            LoanOrder memory loanOrder = _buildLoanOrderStruct(loanOrderHash, orderAddresses, orderValues);
+            orders[loanOrderHash] = loanOrder;
             
-            orderList[lender].push(loanOrder.loanOrderHash);
-            orderLender[loanOrder.loanOrderHash] = lender;
-
-            orderFees[loanOrder.loanOrderHash] = LoanOrderFees({
+            orderFees[loanOrderHash] = LoanOrderFees({
                 feeRecipientAddress: orderAddresses[4],
                 lenderRelayFee: orderValues[4],
                 traderRelayFee: orderValues[5]
             });
+
+            if (!_verifyNewLoanOrder(
+                loanOrder,
+                signature
+            )) {
+                revert("BZxOrderTaking::_addLoanOrder: loan verification failed");
+            }
+
+            emit LogLoanAdded (
+                loanOrderHash,
+                msg.sender,
+                loanOrder.maker,
+                orderAddresses[4],
+                orderValues[4],
+                orderValues[5],
+                loanOrder.expirationUnixTimestampSec,
+                loanOrder.makerRole
+            );
+        }
+
+        return loanOrderHash;
+    }
+
+    function _takeLoanOrder(
+        bytes32 loanOrderHash,
+        address collateralTokenFilled,
+        uint loanTokenAmountFilled,
+        uint takerRole) // (0=lender, 1=trader)
+        internal
+        returns (uint)
+    {
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        if (loanOrder.maker == address(0)) {
+            revert("BZxOrderTaking::_takeLoanOrder: loanOrder.maker == address(0)");
+        }
+
+        if (!_verifyExistingLoanOrder(
+            loanOrder, 
+            collateralTokenFilled, 
+            loanTokenAmountFilled
+        )) {
+            revert("BZxOrderTaking::_takeLoanOrder: loan verification failed");
+        }
+
+        address lender;
+        address trader;
+        if (takerRole == 1) { // trader
+            lender = loanOrder.maker;
+            trader = msg.sender;
+        } else { // lender
+            lender = msg.sender;
+            trader = loanOrder.maker;
+        }
+
+        // makerRole and takerRole must not be equal and must have a value <= 1
+        if (loanOrder.makerRole > 1 || takerRole > 1 || loanOrder.makerRole == takerRole) {
+            revert("BZxOrderTaking::_takeLoanOrder: makerRole > 1 || takerRole > 1 || makerRole == takerRole");
+        }
+
+        if (orderLender[loanOrderHash] == address(0)) {
+            orderList[lender].push(loanOrderHash);
+            orderLender[loanOrderHash] = lender;
         }
 
         orderList[trader].push(loanOrder.loanOrderHash);
@@ -305,19 +420,6 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             loanOrderHash: loanOrder.loanOrderHash,
             trader: trader
         }));
-
-        if (!_isValidSignature(
-            loanOrder.maker,
-            loanOrder.loanOrderHash,
-            signature
-        )) {
-            revert("BZxOrderTaking::_takeLoanOrder: signature invalid");
-        }
-
-        // makerRole (orderValues[7]) and takerRole must not be equal and must have a value <= 1
-        if (orderValues[7] > 1 || takerRole > 1 || orderValues[7] == takerRole) {
-            revert("BZxOrderTaking::_takeLoanOrder: orderValues[7] > 1 || takerRole > 1 || orderValues[7] == takerRole");
-        }
 
         // A trader can only fill a portion or all of a loanOrder once:
         //  - this avoids complex interest payments for parts of an order filled at different times by the same trader
@@ -383,10 +485,6 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         internal
         returns (uint)
     {
-        if (!_verifyLoanOrder(loanOrder, collateralTokenFilled, loanTokenAmountFilled)) {
-            revert("BZxOrderTaking::_fillLoanOrder: loan verification failed");
-        }
-
         uint collateralTokenAmountFilled = _getInitialCollateralRequired(
             loanOrder.loanTokenAddress,
             collateralTokenFilled,
@@ -503,7 +601,38 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         return cancelledLoanTokenAmount;
     }
 
-    function _verifyLoanOrder(
+    function _verifyNewLoanOrder(
+        LoanOrder loanOrder,
+        bytes signature)
+        internal
+        view
+        returns (bool)
+    {
+        if (loanOrder.loanTokenAddress == address(0) 
+            || loanOrder.interestTokenAddress == address(0)) {
+            revert("BZxOrderTaking::_verifyNewLoanOrder: loanOrder.loanTokenAddress == address(0) || loanOrder.interestTokenAddress == address(0)");
+        }
+
+        if (! OracleRegistry(oracleRegistryContract).hasOracle(loanOrder.oracleAddress) || oracleAddresses[loanOrder.oracleAddress] == address(0)) {
+            revert("BZxOrderTaking::_verifyNewLoanOrder: Oracle doesn't exist");
+        }
+
+        if (loanOrder.maintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= loanOrder.initialMarginAmount) {
+            revert("BZxOrderTaking::_verifyNewLoanOrder: loanOrder.maintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= loanOrder.initialMarginAmount");
+        }
+
+        if (!_isValidSignature(
+            loanOrder.maker,
+            loanOrder.loanOrderHash,
+            signature
+        )) {
+            revert("BZxOrderTaking::_verifyNewLoanOrder: signature invalid");
+        }
+
+        return true;
+    }
+
+    function _verifyExistingLoanOrder(
         LoanOrder loanOrder,
         address collateralTokenFilled,
         uint loanTokenAmountFilled)
@@ -512,34 +641,20 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         returns (bool)
     {
         if (loanOrder.maker == msg.sender) {
-            revert("BZxOrderTaking::_verifyLoanOrder: loanOrder.maker == msg.sender");
-        }
-        if (loanOrder.loanTokenAddress == address(0) 
-            || loanOrder.interestTokenAddress == address(0)
-            || collateralTokenFilled == address(0)) {
-            revert("BZxOrderTaking::_verifyLoanOrder: loanOrder.loanTokenAddress == address(0) || loanOrder.interestTokenAddress == address(0) || collateralTokenFilled == address(0)");
+            revert("BZxOrderTaking::_verifyExistingLoanOrder: loanOrder.maker == msg.sender");
         }
 
-        if (loanTokenAmountFilled > loanOrder.loanTokenAmount) {
-            revert("BZxOrderTaking::_verifyLoanOrder: loanTokenAmountFilled > loanOrder.loanTokenAmount");
-        }
-
-        if (! OracleRegistry(oracleRegistryContract).hasOracle(loanOrder.oracleAddress) || oracleAddresses[loanOrder.oracleAddress] == address(0)) {
-            revert("BZxOrderTaking::_verifyLoanOrder: Oracle doesn't exist");
+        if (collateralTokenFilled == address(0)) {
+            revert("BZxOrderTaking::_verifyExistingLoanOrder: collateralTokenFilled == address(0)");
         }
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
-            //LogError(uint8(Errors.ORDER_EXPIRED), 0, loanOrder.loanOrderHash);
-            revert("BZxOrderTaking::_verifyLoanOrder: block.timestamp >= loanOrder.expirationUnixTimestampSec");
-        }
-
-        if (loanOrder.maintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= loanOrder.initialMarginAmount) {
-            revert("BZxOrderTaking::_verifyLoanOrder: loanOrder.maintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= loanOrder.initialMarginAmount");
+            revert("BZxOrderTaking::_verifyExistingLoanOrder: block.timestamp >= loanOrder.expirationUnixTimestampSec");
         }
 
         uint remainingLoanTokenAmount = loanOrder.loanTokenAmount.sub(getUnavailableLoanTokenAmount(loanOrder.loanOrderHash));
         if (remainingLoanTokenAmount < loanTokenAmountFilled) {
-            revert("BZxOrderTaking::_verifyLoanOrder: remainingLoanTokenAmount < loanTokenAmountFilled");
+            revert("BZxOrderTaking::_verifyExistingLoanOrder: remainingLoanTokenAmount < loanTokenAmountFilled");
         }
 
         return true;

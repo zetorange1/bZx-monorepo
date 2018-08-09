@@ -75,7 +75,7 @@ addresses["EIP20"] = "unknown";
 
 if (config["addresses"][network]["MultiSig"]) {
 	addresses["MultiSig"] = web3utils.toChecksumAddress(config["addresses"][network]["MultiSig"]);
-	replacements["MultiSig"] = "MultiSigWalletWithTimeLockWithCustomValues";
+	replacements["MultiSig"] = "MultiSigWalletWithCustomTimeLocks";
 }
 
 var networkId;
