@@ -157,5 +157,5 @@ contract BZxStorage is BZxObjects, ReentrancyGuard, Ownable, GasTracker {
     mapping (bytes32 => mapping (address => uint)) public interestPaid; // mapping of loanOrderHash to mapping of traders to amount of interest paid so far to a lender
 
     LoanRef[] public loanList; // array of loans that need to be checked for liquidation or expiration
-    mapping (bytes32 => LoanOrderIndex) public orderIndexes; // mapping of loanOrderHash to LoanOrderIndex objects (available orders)
+    mapping (bytes32 => LoanOrderIndex) public orderIndexes; // mapping of loanOrderHash to LoanOrderIndex objects (fillable orders)
 }

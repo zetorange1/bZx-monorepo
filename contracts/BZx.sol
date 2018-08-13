@@ -99,7 +99,7 @@ contract BZx is BZxStorage {
         view
         returns (bytes);
 
-    function getOrdersAvailable(
+    function getOrdersFillable(
         uint start,
         uint count)
         public

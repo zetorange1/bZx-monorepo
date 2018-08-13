@@ -22,7 +22,7 @@ var run = {
   "should get loan orders (for lender1)": true,
   "should get loan orders (for lender2)": false,
   "should get loan orders (for trader2)": false,
-  "should get available orders for taking": true,
+  "should get fillable orders": true,
 
   "should get single loan position": true,
   "should get loan positions (for lender1)": false,
@@ -1023,13 +1023,13 @@ contract('BZxTest', function(accounts) {
     }
   });
 
-  (run["should get available orders for taking"] ? it : it.skip)("should get available orders for taking", async function() {
+  (run["should get fillable orders"] ? it : it.skip)("should get fillable orders", async function() {
 
-    var data = await bZx.getOrdersAvailable.call(
+    var data = await bZx.getOrdersFillable.call(
       0, // starting item
       10 // max number of items returned
     );
-    console.log("getOrdersAvailable(...):");
+    console.log("getOrdersFillable(...):");
     console.log(data);
 
     data = data.substr(2); // remove 0x from front

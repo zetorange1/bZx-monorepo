@@ -130,12 +130,16 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             orderValues,
             signature);
 
-        // record of available (non-expired, unfilled) orders
-        orderList[address(0)].push(loanOrderHash);
-        orderIndexes[loanOrderHash] = LoanOrderIndex({
-            index: orderList[address(0)].length-1,
-            active: true
-        });
+        if (!orderIndexes[loanOrderHash].active) {
+            // record of fillable (non-expired, unfilled) orders
+            orderList[address(0)].push(loanOrderHash);
+            orderIndexes[loanOrderHash] = LoanOrderIndex({
+                index: orderList[address(0)].length-1,
+                active: true
+            });
+        }
+
+        return loanOrderHash;
     }
 
     /// @dev Takes the order as trader that's already pushed on chain
@@ -691,7 +695,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             revert("BZxOrderTaking::_verifyExistingLoanOrder: remainingLoanTokenAmount < loanTokenAmountFilled");
         } else if (remainingLoanTokenAmount > loanTokenAmountFilled) {
             if (!orderIndexes[loanOrder.loanOrderHash].active) {
-                // record of available (non-expired, unfilled) orders
+                // record of fillable (non-expired, unfilled) orders
                 orderList[address(0)].push(loanOrder.loanOrderHash);
                 orderIndexes[loanOrder.loanOrderHash] = LoanOrderIndex({
                     index: orderList[address(0)].length-1,

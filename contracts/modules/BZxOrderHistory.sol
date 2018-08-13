@@ -19,7 +19,7 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
         onlyOwner
     {
         targets[0xd8c73360] = _target; // bytes4(keccak256("getSingleOrder(bytes32)"))
-        targets[0x54356cc8] = _target; // bytes4(keccak256("getOrdersAvailable(uint256,uint256)"))
+        targets[0xbe992eed] = _target; // bytes4(keccak256("getOrdersFillable(uint256,uint256)"))
         targets[0x5914d266] = _target; // bytes4(keccak256("getOrdersForUser(address,uint256,uint256)"))
         targets[0x49bd01ca] = _target; // bytes4(keccak256("getSingleLoan(bytes32,address)"))
         targets[0x512e5f9b] = _target; // bytes4(keccak256("getLoansForLender(address,uint256,bool)"))
@@ -66,7 +66,7 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
     /// @param start The starting order in the order list to return.
     /// @param count The total amount of orders to return if they exist. Amount returned can be less.
     /// @return A concatenated stream of bytes.
-    function getOrdersAvailable(
+    function getOrdersFillable(
         uint start,
         uint count)
         public
@@ -291,7 +291,7 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
             orderFilledAmounts[loanOrderHash],
             orderCancelledAmounts[loanOrderHash],
             orderTraders[loanOrderHash].length,
-            loanPositions[loanOrderHash][orderTraders[loanOrderHash][0]].loanStartUnixTimestampSec
+            orderTraders[loanOrderHash].length > 0 ? loanPositions[loanOrderHash][orderTraders[loanOrderHash][0]].loanStartUnixTimestampSec : 0
         );
         return abi.encodePacked(data, tmpBytes);
     }
