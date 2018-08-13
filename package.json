@@ -28,7 +28,7 @@
     "coveralls": "^3.0.2"
   },
   "dependencies": {
-    "b0x.js": "git+https://github.com/b0xNetwork/b0x.js.git",
+    "b0x.js": "git+https://github.com/b0xNetwork/bzx.js.git",
     "bignumber.js": "^6.0.0",
     "ganache-cli": "^6.1.3",
     "node-mv": "^0.1.3",
