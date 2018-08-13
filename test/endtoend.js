@@ -14,14 +14,15 @@ var run = {
   "should take sample loan order (as lender1/trader1)": true,
   "should take sample loan order (as lender1/trader2) on chain": true,
 
-  "should generate loanOrderHash (as trader2)": false,
-  "should sign and verify orderHash (as trader2)": false,
-  "should take sample loan order (as lender2)": false,
+  "should generate loanOrderHash (as trader2)": true,
+  "should sign and verify orderHash (as trader2)": true,
+  "should take sample loan order (as lender2)": true,
 
   "should get single loan order": true,
-  "should get loan orders (for lender1)": false,
+  "should get loan orders (for lender1)": true,
   "should get loan orders (for lender2)": false,
   "should get loan orders (for trader2)": false,
+  "should get available orders for taking": true,
 
   "should get single loan position": true,
   "should get loan positions (for lender1)": false,
@@ -29,10 +30,10 @@ var run = {
   "should get loan positions (for trader2)": false,
   "should get active loans": false,
 
-  /*"should generate 0x orders": true,
-  "should sign and verify 0x orders": true,
-  "should parse 0x order params": false,
-  "should trade position with 0x orders": true,*/
+  //"should generate 0x orders": true,
+  //"should sign and verify 0x orders": true,
+  //"should parse 0x order params": false,
+  //"should trade position with 0x orders": true,
 
   "should generate 0x V2 orders": true,
   "should sign and verify 0x V2 orders": true,
@@ -694,37 +695,51 @@ contract('BZxTest', function(accounts) {
     });
   });
 
-  (run["should take sample loan order (as lender2)"] ? it : it.skip)("should take sample loan order (as lender2)", function(done) {
-    bZx.takeLoanOrderAsLender(
-      [
-        OrderParams_bZx_2["makerAddress"],
-        OrderParams_bZx_2["loanTokenAddress"],
-        OrderParams_bZx_2["interestTokenAddress"],
-        OrderParams_bZx_2["collateralTokenAddress"],
-        OrderParams_bZx_2["feeRecipientAddress"],
-        OrderParams_bZx_2["oracleAddress"]
-      ],
-      [
-        new BN(OrderParams_bZx_2["loanTokenAmount"]),
-        new BN(OrderParams_bZx_2["interestAmount"]),
-        new BN(OrderParams_bZx_2["initialMarginAmount"]),
-        new BN(OrderParams_bZx_2["maintenanceMarginAmount"]),
-        new BN(OrderParams_bZx_2["lenderRelayFee"]),
-        new BN(OrderParams_bZx_2["traderRelayFee"]),
-        new BN(OrderParams_bZx_2["expirationUnixTimestampSec"]),
-        new BN(OrderParams_bZx_2["makerRole"]),
-        new BN(OrderParams_bZx_2["salt"])
-      ],
-      ECSignature_raw_2,
-      {from: lender2_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
-        console.log(txPrettyPrint(tx,"should take sample loan order (as lender2)"));
-        assert.isOk(tx);
-        done();
-      }), function(error) {
-        console.error("error: "+error);
-        assert.isOk(false);
-        done();
-      };
+  (run["should take sample loan order (as lender2)"] ? it : it.skip)("should take sample loan order (as lender2)", async function() {
+    //const provider = new providers.Web3Provider(web3.currentProvider);
+    
+    try {
+      let tx = await bZx.takeLoanOrderAsLender(
+        [
+          OrderParams_bZx_2["makerAddress"],
+          OrderParams_bZx_2["loanTokenAddress"],
+          OrderParams_bZx_2["interestTokenAddress"],
+          OrderParams_bZx_2["collateralTokenAddress"],
+          OrderParams_bZx_2["feeRecipientAddress"],
+          OrderParams_bZx_2["oracleAddress"]
+        ],
+        [
+          new BN(OrderParams_bZx_2["loanTokenAmount"]),
+          new BN(OrderParams_bZx_2["interestAmount"]),
+          new BN(OrderParams_bZx_2["initialMarginAmount"]),
+          new BN(OrderParams_bZx_2["maintenanceMarginAmount"]),
+          new BN(OrderParams_bZx_2["lenderRelayFee"]),
+          new BN(OrderParams_bZx_2["traderRelayFee"]),
+          new BN(OrderParams_bZx_2["expirationUnixTimestampSec"]),
+          new BN(OrderParams_bZx_2["makerRole"]),
+          new BN(OrderParams_bZx_2["salt"])
+        ],
+        ECSignature_raw_2,
+        {from: lender2_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")});
+        
+      console.log(txPrettyPrint(tx,"should take sample loan order (as lender2)"));
+          
+      /*tx = (await provider.send("debug_traceTransaction", [ tx.tx, {} ]));
+      console.log(JSON.stringify(tx, null, '\t'));*/
+
+      assert.isOk(tx);
+    } catch (error) {
+      console.error("error: "+error);
+
+      /*var matches = error.message.match(/Transaction: ([^ ]+) exited/);
+      console.log(matches[1]);
+      provider.send("debug_traceTransaction", [ matches[1], {} ]).then(function(tx) {
+      //provider.getTransactionReceipt(error["tx"]).then(function(tx) {
+        console.log(JSON.stringify(tx, null, '\t'));
+      });*/
+
+      assert.isOk(false);
+    }
   });
 
   (run["should get single loan order"] ? it : it.skip)("should get single loan order", async function() {
@@ -797,12 +812,12 @@ contract('BZxTest', function(accounts) {
 
   (run["should get loan orders (for lender1)"] ? it : it.skip)("should get loan orders (for lender1)", async function() {
 
-    var data = await bZx.getOrders.call(
+    var data = await bZx.getOrdersForUser.call(
       lender1_account,
       0, // starting item
       10 // max number of items returned
     );
-    console.log("getOrders(...):");
+    console.log("getOrdersForUser(...):");
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
@@ -868,12 +883,12 @@ contract('BZxTest', function(accounts) {
 
   (run["should get loan orders (for lender2)"] ? it : it.skip)("should get loan orders (for lender2)", async function() {
 
-    var data = await bZx.getOrders.call(
+    var data = await bZx.getOrdersForUser.call(
       lender2_account,
       0, // starting item
       10 // max number of items returned
     );
-    console.log("getOrders(...):");
+    console.log("getOrdersForUser(...):");
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
@@ -939,12 +954,82 @@ contract('BZxTest', function(accounts) {
 
   (run["should get loan orders (for trader2)"] ? it : it.skip)("should get loan orders (for trader2)", async function() {
 
-    var data = await bZx.getOrders.call(
+    var data = await bZx.getOrdersForUser.call(
       trader2_account,
       0, // starting item
       10 // max number of items returned
     );
-    console.log("getOrders(...):");
+    console.log("getOrdersForUser(...):");
+    console.log(data);
+
+    data = data.substr(2); // remove 0x from front
+    const itemCount = 19;
+    const objCount = data.length / 64 / itemCount;
+    var orders = [];
+
+    if (objCount % 1 != 0) { // must be a whole number
+        console.error("error: data length invalid!");
+        assert.isOk(false);
+    }
+    else {
+      var orderObjArray = data.match(new RegExp('.{1,' + (itemCount * 64) + '}', 'g'));
+      //console.log("orderObjArray.length: "+orderObjArray.length);
+      for(var i=0; i < orderObjArray.length; i++) {
+        var params = orderObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
+        //console.log(i+": params.length: "+params.length);
+        orders.push({
+          maker: "0x"+params[0].substr(24),
+          loanTokenAddress: "0x"+params[1].substr(24),
+          interestTokenAddress: "0x"+params[2].substr(24),
+          collateralTokenAddress: "0x"+params[3].substr(24),
+          feeRecipientAddress: "0x"+params[4].substr(24),
+          oracleAddress: "0x"+params[5].substr(24),
+          loanTokenAmount: parseInt("0x"+params[6]),
+          interestAmount: parseInt("0x"+params[7]),
+          initialMarginAmount: parseInt("0x"+params[8]),
+          maintenanceMarginAmount: parseInt("0x"+params[9]),
+          lenderRelayFee: parseInt("0x"+params[10]),
+          traderRelayFee: parseInt("0x"+params[11]),
+          expirationUnixTimestampSec: parseInt("0x"+params[12]),
+          loanOrderHash: "0x"+params[13],
+          lender: "0x"+params[14].substr(24),
+          orderFilledAmount: parseInt("0x"+params[15]),
+          orderCancelledAmount: parseInt("0x"+params[16]),
+          orderTraderCount: parseInt("0x"+params[17]),
+          addedUnixTimestampSec: parseInt("0x"+params[18])
+        });
+      }
+
+      /*struct LoanOrder {
+          address maker;
+          address loanTokenAddress;
+          address interestTokenAddress;
+          address collateralTokenAddress;
+          address feeRecipientAddress;
+          address oracleAddress;
+          uint loanTokenAmount;
+          uint interestAmount;
+          uint initialMarginAmount;
+          uint maintenanceMarginAmount;
+          uint lenderRelayFee;
+          uint traderRelayFee;
+          uint expirationUnixTimestampSec;
+          bytes32 loanOrderHash;
+      }*/
+
+      console.log(orders);
+
+      assert.isOk(true);
+    }
+  });
+
+  (run["should get available orders for taking"] ? it : it.skip)("should get available orders for taking", async function() {
+
+    var data = await bZx.getOrdersAvailable.call(
+      0, // starting item
+      10 // max number of items returned
+    );
+    console.log("getOrdersAvailable(...):");
     console.log(data);
 
     data = data.substr(2); // remove 0x from front

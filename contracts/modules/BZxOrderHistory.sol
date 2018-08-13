@@ -19,7 +19,8 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
         onlyOwner
     {
         targets[0xd8c73360] = _target; // bytes4(keccak256("getSingleOrder(bytes32)"))
-        targets[0x27b62ad9] = _target; // bytes4(keccak256("getOrders(address,uint256,uint256)"))
+        targets[0x54356cc8] = _target; // bytes4(keccak256("getOrdersAvailable(uint256,uint256)"))
+        targets[0x5914d266] = _target; // bytes4(keccak256("getOrdersForUser(address,uint256,uint256)"))
         targets[0x49bd01ca] = _target; // bytes4(keccak256("getSingleLoan(bytes32,address)"))
         targets[0x512e5f9b] = _target; // bytes4(keccak256("getLoansForLender(address,uint256,bool)"))
         targets[0x9974d431] = _target; // bytes4(keccak256("getLoansForTrader(address,uint256,bool)"))
@@ -61,12 +62,31 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
         return _addExtraOrderData(loanOrder.loanOrderHash, data);
     }
 
+    /// @dev Returns a bytestream of data from orders that are available for taking.
+    /// @param start The starting order in the order list to return.
+    /// @param count The total amount of orders to return if they exist. Amount returned can be less.
+    /// @return A concatenated stream of bytes.
+    function getOrdersAvailable(
+        uint start,
+        uint count)
+        public
+        view
+        returns (bytes)
+    {
+        return _getOrdersForAddress(
+            address(0),
+            start,
+            count,
+            true // skipExpired
+        );
+    }
+
     /// @dev Returns a bytestream of order data for a user.
     /// @param loanParty The address of the maker or taker of the order.
     /// @param start The starting order in the order list to return.
     /// @param count The total amount of orders to return if they exist. Amount returned can be less.
     /// @return A concatenated stream of bytes.
-    function getOrders(
+    function getOrdersForUser(
         address loanParty,
         uint start,
         uint count)
@@ -74,43 +94,12 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
         view
         returns (bytes)
     {
-        uint end = Math.min256(orderList[loanParty].length, start.add(count));
-        if (end == 0 || start >= end) {
-            return;
-        }
-
-        // all encoded params will be zero-padded to 32 bytes
-        bytes memory data;
-
-        for (uint j=end-start; j > 0; j--) {
-            LoanOrder memory loanOrder = orders[orderList[loanParty][j+start-1]];
-            LoanOrderFees memory loanOrderFees = orderFees[orderList[loanParty][j+start-1]];
-
-            bytes memory tmpBytes = abi.encode(
-                loanOrder.maker,
-                loanOrder.loanTokenAddress,
-                loanOrder.interestTokenAddress,
-                loanOrder.collateralTokenAddress,
-                loanOrderFees.feeRecipientAddress,
-                oracleAddresses[loanOrder.oracleAddress],
-                loanOrder.loanTokenAmount,
-                loanOrder.interestAmount,
-                loanOrder.initialMarginAmount,
-                loanOrder.maintenanceMarginAmount,
-                loanOrderFees.lenderRelayFee,
-                loanOrderFees.traderRelayFee,
-                loanOrder.expirationUnixTimestampSec,
-                loanOrder.loanOrderHash
-            );
-            tmpBytes = _addExtraOrderData(loanOrder.loanOrderHash, tmpBytes);
-            if (j == end-start) {
-                data = tmpBytes;
-            } else {
-                data = abi.encodePacked(data, tmpBytes);
-            }
-        }
-
-        return data;
+        return _getOrdersForAddress(
+            loanParty,
+            start,
+            count,
+            false // skipExpired
+        );
     }
 
     /// @dev Returns a bytestream of loan data for a lender.
@@ -232,6 +221,63 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
     /*
     * Internal functions
     */
+
+    function _getOrdersForAddress(
+        address addr,
+        uint start,
+        uint count,
+        bool skipExpired)
+        internal
+        view
+        returns (bytes)
+    {
+        uint end = Math.min256(orderList[addr].length, start.add(count));
+        if (end == 0 || start >= end) {
+            return;
+        }
+
+        // all encoded params will be zero-padded to 32 bytes
+        bytes memory data;
+
+        end = end-start;
+        for (uint j=0; j < end; j++) {
+            LoanOrder memory loanOrder = orders[orderList[addr][j+start]];
+            
+            if (skipExpired && block.timestamp >= loanOrder.expirationUnixTimestampSec) {
+                if (end < orderList[addr].length)
+                    end++;
+
+                continue;
+            }
+            
+            LoanOrderFees memory loanOrderFees = orderFees[orderList[addr][j+start]];
+
+            bytes memory tmpBytes = abi.encode(
+                loanOrder.maker,
+                loanOrder.loanTokenAddress,
+                loanOrder.interestTokenAddress,
+                loanOrder.collateralTokenAddress,
+                loanOrderFees.feeRecipientAddress,
+                oracleAddresses[loanOrder.oracleAddress],
+                loanOrder.loanTokenAmount,
+                loanOrder.interestAmount,
+                loanOrder.initialMarginAmount,
+                loanOrder.maintenanceMarginAmount,
+                loanOrderFees.lenderRelayFee,
+                loanOrderFees.traderRelayFee,
+                loanOrder.expirationUnixTimestampSec,
+                loanOrder.loanOrderHash
+            );
+            tmpBytes = _addExtraOrderData(loanOrder.loanOrderHash, tmpBytes);
+            if (j == 0) {
+                data = tmpBytes;
+            } else {
+                data = abi.encodePacked(data, tmpBytes);
+            }
+        }
+
+        return data;
+    }
 
     function _addExtraOrderData(
         bytes32 loanOrderHash,

@@ -99,7 +99,14 @@ contract BZx is BZxStorage {
         view
         returns (bytes);
 
-    function getOrders(
+    function getOrdersAvailable(
+        uint start,
+        uint count)
+        public
+        view
+        returns (bytes);
+
+    function getOrdersForUser(
         address loanParty,
         uint start,
         uint count)

@@ -125,10 +125,17 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         //tracksGas
         returns (bytes32)
     {
-        return _addLoanOrder(
+        bytes32 loanOrderHash = _addLoanOrder(
             orderAddresses,
             orderValues,
             signature);
+
+        // record of available (non-expired, unfilled) orders
+        orderList[address(0)].push(loanOrderHash);
+        orderIndexes[loanOrderHash] = LoanOrderIndex({
+            index: orderList[address(0)].length-1,
+            active: true
+        });
     }
 
     /// @dev Takes the order as trader that's already pushed on chain
@@ -342,6 +349,14 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         loanOrderHash = getLoanOrderHash(orderAddresses, orderValues);
         if (orders[loanOrderHash].maker == address(0)) {
             LoanOrder memory loanOrder = _buildLoanOrderStruct(loanOrderHash, orderAddresses, orderValues);
+            
+            if (!_verifyNewLoanOrder(
+                loanOrder,
+                signature
+            )) {
+                revert("BZxOrderTaking::_addLoanOrder: loan verification failed");
+            }
+            
             orders[loanOrderHash] = loanOrder;
             
             orderFees[loanOrderHash] = LoanOrderFees({
@@ -349,14 +364,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
                 lenderRelayFee: orderValues[4],
                 traderRelayFee: orderValues[5]
             });
-
-            if (!_verifyNewLoanOrder(
-                loanOrder,
-                signature
-            )) {
-                revert("BZxOrderTaking::_addLoanOrder: loan verification failed");
-            }
-
+            
             emit LogLoanAdded (
                 loanOrderHash,
                 msg.sender,
@@ -408,9 +416,9 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             revert("BZxOrderTaking::_takeLoanOrder: makerRole > 1 || takerRole > 1 || makerRole == takerRole");
         }
 
-        if (orderLender[loanOrderHash] == address(0)) {
-            orderList[lender].push(loanOrderHash);
-            orderLender[loanOrderHash] = lender;
+        if (orderLender[loanOrder.loanOrderHash] == address(0)) {
+            orderList[lender].push(loanOrder.loanOrderHash);
+            orderLender[loanOrder.loanOrderHash] = lender;
         }
 
         orderList[trader].push(loanOrder.loanOrderHash);
@@ -579,6 +587,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         require(loanOrder.loanTokenAmount > 0 && cancelLoanTokenAmount > 0, "BZxOrderTaking::_cancelLoanOrder: invalid params");
 
         if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
+            _removeLoanOrder(loanOrder.loanOrderHash);
             return 0;
         }
 
@@ -587,6 +596,10 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         if (cancelledLoanTokenAmount == 0) {
             // none left to cancel
             return 0;
+        }
+
+        if (remainingLoanTokenAmount == cancelLoanTokenAmount) {
+            _removeLoanOrder(loanOrder.loanOrderHash);
         }
 
         orderCancelledAmounts[loanOrder.loanOrderHash] = orderCancelledAmounts[loanOrder.loanOrderHash].add(cancelledLoanTokenAmount);
@@ -601,6 +614,27 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         return cancelledLoanTokenAmount;
     }
 
+    function _removeLoanOrder(
+        bytes32 loanOrderHash)
+        internal
+    {
+        if (orderIndexes[loanOrderHash].active) {
+            uint index = orderIndexes[loanOrderHash].index;
+            if (orderList[address(0)].length > 1) {
+                // replace order in list with last order in array
+                orderList[address(0)][index] = orderList[address(0)][orderList[address(0)].length - 1];
+
+                // update the position of this replacement
+                orderIndexes[orderList[address(0)][index]].index = index;
+            }
+
+            // trim array and clear storage
+            orderList[address(0)].length--;
+            orderIndexes[loanOrderHash].index = 0;
+            orderIndexes[loanOrderHash].active = false;
+        }
+    }
+
     function _verifyNewLoanOrder(
         LoanOrder loanOrder,
         bytes signature)
@@ -608,9 +642,10 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         view
         returns (bool)
     {
-        if (loanOrder.loanTokenAddress == address(0) 
+        if (loanOrder.maker == address(0)
+            || loanOrder.loanTokenAddress == address(0) 
             || loanOrder.interestTokenAddress == address(0)) {
-            revert("BZxOrderTaking::_verifyNewLoanOrder: loanOrder.loanTokenAddress == address(0) || loanOrder.interestTokenAddress == address(0)");
+            revert("BZxOrderTaking::_verifyNewLoanOrder: loanOrder.maker == address(0) || loanOrder.loanTokenAddress == address(0) || loanOrder.interestTokenAddress == address(0)");
         }
 
         if (! OracleRegistry(oracleRegistryContract).hasOracle(loanOrder.oracleAddress) || oracleAddresses[loanOrder.oracleAddress] == address(0)) {
@@ -637,7 +672,6 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         address collateralTokenFilled,
         uint loanTokenAmountFilled)
         internal
-        view
         returns (bool)
     {
         if (loanOrder.maker == msg.sender) {
@@ -655,6 +689,17 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         uint remainingLoanTokenAmount = loanOrder.loanTokenAmount.sub(getUnavailableLoanTokenAmount(loanOrder.loanOrderHash));
         if (remainingLoanTokenAmount < loanTokenAmountFilled) {
             revert("BZxOrderTaking::_verifyExistingLoanOrder: remainingLoanTokenAmount < loanTokenAmountFilled");
+        } else if (remainingLoanTokenAmount > loanTokenAmountFilled) {
+            if (!orderIndexes[loanOrder.loanOrderHash].active) {
+                // record of available (non-expired, unfilled) orders
+                orderList[address(0)].push(loanOrder.loanOrderHash);
+                orderIndexes[loanOrder.loanOrderHash] = LoanOrderIndex({
+                    index: orderList[address(0)].length-1,
+                    active: true
+                });
+            }
+        } else { // remainingLoanTokenAmount == loanTokenAmountFilled
+             _removeLoanOrder(loanOrder.loanOrderHash);
         }
 
         return true;

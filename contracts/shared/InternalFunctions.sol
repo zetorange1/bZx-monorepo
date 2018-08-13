@@ -54,7 +54,10 @@ contract InternalFunctions is BZxStorage {
     /// @param denominator Denominator.
     /// @param target Value to multiply with numerator/denominator.
     /// @return Rounding error is present.
-    function _isRoundingError(uint numerator, uint denominator, uint target)
+    function _isRoundingError(
+        uint numerator, 
+        uint denominator, 
+        uint target)
         internal
         pure
         returns (bool)
@@ -74,7 +77,10 @@ contract InternalFunctions is BZxStorage {
     /// @param denominator Denominator.
     /// @param target Value to calculate partial of.
     /// @return Partial value of target.
-    function _getPartialAmount(uint numerator, uint denominator, uint target)
+    function _getPartialAmount(
+        uint numerator, 
+        uint denominator, 
+        uint target)
         internal
         pure
         returns (uint)
