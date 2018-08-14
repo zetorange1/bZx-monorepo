@@ -177,7 +177,9 @@ export default class OrderItem extends React.Component {
             <DataPointContainer>
               <Label>First Fill</Label>
               <DataPoint>
-                {`${addedDateStr} (${addedDate.fromNow()})`}
+                {!fillableOrder.addedUnixTimestampSec
+                  ? `No fills`
+                  : `${addedDateStr} (${addedDate.fromNow()})`}
               </DataPoint>
             </DataPointContainer>
 
@@ -212,7 +214,7 @@ export default class OrderItem extends React.Component {
                     fillableOrder.orderFilledAmount -
                     fillableOrder.orderCancelledAmount,
                   1e18
-                ).toFixed(0)}
+                )}
                 {` `}
                 {loanTokenSymbol}
               </DataPoint>
