@@ -60,7 +60,7 @@
     "network:deploy0xdb": "rimraf ./test_network && mkdirp ./test_network && ziptool --unzip ./extra/0x_db_07d00cc515e0f9825b81595386b358593b7a3d6f.zip -o ./test_network",
     "network:run": "ganache-cli --networkId 50 -p 8545 --noVMErrorsOnRPCResponse --db ./test_network -m \"concert load couple harbor equip island argue ramp clarify fence smart topic\"",
     "network:run-coverage": "./node_modules/.bin/testrpc-sc --networkId 55 -p 8555 --noVMErrorsOnRPCResponse --gasLimit 50000000 --db ./test_network -m \"concert load couple harbor equip island argue ramp clarify fence smart topic\"",
-    "test": "truffle test ./test/endtoend.js",
+    "test": "truffle test",
     "lint-contracts": "solhint contracts/**/*.sol",
     "coverage": "./node_modules/.bin/solidity-coverage"
   }
