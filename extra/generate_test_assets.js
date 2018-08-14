@@ -236,9 +236,12 @@ Smart Contracts
 Object.keys(addresses).forEach(function(item, index) {
 	if (addresses[item] == "") {
 		addresses[item] = "[abi only]";
-	}
-	outHTML += item+` :: `+addresses[item]+` <a href="abi/`+item+`.abi.json" target="_blank">abi</a>
+		outHTML += item+` :: `+addresses[item]+` <a href="abi/`+item+`.abi.json" target="_blank">abi</a>
 `;
+	} else {
+		outHTML += item+` :: <a href="https://`+network+`.etherscan.io/address/`+addresses[item]+`" target="_blank">`+addresses[item]+`</a> <a href="abi/`+item+`.abi.json" target="_blank">abi</a>
+`;
+	}
 });
 
 outHTML += `
@@ -246,9 +249,9 @@ outHTML += `
 `;
 Object.keys(addresses_0x).forEach(function(item, index) {
 	if (abis_0x[item] != "[]") {
-		outHTML += item + " :: " + addresses_0x[item] + " <a href=\"abi/"+item+".abi.json\" target=\"_blank\">abi</a>\n";
+		outHTML += item + " :: " + `<a href="https://`+network+`.etherscan.io/address/`+addresses_0x[item]+`" target="_blank">`+addresses_0x[item]+`</a>` + " <a href=\"abi/"+item+".abi.json\" target=\"_blank\">abi</a>\n";
 	} else {
-		outHTML += item + " :: " + addresses_0x[item] + "\n";
+		outHTML += item + " :: " + `<a href="https://`+network+`.etherscan.io/address/`+addresses_0x[item]+`" target="_blank">`+addresses_0x[item]+`</a>` + "\n";
 	}
 });
 outHTML += `

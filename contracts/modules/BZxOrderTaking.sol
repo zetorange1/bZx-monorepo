@@ -602,7 +602,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             return 0;
         }
 
-        if (remainingLoanTokenAmount == cancelLoanTokenAmount) {
+        if (remainingLoanTokenAmount == cancelledLoanTokenAmount) {
             _removeLoanOrder(loanOrder.loanOrderHash);
         }
 

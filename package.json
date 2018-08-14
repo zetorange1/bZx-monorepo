@@ -27,7 +27,7 @@
   "dependencies": {
     "0x.js": "npm:0x.js@0.38.6",
     "0xV2.js": "npm:0x.js@1.0.1-rc.2",
-    "b0x.js": "git+https://github.com/b0xNetwork/b0x.js.git",
+    "b0x.js": "git+https://github.com/b0xNetwork/bZx.js.git",
     "bignumber.js": "^6.0.0",
     "ethers": "^3.0.26",
     "ganache-cli": "^6.1.3",
