@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import MuiButton from "material-ui/Button";
-import FormControlLabel from "material-ui/Form";
+import { FormControlLabel } from "material-ui/Form";
 import Checkbox from "material-ui/Checkbox";
 import Section from "../../common/FormSection";
 
