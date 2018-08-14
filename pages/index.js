@@ -20,6 +20,7 @@ import Balances from "../src/balances";
 import GenerateOrder from "../src/orders/GenerateOrder";
 import FillOrder from "../src/orders/FillOrder";
 import OrderHistory from "../src/orders/OrderHistory";
+import OrderBook from "../src/orders/OrderBook";
 
 import Borrowing from "../src/borrowing";
 
@@ -34,6 +35,7 @@ import { getTrackedTokens } from "../src/common/trackedTokens";
 
 const TABS = [
   { id: `Orders_GenOrder`, label: `Generate Order` },
+  { id: `Orders_OrderBook`, label: `Order Book` },
   { id: `Orders_FillOrder`, label: `Fill Order` },
   { id: `Orders_OrderHistory`, label: `Order History` }
 ];
@@ -42,6 +44,7 @@ class Index extends React.Component {
   state = {
     activeCard: `Balances`,
     activeTab: `Orders_GenOrder`,
+    activeOrder: null,
     trackedTokens: [],
     providerName: ``,
     getWeb3: false,
@@ -78,7 +81,8 @@ class Index extends React.Component {
   };
 
   changeCard = cardId => this.setState({ activeCard: cardId });
-  changeTab = tabId => this.setState({ activeTab: tabId });
+  changeTab = (tabId, order) =>
+    this.setState({ activeTab: tabId, activeOrder: order });
 
   web3Received = () => this.setState({ getWeb3: false, web3IsReceived: true });
 
@@ -210,6 +214,18 @@ class Index extends React.Component {
               providerName={this.state.providerName}
               clearProvider={this.clearProvider}
             />
+            <ContentContainer
+              show={this.state.activeTab === `Orders_OrderBook`}
+            >
+              <p>On-chain Fillable Orders</p>
+              <Divider />
+              <OrderBook
+                bZx={bZx}
+                accounts={accounts}
+                tokens={tokens}
+                changeTab={this.changeTab}
+              />
+            </ContentContainer>
             <ContentContainer show={this.state.activeTab === `Orders_GenOrder`}>
               <GenerateOrder
                 tokens={tokens}
@@ -228,6 +244,7 @@ class Index extends React.Component {
                 bZx={bZx}
                 web3={web3}
                 accounts={accounts}
+                activeOrder={this.state.activeOrder}
               />
             </ContentContainer>
             <ContentContainer

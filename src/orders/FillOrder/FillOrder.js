@@ -13,7 +13,11 @@ import Details from "./Details";
 import Expiration from "./Expiration";
 import Inputs from "./Inputs";
 
-import { validateFillOrder, submitFillOrder } from "./utils";
+import {
+  validateFillOrder,
+  submitFillOrder,
+  submitFillOrderWithHash
+} from "./utils";
 import { getOrderHash } from "../GenerateOrder/utils";
 
 const SubmitBtn = styled(Button)`
@@ -45,12 +49,15 @@ export default class FillOrder extends React.Component {
   };
 
   async componentDidMount() {
+    // console.log(this.props.order);
     if (this.props.order.makerRole !== `0`) {
       this.refreshCollateralAmountNoEvent();
     }
 
     try {
-      const orderHash = getOrderHash(this.props.order);
+      const orderHash = this.props.order.loanOrderHash
+        ? this.props.order.loanOrderHash
+        : getOrderHash(this.props.order);
       // console.log("orderHash: "+orderHash);
 
       const orderDetail = await this.getSingleOrder(orderHash);
@@ -160,14 +167,26 @@ export default class FillOrder extends React.Component {
       accounts
     );
     if (isFillOrderValid) {
-      submitFillOrder(
-        order,
-        fillOrderAmount,
-        collateralTokenAddress,
-        web3,
-        bZx,
-        accounts
-      );
+      if (!this.props.order.loanOrderHash) {
+        submitFillOrder(
+          order,
+          fillOrderAmount,
+          collateralTokenAddress,
+          web3,
+          bZx,
+          accounts
+        );
+      } else {
+        submitFillOrderWithHash(
+          this.props.order.loanOrderHash,
+          this.props.order.makerRole === `0`,
+          fillOrderAmount,
+          collateralTokenAddress,
+          web3,
+          bZx,
+          accounts
+        );
+      }
     }
   };
 
