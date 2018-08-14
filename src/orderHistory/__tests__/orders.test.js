@@ -63,7 +63,7 @@ describe("order history", () => {
     );
   });
 
-  describe("getOrders", async () => {
+  describe("getOrdersForUser", async () => {
     /* NOTE: If you want to re-run this test, you must restart
      the local testnet as the orders made by this address will
       accumulate causing this test to fail */
@@ -73,7 +73,7 @@ describe("order history", () => {
         interestTokens
       } = FillTestUtils.initAllContractInstances();
 
-      const orders = await bZxJS.getOrders({
+      const orders = await bZxJS.getOrdersForUser({
         loanPartyAddress: traders[0],
         start: 0,
         count: 10

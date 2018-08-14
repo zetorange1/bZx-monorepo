@@ -19,6 +19,9 @@ import TokenRegistry from "../../../../protocol_contracts/test_network/deployed/
 import OracleInterface from "../../../../protocol_contracts/test_network/deployed/OracleInterface.json";
 import TestNetFaucet from "../../../../protocol_contracts/test_network/deployed/TestNetFaucet.json";
 
+import ZRXToken from "../../../../protocol_contracts/test_network/deployed/ZRXToken.json";
+import WETH from "../../../../protocol_contracts/test_network/deployed/WETH.json";
+
 export default {
   BZx,
   BZxOracle,
@@ -38,6 +41,8 @@ export default {
   TestToken8,
   TestToken9,
   TokenRegistry,
+  ZRXToken,
+  WETH,
   OracleInterface,
   TestNetFaucet
 };

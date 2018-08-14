@@ -23,7 +23,24 @@ export const getSingleOrder = async (
   return {};
 };
 
-export const getOrders = async (
+export const getOrdersFillable = async (
+  { web3, networkId },
+  { start, count }
+) => {
+  const bZxContract = await CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).BZx.abi,
+    Addresses.getAddresses(networkId).BZx
+  );
+
+  const data = await bZxContract.methods
+    .getOrdersFillable(start, count)
+    .call();
+
+  return OrderUtils.cleanData(data);
+};
+
+export const getOrdersForUser = async (
   { web3, networkId },
   { loanPartyAddress, start, count }
 ) => {
@@ -34,7 +51,7 @@ export const getOrders = async (
   );
 
   const data = await bZxContract.methods
-    .getOrders(loanPartyAddress, start, count)
+    .getOrdersForUser(loanPartyAddress, start, count)
     .call();
 
   return OrderUtils.cleanData(data);

@@ -118,13 +118,30 @@ export default class BZxJS {
   takeLoanOrderAsTrader = (...props) =>
     fill.takeLoanOrderAsTrader(this, ...props);
 
+  pushLoanOrderOnChain = (...props) =>
+    fill.pushLoanOrderOnChain(this, ...props);
+
+  takeLoanOrderOnChainAsTrader = (...props) =>
+    fill.takeLoanOrderOnChainAsTrader(this, ...props);
+
+  takeLoanOrderOnChainAsLender = (...props) =>
+    fill.takeLoanOrderOnChainAsLender(this, ...props);
+
+  cancelLoanOrder = (...props) =>
+    fill.cancelLoanOrder(this, ...props);
+
+  cancelLoanOrderWithHash = (...props) =>
+    fill.cancelLoanOrderWithHash(this, ...props);
+
   getInitialCollateralRequired = async (...props) =>
     fill.getInitialCollateralRequired(this, ...props);
 
   getSingleOrder = async (...props) =>
     orderHistory.getSingleOrder(this, ...props);
-  getOrders = async (...props) =>
-    orderHistory.getOrders(this, ...props);
+  getOrdersFillable = async (...props) =>
+    orderHistory.getOrdersFillable(this, ...props);
+  getOrdersForUser = async (...props) =>
+    orderHistory.getOrdersForUser(this, ...props);
   getSingleLoan = async (...props) =>
     orderHistory.getSingleLoan(this, ...props);
   getLoansForLender = async (...props) =>
