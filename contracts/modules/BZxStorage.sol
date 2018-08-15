@@ -13,16 +13,25 @@ contract BZxObjects {
         address loanTokenAddress;
         address interestTokenAddress;
         address collateralTokenAddress;
-        address feeRecipientAddress;
         address oracleAddress;
         uint loanTokenAmount;
         uint interestAmount;
         uint initialMarginAmount;
         uint maintenanceMarginAmount;
+        uint expirationUnixTimestampSec;
+        uint makerRole;
+        bytes32 loanOrderHash;
+    }
+
+    struct LoanOrderFees {
+        address feeRecipientAddress;
         uint lenderRelayFee;
         uint traderRelayFee;
-        uint expirationUnixTimestampSec;
-        bytes32 loanOrderHash;
+    }
+
+    struct LoanOrderIndex {
+        uint index;
+        bool active;
     }
 
     struct LoanRef {
@@ -49,6 +58,17 @@ contract BZxObjects {
         uint interestTotalAccrued;
         uint interestPaidSoFar;
     }
+
+    event LogLoanAdded (
+        bytes32 loanOrderHash,
+        address adder,
+        address maker,
+        address feeRecipientAddress,
+        uint lenderRelayFee,
+        uint traderRelayFee,
+        uint expirationUnixTimestampSec,
+        uint makerRole
+    );
 
     event LogLoanTaken (
         address lender,
@@ -109,52 +129,6 @@ contract BZxObjects {
         uint amountPaid,
         uint totalAccrued
     );
-
-    function buildLoanOrderStruct(
-        bytes32 loanOrderHash,
-        address[6] addrs,
-        uint[9] uints) 
-        internal
-        pure
-        returns (LoanOrder) {
-
-        return LoanOrder({
-            maker: addrs[0],
-            loanTokenAddress: addrs[1],
-            interestTokenAddress: addrs[2],
-            collateralTokenAddress: addrs[3],
-            feeRecipientAddress: addrs[4],
-            oracleAddress: addrs[5],
-            loanTokenAmount: uints[0],
-            interestAmount: uints[1],
-            initialMarginAmount: uints[2],
-            maintenanceMarginAmount: uints[3],
-            lenderRelayFee: uints[4],
-            traderRelayFee: uints[5],
-            expirationUnixTimestampSec: uints[6],
-            loanOrderHash: loanOrderHash
-        });
-    }
-
-    /*function buildLoanPositionStruct(
-        address[4] addrs,
-        uint[5] uints)
-        internal
-        pure
-        returns (Loan) {
-
-        return LoanPosition({            
-            lender: addrs[0],
-            trader: addrs[1],
-            collateralTokenAddressFilled: addrs[2],
-            positionTokenAddressFilled: addrs[3],
-            loanTokenAmountFilled: uints[0],
-            collateralTokenAmountFilled: uints[1],
-            positionTokenAmountFilled: uints[2],
-            loanStartUnixTimestampSec: uints[3],
-            active: uints[4] != 0
-        });
-    }*/
 }
 
 
@@ -167,10 +141,12 @@ contract BZxStorage is BZxObjects, ReentrancyGuard, Ownable, GasTracker {
     address public vaultContract;
     address public oracleRegistryContract;
     address public bZxTo0xContract;
+    address public bZxTo0xV2Contract;
     bool public DEBUG_MODE = false;
 /* solhint-enable var-name-mixedcase */
 
     mapping (bytes32 => LoanOrder) public orders; // mapping of loanOrderHash to taken loanOrders
+    mapping (bytes32 => LoanOrderFees) public orderFees; // mapping of loanOrderHash to taken loanOrder Fees
     mapping (address => bytes32[]) public orderList; // mapping of lenders and trader addresses to array of loanOrderHashes
     mapping (bytes32 => address) public orderLender; // mapping of loanOrderHash to lender address
     mapping (bytes32 => address[]) public orderTraders; // mapping of loanOrderHash to array of trader addresses
@@ -181,4 +157,5 @@ contract BZxStorage is BZxObjects, ReentrancyGuard, Ownable, GasTracker {
     mapping (bytes32 => mapping (address => uint)) public interestPaid; // mapping of loanOrderHash to mapping of traders to amount of interest paid so far to a lender
 
     LoanRef[] public loanList; // array of loans that need to be checked for liquidation or expiration
+    mapping (bytes32 => LoanOrderIndex) public orderIndexes; // mapping of loanOrderHash to LoanOrderIndex objects (fillable orders)
 }

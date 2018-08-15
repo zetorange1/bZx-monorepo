@@ -10,17 +10,19 @@ var run = {
 
   "should generate loanOrderHash (as lender1)": true,
   "should sign and verify orderHash (as lender1)": true,
+  "should push sample loan order on chain": true,
   "should take sample loan order (as lender1/trader1)": true,
-  "should take sample loan order (as lender1/trader2)": false,
+  "should take sample loan order (as lender1/trader2) on chain": true,
 
-  "should generate loanOrderHash (as trader2)": false,
-  "should sign and verify orderHash (as trader2)": false,
-  "should take sample loan order (as lender2)": false,
+  "should generate loanOrderHash (as trader2)": true,
+  "should sign and verify orderHash (as trader2)": true,
+  "should take sample loan order (as lender2)": true,
 
   "should get single loan order": true,
-  "should get loan orders (for lender1)": false,
+  "should get loan orders (for lender1)": true,
   "should get loan orders (for lender2)": false,
   "should get loan orders (for trader2)": false,
+  "should get fillable orders": true,
 
   "should get single loan position": true,
   "should get loan positions (for lender1)": false,
@@ -28,10 +30,15 @@ var run = {
   "should get loan positions (for trader2)": false,
   "should get active loans": false,
 
-  "should generate 0x orders": true,
-  "should sign and verify 0x orders": true,
-  "should parse 0x order params": false,
-  "should trade position with 0x orders": true,
+  //"should generate 0x orders": true,
+  //"should sign and verify 0x orders": true,
+  //"should parse 0x order params": false,
+  //"should trade position with 0x orders": true,
+
+  "should generate 0x V2 orders": true,
+  "should sign and verify 0x V2 orders": true,
+  "should trade position with 0x V2 orders": true,
+
   "should trade position with oracle": true,
   "should change collateral (for trader1)": true,
   "should withdraw profits": true,
@@ -48,15 +55,18 @@ const BigNumber = require('bignumber.js');
 const BN = require('bn.js');
 const ethABI = require('ethereumjs-abi');
 const ethUtil = require('ethereumjs-util');
+const { Interface, providers, Contract } = require('ethers');
 
 import Web3Utils from 'web3-utils';
-import BZxJS from 'b0x.js'
+import BZxJS from 'bZx.js'
 import { ZeroEx } from '0x.js';
+import { ZeroEx as ZeroExV2 } from '0xV2.js';
 
 var config = require('../protocol-config.js');
 
 let BZxVault = artifacts.require("BZxVault");
 let BZxTo0x = artifacts.require("BZxTo0x");
+let BZxTo0xV2 = artifacts.require("BZxTo0xV2");
 let BZxOracle = artifacts.require("TestNetOracle");
 let BZxOracleRegistry = artifacts.require("OracleRegistry");
 let BZRxTokenRegistry = artifacts.require("TokenRegistry");
@@ -64,13 +74,25 @@ let BZRxToken = artifacts.require("TestNetBZRxToken");
 let ERC20 = artifacts.require("ERC20"); // for testing with any ERC20 token
 let BaseToken = artifacts.require("BaseToken");
 let Exchange0x = artifacts.require("ExchangeInterface");
+let Exchange0xV2 = artifacts.require("ExchangeV2InterfaceWithEvents");
 
 let BZxProxy = artifacts.require("BZxProxy"); // bZx proxy
 let BZx = artifacts.require("BZx"); // BZx interface
 
+let ZeroExV2Helper = artifacts.require("ZeroExV2Helper");
 
-let currentGasPrice = 20000000000; // 20 gwei
-let currentEthPrice = 1000; // USD
+let currentGasPrice = 8000000000; // 8 gwei
+let currentEthPrice = 500; // USD
+
+let zeroExV2 = new ZeroExV2(web3.currentProvider, {
+  blockPollingIntervalMs: undefined,
+  erc20ProxyContractAddress: undefined,
+  erc721ProxyContractAddress: undefined,
+  exchangeContractAddress: undefined,
+  gasPrice: BigNumber(currentGasPrice),
+  networkId: 50,
+  zrxContractAddress: undefined,
+});
 
 const MAX_UINT = new BigNumber(2).pow(256).minus(1).toString();
 
@@ -94,6 +116,7 @@ contract('BZxTest', function(accounts) {
   var vault;
   var oracle;
   var bZxTo0x;
+  var bZxTo0xV2;
 
   var oracle_registry;
   var bzrx_token;
@@ -103,11 +126,15 @@ contract('BZxTest', function(accounts) {
   var vaultEvents;
   var oracleEvents;
   var bZxTo0xEvents;
+  var bZxTo0xV2Events;
+  var zeroExV2Events;
 
   var test_tokens = [];
 
   var zrx_token;
   var exchange_0x;
+  var exchange_0xV2;
+  var zeroExV2Helper;
 
   var OrderParams_bZx_1, OrderParams_bZx_2;
   var OrderHash_bZx_1, OrderHash_bZx_2;
@@ -118,6 +145,13 @@ contract('BZxTest', function(accounts) {
   var OrderHash_0x_1, OrderHash_0x_2;
   var ECSignature_0x_raw_1, ECSignature_0x_raw_2;
   var ECSignature_0x_1, ECSignature_0x_2;
+
+  var OrderParams_0xV2_1, OrderParams_0xV2_2;
+  var OrderHash_0xV2_1, OrderHash_0xV2_2, OrderHash_0xV2_1_onchain, OrderHash_0xV2_2_onchain;
+  var ECSignature_0xV2_raw_1, ECSignature_0xV2_raw_2;
+  var ECSignature_0xV2_1, ECSignature_0xV2_2;
+
+  var OrderParams_0xV2_1_prepped, OrderParams_0xV2_2_prepped;
 
   // account roles
   var owner_account = accounts[0]; // owner/contract creator, holder of all tokens
@@ -137,6 +171,8 @@ contract('BZxTest', function(accounts) {
   var interestToken2;
   var maker0xToken1;
 
+  var maker0xV2Token1;
+
   //printBalances(accounts);
 
   before(function() {
@@ -152,6 +188,7 @@ contract('BZxTest', function(accounts) {
       (bzrx_token = await BZRxToken.deployed()),
       (vault = await BZxVault.deployed()),
       (bZxTo0x = await BZxTo0x.deployed()),
+      (bZxTo0xV2 = await BZxTo0xV2.deployed()),
       (oracle_registry = await BZxOracleRegistry.deployed()),
       (token_registry = await BZRxTokenRegistry.deployed()),
       (oracle = await BZxOracle.deployed()),
@@ -159,7 +196,9 @@ contract('BZxTest', function(accounts) {
       (bZx = await BZx.at((await BZxProxy.deployed()).address)),
 
       (zrx_token = await ERC20.at(config["addresses"]["development"]["ZeroEx"]["ZRXToken"])),
-      (exchange_0x = await Exchange0x.at(config["addresses"]["development"]["ZeroEx"]["Exchange"])),
+      (exchange_0x = await Exchange0x.at(config["addresses"]["development"]["ZeroEx"]["ExchangeV1"])),
+      (exchange_0xV2 = await Exchange0xV2.at(config["addresses"]["development"]["ZeroEx"]["ExchangeV2"])),
+      (zeroExV2Helper = await ZeroExV2Helper.deployed()),
     ]);
   });
 
@@ -178,6 +217,7 @@ contract('BZxTest', function(accounts) {
     interestToken1 = test_tokens[4];
     interestToken2 = test_tokens[5];
     maker0xToken1 = test_tokens[6];
+    maker0xV2Token1 = test_tokens[7];
 
     await Promise.all([
       (await bzrx_token.transfer(lender1_account, web3.toWei(1000000, "ether"), {from: owner_account})),
@@ -212,16 +252,25 @@ contract('BZxTest', function(accounts) {
       (await zrx_token.transfer(trader2_account, web3.toWei(10000, "ether"), {from: owner_account})),
       (await zrx_token.approve(bZxTo0x.address, MAX_UINT, {from: trader1_account})),
       (await zrx_token.approve(bZxTo0x.address, MAX_UINT, {from: trader2_account})),
+      (await zrx_token.approve(bZxTo0xV2.address, MAX_UINT, {from: trader1_account})),
+      (await zrx_token.approve(bZxTo0xV2.address, MAX_UINT, {from: trader2_account})),
 
       (await zrx_token.transfer(makerOf0xOrder1_account, web3.toWei(10000, "ether"), {from: owner_account})),
       (await zrx_token.transfer(makerOf0xOrder2_account, web3.toWei(10000, "ether"), {from: owner_account})),
       (await zrx_token.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder1_account})),
       (await zrx_token.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder2_account})),
+      (await zrx_token.approve(config["addresses"]["development"]["ZeroEx"]["ERC20Proxy"], MAX_UINT, {from: makerOf0xOrder1_account})),
+      (await zrx_token.approve(config["addresses"]["development"]["ZeroEx"]["ERC20Proxy"], MAX_UINT, {from: makerOf0xOrder2_account})),
 
       (await maker0xToken1.transfer(makerOf0xOrder1_account, web3.toWei(10000, "ether"), {from: owner_account})),
       (await maker0xToken1.transfer(makerOf0xOrder2_account, web3.toWei(10000, "ether"), {from: owner_account})),
       (await maker0xToken1.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder1_account})),
       (await maker0xToken1.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {from: makerOf0xOrder2_account})),
+
+      (await maker0xV2Token1.transfer(makerOf0xOrder1_account, web3.toWei(10000, "ether"), {from: owner_account})),
+      (await maker0xV2Token1.transfer(makerOf0xOrder2_account, web3.toWei(10000, "ether"), {from: owner_account})),
+      (await maker0xV2Token1.approve(config["addresses"]["development"]["ZeroEx"]["ERC20Proxy"], MAX_UINT, {from: makerOf0xOrder1_account})),
+      (await maker0xV2Token1.approve(config["addresses"]["development"]["ZeroEx"]["ERC20Proxy"], MAX_UINT, {from: makerOf0xOrder2_account})),
     ]);
   });
 
@@ -243,6 +292,14 @@ contract('BZxTest', function(accounts) {
       toBlock: 'latest'
     });
     bZxTo0xEvents = bZxTo0x.allEvents({
+      fromBlock: web3.eth.blockNumber,
+      toBlock: 'latest'
+    });
+    bZxTo0xV2Events = bZxTo0xV2.allEvents({
+      fromBlock: web3.eth.blockNumber,
+      toBlock: 'latest'
+    });
+    zeroExV2Events = exchange_0xV2.allEvents({
       fromBlock: web3.eth.blockNumber,
       toBlock: 'latest'
     });
@@ -276,6 +333,8 @@ contract('BZxTest', function(accounts) {
     logs = logs.concat(await vaultEvents.get());
     logs = logs.concat(await oracleEvents.get());
     logs = logs.concat(await bZxTo0xEvents.get());
+    logs = logs.concat(await bZxTo0xV2Events.get());
+    logs = logs.concat(await zeroExV2Events.get());
 
     console.log(txLogsPrint(logs));
 
@@ -283,6 +342,8 @@ contract('BZxTest', function(accounts) {
     vaultEvents.stopWatching();
     oracleEvents.stopWatching();
     bZxTo0xEvents.stopWatching();
+    bZxTo0xV2Events.stopWatching();
+    zeroExV2Events.stopWatching();
 
     new Promise((resolve, reject) => {
       console.log("bZx_tester :: after balance: "+web3.eth.getBalance(owner_account));
@@ -378,7 +439,7 @@ contract('BZxTest', function(accounts) {
   (run["should generate loanOrderHash (as lender1)"] ? it : it.skip)("should generate loanOrderHash (as lender1)", function(done) {
 
     OrderParams_bZx_1 = {
-      "b0xAddress": bZx.address,
+      "bZxAddress": bZx.address,
       "makerAddress": lender1_account, // lender
       "loanTokenAddress": loanToken1.address,
       "interestTokenAddress": interestToken1.address,
@@ -462,6 +523,39 @@ contract('BZxTest', function(accounts) {
     });
   });
 
+  (run["should push sample loan order on chain"] ? it : it.skip)("should push sample loan order on chain", function(done) {
+    bZx.pushLoanOrderOnChain(
+      [
+        OrderParams_bZx_1["makerAddress"],
+        OrderParams_bZx_1["loanTokenAddress"],
+        OrderParams_bZx_1["interestTokenAddress"],
+        OrderParams_bZx_1["collateralTokenAddress"],
+        OrderParams_bZx_1["feeRecipientAddress"],
+        OrderParams_bZx_1["oracleAddress"]
+      ],
+      [
+        new BN(OrderParams_bZx_1["loanTokenAmount"]),
+        new BN(OrderParams_bZx_1["interestAmount"]),
+        new BN(OrderParams_bZx_1["initialMarginAmount"]),
+        new BN(OrderParams_bZx_1["maintenanceMarginAmount"]),
+        new BN(OrderParams_bZx_1["lenderRelayFee"]),
+        new BN(OrderParams_bZx_1["traderRelayFee"]),
+        new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
+        new BN(OrderParams_bZx_1["makerRole"]),
+        new BN(OrderParams_bZx_1["salt"])
+      ],
+      ECSignature_raw_1,
+      {from: makerOf0xOrder2_account, gas: 1000000, gasPrice: web3.toWei(10, "gwei")}).then(function(tx) {
+        console.log(txPrettyPrint(tx,"should push sample loan order on chain"));
+        assert.isOk(tx);
+        done();
+      }), function(error) {
+        console.error("error: "+error);
+        assert.isOk(false);
+        done();
+      };
+  });
+
   (run["should take sample loan order (as lender1/trader1)"] ? it : it.skip)("should take sample loan order (as lender1/trader1)", function(done) {
     bZx.takeLoanOrderAsTrader(
       [
@@ -486,7 +580,7 @@ contract('BZxTest', function(accounts) {
       collateralToken1.address,
       web3.toWei(12.3, "ether"),
       ECSignature_raw_1,
-      {from: trader1_account, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
+      {from: trader1_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
         console.log(txPrettyPrint(tx,"should take sample loan order (as lender1/trader1)"));
         assert.isOk(tx);
         done();
@@ -497,32 +591,13 @@ contract('BZxTest', function(accounts) {
       };
   });
 
-  (run["should take sample loan order (as lender1/trader2)"] ? it : it.skip)("should take sample loan order (as lender1/trader2)", function(done) {
-    bZx.takeLoanOrderAsTrader(
-      [
-        OrderParams_bZx_1["makerAddress"],
-        OrderParams_bZx_1["loanTokenAddress"],
-        OrderParams_bZx_1["interestTokenAddress"],
-        OrderParams_bZx_1["collateralTokenAddress"],
-        OrderParams_bZx_1["feeRecipientAddress"],
-        OrderParams_bZx_1["oracleAddress"]
-      ],
-      [
-        new BN(OrderParams_bZx_1["loanTokenAmount"]),
-        new BN(OrderParams_bZx_1["interestAmount"]),
-        new BN(OrderParams_bZx_1["initialMarginAmount"]),
-        new BN(OrderParams_bZx_1["maintenanceMarginAmount"]),
-        new BN(OrderParams_bZx_1["lenderRelayFee"]),
-        new BN(OrderParams_bZx_1["traderRelayFee"]),
-        new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
-        new BN(OrderParams_bZx_1["makerRole"]),
-        new BN(OrderParams_bZx_1["salt"])
-      ],
+  (run["should take sample loan order (as lender1/trader2) on chain"] ? it : it.skip)("should take sample loan order (as lender1/trader2) on chain", function(done) {
+    bZx.takeLoanOrderOnChainAsTrader(
+      OrderHash_bZx_1,
       collateralToken1.address,
       web3.toWei(20, "ether"),
-      ECSignature_raw_1,
-      {from: trader2_account, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
-        console.log(txPrettyPrint(tx,"should take sample loan order (as lender1/trader2)"));
+      {from: trader2_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
+        console.log(txPrettyPrint(tx,"should take sample loan order (as lender1/trader2) on chain"));
         assert.isOk(tx);
         done();
       }), function(error) {
@@ -536,7 +611,7 @@ contract('BZxTest', function(accounts) {
   (run["should generate loanOrderHash (as trader2)"] ? it : it.skip)("should generate loanOrderHash (as trader2)", function(done) {
 
     OrderParams_bZx_2 = {
-      "b0xAddress": bZx.address,
+      "bZxAddress": bZx.address,
       "makerAddress": trader2_account, // lender
       "loanTokenAddress": loanToken2.address,
       "interestTokenAddress": interestToken2.address,
@@ -620,37 +695,51 @@ contract('BZxTest', function(accounts) {
     });
   });
 
-  (run["should take sample loan order (as lender2)"] ? it : it.skip)("should take sample loan order (as lender2)", function(done) {
-    bZx.takeLoanOrderAsLender(
-      [
-        OrderParams_bZx_2["makerAddress"],
-        OrderParams_bZx_2["loanTokenAddress"],
-        OrderParams_bZx_2["interestTokenAddress"],
-        OrderParams_bZx_2["collateralTokenAddress"],
-        OrderParams_bZx_2["feeRecipientAddress"],
-        OrderParams_bZx_2["oracleAddress"]
-      ],
-      [
-        new BN(OrderParams_bZx_2["loanTokenAmount"]),
-        new BN(OrderParams_bZx_2["interestAmount"]),
-        new BN(OrderParams_bZx_2["initialMarginAmount"]),
-        new BN(OrderParams_bZx_2["maintenanceMarginAmount"]),
-        new BN(OrderParams_bZx_2["lenderRelayFee"]),
-        new BN(OrderParams_bZx_2["traderRelayFee"]),
-        new BN(OrderParams_bZx_2["expirationUnixTimestampSec"]),
-        new BN(OrderParams_bZx_2["makerRole"]),
-        new BN(OrderParams_bZx_2["salt"])
-      ],
-      ECSignature_raw_2,
-      {from: lender2_account, gasPrice: web3.toWei(30, "gwei")}).then(function(tx) {
-        console.log(txPrettyPrint(tx,"should take sample loan order (as lender2)"));
-        assert.isOk(tx);
-        done();
-      }), function(error) {
-        console.error("error: "+error);
-        assert.isOk(false);
-        done();
-      };
+  (run["should take sample loan order (as lender2)"] ? it : it.skip)("should take sample loan order (as lender2)", async function() {
+    //const provider = new providers.Web3Provider(web3.currentProvider);
+    
+    try {
+      let tx = await bZx.takeLoanOrderAsLender(
+        [
+          OrderParams_bZx_2["makerAddress"],
+          OrderParams_bZx_2["loanTokenAddress"],
+          OrderParams_bZx_2["interestTokenAddress"],
+          OrderParams_bZx_2["collateralTokenAddress"],
+          OrderParams_bZx_2["feeRecipientAddress"],
+          OrderParams_bZx_2["oracleAddress"]
+        ],
+        [
+          new BN(OrderParams_bZx_2["loanTokenAmount"]),
+          new BN(OrderParams_bZx_2["interestAmount"]),
+          new BN(OrderParams_bZx_2["initialMarginAmount"]),
+          new BN(OrderParams_bZx_2["maintenanceMarginAmount"]),
+          new BN(OrderParams_bZx_2["lenderRelayFee"]),
+          new BN(OrderParams_bZx_2["traderRelayFee"]),
+          new BN(OrderParams_bZx_2["expirationUnixTimestampSec"]),
+          new BN(OrderParams_bZx_2["makerRole"]),
+          new BN(OrderParams_bZx_2["salt"])
+        ],
+        ECSignature_raw_2,
+        {from: lender2_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")});
+        
+      console.log(txPrettyPrint(tx,"should take sample loan order (as lender2)"));
+          
+      /*tx = (await provider.send("debug_traceTransaction", [ tx.tx, {} ]));
+      console.log(JSON.stringify(tx, null, '\t'));*/
+
+      assert.isOk(tx);
+    } catch (error) {
+      console.error("error: "+error);
+
+      /*var matches = error.message.match(/Transaction: ([^ ]+) exited/);
+      console.log(matches[1]);
+      provider.send("debug_traceTransaction", [ matches[1], {} ]).then(function(tx) {
+      //provider.getTransactionReceipt(error["tx"]).then(function(tx) {
+        console.log(JSON.stringify(tx, null, '\t'));
+      });*/
+
+      assert.isOk(false);
+    }
   });
 
   (run["should get single loan order"] ? it : it.skip)("should get single loan order", async function() {
@@ -723,12 +812,12 @@ contract('BZxTest', function(accounts) {
 
   (run["should get loan orders (for lender1)"] ? it : it.skip)("should get loan orders (for lender1)", async function() {
 
-    var data = await bZx.getOrders.call(
+    var data = await bZx.getOrdersForUser.call(
       lender1_account,
       0, // starting item
       10 // max number of items returned
     );
-    console.log("getOrders(...):");
+    console.log("getOrdersForUser(...):");
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
@@ -794,12 +883,12 @@ contract('BZxTest', function(accounts) {
 
   (run["should get loan orders (for lender2)"] ? it : it.skip)("should get loan orders (for lender2)", async function() {
 
-    var data = await bZx.getOrders.call(
+    var data = await bZx.getOrdersForUser.call(
       lender2_account,
       0, // starting item
       10 // max number of items returned
     );
-    console.log("getOrders(...):");
+    console.log("getOrdersForUser(...):");
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
@@ -865,12 +954,82 @@ contract('BZxTest', function(accounts) {
 
   (run["should get loan orders (for trader2)"] ? it : it.skip)("should get loan orders (for trader2)", async function() {
 
-    var data = await bZx.getOrders.call(
+    var data = await bZx.getOrdersForUser.call(
       trader2_account,
       0, // starting item
       10 // max number of items returned
     );
-    console.log("getOrders(...):");
+    console.log("getOrdersForUser(...):");
+    console.log(data);
+
+    data = data.substr(2); // remove 0x from front
+    const itemCount = 19;
+    const objCount = data.length / 64 / itemCount;
+    var orders = [];
+
+    if (objCount % 1 != 0) { // must be a whole number
+        console.error("error: data length invalid!");
+        assert.isOk(false);
+    }
+    else {
+      var orderObjArray = data.match(new RegExp('.{1,' + (itemCount * 64) + '}', 'g'));
+      //console.log("orderObjArray.length: "+orderObjArray.length);
+      for(var i=0; i < orderObjArray.length; i++) {
+        var params = orderObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
+        //console.log(i+": params.length: "+params.length);
+        orders.push({
+          maker: "0x"+params[0].substr(24),
+          loanTokenAddress: "0x"+params[1].substr(24),
+          interestTokenAddress: "0x"+params[2].substr(24),
+          collateralTokenAddress: "0x"+params[3].substr(24),
+          feeRecipientAddress: "0x"+params[4].substr(24),
+          oracleAddress: "0x"+params[5].substr(24),
+          loanTokenAmount: parseInt("0x"+params[6]),
+          interestAmount: parseInt("0x"+params[7]),
+          initialMarginAmount: parseInt("0x"+params[8]),
+          maintenanceMarginAmount: parseInt("0x"+params[9]),
+          lenderRelayFee: parseInt("0x"+params[10]),
+          traderRelayFee: parseInt("0x"+params[11]),
+          expirationUnixTimestampSec: parseInt("0x"+params[12]),
+          loanOrderHash: "0x"+params[13],
+          lender: "0x"+params[14].substr(24),
+          orderFilledAmount: parseInt("0x"+params[15]),
+          orderCancelledAmount: parseInt("0x"+params[16]),
+          orderTraderCount: parseInt("0x"+params[17]),
+          addedUnixTimestampSec: parseInt("0x"+params[18])
+        });
+      }
+
+      /*struct LoanOrder {
+          address maker;
+          address loanTokenAddress;
+          address interestTokenAddress;
+          address collateralTokenAddress;
+          address feeRecipientAddress;
+          address oracleAddress;
+          uint loanTokenAmount;
+          uint interestAmount;
+          uint initialMarginAmount;
+          uint maintenanceMarginAmount;
+          uint lenderRelayFee;
+          uint traderRelayFee;
+          uint expirationUnixTimestampSec;
+          bytes32 loanOrderHash;
+      }*/
+
+      console.log(orders);
+
+      assert.isOk(true);
+    }
+  });
+
+  (run["should get fillable orders"] ? it : it.skip)("should get fillable orders", async function() {
+
+    var data = await bZx.getOrdersFillable.call(
+      0, // starting item
+      10 // max number of items returned
+    );
+    console.log("getOrdersFillable(...):");
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
@@ -1231,7 +1390,7 @@ contract('BZxTest', function(accounts) {
 
   (run["should generate 0x orders"] ? it : it.skip)("should generate 0x orders", async function() {
     OrderParams_0x_1 = {
-      "exchangeContractAddress": config["addresses"]["development"]["ZeroEx"]["Exchange"],
+      "exchangeContractAddress": config["addresses"]["development"]["ZeroEx"]["ExchangeV1"],
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
       "feeRecipient": NONNULL_ADDRESS,
       "maker": makerOf0xOrder1_account,
@@ -1248,7 +1407,7 @@ contract('BZxTest', function(accounts) {
     console.log(OrderParams_0x_1);
 
     OrderParams_0x_2 = {
-      "exchangeContractAddress": config["addresses"]["development"]["ZeroEx"]["Exchange"],
+      "exchangeContractAddress": config["addresses"]["development"]["ZeroEx"]["ExchangeV1"],
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
       "feeRecipient": NONNULL_ADDRESS,
       "maker": makerOf0xOrder2_account,
@@ -1425,6 +1584,183 @@ contract('BZxTest', function(accounts) {
         done();
       };
   });
+
+
+  (run["should generate 0x V2 orders"] ? it : it.skip)("should generate 0x V2 orders", async function() {
+    OrderParams_0xV2_1 = {
+      "exchangeAddress": config["addresses"]["development"]["ZeroEx"]["ExchangeV2"],
+      "makerAddress": makerOf0xOrder1_account,
+      "takerAddress": NULL_ADDRESS,
+      "feeRecipientAddress": NONNULL_ADDRESS,
+      "senderAddress": NULL_ADDRESS,
+      "makerAssetAmount": web3.toWei(3, "ether").toString(),
+      "takerAssetAmount": web3.toWei(1.2, "ether").toString(),
+      "makerFee": web3.toWei(0.0005, "ether").toString(),
+      "takerFee": web3.toWei(0.01, "ether").toString(),
+      "expirationTimeSeconds": (web3.eth.getBlock("latest").timestamp+86400).toString(),
+      "salt": ZeroExV2.generatePseudoRandomSalt().toString(),
+      "makerAssetData": ZeroExV2.encodeERC20AssetData(maker0xV2Token1.address),
+      "takerAssetData": ZeroExV2.encodeERC20AssetData(loanToken1.address),
+    };
+    console.log("OrderParams_0xV2_1:");
+    console.log(OrderParams_0xV2_1);
+
+    OrderParams_0xV2_2 = {
+      "exchangeAddress": config["addresses"]["development"]["ZeroEx"]["ExchangeV2"],
+      "makerAddress": makerOf0xOrder2_account,
+      "takerAddress": NULL_ADDRESS,
+      "feeRecipientAddress": NONNULL_ADDRESS,
+      "senderAddress": NULL_ADDRESS,
+      "makerAssetAmount": web3.toWei(120, "ether").toString(),
+      "takerAssetAmount": web3.toWei(72, "ether").toString(),
+      "makerFee": "0",
+      "takerFee": web3.toWei(0.0025, "ether").toString(),
+      "expirationTimeSeconds": (web3.eth.getBlock("latest").timestamp+86400).toString(),
+      "salt": ZeroExV2.generatePseudoRandomSalt().toString(),
+      "makerAssetData": ZeroExV2.encodeERC20AssetData(maker0xV2Token1.address),
+      "takerAssetData": ZeroExV2.encodeERC20AssetData(loanToken1.address),
+    };
+    console.log("OrderParams_0xV2_2:");
+    console.log(OrderParams_0xV2_2);
+
+    OrderHash_0xV2_1 = ZeroExV2.getOrderHashHex(OrderParams_0xV2_1);
+    OrderHash_0xV2_2 = ZeroExV2.getOrderHashHex(OrderParams_0xV2_2);
+    
+    console.log("OrderHash_0xV2_1 with 0x.js: "+OrderHash_0xV2_1);
+    console.log("OrderHash_0xV2_2 with 0x.js: "+OrderHash_0xV2_2);
+
+
+    assert.isOk(ZeroExV2.isValidOrderHash(OrderHash_0xV2_1) && ZeroExV2.isValidOrderHash(OrderHash_0xV2_2));
+
+    OrderParams_0xV2_1_prepped = [
+      OrderParams_0xV2_1["makerAddress"],
+      OrderParams_0xV2_1["takerAddress"],
+      OrderParams_0xV2_1["feeRecipientAddress"],
+      OrderParams_0xV2_1["senderAddress"],
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0xV2_1["makerAssetAmount"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0xV2_1["takerAssetAmount"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0xV2_1["makerFee"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0xV2_1["takerFee"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0xV2_1["expirationTimeSeconds"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0xV2_1["salt"]), 64),
+      OrderParams_0xV2_1["makerAssetData"],
+      OrderParams_0xV2_1["takerAssetData"]
+    ];
+
+    OrderParams_0xV2_2_prepped = [
+      OrderParams_0xV2_2["makerAddress"],
+      OrderParams_0xV2_2["takerAddress"],
+      OrderParams_0xV2_2["feeRecipientAddress"],
+      OrderParams_0xV2_2["senderAddress"],
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0xV2_2["makerAssetAmount"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0xV2_2["takerAssetAmount"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0xV2_2["makerFee"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0xV2_2["takerFee"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0xV2_2["expirationTimeSeconds"]), 64),
+      '0x'+Web3Utils.padLeft(new BN(OrderParams_0xV2_2["salt"]), 64),
+      OrderParams_0xV2_2["makerAssetData"],
+      OrderParams_0xV2_2["takerAssetData"]
+    ];
+  
+
+    // using ethers.js for ABI v2 encoding
+    const provider = await (new providers.Web3Provider(web3.currentProvider));
+    const signer = await provider.getSigner(trader1_account);
+    const helper = await (new Contract(zeroExV2Helper.address, zeroExV2Helper.abi, signer));
+    OrderHash_0xV2_1_onchain = await helper.getOrderHash(OrderParams_0xV2_1_prepped);
+    OrderHash_0xV2_2_onchain = await helper.getOrderHash(OrderParams_0xV2_2_prepped);
+    
+    console.log("OrderHash_0xV2_1 with contracts: "+OrderHash_0xV2_1_onchain);
+    console.log("OrderHash_0xV2_2 with contracts: "+OrderHash_0xV2_2_onchain);    
+    /*
+    if (ZeroExV2.isValidOrderHash(OrderHash_0xV2_1))
+      console.log("valid1 -> true");
+    if (ZeroExV2.isValidOrderHash(OrderHash_0xV2_2))
+      console.log("valid2 -> true");
+    */
+    assert.isOk(true);
+  });
+
+  (run["should sign and verify 0x V2 orders"] ? it : it.skip)("should sign and verify 0x V2 orders", async function() {
+
+    ECSignature_0xV2_1 = await zeroExV2.ecSignOrderHashAsync(
+      OrderHash_0xV2_1_onchain,
+      OrderParams_0xV2_1["makerAddress"],
+      { 
+        prefixType: "ETH_SIGN",
+        shouldAddPrefixBeforeCallingEthSign: false
+      }
+    );
+    console.log(ECSignature_0xV2_1);
+    ECSignature_0xV2_raw_1 = "0x"+ECSignature_0xV2_1["v"].toString(16)+ECSignature_0xV2_1["r"].substr(2)+ECSignature_0xV2_1["s"].substr(2)+"03";
+    console.log(ECSignature_0xV2_raw_1);
+
+    ECSignature_0xV2_2 = await zeroExV2.ecSignOrderHashAsync(
+      OrderHash_0xV2_2_onchain,
+      OrderParams_0xV2_2["makerAddress"],
+      { 
+        prefixType: "ETH_SIGN",
+        shouldAddPrefixBeforeCallingEthSign: false
+      }
+    );
+    console.log(ECSignature_0xV2_2);
+    ECSignature_0xV2_raw_2 = "0x"+ECSignature_0xV2_2["v"].toString(16)+ECSignature_0xV2_2["r"].substr(2)+ECSignature_0xV2_2["s"].substr(2)+"03";
+    console.log(ECSignature_0xV2_raw_2);
+
+    try {
+      var result1 = await exchange_0xV2.isValidSignature.call(
+        OrderHash_0xV2_1_onchain,
+        OrderParams_0xV2_1["makerAddress"],
+        ECSignature_0xV2_raw_1
+      );
+
+      var result2 = await exchange_0xV2.isValidSignature.call(
+        OrderHash_0xV2_2_onchain,
+        OrderParams_0xV2_2["makerAddress"],
+        ECSignature_0xV2_raw_2
+      );
+
+      assert.isOk(result1 && result2);
+    } catch (error) {
+      console.error(error);
+      assert.isOk(false);
+    }
+  });
+
+  (run["should trade position with 0x V2 orders"] ? it : it.skip)("should trade position with 0x V2 orders", async function() {
+    //const provider = await (new providers.Web3Provider(web3.currentProvider));
+
+    // using ethers.js for ABI v2 encoding
+    var iface = await (new Interface(bZx.abi));
+    var tradePositionWith0xV2 = await iface.functions.tradePositionWith0xV2(
+      OrderHash_bZx_1,
+      [OrderParams_0xV2_1_prepped, OrderParams_0xV2_2_prepped],
+      [ECSignature_0xV2_raw_1, ECSignature_0xV2_raw_2]);
+    let txData = tradePositionWith0xV2.data;
+
+    try {
+      let tx = await bZx.sendTransaction({data: txData, from: trader1_account})
+      console.log(await txPrettyPrint(tx,"should trade position with 0x V2 orders"));
+      
+      //tx = await provider.send("debug_traceTransaction", [ tx.tx, {} ]);
+      //return provider.getTransactionReceipt(tx.hash);
+      //console.log(JSON.stringify(tx, null, '\t'));
+
+      assert.isOk(tx);
+    } catch (error) {
+      console.log(error);
+     
+      /*var matches = error.message.match(/Transaction: ([^ ]+) exited/);
+      console.log(matches[1]);
+      provider.send("debug_traceTransaction", [ matches[1], {} ]).then(function(tx) {
+      //provider.getTransactionReceipt(error["tx"]).then(function(tx) {
+        console.log(JSON.stringify(tx, null, '\t'));
+      });*/
+
+      assert.isOk(false);
+    };
+  });
+
 
   (run["should trade position with oracle"] ? it : it.skip)("should trade position with oracle", function(done) {
     bZx.tradePositionWithOracle(

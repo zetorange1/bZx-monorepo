@@ -2,46 +2,11 @@
 pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "./tokens/EIP20.sol";
-import "./tokens/EIP20Wrapper.sol";
-import "./modifiers/BZxOwnable.sol";
+import "../tokens/EIP20.sol";
+import "../tokens/EIP20Wrapper.sol";
+import "../modifiers/BZxOwnable.sol";
 
-
-interface ExchangeInterface {
-    event LogError(uint8 indexed errorId, bytes32 indexed orderHash);
-
-    function fillOrder(
-          address[5] orderAddresses,
-          uint[6] orderValues,
-          uint fillTakerTokenAmount,
-          bool shouldThrowOnInsufficientBalanceOrAllowance,
-          uint8 v,
-          bytes32 r,
-          bytes32 s)
-          external
-          returns (uint filledTakerTokenAmount);
-
-    function fillOrdersUpTo(
-        address[5][] orderAddresses,
-        uint[6][] orderValues,
-        uint fillTakerTokenAmount,
-        bool shouldThrowOnInsufficientBalanceOrAllowance,
-        uint8[] v,
-        bytes32[] r,
-        bytes32[] s)
-        external
-        returns (uint);
-
-    function isValidSignature(
-        address signer,
-        bytes32 hash,
-        uint8 v,
-        bytes32 r,
-        bytes32 s)
-        external
-        constant
-        returns (bool);
-}
+import "./ExchangeInterface.sol";
 
 
 contract BZxTo0x is EIP20Wrapper, BZxOwnable {
@@ -252,8 +217,11 @@ contract BZxTo0x is EIP20Wrapper, BZxOwnable {
         uint[3] memory summations; // takerTokenAmountTotal, makerTokenAmountTotal, zrxTokenAmount
 
         for (uint i = 0; i < orderAddresses0x.length; i++) {
-            summations[0] += orderValues0x[0][1]; // takerTokenAmountTotal
-            summations[1] += orderValues0x[0][0]; // makerTokenAmountTotal
+            // Note: takerToken is confirmed to be the same in 0x for batch orders
+            require(orderAddresses0x[i][2] == orderAddresses0x[0][2], "makerToken must be the same for each order"); // // makerToken (aka destTokenAddress) must be the same for each order
+
+            summations[0] += orderValues0x[i][1]; // takerTokenAmountTotal
+            summations[1] += orderValues0x[i][0]; // makerTokenAmountTotal
             
             if (orderAddresses0x[i][4] != address(0) && // feeRecipient
                     orderValues0x[i][3] > 0 // takerFee
@@ -279,7 +247,7 @@ contract BZxTo0x is EIP20Wrapper, BZxOwnable {
             tokenTransferProxyContract,
             EIP20(orderAddresses0x[0][3]).allowance(this, tokenTransferProxyContract).add(sourceTokenAmountToUse));
 
-        if (orderAddresses0x.length > 0) {
+        if (orderAddresses0x.length > 1) {
             sourceTokenUsedAmount = ExchangeInterface(exchangeContract).fillOrdersUpTo(
                 orderAddresses0x,
                 orderValues0x,

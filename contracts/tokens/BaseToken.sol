@@ -4,7 +4,6 @@ pragma solidity 0.4.24;
 import "openzeppelin-solidity/contracts/token/ERC20/BurnableToken.sol";
 
 import "./UnlimitedAllowanceToken.sol";
-//import "./testing/fake/ERC827AlwaysOwned.sol"; // Testing only! Please remove this and use above for production!
 
 
 contract BaseToken is UnlimitedAllowanceToken, BurnableToken {

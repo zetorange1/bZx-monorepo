@@ -16,7 +16,7 @@ const ethUtil = require('ethereumjs-util');
 const _ = require('lodash');
 
 const Web3Utils = require('web3-utils');
-const BZxJS = require('b0x.js');
+const BZxJS = require('bZx.js');
 const ZeroEx = require('0x.js');
 
 const config = require('../protocol-config.js');
@@ -227,7 +227,7 @@ module.exports = function(deployer, network, accounts) {
 				{from: trader2_account, gas: 1000000, gasPrice: web3.toWei(20, "gwei")}));
 
 				OrderParams_0x = {
-					"exchangeContractAddress": config["addresses"]["development"]["ZeroEx"]["Exchange"],
+					"exchangeContractAddress": config["addresses"]["development"]["ZeroEx"]["ExchangeV1"],
 					"expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
 					"feeRecipient": NULL_ADDRESS, //"0x1230000000000000000000000000000000000000",
 					"maker": makerOf0xOrder_account,

@@ -1,8 +1,10 @@
 /* solhint-disable func-order, separate-by-one-line-in-contract */
 
 pragma solidity 0.4.24;
+pragma experimental ABIEncoderV2;
 
 import "./modules/BZxStorage.sol";
+import "./ZeroEx/ExchangeV2Interface.sol";
 
 // This interface is meant to used with the deployed BZxProxy contract (modules/BZxProxyContracts.sol) address.
 // js example: var bZx = await BZx.at((await BZxProxy.deployed()).address);
@@ -26,6 +28,25 @@ contract BZx is BZxStorage {
         address[6] orderAddresses,
         uint[9] orderValues,
         bytes signature)
+        external
+        returns (uint);
+
+    function pushLoanOrderOnChain(
+        address[6] orderAddresses,
+        uint[9] orderValues,
+        bytes signature)        
+        external
+        returns (bytes32);
+    
+    function takeLoanOrderOnChainAsTrader(
+        bytes32 loanOrderHash,
+        address collateralTokenFilled,
+        uint loanTokenAmountFilled)
+        external
+        returns (uint);
+    
+    function takeLoanOrderOnChainAsLender(
+        bytes32 loanOrderHash)
         external
         returns (uint);
 
@@ -78,7 +99,14 @@ contract BZx is BZxStorage {
         view
         returns (bytes);
 
-    function getOrders(
+    function getOrdersFillable(
+        uint start,
+        uint count)
+        public
+        view
+        returns (bytes);
+
+    function getOrdersForUser(
         address loanParty,
         uint start,
         uint count)
@@ -125,6 +153,13 @@ contract BZx is BZxStorage {
         bytes orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated
         bytes signature0x) // ECDSA of the 0x order
         external
+        returns (uint);
+
+    function tradePositionWith0xV2(
+        bytes32 loanOrderHash,
+        ExchangeV2Interface.OrderV2[] memory orders0x,
+        bytes[] memory signatures0x)
+        public
         returns (uint);
 
     function tradePositionWithOracle(

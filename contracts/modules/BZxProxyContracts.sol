@@ -7,6 +7,8 @@ import "./BZxStorage.sol";
 
 contract Proxiable {
     mapping (bytes4 => address) public targets;
+    
+    mapping (bytes4 => bool) public targetIsPaused;
 
     function initialize(address _target) public;
 
@@ -21,6 +23,8 @@ contract Proxiable {
 contract BZxProxy is BZxStorage, Proxiable {
 
     function() public {
+        require(!targetIsPaused[msg.sig], "Function temporarily paused");
+        
         address target = targets[msg.sig];
         bytes memory data = msg.data;
         assembly {
@@ -64,19 +68,33 @@ contract BZxProxy is BZxStorage, Proxiable {
         return f;
     }
 
+    function toggleTargetPause(
+        string _funcId,  // example: "takeLoanOrderAsTrader(address[6],uint256[9],address,uint256,bytes)"
+        bool _isPaused)
+        public
+        onlyOwner
+        returns(bytes4)
+    {
+        bytes4 f = bytes4(keccak256(abi.encodePacked(_funcId)));
+        targetIsPaused[f] = _isPaused;
+        return f;
+    }
+
     function setBZxAddresses(
         address _bZRxToken,
         address _vault,
         address _oracleregistry,
-        address _exchange0xWrapper) 
+        address _exchange0xWrapper,
+        address _exchange0xV2Wrapper) 
         public
         onlyOwner
     {
-        if (_bZRxToken != address(0) && _vault != address(0) && _oracleregistry != address(0) && _exchange0xWrapper != address(0))
+        if (_bZRxToken != address(0) && _vault != address(0) && _oracleregistry != address(0) && _exchange0xWrapper != address(0) && _exchange0xV2Wrapper != address(0))
         bZRxTokenContract = _bZRxToken;
         vaultContract = _vault;
         oracleRegistryContract = _oracleregistry;
         bZxTo0xContract = _exchange0xWrapper;
+        bZxTo0xV2Contract = _exchange0xV2Wrapper;
     }
 
     function setDebugMode (
@@ -133,6 +151,15 @@ contract BZxProxy is BZxStorage, Proxiable {
         if (_wrapper != address(0))
             bZxTo0xContract = _wrapper;
     }
+    
+    function set0xV2ExchangeWrapper (
+        address _wrapper)
+        public
+        onlyOwner
+    {
+        if (_wrapper != address(0))
+            bZxTo0xV2Contract = _wrapper;
+    }
 
     /*
      * View functions
@@ -145,5 +172,14 @@ contract BZxProxy is BZxStorage, Proxiable {
         returns (address)
     {
         return targets[bytes4(keccak256(abi.encodePacked(_funcId)))];
+    }
+
+    function getTargetPause(
+        string _funcId) // example: "takeLoanOrderAsTrader(address[6],uint256[9],address,uint256,bytes)"
+        public
+        view
+        returns (bool)
+    {
+        return targetIsPaused[bytes4(keccak256(abi.encodePacked(_funcId)))];
     }
 }

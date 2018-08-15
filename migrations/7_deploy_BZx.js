@@ -5,6 +5,7 @@ var TestNetBZRxToken = artifacts.require("TestNetBZRxToken");
 var BZxVault = artifacts.require("BZxVault");
 var OracleRegistry = artifacts.require("OracleRegistry");
 var BZxTo0x = artifacts.require("BZxTo0x");
+var BZxTo0xV2 = artifacts.require("BZxTo0xV2");
 
 var config = require('../protocol-config.js');
 
@@ -28,10 +29,11 @@ module.exports = function(deployer, network, accounts) {
 			await bZxProxy.setDebugMode(true);
 		}
 
-		await bZxProxy.setBZxAddresses(bzrx_token_address, BZxVault.address, OracleRegistry.address, BZxTo0x.address);
+		await bZxProxy.setBZxAddresses(bzrx_token_address, BZxVault.address, OracleRegistry.address, BZxTo0x.address, BZxTo0xV2.address);
 
 		var vault = await BZxVault.deployed();
 		await vault.transferBZxOwnership(bZxProxy.address);
+
 
 		var bZxTo0x = await BZxTo0x.deployed();
 		await bZxTo0x.transferBZxOwnership(bZxProxy.address);
@@ -40,6 +42,16 @@ module.exports = function(deployer, network, accounts) {
 		await bZxTo0x.approveFor(
 			config["addresses"][network]["ZeroEx"]["ZRXToken"],
 			config["addresses"][network]["ZeroEx"]["TokenTransferProxy"],
+			MAX_UINT);
+
+
+		var bZxTo0xV2 = await BZxTo0xV2.deployed();
+		await bZxTo0xV2.transferBZxOwnership(bZxProxy.address);
+
+		// ERC20Proxy needs to have unlimited transfer approval for ZRX from BZxTo0xV2
+		await bZxTo0xV2.approveFor(
+			config["addresses"][network]["ZeroEx"]["ZRXToken"],
+			config["addresses"][network]["ZeroEx"]["ERC20Proxy"],
 			MAX_UINT);
 	});
 }
