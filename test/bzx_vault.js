@@ -63,6 +63,7 @@ contract('BZxVault', function (accounts) {
 
         try {
             await vault.withdrawEther(owner, VALUE, {from: stranger});
+            assert.isTrue(false);
         } catch (e) {
             utils.ensureException(e);
         }
@@ -82,6 +83,7 @@ contract('BZxVault', function (accounts) {
 
         try {
             await vault.withdrawEther(owner, VALUE, {from: stranger});
+            assert.isTrue(false);
         } catch (e) {
             utils.ensureException(e);
         }
@@ -103,6 +105,7 @@ contract('BZxVault', function (accounts) {
 
         try {
             await vault.depositToken(token.address, owner, VALUE, {from: stranger});
+            assert.isTrue(false);
         } catch (e) {
             utils.ensureException(e);
         }
@@ -142,6 +145,7 @@ contract('BZxVault', function (accounts) {
 
         try {
             await vault.withdrawToken(token.address, stranger, VALUE, {from: stranger});
+            assert.isTrue(false);
         } catch (e) {
             utils.ensureException(e);
         }
@@ -182,6 +186,7 @@ contract('BZxVault', function (accounts) {
         await token.approve(vault.address, VALUE, {from: owner});
         try{
             await vault.transferTokenFrom(token.address, owner, stranger, VALUE, {from: stranger});
+            assert.isTrue(false);
         } catch (e) {
             utils.ensureException(e);
         }
