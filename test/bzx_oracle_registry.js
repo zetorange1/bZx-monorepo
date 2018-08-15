@@ -35,6 +35,7 @@ contract('OracleRegistry', function (accounts) {
         it('shouldn\'t allow owner to register the same oracle twice', async () => {
             try {
                 await oracleRegistry.addOracle(oracle1, "oracle1");
+                assert.isTrue(false);
             } catch (e) {
                 utils.ensureException(e);
             }
@@ -43,6 +44,7 @@ contract('OracleRegistry', function (accounts) {
         it('shouldn\'t allow stranger to register oracle', async () => {
             try {
                 await oracleRegistry.addOracle(oracle2, "oracle2", {from: stranger});
+                assert.isTrue(false);
             } catch (e) {
                 utils.ensureException(e);
             }
@@ -60,6 +62,7 @@ contract('OracleRegistry', function (accounts) {
 
             try {
                 await oracleRegistry.addOracle(0x0, "some_name");
+                assert.isTrue(false);
             } catch (e) {
                 utils.ensureException(e);
             }
@@ -80,6 +83,7 @@ contract('OracleRegistry', function (accounts) {
         it('shouldn\'t allow owner to remove oracle with invalid index', async () => {
             try {
                 await oracleRegistry.removeOracle(oracle1, 3);
+                assert.isTrue(false);
             } catch (e) {
                 utils.ensureException(e);
             }
@@ -97,6 +101,7 @@ contract('OracleRegistry', function (accounts) {
 
             try {
                 await oracleRegistry.removeOracle(oracle1, 0);
+                assert.isTrue(false);
             } catch (e) {
                 utils.ensureException(e);
             }
@@ -107,6 +112,7 @@ contract('OracleRegistry', function (accounts) {
 
             try {
                 await oracleRegistry.removeOracle(oracle3, oracleIndex, {from: stranger});
+                assert.isTrue(false);
             } catch (e) {
                 utils.ensureException(e);
             }
@@ -137,6 +143,7 @@ contract('OracleRegistry', function (accounts) {
         it('shouldn\'t allow stranger to update oracle\'s name', async () => {
             try {
                 await oracleRegistry.setOracleName(oracle2, "oracle2_upd1", {from: stranger});
+                assert.isTrue(false);
             } catch (e) {
                 utils.ensureException(e);
             }
@@ -146,6 +153,7 @@ contract('OracleRegistry', function (accounts) {
         it('should fail if oracle does not exist', async () => {
             try {
                 await oracleRegistry.setOracleName("0x1", "name_upd1");
+                assert.isTrue(false);
             } catch (e) {
                 utils.ensureException(e);
             }
@@ -155,6 +163,7 @@ contract('OracleRegistry', function (accounts) {
         it('should fail if oracle\'s name is not unique', async () => {
             try {
                 await oracleRegistry.setOracleName(oracle2, "oracle3");
+                assert.isTrue(false);
             } catch (e) {
                 utils.ensureException(e);
             }
