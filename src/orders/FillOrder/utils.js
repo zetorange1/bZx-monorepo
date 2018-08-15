@@ -148,7 +148,6 @@ export const validateFillOrder = async (
         return false;
       }
 
-      // TODO: Chcek for partial fills!
       if (toBigNumber(fillOrderAmount, 1e18).gt(loanTokenAvailable)) {
         alert(
           `You can't borrow more than ${fromBigNumber(
@@ -294,13 +293,78 @@ export const validateFillOrder = async (
   }
 };
 
+export const validateCancelOrder = async (
+  order,
+  cancelOrderAmount,
+  loanTokenAvailable,
+  tokens,
+  bZx,
+  accounts
+) => {
+  try {
+    if (order.networkId !== bZx.networkId) {
+      alert(
+        `This order was created for ${getNetwork(
+          order.networkId
+        )}. It can only be filled on that network.`
+      );
+      return false;
+    }
+    if (order.makerAddress.toLowerCase() !== accounts[0].toLowerCase()) {
+      alert(`This is not an order you created, so you can't cancel it.`);
+      return false;
+    }
+
+    loanTokenAvailable = toBigNumber(loanTokenAvailable); // eslint-disable-line no-param-reassign
+    cancelOrderAmount = toBigNumber(cancelOrderAmount); // eslint-disable-line no-param-reassign
+
+    if (!loanTokenAvailable) {
+      alert(
+        `This order is completely filled. There is no loan token remaining to cancel.`
+      );
+      return false;
+    }
+
+    if (!cancelOrderAmount) {
+      alert(
+        `Please enter the amount of loan token you want to cancel for this order.`
+      );
+      return false;
+    }
+
+    if (toBigNumber(cancelOrderAmount, 1e18).gt(loanTokenAvailable)) {
+      alert(
+        `You can't cancel more than ${fromBigNumber(
+          loanTokenAvailable,
+          1e18
+        )} ${getSymbol(
+          tokens,
+          order.loanTokenAddress
+        )}. Please enter a lessor amount.`
+      );
+      return false;
+    }
+
+    console.log(`validateCancelOrder`);
+    console.log(order, cancelOrderAmount);
+    return true;
+  } catch (e) {
+    console.error(e);
+    alert(
+      `The JSON order has one or more invalid or missing parameters. It can't be filled.`
+    );
+    return false;
+  }
+};
+
 export const submitFillOrder = (
   order,
   loanTokenAmountFilled,
   collateralTokenAddress,
   web3,
   bZx,
-  accounts
+  accounts,
+  resetOrder
 ) => {
   const txOpts = {
     from: accounts[0],
@@ -351,6 +415,7 @@ export const submitFillOrder = (
           })
           .then(() => {
             console.log();
+            resetOrder();
             alert(`Your loan has been opened.`);
           })
           .catch(error => {
@@ -387,7 +452,8 @@ export const submitFillOrderWithHash = (
   collateralTokenAddress,
   web3,
   bZx,
-  accounts
+  accounts,
+  changeTab
 ) => {
   const txOpts = {
     from: accounts[0],
@@ -437,6 +503,7 @@ export const submitFillOrderWithHash = (
           })
           .then(() => {
             console.log();
+            changeTab(`Orders_OrderBook`);
             alert(`Your loan has been opened.`);
           })
           .catch(error => {
@@ -460,6 +527,160 @@ export const submitFillOrderWithHash = (
     console.error(error);
     alert(
       `The transaction is failing. This loan cannot be opened at this time. Please check the parameters of the order.`
+    );
+  }
+
+  return true;
+};
+
+export const submitCancelOrder = (
+  order,
+  cancelLoanTokenAmount,
+  web3,
+  bZx,
+  accounts,
+  resetOrder
+) => {
+  const txOpts = {
+    from: accounts[0],
+    // gas: 1000000, // gas estimated in bZx.js
+    gasPrice: web3.utils.toWei(`1`, `gwei`).toString()
+  };
+
+  // console.log(`order`, order);
+  // console.log(`txOpts`, txOpts);
+  // console.log(`makerIsLender`, makerIsLender);
+
+  if (bZx.portalProviderName !== `MetaMask`) {
+    alert(`Please confirm this transaction on your device.`);
+  }
+
+  const txObj = bZx.cancelLoanOrder({
+    order,
+    cancelLoanTokenAmount: toBigNumber(cancelLoanTokenAmount, 1e18),
+    getObject: true
+  });
+
+  try {
+    txObj
+      .estimateGas(txOpts)
+      .then(gas => {
+        console.log(gas);
+        txOpts.gas = gas;
+        txObj
+          .send(txOpts)
+          .once(`transactionHash`, hash => {
+            alert(`Transaction submitted, transaction hash:`, {
+              component: () => (
+                <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                  {hash}
+                </TxHashLink>
+              )
+            });
+          })
+          .then(() => {
+            console.log();
+            resetOrder();
+            alert(`You have canceled all or part of your loan order.`);
+          })
+          .catch(error => {
+            console.error(error.message);
+            if (
+              error.message.includes(`denied transaction signature`) ||
+              error.message.includes(`Condition of use not satisfied`) ||
+              error.message.includes(`Invalid status`)
+            ) {
+              alert();
+            }
+          });
+      })
+      .catch(error => {
+        console.error(error);
+        alert(
+          `The transaction is failing. This loan cannot be canceled at this time. Please check the parameters of the order.`
+        );
+      });
+  } catch (error) {
+    console.error(error);
+    alert(
+      `The transaction is failing. This loan cannot be canceled at this time. Please check the parameters of the order.`
+    );
+  }
+
+  return true;
+};
+
+export const submitCancelOrderWithHash = (
+  loanOrderHash,
+  cancelLoanTokenAmount,
+  web3,
+  bZx,
+  accounts,
+  changeTab
+) => {
+  const txOpts = {
+    from: accounts[0],
+    // gas: 1000000, // gas estimated in bZx.js
+    gasPrice: web3.utils.toWei(`1`, `gwei`).toString()
+  };
+
+  // console.log(`loanOrderHash`, loanOrderHash);
+  // console.log(`txOpts`, txOpts);
+  // console.log(`makerIsLender`, makerIsLender);
+
+  if (bZx.portalProviderName !== `MetaMask`) {
+    alert(`Please confirm this transaction on your device.`);
+  }
+
+  const txObj = bZx.cancelLoanOrderWithHash({
+    loanOrderHash,
+    cancelLoanTokenAmount: toBigNumber(cancelLoanTokenAmount, 1e18),
+    getObject: true
+  });
+
+  try {
+    txObj
+      .estimateGas(txOpts)
+      .then(gas => {
+        console.log(gas);
+        txOpts.gas = gas;
+        txObj
+          .send(txOpts)
+          .once(`transactionHash`, hash => {
+            alert(`Transaction submitted, transaction hash:`, {
+              component: () => (
+                <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                  {hash}
+                </TxHashLink>
+              )
+            });
+          })
+          .then(() => {
+            console.log();
+            changeTab(`Orders_OrderBook`);
+            alert(`You have canceled all or part of your loan order.`);
+          })
+          .catch(error => {
+            console.error(error.message);
+            if (
+              error.message.includes(`denied transaction signature`) ||
+              error.message.includes(`Condition of use not satisfied`) ||
+              error.message.includes(`Invalid status`)
+            ) {
+              alert();
+            }
+          });
+      })
+      .catch(error => {
+        console.error(error);
+        alert(
+          `The transaction is failing. This loan cannot be canceled at this time. Please check the parameters of the order.`
+        );
+      });
+  } catch (error) {
+    console.error(error);
+    alert(
+      `The transaction is failing. This loan cannot be canceled at this time. Please check the parameters of the order.`
     );
   }
 

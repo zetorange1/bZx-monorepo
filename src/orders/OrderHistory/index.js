@@ -23,6 +23,14 @@ export default class OrderHistory extends React.Component {
     this.getOrdersForUser();
   }
 
+  componentDidUpdate(prevProps) {
+    if (
+      this.props.tabId === `Orders_OrderHistory` &&
+      this.props.tabId !== prevProps.tabId
+    )
+      this.getOrdersForUser();
+  }
+
   getOrdersForUser = async () => {
     const { bZx, accounts } = this.props;
     this.setState({ loading: true });

@@ -23,6 +23,14 @@ export default class OrderBook extends React.Component {
     this.getOrdersFillable();
   }
 
+  componentDidUpdate(prevProps) {
+    if (
+      this.props.tabId === `Orders_OrderBook` &&
+      this.props.tabId !== prevProps.tabId
+    )
+      this.getOrdersFillable();
+  }
+
   getOrdersFillable = async () => {
     const { bZx } = this.props;
     this.setState({ loading: true });

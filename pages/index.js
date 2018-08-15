@@ -180,7 +180,8 @@ class Index extends React.Component {
 
   contentSection = (
     { web3, zeroEx, tokens, bZx, accounts, oracles, networkId },
-    cardId
+    cardId,
+    tabId
   ) => {
     switch (cardId) {
       case `Balances`:
@@ -224,6 +225,7 @@ class Index extends React.Component {
                 accounts={accounts}
                 tokens={tokens}
                 changeTab={this.changeTab}
+                tabId={tabId}
               />
             </ContentContainer>
             <ContentContainer show={this.state.activeTab === `Orders_GenOrder`}>
@@ -245,12 +247,18 @@ class Index extends React.Component {
                 web3={web3}
                 accounts={accounts}
                 activeOrder={this.state.activeOrder}
+                changeTab={this.changeTab}
               />
             </ContentContainer>
             <ContentContainer
               show={this.state.activeTab === `Orders_OrderHistory`}
             >
-              <OrderHistory bZx={bZx} accounts={accounts} tokens={tokens} />
+              <OrderHistory
+                bZx={bZx}
+                accounts={accounts}
+                tokens={tokens}
+                tabId={tabId}
+              />
             </ContentContainer>
           </Fragment>
         );
@@ -335,7 +343,7 @@ class Index extends React.Component {
   render() {
     const {
       activeCard,
-      // activeTab,
+      activeTab,
       // trackedTokens,
       providerName,
       getWeb3,
@@ -370,7 +378,7 @@ class Index extends React.Component {
           >
             <Web3Container
               // eslint-disable-next-line
-              render={({ web3, zeroEx, tokens, bZx, accounts, oracles, networkId }) => this.contentSection({ providerName, web3, zeroEx, tokens, bZx, accounts, oracles, networkId },activeCard)}
+              render={({ web3, zeroEx, tokens, bZx, accounts, oracles, networkId }) => this.contentSection({ providerName, web3, zeroEx, tokens, bZx, accounts, oracles, networkId }, activeCard, activeTab)}
               providerName={providerName}
               setProvider={this.setProvider}
               clearProvider={this.clearProvider}

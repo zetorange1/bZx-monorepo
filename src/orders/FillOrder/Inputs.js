@@ -98,7 +98,7 @@ export default ({
                 title={
                   <div style={{ maxWidth: `300px` }}>
                     This sets the amount to be borrowed. It cannot be larger
-                    than the amount being loaned above.
+                    than the available amount being loaned above.
                   </div>
                 }
               >

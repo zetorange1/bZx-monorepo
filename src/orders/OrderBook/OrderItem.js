@@ -321,9 +321,9 @@ export default class OrderItem extends React.Component {
               onClick={() => changeTab(`Orders_FillOrder`, fillableOrder)}
               variant="raised"
               color="primary"
-              disabled={isMaker}
+              // disabled={isMaker}
             >
-              Fill Order
+              {!isMaker ? `Fill Order` : `Cancel Order`}
             </MuiButton>
           </div>
         </CardContent>

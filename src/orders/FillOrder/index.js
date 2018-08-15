@@ -79,6 +79,8 @@ export default class FillOrder extends React.Component {
             web3={this.props.web3}
             bZx={this.props.bZx}
             accounts={this.props.accounts}
+            changeTab={this.props.changeTab}
+            resetOrder={this.reset}
           />
         </Fragment>
       );
