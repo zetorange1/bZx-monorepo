@@ -58,7 +58,7 @@ const ethUtil = require('ethereumjs-util');
 const { Interface, providers, Contract } = require('ethers');
 
 import Web3Utils from 'web3-utils';
-import BZxJS from 'b0x.js'
+import BZxJS from 'bZx.js'
 import { ZeroEx } from '0x.js';
 import { ZeroEx as ZeroExV2 } from '0xV2.js';
 
@@ -439,7 +439,7 @@ contract('BZxTest', function(accounts) {
   (run["should generate loanOrderHash (as lender1)"] ? it : it.skip)("should generate loanOrderHash (as lender1)", function(done) {
 
     OrderParams_bZx_1 = {
-      "b0xAddress": bZx.address,
+      "bZxAddress": bZx.address,
       "makerAddress": lender1_account, // lender
       "loanTokenAddress": loanToken1.address,
       "interestTokenAddress": interestToken1.address,
@@ -611,7 +611,7 @@ contract('BZxTest', function(accounts) {
   (run["should generate loanOrderHash (as trader2)"] ? it : it.skip)("should generate loanOrderHash (as trader2)", function(done) {
 
     OrderParams_bZx_2 = {
-      "b0xAddress": bZx.address,
+      "bZxAddress": bZx.address,
       "makerAddress": trader2_account, // lender
       "loanTokenAddress": loanToken2.address,
       "interestTokenAddress": interestToken2.address,
