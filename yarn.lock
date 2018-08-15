@@ -975,9 +975,9 @@ aws4@^1.6.0:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.7.0.tgz#d4d0e9b9dbfca77bf08eeb0a8a471550fe39e289"
 
-"b0x.js@git+https://github.com/b0xNetwork/b0x.js.git":
+"b0x.js@git+https://github.com/b0xNetwork/bZx.js.git":
   version "0.1.0"
-  resolved "git+https://github.com/b0xNetwork/b0x.js.git#11668f4d06df2821730217c0588a355e079eaa5c"
+  resolved "git+https://github.com/b0xNetwork/bZx.js.git#6905e538fc440d951b3458c34ca12f1337d0a48c"
   dependencies:
     "0x.js" "^0.29.2"
     "@0xproject/assert" "0.0.20"
@@ -6542,9 +6542,9 @@ onetime@^2.0.0:
   dependencies:
     mimic-fn "^1.0.0"
 
-openzeppelin-solidity@1.10.0:
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/openzeppelin-solidity/-/openzeppelin-solidity-1.10.0.tgz#d77eee6653f5958d051318a61ba0b436f92216c0"
+openzeppelin-solidity@^1.12.0:
+  version "1.12.0"
+  resolved "https://registry.yarnpkg.com/openzeppelin-solidity/-/openzeppelin-solidity-1.12.0.tgz#7b9c55975e73370d4541e3442b30cb3d91ac973a"
 
 opn@5.2.0:
   version "5.2.0"

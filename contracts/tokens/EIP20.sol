@@ -13,8 +13,3 @@ contract EIP20 is ERC20 {
     uint8 public decimals;
     string public symbol;
 }
-
-// Testing only! Please remove below and use above for non-dev environments!
-//import "./testing/fake/ERC827AlwaysOwned.sol";
-//contract EIP20 is ERC827AlwaysOwned {}
-
