@@ -103,10 +103,11 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             orderValues,
             signature);
 
+        // lenders have to fill the entire uncanceled loanTokenAmount
         return _takeLoanOrder(
             loanOrderHash,
             orderAddresses[3], // collateralTokenFilled
-            orderValues[0], // loanTokenAmountFilled
+            orderValues[0].sub(getUnavailableLoanTokenAmount(loanOrderHash)), // loanTokenAmountFilled
             0 // takerRole
         );
     }
@@ -176,10 +177,11 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         tracksGas
         returns (uint)
     {
+        // lenders have to fill the entire uncanceled loanTokenAmount
         return _takeLoanOrder(
             loanOrderHash,
             orders[loanOrderHash].collateralTokenAddress,
-            orders[loanOrderHash].loanTokenAmount,
+            orders[loanOrderHash].loanTokenAmount.sub(getUnavailableLoanTokenAmount(loanOrderHash)),
             0 // takerRole
         );
     }
@@ -703,7 +705,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
                 });
             }
         } else { // remainingLoanTokenAmount == loanTokenAmountFilled
-             _removeLoanOrder(loanOrder.loanOrderHash);
+            _removeLoanOrder(loanOrder.loanOrderHash);
         }
 
         return true;
