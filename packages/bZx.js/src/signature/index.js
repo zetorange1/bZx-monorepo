@@ -1,4 +1,3 @@
-import { signatureUtils } from "0x.js/lib/src/utils/signature_utils";
 import sigUtil from "eth-sig-util";
 import * as ethUtil from "ethereumjs-util";
 import { assert } from "@0xproject/assert";
@@ -6,6 +5,7 @@ import _ from "lodash";
 import * as CoreUtils from "../core/utils";
 import { getContracts } from "../contracts";
 import * as Addresses from "../addresses";
+import { signatureUtils } from "../signature/signature_utils";
 
 const SignatureTypeStr = Object.freeze({
   "Illegal": "00",
