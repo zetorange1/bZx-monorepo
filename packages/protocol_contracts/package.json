@@ -6,9 +6,20 @@
     "type": "git",
     "url": "https://github.com/b0xNetwork/protocol_contracts.git"
   },
-  "devDependencies": {
+  "dependencies": {
+    "0x.js": "0.38.6",
     "0x-smart-contracts": "git+https://github.com/0xProject/contracts.git",
-    "@0xproject/types": "^0.2.0",
+    "0xV2.js": "npm:0x.js@1.0.1-rc.2",
+    "@0xproject/types": "^0.2.3",
+    "bZx.js": "^0.1.0",
+    "bignumber.js": "^7.0.1",
+    "ethereumjs-wallet": "0.6.0",
+    "ethers": "^3.0.26",
+    "lodash": "^4.17.4",
+    "openzeppelin-solidity": "1.12.0",
+    "web3-utils": "^1.0.0-beta.34"
+  },
+  "devDependencies": {
     "babel": "^6.23.0",
     "babel-cli": "^6.26.0",
     "babel-polyfill": "^6.26.0",
@@ -17,23 +28,12 @@
     "babel-preset-stage-2": "^6.24.1",
     "babel-preset-stage-3": "^6.24.1",
     "docusaurus": "^1.2.1",
-    "ethereumjs-wallet": "0.6.0",
-    "lodash": "^4.17.5",
+    "ganache-cli": "^6.1.3",
     "minimist": "^1.2.0",
+    "node-mv": "^0.1.3",
+    "rimraf": "^2.6.2",
     "solhint": "^1.2.1",
     "solidity-docgen": "^0.1.0",
-    "web3-utils": "^1.0.0-beta.34"
-  },
-  "dependencies": {
-    "0x.js": "npm:0x.js@0.38.6",
-    "0xV2.js": "npm:0x.js@1.0.1-rc.2",
-    "bZx.js": "git+https://github.com/b0xNetwork/bZx.js.git",
-    "bignumber.js": "^6.0.0",
-    "ethers": "^3.0.26",
-    "ganache-cli": "^6.1.3",
-    "node-mv": "^0.1.3",
-    "openzeppelin-solidity": "1.12.0",
-    "rimraf": "^2.6.2",
     "truffle": "^4.1.14",
     "truffle-hdwallet-provider": "0.0.3",
     "ziptool": "^1.0.2"
