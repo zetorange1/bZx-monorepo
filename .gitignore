@@ -14,4 +14,5 @@ secrets.js
 test_network
 .vscode
 .next
+.idea
 package-lock.json
