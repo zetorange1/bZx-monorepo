@@ -1,5 +1,6 @@
 /node_modules
 /*/node_modules
+/packages/bZx.js/dist
 /packages/portal/dist
 /packages/portal/live_site
 /packages/protocol_contracts/build
