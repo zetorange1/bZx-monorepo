@@ -1,0 +1,16 @@
+/*/node_modules
+/packages/portal/dist
+/packages/portal/live_site
+/packages/protocol_contracts/build
+/packages/protocol_contracts/ignore
+/packages/protocol_contracts/test_network/**
+/packages/protocol_contracts/html_public_test
+*.log
+secrets.js
+*.secret.js
+*.test.json
+.DS_Store
+test_network
+.vscode
+.next
+package-lock.json
