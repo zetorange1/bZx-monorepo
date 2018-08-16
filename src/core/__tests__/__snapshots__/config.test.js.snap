@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`config should use default config when config arg not provided 1`] = `
+Object {
+  "BZx": "0x8726c7414ac023d23348326b47af3205185fd035",
+  "BZxOracle": "0x0d8b0dd11f5d34ed41d556def5f841900d5b1c6b",
+  "BZxTo0x": "0x32eecaf51dfea9618e9bc94e9fbfddb1bbdcba15",
+  "BZxToken": "0x04b5dadd2c0d6a261bfafbc964e0cac48585def3",
+  "BZxVault": "0xb7c9b454221e26880eb9c3101b3295ca7d8279ef",
+  "EIP20": "",
+  "OracleInterface": "",
+  "OracleRegistry": "0x6000eca38b8b5bba64986182fe2a69c57f6b5414",
+  "TestNetFaucet": "0x609acc8b356894a937fc58f3411f9528de96ecb1",
+  "TestToken0": "0xb48e1b16829c7f5bd62b76cb878a6bb1c4625d7a",
+  "TestToken1": "0xc4cc602a7345518d0b7a84049d4bc8575ebf3398",
+  "TestToken2": "0xe704967449b57b2382b7fa482718748c13c63190",
+  "TestToken3": "0xa4b3e1659c473623287b2cc13b194705cd792525",
+  "TestToken4": "0x2c530e4ecc573f11bd72cf5fdf580d134d25f15f",
+  "TestToken5": "0x72d5a2213bfe46df9fbda08e22f536ac6ca8907e",
+  "TestToken6": "0x2ebb94cc79d7d0f1195300aaf191d118f53292a8",
+  "TestToken7": "0x5315e44798395d4a952530d131249fe00f554565",
+  "TestToken8": "0xdff540fe764855d3175dcfae9d91ae8aee5c6d6f",
+  "TestToken9": "0xc1be2c0bb387aa13d5019a9c518e8bc93cb53360",
+  "TokenRegistry": "0x8a063452f7df2614db1bca3a85ef35da40cf0835",
+}
+`;
+
+exports[`config should use provided config 1`] = `
+Object {
+  "BZx": "thisisatest",
+  "BZxOracle": "thisisatest",
+  "BZxTo0x": "thisisatest",
+  "BZxToken": "thisisatest",
+  "BZxVault": "thisisatest",
+  "EIP20": "thisisatest",
+  "OracleInterface": "thisisatest",
+  "OracleRegistry": "thisisatest",
+  "TestToken0": "thisisatest",
+  "TestToken1": "thisisatest",
+  "TestToken2": "thisisatest",
+  "TestToken3": "thisisatest",
+  "TestToken4": "thisisatest",
+  "TestToken5": "thisisatest",
+  "TestToken6": "thisisatest",
+  "TestToken7": "thisisatest",
+  "TestToken8": "thisisatest",
+  "TestToken9": "thisisatest",
+  "TokenRegistry": "thisisatest",
+}
+`;

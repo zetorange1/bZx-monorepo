@@ -1,0 +1,8 @@
+node_modules
+*.log
+secrets.js
+*.secret.js
+*.test.json
+.DS_Store
+test_network
+.vscode

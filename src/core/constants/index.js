@@ -1,0 +1,1 @@
+export const SOLIDITY_TYPE_MAX_CHARS = 64;
