@@ -10031,3 +10031,10 @@ ziptool@^1.0.2:
   dependencies:
     archiver "^2.0.3"
     unzip "^0.1.11"
+
+"ziptool@git+https://github.com/nayayayay/ziptool.git":
+  version "1.0.2"
+  resolved "git+https://github.com/nayayayay/ziptool.git#f8890628b10a2f4793f5ecdf58f5a35ac461f6ac"
+  dependencies:
+    archiver "^2.0.3"
+    unzip "^0.1.11"
