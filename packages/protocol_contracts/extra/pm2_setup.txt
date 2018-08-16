@@ -1,0 +1,10 @@
+
+pm2 start ./restart_blockchain.sh -e ./logs/blockchain_startup_err.log -o ./logs/blockchain_startup.log --name blockchain --no-autorestart
+pm2 save
+
+pm2 list
+pm2 info blockchain
+pm2 stop blockchain
+pm2 start blockchain
+pm2 delete blockchain
+

@@ -1,0 +1,70 @@
+{
+  "docs-api": {
+    "MIGRATIONS": [
+      "migrations_Migrations"
+    ],
+    "MODIFIERS": [
+      "modifiers_BZxOwnable",
+      "modifiers_EMACollector",
+      "modifiers_GasRefunder",
+      "modifiers_GasTracker"
+    ],
+    "MODULES": [
+      "modules_BZxLoanHealth",
+      "modules_BZxLoanMaintenance",
+      "modules_BZxOrderTaking",
+      "modules_BZxProxyContracts_BZxProxy",
+      "modules_BZxProxyContracts_Proxiable",
+      "modules_BZxStorage",
+      "modules_BZxStorage_BZxObjects",
+      "modules_BZxTradePlacing",
+      "modules_BZxTradePlacing_BZxTo0x_Interface"
+    ],
+    "ORACLE": [
+      "oracle_BZxOracle",
+      "oracle_BZxOracle_KyberNetwork_Interface",
+      "oracle_BZxOracle_WETH_Interface",
+      "oracle_OracleInterface",
+      "oracle_OracleRegistry"
+    ],
+    "SHARED": [
+      "shared_Debugger",
+      "shared_InternalFunctions"
+    ],
+    "TOKENS": [
+      "tokens_BaseToken",
+      "tokens_EIP20",
+      "tokens_EIP20Wrapper",
+      "tokens_EIP20Wrapper_NonCompliantEIP20",
+      "tokens_TokenRegistry",
+      "tokens_UnlimitedAllowanceToken",
+      "tokens_bZRxToken_BZRxToken"
+    ],
+    "TOKENS / TESTING": [
+      "tokens_testing_TestNetBZRxToken",
+      "tokens_testing_TestNetFaucet",
+      "tokens_testing_TestNetOracle",
+      "tokens_testing_TestNetOracle_Faucet",
+      "tokens_testing_TestToken0",
+      "tokens_testing_TestToken1",
+      "tokens_testing_TestToken2",
+      "tokens_testing_TestToken3",
+      "tokens_testing_TestToken4",
+      "tokens_testing_TestToken5",
+      "tokens_testing_TestToken6",
+      "tokens_testing_TestToken7",
+      "tokens_testing_TestToken8",
+      "tokens_testing_TestToken9"
+    ],
+    "TOKENS / TESTING / FAKE": [
+      "tokens_testing_fake_ERC20AlwaysOwned",
+      "tokens_testing_fake_ERC827AlwaysOwned"
+    ],
+    "UNCATEGORIZED": [
+      "BZx",
+      "BZxTo0x",
+      "BZxTo0x_ExchangeInterface",
+      "BZxVault"
+    ]
+  }
+}
