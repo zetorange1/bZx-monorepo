@@ -33,7 +33,7 @@
   "homepage": "https://github.com/b0xNetwork/portal#readme",
   "dependencies": {
     "0x.js": "0.38.6",
-    "bzx-js": "^0.1.0",
+    "bzx.js": "^0.1.0",
     "bignumber.js": "^7.0.1",
     "ethereum-blockies-png": "^0.1.2",
     "jest": "^22.3.0",

@@ -1,5 +1,5 @@
 {
-  "name": "bzx-js",
+  "name": "bzx.js",
   "version": "0.1.0",
   "private": true,
   "main": "dist/bzx.js",
