@@ -5,8 +5,8 @@ module.exports = {
   entry: "./src/core/index.js",
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "bZx.js",
-    library: "bZx.js",
+    filename: "bzx.js",
+    library: "bzx.js",
     libraryTarget: "umd"
   },
   module: {

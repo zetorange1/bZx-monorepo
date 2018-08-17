@@ -1,5 +1,5 @@
 {
-  "name": "bZxContracts",
+  "name": "bzx-contracts",
   "version": "0.1.0",
   "private": true,
   "repository": {
@@ -11,7 +11,7 @@
     "0x-smart-contracts": "git+https://github.com/0xProject/contracts.git",
     "0xV2.js": "npm:0x.js@1.0.1-rc.2",
     "@0xproject/types": "^0.2.3",
-    "bZx.js": "^0.1.0",
+    "bzx-js": "^0.1.0",
     "bignumber.js": "^7.0.1",
     "ethereumjs-wallet": "0.6.0",
     "ethers": "^3.0.26",
