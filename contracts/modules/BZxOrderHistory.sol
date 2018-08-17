@@ -385,6 +385,7 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
         bytes memory tmpBytes = abi.encode(
             loanOrderHash,
             loanOrder.loanTokenAddress,
+            loanOrder.expirationUnixTimestampSec,
             interestData.interestTokenAddress,
             interestData.interestTotalAccrued,
             interestData.interestPaidSoFar
