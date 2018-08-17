@@ -45,8 +45,8 @@ var run = {
   "should pay lender interest": true,
 
   // note: only one of the tests below can be true at a time
-  "should close loan as (lender1/trader1)": false,
-  "should liquidate position": true,
+  "should close loan as (lender1/trader1)": true,
+  "should liquidate position": false,
   "should force close loan": false,
 };
 
