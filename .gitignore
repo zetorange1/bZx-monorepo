@@ -1,6 +1,6 @@
 /node_modules
 /*/node_modules
-/packages/bzx-js/dist
+/packages/bzx.js/dist
 /packages/portal/dist
 /packages/portal/live_site
 /packages/protocol_contracts/build
@@ -12,7 +12,6 @@ secrets.js
 *.secret.js
 *.test.json
 .DS_Store
-test_network
 .vscode
 .next
 .idea
