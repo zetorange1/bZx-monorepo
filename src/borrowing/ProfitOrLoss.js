@@ -44,6 +44,14 @@ export default class ProfitOrLoss extends React.Component {
     this.getProfitOrLoss();
   };
 
+  componentDidUpdate(prevProps) {
+    if (
+      prevProps.data &&
+      JSON.stringify(prevProps.data) !== JSON.stringify(this.props.data)
+    )
+      this.getProfitOrLoss();
+  }
+
   getProfitOrLoss = async () => {
     const { bZx, web3, loanOrderHash, accounts } = this.props;
     const txOpts = {
@@ -86,7 +94,7 @@ export default class ProfitOrLoss extends React.Component {
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {

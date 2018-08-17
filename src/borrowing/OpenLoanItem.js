@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import styled from "styled-components";
 import MuiCard, {
   CardActions,
@@ -5,6 +6,7 @@ import MuiCard, {
 } from "material-ui/Card";
 import Button from "material-ui/Button";
 import Dialog, { DialogActions, DialogContent } from "material-ui/Dialog";
+import moment from "moment";
 
 import CollateralOptions from "./CollateralOptions";
 import TradeOptions from "./TradeOptions";
@@ -70,8 +72,24 @@ const LowerUpperRight = styled.div`
 export default class OpenedLoan extends React.Component {
   state = {
     showOrderDialog: false,
-    order: undefined
+    order: undefined,
+    loadingMargins: true,
+    initialMarginAmount: null,
+    maintenanceMarginAmount: null,
+    currentMarginAmount: null
   };
+
+  componentDidMount = async () => {
+    this.getMarginLevels();
+  };
+
+  componentDidUpdate(prevProps) {
+    if (
+      prevProps.data &&
+      JSON.stringify(prevProps.data) !== JSON.stringify(this.props.data)
+    )
+      this.getMarginLevels();
+  }
 
   getSingleOrder = async loanOrderHash => {
     const { bZx } = this.props;
@@ -79,6 +97,22 @@ export default class OpenedLoan extends React.Component {
       loanOrderHash
     });
     return order;
+  };
+
+  getMarginLevels = async () => {
+    const { bZx, data } = this.props;
+    this.setState({ loadingMargins: true });
+    const marginLevels = await bZx.getMarginLevels({
+      loanOrderHash: data.loanOrderHash,
+      trader: data.trader
+    });
+    console.log(marginLevels);
+    this.setState({
+      loadingMargins: false,
+      initialMarginAmount: marginLevels.initialMarginAmount,
+      maintenanceMarginAmount: marginLevels.maintenanceMarginAmount,
+      currentMarginAmount: marginLevels.currentMarginAmount
+    });
   };
 
   toggleOrderDialog = async event => {
@@ -109,9 +143,16 @@ export default class OpenedLoan extends React.Component {
       loanTokenAmountFilled,
       loanTokenAddress,
       loanStartUnixTimestampSec,
+      expirationUnixTimestampSec,
       loanOrderHash,
       lender
     } = this.props.data;
+    const {
+      loadingMargins,
+      initialMarginAmount,
+      maintenanceMarginAmount,
+      currentMarginAmount
+    } = this.state;
 
     const collateralToken = tokens.filter(
       t => t.address === collateralTokenAddressFilled
@@ -123,6 +164,9 @@ export default class OpenedLoan extends React.Component {
 
     const tradeOpened = positionTokenAddressFilled !== loanTokenAddress;
     const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
+
+    const loanExpireDate = moment(expirationUnixTimestampSec * 1000).utc();
+    const loanExpireDateStr = loanExpireDate.format(`MMMM Do YYYY, h:mm a UTC`);
 
     return (
       <Card>
@@ -214,12 +258,47 @@ export default class OpenedLoan extends React.Component {
             </DataPoint>
           </DataPointContainer>
 
+          <br />
+
+          {loadingMargins ? (
+            <DataPointContainer>Loading margin levels...</DataPointContainer>
+          ) : (
+            <Fragment>
+              <DataPointContainer>
+                <Label>Initial margin</Label>
+                <DataPoint>{initialMarginAmount}%</DataPoint>
+              </DataPointContainer>
+
+              <DataPointContainer>
+                <Label>Maintenance margin</Label>
+                <DataPoint>{maintenanceMarginAmount}%</DataPoint>
+              </DataPointContainer>
+
+              <DataPointContainer>
+                <Label>Current margin level</Label>
+                <DataPoint>
+                  {fromBigNumber(currentMarginAmount, 1e18)}%
+                </DataPoint>
+              </DataPointContainer>
+
+              <br />
+
+              <DataPointContainer>
+                <Label>Expires</Label>
+                <DataPoint>
+                  {`${loanExpireDateStr} (${loanExpireDate.fromNow()})`}
+                </DataPoint>
+              </DataPointContainer>
+            </Fragment>
+          )}
+
           <ProfitOrLoss
             bZx={bZx}
             web3={web3}
             loanOrderHash={loanOrderHash}
             accounts={accounts}
             symbol={positionTokenSymbol}
+            data={this.props.data}
           />
 
           <LowerUpperRight>

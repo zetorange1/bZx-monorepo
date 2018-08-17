@@ -51,6 +51,12 @@ export default class Layout extends React.Component {
         this.hideAlert();
       }
     };
+    window.gasValue = gasEstimate => {
+      const buffer = 0.1;
+      const newValue = Math.round(gasEstimate + gasEstimate * buffer);
+      console.log(newValue);
+      return newValue;
+    };
   };
 
   showAlert = (text, alertComponent = null) => {

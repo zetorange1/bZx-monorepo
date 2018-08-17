@@ -37,13 +37,14 @@ export default class CloseLoan extends React.Component {
       loanOrderHash,
       getObject: true
     });
+    console.log(txOpts);
 
     try {
       await txObj
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {

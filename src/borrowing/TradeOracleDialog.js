@@ -85,7 +85,7 @@ export default class TradeOracleDialog extends React.Component {
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {

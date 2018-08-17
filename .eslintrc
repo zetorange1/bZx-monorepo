@@ -15,6 +15,7 @@
   },
   "globals": {
     "React": true,
-    "alert": true
+    "alert": true,
+    "window": true
   }
 }

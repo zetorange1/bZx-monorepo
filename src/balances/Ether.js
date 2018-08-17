@@ -95,7 +95,7 @@ export default class Ether extends React.Component {
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send({ ...txOpts, value: toBigNumber(wrapAmount, 1e18) })
             .once(`transactionHash`, hash => {
@@ -174,7 +174,7 @@ export default class Ether extends React.Component {
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {

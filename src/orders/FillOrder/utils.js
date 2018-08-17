@@ -401,7 +401,7 @@ export const submitFillOrder = (
       .estimateGas(txOpts)
       .then(gas => {
         console.log(gas);
-        txOpts.gas = gas;
+        txOpts.gas = window.gasValue(gas);
         txObj
           .send(txOpts)
           .once(`transactionHash`, hash => {
@@ -489,7 +489,7 @@ export const submitFillOrderWithHash = (
       .estimateGas(txOpts)
       .then(gas => {
         console.log(gas);
-        txOpts.gas = gas;
+        txOpts.gas = window.gasValue(gas);
         txObj
           .send(txOpts)
           .once(`transactionHash`, hash => {
@@ -566,7 +566,7 @@ export const submitCancelOrder = (
       .estimateGas(txOpts)
       .then(gas => {
         console.log(gas);
-        txOpts.gas = gas;
+        txOpts.gas = window.gasValue(gas);
         txObj
           .send(txOpts)
           .once(`transactionHash`, hash => {
@@ -643,7 +643,7 @@ export const submitCancelOrderWithHash = (
       .estimateGas(txOpts)
       .then(gas => {
         console.log(gas);
-        txOpts.gas = gas;
+        txOpts.gas = window.gasValue(gas);
         txObj
           .send(txOpts)
           .once(`transactionHash`, hash => {
