@@ -2,7 +2,7 @@
 import { Fragment } from "react";
 import styled from "styled-components";
 import { ZeroEx } from "0x.js";
-import BZxJS from "bZx.js"; // eslint-disable-line
+import BZxJS from "bzx-js"; // eslint-disable-line
 import ChooseProviderDialog from "./ChooseProviderDialog";
 import getWeb3 from "./getWeb3";
 import NoProviderMessage from "./NoProviderMessage";

@@ -1,4 +1,4 @@
-import BZxJS from "bZx.js"; // eslint-disable-line
+import BZxJS from "bzx-js"; // eslint-disable-line
 import { toBigNumber } from "../../common/utils";
 import getNetworkId from "../../web3/getNetworkId";
 
