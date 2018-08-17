@@ -16,7 +16,7 @@ const ethUtil = require('ethereumjs-util');
 const _ = require('lodash');
 
 const Web3Utils = require('web3-utils');
-const BZxJS = require('bZx.js');
+const BZxJS = require('bzx.js');
 const ZeroEx = require('0x.js');
 
 const config = require('../protocol-config.js');

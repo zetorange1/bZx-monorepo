@@ -58,7 +58,7 @@ const ethUtil = require('ethereumjs-util');
 const { Interface, providers, Contract } = require('ethers');
 
 import Web3Utils from 'web3-utils';
-import BZxJS from 'bZx.js'
+import BZxJS from 'bzx.js'
 import { ZeroEx } from '0x.js';
 import { ZeroEx as ZeroExV2 } from '0xV2.js';
 
@@ -697,7 +697,7 @@ contract('BZxTest', function(accounts) {
 
   (run["should take sample loan order (as lender2)"] ? it : it.skip)("should take sample loan order (as lender2)", async function() {
     //const provider = new providers.Web3Provider(web3.currentProvider);
-    
+
     try {
       let tx = await bZx.takeLoanOrderAsLender(
         [
@@ -721,9 +721,9 @@ contract('BZxTest', function(accounts) {
         ],
         ECSignature_raw_2,
         {from: lender2_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")});
-        
+
       console.log(txPrettyPrint(tx,"should take sample loan order (as lender2)"));
-          
+
       /*tx = (await provider.send("debug_traceTransaction", [ tx.tx, {} ]));
       console.log(JSON.stringify(tx, null, '\t'));*/
 
@@ -1625,7 +1625,7 @@ contract('BZxTest', function(accounts) {
 
     OrderHash_0xV2_1 = ZeroExV2.getOrderHashHex(OrderParams_0xV2_1);
     OrderHash_0xV2_2 = ZeroExV2.getOrderHashHex(OrderParams_0xV2_2);
-    
+
     console.log("OrderHash_0xV2_1 with 0x.js: "+OrderHash_0xV2_1);
     console.log("OrderHash_0xV2_2 with 0x.js: "+OrderHash_0xV2_2);
 
@@ -1661,7 +1661,7 @@ contract('BZxTest', function(accounts) {
       OrderParams_0xV2_2["makerAssetData"],
       OrderParams_0xV2_2["takerAssetData"]
     ];
-  
+
 
     // using ethers.js for ABI v2 encoding
     const provider = await (new providers.Web3Provider(web3.currentProvider));
@@ -1669,9 +1669,9 @@ contract('BZxTest', function(accounts) {
     const helper = await (new Contract(zeroExV2Helper.address, zeroExV2Helper.abi, signer));
     OrderHash_0xV2_1_onchain = await helper.getOrderHash(OrderParams_0xV2_1_prepped);
     OrderHash_0xV2_2_onchain = await helper.getOrderHash(OrderParams_0xV2_2_prepped);
-    
+
     console.log("OrderHash_0xV2_1 with contracts: "+OrderHash_0xV2_1_onchain);
-    console.log("OrderHash_0xV2_2 with contracts: "+OrderHash_0xV2_2_onchain);    
+    console.log("OrderHash_0xV2_2 with contracts: "+OrderHash_0xV2_2_onchain);
     /*
     if (ZeroExV2.isValidOrderHash(OrderHash_0xV2_1))
       console.log("valid1 -> true");
@@ -1686,7 +1686,7 @@ contract('BZxTest', function(accounts) {
     ECSignature_0xV2_1 = await zeroExV2.ecSignOrderHashAsync(
       OrderHash_0xV2_1_onchain,
       OrderParams_0xV2_1["makerAddress"],
-      { 
+      {
         prefixType: "ETH_SIGN",
         shouldAddPrefixBeforeCallingEthSign: false
       }
@@ -1698,7 +1698,7 @@ contract('BZxTest', function(accounts) {
     ECSignature_0xV2_2 = await zeroExV2.ecSignOrderHashAsync(
       OrderHash_0xV2_2_onchain,
       OrderParams_0xV2_2["makerAddress"],
-      { 
+      {
         prefixType: "ETH_SIGN",
         shouldAddPrefixBeforeCallingEthSign: false
       }
@@ -1741,7 +1741,7 @@ contract('BZxTest', function(accounts) {
     try {
       let tx = await bZx.sendTransaction({data: txData, from: trader1_account})
       console.log(await txPrettyPrint(tx,"should trade position with 0x V2 orders"));
-      
+
       //tx = await provider.send("debug_traceTransaction", [ tx.tx, {} ]);
       //return provider.getTransactionReceipt(tx.hash);
       //console.log(JSON.stringify(tx, null, '\t'));
@@ -1749,7 +1749,7 @@ contract('BZxTest', function(accounts) {
       assert.isOk(tx);
     } catch (error) {
       console.log(error);
-     
+
       /*var matches = error.message.match(/Transaction: ([^ ]+) exited/);
       console.log(matches[1]);
       provider.send("debug_traceTransaction", [ matches[1], {} ]).then(function(tx) {
