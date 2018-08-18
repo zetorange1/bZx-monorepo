@@ -204,7 +204,8 @@ contract OracleTest is EIP20Wrapper, Ownable {
 
     function getTradeRate(
         address sourceTokenAddress,
-        address destTokenAddress)
+        address destTokenAddress,
+        uint sourceTokenAmount)
         public
         view 
         returns (uint rate)
@@ -212,7 +213,7 @@ contract OracleTest is EIP20Wrapper, Ownable {
         (rate,) = _getExpectedRate(
             sourceTokenAddress,
             destTokenAddress,
-            0);
+            sourceTokenAmount);
     }
 
     /*

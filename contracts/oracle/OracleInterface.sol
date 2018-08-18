@@ -234,10 +234,12 @@ interface OracleInterface {
     /// @dev Gets the trade price of the ERC-20 token pair
     /// @param sourceTokenAddress Token being sold
     /// @param destTokenAddress Token being bought
+    /// @param sourceTokenAmount The amount of token being sold
     /// @return The trade rate
     function getTradeRate(
         address sourceTokenAddress,
-        address destTokenAddress)
+        address destTokenAddress,
+        uint sourceTokenAmount)
         external
         view 
         returns (uint);

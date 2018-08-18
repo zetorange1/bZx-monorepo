@@ -466,7 +466,8 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
 
     function getTradeRate(
         address sourceTokenAddress,
-        address destTokenAddress)
+        address destTokenAddress,
+        uint sourceTokenAmount)
         public
         view 
         returns (uint rate)
@@ -474,7 +475,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         (rate,) = _getExpectedRate(
             sourceTokenAddress,
             destTokenAddress,
-            0);
+            sourceTokenAmount);
     }
 
     // returns bool isProfit, uint profitOrLoss
