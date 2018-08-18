@@ -49,7 +49,8 @@ class Index extends React.Component {
     providerName: ``,
     getWeb3: false,
     web3IsReceived: false,
-    hideChooseProviderDialog: false
+    hideChooseProviderDialog: false,
+    lastTokenRefresh: null
   };
 
   setProvider = provider => {
@@ -94,12 +95,14 @@ class Index extends React.Component {
     if (hardRefresh) {
       this.setState({ trackedTokens: [] }, () =>
         this.setState({
-          trackedTokens: getTrackedTokens(tokens)
+          trackedTokens: getTrackedTokens(tokens),
+          lastTokenRefresh: new Date().getTime()
         })
       );
     } else {
       this.setState({
-        trackedTokens: getTrackedTokens(tokens)
+        trackedTokens: getTrackedTokens(tokens),
+        lastTokenRefresh: new Date().getTime()
       });
     }
   };
@@ -201,6 +204,7 @@ class Index extends React.Component {
               tokens={tokens}
               trackedTokens={this.state.trackedTokens}
               updateTrackedTokens={this.updateTrackedTokens(tokens)}
+              lastTokenRefresh={this.state.lastTokenRefresh}
             />
           </Fragment>
         );

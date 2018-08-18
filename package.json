@@ -1,6 +1,6 @@
 {
   "name": "bZx_portal",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Frontend portal for bZx",
   "main": "portal.js",
   "scripts": {
