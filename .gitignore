@@ -1,10 +1,10 @@
 /node_modules
-/*/node_modules
-/*/dist/
-/*/build/
-/*/ignore/
-/*/test_network/**
-/*/html_public_test
+/**/node_modules
+/**/dist/
+/**/build/
+/**/ignore/
+/**/test_network/**
+/**/html_public_test
 /packages/portal/live_site
 /packages/protocol_contracts/html_public_test
 *.log
