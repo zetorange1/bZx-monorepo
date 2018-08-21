@@ -63,6 +63,8 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
 
     address internal constant KYBER_ETH_TOKEN_ADDRESS = 0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
 
+    mapping (address => uint) internal decimals;
+
     // Bounty hunters are remembursed from collateral
     // The oracle requires a minimum amount for a loan to be opened
     uint public minimumCollateralInEthAmount = 5**17 wei; // 0.5 ether
@@ -128,16 +130,16 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
     {
         uint collateralInEthAmount;
         if (orderAddresses[1] != wethContract) {
-            (uint collateralToEthRate,) = _getExpectedRate(
-                orderAddresses[1], // collateralTokenAddress
+            (uint ethToCollateralRate,) = _getExpectedRate(
                 wethContract,
+                orderAddresses[1], // collateralTokenAddress
                 0
             );
-            collateralInEthAmount = orderAmounts[1].mul(collateralToEthRate).div(10**18);
+            collateralInEthAmount = orderAmounts[1].mul(_getDecimalPrecision(wethContract, orderAddresses[1])).div(ethToCollateralRate);
         } else {
             collateralInEthAmount = orderAmounts[1];
         }
-        
+  
         require(collateralInEthAmount >= minimumCollateralInEthAmount, "collateral below minimum for BZxOracle");
 
         return true;
@@ -357,29 +359,12 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             revert("BZxOracle::processCollateral: collateralTokenBalance < collateralTokenAmountUsable");
         }
 
-        uint etherAmountNeeded = 0;
-        uint etherAmountReceived = 0;
-
-        if (loanTokenAmountNeeded > 0) {
-            if (loanTokenAddress == wethContract) {
-                etherAmountNeeded = loanTokenAmountNeeded;
-            } else {
-                uint etherToLoan;
-                (etherToLoan,) = _getExpectedRate(
-                    wethContract,
-                    loanTokenAddress, 
-                    0
-                );
-                etherAmountNeeded = loanTokenAmountNeeded.mul(10**18).div(etherToLoan);
-            }
-        }
-
-        // trade collateral token for ether
-        etherAmountReceived = _doTradeForEth(
+        uint etherAmountReceived = _getEtherFromCollateral(
             collateralTokenAddress,
+            loanTokenAddress,
             collateralTokenAmountUsable,
-            this, // BZxOracle receives the Ether proceeds
-            !isLiquidation ? etherAmountNeeded : etherAmountNeeded.add(gasUpperBound.mul(emaValue).mul(bountyRewardPercent).div(100))
+            loanTokenAmountNeeded,
+            isLiquidation
         );
         
         if (loanTokenAmountNeeded > 0) {
@@ -464,17 +449,22 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             return false;
     }
 
-    function getTradeRate(
+    function getTradeData(
         address sourceTokenAddress,
-        address destTokenAddress)
+        address destTokenAddress,
+        uint sourceTokenAmount)
         public
         view 
-        returns (uint rate)
+        returns (uint sourceToDestRate, uint destTokenAmount)
     {
-        (rate,) = _getExpectedRate(
+        (sourceToDestRate,) = _getExpectedRate(
             sourceTokenAddress,
             destTokenAddress,
-            0);
+            sourceTokenAmount);
+
+        destTokenAmount = sourceTokenAmount
+                            .mul(sourceToDestRate)
+                            .div(_getDecimalPrecision(sourceTokenAddress, destTokenAddress));
     }
 
     // returns bool isProfit, uint profitOrLoss
@@ -499,7 +489,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             if (positionToLoanRate == 0) {
                 return;
             }
-            loanToPositionAmount = loanTokenAmount.mul(10**18).div(positionToLoanRate);
+            loanToPositionAmount = loanTokenAmount.mul(_getDecimalPrecision(positionTokenAddress, loanTokenAddress)).div(positionToLoanRate);
         }
 
         if (positionTokenAmount > loanToPositionAmount) {
@@ -534,7 +524,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             if (collateralToLoanRate == 0) {
                 return 0;
             }
-            collateralToLoanAmount = collateralTokenAmount.mul(collateralToLoanRate).div(10**18);
+            collateralToLoanAmount = collateralTokenAmount.mul(collateralToLoanRate).div(_getDecimalPrecision(collateralTokenAddress, loanTokenAddress));
         }
 
         uint positionToLoanAmount;
@@ -548,7 +538,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             if (positionToLoanRate == 0) {
                 return 0;
             }
-            positionToLoanAmount = positionTokenAmount.mul(positionToLoanRate).div(10**18);
+            positionToLoanAmount = positionTokenAmount.mul(positionToLoanRate).div(_getDecimalPrecision(positionTokenAddress, loanTokenAddress));
         }
 
         return collateralToLoanAmount.add(positionToLoanAmount).sub(loanTokenAmount).mul(10**20).div(loanTokenAmount);
@@ -557,6 +547,14 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
     /*
     * Owner functions
     */
+
+    function setDecimals(
+        EIP20 token) 
+        public
+        onlyOwner
+    {
+        decimals[token] = token.decimals();
+    }
 
     function setMinimumCollateralInEthAmount(
         uint newValue) 
@@ -698,6 +696,60 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
     * Internal functions
     */
 
+    function _getEtherFromCollateral(
+        address collateralTokenAddress,
+        address loanTokenAddress,
+        uint collateralTokenAmountUsable,
+        uint loanTokenAmountNeeded,
+        bool isLiquidation)
+        internal
+        returns (uint etherAmountReceived)
+    {
+        uint etherAmountNeeded = 0;
+
+        if (loanTokenAmountNeeded > 0) {
+            if (loanTokenAddress == wethContract) {
+                etherAmountNeeded = loanTokenAmountNeeded;
+            } else {
+                (uint etherToLoan,) = _getExpectedRate(
+                    wethContract,
+                    loanTokenAddress, 
+                    0
+                );
+                etherAmountNeeded = loanTokenAmountNeeded.mul(_getDecimalPrecision(wethContract, loanTokenAddress)).div(etherToLoan);
+            }
+        }
+
+        // trade collateral token for ether
+        etherAmountReceived = _doTradeForEth(
+            collateralTokenAddress,
+            collateralTokenAmountUsable,
+            this, // BZxOracle receives the Ether proceeds
+            !isLiquidation ? etherAmountNeeded : etherAmountNeeded.add(gasUpperBound.mul(emaValue).mul(bountyRewardPercent).div(100))
+        );
+    }
+
+    function _getDecimalPrecision(
+        address sourceToken,
+        address destToken)
+        internal
+        view
+        returns(uint)
+    {
+        uint sourceTokenDecimals = decimals[sourceToken];
+        if (sourceTokenDecimals == 0)
+            sourceTokenDecimals = EIP20(sourceToken).decimals();
+
+        uint destTokenDecimals = decimals[destToken];
+        if (destTokenDecimals == 0)
+            destTokenDecimals = EIP20(destToken).decimals();
+
+        if (destTokenDecimals >= sourceTokenDecimals)
+            return 10**(SafeMath.sub(18, destTokenDecimals-sourceTokenDecimals));
+        else
+            return 10**(SafeMath.add(18, sourceTokenDecimals-destTokenDecimals));
+    }
+
     // ref: https://github.com/KyberNetwork/smart-contracts/blob/master/integration.md#rate-query
     function _getExpectedRate(
         address sourceTokenAddress,
@@ -730,7 +782,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
                     sourceTokenAmount
                 );
                 if (sourceTokenAmount > 0) {
-                    sourceTokenAmount = sourceTokenAmount.mul(sourceToEther).div(10**18);
+                    sourceTokenAmount = sourceTokenAmount.mul(sourceToEther).div(_getDecimalPrecision(sourceTokenAddress, wethContract));
                 }
 
                 (uint etherToDest, uint etherToDestSlippage) = KyberNetwork_Interface(kyberContract).getExpectedRate(
@@ -821,7 +873,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
                         destTokenAddress, 
                         0
                     );
-                    maxDestEtherAmount = maxDestTokenAmount.mul(10**18).div(etherToDest);
+                    maxDestEtherAmount = maxDestTokenAmount.mul(_getDecimalPrecision(wethContract, destTokenAddress)).div(etherToDest);
                 }
 
                 uint destEtherAmount = KyberNetwork_Interface(kyberContract).trade(
@@ -953,7 +1005,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
                     0
                 );
                 // calculate amount of ETH to use with a 5% buffer (unused ETH is returned by Kyber)
-                sourceEthAmount = destTokenAmountNeeded.mul(10**18).div(etherToDest).mul(105).div(100);
+                sourceEthAmount = destTokenAmountNeeded.mul(_getDecimalPrecision(wethContract, destTokenAddress)).div(etherToDest).mul(105).div(100);
                 if (sourceEthAmount > address(this).balance) {
                     sourceEthAmount = address(this).balance;
                 }

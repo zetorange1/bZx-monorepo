@@ -8,6 +8,8 @@ var OracleRegistry = artifacts.require("OracleRegistry");
 
 var config = require('../protocol-config.js');
 
+const OLD_ORACLE_ADDRESS = "";
+
 module.exports = function(deployer, network, accounts) {
 	network = network.replace("-fork", "");
 	if (network == "develop" || network == "testnet" || network == "coverage")
@@ -38,8 +40,18 @@ module.exports = function(deployer, network, accounts) {
 				await oracle.setDebugMode(true);
 			}*/
 
-			var registry = await OracleRegistry.deployed();
-			await registry.addOracle(BZxOracle.address,"bZxOracle");
+			var oracleAddress = BZxOracle.address;
+			var oracleRegistry = await OracleRegistry.deployed();
+			
+			if (OLD_ORACLE_ADDRESS) {
+				var bZxOracleOld = await BZxOracle.at(OLD_ORACLE_ADDRESS);
+				await bZxOracleOld.transferEther(oracleAddress, web3.toWei(10000000, "ether"));
+				//await bZxOracleOld.transferToken(bzrx_token_address, oracleAddress, "75218865740740738");
+				await oracleRegistry.removeOracle(OLD_ORACLE_ADDRESS, 0);
+				await bZxProxy.setOracleReference(OLD_ORACLE_ADDRESS, oracleAddress);
+			}
+
+			await oracleRegistry.addOracle(oracleAddress, "bZxOracle");
 		});
 	}
 }
