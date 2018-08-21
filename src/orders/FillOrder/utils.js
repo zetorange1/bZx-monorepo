@@ -3,7 +3,7 @@ import moment from "moment";
 import styled from "styled-components";
 import BZxJS from "bZx.js";  // eslint-disable-line
 import { getTrackedTokens } from "../../common/trackedTokens";
-import { getTokenBalance, getSymbol } from "../../common/tokens";
+import { getTokenBalance, getSymbol, getDecimals } from "../../common/tokens";
 import { toBigNumber, fromBigNumber } from "../../common/utils";
 
 const TxHashLink = styled.a.attrs({
@@ -148,11 +148,15 @@ export const validateFillOrder = async (
         return false;
       }
 
-      if (toBigNumber(fillOrderAmount, 1e18).gt(loanTokenAvailable)) {
+      const loanTokenMultiplier =
+        10 ** getDecimals(tokens, order.loanTokenAddress);
+      if (
+        toBigNumber(fillOrderAmount, loanTokenMultiplier).gt(loanTokenAvailable)
+      ) {
         alert(
           `You can't borrow more than ${fromBigNumber(
             loanTokenAvailable,
-            1e18
+            loanTokenMultiplier
           )} ${getSymbol(
             tokens,
             order.loanTokenAddress
@@ -214,7 +218,13 @@ export const validateFillOrder = async (
         );
         return false;
       }
-      if (toBigNumber(collateralTokenAmount, 1e18).gt(collateralTokenBalance)) {
+
+      if (
+        toBigNumber(
+          collateralTokenAmount,
+          10 ** getDecimals(tokens, collateralTokenAddress)
+        ).gt(collateralTokenBalance)
+      ) {
         alert(
           `Your collateral token balance is too low. You need at least ${collateralTokenAmount} ${getSymbol(
             tokens,
@@ -236,7 +246,7 @@ export const validateFillOrder = async (
         alert(
           `Your interest token balance is too low. You need at least ${fromBigNumber(
             interestTotalAmount,
-            1e18
+            10 ** getDecimals(tokens, interestTokenAddress)
           )} ${getSymbol(tokens, interestTokenAddress)} to fill this order.`
         );
         return false;
@@ -262,7 +272,7 @@ export const validateFillOrder = async (
         alert(
           `Your loan token balance is too low. You need at least ${fromBigNumber(
             loanTokenAmount,
-            1e18
+            10 ** getDecimals(tokens, loanTokenAddress)
           )} ${getSymbol(tokens, loanTokenAddress)} to fill this order.`
         );
         return false;
@@ -332,11 +342,15 @@ export const validateCancelOrder = async (
       return false;
     }
 
-    if (toBigNumber(cancelOrderAmount, 1e18).gt(loanTokenAvailable)) {
+    const loanTokenMultiplier =
+      10 ** getDecimals(tokens, order.loanTokenAddress);
+    if (
+      toBigNumber(cancelOrderAmount, loanTokenMultiplier).gt(loanTokenAvailable)
+    ) {
       alert(
         `You can't cancel more than ${fromBigNumber(
           loanTokenAvailable,
-          1e18
+          loanTokenMultiplier
         )} ${getSymbol(
           tokens,
           order.loanTokenAddress
@@ -361,6 +375,7 @@ export const submitFillOrder = (
   order,
   loanTokenAmountFilled,
   collateralTokenAddress,
+  tokens,
   web3,
   bZx,
   accounts,
@@ -386,7 +401,10 @@ export const submitFillOrder = (
     txObj = bZx.takeLoanOrderAsTrader({
       order,
       collateralTokenAddress,
-      loanTokenAmountFilled: toBigNumber(loanTokenAmountFilled, 1e18),
+      loanTokenAmountFilled: toBigNumber(
+        loanTokenAmountFilled,
+        10 ** getDecimals(tokens, order.loanTokenAddress)
+      ),
       getObject: true
     });
   } else {
@@ -448,8 +466,10 @@ export const submitFillOrder = (
 export const submitFillOrderWithHash = (
   loanOrderHash,
   makerIsLender,
+  loanTokenAddress,
   loanTokenAmountFilled,
   collateralTokenAddress,
+  tokens,
   web3,
   bZx,
   accounts,
@@ -474,7 +494,10 @@ export const submitFillOrderWithHash = (
     txObj = bZx.takeLoanOrderOnChainAsTrader({
       loanOrderHash,
       collateralTokenAddress,
-      loanTokenAmountFilled: toBigNumber(loanTokenAmountFilled, 1e18),
+      loanTokenAmountFilled: toBigNumber(
+        loanTokenAmountFilled,
+        10 ** getDecimals(tokens, loanTokenAddress)
+      ),
       getObject: true
     });
   } else {
@@ -483,6 +506,7 @@ export const submitFillOrderWithHash = (
       getObject: true
     });
   }
+  // console.log(txObj,txObj.encodeABI());
 
   try {
     txObj
@@ -536,6 +560,7 @@ export const submitFillOrderWithHash = (
 export const submitCancelOrder = (
   order,
   cancelLoanTokenAmount,
+  tokens,
   web3,
   bZx,
   accounts,
@@ -557,7 +582,10 @@ export const submitCancelOrder = (
 
   const txObj = bZx.cancelLoanOrder({
     order,
-    cancelLoanTokenAmount: toBigNumber(cancelLoanTokenAmount, 1e18),
+    cancelLoanTokenAmount: toBigNumber(
+      cancelLoanTokenAmount,
+      10 ** getDecimals(tokens, order.loanTokenAddress)
+    ),
     getObject: true
   });
 
@@ -612,7 +640,9 @@ export const submitCancelOrder = (
 
 export const submitCancelOrderWithHash = (
   loanOrderHash,
+  loanTokenAddress,
   cancelLoanTokenAmount,
+  tokens,
   web3,
   bZx,
   accounts,
@@ -634,7 +664,10 @@ export const submitCancelOrderWithHash = (
 
   const txObj = bZx.cancelLoanOrderWithHash({
     loanOrderHash,
-    cancelLoanTokenAmount: toBigNumber(cancelLoanTokenAmount, 1e18),
+    cancelLoanTokenAmount: toBigNumber(
+      cancelLoanTokenAmount,
+      10 ** getDecimals(tokens, loanTokenAddress)
+    ),
     getObject: true
   });
 

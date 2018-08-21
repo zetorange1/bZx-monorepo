@@ -5,7 +5,7 @@ import moment from "moment";
 import { BigNumber } from "bignumber.js";
 import { COLORS } from "../../styles/constants";
 import { fromBigNumber } from "../../common/utils";
-import { getSymbol } from "../../common/tokens";
+import { getSymbol, getDecimals } from "../../common/tokens";
 
 const CardContent = styled(MuiCardContent)`
   position: relative;
@@ -115,6 +115,12 @@ export default class OrderItem extends React.Component {
       takenOrder.collateralTokenAddress
     );
 
+    const loanTokenDecimals = getDecimals(tokens, takenOrder.loanTokenAddress);
+    const interestTokenDecimals = getDecimals(
+      tokens,
+      takenOrder.interestTokenAddress
+    );
+
     const loanTokenAddressLink = `${this.props.bZx.etherscanURL}token/${
       takenOrder.loanTokenAddress
     }`;
@@ -156,7 +162,10 @@ export default class OrderItem extends React.Component {
           <DataPointContainer>
             <Label>Loan Amount</Label>
             <DataPoint>
-              {fromBigNumber(takenOrder.loanTokenAmount, 1e18)}
+              {fromBigNumber(
+                takenOrder.loanTokenAmount,
+                10 ** loanTokenDecimals
+              )}
               {` `}
               {loanTokenSymbol}
               {` `}(
@@ -182,7 +191,10 @@ export default class OrderItem extends React.Component {
             <DataPointContainer>
               <Label>Total Filled</Label>
               <DataPoint>
-                {fromBigNumber(takenOrder.orderFilledAmount, 1e18)}
+                {fromBigNumber(
+                  takenOrder.orderFilledAmount,
+                  10 ** loanTokenDecimals
+                )}
                 {` `}
                 {loanTokenSymbol}
               </DataPoint>
@@ -191,7 +203,10 @@ export default class OrderItem extends React.Component {
             <DataPointContainer>
               <Label>Total Cancelled</Label>
               <DataPoint>
-                {fromBigNumber(takenOrder.orderCancelledAmount, 1e18)}
+                {fromBigNumber(
+                  takenOrder.orderCancelledAmount,
+                  10 ** loanTokenDecimals
+                )}
                 {` `}
                 {loanTokenSymbol}
               </DataPoint>
@@ -204,7 +219,7 @@ export default class OrderItem extends React.Component {
                   takenOrder.loanTokenAmount -
                     takenOrder.orderFilledAmount -
                     takenOrder.orderCancelledAmount,
-                  1e18
+                  10 ** loanTokenDecimals
                 )}
                 {` `}
                 {loanTokenSymbol}
@@ -215,7 +230,10 @@ export default class OrderItem extends React.Component {
           <DataPointContainer>
             <Label>Interest Amount</Label>
             <DataPoint>
-              {fromBigNumber(takenOrder.interestAmount, 1e18)}
+              {fromBigNumber(
+                takenOrder.interestAmount,
+                10 ** interestTokenDecimals
+              )}
               {` `}
               {interestTokenSymbol}
               {` `}

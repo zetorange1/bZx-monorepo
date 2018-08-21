@@ -64,6 +64,8 @@ export default class ProfitOrLoss extends React.Component {
       trader: accounts[0],
       txOpts
     });
+    console.log(`Profit ->`);
+    console.log(data);
     this.setState({
       loading: false,
       profit: data.profitOrLoss,
@@ -135,7 +137,7 @@ export default class ProfitOrLoss extends React.Component {
 
   render() {
     const { loading, profit, isProfit, showDialog } = this.state;
-    const { symbol } = this.props;
+    const { symbol, decimals } = this.props;
     return (
       <Fragment>
         <br />
@@ -147,7 +149,7 @@ export default class ProfitOrLoss extends React.Component {
             <Fragment>
               <DataPoint>
                 {!isProfit && profit.toString() !== `0` && `-`}
-                {fromBigNumber(profit, 1e18)}
+                {fromBigNumber(profit, 10 ** decimals)}
                 {` ${symbol}`}
               </DataPoint>
               {isProfit &&
@@ -170,8 +172,9 @@ export default class ProfitOrLoss extends React.Component {
           <DialogContent>
             <SectionLabel>Withdraw Profit</SectionLabel>
             <p>
-              This will withdraw {fromBigNumber(profit, 1e18)} {symbol} from
-              your loan.
+              This will withdraw {fromBigNumber(profit, 10 ** decimals)}
+              {` `}
+              {symbol} from your loan.
             </p>
             <Button
               onClick={this.withdrawProfit}

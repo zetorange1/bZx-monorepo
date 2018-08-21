@@ -2,6 +2,7 @@ import styled from "styled-components";
 import BZxJS from "bZx.js"; // eslint-disable-line
 import { toBigNumber } from "../../common/utils";
 import getNetworkId from "../../web3/getNetworkId";
+import { getDecimals } from "../../common/tokens";
 
 const TxHashLink = styled.a.attrs({
   target: `_blank`,
@@ -14,8 +15,9 @@ const TxHashLink = styled.a.attrs({
 }
 `;
 
-export const compileObject = async (web3, state, account, bZx) => {
+export const compileObject = async (web3, state, account, bZx, tokens) => {
   const { sendToRelayExchange } = state;
+  console.log(tokens);
   return {
     bZxAddress: bZx.addresses.BZx,
     makerAddress: account.toLowerCase(),
@@ -34,8 +36,14 @@ export const compileObject = async (web3, state, account, bZx) => {
     oracleAddress: state.oracleAddress,
 
     // token amounts
-    loanTokenAmount: toBigNumber(state.loanTokenAmount, 1e18).toFixed(0),
-    interestAmount: toBigNumber(state.interestAmount, 1e18).toFixed(0),
+    loanTokenAmount: toBigNumber(
+      state.loanTokenAmount,
+      10 ** getDecimals(tokens, state.loanTokenAddress)
+    ).toFixed(0),
+    interestAmount: toBigNumber(
+      state.interestAmount,
+      10 ** getDecimals(tokens, state.interestTokenAddress)
+    ).toFixed(0),
 
     // margin amounts
     initialMarginAmount: state.initialMarginAmount.toString(),

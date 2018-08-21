@@ -22,8 +22,19 @@ export const TOKENS = {
 };
 
 export const getSymbol = (tokens, address) => {
-  const tokenData = tokens.filter(t => t.address === address)[0];
-  return tokenData ? tokenData.symbol : `unknown`;
+  if (!window.tokenSymbols[address]) {
+    const tokenData = tokens.filter(t => t.address === address)[0];
+    window.tokenSymbols[address] = tokenData ? tokenData.symbol : `unknown`;
+  }
+  return window.tokenSymbols[address];
+};
+
+export const getDecimals = (tokens, address) => {
+  if (!window.tokenDecimals[address]) {
+    const tokenData = tokens.filter(t => t.address === address)[0];
+    window.tokenDecimals[address] = tokenData ? tokenData.decimals : 18;
+  }
+  return window.tokenDecimals[address];
 };
 
 export const getIconURL = ({ url, address }) => {

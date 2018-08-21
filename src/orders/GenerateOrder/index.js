@@ -9,10 +9,12 @@ import OracleSection from "./Oracle";
 // import RelayExchangeSection from "./RelayExchange";
 import Submission from "./Submission";
 import Result from "./Result";
+import { getDecimals } from "../../common/tokens";
 
 import validateInputs from "./validate";
 import {
   fromBigNumber,
+  toBigNumber,
   getInitialCollateralRequired
 } from "../../common/utils";
 import {
@@ -120,7 +122,7 @@ export default class GenerateOrder extends React.Component {
           initialMarginAmount,
           this.props.bZx
         ),
-        1e18
+        10 ** getDecimals(this.props.tokens, collateralTokenAddress)
       );
       console.log(`collateralRequired: ${collateralRequired}`);
       if (collateralRequired === 0) {
@@ -176,7 +178,10 @@ export default class GenerateOrder extends React.Component {
         this.state.loanTokenAddress,
         this.state.collateralTokenAddress,
         this.state.oracleAddress,
-        this.state.loanTokenAmount,
+        toBigNumber(
+          this.state.loanTokenAmount,
+          10 ** getDecimals(this.props.tokens, this.state.loanTokenAddress)
+        ),
         this.state.initialMarginAmount
       );
     }
@@ -209,7 +214,8 @@ export default class GenerateOrder extends React.Component {
         this.props.web3,
         this.state,
         this.props.accounts[0],
-        this.props.bZx
+        this.props.bZx,
+        this.props.tokens
       );
       const saltedOrderObj = addSalt(orderObject);
       console.log(saltedOrderObj);

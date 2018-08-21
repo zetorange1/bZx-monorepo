@@ -4,9 +4,11 @@ import Button from "material-ui/Button";
 
 import {
   fromBigNumber,
+  toBigNumber,
   getInitialCollateralRequired
 } from "../../common/utils";
 import Section, { SectionLabel, Divider } from "../../common/FormSection";
+import { getDecimals } from "../../common/tokens";
 
 import Tokens from "./Tokens";
 import Details from "./Details";
@@ -105,7 +107,7 @@ export default class FillOrder extends React.Component {
           initialMarginAmount,
           this.props.bZx
         ),
-        1e18
+        10 ** getDecimals(this.props.tokens, collateralTokenAddress)
       );
       // console.log(`collateralRequired: ${collateralRequired}`);
       if (collateralRequired === 0) {
@@ -138,8 +140,16 @@ export default class FillOrder extends React.Component {
         : this.props.order.collateralTokenAddress,
       this.props.order.oracleAddress,
       this.props.order.makerRole === `0`
-        ? fromBigNumber(this.state.fillOrderAmount)
-        : fromBigNumber(this.props.order.loanTokenAmount, 1e18),
+        ? toBigNumber(
+            this.state.fillOrderAmount,
+            10 **
+              getDecimals(this.props.tokens, this.props.order.loanTokenAddress)
+          )
+        : toBigNumber(
+            this.props.order.loanTokenAmount,
+            10 **
+              getDecimals(this.props.tokens, this.props.order.loanTokenAddress)
+          ),
       this.props.order.initialMarginAmount
     );
   };
@@ -180,11 +190,12 @@ export default class FillOrder extends React.Component {
       accounts
     );
     if (isFillOrderValid) {
-      if (!this.props.order.loanOrderHash) {
+      if (!order.loanOrderHash) {
         submitFillOrder(
           order,
           fillOrderAmount,
           collateralTokenAddress,
+          tokens,
           web3,
           bZx,
           accounts,
@@ -192,10 +203,12 @@ export default class FillOrder extends React.Component {
         );
       } else {
         submitFillOrderWithHash(
-          this.props.order.loanOrderHash,
-          this.props.order.makerRole === `0`,
+          order.loanOrderHash,
+          order.makerRole === `0`,
+          order.loanTokenAddress,
           fillOrderAmount,
           collateralTokenAddress,
+          tokens,
           web3,
           bZx,
           accounts,
@@ -227,10 +240,11 @@ export default class FillOrder extends React.Component {
       accounts
     );
     if (isCancelOrderValid) {
-      if (!this.props.order.loanOrderHash) {
+      if (!order.loanOrderHash) {
         submitCancelOrder(
           order,
           fillOrderAmount,
+          tokens,
           web3,
           bZx,
           accounts,
@@ -238,8 +252,10 @@ export default class FillOrder extends React.Component {
         );
       } else {
         submitCancelOrderWithHash(
-          this.props.order.loanOrderHash,
+          order.loanOrderHash,
+          order.loanTokenAddress,
           fillOrderAmount,
+          tokens,
           web3,
           bZx,
           accounts,
@@ -288,10 +304,13 @@ export default class FillOrder extends React.Component {
             loanTokenAddress={order.loanTokenAddress}
             loanTokenAvailable={fromBigNumber(
               this.state.loanTokenAvailable,
-              1e18
+              10 ** getDecimals(tokens, order.loanTokenAddress)
             )}
             interestTokenAddress={order.interestTokenAddress}
-            interestAmount={fromBigNumber(order.interestAmount, 1e18)}
+            interestAmount={fromBigNumber(
+              order.interestAmount,
+              10 ** getDecimals(tokens, order.interestAmount)
+            )}
             collateralTokenAddress={order.collateralTokenAddress}
             collateralTokenAmount={this.state.collateralTokenAmount}
           />

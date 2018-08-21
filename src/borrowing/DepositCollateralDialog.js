@@ -34,7 +34,7 @@ export default class DepositCollateralDialog extends React.Component {
     // console.log({
     //   loanOrderHash,
     //   collateralTokenFilled: collateralToken.address,
-    //   depositAmount: toBigNumber(amount, 1e18),
+    //   depositAmount: toBigNumber(amount, 10**collateralToken.decimals),
     //   txOpts
     // });
 
@@ -45,7 +45,7 @@ export default class DepositCollateralDialog extends React.Component {
     const txObj = await bZx.depositCollateral({
       loanOrderHash,
       collateralTokenFilled: collateralToken.address,
-      depositAmount: toBigNumber(amount, 1e18),
+      depositAmount: toBigNumber(amount, 10 ** collateralToken.decimals),
       getObject: true,
       txOpts
     });

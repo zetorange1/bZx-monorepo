@@ -1,8 +1,11 @@
+import { Fragment } from "react";
 import styled from "styled-components";
 import Dialog, { DialogTitle, DialogContent } from "material-ui/Dialog";
 import Button from "material-ui/Button";
 import TokenPicker from "../common/TokenPicker";
 import Section, { SectionLabel, Divider } from "../common/FormSection";
+import { getTokenConversionAmount, fromBigNumber } from "../common/utils";
+import { getDecimals } from "../common/tokens";
 
 const TxHashLink = styled.a.attrs({
   target: `_blank`,
@@ -27,14 +30,38 @@ const defaultToken = tokens => {
 
 export default class TradeOracleDialog extends React.Component {
   state = {
-    tokenAddress: defaultToken(this.props.tokens).address
+    tradeToken: defaultToken(this.props.tokens),
+    expectedAmount: 0
   };
 
-  setTokenAddress = tokenAddress => this.setState({ tokenAddress });
+  componentDidMount = async () => {
+    this.setTokenAddress(this.state.tradeToken.address);
+  };
+
+  setTokenAddress = async tokenAddress => {
+    const tradeToken = this.props.tokens.filter(
+      t => t.address === tokenAddress
+    )[0];
+    const expectedAmount = await getTokenConversionAmount(
+      this.props.positionTokenAddressFilled,
+      tokenAddress,
+      this.props.positionTokenAmountFilled,
+      `0xd52d49102d703ef946c6dbc673a292f6fd16d30b`,
+      this.props.bZx
+    );
+    this.setState({
+      tradeToken,
+      expectedAmount: fromBigNumber(
+        expectedAmount,
+        10 **
+          getDecimals(this.props.tokens, this.props.positionTokenAddressFilled)
+      )
+    });
+  };
 
   executeChange = async () => {
     const { bZx, web3, accounts, loanOrderHash } = this.props;
-    const { tokenAddress } = this.state;
+    const { tradeToken } = this.state;
 
     const notAllowed = {
       1: [`ZRX`, `BZRXFAKE`],
@@ -42,9 +69,6 @@ export default class TradeOracleDialog extends React.Component {
       4: [],
       42: [`ZRX`, `WETH`]
     };
-    const tradeToken = this.props.tokens.filter(
-      t => t.address === tokenAddress
-    )[0];
     if (
       notAllowed[bZx.networkId] &&
       notAllowed[bZx.networkId].includes(tradeToken && tradeToken.symbol)
@@ -66,7 +90,7 @@ export default class TradeOracleDialog extends React.Component {
     console.log(`Executing trade with Kyber:`);
     console.log({
       orderHash: loanOrderHash,
-      tradeTokenAddress: tokenAddress,
+      tradeTokenAddress: tradeToken.address,
       txOpts
     });
 
@@ -76,7 +100,7 @@ export default class TradeOracleDialog extends React.Component {
 
     const txObj = await bZx.tradePositionWithOracle({
       orderHash: loanOrderHash,
-      tradeTokenAddress: tokenAddress,
+      tradeTokenAddress: tradeToken.address,
       getObject: true
     });
 
@@ -131,9 +155,11 @@ export default class TradeOracleDialog extends React.Component {
           <Section>
             <SectionLabel>1. Choose your target token</SectionLabel>
             <TokenPicker
-              tokens={this.props.tokens}
+              tokens={this.props.tokens.filter(
+                t => t.address !== this.props.positionTokenAddressFilled
+              )}
               setAddress={this.setTokenAddress}
-              value={this.state.tokenAddress}
+              value={this.state.tradeToken.address}
             />
           </Section>
           <Divider />
@@ -142,6 +168,22 @@ export default class TradeOracleDialog extends React.Component {
             <p>
               When you click the button below, we will attempt to execute a
               market order trade via Kyber for your target token.
+              {this.state.expectedAmount > 0 ? (
+                <Fragment>
+                  <br />
+                  <br />
+                  Estimated purchase amount is {this.state.expectedAmount}
+                  {` `}
+                  {this.state.tradeToken.symbol}.
+                </Fragment>
+              ) : (
+                <Fragment>
+                  <br />
+                  <br />
+                  Sorry, but Kyber can&apos;t handle this large of a trade for{` `}
+                  {this.state.tradeToken.symbol}. Please try again later.
+                </Fragment>
+              )}
             </p>
             <Button
               onClick={this.executeChange}

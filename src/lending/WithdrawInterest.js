@@ -87,7 +87,7 @@ export default class WithdrawInterest extends React.Component {
 
   render() {
     const { showDialog } = this.state;
-    const { availableForWithdrawal, symbol } = this.props;
+    const { availableForWithdrawal, symbol, decimals } = this.props;
     const currentFee = 0.1; // will likely change in the future
     const actualWithdrawalAmount = BigNumber(availableForWithdrawal)
       .times(1 - currentFee)
@@ -112,7 +112,9 @@ export default class WithdrawInterest extends React.Component {
             </p>
             <p>
               <strong>
-                {fromBigNumber(actualWithdrawalAmount, 1e18)} {symbol}
+                {fromBigNumber(actualWithdrawalAmount, 10 ** decimals)}
+                {` `}
+                {symbol}
               </strong>
             </p>
             <p>Please note that the fee might change in the future.</p>

@@ -36,7 +36,10 @@ export default class WithdrawCollateralDialog extends React.Component {
     const txObj = await bZx.withdrawExcessCollateral({
       loanOrderHash,
       collateralTokenFilled: collateralToken.address,
-      withdrawAmount: toBigNumber(this.state.amount, 1e18),
+      withdrawAmount: toBigNumber(
+        this.state.amount,
+        10 ** collateralToken.decimals
+      ),
       getObject: true,
       txOpts
     });

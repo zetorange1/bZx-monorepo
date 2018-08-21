@@ -15,7 +15,7 @@ import CloseLoan from "./CloseLoan";
 import OrderItem from "../orders/OrderHistory/OrderItem";
 
 import { COLORS } from "../styles/constants";
-import { getSymbol } from "../common/tokens";
+import { getSymbol, getDecimals } from "../common/tokens";
 import { fromBigNumber } from "../common/utils";
 
 import ProfitOrLoss from "./ProfitOrLoss";
@@ -96,6 +96,7 @@ export default class OpenedLoan extends React.Component {
     const order = await bZx.getSingleOrder({
       loanOrderHash
     });
+    console.log(order);
     return order;
   };
 
@@ -161,6 +162,14 @@ export default class OpenedLoan extends React.Component {
     const loanTokenSymbol = getSymbol(tokens, loanTokenAddress);
     const interestTokenSymbol = getSymbol(tokens, interestTokenAddress);
     const positionTokenSymbol = getSymbol(tokens, positionTokenAddressFilled);
+
+    const collateralTokenDecimals = collateralToken.decimals;
+    const loanTokenDecimals = getDecimals(tokens, loanTokenAddress);
+    const interestTokenDecimals = getDecimals(tokens, interestTokenAddress);
+    const positionTokenDecimals = getDecimals(
+      tokens,
+      positionTokenAddressFilled
+    );
 
     const tradeOpened = positionTokenAddressFilled !== loanTokenAddress;
     const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
@@ -231,7 +240,10 @@ export default class OpenedLoan extends React.Component {
           <DataPointContainer>
             <Label>Collateral</Label>
             <DataPoint>
-              {fromBigNumber(collateralTokenAmountFilled, 1e18)}
+              {fromBigNumber(
+                collateralTokenAmountFilled,
+                10 ** collateralTokenDecimals
+              )}
               {` `}
               {collateralTokenSymbol}
             </DataPoint>
@@ -240,21 +252,27 @@ export default class OpenedLoan extends React.Component {
           <DataPointContainer>
             <Label>Borrowed</Label>
             <DataPoint>
-              {fromBigNumber(loanTokenAmountFilled, 1e18)} {loanTokenSymbol}
+              {fromBigNumber(loanTokenAmountFilled, 10 ** loanTokenDecimals)}
+              {` `}
+              {loanTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Interest paid so far</Label>
             <DataPoint>
-              {fromBigNumber(interestPaidSoFar, 1e18)} {interestTokenSymbol}
+              {fromBigNumber(interestPaidSoFar, 10 ** interestTokenDecimals)}
+              {` `}
+              {interestTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Interest accrued (total)</Label>
             <DataPoint>
-              {fromBigNumber(interestTotalAccrued, 1e18)} {interestTokenSymbol}
+              {fromBigNumber(interestTotalAccrued, 10 ** interestTokenDecimals)}
+              {` `}
+              {interestTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
@@ -298,6 +316,7 @@ export default class OpenedLoan extends React.Component {
             loanOrderHash={loanOrderHash}
             accounts={accounts}
             symbol={positionTokenSymbol}
+            decimals={positionTokenDecimals}
             data={this.props.data}
           />
 
@@ -322,7 +341,10 @@ export default class OpenedLoan extends React.Component {
           <DataPointContainer style={{ marginLeft: `12px` }}>
             <Label>Trade Amount</Label>
             <DataPoint>
-              {fromBigNumber(positionTokenAmountFilled, 1e18)}
+              {fromBigNumber(
+                positionTokenAmountFilled,
+                10 ** positionTokenDecimals
+              )}
               {` `}
               {positionTokenSymbol}
             </DataPoint>
@@ -334,6 +356,8 @@ export default class OpenedLoan extends React.Component {
             accounts={accounts}
             web3={web3}
             loanOrderHash={loanOrderHash}
+            positionTokenAddressFilled={positionTokenAddressFilled}
+            positionTokenAmountFilled={positionTokenAmountFilled}
           />
           <CloseLoan
             bZx={bZx}

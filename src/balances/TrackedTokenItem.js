@@ -105,7 +105,9 @@ export default class TrackedTokenItem extends React.Component {
       ownerAddress: accounts[0].toLowerCase()
     });
     console.log(`balance of`, token.name, balance.toNumber());
-    this.setState({ balance: fromBigNumber(balance, 1e18) });
+    this.setState({
+      balance: fromBigNumber(balance, 10 ** token.decimals)
+    });
   };
 
   checkAllowance = async () => {
@@ -146,7 +148,7 @@ export default class TrackedTokenItem extends React.Component {
     const txObj = await bZx.transferToken({
       tokenAddress: token.address,
       to: recipientAddress.toLowerCase(),
-      amount: toBigNumber(sendAmount, 1e18),
+      amount: toBigNumber(sendAmount, 10 ** token.decimals),
       getObject: true,
       txOpts
     });

@@ -57,6 +57,8 @@ export default class Layout extends React.Component {
       console.log(newValue);
       return newValue;
     };
+    window.tokenSymbols = {};
+    window.tokenDecimals = {};
   };
 
   showAlert = (text, alertComponent = null) => {
