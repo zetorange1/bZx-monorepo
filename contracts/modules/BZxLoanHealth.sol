@@ -194,17 +194,21 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             ));
         }
 
-        require(BZxVault(vaultContract).withdrawToken(
-            loanPosition.collateralTokenAddressFilled,
-            loanPosition.trader,
-            loanPosition.collateralTokenAmountFilled
-        ));
+        if (loanPosition.collateralTokenAmountFilled > 0) {
+            require(BZxVault(vaultContract).withdrawToken(
+                loanPosition.collateralTokenAddressFilled,
+                loanPosition.trader,
+                loanPosition.collateralTokenAmountFilled
+            ));
+        }
 
-        require(BZxVault(vaultContract).withdrawToken(
-            loanPosition.positionTokenAddressFilled,
-            loanPosition.lender,
-            loanPosition.positionTokenAmountFilled
-        ));
+        if (loanPosition.positionTokenAmountFilled > 0) {
+            require(BZxVault(vaultContract).withdrawToken(
+                loanPosition.positionTokenAddressFilled,
+                loanPosition.lender,
+                loanPosition.positionTokenAmountFilled
+            ));
+        }
 
         loanPosition.active = false;
         loanList[loanPosition.index] = loanList[loanList.length - 1];
@@ -358,7 +362,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             amountPaid = interestData.interestTotalAccrued.sub(interestData.interestPaidSoFar);
             interestPaid[loanOrder.loanOrderHash][loanPosition.trader] = interestData.interestTotalAccrued; // since this function will pay all remaining accured interest
             
-            // send the interest to the oracle for further processing
+            // send the interest to the oracle for further processing (amountPaid > 0)
             if (! BZxVault(vaultContract).withdrawToken(
                 interestData.interestTokenAddress,
                 oracleAddresses[loanOrder.oracleAddress],
@@ -470,17 +474,16 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             }
         }
 
-        // Send collateral to the oracle for processing
-        // Unused collateral should be returned to the trader in didCloseLoan call
-        if (! BZxVault(vaultContract).withdrawToken(
-            loanPosition.collateralTokenAddressFilled,
-            oracleAddresses[loanOrder.oracleAddress],
-            loanPosition.collateralTokenAmountFilled
-        )) {
-            revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken (collateral) failed");
-        }
-
         if (isLiquidation || loanPosition.positionTokenAmountFilled < loanPosition.loanTokenAmountFilled) {
+            // Send collateral to the oracle for processing. Unused collateral must be returned.
+            if (! BZxVault(vaultContract).withdrawToken(
+                loanPosition.collateralTokenAddressFilled,
+                oracleAddresses[loanOrder.oracleAddress],
+                loanPosition.collateralTokenAmountFilled
+            )) {
+                revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken (collateral) failed");
+            }
+
             (uint loanTokenAmountCovered, uint collateralTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).processCollateral(
                 loanPosition.collateralTokenAddressFilled,
                 loanOrder.loanTokenAddress,
@@ -494,22 +497,26 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(collateralTokenAmountUsed);
         }
 
-        // send remaining collateral token back to the trader
-        if (! BZxVault(vaultContract).withdrawToken(
-            loanPosition.collateralTokenAddressFilled,
-            loanPosition.trader,
-            loanPosition.collateralTokenAmountFilled
-        )) {
-            revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken collateral failed");
+        if (loanPosition.collateralTokenAmountFilled > 0) {
+            // send remaining collateral token back to the trader
+            if (! BZxVault(vaultContract).withdrawToken(
+                loanPosition.collateralTokenAddressFilled,
+                loanPosition.trader,
+                loanPosition.collateralTokenAmountFilled
+            )) {
+                revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken collateral failed");
+            }
         }
 
-        // send remaining loan token back to the lender
-        if (! BZxVault(vaultContract).withdrawToken(
-            loanPosition.positionTokenAddressFilled, // same as loanTokenAddress
-            loanPosition.lender,
-            loanPosition.positionTokenAmountFilled
-        )) {
-            revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken loan failed");
+        if (loanPosition.positionTokenAmountFilled > 0) {
+            // send remaining loan token back to the lender
+            if (! BZxVault(vaultContract).withdrawToken(
+                loanPosition.positionTokenAddressFilled, // same as loanTokenAddress
+                loanPosition.lender,
+                loanPosition.positionTokenAmountFilled
+            )) {
+                revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken loan failed");
+            }
         }
 
         // set this loan to inactive

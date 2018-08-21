@@ -52,7 +52,7 @@ contract OracleTest is EIP20Wrapper, Ownable {
     address internal constant KYBER_ETH_TOKEN_ADDRESS = 0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
 
 /* solhint-disable var-name-mixedcase */
-    address public kyberContract = 0x2a21728dF01992cCEE34ad8f9c32A0a2AE1e181b;
+    address public kyberContract = 0x818E6FECD516Ecc3849DAf6845e3EC868087B755;
     address public wethContract = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
 /* solhint-enable var-name-mixedcase */
 
@@ -204,7 +204,8 @@ contract OracleTest is EIP20Wrapper, Ownable {
 
     function getTradeRate(
         address sourceTokenAddress,
-        address destTokenAddress)
+        address destTokenAddress,
+        uint sourceTokenAmount)
         public
         view 
         returns (uint rate)
@@ -212,7 +213,7 @@ contract OracleTest is EIP20Wrapper, Ownable {
         (rate,) = _getExpectedRate(
             sourceTokenAddress,
             destTokenAddress,
-            0);
+            sourceTokenAmount);
     }
 
     /*

@@ -231,16 +231,18 @@ interface OracleInterface {
         view
         returns (bool);
 
-    /// @dev Gets the trade price of the ERC-20 token pair
+    /// @dev Gets the trade price and amount received from a trade of sourceToken for destToken
     /// @param sourceTokenAddress Token being sold
     /// @param destTokenAddress Token being bought
+    /// @param sourceTokenAmount The amount of token being sold
     /// @return The trade rate
-    function getTradeRate(
+    function getTradeData(
         address sourceTokenAddress,
-        address destTokenAddress)
+        address destTokenAddress,
+        uint sourceTokenAmount)
         external
         view 
-        returns (uint);
+        returns (uint sourceToDestRate, uint destTokenAmount);
 
     /// @dev Returns the profit/loss data for the current position
     /// @param positionTokenAddress The token in the current position (could also be the loanToken)
