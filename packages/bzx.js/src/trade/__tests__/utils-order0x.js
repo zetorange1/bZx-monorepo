@@ -1,7 +1,7 @@
 import { constants } from "0x.js/lib/src/utils/constants";
-import { signatureUtils } from "0x.js/lib/src/utils/signature_utils";
 import { ZeroEx } from "0x.js";
 import { pathOr } from "ramda";
+import { signatureUtils } from "../../signature/signature_utils";
 import { protocol } from "../../../../config/secrets";
 import BZxJS from "../../core/index";
 import * as Trade0xUtils from "../utils/zeroEx";
