@@ -30,14 +30,14 @@ var run = {
   "should get loan positions (for trader2)": false,
   "should get active loans": false,
 
-  //"should generate 0x orders": true,
-  //"should sign and verify 0x orders": true,
-  //"should parse 0x order params": false,
-  //"should trade position with 0x orders": true,
+  "should generate 0x orders": true,
+  "should sign and verify 0x orders": true,
+  "should parse 0x order params": false,
+  "should trade position with 0x orders": true,
 
-  "should generate 0x V2 orders": true,
-  "should sign and verify 0x V2 orders": true,
-  "should trade position with 0x V2 orders": true,
+  // "should generate 0x V2 orders": true,
+  // "should sign and verify 0x V2 orders": true,
+  // "should trade position with 0x V2 orders": true,
 
   "should trade position with oracle": true,
   "should change collateral (for trader1)": true,

@@ -4,6 +4,8 @@ const ethABI = require('ethereumjs-abi');
 const ethUtil = require('ethereumjs-util');
 const { Interface, providers, Contract } = require('ethers');
 
+const Reverter = require('./utils/reverter');
+
 import Web3Utils from 'web3-utils';
 import { ZeroEx } from '0x.js';
 import { ZeroEx as ZeroExV2 } from '0xV2.js';
@@ -29,6 +31,9 @@ let ZeroExV2Helper = artifacts.require("ZeroExV2Helper");
 
 let currentGasPrice = 8000000000; // 8 gwei
 let currentEthPrice = 500; // USD
+
+let reverter = new Reverter(web3);
+const utils = require('./utils/utils.js');
 
 let zeroExV2 = new ZeroExV2(web3.currentProvider, {
   blockPollingIntervalMs: undefined,
@@ -58,6 +63,8 @@ const SignatureType = Object.freeze({
 });
 
 contract('BZxTest', function(accounts) {
+    let reverter = new Reverter(web3);
+
   var bZx;
   var vault;
   var oracle;
@@ -118,6 +125,8 @@ contract('BZxTest', function(accounts) {
   var maker0xToken1;
 
   var maker0xV2Token1;
+
+  var stranger = accounts[6];
 
   //printBalances(accounts);
 
@@ -248,8 +257,6 @@ contract('BZxTest', function(accounts) {
     logs = logs.concat(await bZxTo0xEvents.get());
     logs = logs.concat(await bZxTo0xV2Events.get());
     logs = logs.concat(await zeroExV2Events.get());
-
-    console.log(txLogsPrint(logs));
 
     bZxEvents.stopWatching();
     vaultEvents.stopWatching();
@@ -775,7 +782,7 @@ contract('BZxTest', function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 15;
+    const itemCount = 16;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -805,9 +812,10 @@ contract('BZxTest', function(accounts) {
           active: parseInt("0x"+params[9]),
           loanOrderHash: "0x"+params[10],
           loanTokenAddress: "0x"+params[11].substr(24),
-          interestTokenAddress: "0x"+params[12].substr(24),
-          interestTotalAccrued: parseInt("0x"+params[13]),
-          interestPaidSoFar: parseInt("0x"+params[14])
+          expirationUnixTimestampSec: parseInt("0x"+params[12]),
+          interestTokenAddress: "0x"+params[13].substr(24),
+          interestTotalAccrued: parseInt("0x"+params[14]),
+          interestPaidSoFar: parseInt("0x"+params[15])
         });
       }
 
@@ -818,200 +826,203 @@ contract('BZxTest', function(accounts) {
     }
   });
 
-  // it("should get loan positions (for lender1)", async () => {
-  //
-  //   var data = await bZx.getLoansForLender.call(
-  //     lender1_account,
-  //     10, // max number of items returned
-  //     true // activeOnly
-  //   );
-  //   console.log(data);
-  //
-  //   data = data.substr(2); // remove 0x from front
-  //   const itemCount = 15;
-  //   const objCount = data.length / 64 / itemCount;
-  //   var loanPositions = [];
-  //
-  //   if (objCount % 1 != 0) { // must be a whole number
-  //       console.error("error: data length invalid!");
-  //       assert.isOk(false);
-  //   }
-  //   else {
-  //     var loanPositionObjArray = data.match(new RegExp('.{1,' + (itemCount * 64) + '}', 'g'));
-  //     console.log("loanPositionObjArray.length: "+loanPositionObjArray.length);
-  //     for(var i=0; i < loanPositionObjArray.length; i++) {
-  //       var params = loanPositionObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
-  //       console.log(i+": params.length: "+params.length);
-  //       if (parseInt("0x"+params[0].substr(24)) == 0) {
-  //         continue;
-  //       }
-  //       loanPositions.push({
-  //         lender: "0x"+params[0].substr(24),
-  //         trader: "0x"+params[1].substr(24),
-  //         collateralTokenAddressFilled: "0x"+params[2].substr(24),
-  //         positionTokenAddressFilled: "0x"+params[3].substr(24),
-  //         loanTokenAmountFilled: parseInt("0x"+params[4]),
-  //         collateralTokenAmountFilled: parseInt("0x"+params[5]),
-  //         positionTokenAmountFilled: parseInt("0x"+params[6]),
-  //         loanStartUnixTimestampSec: parseInt("0x"+params[7]),
-  //         index: parseInt("0x"+params[8]),
-  //         active: parseInt("0x"+params[9]),
-  //         loanOrderHash: "0x"+params[10],
-  //         loanTokenAddress: "0x"+params[11].substr(24),
-  //         interestTokenAddress: "0x"+params[12].substr(24),
-  //         interestTotalAccrued: parseInt("0x"+params[13]),
-  //         interestPaidSoFar: parseInt("0x"+params[14])
-  //       });
-  //     }
-  //
-  //     console.log(loanPositions);
-  //
-  //     assert.isOk(true);
-  //   }
-  // });
+  it("should get loan positions (for lender1)", async () => {
 
-  // it("should get loan positions (for trader1)", async () => {
-  //
-  //   var data = await bZx.getLoansForTrader.call(
-  //     trader1_account,
-  //     10, // max number of items returned
-  //     false // activeOnly
-  //   );
-  //   console.log(data);
-  //
-  //   data = data.substr(2); // remove 0x from front
-  //   const itemCount = 15;
-  //   const objCount = data.length / 64 / itemCount;
-  //   var loanPositions = [];
-  //
-  //   if (objCount % 1 != 0) { // must be a whole number
-  //       console.error("error: data length invalid!");
-  //       assert.isOk(false);
-  //   }
-  //   else {
-  //     var loanPositionObjArray = data.match(new RegExp('.{1,' + (itemCount * 64) + '}', 'g'));
-  //     console.log("loanPositionObjArray.length: "+loanPositionObjArray.length);
-  //     for(var i=0; i < loanPositionObjArray.length; i++) {
-  //       var params = loanPositionObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
-  //       console.log(i+": params.length: "+params.length);
-  //       if (parseInt("0x"+params[0].substr(24)) == 0) {
-  //         continue;
-  //       }
-  //       loanPositions.push({
-  //         lender: "0x"+params[0].substr(24),
-  //         trader: "0x"+params[1].substr(24),
-  //         collateralTokenAddressFilled: "0x"+params[2].substr(24),
-  //         positionTokenAddressFilled: "0x"+params[3].substr(24),
-  //         loanTokenAmountFilled: parseInt("0x"+params[4]),
-  //         collateralTokenAmountFilled: parseInt("0x"+params[5]),
-  //         positionTokenAmountFilled: parseInt("0x"+params[6]),
-  //         loanStartUnixTimestampSec: parseInt("0x"+params[7]),
-  //         index: parseInt("0x"+params[8]),
-  //         active: parseInt("0x"+params[9]),
-  //         loanOrderHash: "0x"+params[10],
-  //         loanTokenAddress: "0x"+params[11].substr(24),
-  //         interestTokenAddress: "0x"+params[12].substr(24),
-  //         interestTotalAccrued: parseInt("0x"+params[13]),
-  //         interestPaidSoFar: parseInt("0x"+params[14])
-  //       });
-  //     }
-  //
-  //     console.log(loanPositions);
-  //
-  //     assert.isOk(true);
-  //   }
-  // });
+    var data = await bZx.getLoansForLender.call(
+      lender1_account,
+      10, // max number of items returned
+      true // activeOnly
+    );
+    console.log(data);
 
-  // it("should get loan positions (for trader2)", async () => {
-  //
-  //   var data = await bZx.getLoansForTrader.call(
-  //     trader2_account,
-  //     10, // max number of items returned
-  //     true // activeOnly
-  //   );
-  //   console.log(data);
-  //
-  //   data = data.substr(2); // remove 0x from front
-  //   const itemCount = 15;
-  //   const objCount = data.length / 64 / itemCount;
-  //   var loanPositions = [];
-  //
-  //   if (objCount % 1 != 0) { // must be a whole number
-  //       console.error("error: data length invalid!");
-  //       assert.isOk(false);
-  //   }
-  //   else {
-  //     var loanPositionObjArray = data.match(new RegExp('.{1,' + (itemCount * 64) + '}', 'g'));
-  //     console.log("loanPositionObjArray.length: "+loanPositionObjArray.length);
-  //     for(var i=0; i < loanPositionObjArray.length; i++) {
-  //       var params = loanPositionObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
-  //       console.log(i+": params.length: "+params.length);
-  //       if (parseInt("0x"+params[0].substr(24)) == 0) {
-  //         continue;
-  //       }
-  //       loanPositions.push({
-  //         lender: "0x"+params[0].substr(24),
-  //         trader: "0x"+params[1].substr(24),
-  //         collateralTokenAddressFilled: "0x"+params[2].substr(24),
-  //         positionTokenAddressFilled: "0x"+params[3].substr(24),
-  //         loanTokenAmountFilled: parseInt("0x"+params[4]),
-  //         collateralTokenAmountFilled: parseInt("0x"+params[5]),
-  //         positionTokenAmountFilled: parseInt("0x"+params[6]),
-  //         loanStartUnixTimestampSec: parseInt("0x"+params[7]),
-  //         index: parseInt("0x"+params[8]),
-  //         active: parseInt("0x"+params[9]),
-  //         loanOrderHash: "0x"+params[10],
-  //         loanTokenAddress: "0x"+params[11].substr(24),
-  //         interestTokenAddress: "0x"+params[12].substr(24),
-  //         interestTotalAccrued: parseInt("0x"+params[13]),
-  //         interestPaidSoFar: parseInt("0x"+params[14])
-  //       });
-  //     }
-  //
-  //     console.log(loanPositions);
-  //
-  //     assert.isOk(true);
-  //   }
-  // });
+    data = data.substr(2); // remove 0x from front
+    const itemCount = 16;
+    const objCount = data.length / 64 / itemCount;
+    var loanPositions = [];
 
-  // it("should get active loans", async () => {
-  //
-  //   var data = await bZx.getActiveLoans.call(
-  //     0, // starting item
-  //     10 // max number of items returned
-  //   );
-  //   console.log(data);
-  //
-  //   data = data.substr(2); // remove 0x from front
-  //   const itemCount = 3;
-  //   const objCount = data.length / 64 / itemCount;
-  //   var loans = [];
-  //
-  //   if (objCount % 1 != 0) { // must be a whole number
-  //       console.error("error: data length invalid!");
-  //       assert.isOk(false);
-  //   }
-  //   else {
-  //     var loansObjArray = data.match(new RegExp('.{1,' + (itemCount * 64) + '}', 'g'));
-  //     console.log("loansObjArray.length: "+loansObjArray.length);
-  //     for(var i=0; i < loansObjArray.length; i++) {
-  //       var params = loansObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
-  //       console.log(i+": params.length: "+params.length);
-  //       if (parseInt("0x"+params[0].substr(24)) == 0) {
-  //         continue;
-  //       }
-  //       loans.push({
-  //         loanOrderHash: "0x"+params[0],
-  //         trader: "0x"+params[1].substr(24),
-  //         expirationUnixTimestampSec: parseInt("0x"+params[2])
-  //       });
-  //     }
-  //
-  //     console.log(loans);
-  //
-  //     assert.isOk(true);
-  //   }
-  // });
+    if (objCount % 1 != 0) { // must be a whole number
+        console.error("error: data length invalid!");
+        assert.isOk(false);
+    }
+    else {
+      var loanPositionObjArray = data.match(new RegExp('.{1,' + (itemCount * 64) + '}', 'g'));
+      console.log("loanPositionObjArray.length: "+loanPositionObjArray.length);
+      for(var i=0; i < loanPositionObjArray.length; i++) {
+        var params = loanPositionObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
+        console.log(i+": params.length: "+params.length);
+        if (parseInt("0x"+params[0].substr(24)) == 0) {
+          continue;
+        }
+        loanPositions.push({
+          lender: "0x"+params[0].substr(24),
+          trader: "0x"+params[1].substr(24),
+          collateralTokenAddressFilled: "0x"+params[2].substr(24),
+          positionTokenAddressFilled: "0x"+params[3].substr(24),
+          loanTokenAmountFilled: parseInt("0x"+params[4]),
+          collateralTokenAmountFilled: parseInt("0x"+params[5]),
+          positionTokenAmountFilled: parseInt("0x"+params[6]),
+          loanStartUnixTimestampSec: parseInt("0x"+params[7]),
+          index: parseInt("0x"+params[8]),
+          active: parseInt("0x"+params[9]),
+          loanOrderHash: "0x"+params[10],
+          loanTokenAddress: "0x"+params[11].substr(24),
+         expirationUnixTimestampSec: parseInt("0x"+params[12]),
+          interestTokenAddress: "0x"+params[13].substr(24),
+          interestTotalAccrued: parseInt("0x"+params[14]),
+          interestPaidSoFar: parseInt("0x"+params[15])
+        });
+      }
+
+      console.log(loanPositions);
+
+      assert.isOk(true);
+    }
+  });
+
+  it("should get loan positions (for trader1)", async () => {
+
+    var data = await bZx.getLoansForTrader.call(
+      trader1_account,
+      10, // max number of items returned
+      false // activeOnly
+    );
+    console.log(data);
+
+    data = data.substr(2); // remove 0x from front
+    const itemCount = 16;
+    const objCount = data.length / 64 / itemCount;
+    var loanPositions = [];
+
+    if (objCount % 1 != 0) { // must be a whole number
+        console.error("error: data length invalid!");
+        assert.isOk(false);
+    }
+    else {
+      var loanPositionObjArray = data.match(new RegExp('.{1,' + (itemCount * 64) + '}', 'g'));
+      console.log("loanPositionObjArray.length: "+loanPositionObjArray.length);
+      for(var i=0; i < loanPositionObjArray.length; i++) {
+        var params = loanPositionObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
+        console.log(i+": params.length: "+params.length);
+        if (parseInt("0x"+params[0].substr(24)) == 0) {
+          continue;
+        }
+        loanPositions.push({
+          lender: "0x"+params[0].substr(24),
+          trader: "0x"+params[1].substr(24),
+          collateralTokenAddressFilled: "0x"+params[2].substr(24),
+          positionTokenAddressFilled: "0x"+params[3].substr(24),
+          loanTokenAmountFilled: parseInt("0x"+params[4]),
+          collateralTokenAmountFilled: parseInt("0x"+params[5]),
+          positionTokenAmountFilled: parseInt("0x"+params[6]),
+          loanStartUnixTimestampSec: parseInt("0x"+params[7]),
+          index: parseInt("0x"+params[8]),
+          active: parseInt("0x"+params[9]),
+          loanOrderHash: "0x"+params[10],
+          loanTokenAddress: "0x"+params[11].substr(24),
+          expirationUnixTimestampSec: parseInt("0x"+params[12]),
+          interestTokenAddress: "0x"+params[13].substr(24),
+          interestTotalAccrued: parseInt("0x"+params[14]),
+          interestPaidSoFar: parseInt("0x"+params[15])
+        });
+      }
+
+      console.log(loanPositions);
+
+      assert.isOk(true);
+    }
+  });
+
+  it("should get loan positions (for trader2)", async () => {
+
+    var data = await bZx.getLoansForTrader.call(
+      trader2_account,
+      10, // max number of items returned
+      true // activeOnly
+    );
+    console.log(data);
+
+    data = data.substr(2); // remove 0x from front
+    const itemCount = 16;
+    const objCount = data.length / 64 / itemCount;
+    var loanPositions = [];
+
+    if (objCount % 1 != 0) { // must be a whole number
+        console.error("error: data length invalid!");
+        assert.isOk(false);
+    }
+    else {
+      var loanPositionObjArray = data.match(new RegExp('.{1,' + (itemCount * 64) + '}', 'g'));
+      console.log("loanPositionObjArray.length: "+loanPositionObjArray.length);
+      for(var i=0; i < loanPositionObjArray.length; i++) {
+        var params = loanPositionObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
+        console.log(i+": params.length: "+params.length);
+        if (parseInt("0x"+params[0].substr(24)) == 0) {
+          continue;
+        }
+        loanPositions.push({
+          lender: "0x"+params[0].substr(24),
+          trader: "0x"+params[1].substr(24),
+          collateralTokenAddressFilled: "0x"+params[2].substr(24),
+          positionTokenAddressFilled: "0x"+params[3].substr(24),
+          loanTokenAmountFilled: parseInt("0x"+params[4]),
+          collateralTokenAmountFilled: parseInt("0x"+params[5]),
+          positionTokenAmountFilled: parseInt("0x"+params[6]),
+          loanStartUnixTimestampSec: parseInt("0x"+params[7]),
+          index: parseInt("0x"+params[8]),
+          active: parseInt("0x"+params[9]),
+          loanOrderHash: "0x"+params[10],
+          loanTokenAddress: "0x"+params[11].substr(24),
+          expirationUnixTimestampSec: parseInt("0x"+params[12]),
+          interestTokenAddress: "0x"+params[13].substr(24),
+          interestTotalAccrued: parseInt("0x"+params[14]),
+          interestPaidSoFar: parseInt("0x"+params[15])
+        });
+      }
+
+      console.log(loanPositions);
+
+      assert.isOk(true);
+    }
+  });
+
+  it("should get active loans", async () => {
+
+    var data = await bZx.getActiveLoans.call(
+      0, // starting item
+      10 // max number of items returned
+    );
+    console.log(data);
+
+    data = data.substr(2); // remove 0x from front
+    const itemCount = 3;
+    const objCount = data.length / 64 / itemCount;
+    var loans = [];
+
+    if (objCount % 1 != 0) { // must be a whole number
+        console.error("error: data length invalid!");
+        assert.isOk(false);
+    }
+    else {
+      var loansObjArray = data.match(new RegExp('.{1,' + (itemCount * 64) + '}', 'g'));
+      console.log("loansObjArray.length: "+loansObjArray.length);
+      for(var i=0; i < loansObjArray.length; i++) {
+        var params = loansObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
+        console.log(i+": params.length: "+params.length);
+        if (parseInt("0x"+params[0].substr(24)) == 0) {
+          continue;
+        }
+        loans.push({
+          loanOrderHash: "0x"+params[0],
+          trader: "0x"+params[1].substr(24),
+          expirationUnixTimestampSec: parseInt("0x"+params[2])
+        });
+      }
+
+      console.log(loans);
+
+      assert.isOk(true);
+    }
+  });
 
   it("should generate 0x V2 orders", async () => {
     OrderParams_0xV2_1 = {
@@ -1161,15 +1172,10 @@ contract('BZxTest', function(accounts) {
     let txData = tradePositionWith0xV2.data;
 
       let tx = await bZx.sendTransaction({data: txData, from: trader1_account})
-      console.log(await txPrettyPrint(tx,"should trade position with 0x V2 orders"));
   });
 
   it("should trade position with oracle", async () => {
     await bZx.tradePositionWithOracle(OrderHash_bZx_1, interestToken2.address, {from: trader1_account});
-  });
-
-  it("should change collateral (for trader1)", async () => {
-      await bZx.changeCollateral(OrderHash_bZx_1, interestToken1.address, {from: trader1_account})
   });
 
   it("should withdraw profits", async () => {
@@ -1186,60 +1192,112 @@ contract('BZxTest', function(accounts) {
       await bZx.payInterest(OrderHash_bZx_1, trader1_account, {from: trader1_account});
   });
 
-  it("should close loan as (lender1/trader1)", async () => {
-      await bZx.closeLoan(OrderHash_bZx_1, {from: trader1_account});
-  });
+  context("Collateral", async () => {
+      before('before', async () => {
+          await reverter.snapshot();
+      })
 
-  it("should liquidate position", async () => {
-      await bZx.liquidatePosition(OrderHash_bZx_1, trader1_account, {from: makerOf0xOrder1_account});
-  });
+      it("shouldn't allow to change collateral (for stranger)", async () => {
+          try {
+              await bZx.changeCollateral(OrderHash_bZx_1, interestToken1.address, {from: stranger});
+              assert.isTrue(false);
+          } catch (e) {
+              utils.ensureException(e);
+          }
+      });
 
-  it("should force close loan", async () => {
-      await bZx.forceCloanLoan(OrderHash_bZx_1, trader1_account, {from: owner_account});
-  });
+      it("should change collateral with not exists loan order (for trader1)", async () => {
+          try {
+              await bZx.changeCollateral("some not exists loan order hash", interestToken1.address, {from: trader1_account})
+              assert.isTrue(false);
+          } catch (e) {
+              utils.ensureException(e);
+          }
+      });
 
-  function txLogsPrint(logs) {
-    var ret = "";
-    if (logs === undefined) {
-      logs = [];
-    }
-    if (logs.length > 0) {
-      logs = logs.sort(function(a,b) {return (a.blockNumber > b.blockNumber) ? 1 : ((b.blockNumber > a.blockNumber) ? -1 : 0);} );
-      ret = ret + "\n  LOGS --> "+"\n";
-      for (var i=0; i < logs.length; i++) {
-        var log = logs[i];
-        //console.log(log);
-        ret = ret + "  "+i+": "+log.event+" "+JSON.stringify(log.args);
-        if (log.event == "GasRefund") {
-          ret = ret + " -> Refund: "+(log.args.refundAmount/1e18*currentEthPrice).toFixed(2)+"USD @ "+currentEthPrice+"USD/ETH)";
-        }
-        ret = ret + " " + log.transactionHash + " " + log.blockNumber + "\n\n";
-      }
-    }
-    return ret;
-  }
+      it("should change collateral (for trader1)", async () => {
+          assert.equal((await bZx.loanPositions.call(OrderHash_bZx_1, trader1_account))[2], collateralToken1.address);
 
-  function txPrettyPrint(tx, desc) {
-    var ret = desc + "\n";
-    if (tx.tx === undefined) {
-      ret = ret + JSON.stringify(tx);
-    } else {
-      ret = ret + "  tx: "+tx.tx+"\n";
-      if (tx.receipt !== undefined) {
-        ret = ret + "  blockNumber: "+tx.receipt.blockNumber+"\n";
-        ret = ret + "  gasUsed: "+tx.receipt.gasUsed+" -> x"+currentGasPrice+" = "+(tx.receipt.gasUsed*currentGasPrice)+" ("+(tx.receipt.gasUsed*currentGasPrice/1e18*currentEthPrice).toFixed(2)+"USD @ "+currentEthPrice+"USD/ETH)\n";
-        ret = ret + "  cumulativeGasUsed: "+tx.receipt.cumulativeGasUsed+" -> x"+currentGasPrice+" = "+(tx.receipt.cumulativeGasUsed*currentGasPrice)+" ("+(tx.receipt.cumulativeGasUsed*currentGasPrice/1e18*currentEthPrice).toFixed(2)+"USD @ "+currentEthPrice+"USD/ETH)\n";
-        ret = ret + "  status: "+tx.receipt.status+"\n";
-      }
+          let initialBalance1Trader = await collateralToken1.balanceOf(trader1_account);
+          let initialBalance1Valut = await collateralToken1.balanceOf(vault.address);
 
-      if (tx.logs === undefined) {
-        tx.logs = [];
-      }
-      //tx.logs = tx.logs.concat(events);
-      ret = ret + txLogsPrint(tx.logs);
-    }
-    return ret;
-  }
+          let initialBalance2Trader = await interestToken1.balanceOf(trader1_account);
+          let initialBalance2Valut = await interestToken1.balanceOf(vault.address);
+
+          await bZx.changeCollateral(OrderHash_bZx_1, interestToken1.address, {from: trader1_account})
+
+          let finalBalance1Trader = await collateralToken1.balanceOf(trader1_account);
+          let finalBalance1Valut = await collateralToken1.balanceOf(vault.address);
+
+          let finalBalance2Trader = await interestToken1.balanceOf(trader1_account);
+          let finalBalance2Valut = await interestToken1.balanceOf(vault.address);
+
+          assert.isTrue(finalBalance1Trader.sub(initialBalance1Trader).eq(initialBalance1Valut.sub(finalBalance1Valut)));
+          assert.isTrue(finalBalance2Valut.sub(initialBalance2Valut).eq(initialBalance2Trader.sub(finalBalance2Trader)));
+
+          assert.equal((await bZx.loanPositions.call(OrderHash_bZx_1, trader1_account))[2], interestToken1.address);
+      });
+
+      it("should crash if collateral is the same (for trader1)", async () => {
+          assert.equal((await bZx.loanPositions.call(OrderHash_bZx_1, trader1_account))[2], interestToken1.address);
+
+          try {
+              await bZx.changeCollateral(OrderHash_bZx_1, interestToken1.address, {from: trader1_account});
+              assert.isTrue(false);
+          } catch (e) {
+              utils.ensureException(e);
+          }
+      });
+
+      it("should increase collateral (for trader1)", async () => {
+          const VALUE = 100;
+          assert.equal((await bZx.loanPositions.call(OrderHash_bZx_1, trader1_account))[2], interestToken1.address);
+
+          await bZx.depositCollateral(OrderHash_bZx_1, interestToken1.address, VALUE, {from: trader1_account});
+
+      });
+
+      it("should withdraw excess collateral (for trader1)", async () => {
+          const VALUE = 100;
+          assert.equal((await bZx.loanPositions.call(OrderHash_bZx_1, trader1_account))[2], interestToken1.address);
+
+          await bZx.withdrawExcessCollateral(OrderHash_bZx_1, interestToken1.address, VALUE, {from: trader1_account});
+
+      });
+
+
+      after(async () => {
+          await reverter.revert();
+      })
+  })
+
+  context("Loan finalization", async () => {
+      before('before', async () => {
+          await reverter.snapshot();
+      })
+
+      it("should close loan as (lender1/trader1)", async () => {
+          await bZx.closeLoan(OrderHash_bZx_1, {from: trader1_account});
+
+          await reverter.revert();
+      });
+
+      it("should liquidate position", async () => {
+          await bZx.liquidatePosition(OrderHash_bZx_1, trader1_account, {from: makerOf0xOrder1_account});
+
+          await reverter.revert();
+      });
+
+      it("should force close loan", async () => {
+          await bZx.forceCloanLoan(OrderHash_bZx_1, trader1_account, {from: owner_account});
+
+          await reverter.revert();
+      });
+
+      after(async () => {
+          await reverter.revert();
+      })
+  })
 
   function toHex(d) {
     return  ("0"+(Number(d).toString(16))).slice(-2).toUpperCase()
