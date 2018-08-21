@@ -12,6 +12,7 @@ module.exports = {
         'tokens/testing/TestToken6.sol',
         'tokens/testing/TestToken7.sol',
         'tokens/testing/TestToken8.sol',
-        'tokens/testing/TestToken9.sol'
+        'tokens/testing/TestToken9.sol',
+        'migrations/Migrations.sol'
     ]
 }
