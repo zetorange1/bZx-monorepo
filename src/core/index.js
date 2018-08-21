@@ -111,6 +111,8 @@ export default class BZxJS {
   getOracleList = async () => oracles.getOracleList(this);
   isTradeSupported = async (...props) =>
     oracles.isTradeSupported(this, ...props);
+  getConversionData = async (...props) =>
+    oracles.getConversionData(this, ...props);
 
   takeLoanOrderAsLender = (...props) =>
     fill.takeLoanOrderAsLender(this, ...props);
