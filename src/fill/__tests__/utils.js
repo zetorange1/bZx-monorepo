@@ -1,5 +1,5 @@
 import { clone } from "ramda";
-import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
+import { constants as constantsZX } from "@0xproject/order-utils/lib/src/constants";
 import { local as Contracts } from "../../contracts";
 import bZxJS from "../../core/__tests__/setup";
 import BZxJS from "../../core/index";

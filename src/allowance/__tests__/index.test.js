@@ -1,4 +1,4 @@
-import { constants } from "0x.js/lib/src/utils/constants";
+import { constants } from "@0xproject/order-utils/lib/src/constants";
 import { BigNumber } from "@0xproject/utils";
 import { pathOr } from "ramda";
 import { local as Contracts } from "../../contracts";

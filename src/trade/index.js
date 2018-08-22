@@ -3,7 +3,7 @@ import Web3Utils from "web3-utils";
 import BN from "bn.js";
 import ethABI from "ethereumjs-abi";
 import ethUtil from "ethereumjs-util";
-import { ZeroEx } from "0x.js";
+import OrderUtils from "@0xproject/order-utils";
 import * as CoreUtils from "../core/utils";
 import { getContracts } from "../contracts";
 import * as ZeroExTradeUtils from "./utils/zeroEx";
@@ -25,7 +25,7 @@ export const tradePositionWith0x = (
   );
 
   const transformedOrder0x = ZeroExTradeUtils.transform0xOrder(order0x);
-  const orderHash0x = ZeroEx.getOrderHashHex(transformedOrder0x);
+  const orderHash0x = OrderUtils.getOrderHashHex(transformedOrder0x);
 
   Signature.isValidSignature({
     account: order0x.signedOrder.maker,

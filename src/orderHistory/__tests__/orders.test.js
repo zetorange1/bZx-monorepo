@@ -1,4 +1,4 @@
-import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
+import { constants as constantsZX } from "@0xproject/order-utils/lib/src/constants";
 import bZxJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 import makeOrder from "../../core/__tests__/order";

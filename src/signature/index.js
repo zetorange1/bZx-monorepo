@@ -1,4 +1,4 @@
-import { signatureUtils } from "0x.js/lib/src/utils/signature_utils";
+import { signatureUtils } from "@0xproject/order-utils/lib/src/signature_utils";
 import sigUtil from "eth-sig-util";
 import * as ethUtil from "ethereumjs-util";
 import { assert } from "@0xproject/assert";

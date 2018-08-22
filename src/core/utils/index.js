@@ -1,6 +1,6 @@
 import { BigNumber } from "@0xproject/utils";
 import { assert } from "@0xproject/assert";
-import { constants } from "0x.js/lib/src/utils/constants";
+import { constants } from "@0xproject/order-utils/lib/src/constants";
 import BN from "bn.js";
 import Web3Utils from "web3-utils";
 import { SchemaValidator } from "../../schemas/bZx_json_schemas";

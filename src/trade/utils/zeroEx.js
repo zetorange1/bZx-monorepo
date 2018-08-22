@@ -1,4 +1,4 @@
-import { constants } from "0x.js/lib/src/utils/constants";
+import { constants } from "@0xproject/order-utils/lib/src/constants";
 
 export const transform0xOrder = ({
   signedOrder

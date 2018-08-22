@@ -1,4 +1,4 @@
-import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
+import { constants as constantsZX } from "@0xproject/order-utils/lib/src/constants";
 import * as Addresses from "./addresses";
 import { local as Contracts } from "../../contracts";
 import * as constants from "../constants/order";
