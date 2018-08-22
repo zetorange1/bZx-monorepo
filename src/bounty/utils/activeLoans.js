@@ -8,7 +8,7 @@ const getLoan = params => ({
   trader: pipe(OrderHistoryUtils.substr24, OrderHistoryUtils.prepend0x)(
     params[1]
   ),
-  expirationUnixTimestampSec: OrderHistoryUtils.parseIntHex(params[2])
+  loanEndUnixTimestampSec: OrderHistoryUtils.parseIntHex(params[2])
 });
 
 const checkProperObjCount = OrderHistoryUtils.makeCheckProperObjCount(

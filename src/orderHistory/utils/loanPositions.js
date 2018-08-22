@@ -9,7 +9,7 @@ const getLoanPosition = params => ({
     trader: params[1],
     collateralTokenAddressFilled: params[2],
     positionTokenAddressFilled: params[3],
-    loanTokenAddress: params[11],
+    loanTokenAddress: params[12],
     interestTokenAddress: params[13]
   }),
   ...map(pipe(Utils.prepend0x, Utils.parseIntHex), {
@@ -17,14 +17,14 @@ const getLoanPosition = params => ({
     collateralTokenAmountFilled: params[5],
     positionTokenAmountFilled: params[6],
     loanStartUnixTimestampSec: params[7],
-    expirationUnixTimestampSec: params[12],
-    index: params[8],
-    active: params[9],
+    loanEndUnixTimestampSec: params[8],
+    index: params[9],
+    active: params[10],
     interestTotalAccrued: params[14],
     interestPaidSoFar: params[15]
   }),
   ...map(pipe(Utils.prepend0x), {
-    loanOrderHash: params[10]
+    loanOrderHash: params[11]
   })
 });
 

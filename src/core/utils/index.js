@@ -35,6 +35,7 @@ const getOrderValues = (order, shouldFormatAsStrings) => {
       order.maintenanceMarginAmount.toString(),
       order.lenderRelayFee.toString(),
       order.traderRelayFee.toString(),
+      order.maxDurationUnixTimestampSec.toString(),
       order.expirationUnixTimestampSec.toString(),
       order.makerRole.toString(),
       order.salt.toString()
@@ -47,6 +48,7 @@ const getOrderValues = (order, shouldFormatAsStrings) => {
     bigNumberToBN(order.maintenanceMarginAmount),
     bigNumberToBN(order.lenderRelayFee),
     bigNumberToBN(order.traderRelayFee),
+    bigNumberToBN(order.maxDurationUnixTimestampSec),
     bigNumberToBN(order.expirationUnixTimestampSec),
     bigNumberToBN(order.makerRole),
     bigNumberToBN(order.salt)
@@ -86,7 +88,7 @@ export const getLoanOrderHashHex = order => {
   const orderHashHex = Web3Utils.soliditySha3(
     { t: "address", v: order.bZxAddress },
     { t: "address[6]", v: orderAddresses },
-    { t: "uint256[9]", v: orderValues }
+    { t: "uint256[10]", v: orderValues }
   );
   return orderHashHex;
 };
