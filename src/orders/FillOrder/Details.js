@@ -70,7 +70,8 @@ export default ({
                   rel="noopener noreferrer"
                 >
                   {oracle.address}
-                </Hash>)
+                </Hash>
+                )
               </Fragment>
             ) : (
               <Fragment>INVALID</Fragment>

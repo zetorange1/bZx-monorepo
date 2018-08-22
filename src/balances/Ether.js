@@ -1,13 +1,14 @@
 import styled from "styled-components";
-import Button from "material-ui/Button";
-import Input, { InputLabel, InputAdornment } from "material-ui/Input";
-import { FormControl } from "material-ui/Form";
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle
-} from "material-ui/Dialog";
+import Button from "@material-ui/core/Button";
+import Input from "@material-ui/core/Input";
+import InputLabel from "@material-ui/core/InputLabel";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import FormControl from "@material-ui/core/FormControl";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 import Section, { SectionLabel } from "../common/FormSection";
 import { fromBigNumber, toBigNumber } from "../common/utils";
 
@@ -262,7 +263,8 @@ export default class Ether extends React.Component {
         <Container>
           {this.state.ethBalance ? (
             <StyledDiv>
-              Your current ETH balance is{` `}
+              Your current ETH balance is
+              {` `}
               <strong>{this.state.ethBalance.toString()} ETH</strong>.
             </StyledDiv>
           ) : (
@@ -272,7 +274,8 @@ export default class Ether extends React.Component {
           )}
           {this.state.wethBalance ? (
             <StyledDiv>
-              Your current WETH balance is{` `}
+              Your current WETH balance is
+              {` `}
               <strong>{this.state.wethBalance.toString()} WETH</strong>.
             </StyledDiv>
           ) : (

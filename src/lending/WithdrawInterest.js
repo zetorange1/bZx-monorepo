@@ -1,7 +1,8 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import Button from "material-ui/Button";
-import Dialog, { DialogContent } from "material-ui/Dialog";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContent from "@material-ui/core/DialogContent";
 import BigNumber from "bignumber.js";
 
 import { fromBigNumber } from "../common/utils";
@@ -106,7 +107,8 @@ export default class WithdrawInterest extends React.Component {
           <DialogContent>
             <SectionLabel>Withdraw Interest</SectionLabel>
             <p>
-              Currently, we are taking a fee of{` `}
+              Currently, we are taking a fee of
+              {` `}
               <strong>{currentFee * 100}%</strong>. This means that the actual
               withdrawal amount will be at least:
             </p>

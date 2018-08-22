@@ -1,8 +1,8 @@
 /* global window */
 import { Fragment } from "react";
 import styled from "styled-components";
-import Typography from "material-ui/Typography";
-import MuiButton from "material-ui/Button";
+import Typography from "@material-ui/core/Typography";
+import MuiButton from "@material-ui/core/Button";
 import queryString from "querystring";
 import { SectionLabel } from "../../common/FormSection";
 import FillOrderPage from "./FillOrder";

@@ -85,7 +85,7 @@ const getTotalInterest = order => {
       const exp = order.expirationUnixTimestampSec;
       const now = moment().unix();
       if (exp > now) {
-        totalInterest = (exp - now) / 86400 * order.interestAmount;
+        totalInterest = ((exp - now) / 86400) * order.interestAmount;
       }
     }
   } catch (e) {} // eslint-disable-line no-empty

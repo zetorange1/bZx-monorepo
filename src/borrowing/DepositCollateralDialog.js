@@ -1,8 +1,12 @@
 import styled from "styled-components";
-import Dialog, { DialogTitle, DialogContent } from "material-ui/Dialog";
-import Input, { InputLabel, InputAdornment } from "material-ui/Input";
-import { FormControl } from "material-ui/Form";
-import Button from "material-ui/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Input from "@material-ui/core/Input";
+import InputLabel from "@material-ui/core/InputLabel";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import FormControl from "@material-ui/core/FormControl";
+import Button from "@material-ui/core/Button";
 import { toBigNumber } from "../common/utils";
 
 const TxHashLink = styled.a.attrs({

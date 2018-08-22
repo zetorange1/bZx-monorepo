@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import MuiButton from "material-ui/Button";
+import MuiButton from "@material-ui/core/Button";
 import OrderItem from "./OrderItem";
 
 const InfoContainer = styled.div`

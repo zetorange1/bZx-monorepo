@@ -1,7 +1,9 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import Dialog, { DialogTitle, DialogContent } from "material-ui/Dialog";
-import Button from "material-ui/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Button from "@material-ui/core/Button";
 import TokenPicker from "../common/TokenPicker";
 import Section, { SectionLabel, Divider } from "../common/FormSection";
 import { getTokenConversionAmount, fromBigNumber } from "../common/utils";
@@ -180,7 +182,8 @@ export default class TradeOracleDialog extends React.Component {
                 <Fragment>
                   <br />
                   <br />
-                  Sorry, but Kyber can&apos;t handle this large of a trade for{` `}
+                  Sorry, but Kyber can&apos;t handle this large of a trade for
+                  {` `}
                   {this.state.tradeToken.symbol}. Please try again later.
                 </Fragment>
               )}

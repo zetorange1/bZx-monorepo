@@ -1,4 +1,4 @@
-import MuiButton from "material-ui/Button";
+import MuiButton from "@material-ui/core/Button";
 import styled from "styled-components";
 import Section, { SectionLabel } from "../common/FormSection";
 import TrackedTokenItem from "./TrackedTokenItem";

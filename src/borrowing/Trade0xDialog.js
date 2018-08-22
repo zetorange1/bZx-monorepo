@@ -1,6 +1,8 @@
 import styled from "styled-components";
-import Dialog, { DialogTitle, DialogContent } from "material-ui/Dialog";
-import Button from "material-ui/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Button from "@material-ui/core/Button";
 import Section, { SectionLabel, Divider } from "../common/FormSection";
 
 const TxHashLink = styled.a.attrs({

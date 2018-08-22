@@ -1,5 +1,6 @@
-import { FormControlLabel, FormLabel } from "material-ui/Form";
-import Radio, { RadioGroup } from "material-ui/Radio";
+import FormLabel from "@material-ui/core/FormLabel";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import { Radio, RadioGroup } from "@material-ui/core";
 import Section, { SectionLabel } from "../../common/FormSection";
 
 export default ({ role, setRole }) => (

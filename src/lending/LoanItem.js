@@ -1,7 +1,10 @@
 import styled from "styled-components";
-import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
-import Button from "material-ui/Button";
-import Dialog, { DialogActions, DialogContent } from "material-ui/Dialog";
+import MuiCard from "@material-ui/core/Card";
+import MuiCardContent from "@material-ui/core/CardContent";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
 import { fromBigNumber, toBigNumber } from "../common/utils";
 
 import OrderItem from "../orders/OrderHistory/OrderItem";

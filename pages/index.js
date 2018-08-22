@@ -323,7 +323,8 @@ class Index extends React.Component {
               clearProvider={this.clearProvider}
             />
             <p>
-              Make margin calls and earn bounty rewards.<br />
+              Make margin calls and earn bounty rewards.
+              <br />
               If a margin account is under margin maintenance, it needs to be
               liquidated.
             </p>

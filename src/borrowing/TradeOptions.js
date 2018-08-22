@@ -1,6 +1,6 @@
 import { Fragment } from "react";
-import Button from "material-ui/Button";
-import Menu, { MenuItem } from "material-ui/Menu";
+import Button from "@material-ui/core/Button";
+import { Menu, MenuItem } from "@material-ui/core";
 import Trade0xDialog from "./Trade0xDialog";
 import TradeOracleDialog from "./TradeOracleDialog";
 

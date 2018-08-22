@@ -1,10 +1,10 @@
 import styled from "styled-components";
-import Input, { InputLabel, InputAdornment } from "material-ui/Input";
-import {
-  FormControl as MuiFormControl,
-  FormHelperText
-} from "material-ui/Form";
-import Tooltip from "material-ui/Tooltip";
+import Input from "@material-ui/core/Input";
+import InputLabel from "@material-ui/core/InputLabel";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import MuiFormControl from "@material-ui/core/FormControl";
+import FormHelperText from "@material-ui/core/FormHelperText";
+import Tooltip from "@material-ui/core/Tooltip";
 
 import Section, { SectionLabel } from "../../common/FormSection";
 

@@ -1,10 +1,9 @@
 import styled from "styled-components";
-import MuiCard, {
-  CardActions,
-  CardContent as MuiCardContent
-} from "material-ui/Card";
-import Button from "material-ui/Button";
-import Dialog, { DialogActions, DialogContent } from "material-ui/Dialog";
+import MuiCard from "@material-ui/core/Card";
+import CardActions from "@material-ui/core/CardActions";
+import MuiCardContent from "@material-ui/core/CardContent";
+import Button from "@material-ui/core/Button";
+import { Dialog, DialogActions, DialogContent } from "@material-ui/core";
 
 import OrderItem from "../orders/OrderHistory/OrderItem";
 

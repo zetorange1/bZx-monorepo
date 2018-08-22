@@ -1,11 +1,12 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import MuiCard, {
-  CardActions,
-  CardContent as MuiCardContent
-} from "material-ui/Card";
-import Button from "material-ui/Button";
-import Dialog, { DialogActions, DialogContent } from "material-ui/Dialog";
+import MuiCard from "@material-ui/core/Card";
+import CardActions from "@material-ui/core/CardActions";
+import MuiCardContent from "@material-ui/core/CardContent";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
 import moment from "moment";
 
 import CollateralOptions from "./CollateralOptions";
@@ -144,7 +145,7 @@ export default class OpenedLoan extends React.Component {
       loanTokenAmountFilled,
       loanTokenAddress,
       loanStartUnixTimestampSec,
-      expirationUnixTimestampSec,
+      loanEndUnixTimestampSec,
       loanOrderHash,
       lender
     } = this.props.data;
@@ -174,7 +175,7 @@ export default class OpenedLoan extends React.Component {
     const tradeOpened = positionTokenAddressFilled !== loanTokenAddress;
     const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
 
-    const loanExpireDate = moment(expirationUnixTimestampSec * 1000).utc();
+    const loanExpireDate = moment(loanEndUnixTimestampSec * 1000).utc();
     const loanExpireDateStr = loanExpireDate.format(`MMMM Do YYYY, h:mm a UTC`);
 
     return (

@@ -1,10 +1,10 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
+import MuiCard from "@material-ui/core/Card";
+import MuiCardContent from "@material-ui/core/CardContent";
 import moment from "moment";
-import { BigNumber } from "bignumber.js";
 import { COLORS } from "../../styles/constants";
-import { fromBigNumber } from "../../common/utils";
+import { fromBigNumber, toBigNumber } from "../../common/utils";
 import { getSymbol, getDecimals } from "../../common/tokens";
 
 const CardContent = styled(MuiCardContent)`
@@ -87,19 +87,28 @@ export default class OrderItem extends React.Component {
     const dateStr = date.format(`MMMM Do YYYY, h:mm a UTC`);
     const addedDate = moment(takenOrder.addedUnixTimestampSec * 1000).utc();
     const addedDateStr = addedDate.format(`MMMM Do YYYY, h:mm a UTC`);
+    const maxDuration = toBigNumber(takenOrder.maxDurationUnixTimestampSec)
+      .div(86400)
+      .toFixed(2);
 
-    takenOrder.loanTokenAmount = BigNumber(takenOrder.loanTokenAmount).toFixed(
-      0
-    );
-    takenOrder.orderFilledAmount = BigNumber(
+    takenOrder.loanTokenAmount = toBigNumber(
+      takenOrder.loanTokenAmount
+    ).toFixed(0);
+    takenOrder.orderFilledAmount = toBigNumber(
       takenOrder.orderFilledAmount
     ).toFixed(0);
-    takenOrder.orderCancelledAmount = BigNumber(
+    takenOrder.orderCancelledAmount = toBigNumber(
       takenOrder.orderCancelledAmount
     ).toFixed(0);
-    takenOrder.interestAmount = BigNumber(takenOrder.interestAmount).toFixed(0);
-    takenOrder.lenderRelayFee = BigNumber(takenOrder.lenderRelayFee).toFixed(0);
-    takenOrder.traderRelayFee = BigNumber(takenOrder.traderRelayFee).toFixed(0);
+    takenOrder.interestAmount = toBigNumber(takenOrder.interestAmount).toFixed(
+      0
+    );
+    takenOrder.lenderRelayFee = toBigNumber(takenOrder.lenderRelayFee).toFixed(
+      0
+    );
+    takenOrder.traderRelayFee = toBigNumber(takenOrder.traderRelayFee).toFixed(
+      0
+    );
 
     const fillsStr =
       takenOrder.orderTraderCount +
@@ -171,7 +180,8 @@ export default class OrderItem extends React.Component {
               {` `}(
               <AddressLink href={loanTokenAddressLink}>
                 {takenOrder.loanTokenAddress}
-              </AddressLink>)
+              </AddressLink>
+              )
             </DataPoint>
           </DataPointContainer>
 
@@ -241,7 +251,8 @@ export default class OrderItem extends React.Component {
               {` `}(
               <AddressLink href={interestTokenAddressLink}>
                 {takenOrder.interestTokenAddress}
-              </AddressLink>)
+              </AddressLink>
+              )
             </DataPoint>
           </DataPointContainer>
 
@@ -253,7 +264,8 @@ export default class OrderItem extends React.Component {
                 {` `}(
                 <AddressLink href={collateralTokenAddressLink}>
                   {takenOrder.collateralTokenAddress}
-                </AddressLink>)
+                </AddressLink>
+                )
               </DataPoint>
             ) : (
               <DataPoint>(not set by maker)</DataPoint>
@@ -279,6 +291,11 @@ export default class OrderItem extends React.Component {
                 </AddressLink>
               </Hash>
             </DataPoint>
+          </DataPointContainer>
+
+          <DataPointContainer>
+            <Label>Max Loan Duration</Label>
+            <DataPoint>{maxDuration} days</DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>

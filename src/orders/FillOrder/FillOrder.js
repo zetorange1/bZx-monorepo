@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import Button from "material-ui/Button";
+import Button from "@material-ui/core/Button";
 
 import {
   fromBigNumber,
@@ -283,7 +283,8 @@ export default class FillOrder extends React.Component {
               </Fragment>
             ) : (
               <Fragment>
-                This order was created by{` `}
+                This order was created by
+                {` `}
                 <Hash
                   href={`${bZx.etherscanURL}address/${order.makerAddress}`}
                   target="_blank"

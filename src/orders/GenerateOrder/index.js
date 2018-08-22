@@ -145,7 +145,7 @@ export default class GenerateOrder extends React.Component {
       const exp = expirationDate.unix();
       const now = moment().unix();
       if (exp > now) {
-        totalInterest = (exp - now) / 86400 * interestAmount;
+        totalInterest = ((exp - now) / 86400) * interestAmount;
       }
     }
     this.setState({ [`interestTotalAmount`]: totalInterest });

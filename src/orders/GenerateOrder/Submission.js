@@ -1,7 +1,7 @@
 import styled from "styled-components";
-import MuiButton from "material-ui/Button";
-import { FormControlLabel } from "material-ui/Form";
-import Checkbox from "material-ui/Checkbox";
+import MuiButton from "@material-ui/core/Button";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Checkbox from "@material-ui/core/Checkbox";
 import Section from "../../common/FormSection";
 
 const Button = styled(MuiButton)`

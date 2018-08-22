@@ -1,9 +1,12 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import MuiCard, { CardContent as MuiCardContent } from "material-ui/Card";
+import MuiCard from "@material-ui/core/Card";
+import MuiCardContent from "@material-ui/core/CardContent";
 import moment from "moment";
-import Button from "material-ui/Button";
-import Dialog, { DialogActions, DialogContent } from "material-ui/Dialog";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
 import BigNumber from "bignumber.js";
 
 import OrderItem from "../orders/OrderHistory/OrderItem";
@@ -180,7 +183,7 @@ export default class LoanItem extends React.Component {
     const isUnSafe = !BigNumber(currentMarginAmount)
       .dividedBy(1e18)
       .gt(maintenanceMarginAmount);
-    const date = moment(data.expirationUnixTimestampSec * 1000).utc();
+    const date = moment(data.loanEndUnixTimestampSec * 1000).utc();
     const dateStr = date.format(`MMMM Do YYYY, h:mm a UTC`);
     const isExpired = moment(moment().utc()).isAfter(date);
     return (

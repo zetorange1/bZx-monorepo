@@ -1,6 +1,6 @@
 import styled from "styled-components";
-import Dialog, { DialogTitle, DialogContent } from "material-ui/Dialog";
-import Button from "material-ui/Button";
+import { Dialog, DialogTitle, DialogContent } from "@material-ui/core";
+import Button from "@material-ui/core/Button";
 import TokenPicker from "../common/TokenPicker";
 import Section, { SectionLabel, Divider } from "../common/FormSection";
 
