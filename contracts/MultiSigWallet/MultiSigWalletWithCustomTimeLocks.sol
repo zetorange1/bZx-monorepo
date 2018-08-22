@@ -125,7 +125,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     }
 
     /// @dev Changes the custom duration of the time lock for transactions to a specific function.
-    /// @param _funcId example: "functionName(address[6],uint256[9],address,uint256,bytes)"
+    /// @param _funcId example: "functionName(address[6],uint256[10],address,uint256,bytes)"
     /// @param _secondsTimeLockedCustom Custom duration needed after a transaction is confirmed and before it becomes executable, in seconds.
     function changeCustomTimeLock(string _funcId, uint _secondsTimeLockedCustom)
         public
@@ -141,7 +141,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     }
 
     /// @dev Removes the custom duration of the time lock for transactions to a specific function.
-    /// @param _funcId example: "functionName(address[6],uint256[9],address,uint256,bytes)"
+    /// @param _funcId example: "functionName(address[6],uint256[10],address,uint256,bytes)"
     function removeCustomTimeLock(string _funcId)
         public
         onlyWallet

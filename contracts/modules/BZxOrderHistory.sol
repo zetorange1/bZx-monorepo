@@ -37,29 +37,27 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
         returns (bytes)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.maker == address(0)) {
+        if (loanOrder.loanTokenAddress == address(0)) {
             return;
         }
-        LoanOrderFees memory loanOrderFees = orderFees[loanOrderHash];
+        LoanOrderAux memory loanOrderAux = orderAux[loanOrderHash];
 
         // all encoded params will be zero-padded to 32 bytes
         bytes memory data = abi.encode(
-            loanOrder.maker,
+            loanOrderAux.maker,
             loanOrder.loanTokenAddress,
             loanOrder.interestTokenAddress,
             loanOrder.collateralTokenAddress,
-            loanOrderFees.feeRecipientAddress,
+            loanOrderAux.feeRecipientAddress,
             oracleAddresses[loanOrder.oracleAddress],
             loanOrder.loanTokenAmount,
             loanOrder.interestAmount,
             loanOrder.initialMarginAmount,
             loanOrder.maintenanceMarginAmount,
-            loanOrderFees.lenderRelayFee,
-            loanOrderFees.traderRelayFee,
-            loanOrder.expirationUnixTimestampSec,
-            loanOrder.loanOrderHash
+            loanOrderAux.lenderRelayFee,
+            loanOrderAux.traderRelayFee
         );
-        return _addExtraOrderData(loanOrder.loanOrderHash, data);
+        return _addExtraOrderData(loanOrder, loanOrderAux, data);
     }
 
     /// @dev Returns a bytestream of data from orders that are available for taking.
@@ -128,14 +126,14 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
             loanPosition.collateralTokenAmountFilled,
             loanPosition.positionTokenAmountFilled,
             loanPosition.loanStartUnixTimestampSec,
+            loanPosition.loanEndUnixTimestampSec,
             loanPosition.index,
             loanPosition.active
         );
         return _addExtraLoanData(
             loanOrderHash,
             loanPosition,
-            data,
-            false);
+            data);
     }
 
     /// @dev Returns a bytestream of loan data for a lender.
@@ -201,12 +199,12 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
 
         for (uint j=0; j < end-start; j++) {
             LoanRef memory loanRef = loanList[j+start];
-            LoanOrder memory loanOrder = orders[loanRef.loanOrderHash];
+            LoanPosition memory loanPosition = loanPositions[loanRef.loanOrderHash][loanRef.trader];
 
             bytes memory tmpBytes = abi.encode(
                 loanRef.loanOrderHash,
                 loanRef.trader,
-                loanOrder.expirationUnixTimestampSec
+                loanPosition.loanEndUnixTimestampSec
             );
             if (j == 0) {
                 data = tmpBytes;
@@ -242,33 +240,31 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
         end = end-start;
         for (uint j=0; j < end; j++) {
             LoanOrder memory loanOrder = orders[orderList[addr][j+start]];
-            
-            if (skipExpired && block.timestamp >= loanOrder.expirationUnixTimestampSec) {
+
+            LoanOrderAux memory loanOrderAux = orderAux[orderList[addr][j+start]];
+
+            if (skipExpired && loanOrderAux.expirationUnixTimestampSec > 0 && block.timestamp >= loanOrderAux.expirationUnixTimestampSec) {
                 if (end < orderList[addr].length)
                     end++;
 
                 continue;
             }
             
-            LoanOrderFees memory loanOrderFees = orderFees[orderList[addr][j+start]];
-
             bytes memory tmpBytes = abi.encode(
-                loanOrder.maker,
+                loanOrderAux.maker,
                 loanOrder.loanTokenAddress,
                 loanOrder.interestTokenAddress,
                 loanOrder.collateralTokenAddress,
-                loanOrderFees.feeRecipientAddress,
+                loanOrderAux.feeRecipientAddress,
                 oracleAddresses[loanOrder.oracleAddress],
                 loanOrder.loanTokenAmount,
                 loanOrder.interestAmount,
                 loanOrder.initialMarginAmount,
                 loanOrder.maintenanceMarginAmount,
-                loanOrderFees.lenderRelayFee,
-                loanOrderFees.traderRelayFee,
-                loanOrder.expirationUnixTimestampSec,
-                loanOrder.loanOrderHash
+                loanOrderAux.lenderRelayFee,
+                loanOrderAux.traderRelayFee
             );
-            tmpBytes = _addExtraOrderData(loanOrder.loanOrderHash, tmpBytes);
+            tmpBytes = _addExtraOrderData(loanOrder, loanOrderAux, tmpBytes);
             if (j == 0) {
                 data = tmpBytes;
             } else {
@@ -280,18 +276,22 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
     }
 
     function _addExtraOrderData(
-        bytes32 loanOrderHash,
+        LoanOrder loanOrder,
+        LoanOrderAux loanOrderAux,
         bytes data)
         internal
         view
         returns (bytes)
     {
         bytes memory tmpBytes = abi.encode(
-            orderLender[loanOrderHash],
-            orderFilledAmounts[loanOrderHash],
-            orderCancelledAmounts[loanOrderHash],
-            orderTraders[loanOrderHash].length,
-            orderTraders[loanOrderHash].length > 0 ? loanPositions[loanOrderHash][orderTraders[loanOrderHash][0]].loanStartUnixTimestampSec : 0
+            loanOrder.maxDurationUnixTimestampSec,
+            loanOrderAux.expirationUnixTimestampSec,
+            loanOrder.loanOrderHash,
+            orderLender[loanOrder.loanOrderHash],
+            orderFilledAmounts[loanOrder.loanOrderHash],
+            orderCancelledAmounts[loanOrder.loanOrderHash],
+            orderTraders[loanOrder.loanOrderHash].length,
+            orderTraders[loanOrder.loanOrderHash].length > 0 ? loanPositions[loanOrder.loanOrderHash][orderTraders[loanOrder.loanOrderHash][0]].loanStartUnixTimestampSec : 0
         );
         return abi.encodePacked(data, tmpBytes);
     }
@@ -318,7 +318,7 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
             for (uint i=traders.length; i > 0; i--) {
                 LoanPosition memory loanPosition = loanPositions[orderList[loanParty][j-1]][traders[i-1]];
 
-                if (activeOnly && !loanPosition.active) {
+                if (activeOnly && (!loanPosition.active || (loanPosition.loanEndUnixTimestampSec > 0 && block.timestamp >= loanPosition.loanEndUnixTimestampSec))) {
                     continue;
                 }
 
@@ -335,17 +335,14 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
                     loanPosition.collateralTokenAmountFilled,
                     loanPosition.positionTokenAmountFilled,
                     loanPosition.loanStartUnixTimestampSec,
+                    loanPosition.loanEndUnixTimestampSec,
                     loanPosition.index,
                     loanPosition.active
                 );
                 tmpBytes = _addExtraLoanData(
                     orderList[loanParty][j-1],
                     loanPosition,
-                    tmpBytes,
-                    activeOnly);
-                if (tmpBytes.length == 0) {
-                    continue;
-                }
+                    tmpBytes);
 
                 if (itemCount == 0) {
                     data = tmpBytes;
@@ -369,23 +366,18 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
     function _addExtraLoanData(
         bytes32 loanOrderHash,
         LoanPosition loanPosition,
-        bytes data,
-        bool activeOnly)
+        bytes data)
         internal
         view
         returns (bytes)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (activeOnly && block.timestamp >= loanOrder.expirationUnixTimestampSec) {
-            return;
-        }
 
         InterestData memory interestData = _getInterest(loanOrder, loanPosition);
 
         bytes memory tmpBytes = abi.encode(
             loanOrderHash,
             loanOrder.loanTokenAddress,
-            loanOrder.expirationUnixTimestampSec,
             interestData.interestTokenAddress,
             interestData.interestTotalAccrued,
             interestData.interestPaidSoFar

@@ -44,8 +44,8 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         returns (uint)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.maker == address(0)) {
-            revert("BZxLoanHealth::payInterest: loanOrder.maker == address(0)");
+        if (loanOrder.loanTokenAddress == address(0)) {
+            revert("BZxLoanHealth::payInterest: loanOrder.loanTokenAddress == address(0)");
         }
 
         // can still pay any unpaid accured interest after a loan has closed
@@ -88,8 +88,8 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         }
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.maker == address(0)) {
-            revert("BZxLoanHealth::liquidatePosition: loanOrder.maker == address(0)");
+        if (loanOrder.loanTokenAddress == address(0)) {
+            revert("BZxLoanHealth::liquidatePosition: loanOrder.loanTokenAddress == address(0)");
         }
 
         if (DEBUG_MODE) {
@@ -116,7 +116,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             loanPosition.positionTokenAmountFilled = loanTokenAmount;
         } else {
             // verify liquidation checks before proceeding to close the loan
-            if (!DEBUG_MODE && block.timestamp < loanOrder.expirationUnixTimestampSec) { // checks for non-expired loan
+            if (!DEBUG_MODE && block.timestamp < loanPosition.loanEndUnixTimestampSec) { // checks for non-expired loan
                 if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
                         loanOrderHash,
                         trader,
@@ -170,7 +170,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         require(loanPosition.loanTokenAmountFilled != 0 && loanPosition.active);
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        require(loanOrder.maker != address(0));
+        require(loanOrder.loanTokenAddress != address(0));
 
         _payInterest(
             loanOrder,
@@ -182,8 +182,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             loanOrder.loanTokenAmount,
             loanPosition.loanTokenAmountFilled,
             loanOrder.interestAmount,
-            loanOrder.expirationUnixTimestampSec,
-            loanPosition.loanStartUnixTimestampSec)
+            loanOrder.maxDurationUnixTimestampSec)
             .sub(interestPaid[loanOrder.loanOrderHash][loanPosition.trader]);
 
         if (totalInterestToRefund > 0) {
@@ -248,7 +247,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         returns (bool)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.maker == address(0)) {
+        if (loanOrder.loanTokenAddress == address(0)) {
             return false;
         }
 
@@ -257,7 +256,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             return false;
         }
 
-        if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
+        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
             return true; // expired loan
         }
 
@@ -291,7 +290,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         returns (uint, uint, uint)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.maker == address(0)) {
+        if (loanOrder.loanTokenAddress == address(0)) {
             return;
         }
 
@@ -320,7 +319,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         returns (address lender, address interestTokenAddress, uint interestTotalAccrued, uint interestPaidSoFar) {
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.maker == address(0)) {
+        if (loanOrder.loanTokenAddress == address(0)) {
             return;
         }
 
@@ -408,8 +407,8 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         }
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.maker == address(0)) {
-            revert("BZxLoanHealth::_closeLoan: loanOrder.maker == address(0)");
+        if (loanOrder.loanTokenAddress == address(0)) {
+            revert("BZxLoanHealth::_closeLoan: loanOrder.loanTokenAddress == address(0)");
         }
 
         // If the position token is not the loan token, then we need to buy back the loan token prior to closing the loan.
@@ -439,7 +438,6 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         );
     }
 
-    // NOTE: this function will only be called if loanPosition.positionTokenAddressFilled == loanOrder.loanTokenAddress
     function _finalizeLoan(
         LoanOrder loanOrder,
         LoanPosition storage loanPosition,
@@ -448,6 +446,8 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         internal
         returns (bool)
     {
+        require(loanPosition.positionTokenAddressFilled == loanOrder.loanTokenAddress, "BZxLoanHealth::_finalizeLoan: loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress");
+
         // pay any remaining interest to the lender
         _payInterest(
             loanOrder,
@@ -459,8 +459,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             loanOrder.loanTokenAmount,
             loanPosition.loanTokenAmountFilled,
             loanOrder.interestAmount,
-            loanOrder.expirationUnixTimestampSec,
-            loanPosition.loanStartUnixTimestampSec)
+            loanOrder.maxDurationUnixTimestampSec)
             .sub(interestPaid[loanOrder.loanOrderHash][loanPosition.trader]);
         
         // refund any unused interest to the trader
@@ -509,6 +508,19 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         }
 
         if (loanPosition.positionTokenAmountFilled > 0) {
+            if (loanPosition.positionTokenAmountFilled > loanPosition.loanTokenAmountFilled) {
+                // send unpaid profit to the trader
+                uint profit = loanPosition.positionTokenAmountFilled-loanPosition.loanTokenAmountFilled;
+                if (! BZxVault(vaultContract).withdrawToken(
+                    loanPosition.positionTokenAddressFilled, // same as loanTokenAddress
+                    loanPosition.trader,
+                    profit
+                )) {
+                    revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken profit failed");
+                }
+                loanPosition.positionTokenAmountFilled -= profit;
+            }
+
             // send remaining loan token back to the lender
             if (! BZxVault(vaultContract).withdrawToken(
                 loanPosition.positionTokenAddressFilled, // same as loanTokenAddress

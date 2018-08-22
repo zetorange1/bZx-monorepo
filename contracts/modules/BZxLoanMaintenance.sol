@@ -42,17 +42,17 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         returns (bool)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.maker == address(0)) {
-            revert("BZxLoanHealth::depositCollateral: loanOrder.maker == address(0)");
-        }
-
-        if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
-            revert("BZxLoanHealth::depositCollateral: block.timestamp >= loanOrder.expirationUnixTimestampSec");
+        if (loanOrder.loanTokenAddress == address(0)) {
+            revert("BZxLoanHealth::depositCollateral: loanOrder.loanTokenAddress == address(0)");
         }
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             revert("BZxLoanHealth::depositCollateral: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+        }
+
+        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
+            revert("BZxLoanHealth::depositCollateral: block.timestamp >= loanPosition.loanEndUnixTimestampSec");
         }
 
         if (collateralTokenFilled != loanPosition.collateralTokenAddressFilled) {
@@ -95,8 +95,8 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         returns (uint excessCollateral)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.maker == address(0)) {
-            revert("BZxLoanHealth::withdrawExcessCollateral: loanOrder.maker == address(0)");
+        if (loanOrder.loanTokenAddress == address(0)) {
+            revert("BZxLoanHealth::withdrawExcessCollateral: loanOrder.loanTokenAddress == address(0)");
         }
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
@@ -157,8 +157,8 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         returns (bool)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.maker == address(0)) {
-            revert("BZxLoanHealth::changeCollateral: loanOrder.maker == address(0)");
+        if (loanOrder.loanTokenAddress == address(0)) {
+            revert("BZxLoanHealth::changeCollateral: loanOrder.loanTokenAddress == address(0)");
         }
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
@@ -170,8 +170,8 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
             revert("BZxLoanHealth::changeCollateral: collateralTokenFilled == address(0) || collateralTokenFilled == loanPosition.collateralTokenAddressFilled");
         }
 
-        if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
-            revert("BZxLoanHealth::changeCollateral: block.timestamp >= loanOrder.expirationUnixTimestampSec");
+        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
+            revert("BZxLoanHealth::changeCollateral: block.timestamp >= loanPosition.loanEndUnixTimestampSec");
         }
 
         // the new collateral amount must be enough to satify the initial margin requirement of the loan
@@ -305,7 +305,7 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         view
         returns (bool isProfit, uint profitOrLoss, address positionTokenAddress)
     {
-        if (loanOrder.maker == address(0)) {
+        if (loanOrder.loanTokenAddress == address(0)) {
             return;
         }
 

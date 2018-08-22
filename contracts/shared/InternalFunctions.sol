@@ -34,18 +34,20 @@ contract InternalFunctions is BZxStorage {
                                     .mul(initialMarginAmount)
                                     .div(100);
     }
-
+    
     function _getTotalInterestRequired(
         uint loanTokenAmount,
         uint loanTokenAmountFilled,
         uint interestAmount,
-        uint expirationUnixTimestampSec,
-        uint loanStartUnixTimestampSec)
+        uint maxDurationUnixTimestampSec)
         internal
         pure
         returns (uint totalInterestRequired)
     {
-        totalInterestRequired = _getPartialAmountNoError(loanTokenAmountFilled, loanTokenAmount, expirationUnixTimestampSec.sub(loanStartUnixTimestampSec).mul(interestAmount).div(86400));
+        if (interestAmount == 0) 
+            return 0;
+
+        totalInterestRequired = _getPartialAmountNoError(loanTokenAmountFilled, loanTokenAmount, maxDurationUnixTimestampSec.mul(interestAmount).div(86400));
     }
 
     /// @dev Checks if rounding error > 0.1%.
@@ -104,8 +106,8 @@ contract InternalFunctions is BZxStorage {
         returns (InterestData interestData)
     {
         uint interestTime = block.timestamp;
-        if (interestTime > loanOrder.expirationUnixTimestampSec) {
-            interestTime = loanOrder.expirationUnixTimestampSec;
+        if (interestTime > loanPosition.loanEndUnixTimestampSec) {
+            interestTime = loanPosition.loanEndUnixTimestampSec;
         }
 
         uint interestTotalAccrued;
@@ -142,7 +144,7 @@ contract InternalFunctions is BZxStorage {
         }
 
         uint tradeTokenAmountReceived;
-        if (isLiquidation && block.timestamp < loanOrder.expirationUnixTimestampSec) { // checks for non-expired loan
+        if (isLiquidation && block.timestamp < loanPosition.loanEndUnixTimestampSec) { // checks for non-expired loan
             tradeTokenAmountReceived = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).verifyAndLiquidate(
                 loanOrder.loanTokenAddress,
                 loanPosition.positionTokenAddressFilled,
