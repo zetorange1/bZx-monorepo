@@ -1,10 +1,13 @@
+import { Fragment } from "react";
 import styled from "styled-components";
-import MuiCard, {
-  CardActions,
-  CardContent as MuiCardContent
-} from "material-ui/Card";
-import Button from "material-ui/Button";
-import Dialog, { DialogActions, DialogContent } from "material-ui/Dialog";
+import MuiCard from "@material-ui/core/Card";
+import CardActions from "@material-ui/core/CardActions";
+import MuiCardContent from "@material-ui/core/CardContent";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import moment from "moment";
 
 import CollateralOptions from "./CollateralOptions";
 import TradeOptions from "./TradeOptions";
@@ -13,7 +16,7 @@ import CloseLoan from "./CloseLoan";
 import OrderItem from "../orders/OrderHistory/OrderItem";
 
 import { COLORS } from "../styles/constants";
-import { getSymbol } from "../common/tokens";
+import { getSymbol, getDecimals } from "../common/tokens";
 import { fromBigNumber } from "../common/utils";
 
 import ProfitOrLoss from "./ProfitOrLoss";
@@ -70,15 +73,48 @@ const LowerUpperRight = styled.div`
 export default class OpenedLoan extends React.Component {
   state = {
     showOrderDialog: false,
-    order: undefined
+    order: undefined,
+    loadingMargins: true,
+    initialMarginAmount: null,
+    maintenanceMarginAmount: null,
+    currentMarginAmount: null
   };
+
+  componentDidMount = async () => {
+    this.getMarginLevels();
+  };
+
+  componentDidUpdate(prevProps) {
+    if (
+      prevProps.data &&
+      JSON.stringify(prevProps.data) !== JSON.stringify(this.props.data)
+    )
+      this.getMarginLevels();
+  }
 
   getSingleOrder = async loanOrderHash => {
     const { bZx } = this.props;
     const order = await bZx.getSingleOrder({
       loanOrderHash
     });
+    console.log(order);
     return order;
+  };
+
+  getMarginLevels = async () => {
+    const { bZx, data } = this.props;
+    this.setState({ loadingMargins: true });
+    const marginLevels = await bZx.getMarginLevels({
+      loanOrderHash: data.loanOrderHash,
+      trader: data.trader
+    });
+    console.log(marginLevels);
+    this.setState({
+      loadingMargins: false,
+      initialMarginAmount: marginLevels.initialMarginAmount,
+      maintenanceMarginAmount: marginLevels.maintenanceMarginAmount,
+      currentMarginAmount: marginLevels.currentMarginAmount
+    });
   };
 
   toggleOrderDialog = async event => {
@@ -109,9 +145,16 @@ export default class OpenedLoan extends React.Component {
       loanTokenAmountFilled,
       loanTokenAddress,
       loanStartUnixTimestampSec,
+      loanEndUnixTimestampSec,
       loanOrderHash,
       lender
     } = this.props.data;
+    const {
+      loadingMargins,
+      initialMarginAmount,
+      maintenanceMarginAmount,
+      currentMarginAmount
+    } = this.state;
 
     const collateralToken = tokens.filter(
       t => t.address === collateralTokenAddressFilled
@@ -121,8 +164,19 @@ export default class OpenedLoan extends React.Component {
     const interestTokenSymbol = getSymbol(tokens, interestTokenAddress);
     const positionTokenSymbol = getSymbol(tokens, positionTokenAddressFilled);
 
+    const collateralTokenDecimals = collateralToken.decimals;
+    const loanTokenDecimals = getDecimals(tokens, loanTokenAddress);
+    const interestTokenDecimals = getDecimals(tokens, interestTokenAddress);
+    const positionTokenDecimals = getDecimals(
+      tokens,
+      positionTokenAddressFilled
+    );
+
     const tradeOpened = positionTokenAddressFilled !== loanTokenAddress;
     const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
+
+    const loanExpireDate = moment(loanEndUnixTimestampSec * 1000).utc();
+    const loanExpireDateStr = loanExpireDate.format(`MMMM Do YYYY, h:mm a UTC`);
 
     return (
       <Card>
@@ -187,7 +241,10 @@ export default class OpenedLoan extends React.Component {
           <DataPointContainer>
             <Label>Collateral</Label>
             <DataPoint>
-              {fromBigNumber(collateralTokenAmountFilled, 1e18)}
+              {fromBigNumber(
+                collateralTokenAmountFilled,
+                10 ** collateralTokenDecimals
+              )}
               {` `}
               {collateralTokenSymbol}
             </DataPoint>
@@ -196,23 +253,63 @@ export default class OpenedLoan extends React.Component {
           <DataPointContainer>
             <Label>Borrowed</Label>
             <DataPoint>
-              {fromBigNumber(loanTokenAmountFilled, 1e18)} {loanTokenSymbol}
+              {fromBigNumber(loanTokenAmountFilled, 10 ** loanTokenDecimals)}
+              {` `}
+              {loanTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Interest paid so far</Label>
             <DataPoint>
-              {fromBigNumber(interestPaidSoFar, 1e18)} {interestTokenSymbol}
+              {fromBigNumber(interestPaidSoFar, 10 ** interestTokenDecimals)}
+              {` `}
+              {interestTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Interest accrued (total)</Label>
             <DataPoint>
-              {fromBigNumber(interestTotalAccrued, 1e18)} {interestTokenSymbol}
+              {fromBigNumber(interestTotalAccrued, 10 ** interestTokenDecimals)}
+              {` `}
+              {interestTokenSymbol}
             </DataPoint>
           </DataPointContainer>
+
+          <br />
+
+          {loadingMargins ? (
+            <DataPointContainer>Loading margin levels...</DataPointContainer>
+          ) : (
+            <Fragment>
+              <DataPointContainer>
+                <Label>Initial margin</Label>
+                <DataPoint>{initialMarginAmount}%</DataPoint>
+              </DataPointContainer>
+
+              <DataPointContainer>
+                <Label>Maintenance margin</Label>
+                <DataPoint>{maintenanceMarginAmount}%</DataPoint>
+              </DataPointContainer>
+
+              <DataPointContainer>
+                <Label>Current margin level</Label>
+                <DataPoint>
+                  {fromBigNumber(currentMarginAmount, 1e18)}%
+                </DataPoint>
+              </DataPointContainer>
+
+              <br />
+
+              <DataPointContainer>
+                <Label>Expires</Label>
+                <DataPoint>
+                  {`${loanExpireDateStr} (${loanExpireDate.fromNow()})`}
+                </DataPoint>
+              </DataPointContainer>
+            </Fragment>
+          )}
 
           <ProfitOrLoss
             bZx={bZx}
@@ -220,6 +317,8 @@ export default class OpenedLoan extends React.Component {
             loanOrderHash={loanOrderHash}
             accounts={accounts}
             symbol={positionTokenSymbol}
+            decimals={positionTokenDecimals}
+            data={this.props.data}
           />
 
           <LowerUpperRight>
@@ -243,7 +342,10 @@ export default class OpenedLoan extends React.Component {
           <DataPointContainer style={{ marginLeft: `12px` }}>
             <Label>Trade Amount</Label>
             <DataPoint>
-              {fromBigNumber(positionTokenAmountFilled, 1e18)}
+              {fromBigNumber(
+                positionTokenAmountFilled,
+                10 ** positionTokenDecimals
+              )}
               {` `}
               {positionTokenSymbol}
             </DataPoint>
@@ -255,6 +357,8 @@ export default class OpenedLoan extends React.Component {
             accounts={accounts}
             web3={web3}
             loanOrderHash={loanOrderHash}
+            positionTokenAddressFilled={positionTokenAddressFilled}
+            positionTokenAmountFilled={positionTokenAmountFilled}
           />
           <CloseLoan
             bZx={bZx}

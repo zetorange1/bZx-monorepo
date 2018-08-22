@@ -1,19 +1,29 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import Button from "material-ui/Button";
+import Button from "@material-ui/core/Button";
 
 import {
   fromBigNumber,
+  toBigNumber,
   getInitialCollateralRequired
 } from "../../common/utils";
 import Section, { SectionLabel, Divider } from "../../common/FormSection";
+import { getDecimals } from "../../common/tokens";
 
 import Tokens from "./Tokens";
 import Details from "./Details";
 import Expiration from "./Expiration";
 import Inputs from "./Inputs";
+import CancelInputs from "./CancelInputs";
 
-import { validateFillOrder, submitFillOrder } from "./utils";
+import {
+  validateFillOrder,
+  validateCancelOrder,
+  submitFillOrder,
+  submitFillOrderWithHash,
+  submitCancelOrder,
+  submitCancelOrderWithHash
+} from "./utils";
 import { getOrderHash } from "../GenerateOrder/utils";
 
 const SubmitBtn = styled(Button)`
@@ -45,12 +55,15 @@ export default class FillOrder extends React.Component {
   };
 
   async componentDidMount() {
+    // console.log(this.props.order);
     if (this.props.order.makerRole !== `0`) {
       this.refreshCollateralAmountNoEvent();
     }
 
     try {
-      const orderHash = getOrderHash(this.props.order);
+      const orderHash = this.props.order.loanOrderHash
+        ? this.props.order.loanOrderHash
+        : getOrderHash(this.props.order);
       // console.log("orderHash: "+orderHash);
 
       const orderDetail = await this.getSingleOrder(orderHash);
@@ -94,7 +107,7 @@ export default class FillOrder extends React.Component {
           initialMarginAmount,
           this.props.bZx
         ),
-        1e18
+        10 ** getDecimals(this.props.tokens, collateralTokenAddress)
       );
       // console.log(`collateralRequired: ${collateralRequired}`);
       if (collateralRequired === 0) {
@@ -127,8 +140,16 @@ export default class FillOrder extends React.Component {
         : this.props.order.collateralTokenAddress,
       this.props.order.oracleAddress,
       this.props.order.makerRole === `0`
-        ? fromBigNumber(this.state.fillOrderAmount)
-        : fromBigNumber(this.props.order.loanTokenAmount, 1e18),
+        ? toBigNumber(
+            this.state.fillOrderAmount,
+            10 **
+              getDecimals(this.props.tokens, this.props.order.loanTokenAddress)
+          )
+        : toBigNumber(
+            this.props.order.loanTokenAmount,
+            10 **
+              getDecimals(this.props.tokens, this.props.order.loanTokenAddress)
+          ),
       this.props.order.initialMarginAmount
     );
   };
@@ -139,7 +160,16 @@ export default class FillOrder extends React.Component {
   };
 
   handleSubmit = async () => {
-    const { order, tokens, oracles, web3, bZx, accounts } = this.props;
+    const {
+      order,
+      tokens,
+      oracles,
+      web3,
+      bZx,
+      accounts,
+      changeTab,
+      resetOrder
+    } = this.props;
 
     await this.refreshCollateralAmountNoEvent();
     const {
@@ -160,19 +190,85 @@ export default class FillOrder extends React.Component {
       accounts
     );
     if (isFillOrderValid) {
-      submitFillOrder(
-        order,
-        fillOrderAmount,
-        collateralTokenAddress,
-        web3,
-        bZx,
-        accounts
-      );
+      if (!order.loanOrderHash) {
+        submitFillOrder(
+          order,
+          fillOrderAmount,
+          collateralTokenAddress,
+          tokens,
+          web3,
+          bZx,
+          accounts,
+          resetOrder
+        );
+      } else {
+        submitFillOrderWithHash(
+          order.loanOrderHash,
+          order.makerRole === `0`,
+          order.loanTokenAddress,
+          fillOrderAmount,
+          collateralTokenAddress,
+          tokens,
+          web3,
+          bZx,
+          accounts,
+          changeTab
+        );
+      }
+    }
+  };
+
+  handleCancelSubmit = async () => {
+    const {
+      order,
+      tokens,
+      web3,
+      bZx,
+      accounts,
+      changeTab,
+      resetOrder
+    } = this.props;
+
+    await this.refreshCollateralAmountNoEvent();
+    const { fillOrderAmount, loanTokenAvailable } = this.state;
+    const isCancelOrderValid = await validateCancelOrder(
+      order,
+      fillOrderAmount, // cancelOrderAmount
+      loanTokenAvailable,
+      tokens,
+      bZx,
+      accounts
+    );
+    if (isCancelOrderValid) {
+      if (!order.loanOrderHash) {
+        submitCancelOrder(
+          order,
+          fillOrderAmount,
+          tokens,
+          web3,
+          bZx,
+          accounts,
+          resetOrder
+        );
+      } else {
+        submitCancelOrderWithHash(
+          order.loanOrderHash,
+          order.loanTokenAddress,
+          fillOrderAmount,
+          tokens,
+          web3,
+          bZx,
+          accounts,
+          changeTab
+        );
+      }
     }
   };
 
   render() {
-    const { order, tokens, bZx } = this.props;
+    const { order, tokens, bZx, accounts } = this.props;
+    const isMaker =
+      order.makerAddress.toLowerCase() === accounts[0].toLowerCase();
     const makerRole = order.makerRole === `0` ? `lender` : `trader`;
     const counterRole = order.makerRole !== `0` ? `lender` : `trader`;
     return (
@@ -180,17 +276,27 @@ export default class FillOrder extends React.Component {
         <Section>
           <SectionLabel>1. Review order info</SectionLabel>
           <p>
-            This order was created by{` `}
-            <Hash
-              href={`${bZx.etherscanURL}address/${order.makerAddress}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {order.makerAddress}
-            </Hash>
-            {` `}
-            for a{` `}
-            {counterRole} to fill.
+            {isMaker ? (
+              <Fragment>
+                This order was created by you for a{` `}
+                {counterRole} to fill.
+              </Fragment>
+            ) : (
+              <Fragment>
+                This order was created by
+                {` `}
+                <Hash
+                  href={`${bZx.etherscanURL}address/${order.makerAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {order.makerAddress}
+                </Hash>
+                {` `}
+                for a{` `}
+                {counterRole} to fill.
+              </Fragment>
+            )}
           </p>
           <Tokens
             bZx={bZx}
@@ -199,10 +305,13 @@ export default class FillOrder extends React.Component {
             loanTokenAddress={order.loanTokenAddress}
             loanTokenAvailable={fromBigNumber(
               this.state.loanTokenAvailable,
-              1e18
+              10 ** getDecimals(tokens, order.loanTokenAddress)
             )}
             interestTokenAddress={order.interestTokenAddress}
-            interestAmount={fromBigNumber(order.interestAmount, 1e18)}
+            interestAmount={fromBigNumber(
+              order.interestAmount,
+              10 ** getDecimals(tokens, order.interestAmount)
+            )}
             collateralTokenAddress={order.collateralTokenAddress}
             collateralTokenAmount={this.state.collateralTokenAmount}
           />
@@ -225,31 +334,55 @@ export default class FillOrder extends React.Component {
           <Fragment>
             <Divider />
             <Section>
-              <SectionLabel>
-                {makerRole === `lender`
-                  ? `2. Choose parameters and submit`
-                  : `2. Submit fill order transaction`}
-              </SectionLabel>
-              {makerRole === `lender` && (
-                <Inputs
-                  bZx={bZx}
-                  tokens={tokens}
-                  fillOrderAmount={this.state.fillOrderAmount}
-                  collateralTokenAddress={this.state.collateralTokenAddress}
-                  loanTokenAddress={order.loanTokenAddress}
-                  setFillOrderAmount={this.setStateFor(`fillOrderAmount`)}
-                  setCollateralTokenAddress={this.setCollateralTokenAddress}
-                  collateralTokenAmount={this.state.collateralTokenAmount}
-                  collateralRefresh={this.refreshCollateralAmount}
-                />
+              {isMaker ? (
+                <Fragment>
+                  <SectionLabel>
+                    2. Choose cancel amount and submit
+                  </SectionLabel>
+                  <CancelInputs
+                    bZx={bZx}
+                    tokens={tokens}
+                    fillOrderAmount={this.state.fillOrderAmount}
+                    loanTokenAddress={order.loanTokenAddress}
+                    setFillOrderAmount={this.setStateFor(`fillOrderAmount`)}
+                  />
+                  <SubmitBtn
+                    variant="raised"
+                    color="primary"
+                    onClick={this.handleCancelSubmit}
+                  >
+                    Cancel Order
+                  </SubmitBtn>
+                </Fragment>
+              ) : (
+                <Fragment>
+                  <SectionLabel>
+                    {makerRole === `lender`
+                      ? `2. Choose parameters and submit`
+                      : `2. Submit fill order transaction`}
+                  </SectionLabel>
+                  {makerRole === `lender` && (
+                    <Inputs
+                      bZx={bZx}
+                      tokens={tokens}
+                      fillOrderAmount={this.state.fillOrderAmount}
+                      collateralTokenAddress={this.state.collateralTokenAddress}
+                      loanTokenAddress={order.loanTokenAddress}
+                      setFillOrderAmount={this.setStateFor(`fillOrderAmount`)}
+                      setCollateralTokenAddress={this.setCollateralTokenAddress}
+                      collateralTokenAmount={this.state.collateralTokenAmount}
+                      collateralRefresh={this.refreshCollateralAmount}
+                    />
+                  )}
+                  <SubmitBtn
+                    variant="raised"
+                    color="primary"
+                    onClick={this.handleSubmit}
+                  >
+                    Fill Order
+                  </SubmitBtn>
+                </Fragment>
               )}
-              <SubmitBtn
-                variant="raised"
-                color="primary"
-                onClick={this.handleSubmit}
-              >
-                Fill Order
-              </SubmitBtn>
             </Section>
           </Fragment>
         ) : (

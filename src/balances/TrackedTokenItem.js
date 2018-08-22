@@ -1,17 +1,18 @@
 import styled from "styled-components";
-import Button from "material-ui/Button";
-import Icon from "material-ui/Icon";
-import Tooltip from "material-ui/Tooltip";
-import IconButton from "material-ui/IconButton";
-import Input, { InputLabel, InputAdornment } from "material-ui/Input";
-import { FormControl } from "material-ui/Form";
-import TextField from "material-ui/TextField";
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle
-} from "material-ui/Dialog";
+import Button from "@material-ui/core/Button";
+import Icon from "@material-ui/core/Icon";
+import Tooltip from "@material-ui/core/Tooltip";
+import IconButton from "@material-ui/core/IconButton";
+import Input from "@material-ui/core/Input";
+import InputLabel from "@material-ui/core/InputLabel";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import FormControl from "@material-ui/core/FormControl";
+import TextField from "@material-ui/core/TextField";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 import { COLORS } from "../styles/constants";
 import {
   removeTrackedToken,
@@ -105,7 +106,9 @@ export default class TrackedTokenItem extends React.Component {
       ownerAddress: accounts[0].toLowerCase()
     });
     console.log(`balance of`, token.name, balance.toNumber());
-    this.setState({ balance: fromBigNumber(balance, 1e18) });
+    this.setState({
+      balance: fromBigNumber(balance, 10 ** token.decimals)
+    });
   };
 
   checkAllowance = async () => {
@@ -146,7 +149,7 @@ export default class TrackedTokenItem extends React.Component {
     const txObj = await bZx.transferToken({
       tokenAddress: token.address,
       to: recipientAddress.toLowerCase(),
-      amount: toBigNumber(sendAmount, 1e18),
+      amount: toBigNumber(sendAmount, 10 ** token.decimals),
       getObject: true,
       txOpts
     });
@@ -156,7 +159,7 @@ export default class TrackedTokenItem extends React.Component {
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {
@@ -249,7 +252,7 @@ export default class TrackedTokenItem extends React.Component {
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {
@@ -347,7 +350,7 @@ export default class TrackedTokenItem extends React.Component {
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {
@@ -432,7 +435,7 @@ export default class TrackedTokenItem extends React.Component {
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {

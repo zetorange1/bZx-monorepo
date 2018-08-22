@@ -1,6 +1,6 @@
 import styled from "styled-components";
-import Dialog, { DialogTitle, DialogContent } from "material-ui/Dialog";
-import Button from "material-ui/Button";
+import { Dialog, DialogTitle, DialogContent } from "@material-ui/core";
+import Button from "@material-ui/core/Button";
 import TokenPicker from "../common/TokenPicker";
 import Section, { SectionLabel, Divider } from "../common/FormSection";
 
@@ -126,7 +126,7 @@ export default class ChangeCollateralDialog extends React.Component {
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {

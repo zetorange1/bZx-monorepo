@@ -1,7 +1,8 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import Button from "material-ui/Button";
-import Dialog, { DialogContent } from "material-ui/Dialog";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContent from "@material-ui/core/DialogContent";
 import { SectionLabel } from "../common/FormSection";
 
 const TxHashLink = styled.a.attrs({
@@ -37,13 +38,14 @@ export default class CloseLoan extends React.Component {
       loanOrderHash,
       getObject: true
     });
+    console.log(txOpts);
 
     try {
       await txObj
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {

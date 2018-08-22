@@ -16,26 +16,25 @@ const Button = styled(MuiButton)`
   margin: 6px !important;
 `;
 
-export default class OrderHistory extends React.Component {
+export default class OrderBook extends React.Component {
   state = { orders: [], loading: false, count: 10 };
 
   componentDidMount() {
-    this.getOrdersForUser();
+    this.getOrdersFillable();
   }
 
   componentDidUpdate(prevProps) {
     if (
-      this.props.tabId === `Orders_OrderHistory` &&
+      this.props.tabId === `Orders_OrderBook` &&
       this.props.tabId !== prevProps.tabId
     )
-      this.getOrdersForUser();
+      this.getOrdersFillable();
   }
 
-  getOrdersForUser = async () => {
-    const { bZx, accounts } = this.props;
+  getOrdersFillable = async () => {
+    const { bZx } = this.props;
     this.setState({ loading: true });
-    const orders = await bZx.getOrdersForUser({
-      loanPartyAddress: accounts[0].toLowerCase(),
+    const orders = await bZx.getOrdersFillable({
       start: 0,
       count: this.state.count
     });
@@ -48,12 +47,12 @@ export default class OrderHistory extends React.Component {
       prev => ({
         count: prev.count + 10
       }),
-      this.getOrdersForUser
+      this.getOrdersFillable
     );
   };
 
   render() {
-    const { bZx, accounts, tokens } = this.props;
+    const { bZx, accounts, tokens, changeTab } = this.props;
     const { orders, loading, count } = this.state;
     if (orders.length === 0) {
       return (
@@ -61,7 +60,7 @@ export default class OrderHistory extends React.Component {
           <InfoContainer>
             <ShowCount>No loan orders found.</ShowCount>
             <Button
-              onClick={this.getOrdersForUser}
+              onClick={this.getOrdersFillable}
               variant="raised"
               disabled={loading}
             >
@@ -81,7 +80,7 @@ export default class OrderHistory extends React.Component {
             Show more
           </Button>
           <Button
-            onClick={this.getOrdersForUser}
+            onClick={this.getOrdersFillable}
             variant="raised"
             disabled={loading}
           >
@@ -90,17 +89,29 @@ export default class OrderHistory extends React.Component {
         </InfoContainer>
         <br />
         {orders.length > 0 ? (
-          orders.map(takenOrder => (
-            <OrderItem
-              key={takenOrder.loanOrderHash}
-              bZx={bZx}
-              accounts={accounts}
-              tokens={tokens}
-              takenOrder={takenOrder}
-            />
-          ))
+          orders.map(fillableOrder => {
+            fillableOrder.networkId = bZx.networkId; // eslint-disable-line no-param-reassign
+            fillableOrder.makerAddress = fillableOrder.maker; // eslint-disable-line no-param-reassign
+            fillableOrder.makerRole = // eslint-disable-line no-param-reassign
+              fillableOrder.collateralTokenAddress ===
+              `0x0000000000000000000000000000000000000000`
+                ? `0`
+                : `1`;
+            // console.log(bZx);
+            // if (fillableOrder.maker !== accounts[0].toLowerCase())
+            return (
+              <OrderItem
+                key={fillableOrder.loanOrderHash}
+                bZx={bZx}
+                accounts={accounts}
+                tokens={tokens}
+                fillableOrder={fillableOrder}
+                changeTab={changeTab}
+              />
+            );
+          })
         ) : (
-          <p>You have no orders, try refreshing.</p>
+          <p>No loan orders found, try refreshing.</p>
         )}
       </div>
     );

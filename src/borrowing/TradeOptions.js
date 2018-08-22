@@ -1,6 +1,6 @@
 import { Fragment } from "react";
-import Button from "material-ui/Button";
-import Menu, { MenuItem } from "material-ui/Menu";
+import Button from "@material-ui/core/Button";
+import { Menu, MenuItem } from "@material-ui/core";
 import Trade0xDialog from "./Trade0xDialog";
 import TradeOracleDialog from "./TradeOracleDialog";
 
@@ -33,7 +33,15 @@ export default class TradeOptions extends React.Component {
 
   render() {
     const { anchorEl } = this.state;
-    const { bZx, tokens, accounts, web3, loanOrderHash } = this.props;
+    const {
+      bZx,
+      tokens,
+      accounts,
+      web3,
+      loanOrderHash,
+      positionTokenAddressFilled,
+      positionTokenAmountFilled
+    } = this.props;
     return (
       <Fragment>
         <Button
@@ -70,6 +78,8 @@ export default class TradeOptions extends React.Component {
           tokens={tokens}
           accounts={accounts}
           loanOrderHash={loanOrderHash}
+          positionTokenAddressFilled={positionTokenAddressFilled}
+          positionTokenAmountFilled={positionTokenAmountFilled}
         />
       </Fragment>
     );

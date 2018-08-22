@@ -1,7 +1,8 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import Button from "material-ui/Button";
-import Dialog, { DialogContent } from "material-ui/Dialog";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContent from "@material-ui/core/DialogContent";
 import BigNumber from "bignumber.js";
 
 import { fromBigNumber } from "../common/utils";
@@ -49,7 +50,7 @@ export default class WithdrawInterest extends React.Component {
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {
@@ -87,7 +88,7 @@ export default class WithdrawInterest extends React.Component {
 
   render() {
     const { showDialog } = this.state;
-    const { availableForWithdrawal, symbol } = this.props;
+    const { availableForWithdrawal, symbol, decimals } = this.props;
     const currentFee = 0.1; // will likely change in the future
     const actualWithdrawalAmount = BigNumber(availableForWithdrawal)
       .times(1 - currentFee)
@@ -106,13 +107,16 @@ export default class WithdrawInterest extends React.Component {
           <DialogContent>
             <SectionLabel>Withdraw Interest</SectionLabel>
             <p>
-              Currently, we are taking a fee of{` `}
+              Currently, we are taking a fee of
+              {` `}
               <strong>{currentFee * 100}%</strong>. This means that the actual
               withdrawal amount will be at least:
             </p>
             <p>
               <strong>
-                {fromBigNumber(actualWithdrawalAmount, 1e18)} {symbol}
+                {fromBigNumber(actualWithdrawalAmount, 10 ** decimals)}
+                {` `}
+                {symbol}
               </strong>
             </p>
             <p>Please note that the fee might change in the future.</p>

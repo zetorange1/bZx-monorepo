@@ -1,15 +1,16 @@
 import styled from "styled-components";
-import Button from "material-ui/Button";
-import Input, { InputLabel, InputAdornment } from "material-ui/Input";
-import { FormControl } from "material-ui/Form";
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle
-} from "material-ui/Dialog";
+import Button from "@material-ui/core/Button";
+import Input from "@material-ui/core/Input";
+import InputLabel from "@material-ui/core/InputLabel";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import FormControl from "@material-ui/core/FormControl";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 import Section, { SectionLabel } from "../common/FormSection";
-import { toBigNumber } from "../common/utils";
+import { fromBigNumber, toBigNumber } from "../common/utils";
 
 const Container = styled.div`
   width: 100%;
@@ -51,18 +52,43 @@ const TxHashLink = styled.a.attrs({
 export default class Ether extends React.Component {
   state = {
     ethBalance: null,
+    wethBalance: null,
     showWrapDialog: false,
     showUnWrapDialog: false,
     wrapAmount: ``
   };
 
   async componentDidMount() {
-    const { web3, accounts } = this.props;
-    const balanceInWei = await web3.eth.getBalance(accounts[0]);
-    this.setState({ ethBalance: balanceInWei / 1e18 });
+    await this.updateBalances();
   }
 
+  async componentDidUpdate(prevProps) {
+    if (
+      prevProps.lastTokenRefresh &&
+      prevProps.lastTokenRefresh !== this.props.lastTokenRefresh
+    )
+      await this.updateBalances();
+  }
+
+  getWethBalance = async () => {
+    const { bZx, tokens, accounts } = this.props;
+    const token = await tokens.filter(t => t.symbol === `WETH`)[0];
+    const balance = await bZx.getBalance({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase()
+    });
+    console.log(`balance of`, token.name, balance.toNumber());
+    this.setState({ wethBalance: fromBigNumber(balance, 1e18) });
+  };
+
   setWrapAmount = e => this.setState({ wrapAmount: e.target.value });
+
+  updateBalances = async () => {
+    const { web3, accounts } = this.props;
+    const balanceInWei = await web3.eth.getBalance(accounts[0]);
+    await this.getWethBalance();
+    this.setState({ ethBalance: balanceInWei / 1e18 });
+  };
 
   toggleWrapDialog = () =>
     this.setState(p => ({ showWrapDialog: !p.showWrapDialog }));
@@ -95,7 +121,7 @@ export default class Ether extends React.Component {
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send({ ...txOpts, value: toBigNumber(wrapAmount, 1e18) })
             .once(`transactionHash`, hash => {
@@ -112,6 +138,7 @@ export default class Ether extends React.Component {
               alert(`Your ether is wrapped.`);
               const balanceInWei = await web3.eth.getBalance(accounts[0]);
               await this.setState({ ethBalance: balanceInWei / 1e18 });
+              await this.props.updateTrackedTokens(true);
             })
             .catch(error => {
               console.error(error.message);
@@ -174,7 +201,7 @@ export default class Ether extends React.Component {
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {
@@ -191,6 +218,7 @@ export default class Ether extends React.Component {
               alert(`Your ether is unwrapped.`);
               const balanceInWei = await web3.eth.getBalance(accounts[0]);
               await this.setState({ ethBalance: balanceInWei / 1e18 });
+              await this.props.updateTrackedTokens(true);
             })
             .catch(error => {
               console.error(error.message);
@@ -229,14 +257,14 @@ export default class Ether extends React.Component {
   };
 
   render() {
-    const showEthBalance = this.state.ethBalance !== null;
     return (
       <Section>
-        <SectionLabel>Ether</SectionLabel>
+        <SectionLabel>ETH to WETH</SectionLabel>
         <Container>
-          {showEthBalance ? (
+          {this.state.ethBalance ? (
             <StyledDiv>
-              Your current Ether balance is{` `}
+              Your current ETH balance is
+              {` `}
               <strong>{this.state.ethBalance.toString()} ETH</strong>.
             </StyledDiv>
           ) : (
@@ -244,17 +272,31 @@ export default class Ether extends React.Component {
               Your current Ether balance is <strong>loading...</strong>.
             </StyledDiv>
           )}
+          {this.state.wethBalance ? (
+            <StyledDiv>
+              Your current WETH balance is
+              {` `}
+              <strong>{this.state.wethBalance.toString()} WETH</strong>.
+            </StyledDiv>
+          ) : (
+            <StyledDiv>
+              Your current WETH balance is <strong>loading...</strong>.
+            </StyledDiv>
+          )}
+          <br />
           <StyledDiv>
-            But instead of ETH, you will need{` `}
+            You will need to WRAP your ETH to {` `}
             <a
               href="https://weth.io/"
               target="_blank"
               rel="noreferrer noopener"
             >
-              Wrapped Ether (WETH)
+              WETH
             </a>
             {` `}
-            to trade on bZx.
+            to use it with bZx.
+            <br />
+            You can UNWRAP your WETH at anytime to get your ETH back.
           </StyledDiv>
           <br />
           <StyledDiv>
@@ -281,7 +323,7 @@ export default class Ether extends React.Component {
             open={this.state.showWrapDialog}
             onClose={this.toggleWrapDialog}
           >
-            <DialogTitle>Wrap Ether</DialogTitle>
+            <DialogTitle>Wrap ETH</DialogTitle>
             <DialogContent>
               <DialogContentText>
                 This will wrap ETH into the WETH token. Please specify the the

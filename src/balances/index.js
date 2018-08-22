@@ -18,6 +18,9 @@ export default class Balances extends React.Component {
           web3={this.props.web3}
           bZx={this.props.bZx}
           accounts={this.props.accounts}
+          tokens={this.props.tokens}
+          updateTrackedTokens={this.props.updateTrackedTokens}
+          lastTokenRefresh={this.props.lastTokenRefresh}
         />
         <Divider />
         <TrackedTokens

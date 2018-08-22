@@ -1,9 +1,11 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import Input, { InputLabel, InputAdornment } from "material-ui/Input";
-import { FormControl, FormControlLabel } from "material-ui/Form";
-import Checkbox from "material-ui/Checkbox";
-import TextField from "material-ui/TextField";
+import Input from "@material-ui/core/Input";
+import InputLabel from "@material-ui/core/InputLabel";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import { FormControl, FormControlLabel } from "@material-ui/core/FormControl";
+import Checkbox from "@material-ui/core/Checkbox";
+import TextField from "@material-ui/core/TextField";
 import Section, { SectionLabel } from "../../common/FormSection";
 
 const AddressTextField = styled(TextField)`

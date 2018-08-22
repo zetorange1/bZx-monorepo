@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import styled from "styled-components";
 import MuiCard from "@material-ui/core/Card";
 import MuiCardContent from "@material-ui/core/CardContent";
+import MuiButton from "@material-ui/core/Button";
 import moment from "moment";
 import { COLORS } from "../../styles/constants";
 import { fromBigNumber, toBigNumber } from "../../common/utils";
@@ -77,78 +78,81 @@ export default class OrderItem extends React.Component {
     this.setState(p => ({ showRawOrder: !p.showRawOrder }));
 
   render() {
-    const { takenOrder, accounts, tokens, noShadow } = this.props;
+    const { fillableOrder, accounts, tokens, noShadow, changeTab } = this.props;
     const { showRawOrder } = this.state;
     // const { loanPositions } = this.state;
 
-    const isMaker = takenOrder.maker === accounts[0].toLowerCase();
-    const isLender = takenOrder.lender === accounts[0].toLowerCase();
-    const date = moment(takenOrder.expirationUnixTimestampSec * 1000).utc();
+    const isMaker = fillableOrder.maker === accounts[0].toLowerCase();
+    // const isLender = fillableOrder.lender === accounts[0].toLowerCase();
+    const date = moment(fillableOrder.expirationUnixTimestampSec * 1000).utc();
     const dateStr = date.format(`MMMM Do YYYY, h:mm a UTC`);
-    const addedDate = moment(takenOrder.addedUnixTimestampSec * 1000).utc();
+    const addedDate = moment(fillableOrder.addedUnixTimestampSec * 1000).utc();
     const addedDateStr = addedDate.format(`MMMM Do YYYY, h:mm a UTC`);
-    const maxDuration = toBigNumber(takenOrder.maxDurationUnixTimestampSec)
+    const maxDuration = toBigNumber(fillableOrder.maxDurationUnixTimestampSec)
       .div(86400)
       .toFixed(2);
 
-    takenOrder.loanTokenAmount = toBigNumber(
-      takenOrder.loanTokenAmount
+    fillableOrder.loanTokenAmount = toBigNumber(
+      fillableOrder.loanTokenAmount
     ).toFixed(0);
-    takenOrder.orderFilledAmount = toBigNumber(
-      takenOrder.orderFilledAmount
+    fillableOrder.orderFilledAmount = toBigNumber(
+      fillableOrder.orderFilledAmount
     ).toFixed(0);
-    takenOrder.orderCancelledAmount = toBigNumber(
-      takenOrder.orderCancelledAmount
+    fillableOrder.orderCancelledAmount = toBigNumber(
+      fillableOrder.orderCancelledAmount
     ).toFixed(0);
-    takenOrder.interestAmount = toBigNumber(takenOrder.interestAmount).toFixed(
-      0
-    );
-    takenOrder.lenderRelayFee = toBigNumber(takenOrder.lenderRelayFee).toFixed(
-      0
-    );
-    takenOrder.traderRelayFee = toBigNumber(takenOrder.traderRelayFee).toFixed(
-      0
-    );
+    fillableOrder.interestAmount = toBigNumber(
+      fillableOrder.interestAmount
+    ).toFixed(0);
+    fillableOrder.lenderRelayFee = toBigNumber(
+      fillableOrder.lenderRelayFee
+    ).toFixed(0);
+    fillableOrder.traderRelayFee = toBigNumber(
+      fillableOrder.traderRelayFee
+    ).toFixed(0);
 
     const fillsStr =
-      takenOrder.orderTraderCount +
-      (takenOrder.orderTraderCount === 1 ? ` trader` : ` traders`);
+      fillableOrder.orderTraderCount +
+      (fillableOrder.orderTraderCount === 1 ? ` trader` : ` traders`);
 
-    const loanTokenSymbol = getSymbol(tokens, takenOrder.loanTokenAddress);
+    const loanTokenSymbol = getSymbol(tokens, fillableOrder.loanTokenAddress);
     const interestTokenSymbol = getSymbol(
       tokens,
-      takenOrder.interestTokenAddress
+      fillableOrder.interestTokenAddress
     );
     const collateralTokenSymbol = getSymbol(
       tokens,
-      takenOrder.collateralTokenAddress
+      fillableOrder.collateralTokenAddress
     );
 
-    const loanTokenDecimals = getDecimals(tokens, takenOrder.loanTokenAddress);
+    const loanTokenDecimals = getDecimals(
+      tokens,
+      fillableOrder.loanTokenAddress
+    );
     const interestTokenDecimals = getDecimals(
       tokens,
-      takenOrder.interestTokenAddress
+      fillableOrder.interestTokenAddress
     );
 
     const loanTokenAddressLink = `${this.props.bZx.etherscanURL}token/${
-      takenOrder.loanTokenAddress
+      fillableOrder.loanTokenAddress
     }`;
     const interestTokenAddressLink = `${this.props.bZx.etherscanURL}token/${
-      takenOrder.interestTokenAddress
+      fillableOrder.interestTokenAddress
     }`;
     const collateralTokenAddressLink = `${this.props.bZx.etherscanURL}token/${
-      takenOrder.collateralTokenAddress
+      fillableOrder.collateralTokenAddress
     }`;
 
     const oracleAddressLink = `${this.props.bZx.etherscanURL}address/${
-      takenOrder.oracleAddress
+      fillableOrder.oracleAddress
     }`;
     const feeRecipientAddressLink = `${this.props.bZx.etherscanURL}address/${
-      takenOrder.feeRecipientAddress
+      fillableOrder.feeRecipientAddress
     }`;
 
     const isUsingRelay =
-      takenOrder.feeRecipientAddress !==
+      fillableOrder.feeRecipientAddress !==
       `0x0000000000000000000000000000000000000000`;
 
     return (
@@ -157,14 +161,14 @@ export default class OrderItem extends React.Component {
           <DataPointContainer>
             <Label>Order #</Label>
             <DataPoint>
-              <Hash>{takenOrder.loanOrderHash}</Hash>
+              <Hash>{fillableOrder.loanOrderHash}</Hash>
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
-            <Label>Your Role</Label>
+            <Label>Fillable?</Label>
             <DataPoint>
-              {isMaker ? `Maker` : `Taker`} / {isLender ? `Lender` : `Trader`}
+              {isMaker ? `No - You made this order` : `Yes`}
             </DataPoint>
           </DataPointContainer>
 
@@ -172,14 +176,14 @@ export default class OrderItem extends React.Component {
             <Label>Loan Amount</Label>
             <DataPoint>
               {fromBigNumber(
-                takenOrder.loanTokenAmount,
+                fillableOrder.loanTokenAmount,
                 10 ** loanTokenDecimals
               )}
               {` `}
               {loanTokenSymbol}
               {` `}(
               <AddressLink href={loanTokenAddressLink}>
-                {takenOrder.loanTokenAddress}
+                {fillableOrder.loanTokenAddress}
               </AddressLink>
               )
             </DataPoint>
@@ -189,7 +193,9 @@ export default class OrderItem extends React.Component {
             <DataPointContainer>
               <Label>First Fill</Label>
               <DataPoint>
-                {`${addedDateStr} (${addedDate.fromNow()})`}
+                {!fillableOrder.addedUnixTimestampSec
+                  ? `No fills`
+                  : `${addedDateStr} (${addedDate.fromNow()})`}
               </DataPoint>
             </DataPointContainer>
 
@@ -202,7 +208,7 @@ export default class OrderItem extends React.Component {
               <Label>Total Filled</Label>
               <DataPoint>
                 {fromBigNumber(
-                  takenOrder.orderFilledAmount,
+                  fillableOrder.orderFilledAmount,
                   10 ** loanTokenDecimals
                 )}
                 {` `}
@@ -214,7 +220,7 @@ export default class OrderItem extends React.Component {
               <Label>Total Cancelled</Label>
               <DataPoint>
                 {fromBigNumber(
-                  takenOrder.orderCancelledAmount,
+                  fillableOrder.orderCancelledAmount,
                   10 ** loanTokenDecimals
                 )}
                 {` `}
@@ -226,9 +232,9 @@ export default class OrderItem extends React.Component {
               <Label>Total Remaining</Label>
               <DataPoint>
                 {fromBigNumber(
-                  takenOrder.loanTokenAmount -
-                    takenOrder.orderFilledAmount -
-                    takenOrder.orderCancelledAmount,
+                  fillableOrder.loanTokenAmount -
+                    fillableOrder.orderFilledAmount -
+                    fillableOrder.orderCancelledAmount,
                   10 ** loanTokenDecimals
                 )}
                 {` `}
@@ -241,7 +247,7 @@ export default class OrderItem extends React.Component {
             <Label>Interest Amount</Label>
             <DataPoint>
               {fromBigNumber(
-                takenOrder.interestAmount,
+                fillableOrder.interestAmount,
                 10 ** interestTokenDecimals
               )}
               {` `}
@@ -250,7 +256,7 @@ export default class OrderItem extends React.Component {
               per day
               {` `}(
               <AddressLink href={interestTokenAddressLink}>
-                {takenOrder.interestTokenAddress}
+                {fillableOrder.interestTokenAddress}
               </AddressLink>
               )
             </DataPoint>
@@ -263,7 +269,7 @@ export default class OrderItem extends React.Component {
                 {collateralTokenSymbol}
                 {` `}(
                 <AddressLink href={collateralTokenAddressLink}>
-                  {takenOrder.collateralTokenAddress}
+                  {fillableOrder.collateralTokenAddress}
                 </AddressLink>
                 )
               </DataPoint>
@@ -274,12 +280,12 @@ export default class OrderItem extends React.Component {
 
           <DataPointContainer>
             <Label>Initial Margin</Label>
-            <DataPoint>{takenOrder.initialMarginAmount}%</DataPoint>
+            <DataPoint>{fillableOrder.initialMarginAmount}%</DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Maintenance Margin</Label>
-            <DataPoint>{takenOrder.maintenanceMarginAmount}%</DataPoint>
+            <DataPoint>{fillableOrder.maintenanceMarginAmount}%</DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
@@ -287,7 +293,7 @@ export default class OrderItem extends React.Component {
             <DataPoint>
               <Hash>
                 <AddressLink href={oracleAddressLink}>
-                  {takenOrder.oracleAddress}
+                  {fillableOrder.oracleAddress}
                 </AddressLink>
               </Hash>
             </DataPoint>
@@ -310,7 +316,7 @@ export default class OrderItem extends React.Component {
                 <DataPoint>
                   <Hash>
                     <AddressLink href={feeRecipientAddressLink}>
-                      {takenOrder.feeRecipientAddress}
+                      {fillableOrder.feeRecipientAddress}
                     </AddressLink>
                   </Hash>
                 </DataPoint>
@@ -319,14 +325,14 @@ export default class OrderItem extends React.Component {
               <DataPointContainer>
                 <Label>Trader Relay Fee</Label>
                 <DataPoint>
-                  {fromBigNumber(takenOrder.lenderRelayFee, 1e18)} BZRX
+                  {fromBigNumber(fillableOrder.lenderRelayFee, 1e18)} BZRX
                 </DataPoint>
               </DataPointContainer>
 
               <DataPointContainer>
                 <Label>Trader Relay Fee</Label>
                 <DataPoint>
-                  {fromBigNumber(takenOrder.traderRelayFee, 1e18)} BZRX
+                  {fromBigNumber(fillableOrder.traderRelayFee, 1e18)} BZRX
                 </DataPoint>
               </DataPointContainer>
             </Fragment>
@@ -338,8 +344,20 @@ export default class OrderItem extends React.Component {
               {showRawOrder ? `Hide` : `Show`} raw order
             </a>
           </div>
-          {showRawOrder && <Pre>{JSON.stringify(takenOrder, null, 4)}</Pre>}
-          {/* <Pre>{JSON.stringify(loanPositions, null, 4)}</Pre> */}
+          {showRawOrder && <Pre>{JSON.stringify(fillableOrder, null, 4)}</Pre>}
+
+          <div>
+            <br />
+            <MuiButton
+              size="small"
+              onClick={() => changeTab(`Orders_FillOrder`, fillableOrder)}
+              variant="raised"
+              color="primary"
+              // disabled={isMaker}
+            >
+              {!isMaker ? `Fill Order` : `Cancel Order`}
+            </MuiButton>
+          </div>
         </CardContent>
       </Card>
     );

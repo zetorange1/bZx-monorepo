@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import Tooltip from "material-ui/Tooltip";
+import Tooltip from "@material-ui/core/Tooltip";
 import { getIconURL } from "../../common/tokens";
 
 const Container = styled.div`

@@ -6,13 +6,15 @@ import TokensSection from "./Tokens";
 import MarginAmountsSection from "./MarginAmounts";
 import ExpirationSection from "./Expiration";
 import OracleSection from "./Oracle";
-import RelayExchangeSection from "./RelayExchange";
+// import RelayExchangeSection from "./RelayExchange";
 import Submission from "./Submission";
 import Result from "./Result";
+import { getDecimals } from "../../common/tokens";
 
 import validateInputs from "./validate";
 import {
   fromBigNumber,
+  toBigNumber,
   getInitialCollateralRequired
 } from "../../common/utils";
 import {
@@ -20,7 +22,8 @@ import {
   addSalt,
   signOrder,
   getOrderHash,
-  addNetworkId
+  addNetworkId,
+  pushOrderOnChain
 } from "./utils";
 
 const defaultLoanToken = tokens => {
@@ -86,6 +89,8 @@ export default class GenerateOrder extends React.Component {
     lenderRelayFee: 0,
     traderRelayFee: 0,
 
+    pushOnChain: false,
+
     orderHash: `0x_temp_order_hash`,
     finalOrder: null
   };
@@ -117,7 +122,7 @@ export default class GenerateOrder extends React.Component {
           initialMarginAmount,
           this.props.bZx
         ),
-        1e18
+        10 ** getDecimals(this.props.tokens, collateralTokenAddress)
       );
       console.log(`collateralRequired: ${collateralRequired}`);
       if (collateralRequired === 0) {
@@ -140,7 +145,7 @@ export default class GenerateOrder extends React.Component {
       const exp = expirationDate.unix();
       const now = moment().unix();
       if (exp > now) {
-        totalInterest = (exp - now) / 86400 * interestAmount;
+        totalInterest = ((exp - now) / 86400) * interestAmount;
       }
     }
     this.setState({ [`interestTotalAmount`]: totalInterest });
@@ -165,13 +170,18 @@ export default class GenerateOrder extends React.Component {
   setRelayCheckbox = (e, value) =>
     this.setState({ sendToRelayExchange: value });
 
+  pushOnChainCheckbox = (e, value) => this.setState({ pushOnChain: value });
+
   refreshCollateralAmount = async () => {
     if (this.state.role === `trader`) {
       await this.setStateForCollateralAmount(
         this.state.loanTokenAddress,
         this.state.collateralTokenAddress,
         this.state.oracleAddress,
-        this.state.loanTokenAmount,
+        toBigNumber(
+          this.state.loanTokenAmount,
+          10 ** getDecimals(this.props.tokens, this.state.loanTokenAddress)
+        ),
         this.state.initialMarginAmount
       );
     }
@@ -204,7 +214,8 @@ export default class GenerateOrder extends React.Component {
         this.props.web3,
         this.state,
         this.props.accounts[0],
-        this.props.bZx
+        this.props.bZx,
+        this.props.tokens
       );
       const saltedOrderObj = addSalt(orderObject);
       console.log(saltedOrderObj);
@@ -231,7 +242,17 @@ export default class GenerateOrder extends React.Component {
           signature
         });
         console.log(`isSigValid`, isSigValid);
-        this.setState({ orderHash, finalOrder });
+        if (this.state.pushOnChain) {
+          // console.log(finalOrder);
+          pushOrderOnChain(
+            finalOrder,
+            this.props.web3,
+            this.props.bZx,
+            this.props.accounts
+          );
+        } else {
+          this.setState({ orderHash, finalOrder });
+        }
       } catch (e) {
         console.log(e);
       }
@@ -289,7 +310,7 @@ export default class GenerateOrder extends React.Component {
           expirationDate={this.state.expirationDate}
         />
 
-        <Divider />
+        {/* <Divider />
 
         <RelayExchangeSection
           // state setters
@@ -300,11 +321,15 @@ export default class GenerateOrder extends React.Component {
           feeRecipientAddress={this.state.feeRecipientAddress}
           lenderRelayFee={this.state.lenderRelayFee}
           traderRelayFee={this.state.traderRelayFee}
-        />
+        /> */}
 
         <Divider />
 
-        <Submission onSubmit={this.handleSubmit} />
+        <Submission
+          pushOnChainCheckbox={this.pushOnChainCheckbox}
+          pushOnChain={this.state.pushOnChain}
+          onSubmit={this.handleSubmit}
+        />
 
         <Result
           orderHash={this.state.orderHash}

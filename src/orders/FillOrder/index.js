@@ -1,8 +1,8 @@
 /* global window */
 import { Fragment } from "react";
 import styled from "styled-components";
-import Typography from "material-ui/Typography";
-import MuiButton from "material-ui/Button";
+import Typography from "@material-ui/core/Typography";
+import MuiButton from "@material-ui/core/Button";
 import queryString from "querystring";
 import { SectionLabel } from "../../common/FormSection";
 import FillOrderPage from "./FillOrder";
@@ -60,17 +60,27 @@ export default class FillOrder extends React.Component {
 
   render() {
     const { showOrderInfo, value } = this.state;
-    if (showOrderInfo) {
+    if (showOrderInfo || this.props.activeOrder) {
       return (
         <Fragment>
-          <BackLink onClick={this.reset}>Go Back</BackLink>
+          {!this.props.activeOrder ? (
+            <BackLink onClick={this.reset}>Go Back</BackLink>
+          ) : (
+            ``
+          )}
           <FillOrderPage
-            order={JSON.parse(value)}
+            order={
+              this.props.activeOrder
+                ? this.props.activeOrder
+                : JSON.parse(value)
+            }
             tokens={this.props.tokens}
             oracles={this.props.oracles}
             web3={this.props.web3}
             bZx={this.props.bZx}
             accounts={this.props.accounts}
+            changeTab={this.props.changeTab}
+            resetOrder={this.reset}
           />
         </Fragment>
       );

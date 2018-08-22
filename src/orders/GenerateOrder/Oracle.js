@@ -1,9 +1,10 @@
 import styled from "styled-components";
-import Tooltip from "material-ui/Tooltip";
-import { FormControl, FormHelperText } from "material-ui/Form";
-import Select from "material-ui/Select";
-import { InputLabel } from "material-ui/Input";
-import { MenuItem } from "material-ui/Menu";
+import Tooltip from "@material-ui/core/Tooltip";
+import FormControl from "@material-ui/core/FormControl";
+import FormHelperText from "@material-ui/core/FormHelperText";
+import Select from "@material-ui/core/Select";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
 import Section, { SectionLabel } from "../../common/FormSection";
 
 const MoreInfo = styled.span`
@@ -50,7 +51,8 @@ export default ({ oracleAddress, setOracleAddress, oracles, etherscanURL }) => (
             .reverse()
             .map(x => (
               <MenuItem key={x.address} value={x.address}>
-                {x.name} ({x.address.slice(0, 10)}...)
+                {x.name} ({x.address.slice(0, 10)}
+                ...)
               </MenuItem>
             ))}
         </Select>

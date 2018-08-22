@@ -1,6 +1,8 @@
 import styled from "styled-components";
-import Dialog, { DialogTitle, DialogActions } from "material-ui/Dialog";
-import Button from "material-ui/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Button from "@material-ui/core/Button";
 import { SHADOWS } from "../styles/constants";
 import { getIconURL } from "./tokens";
 

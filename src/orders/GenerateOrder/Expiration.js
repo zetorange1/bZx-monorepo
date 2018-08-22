@@ -1,11 +1,12 @@
 import moment from "moment";
 
 import styled from "styled-components";
-import { InputLabel } from "material-ui/Input";
-import { IconButton, InputAdornment } from "material-ui";
-import { FormHelperText } from "material-ui/Form";
-import Tooltip from "material-ui/Tooltip";
-import Icon from "material-ui/Icon";
+import InputLabel from "@material-ui/core/InputLabel";
+import IconButton from "@material-ui/core/IconButton";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import FormHelperText from "@material-ui/core/FormHelperText";
+import Tooltip from "@material-ui/core/Tooltip";
+import Icon from "@material-ui/core/Icon";
 
 import MomentUtils from "material-ui-pickers/utils/moment-utils";
 import MuiPickersUtilsProvider from "material-ui-pickers/utils/MuiPickersUtilsProvider";
