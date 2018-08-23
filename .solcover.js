@@ -13,6 +13,10 @@ module.exports = {
         'tokens/testing/TestToken7.sol',
         'tokens/testing/TestToken8.sol',
         'tokens/testing/TestToken9.sol',
-        'migrations/Migrations.sol'
+        'migrations/Migrations.sol',
+        'MultiSigWallet/testing/TestCalls.sol',
+        'MultiSigWallet/testing/TestToken.sol',
+        'tokens/testing/TestNetFaucet.sol',
+        'tokens/testing/TestNetOracle.sol'
     ]
 }

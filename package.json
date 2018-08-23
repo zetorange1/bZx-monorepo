@@ -61,7 +61,7 @@
     "network:deployprev": "rimraf ./build/contracts && rimraf ./html_public_test && mkdirp ./build && node-mv ./test_network/build_contracts ./build/contracts && node-mv ./test_network/html_public_test ./html_public_test",
     "network:deploy0xdb": "rimraf ./test_network && mkdirp ./test_network && ziptool --unzip ./extra/0x_V1_V2_db.zip -o ./test_network",
     "network:run": "ganache-cli --networkId 50 -p 8545 --db ./test_network -m \"concert load couple harbor equip island argue ramp clarify fence smart topic\"",
-    "network:run-coverage": "./node_modules/.bin/testrpc-sc --networkId 55 -p 8555 --gasLimit 50000000 --db ./test_network -m \"concert load couple harbor equip island argue ramp clarify fence smart topic\"",
+    "network:run-coverage": "./node_modules/.bin/testrpc-sc --networkId 55 -p 8555 --gasLimit 500000000 --db ./test_network -m \"concert load couple harbor equip island argue ramp clarify fence smart topic\"",
     "test": "truffle test",
     "lint-contracts": "solhint contracts/**/*.sol",
     "coverage": "./node_modules/.bin/solidity-coverage"
