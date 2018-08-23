@@ -4,9 +4,6 @@ language: node_js
 node_js:
   - '9'
 before_install:
-  - yarn cache clean
-  - yarn
-
   - export NODE_OPTIONS="--max_old_space_size=4096"
   - export PATH=$PATH:$(pwd)/node_modules/.bin
 install:
