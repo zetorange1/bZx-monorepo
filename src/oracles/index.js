@@ -118,7 +118,7 @@ export const getConversionData = async (
     oracleAddress
   );
 
-  const data = oracleContract.methods
+  const data = await oracleContract.methods
     .getTradeData(sourceTokenAddress, destTokenAddress, sourceTokenAmount)
     .call();
 

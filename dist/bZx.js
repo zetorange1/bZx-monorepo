@@ -2165,7 +2165,7 @@ const getConversionData = exports.getConversionData = (() => {
 
     const oracleContract = yield utils.getContractInstance(web3, (0, _contracts.getContracts)(networkId).OracleInterface.abi, oracleAddress);
 
-    const data = oracleContract.methods.getTradeData(sourceTokenAddress, destTokenAddress, sourceTokenAmount).call();
+    const data = yield oracleContract.methods.getTradeData(sourceTokenAddress, destTokenAddress, sourceTokenAmount).call();
 
     return {
       "rate": 0 in data && data[0] ? data[0] : 0,
