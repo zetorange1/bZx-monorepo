@@ -23,7 +23,7 @@ export const getInitialCollateralRequired = async (
     initialMarginAmount
   );
 
-export const getTokenConversionAmount = async (
+export const getTokenConversionData = (
   sourceTokenAddress,
   destTokenAddress,
   sourceTokenAmount,
@@ -35,4 +35,40 @@ export const getTokenConversionAmount = async (
     destTokenAddress,
     toBigNumber(sourceTokenAmount).toFixed(0),
     oracleAddress
-  ).amount;
+  );
+
+export const getTokenConversionAmount = async (
+  sourceTokenAddress,
+  destTokenAddress,
+  sourceTokenAmount,
+  oracleAddress,
+  bZx
+) => {
+  const data = await getTokenConversionData(
+    sourceTokenAddress,
+    destTokenAddress,
+    sourceTokenAmount,
+    oracleAddress,
+    bZx
+  );
+
+  return data.amount;
+};
+
+export const getTokenConversionRate = async (
+  sourceTokenAddress,
+  destTokenAddress,
+  sourceTokenAmount,
+  oracleAddress,
+  bZx
+) => {
+  const data = await getTokenConversionData(
+    sourceTokenAddress,
+    destTokenAddress,
+    sourceTokenAmount,
+    oracleAddress,
+    bZx
+  );
+
+  return data.rate;
+};

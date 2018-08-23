@@ -77,7 +77,7 @@ export default ({
   // state setters
   setStateForAddress,
   setStateForInput,
-  setStateForInterestAmount,
+  setStateForInterestRate,
   // address states
   loanTokenAddress,
   interestTokenAddress,
@@ -85,10 +85,11 @@ export default ({
   // amount states
   loanTokenAmount,
   collateralTokenAmount,
-  interestAmount,
+  interestRate,
   interestTotalAmount,
   collateralRefresh,
-  etherscanURL
+  etherscanURL,
+  interestRefresh
 }) => (
   <Section>
     <SectionLabel>Tokens and Token Amounts</SectionLabel>
@@ -146,16 +147,12 @@ export default ({
           </AddressLink>
         </CenteredFormHelperText>
         <FormControl fullWidth>
-          <InputLabel>Interest amount (per day)</InputLabel>
+          <InputLabel>Interest rate (per day)</InputLabel>
           <Input
-            value={interestAmount}
+            value={Math.round(interestRate * 10000) / 100}
             type="number"
-            onChange={setStateForInterestAmount}
-            endAdornment={
-              <InputAdornment position="end">
-                {getSymbol(tokens, interestTokenAddress)}
-              </InputAdornment>
-            }
+            onChange={setStateForInterestRate}
+            endAdornment={<InputAdornment position="end">%</InputAdornment>}
           />
           <FormHelperTextWithDetail component="div">
             <Tooltip
@@ -163,9 +160,14 @@ export default ({
                 <div style={{ maxWidth: `300px` }}>
                   This sets the interest paid per day and shows the total
                   interest paid out if the loan were to run from now until
-                  expiration. The actual amount paid out will be less, based on
-                  when the loan is opened, the actual amount borrowed, and if
-                  the loan is closed early by the trader or is liquidated.
+                  expiration. The amount paid out will be less, based on the
+                  actual amount borrowed and if the loan is closed early by the
+                  trader or is liquidated.
+                  <br />
+                  <br />
+                  If the total amount shows zero, it&apos;s possible this loan
+                  and interest token pair is not supported, or your loan token
+                  amount is too small or too large for the loan.
                 </div>
               }
             >
@@ -175,6 +177,10 @@ export default ({
               <RightJustifiedText>
                 {interestTotalAmount} {getSymbol(tokens, interestTokenAddress)}
               </RightJustifiedText>
+              <br />
+              <AddressLink href="" onClick={interestRefresh}>
+                Refresh
+              </AddressLink>
             </RightJustified>
           </FormHelperTextWithDetail>
         </FormControl>

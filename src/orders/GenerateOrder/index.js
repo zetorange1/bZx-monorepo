@@ -15,7 +15,8 @@ import validateInputs from "./validate";
 import {
   fromBigNumber,
   toBigNumber,
-  getInitialCollateralRequired
+  getInitialCollateralRequired,
+  getTokenConversionAmount
 } from "../../common/utils";
 import {
   compileObject,
@@ -71,10 +72,13 @@ export default class GenerateOrder extends React.Component {
     collateralTokenAmount: `(finish form then refresh)`,
 
     interestTotalAmount: 0,
+    interestRate: 0.0006,
 
     // margin amounts
     initialMarginAmount: 50,
     maintenanceMarginAmount: 25,
+
+    maxDuration: 2419200, // 28 days
 
     // expiration date/time
     expirationDate: moment().add(7, `days`),
@@ -132,35 +136,42 @@ export default class GenerateOrder extends React.Component {
     this.setState({ [`collateralTokenAmount`]: collateralRequired });
   };
 
-  setStateFor = key => value => {
-    this.setState({ [key]: value });
+  setStateFor = key => async value => {
+    await this.setState({ [key]: value });
+
+    if (
+      key === `loanTokenAddress` ||
+      key === `collateralTokenAddress` ||
+      key === `interestTokenAddress`
+    ) {
+      await this.refreshValuesAsync();
+    }
   };
 
   setStateForInput = key => event =>
     this.setState({ [key]: event.target.value });
 
-  setStateForTotalInterest = (interestAmount, expirationDate) => {
+  setStateForTotalInterest = (interestAmount, maxDuration) => {
     let totalInterest = 0;
-    if (interestAmount && expirationDate) {
-      const exp = expirationDate.unix();
-      const now = moment().unix();
-      if (exp > now) {
-        totalInterest = ((exp - now) / 86400) * interestAmount;
-      }
+    if (maxDuration > 0) {
+      totalInterest = (maxDuration / 86400) * interestAmount;
     }
-    this.setState({ [`interestTotalAmount`]: totalInterest });
+    this.setState({
+      interestTotalAmount: Math.round(totalInterest * 10 ** 8) / 10 ** 8
+    });
   };
 
-  setStateForInterestAmount = event => {
+  setStateForInterestRate = async event => {
     const { value } = event.target;
-    this.setState({ [`interestAmount`]: value });
-    this.setStateForTotalInterest(value, this.state.expirationDate);
+    this.setState({ interestRate: value / 100 });
   };
 
-  setStateForExpirationDate = value => {
-    this.setState({ [`expirationDate`]: value });
-    this.setStateForTotalInterest(this.state.interestAmount, value);
-    console.log(value);
+  setStateForMaxDuration = async event => {
+    let value = toBigNumber(event.target.value)
+      .times(86400)
+      .toNumber();
+    if (!value) value = 0;
+    this.setState({ maxDuration: value });
   };
 
   setRole = (e, value) => {
@@ -192,15 +203,52 @@ export default class GenerateOrder extends React.Component {
     await this.refreshCollateralAmount();
   };
 
+  refreshValuesAsync = async () => {
+    await this.refreshInterestAmount();
+    await this.refreshCollateralAmount();
+  };
+
+  refreshInterestAmount = async () => {
+    let interestAmount = 0;
+    if (
+      this.state.loanTokenAmount &&
+      this.state.interestRate &&
+      this.state.loanTokenAddress &&
+      this.state.interestTokenAddress
+    ) {
+      const loanToInterestAmount = toBigNumber(
+        await getTokenConversionAmount(
+          this.state.loanTokenAddress,
+          this.state.interestTokenAddress,
+          toBigNumber(
+            this.state.loanTokenAmount,
+            10 ** getDecimals(this.props.tokens, this.state.loanTokenAddress)
+          ),
+          this.state.oracleAddress,
+          this.props.bZx
+        )
+      );
+
+      if (!loanToInterestAmount.eq(0)) {
+        interestAmount = fromBigNumber(
+          loanToInterestAmount.times(this.state.interestRate),
+          10 ** getDecimals(this.props.tokens, this.state.interestTokenAddress)
+        );
+      }
+    }
+    this.setState({ interestAmount });
+    this.setStateForTotalInterest(interestAmount, this.state.maxDuration);
+  };
+
+  refreshInterestAmountEvent = async event => {
+    event.preventDefault();
+    await this.refreshInterestAmount();
+  };
+
   /* Submission handler */
 
   handleSubmit = async () => {
-    this.setStateForTotalInterest(
-      this.state.interestAmount,
-      this.state.expirationDate
-    );
-
-    await this.refreshCollateralAmount();
+    await this.refreshValuesAsync();
 
     const isValid = await validateInputs(
       this.props.bZx,
@@ -281,7 +329,7 @@ export default class GenerateOrder extends React.Component {
           // state setters
           setStateForAddress={this.setStateFor}
           setStateForInput={this.setStateForInput}
-          setStateForInterestAmount={this.setStateForInterestAmount}
+          setStateForInterestRate={this.setStateForInterestRate}
           // address states
           loanTokenAddress={this.state.loanTokenAddress}
           interestTokenAddress={this.state.interestTokenAddress}
@@ -289,10 +337,12 @@ export default class GenerateOrder extends React.Component {
           // token amounts
           loanTokenAmount={this.state.loanTokenAmount}
           collateralTokenAmount={this.state.collateralTokenAmount}
-          interestAmount={this.state.interestAmount}
+          interestRate={this.state.interestRate}
           interestTotalAmount={this.state.interestTotalAmount}
           collateralRefresh={this.refreshCollateralAmountEvent}
           etherscanURL={this.props.bZx.etherscanURL}
+          maxDuration={this.state.maxDuration}
+          interestRefresh={this.refreshInterestAmountEvent}
         />
 
         <Divider />
@@ -306,7 +356,9 @@ export default class GenerateOrder extends React.Component {
         <Divider />
 
         <ExpirationSection
-          setExpirationDate={this.setStateForExpirationDate}
+          setMaxDuration={this.setStateForMaxDuration}
+          maxDuration={this.state.maxDuration}
+          setStateForInput={this.setStateForInput}
           expirationDate={this.state.expirationDate}
         />
 
