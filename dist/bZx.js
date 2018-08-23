@@ -343,7 +343,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 const SOLIDITY_TYPE_MAX_CHARS = exports.SOLIDITY_TYPE_MAX_CHARS = 64;
 const NULL_ADDRESS = exports.NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
-const UNLIMITED_ALLOWANCE_IN_BASE_UNITS = exports.UNLIMITED_ALLOWANCE_IN_BASE_UNITS = (0, _bignumber2.default)(2).pow(256).minus(1);
+const UNLIMITED_ALLOWANCE_IN_BASE_UNITS = exports.UNLIMITED_ALLOWANCE_IN_BASE_UNITS = new _bignumber2.default(2).pow(256).minus(1);
 const MAX_DIGITS_IN_UNSIGNED_256_INT = exports.MAX_DIGITS_IN_UNSIGNED_256_INT = 78;
 
 /***/ }),
@@ -2017,7 +2017,6 @@ const setAllowance = exports.setAllowance = ({ web3, networkId }, {
   _assert.assert.isETHAddressHex("ownerAddress", ownerAddress);
   _assert.assert.isETHAddressHex("spenderAddress", spenderAddress);
   _assert.assert.isETHAddressHex("tokenAddress", tokenAddress);
-  _assert.assert.isValidBaseUnitAmount("amountInBaseUnits", amountInBaseUnits);
 
   const tokenContract = CoreUtils.getContractInstance(web3, erc20Abi, tokenAddress);
 
