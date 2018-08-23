@@ -1,6 +1,6 @@
 import { assert } from "@0xproject/assert";
-import { constants } from "@0xproject/order-utils/lib/src/constants";
-import { BigNumber } from "@0xproject/utils";
+import BigNumber from "bignumber.js";
+import * as constants from "./constants";
 import { schemas } from "../schemas/bZx_json_schemas";
 import * as utils from "./utils";
 import * as tokenRegistry from "../tokenRegistry";

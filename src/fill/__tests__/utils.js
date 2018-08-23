@@ -1,6 +1,6 @@
 import { clone } from "ramda";
-import { constants as constantsZX } from "@0xproject/order-utils/lib/src/constants";
 import { local as Contracts } from "../../contracts";
+import * as constants from "../../core/constants";
 import bZxJS from "../../core/__tests__/setup";
 import BZxJS from "../../core/index";
 import * as utils from "../../core/utils";
@@ -184,7 +184,7 @@ export const makeOrderAsTrader = ({
     loanTokenAddress: loanTokens[1].options.address.toLowerCase(),
     interestTokenAddress: interestTokens[1].options.address.toLowerCase(),
     collateralTokenAddress: collateralTokens[1].options.address.toLowerCase(),
-    feeRecipientAddress: constantsZX.NULL_ADDRESS,
+    feeRecipientAddress: constants.NULL_ADDRESS,
     loanTokenAmount,
     interestAmount: web3.utils.toWei("2").toString(),
     initialMarginAmount: "50",
@@ -207,8 +207,8 @@ export const makeOrderAsLender = ({
     makerAddress: lenders[0],
     loanTokenAddress: loanTokens[0].options.address.toLowerCase(),
     interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
-    collateralTokenAddress: constantsZX.NULL_ADDRESS,
-    feeRecipientAddress: constantsZX.NULL_ADDRESS,
+    collateralTokenAddress: constants.NULL_ADDRESS,
+    feeRecipientAddress: constants.NULL_ADDRESS,
     loanTokenAmount,
     interestAmount: web3.utils.toWei("2").toString(),
     initialMarginAmount: "50",

@@ -85,11 +85,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.requestFaucetToken = exports.toChecksumAddress = exports.doesConformToSchema = exports.getLoanOrderHashAsync = exports.getLoanOrderHashHex = exports.getContractInstance = exports.doesContractExistAtAddress = exports.generatePseudoRandomSalt = exports.bigNumberToBN = exports.noop = undefined;
 
-var _utils = __webpack_require__(6);
+var _bignumber = __webpack_require__(5);
+
+var _bignumber2 = _interopRequireDefault(_bignumber);
 
 var _assert = __webpack_require__(4);
-
-var _constants = __webpack_require__(5);
 
 var _bn = __webpack_require__(11);
 
@@ -98,6 +98,10 @@ var _bn2 = _interopRequireDefault(_bn);
 var _web3Utils = __webpack_require__(12);
 
 var _web3Utils2 = _interopRequireDefault(_web3Utils);
+
+var _constants = __webpack_require__(6);
+
+var constants = _interopRequireWildcard(_constants);
 
 var _bZx_json_schemas = __webpack_require__(9);
 
@@ -121,8 +125,8 @@ const generatePseudoRandomSalt = exports.generatePseudoRandomSalt = () => {
   // BigNumber.random returns a pseudo-random number between 0 & 1
   // with a passed in number of decimal places.
   // Source: https://mikemcl.github.io/bignumber.js/#random
-  const randomNumber = _utils.BigNumber.random(_constants.constants.MAX_DIGITS_IN_UNSIGNED_256_INT);
-  const factor = new _utils.BigNumber(10).pow(_constants.constants.MAX_DIGITS_IN_UNSIGNED_256_INT - 1);
+  const randomNumber = _bignumber2.default.random(constants.MAX_DIGITS_IN_UNSIGNED_256_INT);
+  const factor = new _bignumber2.default(10).pow(constants.MAX_DIGITS_IN_UNSIGNED_256_INT - 1);
   const salt = randomNumber.times(factor).round();
   return salt;
 };
@@ -317,13 +321,30 @@ module.exports = require("@0xproject/assert");
 /* 5 */
 /***/ (function(module, exports) {
 
-module.exports = require("@0xproject/order-utils/lib/src/constants");
+module.exports = require("bignumber.js");
 
 /***/ }),
 /* 6 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = require("@0xproject/utils");
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.MAX_DIGITS_IN_UNSIGNED_256_INT = exports.UNLIMITED_ALLOWANCE_IN_BASE_UNITS = exports.NULL_ADDRESS = exports.SOLIDITY_TYPE_MAX_CHARS = undefined;
+
+var _bignumber = __webpack_require__(5);
+
+var _bignumber2 = _interopRequireDefault(_bignumber);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const SOLIDITY_TYPE_MAX_CHARS = exports.SOLIDITY_TYPE_MAX_CHARS = 64;
+const NULL_ADDRESS = exports.NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
+const UNLIMITED_ALLOWANCE_IN_BASE_UNITS = exports.UNLIMITED_ALLOWANCE_IN_BASE_UNITS = (0, _bignumber2.default)(2).pow(256).minus(1);
+const MAX_DIGITS_IN_UNSIGNED_256_INT = exports.MAX_DIGITS_IN_UNSIGNED_256_INT = 78;
 
 /***/ }),
 /* 7 */
@@ -476,7 +497,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.parseIntHex = exports.substr24 = exports.prepend0x = exports.getOrderParams = exports.makeGetOrderObjArray = exports.makeCheckProperObjCount = exports.remove0xPrefix = undefined;
 
-var _constants = __webpack_require__(108);
+var _constants = __webpack_require__(6);
 
 const remove0xPrefix = exports.remove0xPrefix = data => data ? data.substr(2) : "";
 
@@ -595,15 +616,19 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var _assert = __webpack_require__(4);
 
-var _constants = __webpack_require__(5);
+var _bignumber = __webpack_require__(5);
 
-var _utils = __webpack_require__(6);
+var _bignumber2 = _interopRequireDefault(_bignumber);
+
+var _constants = __webpack_require__(6);
+
+var constants = _interopRequireWildcard(_constants);
 
 var _bZx_json_schemas = __webpack_require__(9);
 
-var _utils2 = __webpack_require__(0);
+var _utils = __webpack_require__(0);
 
-var utils = _interopRequireWildcard(_utils2);
+var utils = _interopRequireWildcard(_utils);
 
 var _tokenRegistry = __webpack_require__(99);
 
@@ -633,7 +658,7 @@ var _orderHistory = __webpack_require__(105);
 
 var orderHistory = _interopRequireWildcard(_orderHistory);
 
-var _transfer = __webpack_require__(110);
+var _transfer = __webpack_require__(109);
 
 var transfer = _interopRequireWildcard(_transfer);
 
@@ -641,33 +666,33 @@ var _signature = __webpack_require__(7);
 
 var signature = _interopRequireWildcard(_signature);
 
-var _errors = __webpack_require__(111);
+var _errors = __webpack_require__(110);
 
 var Errors = _interopRequireWildcard(_errors);
 
-var _trade = __webpack_require__(112);
+var _trade = __webpack_require__(111);
 
 var trade = _interopRequireWildcard(_trade);
 
-var _loanHealth = __webpack_require__(116);
+var _loanHealth = __webpack_require__(115);
 
 var loanHealth = _interopRequireWildcard(_loanHealth);
 
-var _bounty = __webpack_require__(117);
+var _bounty = __webpack_require__(116);
 
 var bounty = _interopRequireWildcard(_bounty);
 
-var _weth = __webpack_require__(119);
+var _weth = __webpack_require__(118);
 
 var weth = _interopRequireWildcard(_weth);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
-const Web3 = __webpack_require__(120); // eslint-disable global-require
+const Web3 = __webpack_require__(119); // eslint-disable global-require
 
 class BZxJS {
 
@@ -709,11 +734,11 @@ class BZxJS {
     this.setAllowance = (...props) => allowance.setAllowance(this, ...props);
 
     this.setAllowanceUnlimited = props => this.setAllowance(_extends({}, props, {
-      amountInBaseUnits: _constants.constants.UNLIMITED_ALLOWANCE_IN_BASE_UNITS
+      amountInBaseUnits: constants.UNLIMITED_ALLOWANCE_IN_BASE_UNITS
     }));
 
     this.resetAllowance = props => this.setAllowance(_extends({}, props, {
-      amountInBaseUnits: new _utils.BigNumber(0)
+      amountInBaseUnits: new _bignumber2.default(0)
     }));
 
     this.getAllowance = (() => {
@@ -733,7 +758,7 @@ class BZxJS {
 
         const tokenContract = yield utils.getContractInstance(_this.web3, _EIP2.default.abi, tokenAddress);
         const balance = yield tokenContract.methods.balanceOf(ownerAddress).call();
-        return new _utils.BigNumber(balance);
+        return new _bignumber2.default(balance);
       });
 
       return function (_x3) {
@@ -1959,11 +1984,13 @@ exports.getAllowance = exports.setAllowance = undefined;
 
 var _assert = __webpack_require__(4);
 
-var _utils = __webpack_require__(6);
+var _bignumber = __webpack_require__(5);
 
-var _utils2 = __webpack_require__(0);
+var _bignumber2 = _interopRequireDefault(_bignumber);
 
-var CoreUtils = _interopRequireWildcard(_utils2);
+var _utils = __webpack_require__(0);
+
+var CoreUtils = _interopRequireWildcard(_utils);
 
 var _contracts = __webpack_require__(1);
 
@@ -1972,6 +1999,8 @@ var _addresses = __webpack_require__(2);
 var Addresses = _interopRequireWildcard(_addresses);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
@@ -2012,7 +2041,7 @@ const getAllowance = exports.getAllowance = (() => {
 
     const tokenContract = yield CoreUtils.getContractInstance(web3, erc20Abi, tokenAddress);
     const allowanceValue = yield tokenContract.methods.allowance(ownerAddress, spenderAddress).call();
-    return new _utils.BigNumber(allowanceValue);
+    return new _bignumber2.default(allowanceValue);
   });
 
   return function getAllowance(_x, _x2) {
@@ -2359,7 +2388,7 @@ var _addresses = __webpack_require__(2);
 
 var Addresses = _interopRequireWildcard(_addresses);
 
-var _orders = __webpack_require__(109);
+var _orders = __webpack_require__(108);
 
 var OrderUtils = _interopRequireWildcard(_orders);
 
@@ -2545,18 +2574,6 @@ const cleanData = exports.cleanData = raw => raw ? (0, _ramda.pipe)(Utils.remove
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-const SOLIDITY_TYPE_MAX_CHARS = exports.SOLIDITY_TYPE_MAX_CHARS = 64;
-
-/***/ }),
-/* 109 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 exports.cleanData = undefined;
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -2602,7 +2619,7 @@ const getOrderObjArray = Utils.makeGetOrderObjArray(NUM_ORDER_FIELDS);
 const cleanData = exports.cleanData = raw => raw ? (0, _ramda.pipe)(Utils.remove0xPrefix, checkProperObjCount, getOrderObjArray, (0, _ramda.map)((0, _ramda.pipe)(Utils.getOrderParams, getOrder)))(raw) : [];
 
 /***/ }),
-/* 110 */
+/* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2643,7 +2660,7 @@ const transferToken = exports.transferToken = ({ web3 }, {
 };
 
 /***/ }),
-/* 111 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2657,7 +2674,7 @@ const NoNetworkId = exports.NoNetworkId = "Missing networkId. Provide a networkI
 const InvalidSignature = exports.InvalidSignature = "Signature is invalid.";
 
 /***/ }),
-/* 112 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2678,7 +2695,7 @@ var _bn = __webpack_require__(11);
 
 var _bn2 = _interopRequireDefault(_bn);
 
-var _ethereumjsAbi = __webpack_require__(113);
+var _ethereumjsAbi = __webpack_require__(112);
 
 var _ethereumjsAbi2 = _interopRequireDefault(_ethereumjsAbi);
 
@@ -2686,7 +2703,7 @@ var _ethereumjsUtil = __webpack_require__(14);
 
 var _ethereumjsUtil2 = _interopRequireDefault(_ethereumjsUtil);
 
-var _orderUtils = __webpack_require__(114);
+var _orderUtils = __webpack_require__(113);
 
 var _orderUtils2 = _interopRequireDefault(_orderUtils);
 
@@ -2696,7 +2713,7 @@ var CoreUtils = _interopRequireWildcard(_utils);
 
 var _contracts = __webpack_require__(1);
 
-var _zeroEx = __webpack_require__(115);
+var _zeroEx = __webpack_require__(114);
 
 var ZeroExTradeUtils = _interopRequireWildcard(_zeroEx);
 
@@ -2755,19 +2772,19 @@ const tradePositionWithOracle = exports.tradePositionWithOracle = ({ web3, netwo
 };
 
 /***/ }),
-/* 113 */
+/* 112 */
 /***/ (function(module, exports) {
 
 module.exports = require("ethereumjs-abi");
 
 /***/ }),
-/* 114 */
+/* 113 */
 /***/ (function(module, exports) {
 
 module.exports = require("@0xproject/order-utils");
 
 /***/ }),
-/* 115 */
+/* 114 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2778,7 +2795,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.transform0xOrder = undefined;
 
-var _constants = __webpack_require__(5);
+var _constants = __webpack_require__(6);
+
+var constants = _interopRequireWildcard(_constants);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 const transform0xOrder = exports.transform0xOrder = ({
   signedOrder
@@ -2791,14 +2812,14 @@ const transform0xOrder = exports.transform0xOrder = ({
   makerTokenAddress: signedOrder.makerTokenAddress,
   makerTokenAmount: signedOrder.makerTokenAmount,
   salt: signedOrder.salt,
-  taker: signedOrder.taker || _constants.constants.NULL_ADDRESS,
+  taker: signedOrder.taker || constants.NULL_ADDRESS,
   takerFee: signedOrder.takerFee,
   takerTokenAddress: signedOrder.takerTokenAddress,
   takerTokenAmount: signedOrder.takerTokenAmount
 });
 
 /***/ }),
-/* 116 */
+/* 115 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2904,7 +2925,7 @@ const getProfitOrLoss = exports.getProfitOrLoss = (() => {
 })();
 
 /***/ }),
-/* 117 */
+/* 116 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2921,7 +2942,7 @@ var CoreUtils = _interopRequireWildcard(_utils);
 
 var _contracts = __webpack_require__(1);
 
-var _activeLoans = __webpack_require__(118);
+var _activeLoans = __webpack_require__(117);
 
 var ActiveLoansUtils = _interopRequireWildcard(_activeLoans);
 
@@ -2969,7 +2990,7 @@ const liquidateLoan = exports.liquidateLoan = ({ web3, networkId, addresses }, {
 };
 
 /***/ }),
-/* 118 */
+/* 117 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3002,7 +3023,7 @@ const getOrderObjArray = OrderHistoryUtils.makeGetOrderObjArray(NUM_LOAN_FIELDS)
 const cleanData = exports.cleanData = raw => raw ? (0, _ramda.pipe)(OrderHistoryUtils.remove0xPrefix, checkProperObjCount, getOrderObjArray, (0, _ramda.map)((0, _ramda.pipe)(OrderHistoryUtils.getOrderParams, getLoan)))(raw) : [];
 
 /***/ }),
-/* 119 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3054,7 +3075,7 @@ const unwrapEth = exports.unwrapEth = ({ web3, networkId, addresses }, {
 };
 
 /***/ }),
-/* 120 */
+/* 119 */
 /***/ (function(module, exports) {
 
 module.exports = require("web3");

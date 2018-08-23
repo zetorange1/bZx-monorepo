@@ -1,7 +1,8 @@
-import { constants } from "@0xproject/order-utils/lib/src/constants";
+
 import { signatureUtils } from "@0xproject/order-utils/lib/src/signature_utils";
 import OrderUtils from "@0xproject/order-utils";
 import { pathOr } from "ramda";
+import * as constants from "../../core/constants";
 import { protocol } from "../../../../config/secrets";
 import BZxJS from "../../core/index";
 import * as Trade0xUtils from "../utils/zeroEx";

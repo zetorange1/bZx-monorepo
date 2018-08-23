@@ -1,7 +1,7 @@
-import { constants } from "@0xproject/order-utils/lib/src/constants";
-import { BigNumber } from "@0xproject/utils";
+import BigNumber from "bignumber.js";
 import { pathOr } from "ramda";
 import { local as Contracts } from "../../contracts";
+import * as constants from "../../core/constants";
 import bZxJS from "../../core/__tests__/setup";
 import Accounts from "../../core/__tests__/accounts";
 import { expectPromiEvent } from "../../core/__tests__/utils";

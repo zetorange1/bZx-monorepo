@@ -1,4 +1,4 @@
-import { constants } from "@0xproject/order-utils/lib/src/constants";
+import * as constants from "../../core/constants";
 import bZxJS from "../../core/__tests__/setup";
 import * as oracles from "../index";
 import * as Addresses from "../../core/__tests__/addresses";

@@ -1,8 +1,8 @@
-import { BigNumber } from "@0xproject/utils";
+import BigNumber from "bignumber.js";
 import { assert } from "@0xproject/assert";
-import { constants } from "@0xproject/order-utils/lib/src/constants";
 import BN from "bn.js";
 import Web3Utils from "web3-utils";
+import * as constants from "../constants";
 import { SchemaValidator } from "../../schemas/bZx_json_schemas";
 import { getContracts } from "../../contracts";
 import * as Addresses from "../../addresses";

@@ -1,4 +1,4 @@
-import { constants as constantsZX } from "@0xproject/order-utils/lib/src/constants";
+import * as constants from "../../core/constants";
 import bZxJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 import makeOrder from "../../core/__tests__/order";
@@ -21,8 +21,8 @@ describe("loanPositions", () => {
     makerAddress,
     loanTokenAddress: loanTokens[0].options.address.toLowerCase(),
     interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
-    collateralTokenAddress: constantsZX.NULL_ADDRESS,
-    feeRecipientAddress: constantsZX.NULL_ADDRESS,
+    collateralTokenAddress: constants.NULL_ADDRESS,
+    feeRecipientAddress: constants.NULL_ADDRESS,
     loanTokenAmount: web3.utils.toWei("251").toString(),
     interestAmount: web3.utils.toWei("2").toString(),
     initialMarginAmount: "50",

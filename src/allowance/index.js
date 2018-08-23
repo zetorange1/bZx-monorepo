@@ -1,5 +1,5 @@
 import { assert } from "@0xproject/assert";
-import { BigNumber } from "@0xproject/utils";
+import BigNumber from "bignumber.js";
 import * as CoreUtils from "../core/utils";
 import { local as Contracts } from "../contracts";
 import * as Addresses from "../addresses";
