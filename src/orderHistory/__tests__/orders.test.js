@@ -29,6 +29,8 @@ describe("order history", () => {
       gas: 1000000,
       gasPrice: web3.utils.toWei("5", "gwei").toString()
     };
+    const maxDurationUnixTimestampSec = "2419200"; // 28 days
+
     const expirationUnixTimestampSec = "1719061340";
 
     const order = makeOrder({
@@ -43,6 +45,7 @@ describe("order history", () => {
       maintenanceMarginAmount: "25",
       lenderRelayFee: web3.utils.toWei("0.001").toString(),
       traderRelayFee: web3.utils.toWei("0.0015").toString(),
+      maxDurationUnixTimestampSec, // 28 days
       expirationUnixTimestampSec,
       makerRole: orderConstants.MAKER_ROLE.LENDER,
       salt: BZxJS.generatePseudoRandomSalt().toString()
@@ -85,6 +88,7 @@ describe("order history", () => {
 
       expect(ordersNoRandomFields).toContainEqual({
         collateralTokenAddress: "0x0000000000000000000000000000000000000000",
+        maxDurationUnixTimestampSec: 2419200, // 28 days
         expirationUnixTimestampSec: 1719061340,
         feeRecipientAddress: "0x0000000000000000000000000000000000000000",
         initialMarginAmount: 50,

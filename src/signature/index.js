@@ -1,8 +1,8 @@
-import { signatureUtils } from "@0xproject/order-utils/lib/src/signature_utils";
 import sigUtil from "eth-sig-util";
 import * as ethUtil from "ethereumjs-util";
 import { assert } from "@0xproject/assert";
 import _ from "lodash";
+import * as signatureUtils from "./utils";
 import * as CoreUtils from "../core/utils";
 import { getContracts } from "../contracts";
 import * as Addresses from "../addresses";

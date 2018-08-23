@@ -1,4 +1,4 @@
-import BigNumber from "bignumber.js";
+import { BigNumber } from "@0xproject/utils";
 import { pathOr } from "ramda";
 import { local as Contracts } from "../../contracts";
 import * as constants from "../../core/constants";

@@ -29,6 +29,7 @@ describe("loanPositions", () => {
     maintenanceMarginAmount: "25",
     lenderRelayFee: web3.utils.toWei("0.001").toString(),
     traderRelayFee: web3.utils.toWei("0.0015").toString(),
+    maxDurationUnixTimestampSec: "2419200", // 28 days
     expirationUnixTimestampSec: "1719061340",
     makerRole: orderConstants.MAKER_ROLE.LENDER,
     salt: BZxJS.generatePseudoRandomSalt().toString()

@@ -14,6 +14,7 @@ exports.loanOrderSchema = {
     maintenanceMarginAmount: { $ref: "/Number" },
     lenderRelayFee: { $ref: "/Number" },
     traderRelayFee: { $ref: "/Number" },
+    maxDurationUnixTimestampSec: { $ref: "/Number" },
     expirationUnixTimestampSec: { $ref: "/Number" },
     makerRole: { $ref: "/Number" },
     salt: { $ref: "/Number" }
@@ -32,6 +33,7 @@ exports.loanOrderSchema = {
     "maintenanceMarginAmount",
     "lenderRelayFee",
     "traderRelayFee",
+    "maxDurationUnixTimestampSec",
     "expirationUnixTimestampSec",
     "makerRole",
     "salt"

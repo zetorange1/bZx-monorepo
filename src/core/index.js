@@ -1,5 +1,5 @@
 import { assert } from "@0xproject/assert";
-import BigNumber from "bignumber.js";
+import { BigNumber } from "@0xproject/utils";
 import * as constants from "./constants";
 import { schemas } from "../schemas/bZx_json_schemas";
 import * as utils from "./utils";

@@ -22,6 +22,8 @@ export default {
   lenderRelayFee: "0",
   traderRelayFee: "0",
 
+  maxDurationUnixTimestampSec: "2419200", // 28 days
+
   // expiration date/time
   expirationUnixTimestampSec: "1519061340",
 
