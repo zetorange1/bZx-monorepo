@@ -21,6 +21,8 @@ export default ({
   lenderRelayFee = "10000",
   traderRelayFee = "10000",
 
+  maxDurationUnixTimestampSec = "2419200", // 28 days
+
   expirationUnixTimestampSec = "2519061340",
 
   makerRole = orderConstants.MAKER_ROLE.LENDER,
@@ -47,6 +49,8 @@ export default ({
   // relay fees
   lenderRelayFee,
   traderRelayFee,
+
+  maxDurationUnixTimestampSec, // 28 days
 
   // expiration date/time
   expirationUnixTimestampSec,

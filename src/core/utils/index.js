@@ -1,4 +1,4 @@
-import BigNumber from "bignumber.js";
+import { BigNumber } from "@0xproject/utils";
 import { assert } from "@0xproject/assert";
 import BN from "bn.js";
 import Web3Utils from "web3-utils";
@@ -28,6 +28,7 @@ export const generatePseudoRandomSalt = () => {
 const getOrderValues = (order, shouldFormatAsStrings) => {
   // Must be strings in production for Web3Utils.soliditySha3 for some reason
   if (shouldFormatAsStrings) {
+    console.log(order);
     return [
       order.loanTokenAmount.toString(),
       order.interestAmount.toString(),

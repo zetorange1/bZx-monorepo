@@ -85,17 +85,15 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.requestFaucetToken = exports.toChecksumAddress = exports.doesConformToSchema = exports.getLoanOrderHashAsync = exports.getLoanOrderHashHex = exports.getContractInstance = exports.doesContractExistAtAddress = exports.generatePseudoRandomSalt = exports.bigNumberToBN = exports.noop = undefined;
 
-var _bignumber = __webpack_require__(5);
-
-var _bignumber2 = _interopRequireDefault(_bignumber);
+var _utils = __webpack_require__(5);
 
 var _assert = __webpack_require__(4);
 
-var _bn = __webpack_require__(11);
+var _bn = __webpack_require__(12);
 
 var _bn2 = _interopRequireDefault(_bn);
 
-var _web3Utils = __webpack_require__(12);
+var _web3Utils = __webpack_require__(13);
 
 var _web3Utils2 = _interopRequireDefault(_web3Utils);
 
@@ -103,7 +101,7 @@ var _constants = __webpack_require__(6);
 
 var constants = _interopRequireWildcard(_constants);
 
-var _bZx_json_schemas = __webpack_require__(9);
+var _bZx_json_schemas = __webpack_require__(10);
 
 var _contracts = __webpack_require__(1);
 
@@ -125,8 +123,8 @@ const generatePseudoRandomSalt = exports.generatePseudoRandomSalt = () => {
   // BigNumber.random returns a pseudo-random number between 0 & 1
   // with a passed in number of decimal places.
   // Source: https://mikemcl.github.io/bignumber.js/#random
-  const randomNumber = _bignumber2.default.random(constants.MAX_DIGITS_IN_UNSIGNED_256_INT);
-  const factor = new _bignumber2.default(10).pow(constants.MAX_DIGITS_IN_UNSIGNED_256_INT - 1);
+  const randomNumber = _utils.BigNumber.random(constants.MAX_DIGITS_IN_UNSIGNED_256_INT);
+  const factor = new _utils.BigNumber(10).pow(constants.MAX_DIGITS_IN_UNSIGNED_256_INT - 1);
   const salt = randomNumber.times(factor).round();
   return salt;
 };
@@ -134,6 +132,7 @@ const generatePseudoRandomSalt = exports.generatePseudoRandomSalt = () => {
 const getOrderValues = (order, shouldFormatAsStrings) => {
   // Must be strings in production for Web3Utils.soliditySha3 for some reason
   if (shouldFormatAsStrings) {
+    console.log(order);
     return [order.loanTokenAmount.toString(), order.interestAmount.toString(), order.initialMarginAmount.toString(), order.maintenanceMarginAmount.toString(), order.lenderRelayFee.toString(), order.traderRelayFee.toString(), order.maxDurationUnixTimestampSec.toString(), order.expirationUnixTimestampSec.toString(), order.makerRole.toString(), order.salt.toString()];
   }
   return [bigNumberToBN(order.loanTokenAmount), bigNumberToBN(order.interestAmount), bigNumberToBN(order.initialMarginAmount), bigNumberToBN(order.maintenanceMarginAmount), bigNumberToBN(order.lenderRelayFee), bigNumberToBN(order.traderRelayFee), bigNumberToBN(order.maxDurationUnixTimestampSec), bigNumberToBN(order.expirationUnixTimestampSec), bigNumberToBN(order.makerRole), bigNumberToBN(order.salt)];
@@ -321,7 +320,7 @@ module.exports = require("@0xproject/assert");
 /* 5 */
 /***/ (function(module, exports) {
 
-module.exports = require("bignumber.js");
+module.exports = require("@0xproject/utils");
 
 /***/ }),
 /* 6 */
@@ -335,15 +334,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.MAX_DIGITS_IN_UNSIGNED_256_INT = exports.UNLIMITED_ALLOWANCE_IN_BASE_UNITS = exports.NULL_ADDRESS = exports.SOLIDITY_TYPE_MAX_CHARS = undefined;
 
-var _bignumber = __webpack_require__(5);
-
-var _bignumber2 = _interopRequireDefault(_bignumber);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _utils = __webpack_require__(5);
 
 const SOLIDITY_TYPE_MAX_CHARS = exports.SOLIDITY_TYPE_MAX_CHARS = 64;
 const NULL_ADDRESS = exports.NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
-const UNLIMITED_ALLOWANCE_IN_BASE_UNITS = exports.UNLIMITED_ALLOWANCE_IN_BASE_UNITS = new _bignumber2.default(2).pow(256).minus(1);
+const UNLIMITED_ALLOWANCE_IN_BASE_UNITS = exports.UNLIMITED_ALLOWANCE_IN_BASE_UNITS = new _utils.BigNumber(2).pow(256).minus(1);
 const MAX_DIGITS_IN_UNSIGNED_256_INT = exports.MAX_DIGITS_IN_UNSIGNED_256_INT = 78;
 
 /***/ }),
@@ -358,25 +353,27 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.isValidSignatureAsync = exports.isValidSignature = exports.signOrderHashAsync = undefined;
 
-var _signature_utils = __webpack_require__(103);
-
-var _ethSigUtil = __webpack_require__(104);
+var _ethSigUtil = __webpack_require__(103);
 
 var _ethSigUtil2 = _interopRequireDefault(_ethSigUtil);
 
-var _ethereumjsUtil = __webpack_require__(14);
+var _ethereumjsUtil = __webpack_require__(8);
 
 var ethUtil = _interopRequireWildcard(_ethereumjsUtil);
 
 var _assert = __webpack_require__(4);
 
-var _lodash = __webpack_require__(10);
+var _lodash = __webpack_require__(11);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _utils = __webpack_require__(0);
+var _utils = __webpack_require__(104);
 
-var CoreUtils = _interopRequireWildcard(_utils);
+var signatureUtils = _interopRequireWildcard(_utils);
+
+var _utils2 = __webpack_require__(0);
+
+var CoreUtils = _interopRequireWildcard(_utils2);
 
 var _contracts = __webpack_require__(1);
 
@@ -431,18 +428,18 @@ const signOrderHashAsync = exports.signOrderHashAsync = (() => {
     // return the signature params in different orders. In order to support all client implementations,
     // we parse the signature in both ways, and evaluate if either one is a valid signature.
     const validVParamValues = [27, 28];
-    const ecSignatureVRS = _signature_utils.signatureUtils.parseSignatureHexAsVRS(signature);
+    const ecSignatureVRS = signatureUtils.parseSignatureHexAsVRS(signature);
     if (_lodash2.default.includes(validVParamValues, ecSignatureVRS.v)) {
-      const isValidVRSSignature = _signature_utils.signatureUtils.isValidSignature(orderHash, ecSignatureVRS, signerAddress);
+      const isValidVRSSignature = signatureUtils.isValidSignature(orderHash, ecSignatureVRS, signerAddress);
       if (isValidVRSSignature) {
         return ethUtil.toRpcSig(ecSignatureVRS.v, ecSignatureVRS.r, ecSignatureVRS.s) + SignatureTypeStr.EthSign;
       }
     }
 
-    const ecSignatureRSV = _signature_utils.signatureUtils.parseSignatureHexAsRSV(signature);
+    const ecSignatureRSV = signatureUtils.parseSignatureHexAsRSV(signature);
     if (_lodash2.default.includes(validVParamValues, ecSignatureRSV.v)) {
 
-      const isValidRSVSignature = _signature_utils.signatureUtils.isValidSignature(orderHash, ecSignatureRSV, signerAddress);
+      const isValidRSVSignature = signatureUtils.isValidSignature(orderHash, ecSignatureRSV, signerAddress);
       if (isValidRSVSignature) {
         return ethUtil.toRpcSig(ecSignatureRSV.v, ecSignatureRSV.r, ecSignatureRSV.s) + SignatureTypeStr.EthSign;
       }
@@ -487,6 +484,12 @@ const isValidSignatureAsync = exports.isValidSignatureAsync = (() => {
 
 /***/ }),
 /* 8 */
+/***/ (function(module, exports) {
+
+module.exports = require("ethereumjs-util");
+
+/***/ }),
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -517,7 +520,7 @@ const substr24 = exports.substr24 = arg => arg.substr(24);
 const parseIntHex = exports.parseIntHex = arg => parseInt(arg, HEX_RADIX);
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -525,7 +528,7 @@ const parseIntHex = exports.parseIntHex = arg => parseInt(arg, HEX_RADIX);
 
 /* eslint-disable camelcase, no-underscore-dangle */
 const jsonschema_1 = __webpack_require__(16);
-const _ = __webpack_require__(10);
+const _ = __webpack_require__(11);
 
 exports.ValidatorResult = jsonschema_1.ValidatorResult;
 
@@ -572,34 +575,28 @@ const SchemaValidator = function () {
 exports.SchemaValidator = SchemaValidator;
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports) {
 
 module.exports = require("lodash");
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports) {
 
 module.exports = require("bn.js");
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports) {
 
 module.exports = require("web3-utils");
 
 /***/ }),
-/* 13 */
-/***/ (function(module, exports) {
-
-module.exports = {"address":"","abi":[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"spender","type":"address"},{"name":"value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"from","type":"address"},{"name":"to","type":"address"},{"name":"value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"who","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"to","type":"address"},{"name":"value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"owner","type":"address"},{"name":"spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}]}
-
-/***/ }),
 /* 14 */
 /***/ (function(module, exports) {
 
-module.exports = require("ethereumjs-util");
+module.exports = {"address":"","abi":[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"spender","type":"address"},{"name":"value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"from","type":"address"},{"name":"to","type":"address"},{"name":"value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"who","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"to","type":"address"},{"name":"value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"owner","type":"address"},{"name":"spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}]}
 
 /***/ }),
 /* 15 */
@@ -616,25 +613,23 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var _assert = __webpack_require__(4);
 
-var _bignumber = __webpack_require__(5);
-
-var _bignumber2 = _interopRequireDefault(_bignumber);
+var _utils = __webpack_require__(5);
 
 var _constants = __webpack_require__(6);
 
 var constants = _interopRequireWildcard(_constants);
 
-var _bZx_json_schemas = __webpack_require__(9);
+var _bZx_json_schemas = __webpack_require__(10);
 
-var _utils = __webpack_require__(0);
+var _utils2 = __webpack_require__(0);
 
-var utils = _interopRequireWildcard(_utils);
+var utils = _interopRequireWildcard(_utils2);
 
 var _tokenRegistry = __webpack_require__(99);
 
 var tokenRegistry = _interopRequireWildcard(_tokenRegistry);
 
-var _EIP = __webpack_require__(13);
+var _EIP = __webpack_require__(14);
 
 var _EIP2 = _interopRequireDefault(_EIP);
 
@@ -686,9 +681,9 @@ var _weth = __webpack_require__(118);
 
 var weth = _interopRequireWildcard(_weth);
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
@@ -738,7 +733,7 @@ class BZxJS {
     }));
 
     this.resetAllowance = props => this.setAllowance(_extends({}, props, {
-      amountInBaseUnits: new _bignumber2.default(0)
+      amountInBaseUnits: new _utils.BigNumber(0)
     }));
 
     this.getAllowance = (() => {
@@ -758,7 +753,7 @@ class BZxJS {
 
         const tokenContract = yield utils.getContractInstance(_this.web3, _EIP2.default.abi, tokenAddress);
         const balance = yield tokenContract.methods.balanceOf(ownerAddress).call();
-        return new _bignumber2.default(balance);
+        return new _utils.BigNumber(balance);
       });
 
       return function (_x3) {
@@ -993,11 +988,12 @@ exports.loanOrderSchema = {
     maintenanceMarginAmount: { $ref: "/Number" },
     lenderRelayFee: { $ref: "/Number" },
     traderRelayFee: { $ref: "/Number" },
+    maxDurationUnixTimestampSec: { $ref: "/Number" },
     expirationUnixTimestampSec: { $ref: "/Number" },
     makerRole: { $ref: "/Number" },
     salt: { $ref: "/Number" }
   },
-  required: ["bZxAddress", "makerAddress", "loanTokenAddress", "interestTokenAddress", "collateralTokenAddress", "feeRecipientAddress", "oracleAddress", "loanTokenAmount", "interestAmount", "initialMarginAmount", "maintenanceMarginAmount", "lenderRelayFee", "traderRelayFee", "expirationUnixTimestampSec", "makerRole", "salt"],
+  required: ["bZxAddress", "makerAddress", "loanTokenAddress", "interestTokenAddress", "collateralTokenAddress", "feeRecipientAddress", "oracleAddress", "loanTokenAmount", "interestAmount", "initialMarginAmount", "maintenanceMarginAmount", "lenderRelayFee", "traderRelayFee", "maxDurationUnixTimestampSec", "expirationUnixTimestampSec", "makerRole", "salt"],
   type: "object"
 };
 exports.signedLoanOrderSchema = {
@@ -1984,13 +1980,11 @@ exports.getAllowance = exports.setAllowance = undefined;
 
 var _assert = __webpack_require__(4);
 
-var _bignumber = __webpack_require__(5);
+var _utils = __webpack_require__(5);
 
-var _bignumber2 = _interopRequireDefault(_bignumber);
+var _utils2 = __webpack_require__(0);
 
-var _utils = __webpack_require__(0);
-
-var CoreUtils = _interopRequireWildcard(_utils);
+var CoreUtils = _interopRequireWildcard(_utils2);
 
 var _contracts = __webpack_require__(1);
 
@@ -1999,8 +1993,6 @@ var _addresses = __webpack_require__(2);
 var Addresses = _interopRequireWildcard(_addresses);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
@@ -2017,6 +2009,7 @@ const setAllowance = exports.setAllowance = ({ web3, networkId }, {
   _assert.assert.isETHAddressHex("ownerAddress", ownerAddress);
   _assert.assert.isETHAddressHex("spenderAddress", spenderAddress);
   _assert.assert.isETHAddressHex("tokenAddress", tokenAddress);
+  _assert.assert.isValidBaseUnitAmount("amountInBaseUnits", amountInBaseUnits);
 
   const tokenContract = CoreUtils.getContractInstance(web3, erc20Abi, tokenAddress);
 
@@ -2040,7 +2033,7 @@ const getAllowance = exports.getAllowance = (() => {
 
     const tokenContract = yield CoreUtils.getContractInstance(web3, erc20Abi, tokenAddress);
     const allowanceValue = yield tokenContract.methods.allowance(ownerAddress, spenderAddress).call();
-    return new _bignumber2.default(allowanceValue);
+    return new _utils.BigNumber(allowanceValue);
   });
 
   return function getAllowance(_x, _x2) {
@@ -2230,7 +2223,7 @@ const takeLoanOrderAsLender = exports.takeLoanOrderAsLender = ({ web3, networkId
 
   const orderAddresses = [order.makerAddress, order.loanTokenAddress, order.interestTokenAddress, order.collateralTokenAddress, order.feeRecipientAddress, order.oracleAddress];
 
-  const orderValues = [order.loanTokenAmount, order.interestAmount, order.initialMarginAmount, order.maintenanceMarginAmount, order.lenderRelayFee, order.traderRelayFee, order.expirationUnixTimestampSec, order.makerRole, order.salt];
+  const orderValues = [order.loanTokenAmount, order.interestAmount, order.initialMarginAmount, order.maintenanceMarginAmount, order.lenderRelayFee, order.traderRelayFee, order.maxDurationUnixTimestampSec, order.expirationUnixTimestampSec, order.makerRole, order.salt];
 
   const txObj = bZxContract.methods.takeLoanOrderAsLender(orderAddresses, orderValues, order.signature);
 
@@ -2247,7 +2240,7 @@ const takeLoanOrderAsTrader = exports.takeLoanOrderAsTrader = ({ web3, networkId
 
   const orderAddresses = [order.makerAddress, order.loanTokenAddress, order.interestTokenAddress, order.collateralTokenAddress, order.feeRecipientAddress, order.oracleAddress];
 
-  const orderValues = [order.loanTokenAmount, order.interestAmount, order.initialMarginAmount, order.maintenanceMarginAmount, order.lenderRelayFee, order.traderRelayFee, order.expirationUnixTimestampSec, order.makerRole, order.salt];
+  const orderValues = [order.loanTokenAmount, order.interestAmount, order.initialMarginAmount, order.maintenanceMarginAmount, order.lenderRelayFee, order.traderRelayFee, order.maxDurationUnixTimestampSec, order.expirationUnixTimestampSec, order.makerRole, order.salt];
 
   const txObj = bZxContract.methods.takeLoanOrderAsTrader(orderAddresses, orderValues, collateralTokenAddress, loanTokenAmountFilled, order.signature);
 
@@ -2264,7 +2257,7 @@ const pushLoanOrderOnChain = exports.pushLoanOrderOnChain = ({ web3, networkId }
 
   const orderAddresses = [order.makerAddress, order.loanTokenAddress, order.interestTokenAddress, order.collateralTokenAddress, order.feeRecipientAddress, order.oracleAddress];
 
-  const orderValues = [order.loanTokenAmount, order.interestAmount, order.initialMarginAmount, order.maintenanceMarginAmount, order.lenderRelayFee, order.traderRelayFee, order.expirationUnixTimestampSec, order.makerRole, order.salt];
+  const orderValues = [order.loanTokenAmount, order.interestAmount, order.initialMarginAmount, order.maintenanceMarginAmount, order.lenderRelayFee, order.traderRelayFee, order.maxDurationUnixTimestampSec, order.expirationUnixTimestampSec, order.makerRole, order.salt];
 
   const txObj = bZxContract.methods.pushLoanOrderOnChain(orderAddresses, orderValues, order.signature);
 
@@ -2303,7 +2296,7 @@ const cancelLoanOrder = exports.cancelLoanOrder = ({ web3, networkId }, { order,
 
   const orderAddresses = [order.makerAddress, order.loanTokenAddress, order.interestTokenAddress, order.collateralTokenAddress, order.feeRecipientAddress, order.oracleAddress];
 
-  const orderValues = [order.loanTokenAmount, order.interestAmount, order.initialMarginAmount, order.maintenanceMarginAmount, order.lenderRelayFee, order.traderRelayFee, order.expirationUnixTimestampSec, order.makerRole, order.salt];
+  const orderValues = [order.loanTokenAmount, order.interestAmount, order.initialMarginAmount, order.maintenanceMarginAmount, order.lenderRelayFee, order.traderRelayFee, order.maxDurationUnixTimestampSec, order.expirationUnixTimestampSec, order.makerRole, order.salt];
 
   const txObj = bZxContract.methods.cancelLoanOrder(orderAddresses, orderValues, cancelLoanTokenAmount);
 
@@ -2345,13 +2338,63 @@ const getInitialCollateralRequired = exports.getInitialCollateralRequired = (() 
 /* 103 */
 /***/ (function(module, exports) {
 
-module.exports = require("@0xproject/order-utils/lib/src/signature_utils");
+module.exports = require("eth-sig-util");
 
 /***/ }),
 /* 104 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = require("eth-sig-util");
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.parseSignatureHexAsRSV = exports.parseSignatureHexAsVRS = exports.isValidSignature = undefined;
+
+var _ethereumjsUtil = __webpack_require__(8);
+
+var ethUtil = _interopRequireWildcard(_ethereumjsUtil);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+const isValidSignature = exports.isValidSignature = (data, signature, signerAddress) => {
+    const dataBuff = ethUtil.toBuffer(data);
+    const msgHashBuff = ethUtil.hashPersonalMessage(dataBuff);
+    try {
+        const pubKey = ethUtil.ecrecover(msgHashBuff, signature.v, ethUtil.toBuffer(signature.r), ethUtil.toBuffer(signature.s));
+        const retrievedAddress = ethUtil.bufferToHex(ethUtil.pubToAddress(pubKey));
+        return retrievedAddress === signerAddress;
+    } catch (err) {
+        return false;
+    }
+};
+
+const parseSignatureHexAsVRS = exports.parseSignatureHexAsVRS = signatureHex => {
+    const signatureBuffer = ethUtil.toBuffer(signatureHex);
+    let v = signatureBuffer[0];
+    if (v < 27) {
+        v += 27;
+    }
+    const r = signatureBuffer.slice(1, 33);
+    const s = signatureBuffer.slice(33, 65);
+    const ecSignature = {
+        v,
+        r: ethUtil.bufferToHex(r),
+        s: ethUtil.bufferToHex(s)
+    };
+    return ecSignature;
+};
+
+const parseSignatureHexAsRSV = exports.parseSignatureHexAsRSV = signatureHex => {
+    const sig = ethUtil.fromRpcSig(signatureHex);
+    const ecSignature = {
+        v: sig.v,
+        r: ethUtil.bufferToHex(sig.r),
+        s: ethUtil.bufferToHex(sig.s)
+    };
+    return ecSignature;
+};
 
 /***/ }),
 /* 105 */
@@ -2529,7 +2572,7 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var _ramda = __webpack_require__(3);
 
-var _index = __webpack_require__(8);
+var _index = __webpack_require__(9);
 
 var Utils = _interopRequireWildcard(_index);
 
@@ -2579,7 +2622,7 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var _ramda = __webpack_require__(3);
 
-var _index = __webpack_require__(8);
+var _index = __webpack_require__(9);
 
 var Utils = _interopRequireWildcard(_index);
 
@@ -2633,7 +2676,7 @@ var _utils = __webpack_require__(0);
 
 var CoreUtils = _interopRequireWildcard(_utils);
 
-var _EIP = __webpack_require__(13);
+var _EIP = __webpack_require__(14);
 
 var _EIP2 = _interopRequireDefault(_EIP);
 
@@ -2686,11 +2729,11 @@ exports.tradePositionWithOracle = exports.tradePositionWith0x = undefined;
 
 var _ramda = __webpack_require__(3);
 
-var _web3Utils = __webpack_require__(12);
+var _web3Utils = __webpack_require__(13);
 
 var _web3Utils2 = _interopRequireDefault(_web3Utils);
 
-var _bn = __webpack_require__(11);
+var _bn = __webpack_require__(12);
 
 var _bn2 = _interopRequireDefault(_bn);
 
@@ -2698,7 +2741,7 @@ var _ethereumjsAbi = __webpack_require__(112);
 
 var _ethereumjsAbi2 = _interopRequireDefault(_ethereumjsAbi);
 
-var _ethereumjsUtil = __webpack_require__(14);
+var _ethereumjsUtil = __webpack_require__(8);
 
 var _ethereumjsUtil2 = _interopRequireDefault(_ethereumjsUtil);
 
@@ -3002,7 +3045,7 @@ exports.cleanData = undefined;
 
 var _ramda = __webpack_require__(3);
 
-var _index = __webpack_require__(8);
+var _index = __webpack_require__(9);
 
 var OrderHistoryUtils = _interopRequireWildcard(_index);
 

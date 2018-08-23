@@ -1,5 +1,5 @@
 import { assert } from "@0xproject/assert";
-import BigNumber from "bignumber.js";
+import { BigNumber } from "@0xproject/utils";
 import * as CoreUtils from "../core/utils";
 import { local as Contracts } from "../contracts";
 import * as Addresses from "../addresses";
@@ -20,6 +20,7 @@ export const setAllowance = (
   assert.isETHAddressHex("ownerAddress", ownerAddress);
   assert.isETHAddressHex("spenderAddress", spenderAddress);
   assert.isETHAddressHex("tokenAddress", tokenAddress);
+  assert.isValidBaseUnitAmount("amountInBaseUnits", amountInBaseUnits);
 
   const tokenContract = CoreUtils.getContractInstance(
     web3,
