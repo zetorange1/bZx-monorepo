@@ -103,3 +103,27 @@ export const isTradeSupported = async (
 
   return isSupported;
 };
+
+export const getConversionData = async (
+  { web3, networkId },
+  sourceTokenAddress, destTokenAddress, sourceTokenAmount, oracleAddress
+) => {
+  assert.isETHAddressHex("sourceTokenAddress", sourceTokenAddress);
+  assert.isETHAddressHex("destTokenAddress", destTokenAddress);
+  assert.isETHAddressHex("oracleAddress", oracleAddress);
+
+  const oracleContract = await utils.getContractInstance(
+    web3,
+    getContracts(networkId).OracleInterface.abi,
+    oracleAddress
+  );
+
+  const data = await oracleContract.methods
+    .getTradeData(sourceTokenAddress, destTokenAddress, sourceTokenAmount)
+    .call();
+
+  return {
+	  "rate": 0 in data && data[0] ? data[0] : 0,
+	  "amount": 1 in data && data[1] ? data[1] : 0,
+  };
+};

@@ -1,7 +1,7 @@
-import { constants } from "0x.js/lib/src/utils/constants";
-import { ZeroEx } from "0x.js";
+import OrderUtils from "@0xproject/order-utils";
 import { pathOr } from "ramda";
-import { signatureUtils } from "../../signature/signature_utils";
+import * as signatureUtils from "../../signature/utils";
+import * as constants from "../../core/constants";
 import { protocol } from "../../../../config/secrets";
 import BZxJS from "../../core/index";
 import * as Trade0xUtils from "../utils/zeroEx";
@@ -58,7 +58,7 @@ export const getOrder0xWithSignature = async ({
   });
   const transformedOrder0x = Trade0xUtils.transform0xOrder(order0x);
 
-  const orderHash0x = ZeroEx.getOrderHashHex(transformedOrder0x);
+  const orderHash0x = OrderUtils.getOrderHashHex(transformedOrder0x);
   const signature0x = (await bZxJS.signOrderHashAsync(
     orderHash0x,
     transformedOrder0x.maker

@@ -1,4 +1,4 @@
-import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
+import * as constants from "../../core/constants";
 import bZxJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 import makeOrder from "../../core/__tests__/order";
@@ -21,14 +21,15 @@ describe("loanPositions", () => {
     makerAddress,
     loanTokenAddress: loanTokens[0].options.address.toLowerCase(),
     interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
-    collateralTokenAddress: constantsZX.NULL_ADDRESS,
-    feeRecipientAddress: constantsZX.NULL_ADDRESS,
+    collateralTokenAddress: constants.NULL_ADDRESS,
+    feeRecipientAddress: constants.NULL_ADDRESS,
     loanTokenAmount: web3.utils.toWei("251").toString(),
     interestAmount: web3.utils.toWei("2").toString(),
     initialMarginAmount: "50",
     maintenanceMarginAmount: "25",
     lenderRelayFee: web3.utils.toWei("0.001").toString(),
     traderRelayFee: web3.utils.toWei("0.0015").toString(),
+    maxDurationUnixTimestampSec: "2419200", // 28 days
     expirationUnixTimestampSec: "1719061340",
     makerRole: orderConstants.MAKER_ROLE.LENDER,
     salt: BZxJS.generatePseudoRandomSalt().toString()

@@ -1,6 +1,6 @@
 import { assert } from "@0xproject/assert";
-import { constants } from "0x.js/lib/src/utils/constants";
 import { BigNumber } from "@0xproject/utils";
+import * as constants from "./constants";
 import { schemas } from "../schemas/bZx_json_schemas";
 import * as utils from "./utils";
 import * as tokenRegistry from "../tokenRegistry";
@@ -111,6 +111,8 @@ export default class BZxJS {
   getOracleList = async () => oracles.getOracleList(this);
   isTradeSupported = async (...props) =>
     oracles.isTradeSupported(this, ...props);
+  getConversionData = async (...props) =>
+    oracles.getConversionData(this, ...props);
 
   takeLoanOrderAsLender = (...props) =>
     fill.takeLoanOrderAsLender(this, ...props);

@@ -1,7 +1,7 @@
-import { constants as constantsZX } from "0x.js/lib/src/utils/constants";
+import * as constants from "../constants";
 import * as Addresses from "./addresses";
 import { local as Contracts } from "../../contracts";
-import * as constants from "../constants/order";
+import * as orderConstants from "../constants/order";
 import Accounts from "./accounts";
 
 export default ({
@@ -10,7 +10,7 @@ export default ({
   loanTokenAddress = Addresses.ZRXToken,
   interestTokenAddress = Addresses.ZRXToken,
   collateralTokenAddress = Addresses.ZRXToken,
-  feeRecipientAddress = constantsZX.NULL_ADDRESS,
+  feeRecipientAddress = constants.NULL_ADDRESS,
 
   loanTokenAmount = "40000",
   interestAmount = "2",
@@ -21,9 +21,11 @@ export default ({
   lenderRelayFee = "10000",
   traderRelayFee = "10000",
 
+  maxDurationUnixTimestampSec = "2419200", // 28 days
+
   expirationUnixTimestampSec = "2519061340",
 
-  makerRole = constants.MAKER_ROLE.LENDER,
+  makerRole = orderConstants.MAKER_ROLE.LENDER,
   salt = "2019429563929979"
 } = {}) => ({
   bZxAddress: Contracts.BZx.address,
@@ -47,6 +49,8 @@ export default ({
   // relay fees
   lenderRelayFee,
   traderRelayFee,
+
+  maxDurationUnixTimestampSec, // 28 days
 
   // expiration date/time
   expirationUnixTimestampSec,

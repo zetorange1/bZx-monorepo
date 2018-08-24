@@ -1,4 +1,4 @@
-import { constants } from "0x.js/lib/src/utils/constants";
+import * as constants from "../../core/constants";
 import BZxJS from "../../core";
 import bZxJS from "../../core/__tests__/setup";
 import makeOrder from "../../core/__tests__/order";
@@ -53,6 +53,7 @@ describe("isValidSignatureAsync", () => {
   test("should return true for a valid signature", async () => {
     const makerAddress = Accounts[4].address;
 
+    const maxDurationUnixTimestampSec = "2419200"; // 28 days
     const expirationUnixTimestampSec = "1719061340";
     const loanTokenAmount = web3.utils.toWei("100000").toString();
 
@@ -68,6 +69,7 @@ describe("isValidSignatureAsync", () => {
       maintenanceMarginAmount: "25",
       lenderRelayFee: web3.utils.toWei("0.001").toString(),
       traderRelayFee: web3.utils.toWei("0.0015").toString(),
+      maxDurationUnixTimestampSec, // 28 days
       expirationUnixTimestampSec,
       makerRole: orderConstants.MAKER_ROLE.TRADER,
       salt: BZxJS.generatePseudoRandomSalt().toString()
@@ -87,6 +89,7 @@ describe("isValidSignatureAsync", () => {
     const makerAddress = Accounts[4].address;
     const nonMakerAddress = Accounts[0].address;
 
+    const maxDurationUnixTimestampSec = "2419200"; // 28 days
     const expirationUnixTimestampSec = "1719061340";
     const loanTokenAmount = web3.utils.toWei("100000").toString();
 
@@ -102,6 +105,7 @@ describe("isValidSignatureAsync", () => {
       maintenanceMarginAmount: "25",
       lenderRelayFee: web3.utils.toWei("0.001").toString(),
       traderRelayFee: web3.utils.toWei("0.0015").toString(),
+      maxDurationUnixTimestampSec, // 28 days
       expirationUnixTimestampSec,
       makerRole: orderConstants.MAKER_ROLE.TRADER,
       salt: BZxJS.generatePseudoRandomSalt().toString()

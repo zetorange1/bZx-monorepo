@@ -39,6 +39,7 @@ export const takeLoanOrderAsLender = (
     order.maintenanceMarginAmount,
     order.lenderRelayFee,
     order.traderRelayFee,
+    order.maxDurationUnixTimestampSec,
     order.expirationUnixTimestampSec,
     order.makerRole,
     order.salt
@@ -84,6 +85,7 @@ export const takeLoanOrderAsTrader = (
     order.maintenanceMarginAmount,
     order.lenderRelayFee,
     order.traderRelayFee,
+    order.maxDurationUnixTimestampSec,
     order.expirationUnixTimestampSec,
     order.makerRole,
     order.salt
@@ -131,6 +133,7 @@ export const pushLoanOrderOnChain = (
     order.maintenanceMarginAmount,
     order.lenderRelayFee,
     order.traderRelayFee,
+    order.maxDurationUnixTimestampSec,
     order.expirationUnixTimestampSec,
     order.makerRole,
     order.salt
@@ -218,6 +221,7 @@ export const cancelLoanOrder = (
     order.maintenanceMarginAmount,
     order.lenderRelayFee,
     order.traderRelayFee,
+    order.maxDurationUnixTimestampSec,
     order.expirationUnixTimestampSec,
     order.makerRole,
     order.salt

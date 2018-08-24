@@ -1,8 +1,8 @@
 import { BigNumber } from "@0xproject/utils";
 import { assert } from "@0xproject/assert";
-import { constants } from "0x.js/lib/src/utils/constants";
 import BN from "bn.js";
 import Web3Utils from "web3-utils";
+import * as constants from "../constants";
 import { SchemaValidator } from "../../schemas/bZx_json_schemas";
 import { getContracts } from "../../contracts";
 import * as Addresses from "../../addresses";
@@ -28,6 +28,7 @@ export const generatePseudoRandomSalt = () => {
 const getOrderValues = (order, shouldFormatAsStrings) => {
   // Must be strings in production for Web3Utils.soliditySha3 for some reason
   if (shouldFormatAsStrings) {
+    console.log(order);
     return [
       order.loanTokenAmount.toString(),
       order.interestAmount.toString(),
@@ -35,6 +36,7 @@ const getOrderValues = (order, shouldFormatAsStrings) => {
       order.maintenanceMarginAmount.toString(),
       order.lenderRelayFee.toString(),
       order.traderRelayFee.toString(),
+      order.maxDurationUnixTimestampSec.toString(),
       order.expirationUnixTimestampSec.toString(),
       order.makerRole.toString(),
       order.salt.toString()
@@ -47,6 +49,7 @@ const getOrderValues = (order, shouldFormatAsStrings) => {
     bigNumberToBN(order.maintenanceMarginAmount),
     bigNumberToBN(order.lenderRelayFee),
     bigNumberToBN(order.traderRelayFee),
+    bigNumberToBN(order.maxDurationUnixTimestampSec),
     bigNumberToBN(order.expirationUnixTimestampSec),
     bigNumberToBN(order.makerRole),
     bigNumberToBN(order.salt)
@@ -86,7 +89,7 @@ export const getLoanOrderHashHex = order => {
   const orderHashHex = Web3Utils.soliditySha3(
     { t: "address", v: order.bZxAddress },
     { t: "address[6]", v: orderAddresses },
-    { t: "uint256[9]", v: orderValues }
+    { t: "uint256[10]", v: orderValues }
   );
   return orderHashHex;
 };
