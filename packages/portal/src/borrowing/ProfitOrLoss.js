@@ -1,7 +1,8 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import Button from "material-ui/Button";
-import Dialog, { DialogContent } from "material-ui/Dialog";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContent from "@material-ui/core/DialogContent";
 import { COLORS } from "../styles/constants";
 import { fromBigNumber } from "../common/utils";
 import { SectionLabel } from "../common/FormSection";
@@ -44,6 +45,14 @@ export default class ProfitOrLoss extends React.Component {
     this.getProfitOrLoss();
   };
 
+  componentDidUpdate(prevProps) {
+    if (
+      prevProps.data &&
+      JSON.stringify(prevProps.data) !== JSON.stringify(this.props.data)
+    )
+      this.getProfitOrLoss();
+  }
+
   getProfitOrLoss = async () => {
     const { bZx, web3, loanOrderHash, accounts } = this.props;
     const txOpts = {
@@ -56,6 +65,8 @@ export default class ProfitOrLoss extends React.Component {
       trader: accounts[0],
       txOpts
     });
+    console.log(`Profit ->`);
+    console.log(data);
     this.setState({
       loading: false,
       profit: data.profitOrLoss,
@@ -86,7 +97,7 @@ export default class ProfitOrLoss extends React.Component {
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {
@@ -127,7 +138,7 @@ export default class ProfitOrLoss extends React.Component {
 
   render() {
     const { loading, profit, isProfit, showDialog } = this.state;
-    const { symbol } = this.props;
+    const { symbol, decimals } = this.props;
     return (
       <Fragment>
         <br />
@@ -139,7 +150,7 @@ export default class ProfitOrLoss extends React.Component {
             <Fragment>
               <DataPoint>
                 {!isProfit && profit.toString() !== `0` && `-`}
-                {fromBigNumber(profit, 1e18)}
+                {fromBigNumber(profit, 10 ** decimals)}
                 {` ${symbol}`}
               </DataPoint>
               {isProfit &&
@@ -162,8 +173,9 @@ export default class ProfitOrLoss extends React.Component {
           <DialogContent>
             <SectionLabel>Withdraw Profit</SectionLabel>
             <p>
-              This will withdraw {fromBigNumber(profit, 1e18)} {symbol} from
-              your loan.
+              This will withdraw {fromBigNumber(profit, 10 ** decimals)}
+              {` `}
+              {symbol} from your loan.
             </p>
             <Button
               onClick={this.withdrawProfit}

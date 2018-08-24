@@ -1,15 +1,14 @@
 import styled from "styled-components";
-import MuiCard, {
-  CardActions,
-  CardContent as MuiCardContent
-} from "material-ui/Card";
-import Button from "material-ui/Button";
-import Dialog, { DialogActions, DialogContent } from "material-ui/Dialog";
+import MuiCard from "@material-ui/core/Card";
+import CardActions from "@material-ui/core/CardActions";
+import MuiCardContent from "@material-ui/core/CardContent";
+import Button from "@material-ui/core/Button";
+import { Dialog, DialogActions, DialogContent } from "@material-ui/core";
 
 import OrderItem from "../orders/OrderHistory/OrderItem";
 
 import { COLORS } from "../styles/constants";
-import { getSymbol } from "../common/tokens";
+import { getSymbol, getDecimals } from "../common/tokens";
 import { fromBigNumber } from "../common/utils";
 
 const CardContent = styled(MuiCardContent)`
@@ -115,6 +114,14 @@ export default class ClosedLoan extends React.Component {
     const interestTokenSymbol = getSymbol(tokens, interestTokenAddress);
     const positionTokenSymbol = getSymbol(tokens, positionTokenAddressFilled);
 
+    const collateralTokenDecimals = collateralToken.decimals;
+    const loanTokenDecimals = getDecimals(tokens, loanTokenAddress);
+    const interestTokenDecimals = getDecimals(tokens, interestTokenAddress);
+    const positionTokenDecimals = getDecimals(
+      tokens,
+      positionTokenAddressFilled
+    );
+
     const tradeOpened = positionTokenAddressFilled !== loanTokenAddress;
 
     const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
@@ -182,7 +189,10 @@ export default class ClosedLoan extends React.Component {
           <DataPointContainer>
             <Label>Collateral</Label>
             <DataPoint>
-              {fromBigNumber(collateralTokenAmountFilled, 1e18)}
+              {fromBigNumber(
+                collateralTokenAmountFilled,
+                10 ** collateralTokenDecimals
+              )}
               {` `}
               {collateralTokenSymbol}
             </DataPoint>
@@ -191,21 +201,27 @@ export default class ClosedLoan extends React.Component {
           <DataPointContainer>
             <Label>Borrowed</Label>
             <DataPoint>
-              {fromBigNumber(loanTokenAmountFilled, 1e18)} {loanTokenSymbol}
+              {fromBigNumber(loanTokenAmountFilled, 10 ** loanTokenDecimals)}
+              {` `}
+              {loanTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Interest paid so far</Label>
             <DataPoint>
-              {fromBigNumber(interestPaidSoFar, 1e18)} {interestTokenSymbol}
+              {fromBigNumber(interestPaidSoFar, 10 ** interestTokenDecimals)}
+              {` `}
+              {interestTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Interest accrued (total)</Label>
             <DataPoint>
-              {fromBigNumber(interestTotalAccrued, 1e18)} {interestTokenSymbol}
+              {fromBigNumber(interestTotalAccrued, 10 ** interestTokenDecimals)}
+              {` `}
+              {interestTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
@@ -221,7 +237,10 @@ export default class ClosedLoan extends React.Component {
           <DataPointContainer style={{ marginLeft: `12px` }}>
             <Label>Trade Amount</Label>
             <DataPoint>
-              {fromBigNumber(positionTokenAmountFilled, 1e18)}
+              {fromBigNumber(
+                positionTokenAmountFilled,
+                10 ** positionTokenDecimals
+              )}
               {` `}
               {positionTokenSymbol}
             </DataPoint>

@@ -1,8 +1,11 @@
 import { Fragment } from "react";
 import styled from "styled-components";
-import Tooltip from "material-ui/Tooltip";
-import Input, { InputLabel, InputAdornment } from "material-ui/Input";
-import { FormControl, FormHelperText } from "material-ui/Form";
+import Tooltip from "@material-ui/core/Tooltip";
+import Input from "@material-ui/core/Input";
+import InputLabel from "@material-ui/core/InputLabel";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import FormControl from "@material-ui/core/FormControl";
+import FormHelperText from "@material-ui/core/FormHelperText";
 import { getSymbol } from "../../common/tokens";
 
 import TokenPicker from "../../common/TokenPicker";
@@ -98,7 +101,7 @@ export default ({
                 title={
                   <div style={{ maxWidth: `300px` }}>
                     This sets the amount to be borrowed. It cannot be larger
-                    than the amount being loaned above.
+                    than the available amount being loaned above.
                   </div>
                 }
               >

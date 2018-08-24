@@ -1,7 +1,5 @@
 import { BigNumber } from "bignumber.js";
 
-// const SCALE_FACTOR = BigNumber(1e18);
-
 export const fromBigNumber = (num, scale = 1) =>
   BigNumber(num.toString())
     .div(scale)
@@ -21,6 +19,56 @@ export const getInitialCollateralRequired = async (
     loanTokenAddress,
     collateralTokenAddress,
     oracleAddress,
-    toBigNumber(loanTokenAmountFilled, 1e18).toFixed(0),
+    toBigNumber(loanTokenAmountFilled).toFixed(0),
     initialMarginAmount
   );
+
+export const getTokenConversionData = (
+  sourceTokenAddress,
+  destTokenAddress,
+  sourceTokenAmount,
+  oracleAddress,
+  bZx
+) =>
+  bZx.getConversionData(
+    sourceTokenAddress,
+    destTokenAddress,
+    toBigNumber(sourceTokenAmount).toFixed(0),
+    oracleAddress
+  );
+
+export const getTokenConversionAmount = async (
+  sourceTokenAddress,
+  destTokenAddress,
+  sourceTokenAmount,
+  oracleAddress,
+  bZx
+) => {
+  const data = await getTokenConversionData(
+    sourceTokenAddress,
+    destTokenAddress,
+    sourceTokenAmount,
+    oracleAddress,
+    bZx
+  );
+
+  return data.amount;
+};
+
+export const getTokenConversionRate = async (
+  sourceTokenAddress,
+  destTokenAddress,
+  sourceTokenAmount,
+  oracleAddress,
+  bZx
+) => {
+  const data = await getTokenConversionData(
+    sourceTokenAddress,
+    destTokenAddress,
+    sourceTokenAmount,
+    oracleAddress,
+    bZx
+  );
+
+  return data.rate;
+};

@@ -6,7 +6,7 @@ Due to the [fact](https://material-ui-next.com/guides/interoperability/#styled-c
 
 ```jsx
 import styled from "styled-components";
-import MuiTextField from "material-ui/TextField";
+import MuiTextField from "@material-ui/core/TextField";
 
 const TextField = styled(MuiTextField)`
   display: block !important;

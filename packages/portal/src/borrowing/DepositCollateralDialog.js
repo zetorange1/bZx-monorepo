@@ -1,8 +1,12 @@
 import styled from "styled-components";
-import Dialog, { DialogTitle, DialogContent } from "material-ui/Dialog";
-import Input, { InputLabel, InputAdornment } from "material-ui/Input";
-import { FormControl } from "material-ui/Form";
-import Button from "material-ui/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Input from "@material-ui/core/Input";
+import InputLabel from "@material-ui/core/InputLabel";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import FormControl from "@material-ui/core/FormControl";
+import Button from "@material-ui/core/Button";
 import { toBigNumber } from "../common/utils";
 
 const TxHashLink = styled.a.attrs({
@@ -34,7 +38,7 @@ export default class DepositCollateralDialog extends React.Component {
     // console.log({
     //   loanOrderHash,
     //   collateralTokenFilled: collateralToken.address,
-    //   depositAmount: toBigNumber(amount, 1e18),
+    //   depositAmount: toBigNumber(amount, 10**collateralToken.decimals),
     //   txOpts
     // });
 
@@ -45,7 +49,7 @@ export default class DepositCollateralDialog extends React.Component {
     const txObj = await bZx.depositCollateral({
       loanOrderHash,
       collateralTokenFilled: collateralToken.address,
-      depositAmount: toBigNumber(amount, 1e18),
+      depositAmount: toBigNumber(amount, 10 ** collateralToken.decimals),
       getObject: true,
       txOpts
     });
@@ -55,7 +59,7 @@ export default class DepositCollateralDialog extends React.Component {
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = gas;
+          txOpts.gas = window.gasValue(gas);
           txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {

@@ -1,6 +1,6 @@
 /* globals document */
 import React from "react";
-import { MuiThemeProvider } from "material-ui/styles";
+import { MuiThemeProvider } from "@material-ui/core/styles";
 import getPageContext from "./getPageContext";
 
 export default function withRoot(Component) {

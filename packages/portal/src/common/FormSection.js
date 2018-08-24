@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import MuiDivider from "material-ui/Divider";
+import MuiDivider from "@material-ui/core/Divider";
 import { COLORS } from "../styles/constants";
 
 const Section = styled.div`

@@ -1,7 +1,6 @@
 // /* global window */
 import { Fragment } from "react";
 import styled from "styled-components";
-import { ZeroEx } from "0x.js";
 import BZxJS from "bzx.js"; // eslint-disable-line
 import ChooseProviderDialog from "./ChooseProviderDialog";
 import getWeb3 from "./getWeb3";
@@ -36,7 +35,6 @@ export default class Web3Container extends React.Component {
     loading: true,
     errorMsg: ``,
     web3: null,
-    zeroEx: null,
     tokens: null,
     bZx: null,
     accounts: null,
@@ -89,10 +87,12 @@ export default class Web3Container extends React.Component {
             <Fragment>
               <div>
                 You may be on the wrong network. Please check that MetaMask is
-                set to Main Ethereum Network or Ropsten Test Network.<br />
+                set to Main Ethereum Network or Ropsten Test Network.
+                <br />
                 <br />
                 <div style={{ display: `inline-block` }}>
-                  You can also{` `}
+                  You can also
+                  {` `}
                   <CancelButton href="" onClick={this.handleClearProvider}>
                     <CancelButtonLabel>choose</CancelButtonLabel>
                   </CancelButton>
@@ -114,11 +114,6 @@ export default class Web3Container extends React.Component {
     const bZx = new BZxJS(web3.currentProvider, { networkId });
     bZx.portalProviderName = providerName; // setting custom field
 
-    const zeroEx = new ZeroEx(web3.currentProvider, {
-      networkId,
-      tokenRegistryContractAddress: bZx.addresses.TokenRegistry
-    });
-
     // Get accounts
     let accounts;
     try {
@@ -131,10 +126,12 @@ export default class Web3Container extends React.Component {
             errorMsg: (
               <Fragment>
                 <div>
-                  Please unlock your MetaMask account.<br />
+                  Please unlock your MetaMask account.
+                  <br />
                   <br />
                   <div style={{ display: `inline-block` }}>
-                    You can also{` `}
+                    You can also
+                    {` `}
                     <CancelButton href="" onClick={this.handleClearProvider}>
                       <CancelButtonLabel>choose</CancelButtonLabel>
                     </CancelButton>
@@ -216,7 +213,6 @@ export default class Web3Container extends React.Component {
       loading: false,
       errorMsg: ``,
       web3,
-      zeroEx,
       tokens,
       bZx,
       accounts,
@@ -230,7 +226,6 @@ export default class Web3Container extends React.Component {
       loading,
       errorMsg,
       web3,
-      zeroEx,
       tokens,
       bZx,
       accounts,
@@ -249,7 +244,8 @@ export default class Web3Container extends React.Component {
       if (hideChooseProviderDialog) {
         return (
           <LoadingContainer style={{ display: `inline-block` }}>
-            Please{` `}
+            Please
+            {` `}
             <a
               style={{ textDecoration: `none`, display: `inherit` }}
               href=""
@@ -271,13 +267,16 @@ export default class Web3Container extends React.Component {
     }
     if (loading) {
       return (
-        <LoadingContainer>Connecting to {providerName}...</LoadingContainer>
+        <LoadingContainer>
+          Connecting to {providerName}
+          ...
+        </LoadingContainer>
       );
     } else if (errorMsg) {
       return <LoadingContainer>{errorMsg}</LoadingContainer>;
     }
     return web3 ? (
-      render({ web3, zeroEx, tokens, bZx, accounts, oracles, networkId })
+      render({ web3, tokens, bZx, accounts, oracles, networkId })
     ) : (
       <NoProviderMessage
         providerName={providerName}

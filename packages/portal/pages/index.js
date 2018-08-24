@@ -20,6 +20,7 @@ import Balances from "../src/balances";
 import GenerateOrder from "../src/orders/GenerateOrder";
 import FillOrder from "../src/orders/FillOrder";
 import OrderHistory from "../src/orders/OrderHistory";
+import OrderBook from "../src/orders/OrderBook";
 
 import Borrowing from "../src/borrowing";
 
@@ -34,6 +35,7 @@ import { getTrackedTokens } from "../src/common/trackedTokens";
 
 const TABS = [
   { id: `Orders_GenOrder`, label: `Generate Order` },
+  { id: `Orders_OrderBook`, label: `Order Book` },
   { id: `Orders_FillOrder`, label: `Fill Order` },
   { id: `Orders_OrderHistory`, label: `Order History` }
 ];
@@ -42,11 +44,13 @@ class Index extends React.Component {
   state = {
     activeCard: `Balances`,
     activeTab: `Orders_GenOrder`,
+    activeOrder: null,
     trackedTokens: [],
     providerName: ``,
     getWeb3: false,
     web3IsReceived: false,
-    hideChooseProviderDialog: false
+    hideChooseProviderDialog: false,
+    lastTokenRefresh: null
   };
 
   setProvider = provider => {
@@ -78,7 +82,8 @@ class Index extends React.Component {
   };
 
   changeCard = cardId => this.setState({ activeCard: cardId });
-  changeTab = tabId => this.setState({ activeTab: tabId });
+  changeTab = (tabId, order) =>
+    this.setState({ activeTab: tabId, activeOrder: order });
 
   web3Received = () => this.setState({ getWeb3: false, web3IsReceived: true });
 
@@ -90,12 +95,14 @@ class Index extends React.Component {
     if (hardRefresh) {
       this.setState({ trackedTokens: [] }, () =>
         this.setState({
-          trackedTokens: getTrackedTokens(tokens)
+          trackedTokens: getTrackedTokens(tokens),
+          lastTokenRefresh: new Date().getTime()
         })
       );
     } else {
       this.setState({
-        trackedTokens: getTrackedTokens(tokens)
+        trackedTokens: getTrackedTokens(tokens),
+        lastTokenRefresh: new Date().getTime()
       });
     }
   };
@@ -176,7 +183,8 @@ class Index extends React.Component {
 
   contentSection = (
     { web3, zeroEx, tokens, bZx, accounts, oracles, networkId },
-    cardId
+    cardId,
+    tabId
   ) => {
     switch (cardId) {
       case `Balances`:
@@ -196,6 +204,7 @@ class Index extends React.Component {
               tokens={tokens}
               trackedTokens={this.state.trackedTokens}
               updateTrackedTokens={this.updateTrackedTokens(tokens)}
+              lastTokenRefresh={this.state.lastTokenRefresh}
             />
           </Fragment>
         );
@@ -210,6 +219,19 @@ class Index extends React.Component {
               providerName={this.state.providerName}
               clearProvider={this.clearProvider}
             />
+            <ContentContainer
+              show={this.state.activeTab === `Orders_OrderBook`}
+            >
+              <p>On-chain Fillable Orders</p>
+              <Divider />
+              <OrderBook
+                bZx={bZx}
+                accounts={accounts}
+                tokens={tokens}
+                changeTab={this.changeTab}
+                tabId={tabId}
+              />
+            </ContentContainer>
             <ContentContainer show={this.state.activeTab === `Orders_GenOrder`}>
               <GenerateOrder
                 tokens={tokens}
@@ -228,12 +250,19 @@ class Index extends React.Component {
                 bZx={bZx}
                 web3={web3}
                 accounts={accounts}
+                activeOrder={this.state.activeOrder}
+                changeTab={this.changeTab}
               />
             </ContentContainer>
             <ContentContainer
               show={this.state.activeTab === `Orders_OrderHistory`}
             >
-              <OrderHistory bZx={bZx} accounts={accounts} tokens={tokens} />
+              <OrderHistory
+                bZx={bZx}
+                accounts={accounts}
+                tokens={tokens}
+                tabId={tabId}
+              />
             </ContentContainer>
           </Fragment>
         );
@@ -294,7 +323,8 @@ class Index extends React.Component {
               clearProvider={this.clearProvider}
             />
             <p>
-              Make margin calls and earn bounty rewards.<br />
+              Make margin calls and earn bounty rewards.
+              <br />
               If a margin account is under margin maintenance, it needs to be
               liquidated.
             </p>
@@ -318,7 +348,7 @@ class Index extends React.Component {
   render() {
     const {
       activeCard,
-      // activeTab,
+      activeTab,
       // trackedTokens,
       providerName,
       getWeb3,
@@ -353,7 +383,7 @@ class Index extends React.Component {
           >
             <Web3Container
               // eslint-disable-next-line
-              render={({ web3, zeroEx, tokens, bZx, accounts, oracles, networkId }) => this.contentSection({ providerName, web3, zeroEx, tokens, bZx, accounts, oracles, networkId },activeCard)}
+              render={({ web3, zeroEx, tokens, bZx, accounts, oracles, networkId }) => this.contentSection({ providerName, web3, zeroEx, tokens, bZx, accounts, oracles, networkId }, activeCard, activeTab)}
               providerName={providerName}
               setProvider={this.setProvider}
               clearProvider={this.clearProvider}

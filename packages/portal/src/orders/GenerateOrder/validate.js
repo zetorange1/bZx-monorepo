@@ -1,5 +1,5 @@
 import { getTrackedTokens } from "../../common/trackedTokens";
-import { getTokenBalance, getSymbol } from "../../common/tokens";
+import { getTokenBalance, getSymbol, getDecimals } from "../../common/tokens";
 import { toBigNumber } from "../../common/utils";
 
 const validRange = (min, max, val) => {
@@ -149,7 +149,12 @@ export default async (bZx, accounts, state, tokens) => {
       interestTokenAddress,
       accounts
     );
-    if (toBigNumber(interestTotalAmount, 1e18).gt(interestTokenBalance)) {
+    if (
+      toBigNumber(
+        interestTotalAmount,
+        10 ** getDecimals(tokens, interestTokenAddress)
+      ).gt(interestTokenBalance)
+    ) {
       alert(
         `Your interest token balance is too low. You need at least ${interestTotalAmount} ${getSymbol(
           tokens,
@@ -164,7 +169,12 @@ export default async (bZx, accounts, state, tokens) => {
       collateralTokenAddress,
       accounts
     );
-    if (toBigNumber(collateralTokenAmount, 1e18).gt(collateralTokenBalance)) {
+    if (
+      toBigNumber(
+        collateralTokenAmount,
+        10 ** getDecimals(tokens, collateralTokenAddress)
+      ).gt(collateralTokenBalance)
+    ) {
       alert(
         `Your collteral token balance is too low. You need at least ${collateralTokenAmount} ${getSymbol(
           tokens,
@@ -179,7 +189,12 @@ export default async (bZx, accounts, state, tokens) => {
       loanTokenAddress,
       accounts
     );
-    if (toBigNumber(loanTokenAmount, 1e18).gt(loanTokenBalance)) {
+    if (
+      toBigNumber(
+        loanTokenAmount,
+        10 ** getDecimals(tokens, loanTokenAddress)
+      ).gt(loanTokenBalance)
+    ) {
       alert(
         `Your loan token balance is too low. You need at least ${loanTokenAmount} ${getSymbol(
           tokens,

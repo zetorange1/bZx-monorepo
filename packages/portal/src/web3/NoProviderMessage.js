@@ -24,14 +24,17 @@ export default class NoProviderMessage extends React.Component {
       case `Ledger`:
         return (
           <div>
-            We were unable to access your Ledger wallet.<br />
-            <br />In order to interact with this dApp, please ensure the device
-            is connected to the Ethereum app and you have enabled Contract data
-            and Browser support under settings. Then refresh this page to try
-            again.<br />
+            We were unable to access your Ledger wallet.
+            <br />
+            <br />
+            In order to interact with this dApp, please ensure the device is
+            connected to the Ethereum app and you have enabled Contract data and
+            Browser support under settings. Then refresh this page to try again.
+            <br />
             <br />
             <div style={{ display: `inline-block` }}>
-              You can also{` `}
+              You can also
+              {` `}
               <CancelButton href="" onClick={this.handleClearProvider}>
                 <CancelButtonLabel>choose</CancelButtonLabel>
               </CancelButton>
@@ -43,12 +46,16 @@ export default class NoProviderMessage extends React.Component {
       case `Trezor`:
         return (
           <div>
-            We were unable to access your {providerName} wallet.<br />
-            <br />In order to interact with this dApp, please ensure the device
-            is connected and authenticated, then refresh this page to try again.<br />
+            We were unable to access your {providerName} wallet.
+            <br />
+            <br />
+            In order to interact with this dApp, please ensure the device is
+            connected and authenticated, then refresh this page to try again.
+            <br />
             <br />
             <div style={{ display: `inline-block` }}>
-              You can also{` `}
+              You can also
+              {` `}
               <CancelButton href="" onClick={this.handleClearProvider}>
                 <CancelButtonLabel>choose</CancelButtonLabel>
               </CancelButton>
@@ -61,8 +68,11 @@ export default class NoProviderMessage extends React.Component {
       default:
         return (
           <div>
-            We were unable to access an Ethereum wallet you control.<br />
-            <br />In order to interact with this dApp, please install the{` `}
+            We were unable to access an Ethereum wallet you control.
+            <br />
+            <br />
+            In order to interact with this dApp, please install the
+            {` `}
             <a
               href="https://metamask.io"
               target="_blank"
@@ -71,10 +81,12 @@ export default class NoProviderMessage extends React.Component {
               MetaMask
             </a>
             {` `}
-            extension in your browser, and refresh this page.<br />
+            extension in your browser, and refresh this page.
+            <br />
             <br />
             <div style={{ display: `inline-block` }}>
-              You can also{` `}
+              You can also
+              {` `}
               <CancelButton href="" onClick={this.handleClearProvider}>
                 <CancelButtonLabel>choose</CancelButtonLabel>
               </CancelButton>

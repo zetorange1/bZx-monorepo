@@ -1,11 +1,10 @@
 import styled from "styled-components";
-import Button from "material-ui/Button";
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle
-} from "material-ui/Dialog";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 import Nav from "./Nav";
 // import Footer from "./Footer";
 import { DIMENSIONS } from "../styles/constants";
@@ -51,6 +50,14 @@ export default class Layout extends React.Component {
         this.hideAlert();
       }
     };
+    window.gasValue = gasEstimate => {
+      const buffer = 0.1;
+      const newValue = Math.round(gasEstimate + gasEstimate * buffer);
+      console.log(newValue);
+      return newValue;
+    };
+    window.tokenSymbols = {};
+    window.tokenDecimals = {};
   };
 
   showAlert = (text, alertComponent = null) => {

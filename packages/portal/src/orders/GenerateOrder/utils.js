@@ -1,9 +1,23 @@
-import BZxJS from "bzx.js"; // eslint-disable-line
+import styled from "styled-components";
+import BZxJS from "bZx.js"; // eslint-disable-line
 import { toBigNumber } from "../../common/utils";
 import getNetworkId from "../../web3/getNetworkId";
+import { getDecimals } from "../../common/tokens";
 
-export const compileObject = async (web3, state, account, bZx) => {
+const TxHashLink = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  font-family: monospace;
+  display: block;
+  text-overflow: ellipsis;
+  overflow: auto;
+}
+`;
+
+export const compileObject = async (web3, state, account, bZx, tokens) => {
   const { sendToRelayExchange } = state;
+  console.log(tokens);
   return {
     bZxAddress: bZx.addresses.BZx,
     makerAddress: account.toLowerCase(),
@@ -22,8 +36,14 @@ export const compileObject = async (web3, state, account, bZx) => {
     oracleAddress: state.oracleAddress,
 
     // token amounts
-    loanTokenAmount: toBigNumber(state.loanTokenAmount, 1e18).toFixed(0),
-    interestAmount: toBigNumber(state.interestAmount, 1e18).toFixed(0),
+    loanTokenAmount: toBigNumber(
+      state.loanTokenAmount,
+      10 ** getDecimals(tokens, state.loanTokenAddress)
+    ).toFixed(0),
+    interestAmount: toBigNumber(
+      state.interestAmount,
+      10 ** getDecimals(tokens, state.interestTokenAddress)
+    ).toFixed(0),
 
     // margin amounts
     initialMarginAmount: state.initialMarginAmount.toString(),
@@ -38,6 +58,9 @@ export const compileObject = async (web3, state, account, bZx) => {
       sendToRelayExchange ? state.traderRelayFee : 0,
       1e18
     ).toFixed(0),
+
+    // max loan duration
+    maxDurationUnixTimestampSec: Math.round(state.maxDuration).toString(),
 
     // expiration date/time
     expirationUnixTimestampSec: state.expirationDate.unix().toString()
@@ -94,3 +117,70 @@ export const signOrder = async (orderHash, accounts, bZx) => {
 };
 
 export const getOrderHash = obj => BZxJS.getLoanOrderHashHex(obj);
+
+export const pushOrderOnChain = (order, web3, bZx, accounts) => {
+  const txOpts = {
+    from: accounts[0],
+    // gas: 1000000, // gas estimated in bZx.js
+    gasPrice: web3.utils.toWei(`1`, `gwei`).toString()
+  };
+
+  // console.log(`order`, order);
+  // console.log(`txOpts`, txOpts);
+
+  if (bZx.portalProviderName !== `MetaMask`) {
+    alert(`Please confirm this transaction on your device.`);
+  }
+
+  const txObj = bZx.pushLoanOrderOnChain({
+    order,
+    getObject: true
+  });
+
+  try {
+    txObj
+      .estimateGas(txOpts)
+      .then(gas => {
+        console.log(gas);
+        txOpts.gas = window.gasValue(gas);
+        txObj
+          .send(txOpts)
+          .once(`transactionHash`, hash => {
+            alert(`Transaction submitted, transaction hash:`, {
+              component: () => (
+                <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                  {hash}
+                </TxHashLink>
+              )
+            });
+          })
+          .then(() => {
+            console.log();
+            alert(`Your loan order has been pushed on chain.`);
+          })
+          .catch(error => {
+            console.error(error.message);
+            if (
+              error.message.includes(`denied transaction signature`) ||
+              error.message.includes(`Condition of use not satisfied`) ||
+              error.message.includes(`Invalid status`)
+            ) {
+              alert();
+            }
+          });
+      })
+      .catch(error => {
+        console.error(error);
+        alert(
+          `The transaction is failing. This loan order cannot be pushed on chain at this time. Please check the parameters of the order and try again later.`
+        );
+      });
+  } catch (error) {
+    console.error(error);
+    alert(
+      `The transaction is failing. This loan order cannot be pushed on chain at this time. Please check the parameters of the order and try again later.`
+    );
+  }
+
+  return true;
+};
