@@ -58,7 +58,7 @@ const ethUtil = require('ethereumjs-util');
 const { Interface, providers, Contract } = require('ethers');
 
 import Web3Utils from 'web3-utils';
-import BZxJS from 'bZx.js'
+import BZxJS from 'bzx.js'
 import { ZeroEx } from '0x.js';
 import { ZeroEx as ZeroExV2 } from '0xV2.js';
 

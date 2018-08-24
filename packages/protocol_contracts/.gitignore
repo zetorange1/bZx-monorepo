@@ -6,3 +6,6 @@ package-lock.json
 /test_network/**
 /html_public_test
 *.log
+scTopics
+coverage
+coverage.json
