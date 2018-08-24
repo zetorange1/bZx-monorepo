@@ -6,7 +6,7 @@
 /**/test_network/**
 /**/html_public_test
 /packages/portal/live_site
-/packages/protocol_contracts/html_public_test
+/packages/contracts/html_public_test
 *.log
 secrets.js
 *.secret.js
