@@ -1,11 +1,16 @@
 const path = require("path");
 const nodeExternals = require("webpack-node-externals");
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+
 
 module.exports = {
-  entry: "./src/core/index.js",
+  entry: {
+    "bzx": "./src/core/index.js",
+    "bzx.min": "./src/core/index.js",
+  },
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "bzx.js",
+    filename: "[name].js",
     library: "bzx.js",
     libraryTarget: "umd"
   },
@@ -21,4 +26,9 @@ module.exports = {
     ]
   },
   externals: [nodeExternals()], // in order to ignore all modules in node_modules folder from bundling
+  plugins: [
+    new UglifyJsPlugin({
+      include: /\.min\.js$/
+    })
+  ],
 };
