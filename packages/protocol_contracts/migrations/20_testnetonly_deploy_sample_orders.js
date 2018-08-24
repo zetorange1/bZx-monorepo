@@ -7,7 +7,7 @@ var BZxOracle = artifacts.require("TestNetOracle");
 var TestNetBZRxToken = artifacts.require("TestNetBZRxToken");
 var ERC20 = artifacts.require("ERC20"); // for testing with any ERC20 token
 
-var fs = require('fs');
+//var fs = require('fs');
 
 const BigNumber = require('bignumber.js');
 const BN = require('bn.js');
@@ -16,7 +16,7 @@ const ethUtil = require('ethereumjs-util');
 const _ = require('lodash');
 
 const Web3Utils = require('web3-utils');
-const BZxJS = require('bzx.js');
+const BZxJS = require('bZx.js').default;
 const ZeroEx = require('0x.js');
 
 const config = require('../protocol-config.js');
@@ -47,7 +47,7 @@ module.exports = function(deployer, network, accounts) {
 		const MAX_UINT = new BigNumber(2).pow(256).minus(1).toString();
 
 		const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
-		const NONNULL_ADDRESS = "0x0000000000000000000000000000000000000001";
+		//const NONNULL_ADDRESS = "0x0000000000000000000000000000000000000001";
 
 		// account roles
 		var owner_account = accounts[0]; // owner/contract creator, holder of all tokens
@@ -56,7 +56,7 @@ module.exports = function(deployer, network, accounts) {
 		var lender2_account = accounts[2]; // lender 2
 		var trader2_account = accounts[1]; // trader 2
 		var makerOf0xOrder_account = accounts[6]; // maker of 0x order
-		var relay1_account = accounts[9]; // relay 1
+		//var relay1_account = accounts[9]; // relay 1
 
 		var test_tokens = [];
 		var loanToken1;
@@ -68,19 +68,17 @@ module.exports = function(deployer, network, accounts) {
 		var maker0xToken1;
 
 		var OrderParams_bZx_1;
-		var OrderHash_bZx_1;
 		var ECSignature_raw_1;
-		var ECSignature_1;
 
-		async function asyncCall() {
+		deployer.then(async function() {
 			var bZxProxy = await BZxProxy.deployed();
 			var bZx = await BZx.at(bZxProxy.address);
-
 			var vault = await BZxVault.deployed();
 			var oracle = await BZxOracle.deployed();
 			var bzrx_token = await TestNetBZRxToken.deployed();
 
 			var bZxTo0x = await BZxTo0x.deployed();
+			//var zrx_token;
 			var zrx_token = await ERC20.at(config["addresses"]["development"]["ZeroEx"]["ZRXToken"]);
 
 			for (var i = 0; i < 10; i++) {
@@ -134,7 +132,7 @@ module.exports = function(deployer, network, accounts) {
 
 			/// should take sample loan order (as trader1)
 			OrderParams_bZx_1 = {
-				"b0xAddress": bZx.address,
+				"bZxAddress": bZx.address,
 				"makerAddress": lender1_account, // lender
 				"loanTokenAddress": loanToken1.address,
 				"interestTokenAddress": interestToken1.address,
@@ -147,12 +145,13 @@ module.exports = function(deployer, network, accounts) {
 				"maintenanceMarginAmount": "25", // 25%
 				"lenderRelayFee": web3.toWei(0.001, "ether").toString(),
 				"traderRelayFee": web3.toWei(0.0013, "ether").toString(),
+				"maxDurationUnixTimestampSec": "2419200", // 28 days
 				"expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400*365).toString(),
 				"makerRole": "0", // 0=lender, 1=trader
-				"salt": BZxJS.default.generatePseudoRandomSalt().toString()
+				"salt": BZxJS.generatePseudoRandomSalt().toString()
 			};
 			//console.log(OrderParams_bZx_1);
-			let OrderHash_bZx_1 = BZxJS.default.getLoanOrderHashHex(OrderParams_bZx_1);
+			let OrderHash_bZx_1 = BZxJS.getLoanOrderHashHex(OrderParams_bZx_1);
 
 			/// should sign and verify orderHash (as lender1)
 			const nodeVersion = web3.version.node;
@@ -191,6 +190,7 @@ module.exports = function(deployer, network, accounts) {
 				new BN(OrderParams_bZx_1["maintenanceMarginAmount"]),
 				new BN(OrderParams_bZx_1["lenderRelayFee"]),
 				new BN(OrderParams_bZx_1["traderRelayFee"]),
+				new BN(OrderParams_bZx_1["maxDurationUnixTimestampSec"]),
 				new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
 				new BN(OrderParams_bZx_1["makerRole"]),
 				new BN(OrderParams_bZx_1["salt"])
@@ -198,7 +198,7 @@ module.exports = function(deployer, network, accounts) {
 			collateralToken1.address,
 			web3.toWei(12.3, "ether"),
 			ECSignature_raw_1,
-			{from: trader1_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")}));
+			{from: trader1_account, gas: 2000000, gasPrice: web3.toWei(30, "gwei")}));
 
 			/// should take sample loan order (as trader2)
 			console.log(await bZx.takeLoanOrderAsTrader(
@@ -217,6 +217,7 @@ module.exports = function(deployer, network, accounts) {
 					new BN(OrderParams_bZx_1["maintenanceMarginAmount"]),
 					new BN(OrderParams_bZx_1["lenderRelayFee"]),
 					new BN(OrderParams_bZx_1["traderRelayFee"]),
+					new BN(OrderParams_bZx_1["maxDurationUnixTimestampSec"]),
 					new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
 					new BN(OrderParams_bZx_1["makerRole"]),
 					new BN(OrderParams_bZx_1["salt"])
@@ -224,7 +225,7 @@ module.exports = function(deployer, network, accounts) {
 				collateralToken2.address,
 				web3.toWei(20, "ether"),
 				ECSignature_raw_1,
-				{from: trader2_account, gas: 1000000, gasPrice: web3.toWei(20, "gwei")}));
+				{from: trader2_account, gas: 2000000, gasPrice: web3.toWei(20, "gwei")}));
 
 				OrderParams_0x = {
 					"exchangeContractAddress": config["addresses"]["development"]["ZeroEx"]["ExchangeV1"],
@@ -234,7 +235,7 @@ module.exports = function(deployer, network, accounts) {
 					"makerFee": web3.toWei(0.002, "ether").toString(),
 					"makerTokenAddress": maker0xToken1.address,
 					"makerTokenAmount": web3.toWei(100, "ether").toString(),
-					"salt": BZxJS.default.generatePseudoRandomSalt().toString(),
+					"salt": BZxJS.generatePseudoRandomSalt().toString(),
 					"taker": NULL_ADDRESS,
 					"takerFee": web3.toWei(0.0013, "ether").toString(),
 					"takerTokenAddress": loanToken1.address,
@@ -299,9 +300,7 @@ module.exports = function(deployer, network, accounts) {
 					OrderHash_bZx_1,
 					trader1_account,
 					{from: lender2_account}));
-		}
-
-		asyncCall();
+		});
 	}
 
 	function txLogsPrint(logs) {

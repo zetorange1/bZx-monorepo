@@ -85,8 +85,8 @@ contract TestNetOracle is BZxOracle {
                 destTokenAmount = sourceTokenAmount;
             }
         } else {
-            uint tradeRate = getTradeRate(sourceTokenAddress, destTokenAddress);
-            destTokenAmount = sourceTokenAmount.mul(tradeRate).div(10**18);
+            (uint tradeRate,) = getTradeData(sourceTokenAddress, destTokenAddress, 0);
+            destTokenAmount = sourceTokenAmount.mul(tradeRate).div(_getDecimalPrecision(sourceTokenAddress, destTokenAddress));
             if (destTokenAmount > maxDestTokenAmount) {
                 destTokenAmount = maxDestTokenAmount;
             }

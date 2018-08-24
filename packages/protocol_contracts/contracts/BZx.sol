@@ -17,7 +17,7 @@ contract BZx is BZxStorage {
 
     function takeLoanOrderAsTrader(
         address[6] orderAddresses,
-        uint[9] orderValues,
+        uint[10] orderValues,
         address collateralTokenFilled,
         uint loanTokenAmountFilled,
         bytes signature)
@@ -26,14 +26,14 @@ contract BZx is BZxStorage {
     
     function takeLoanOrderAsLender(
         address[6] orderAddresses,
-        uint[9] orderValues,
+        uint[10] orderValues,
         bytes signature)
         external
         returns (uint);
 
     function pushLoanOrderOnChain(
         address[6] orderAddresses,
-        uint[9] orderValues,
+        uint[10] orderValues,
         bytes signature)        
         external
         returns (bytes32);
@@ -52,7 +52,7 @@ contract BZx is BZxStorage {
 
     function cancelLoanOrder(
         address[6] orderAddresses,
-        uint[9] orderValues,
+        uint[10] orderValues,
         uint cancelLoanTokenAmount)
         external
         returns (uint);
@@ -65,7 +65,7 @@ contract BZx is BZxStorage {
     
     function getLoanOrderHash(
         address[6] orderAddresses, 
-        uint[9] orderValues)
+        uint[10] orderValues)
         public
         view
         returns (bytes32);

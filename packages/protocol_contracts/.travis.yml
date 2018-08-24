@@ -1,0 +1,19 @@
+sudo: required
+dist: trusty
+language: node_js
+node_js:
+  - '9'
+before_install:
+  - export NODE_OPTIONS="--max_old_space_size=4096"
+  - export PATH=$PATH:$(pwd)/node_modules/.bin
+install:
+  - yarn cache clean
+  - yarn
+before_script:
+  - yarn network > /dev/null &
+  - sleep 5
+script:
+  - yarn test
+after_script:
+  - yarn network-coverage > /dev/null &
+  - travis_wait 40 yarn coverage && cat coverage/lcov.info | coveralls

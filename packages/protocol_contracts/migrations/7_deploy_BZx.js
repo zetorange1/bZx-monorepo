@@ -14,7 +14,7 @@ const MAX_UINT = new BigNumber(2).pow(256).minus(1).toString();
 
 module.exports = function(deployer, network, accounts) {
 	network = network.replace("-fork", "");
-	if (network == "develop" || network == "testnet")
+	if (network == "develop" || network == "testnet" || network == "coverage")
 		network = "development";
 
 	deployer.deploy(BZxProxy).then(async function(bZxProxy) {

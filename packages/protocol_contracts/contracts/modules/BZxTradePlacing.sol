@@ -58,17 +58,17 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
         returns (uint)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.maker == address(0)) {
-            revert("BZxTradePlacing::tradePositionWith0x: loanOrder.maker == address(0)");
-        }
-
-        if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
-            revert("BZxTradePlacing::tradePositionWith0x: block.timestamp >= loanOrder.expirationUnixTimestampSec");
+        if (loanOrder.loanTokenAddress == address(0)) {
+            revert("BZxTradePlacing::tradePositionWith0x: loanOrder.loanTokenAddress == address(0)");
         }
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             revert("BZxTradePlacing::tradePositionWith0x: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+        }
+
+        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
+            revert("BZxTradePlacing::tradePositionWith0x: block.timestamp >= loanPosition.loanEndUnixTimestampSec");
         }
 
         // transfer the current position token to the BZxTo0x contract
@@ -150,17 +150,17 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
         returns (uint)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.maker == address(0)) {
-            revert("BZxTradePlacing::tradePositionWithOracle: loanOrder.maker == address(0)");
-        }
-
-        if (block.timestamp >= loanOrder.expirationUnixTimestampSec) {
-            revert("BZxTradePlacing::tradePositionWithOracle: block.timestamp >= loanOrder.expirationUnixTimestampSec");
+        if (loanOrder.loanTokenAddress == address(0)) {
+            revert("BZxTradePlacing::tradePositionWithOracle: loanOrder.loanTokenAddress == address(0)");
         }
 
         LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             revert("BZxTradePlacing::tradePositionWithOracle: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+        }
+
+        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
+            revert("BZxTradePlacing::tradePositionWithOracle: block.timestamp >= loanPosition.loanEndUnixTimestampSec");
         }
 
         if (tradeTokenAddress == loanPosition.positionTokenAddressFilled) {

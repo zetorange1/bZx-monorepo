@@ -20,8 +20,8 @@ var run = {
 
   "should get single loan order": true,
   "should get loan orders (for lender1)": true,
-  "should get loan orders (for lender2)": false,
-  "should get loan orders (for trader2)": false,
+  "should get loan orders (for lender2)": true,
+  "should get loan orders (for trader2)": true,
   "should get fillable orders": true,
 
   "should get single loan position": true,
@@ -30,14 +30,14 @@ var run = {
   "should get loan positions (for trader2)": false,
   "should get active loans": false,
 
-  //"should generate 0x orders": true,
-  //"should sign and verify 0x orders": true,
-  //"should parse 0x order params": false,
-  //"should trade position with 0x orders": true,
+  "should generate 0x orders": true,
+  "should sign and verify 0x orders": true,
+  "should parse 0x order params": false,
+  "should trade position with 0x orders": true,
 
-  "should generate 0x V2 orders": true,
-  "should sign and verify 0x V2 orders": true,
-  "should trade position with 0x V2 orders": true,
+  // "should generate 0x V2 orders": true,
+  // "should sign and verify 0x V2 orders": true,
+  // "should trade position with 0x V2 orders": true,
 
   "should trade position with oracle": true,
   "should change collateral (for trader1)": true,
@@ -45,8 +45,8 @@ var run = {
   "should pay lender interest": true,
 
   // note: only one of the tests below can be true at a time
-  "should close loan as (lender1/trader1)": false,
-  "should liquidate position": true,
+  "should close loan as (lender1/trader1)": true,
+  "should liquidate position": false,
   "should force close loan": false,
 };
 
@@ -58,7 +58,7 @@ const ethUtil = require('ethereumjs-util');
 const { Interface, providers, Contract } = require('ethers');
 
 import Web3Utils from 'web3-utils';
-import BZxJS from 'bzx.js'
+import BZxJS from 'bZx.js'
 import { ZeroEx } from '0x.js';
 import { ZeroEx as ZeroExV2 } from '0xV2.js';
 
@@ -452,6 +452,7 @@ contract('BZxTest', function(accounts) {
       "maintenanceMarginAmount": "5", // 25%
       "lenderRelayFee": web3.toWei(0.001, "ether").toString(),
       "traderRelayFee": web3.toWei(0.0015, "ether").toString(),
+      "maxDurationUnixTimestampSec": "2419200", // 28 days
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
       "makerRole": "0", // 0=lender, 1=trader
       "salt": BZxJS.generatePseudoRandomSalt().toString()
@@ -475,6 +476,7 @@ contract('BZxTest', function(accounts) {
         new BN(OrderParams_bZx_1["maintenanceMarginAmount"]),
         new BN(OrderParams_bZx_1["lenderRelayFee"]),
         new BN(OrderParams_bZx_1["traderRelayFee"]),
+        new BN(OrderParams_bZx_1["maxDurationUnixTimestampSec"]),
         new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
         new BN(OrderParams_bZx_1["makerRole"]),
         new BN(OrderParams_bZx_1["salt"])
@@ -540,6 +542,7 @@ contract('BZxTest', function(accounts) {
         new BN(OrderParams_bZx_1["maintenanceMarginAmount"]),
         new BN(OrderParams_bZx_1["lenderRelayFee"]),
         new BN(OrderParams_bZx_1["traderRelayFee"]),
+        new BN(OrderParams_bZx_1["maxDurationUnixTimestampSec"]),
         new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
         new BN(OrderParams_bZx_1["makerRole"]),
         new BN(OrderParams_bZx_1["salt"])
@@ -573,6 +576,7 @@ contract('BZxTest', function(accounts) {
         new BN(OrderParams_bZx_1["maintenanceMarginAmount"]),
         new BN(OrderParams_bZx_1["lenderRelayFee"]),
         new BN(OrderParams_bZx_1["traderRelayFee"]),
+        new BN(OrderParams_bZx_1["maxDurationUnixTimestampSec"]),
         new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
         new BN(OrderParams_bZx_1["makerRole"]),
         new BN(OrderParams_bZx_1["salt"])
@@ -624,6 +628,7 @@ contract('BZxTest', function(accounts) {
       "maintenanceMarginAmount": "25", // 25%
       "lenderRelayFee": web3.toWei(0.001, "ether").toString(),
       "traderRelayFee": web3.toWei(0.0015, "ether").toString(),
+      "maxDurationUnixTimestampSec": "2419200", // 28 days
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
       "makerRole": "1", // 0=lender, 1=trader
       "salt": BZxJS.generatePseudoRandomSalt().toString()
@@ -647,6 +652,7 @@ contract('BZxTest', function(accounts) {
         new BN(OrderParams_bZx_2["maintenanceMarginAmount"]),
         new BN(OrderParams_bZx_2["lenderRelayFee"]),
         new BN(OrderParams_bZx_2["traderRelayFee"]),
+        new BN(OrderParams_bZx_2["maxDurationUnixTimestampSec"]),
         new BN(OrderParams_bZx_2["expirationUnixTimestampSec"]),
         new BN(OrderParams_bZx_2["makerRole"]),
         new BN(OrderParams_bZx_2["salt"])
@@ -715,12 +721,13 @@ contract('BZxTest', function(accounts) {
           new BN(OrderParams_bZx_2["maintenanceMarginAmount"]),
           new BN(OrderParams_bZx_2["lenderRelayFee"]),
           new BN(OrderParams_bZx_2["traderRelayFee"]),
+          new BN(OrderParams_bZx_2["maxDurationUnixTimestampSec"]),
           new BN(OrderParams_bZx_2["expirationUnixTimestampSec"]),
           new BN(OrderParams_bZx_2["makerRole"]),
           new BN(OrderParams_bZx_2["salt"])
         ],
         ECSignature_raw_2,
-        {from: lender2_account, gas: 1000000, gasPrice: web3.toWei(30, "gwei")});
+        {from: lender2_account, gasPrice: web3.toWei(30, "gwei")});
 
       console.log(txPrettyPrint(tx,"should take sample loan order (as lender2)"));
 
@@ -750,7 +757,7 @@ contract('BZxTest', function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 19;
+    const itemCount = 20;
     const objCount = data.length / 64 / itemCount;
     var orders = [];
 
@@ -777,13 +784,14 @@ contract('BZxTest', function(accounts) {
           maintenanceMarginAmount: parseInt("0x"+params[9]),
           lenderRelayFee: parseInt("0x"+params[10]),
           traderRelayFee: parseInt("0x"+params[11]),
-          expirationUnixTimestampSec: parseInt("0x"+params[12]),
-          loanOrderHash: "0x"+params[13],
-          lender: "0x"+params[14].substr(24),
-          orderFilledAmount: parseInt("0x"+params[15]),
-          orderCancelledAmount: parseInt("0x"+params[16]),
-          orderTraderCount: parseInt("0x"+params[17]),
-          addedUnixTimestampSec: parseInt("0x"+params[18])
+          maxDurationUnixTimestampSec: parseInt("0x"+params[12]),
+          expirationUnixTimestampSec: parseInt("0x"+params[13]),
+          loanOrderHash: "0x"+params[14],
+          lender: "0x"+params[15].substr(24),
+          orderFilledAmount: parseInt("0x"+params[16]),
+          orderCancelledAmount: parseInt("0x"+params[17]),
+          orderTraderCount: parseInt("0x"+params[18]),
+          addedUnixTimestampSec: parseInt("0x"+params[19])
         });
       }
 
@@ -821,7 +829,7 @@ contract('BZxTest', function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 19;
+    const itemCount = 20;
     const objCount = data.length / 64 / itemCount;
     var orders = [];
 
@@ -848,13 +856,14 @@ contract('BZxTest', function(accounts) {
           maintenanceMarginAmount: parseInt("0x"+params[9]),
           lenderRelayFee: parseInt("0x"+params[10]),
           traderRelayFee: parseInt("0x"+params[11]),
-          expirationUnixTimestampSec: parseInt("0x"+params[12]),
-          loanOrderHash: "0x"+params[13],
-          lender: "0x"+params[14].substr(24),
-          orderFilledAmount: parseInt("0x"+params[15]),
-          orderCancelledAmount: parseInt("0x"+params[16]),
-          orderTraderCount: parseInt("0x"+params[17]),
-          addedUnixTimestampSec: parseInt("0x"+params[18])
+          maxDurationUnixTimestampSec: parseInt("0x"+params[12]),
+          expirationUnixTimestampSec: parseInt("0x"+params[13]),
+          loanOrderHash: "0x"+params[14],
+          lender: "0x"+params[15].substr(24),
+          orderFilledAmount: parseInt("0x"+params[16]),
+          orderCancelledAmount: parseInt("0x"+params[17]),
+          orderTraderCount: parseInt("0x"+params[18]),
+          addedUnixTimestampSec: parseInt("0x"+params[19])
         });
       }
 
@@ -892,7 +901,7 @@ contract('BZxTest', function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 19;
+    const itemCount = 20;
     const objCount = data.length / 64 / itemCount;
     var orders = [];
 
@@ -919,13 +928,14 @@ contract('BZxTest', function(accounts) {
           maintenanceMarginAmount: parseInt("0x"+params[9]),
           lenderRelayFee: parseInt("0x"+params[10]),
           traderRelayFee: parseInt("0x"+params[11]),
-          expirationUnixTimestampSec: parseInt("0x"+params[12]),
-          loanOrderHash: "0x"+params[13],
-          lender: "0x"+params[14].substr(24),
-          orderFilledAmount: parseInt("0x"+params[15]),
-          orderCancelledAmount: parseInt("0x"+params[16]),
-          orderTraderCount: parseInt("0x"+params[17]),
-          addedUnixTimestampSec: parseInt("0x"+params[18])
+          maxDurationUnixTimestampSec: parseInt("0x"+params[12]),
+          expirationUnixTimestampSec: parseInt("0x"+params[13]),
+          loanOrderHash: "0x"+params[14],
+          lender: "0x"+params[15].substr(24),
+          orderFilledAmount: parseInt("0x"+params[16]),
+          orderCancelledAmount: parseInt("0x"+params[17]),
+          orderTraderCount: parseInt("0x"+params[18]),
+          addedUnixTimestampSec: parseInt("0x"+params[19])
         });
       }
 
@@ -963,7 +973,7 @@ contract('BZxTest', function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 19;
+    const itemCount = 20;
     const objCount = data.length / 64 / itemCount;
     var orders = [];
 
@@ -990,13 +1000,14 @@ contract('BZxTest', function(accounts) {
           maintenanceMarginAmount: parseInt("0x"+params[9]),
           lenderRelayFee: parseInt("0x"+params[10]),
           traderRelayFee: parseInt("0x"+params[11]),
-          expirationUnixTimestampSec: parseInt("0x"+params[12]),
-          loanOrderHash: "0x"+params[13],
-          lender: "0x"+params[14].substr(24),
-          orderFilledAmount: parseInt("0x"+params[15]),
-          orderCancelledAmount: parseInt("0x"+params[16]),
-          orderTraderCount: parseInt("0x"+params[17]),
-          addedUnixTimestampSec: parseInt("0x"+params[18])
+          maxDurationUnixTimestampSec: parseInt("0x"+params[12]),
+          expirationUnixTimestampSec: parseInt("0x"+params[13]),
+          loanOrderHash: "0x"+params[14],
+          lender: "0x"+params[15].substr(24),
+          orderFilledAmount: parseInt("0x"+params[16]),
+          orderCancelledAmount: parseInt("0x"+params[17]),
+          orderTraderCount: parseInt("0x"+params[18]),
+          addedUnixTimestampSec: parseInt("0x"+params[19])
         });
       }
 
@@ -1033,7 +1044,7 @@ contract('BZxTest', function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 19;
+    const itemCount = 20;
     const objCount = data.length / 64 / itemCount;
     var orders = [];
 
@@ -1060,13 +1071,14 @@ contract('BZxTest', function(accounts) {
           maintenanceMarginAmount: parseInt("0x"+params[9]),
           lenderRelayFee: parseInt("0x"+params[10]),
           traderRelayFee: parseInt("0x"+params[11]),
-          expirationUnixTimestampSec: parseInt("0x"+params[12]),
-          loanOrderHash: "0x"+params[13],
-          lender: "0x"+params[14].substr(24),
-          orderFilledAmount: parseInt("0x"+params[15]),
-          orderCancelledAmount: parseInt("0x"+params[16]),
-          orderTraderCount: parseInt("0x"+params[17]),
-          addedUnixTimestampSec: parseInt("0x"+params[18])
+          maxDurationUnixTimestampSec: parseInt("0x"+params[12]),
+          expirationUnixTimestampSec: parseInt("0x"+params[13]),
+          loanOrderHash: "0x"+params[14],
+          lender: "0x"+params[15].substr(24),
+          orderFilledAmount: parseInt("0x"+params[16]),
+          orderCancelledAmount: parseInt("0x"+params[17]),
+          orderTraderCount: parseInt("0x"+params[18]),
+          addedUnixTimestampSec: parseInt("0x"+params[19])
         });
       }
 
@@ -1102,7 +1114,7 @@ contract('BZxTest', function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 15;
+    const itemCount = 16;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -1128,13 +1140,14 @@ contract('BZxTest', function(accounts) {
           collateralTokenAmountFilled: parseInt("0x"+params[5]),
           positionTokenAmountFilled: parseInt("0x"+params[6]),
           loanStartUnixTimestampSec: parseInt("0x"+params[7]),
-          index: parseInt("0x"+params[8]),
-          active: parseInt("0x"+params[9]),
-          loanOrderHash: "0x"+params[10],
-          loanTokenAddress: "0x"+params[11].substr(24),
-          interestTokenAddress: "0x"+params[12].substr(24),
-          interestTotalAccrued: parseInt("0x"+params[13]),
-          interestPaidSoFar: parseInt("0x"+params[14])
+          loanEndUnixTimestampSec: parseInt("0x"+params[8]),
+          index: parseInt("0x"+params[9]),
+          active: parseInt("0x"+params[10]),
+          loanOrderHash: "0x"+params[11],
+          loanTokenAddress: "0x"+params[12].substr(24),
+          interestTokenAddress: "0x"+params[13].substr(24),
+          interestTotalAccrued: parseInt("0x"+params[14]),
+          interestPaidSoFar: parseInt("0x"+params[15])
         });
       }
 
@@ -1166,7 +1179,7 @@ contract('BZxTest', function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 15;
+    const itemCount = 16;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -1192,13 +1205,14 @@ contract('BZxTest', function(accounts) {
           collateralTokenAmountFilled: parseInt("0x"+params[5]),
           positionTokenAmountFilled: parseInt("0x"+params[6]),
           loanStartUnixTimestampSec: parseInt("0x"+params[7]),
-          index: parseInt("0x"+params[8]),
-          active: parseInt("0x"+params[9]),
-          loanOrderHash: "0x"+params[10],
-          loanTokenAddress: "0x"+params[11].substr(24),
-          interestTokenAddress: "0x"+params[12].substr(24),
-          interestTotalAccrued: parseInt("0x"+params[13]),
-          interestPaidSoFar: parseInt("0x"+params[14])
+          loanEndUnixTimestampSec: parseInt("0x"+params[8]),
+          index: parseInt("0x"+params[9]),
+          active: parseInt("0x"+params[10]),
+          loanOrderHash: "0x"+params[11],
+          loanTokenAddress: "0x"+params[12].substr(24),
+          interestTokenAddress: "0x"+params[13].substr(24),
+          interestTotalAccrued: parseInt("0x"+params[14]),
+          interestPaidSoFar: parseInt("0x"+params[15])
         });
       }
 
@@ -1230,7 +1244,7 @@ contract('BZxTest', function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 15;
+    const itemCount = 16;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -1256,13 +1270,14 @@ contract('BZxTest', function(accounts) {
           collateralTokenAmountFilled: parseInt("0x"+params[5]),
           positionTokenAmountFilled: parseInt("0x"+params[6]),
           loanStartUnixTimestampSec: parseInt("0x"+params[7]),
-          index: parseInt("0x"+params[8]),
-          active: parseInt("0x"+params[9]),
-          loanOrderHash: "0x"+params[10],
-          loanTokenAddress: "0x"+params[11].substr(24),
-          interestTokenAddress: "0x"+params[12].substr(24),
-          interestTotalAccrued: parseInt("0x"+params[13]),
-          interestPaidSoFar: parseInt("0x"+params[14])
+          loanEndUnixTimestampSec: parseInt("0x"+params[8]),
+          index: parseInt("0x"+params[9]),
+          active: parseInt("0x"+params[10]),
+          loanOrderHash: "0x"+params[11],
+          loanTokenAddress: "0x"+params[12].substr(24),
+          interestTokenAddress: "0x"+params[13].substr(24),
+          interestTotalAccrued: parseInt("0x"+params[14]),
+          interestPaidSoFar: parseInt("0x"+params[15])
         });
       }
 
@@ -1294,7 +1309,7 @@ contract('BZxTest', function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 15;
+    const itemCount = 16;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -1320,13 +1335,14 @@ contract('BZxTest', function(accounts) {
           collateralTokenAmountFilled: parseInt("0x"+params[5]),
           positionTokenAmountFilled: parseInt("0x"+params[6]),
           loanStartUnixTimestampSec: parseInt("0x"+params[7]),
-          index: parseInt("0x"+params[8]),
-          active: parseInt("0x"+params[9]),
-          loanOrderHash: "0x"+params[10],
-          loanTokenAddress: "0x"+params[11].substr(24),
-          interestTokenAddress: "0x"+params[12].substr(24),
-          interestTotalAccrued: parseInt("0x"+params[13]),
-          interestPaidSoFar: parseInt("0x"+params[14])
+          loanEndUnixTimestampSec: parseInt("0x"+params[8]),
+          index: parseInt("0x"+params[9]),
+          active: parseInt("0x"+params[10]),
+          loanOrderHash: "0x"+params[11],
+          loanTokenAddress: "0x"+params[12].substr(24),
+          interestTokenAddress: "0x"+params[13].substr(24),
+          interestTotalAccrued: parseInt("0x"+params[14]),
+          interestPaidSoFar: parseInt("0x"+params[15])
         });
       }
 
@@ -1683,29 +1699,19 @@ contract('BZxTest', function(accounts) {
 
   (run["should sign and verify 0x V2 orders"] ? it : it.skip)("should sign and verify 0x V2 orders", async function() {
 
-    ECSignature_0xV2_1 = await zeroExV2.ecSignOrderHashAsync(
+    ECSignature_0xV2_raw_1 = await zeroExV2.ecSignOrderHashAsync(
       OrderHash_0xV2_1_onchain,
       OrderParams_0xV2_1["makerAddress"],
-      {
-        prefixType: "ETH_SIGN",
-        shouldAddPrefixBeforeCallingEthSign: false
-      }
+      "DEFAULT"
     );
-    console.log(ECSignature_0xV2_1);
-    ECSignature_0xV2_raw_1 = "0x"+ECSignature_0xV2_1["v"].toString(16)+ECSignature_0xV2_1["r"].substr(2)+ECSignature_0xV2_1["s"].substr(2)+"03";
-    console.log(ECSignature_0xV2_raw_1);
+    console.log("ECSignature_0xV2_raw_1: "+ECSignature_0xV2_raw_1);
 
-    ECSignature_0xV2_2 = await zeroExV2.ecSignOrderHashAsync(
+    ECSignature_0xV2_raw_2 = await zeroExV2.ecSignOrderHashAsync(
       OrderHash_0xV2_2_onchain,
       OrderParams_0xV2_2["makerAddress"],
-      {
-        prefixType: "ETH_SIGN",
-        shouldAddPrefixBeforeCallingEthSign: false
-      }
+      "DEFAULT"
     );
-    console.log(ECSignature_0xV2_2);
-    ECSignature_0xV2_raw_2 = "0x"+ECSignature_0xV2_2["v"].toString(16)+ECSignature_0xV2_2["r"].substr(2)+ECSignature_0xV2_2["s"].substr(2)+"03";
-    console.log(ECSignature_0xV2_raw_2);
+    console.log("ECSignature_0xV2_raw_2: "+ECSignature_0xV2_raw_2);
 
     try {
       var result1 = await exchange_0xV2.isValidSignature.call(
@@ -1725,6 +1731,7 @@ contract('BZxTest', function(accounts) {
       console.error(error);
       assert.isOk(false);
     }
+
   });
 
   (run["should trade position with 0x V2 orders"] ? it : it.skip)("should trade position with 0x V2 orders", async function() {

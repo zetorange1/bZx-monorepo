@@ -9,7 +9,6 @@ import "../modifiers/GasTracker.sol";
 contract BZxObjects {
 
     struct LoanOrder {
-        address maker;
         address loanTokenAddress;
         address interestTokenAddress;
         address collateralTokenAddress;
@@ -18,15 +17,17 @@ contract BZxObjects {
         uint interestAmount;
         uint initialMarginAmount;
         uint maintenanceMarginAmount;
-        uint expirationUnixTimestampSec;
-        uint makerRole;
+        uint maxDurationUnixTimestampSec;
         bytes32 loanOrderHash;
     }
 
-    struct LoanOrderFees {
+    struct LoanOrderAux {
+        address maker;
         address feeRecipientAddress;
         uint lenderRelayFee;
         uint traderRelayFee;
+        uint makerRole;
+        uint expirationUnixTimestampSec;
     }
 
     struct LoanOrderIndex {
@@ -48,6 +49,7 @@ contract BZxObjects {
         uint collateralTokenAmountFilled;
         uint positionTokenAmountFilled;
         uint loanStartUnixTimestampSec;
+        uint loanEndUnixTimestampSec;
         uint index;
         bool active;
     }
@@ -66,7 +68,7 @@ contract BZxObjects {
         address feeRecipientAddress,
         uint lenderRelayFee,
         uint traderRelayFee,
-        uint expirationUnixTimestampSec,
+        uint maxDuration,
         uint makerRole
     );
 
@@ -146,7 +148,7 @@ contract BZxStorage is BZxObjects, ReentrancyGuard, Ownable, GasTracker {
 /* solhint-enable var-name-mixedcase */
 
     mapping (bytes32 => LoanOrder) public orders; // mapping of loanOrderHash to taken loanOrders
-    mapping (bytes32 => LoanOrderFees) public orderFees; // mapping of loanOrderHash to taken loanOrder Fees
+    mapping (bytes32 => LoanOrderAux) public orderAux; // mapping of loanOrderHash to taken loanOrder auxiliary parameters
     mapping (address => bytes32[]) public orderList; // mapping of lenders and trader addresses to array of loanOrderHashes
     mapping (bytes32 => address) public orderLender; // mapping of loanOrderHash to lender address
     mapping (bytes32 => address[]) public orderTraders; // mapping of loanOrderHash to array of trader addresses
