@@ -60,39 +60,87 @@ export default class ChangeCollateralDialog extends React.Component {
 
   approveToken = async () => {
     const { tokenAddress } = this.state;
-    const { bZx, tokens, accounts } = this.props;
+    const { bZx, tokens, web3, accounts } = this.props;
     const token = tokens.filter(t => t.address === tokenAddress)[0];
     console.log(`approving allowance`);
     console.log(token.name, token.address);
     this.setState({ approvalLoading: true });
+
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-    await bZx
-      .setAllowanceUnlimited({
-        tokenAddress: token.address,
-        ownerAddress: accounts[0].toLowerCase()
-      })
-      .once(`transactionHash`, hash => {
-        alert(`Transaction submitted, transaction hash:`, {
-          component: () => (
-            <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
-              {hash}
-            </TxHashLink>
-          )
+
+    const txOpts = {
+      from: accounts[0],
+      // gas: 1000000,
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+    };
+
+    const txObj = await bZx.setAllowanceUnlimited({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase(),
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = window.gasValue(gas);
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+            })
+            .then(() => {
+              alert(`Your token is approved.`);
+              this.checkAllowance();
+            })
+            .catch(error => {
+              console.error(error.message);
+              if (
+                error.message.includes(`denied transaction signature`) ||
+                error.message.includes(`Condition of use not satisfied`) ||
+                error.message.includes(`Invalid status`)
+              ) {
+                alert();
+              } else {
+                alert(`The transaction is failing. Please try again later.`);
+              }
+            });
+        })
+        .catch(error => {
+          console.error(error.message);
+          if (
+            error.message.includes(`denied transaction signature`) ||
+            error.message.includes(`Condition of use not satisfied`) ||
+            error.message.includes(`Invalid status`)
+          ) {
+            alert();
+          } else {
+            alert(`The transaction is failing. Please try again later.`);
+          }
         });
-        setTimeout(() => this.checkAllowance(), 5000);
-      })
-      .on(`error`, error => {
-        console.error(error.message);
-        if (
-          error.message.includes(`denied transaction signature`) ||
-          error.message.includes(`Condition of use not satisfied`) ||
-          error.message.includes(`Invalid status`)
-        ) {
-          alert();
-        }
-      });
+    } catch (error) {
+      console.error(error.message);
+      if (
+        error.message.includes(`denied transaction signature`) ||
+        error.message.includes(`Condition of use not satisfied`) ||
+        error.message.includes(`Invalid status`)
+      ) {
+        alert();
+      } else {
+        alert(`The transaction is failing. Please try again later.`);
+      }
+    }
   };
 
   executeChange = async () => {

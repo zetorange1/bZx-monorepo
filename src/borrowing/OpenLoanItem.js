@@ -73,15 +73,15 @@ const LowerUpperRight = styled.div`
 export default class OpenedLoan extends React.Component {
   state = {
     showOrderDialog: false,
-    order: undefined,
     loadingMargins: true,
     initialMarginAmount: null,
     maintenanceMarginAmount: null,
-    currentMarginAmount: null
+    currentMarginAmount: null,
+    order: null
   };
 
   componentDidMount = async () => {
-    this.getMarginLevels();
+    await this.getMarginLevels();
   };
 
   componentDidUpdate(prevProps) {
@@ -92,13 +92,13 @@ export default class OpenedLoan extends React.Component {
       this.getMarginLevels();
   }
 
-  getSingleOrder = async loanOrderHash => {
+  getSingleOrder = async () => {
     const { bZx } = this.props;
     const order = await bZx.getSingleOrder({
-      loanOrderHash
+      loanOrderHash: this.props.data.loanOrderHash
     });
-    console.log(order);
-    return order;
+    console.log(`Order data`, order);
+    this.setState({ order });
   };
 
   getMarginLevels = async () => {
@@ -108,8 +108,8 @@ export default class OpenedLoan extends React.Component {
       loanOrderHash: data.loanOrderHash,
       trader: data.trader
     });
-    console.log(marginLevels);
-    this.setState({
+
+    await this.setState({
       loadingMargins: false,
       initialMarginAmount: marginLevels.initialMarginAmount,
       maintenanceMarginAmount: marginLevels.maintenanceMarginAmount,
@@ -119,17 +119,9 @@ export default class OpenedLoan extends React.Component {
 
   toggleOrderDialog = async event => {
     event.preventDefault();
-    if (event.target.id !== ``) {
-      const order = await this.getSingleOrder(event.target.id);
-      this.setState(p => ({
-        showOrderDialog: !p.showOrderDialog,
-        order
-      }));
-    } else {
-      this.setState(p => ({
-        showOrderDialog: !p.showOrderDialog
-      }));
-    }
+    this.setState(p => ({
+      showOrderDialog: !p.showOrderDialog
+    }));
   };
 
   render() {
@@ -149,11 +141,13 @@ export default class OpenedLoan extends React.Component {
       loanOrderHash,
       lender
     } = this.props.data;
+
     const {
       loadingMargins,
       initialMarginAmount,
       maintenanceMarginAmount,
-      currentMarginAmount
+      currentMarginAmount,
+      order
     } = this.state;
 
     const collateralToken = tokens.filter(
@@ -207,7 +201,7 @@ export default class OpenedLoan extends React.Component {
                   bZx={bZx}
                   accounts={accounts}
                   tokens={tokens}
-                  takenOrder={this.state.order}
+                  takenOrder={order}
                   noShadow
                 />
               </DialogContent>
@@ -357,6 +351,8 @@ export default class OpenedLoan extends React.Component {
             accounts={accounts}
             web3={web3}
             loanOrderHash={loanOrderHash}
+            order={order}
+            getSingleOrder={this.getSingleOrder}
             positionTokenAddressFilled={positionTokenAddressFilled}
             positionTokenAmountFilled={positionTokenAmountFilled}
           />

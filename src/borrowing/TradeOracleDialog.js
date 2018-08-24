@@ -37,26 +37,27 @@ export default class TradeOracleDialog extends React.Component {
   };
 
   componentDidMount = async () => {
-    this.setTokenAddress(this.state.tradeToken.address);
+    await this.setTokenAddress(this.state.tradeToken.address);
   };
 
   setTokenAddress = async tokenAddress => {
+    if (!this.props.order) await this.props.getSingleOrder();
     const tradeToken = this.props.tokens.filter(
       t => t.address === tokenAddress
     )[0];
-    const expectedAmount = await getTokenConversionAmount(
+    let expectedAmount = 0;
+    expectedAmount = await getTokenConversionAmount(
       this.props.positionTokenAddressFilled,
       tokenAddress,
       this.props.positionTokenAmountFilled,
-      `0xd52d49102d703ef946c6dbc673a292f6fd16d30b`,
+      this.props.order.oracleAddress,
       this.props.bZx
     );
     this.setState({
       tradeToken,
       expectedAmount: fromBigNumber(
         expectedAmount,
-        10 **
-          getDecimals(this.props.tokens, this.props.positionTokenAddressFilled)
+        10 ** getDecimals(this.props.tokens, tokenAddress)
       )
     });
   };
@@ -158,7 +159,10 @@ export default class TradeOracleDialog extends React.Component {
             <SectionLabel>1. Choose your target token</SectionLabel>
             <TokenPicker
               tokens={this.props.tokens.filter(
-                t => t.address !== this.props.positionTokenAddressFilled
+                t =>
+                  t.address !== this.props.positionTokenAddressFilled &&
+                  this.state.tradeToken.address !==
+                    this.props.positionTokenAddressFilled
               )}
               setAddress={this.setTokenAddress}
               value={this.state.tradeToken.address}

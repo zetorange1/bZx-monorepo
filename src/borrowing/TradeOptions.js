@@ -39,8 +39,10 @@ export default class TradeOptions extends React.Component {
       accounts,
       web3,
       loanOrderHash,
+      order,
       positionTokenAddressFilled,
-      positionTokenAmountFilled
+      positionTokenAmountFilled,
+      getSingleOrder
     } = this.props;
     return (
       <Fragment>
@@ -78,6 +80,8 @@ export default class TradeOptions extends React.Component {
           tokens={tokens}
           accounts={accounts}
           loanOrderHash={loanOrderHash}
+          order={order}
+          getSingleOrder={getSingleOrder}
           positionTokenAddressFilled={positionTokenAddressFilled}
           positionTokenAmountFilled={positionTokenAmountFilled}
         />
