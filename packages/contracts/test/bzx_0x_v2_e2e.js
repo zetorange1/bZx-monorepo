@@ -13,22 +13,12 @@ const BN = require('bn.js');
 const {Interface,providers,Contract} = require('ethers');
 
 import Web3Utils from 'web3-utils';
-import {ZeroEx as ZeroExV2} from '0xV2.js';
+import { assetDataUtils, signatureUtils, generatePseudoRandomSalt, orderHashUtils } from '@0xproject/order-utils';
 
 var config = require('../protocol-config.js');
 
 const Reverter = require('./utils/reverter');
 const utils = require('./utils/utils.js');
-
-let zeroExV2 = new ZeroExV2(web3.currentProvider, {
-    blockPollingIntervalMs: undefined,
-    erc20ProxyContractAddress: undefined,
-    erc721ProxyContractAddress: undefined,
-    exchangeContractAddress: undefined,
-    gasPrice: BigNumber(8000000000),
-    networkId: 50,
-    zrxContractAddress: undefined,
-})
 
 const MAX_UINT = new BigNumber(2).pow(256).minus(1).toString();
 
@@ -207,7 +197,7 @@ contract('BZxTest', function(accounts) {
             "maxDurationUnixTimestampSec": "2419200", // 28 days
             "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp + 86400).toString(),
             "makerRole": "0", // 0=lender, 1=trader
-            "salt": ZeroExV2.generatePseudoRandomSalt().toString()
+            "salt": generatePseudoRandomSalt().toString()
         };
 
         OrderParams_bZx_2 = {
@@ -227,7 +217,7 @@ contract('BZxTest', function(accounts) {
             "maxDurationUnixTimestampSec": "2419200", // 28 days
             "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp + 86400).toString(),
             "makerRole": "1", // 0=lender, 1=trader
-            "salt": ZeroExV2.generatePseudoRandomSalt().toString()
+            "salt": generatePseudoRandomSalt().toString()
         };
     })
 
@@ -530,9 +520,9 @@ contract('BZxTest', function(accounts) {
                 "makerFee": web3.toWei(0.0005, "ether").toString(),
                 "takerFee": web3.toWei(0.01, "ether").toString(),
                 "expirationTimeSeconds": (web3.eth.getBlock("latest").timestamp + 86400).toString(),
-                "salt": ZeroExV2.generatePseudoRandomSalt().toString(),
-                "makerAssetData": ZeroExV2.encodeERC20AssetData(maker0xV2Token1.address),
-                "takerAssetData": ZeroExV2.encodeERC20AssetData(loanToken1.address),
+                "salt": generatePseudoRandomSalt().toString(),
+                "makerAssetData": assetDataUtils.encodeERC20AssetData(maker0xV2Token1.address),
+                "takerAssetData": assetDataUtils.encodeERC20AssetData(loanToken1.address),
             };
 
             console.log("OrderParams_0xV2_1:", OrderParams_0xV2_1);
@@ -548,19 +538,19 @@ contract('BZxTest', function(accounts) {
                 "makerFee": "0",
                 "takerFee": web3.toWei(0.0025, "ether").toString(),
                 "expirationTimeSeconds": (web3.eth.getBlock("latest").timestamp + 86400).toString(),
-                "salt": ZeroExV2.generatePseudoRandomSalt().toString(),
-                "makerAssetData": ZeroExV2.encodeERC20AssetData(maker0xV2Token1.address),
-                "takerAssetData": ZeroExV2.encodeERC20AssetData(loanToken1.address),
+                "salt": generatePseudoRandomSalt().toString(),
+                "makerAssetData": assetDataUtils.encodeERC20AssetData(maker0xV2Token1.address),
+                "takerAssetData": assetDataUtils.encodeERC20AssetData(loanToken1.address),
             };
             console.log("OrderParams_0xV2_2:", OrderParams_0xV2_2);
 
-            OrderHash_0xV2_1 = ZeroExV2.getOrderHashHex(OrderParams_0xV2_1);
-            OrderHash_0xV2_2 = ZeroExV2.getOrderHashHex(OrderParams_0xV2_2);
+            OrderHash_0xV2_1 = orderHashUtils.getOrderHashHex(OrderParams_0xV2_1);
+            OrderHash_0xV2_2 = orderHashUtils.getOrderHashHex(OrderParams_0xV2_2);
 
             console.log("OrderHash_0xV2_1 with 0x.js: " + OrderHash_0xV2_1);
             console.log("OrderHash_0xV2_2 with 0x.js: " + OrderHash_0xV2_2);
 
-            assert.isOk(ZeroExV2.isValidOrderHash(OrderHash_0xV2_1) && ZeroExV2.isValidOrderHash(OrderHash_0xV2_2));
+            assert.isOk(orderHashUtils.isValidOrderHash(OrderHash_0xV2_1) && orderHashUtils.isValidOrderHash(OrderHash_0xV2_2));
 
             OrderParams_0xV2_1_prepped = [
                 OrderParams_0xV2_1["makerAddress"],
@@ -606,7 +596,7 @@ contract('BZxTest', function(accounts) {
         })
 
         it("should sign and verify 0x V2 orders", async () => {
-            ECSignature_0xV2_raw_1 = await zeroExV2.ecSignOrderHashAsync(
+            ECSignature_0xV2_raw_1 = await signatureUtils.ecSignOrderHashAsync(
                 OrderHash_0xV2_1_onchain,
                 OrderParams_0xV2_1["makerAddress"],
                 "DEFAULT"
@@ -618,7 +608,7 @@ contract('BZxTest', function(accounts) {
                 ECSignature_0xV2_raw_1
             ));
 
-            ECSignature_0xV2_raw_2 = await zeroExV2.ecSignOrderHashAsync(
+            ECSignature_0xV2_raw_2 = await signatureUtils.ecSignOrderHashAsync(
                 OrderHash_0xV2_2_onchain,
                 OrderParams_0xV2_2["makerAddress"],
                 "DEFAULT"

@@ -9,7 +9,7 @@
   "dependencies": {
     "0x-smart-contracts": "git+https://github.com/0xProject/contracts.git",
     "0x.js": "npm:0x.js@0.38.6",
-    "0xV2.js": "npm:0x.js@1.0.1-rc.3",
+    "@0xproject/order-utils": "1.0.1-rc.4",
     "@0xproject/types": "^0.2.3",
     "bzx.js": "^0.1.0",
     "bignumber.js": "^7.0.1",
@@ -17,7 +17,7 @@
     "ethers": "^3.0.26",
     "lodash": "^4.17.5",
     "openzeppelin-solidity": "1.12.0",
-    "web3-utils": "^1.0.0-beta.34"
+    "web3-utils": "1.0.0-beta.34"
   },
   "devDependencies": {
     "babel": "^6.23.0",
@@ -29,7 +29,7 @@
     "babel-preset-stage-3": "^6.24.1",
     "coveralls": "^3.0.2",
     "docusaurus": "^1.2.1",
-    "ganache-cli": "^6.1.8",
+    "ganache-cli": "6.1.0",
     "minimist": "^1.2.0",
     "node-mv": "^0.1.3",
     "rimraf": "^2.6.2",

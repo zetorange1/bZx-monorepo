@@ -60,7 +60,7 @@ const { Interface, providers, Contract } = require('ethers');
 import Web3Utils from 'web3-utils';
 import BZxJS from 'bzx.js'
 import { ZeroEx } from '0x.js';
-import { ZeroEx as ZeroExV2 } from '0xV2.js';
+import { assetDataUtils, signatureUtils, generatePseudoRandomSalt, orderHashUtils } from '@0xproject/order-utils';
 
 var config = require('../protocol-config.js');
 
@@ -83,16 +83,6 @@ let ZeroExV2Helper = artifacts.require("ZeroExV2Helper");
 
 let currentGasPrice = 8000000000; // 8 gwei
 let currentEthPrice = 500; // USD
-
-let zeroExV2 = new ZeroExV2(web3.currentProvider, {
-  blockPollingIntervalMs: undefined,
-  erc20ProxyContractAddress: undefined,
-  erc721ProxyContractAddress: undefined,
-  exchangeContractAddress: undefined,
-  gasPrice: BigNumber(currentGasPrice),
-  networkId: 50,
-  zrxContractAddress: undefined,
-});
 
 const MAX_UINT = new BigNumber(2).pow(256).minus(1).toString();
 
@@ -1614,9 +1604,9 @@ contract('BZxTest', function(accounts) {
       "makerFee": web3.toWei(0.0005, "ether").toString(),
       "takerFee": web3.toWei(0.01, "ether").toString(),
       "expirationTimeSeconds": (web3.eth.getBlock("latest").timestamp+86400).toString(),
-      "salt": ZeroExV2.generatePseudoRandomSalt().toString(),
-      "makerAssetData": ZeroExV2.encodeERC20AssetData(maker0xV2Token1.address),
-      "takerAssetData": ZeroExV2.encodeERC20AssetData(loanToken1.address),
+      "salt": generatePseudoRandomSalt().toString(),
+      "makerAssetData": assetDataUtils.encodeERC20AssetData(maker0xV2Token1.address),
+      "takerAssetData": assetDataUtils.encodeERC20AssetData(loanToken1.address),
     };
     console.log("OrderParams_0xV2_1:");
     console.log(OrderParams_0xV2_1);
@@ -1632,21 +1622,21 @@ contract('BZxTest', function(accounts) {
       "makerFee": "0",
       "takerFee": web3.toWei(0.0025, "ether").toString(),
       "expirationTimeSeconds": (web3.eth.getBlock("latest").timestamp+86400).toString(),
-      "salt": ZeroExV2.generatePseudoRandomSalt().toString(),
-      "makerAssetData": ZeroExV2.encodeERC20AssetData(maker0xV2Token1.address),
-      "takerAssetData": ZeroExV2.encodeERC20AssetData(loanToken1.address),
+      "salt": generatePseudoRandomSalt().toString(),
+      "makerAssetData": assetDataUtils.encodeERC20AssetData(maker0xV2Token1.address),
+      "takerAssetData": assetDataUtils.encodeERC20AssetData(loanToken1.address),
     };
     console.log("OrderParams_0xV2_2:");
     console.log(OrderParams_0xV2_2);
 
-    OrderHash_0xV2_1 = ZeroExV2.getOrderHashHex(OrderParams_0xV2_1);
-    OrderHash_0xV2_2 = ZeroExV2.getOrderHashHex(OrderParams_0xV2_2);
+    OrderHash_0xV2_1 = orderHashUtils.getOrderHashHex(OrderParams_0xV2_1);
+    OrderHash_0xV2_2 = orderHashUtils.getOrderHashHex(OrderParams_0xV2_2);
 
     console.log("OrderHash_0xV2_1 with 0x.js: "+OrderHash_0xV2_1);
     console.log("OrderHash_0xV2_2 with 0x.js: "+OrderHash_0xV2_2);
 
 
-    assert.isOk(ZeroExV2.isValidOrderHash(OrderHash_0xV2_1) && ZeroExV2.isValidOrderHash(OrderHash_0xV2_2));
+    assert.isOk(orderHashUtils.isValidOrderHash(OrderHash_0xV2_1) && orderHashUtils.isValidOrderHash(OrderHash_0xV2_2));
 
     OrderParams_0xV2_1_prepped = [
       OrderParams_0xV2_1["makerAddress"],
@@ -1699,14 +1689,14 @@ contract('BZxTest', function(accounts) {
 
   (run["should sign and verify 0x V2 orders"] ? it : it.skip)("should sign and verify 0x V2 orders", async function() {
 
-    ECSignature_0xV2_raw_1 = await zeroExV2.ecSignOrderHashAsync(
+    ECSignature_0xV2_raw_1 = await signatureUtils.ecSignOrderHashAsync(
       OrderHash_0xV2_1_onchain,
       OrderParams_0xV2_1["makerAddress"],
       "DEFAULT"
     );
     console.log("ECSignature_0xV2_raw_1: "+ECSignature_0xV2_raw_1);
 
-    ECSignature_0xV2_raw_2 = await zeroExV2.ecSignOrderHashAsync(
+    ECSignature_0xV2_raw_2 = await signatureUtils.ecSignOrderHashAsync(
       OrderHash_0xV2_2_onchain,
       OrderParams_0xV2_2["makerAddress"],
       "DEFAULT"
