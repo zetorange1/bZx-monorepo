@@ -1,5 +1,5 @@
 import { pathOr } from "ramda";
-import BZxJS from "../../core";
+import { BZxJS } from "../../core";
 import bZxJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "./utils";
 import { expectPromiEvent } from "../../core/__tests__/utils";

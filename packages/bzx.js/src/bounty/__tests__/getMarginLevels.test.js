@@ -1,7 +1,7 @@
 import { pathOr } from "ramda";
 import bZxJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";
-import BZxJS from "../../core";
+import { BZxJS } from "../../core";
 
 const { web3 } = bZxJS;
 

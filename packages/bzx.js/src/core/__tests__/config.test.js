@@ -1,5 +1,5 @@
 import Web3 from "web3";
-import BZxJS from "../../core";
+import { BZxJS } from "../../core";
 
 describe("config", () => {
   test("should use default config when config arg not provided", () => {

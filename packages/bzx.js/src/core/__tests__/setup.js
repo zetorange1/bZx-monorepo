@@ -1,6 +1,6 @@
 /* globals jest */
 import Web3 from "web3";
-import BZxJS from "../index";
+import { BZxJS } from "../index";
 
 // const networkUrl = "https://testnet.bZx.network";
 const networkUrl = "http://localhost:8545";

@@ -2,7 +2,7 @@ import { clone } from "ramda";
 import { local as Contracts } from "../../contracts";
 import * as constants from "../../core/constants";
 import bZxJS from "../../core/__tests__/setup";
-import BZxJS from "../../core/index";
+import { BZxJS } from "../../core/index";
 import * as utils from "../../core/utils";
 import Accounts from "../../core/__tests__/accounts";
 import * as UnlockUtils from "../../core/__tests__/unlock";
