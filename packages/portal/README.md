@@ -2,18 +2,6 @@
 
 Frontend portal for the bZx network.
 
-**Note:** This project is still under _heavy_ construction.
-
-Screenshots:
-
-<p align="center">
-  <img alt="gen_order" src="static/gen_order_screen.png" width="480">
-</p>
-
-<p align="center">
-  <img alt="balances" src="static/balances_screen.png" width="480">
-</p>
-
 ## Development Setup
 
 1. Link the `bZx.js` library as per instructions below.
