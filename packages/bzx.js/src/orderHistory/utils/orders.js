@@ -5,7 +5,7 @@ const NUM_ORDER_FIELDS = 20;
 
 const getOrder = params => ({
   ...map(pipe(Utils.substr24, Utils.prepend0x), {
-    maker: params[0],
+    makerAddress: params[0],
     loanTokenAddress: params[1],
     interestTokenAddress: params[2],
     collateralTokenAddress: params[3],
