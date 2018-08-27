@@ -1,6 +1,7 @@
 {
   "name": "root",
   "private": true,
+  "license": "apache-2.0",
   "workspaces": [
     "packages/*"
   ],
