@@ -15,8 +15,8 @@
   },
   "dependencies": {
     "0x-smart-contracts": "git+https://github.com/0xProject/contracts.git",
-    "0x.js": "npm:0x.js@0.38.6",
-    "@0xproject/order-utils": "1.0.1-rc.4",
+    "0x.js": "0.38.6",
+    "@0xproject/order-utils": "1.0.1-rc.6",
     "@0xproject/types": "^0.2.3",
     "bignumber.js": "^7.0.1",
     "ethereumjs-wallet": "0.6.0",
