@@ -58,7 +58,6 @@ const ethUtil = require('ethereumjs-util');
 const { Interface, providers, Contract } = require('ethers');
 
 import Web3Utils from 'web3-utils';
-import BZxJS from 'bzx.js'
 import { ZeroEx } from '0x.js';
 import { assetDataUtils, signatureUtils, generatePseudoRandomSalt, orderHashUtils } from '@0xproject/order-utils';
 
@@ -445,11 +444,10 @@ contract('BZxTest', function(accounts) {
       "maxDurationUnixTimestampSec": "2419200", // 28 days
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
       "makerRole": "0", // 0=lender, 1=trader
-      "salt": BZxJS.generatePseudoRandomSalt().toString()
+      "salt": generatePseudoRandomSalt().toString()
     };
     console.log(OrderParams_bZx_1);
-    let expectedHash = BZxJS.getLoanOrderHashHex(OrderParams_bZx_1);
-    console.log("js hash: "+expectedHash);
+
     bZx.getLoanOrderHash.call(
       [
         OrderParams_bZx_1["makerAddress"],
@@ -473,7 +471,6 @@ contract('BZxTest', function(accounts) {
     ]).then(function(orderHash) {
       console.log("sol hash: "+orderHash);
       OrderHash_bZx_1 = orderHash;
-      assert.equal(orderHash, expectedHash, "expectedHash should equal returned loanOrderHash");
       done();
     }, function(error) {
       console.error(error);
@@ -621,11 +618,9 @@ contract('BZxTest', function(accounts) {
       "maxDurationUnixTimestampSec": "2419200", // 28 days
       "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400).toString(),
       "makerRole": "1", // 0=lender, 1=trader
-      "salt": BZxJS.generatePseudoRandomSalt().toString()
+      "salt": generatePseudoRandomSalt().toString()
     };
     console.log(OrderParams_bZx_2);
-    let expectedHash = BZxJS.getLoanOrderHashHex(OrderParams_bZx_2);
-    console.log("js hash: "+expectedHash);
     bZx.getLoanOrderHash.call(
       [
         OrderParams_bZx_2["makerAddress"],
@@ -648,8 +643,7 @@ contract('BZxTest', function(accounts) {
         new BN(OrderParams_bZx_2["salt"])
     ]).then(function(orderHash) {
       console.log("sol hash: "+orderHash);
-      OrderHash_bZx_2 = orderHash;
-      assert.equal(orderHash, expectedHash, "expectedHash should equal returned loanOrderHash");
+      OrderHash_bZx_2 = orderHash;      
       done();
     }, function(error) {
       console.error(error);
@@ -1403,7 +1397,7 @@ contract('BZxTest', function(accounts) {
       "makerFee": web3.toWei(0.002, "ether").toString(),
       "makerTokenAddress": maker0xToken1.address,
       "makerTokenAmount": web3.toWei(2, "ether").toString(),
-      "salt": BZxJS.generatePseudoRandomSalt().toString(),
+      "salt": generatePseudoRandomSalt().toString(),
       "taker": NULL_ADDRESS,
       "takerFee": web3.toWei(0.0013, "ether").toString(),
       "takerTokenAddress": loanToken1.address,
@@ -1420,7 +1414,7 @@ contract('BZxTest', function(accounts) {
       "makerFee": web3.toWei(0.1, "ether").toString(),
       "makerTokenAddress": maker0xToken1.address,
       "makerTokenAmount": web3.toWei(100, "ether").toString(),
-      "salt": BZxJS.generatePseudoRandomSalt().toString(),
+      "salt": generatePseudoRandomSalt().toString(),
       "taker": NULL_ADDRESS,
       "takerFee": web3.toWei(0.02, "ether").toString(),
       "takerTokenAddress": loanToken1.address,
