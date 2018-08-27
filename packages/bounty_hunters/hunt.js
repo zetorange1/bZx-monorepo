@@ -12,7 +12,7 @@ console.log("Connecting to network "+network+"...");
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 const fs = require("fs");
 const Web3 = require("web3");
-const B0xJS = require("b0x.js").default;
+const { BZxJS } = require("bzx.js");
 const BigNumber = require("bignumber.js");
 const moment = require("moment");
 
@@ -192,7 +192,7 @@ async function main() {
         
         const networkId = await web3.eth.net.getId();
         
-        b0x = new B0xJS(web3.currentProvider, { networkId });
+        b0x = new BZxJS(web3.currentProvider, { networkId });
 
         const batchSize = 10;
 

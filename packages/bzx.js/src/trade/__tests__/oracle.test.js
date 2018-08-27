@@ -1,5 +1,5 @@
 import { pathOr, pipe } from "ramda";
-import BZxJS from "../../core/index";
+import { BZxJS } from "../../core/index";
 import bZxJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 import * as CoreTestUtils from "../../core/__tests__/utils";

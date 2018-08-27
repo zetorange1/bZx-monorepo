@@ -4,7 +4,7 @@
   "private": true,
   "description": "",
   "keywords": [],
-  "author": "",
+  "license": "apache-2.0",
   "homepage": "https://github.com/bZxNetwork/bZx-monorepo/tree/master/packages/bounty_hunters#readme",
   "repository": {
     "type": "git",

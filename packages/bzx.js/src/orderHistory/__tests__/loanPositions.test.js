@@ -3,7 +3,7 @@ import bZxJS from "../../core/__tests__/setup";
 import * as FillTestUtils from "../../fill/__tests__/utils";
 import makeOrder from "../../core/__tests__/order";
 import * as orderConstants from "../../core/constants/order";
-import BZxJS from "../../core";
+import { BZxJS } from "../../core";
 import * as OrderHistoryTestUtils from "./utils";
 
 const { web3 } = bZxJS;

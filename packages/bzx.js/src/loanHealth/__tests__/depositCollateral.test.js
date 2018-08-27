@@ -1,6 +1,6 @@
 import { pathOr } from "ramda";
 import { BigNumber } from "bignumber.js";
-import BZxJS from "../../core";
+import { BZxJS } from "../../core";
 import bZxJS from "../../core/__tests__/setup";
 import { expectPromiEvent } from "../../core/__tests__/utils";
 import * as FillTestUtils from "../../fill/__tests__/utils";

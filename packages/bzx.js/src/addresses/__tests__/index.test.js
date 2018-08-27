@@ -1,5 +1,5 @@
 import Web3 from "web3";
-import BZxJS from "../../core/index";
+import { BZxJS } from "../../core/index";
 import * as Errors from "../../core/constants/errors";
 
 describe("addresses", () => {

@@ -1,5 +1,5 @@
 import * as constants from "../../core/constants";
-import BZxJS from "../../core";
+import { BZxJS } from "../../core";
 import bZxJS from "../../core/__tests__/setup";
 import makeOrder from "../../core/__tests__/order";
 import { local as Contracts } from "../../contracts";

@@ -4,7 +4,7 @@
   "description": "Frontend portal for bZx",
   "keywords": [],
   "author": "",
-  "license": "UNLICENSED",
+  "license": "apache-2.0",
   "homepage": "https://github.com/bZxNetwork/bZx-monorepo/tree/master/packages/portal#readme",
   "repository": {
     "type": "git",
