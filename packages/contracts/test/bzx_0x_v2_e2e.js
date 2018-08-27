@@ -703,6 +703,7 @@ contract('BZxTest', function(accounts) {
 
         it("should sign and verify 0x V2 orders", async () => {
             ECSignature_0xV2_raw_1 = await signatureUtils.ecSignOrderHashAsync(
+                web3.currentProvider,
                 OrderHash_0xV2_1_onchain,
                 OrderParams_0xV2_1["makerAddress"],
                 "DEFAULT"
@@ -715,6 +716,7 @@ contract('BZxTest', function(accounts) {
             ));
 
             ECSignature_0xV2_raw_2 = await signatureUtils.ecSignOrderHashAsync(
+                web3.currentProvider,
                 OrderHash_0xV2_2_onchain,
                 OrderParams_0xV2_2["makerAddress"],
                 "DEFAULT"
