@@ -122,15 +122,19 @@ contract('BZxTest', function(accounts) {
         await loanToken2.approve(vault.address, MAX_UINT, {from: lender2})
         await collateralToken1.transfer(trader1, web3.toWei(1000000, "ether"))
         await collateralToken1.transfer(trader2, web3.toWei(1000000, "ether"))
+        await collateralToken2.transfer(trader1, web3.toWei(1000000, "ether"))
         await collateralToken2.transfer(trader2, web3.toWei(1000000, "ether"))
         await collateralToken1.approve(vault.address, MAX_UINT, {from: trader1})
         await collateralToken1.approve(vault.address, MAX_UINT, {from: trader2})
+        await collateralToken2.approve(vault.address, MAX_UINT, {from: trader1})
         await collateralToken2.approve(vault.address, MAX_UINT, {from: trader2})
         await interestToken1.transfer(trader1, web3.toWei(1000000, "ether"))
         await interestToken1.transfer(trader2, web3.toWei(1000000, "ether"))
+        await interestToken2.transfer(trader1, web3.toWei(1000000, "ether"))
         await interestToken2.transfer(trader2, web3.toWei(1000000, "ether"))
         await interestToken1.approve(vault.address, MAX_UINT, {from: trader1})
         await interestToken1.approve(vault.address, MAX_UINT, {from: trader2})
+        await interestToken2.approve(vault.address, MAX_UINT, {from: trader1})
         await interestToken2.approve(vault.address, MAX_UINT, {from: trader2})
         await maker0xV2Token1.transfer(maker1, web3.toWei(10000, "ether"))
         await maker0xV2Token1.transfer(maker2, web3.toWei(10000, "ether"))
@@ -236,7 +240,7 @@ contract('BZxTest', function(accounts) {
         zeroExV2Events.stopWatching();
     })
 
-    context("Loan initialization", async () => {
+    context("Off-chain loans", async () => {
         it("should generate loanOrderHash", async () => {
             OrderHash_bZx_1 = await bZx.getLoanOrderHash.call(
                 [
@@ -271,66 +275,6 @@ contract('BZxTest', function(accounts) {
             assert.isOk(await bZx.isValidSignature.call(lender1, OrderHash_bZx_1, ECSignature_raw_1));
         })
 
-        it("should push sample loan order on chain (as maker2)", async () => {
-            let hash = await bZx.pushLoanOrderOnChain.call(
-                [
-                    OrderParams_bZx_1["makerAddress"],
-                    OrderParams_bZx_1["loanTokenAddress"],
-                    OrderParams_bZx_1["interestTokenAddress"],
-                    OrderParams_bZx_1["collateralTokenAddress"],
-                    OrderParams_bZx_1["feeRecipientAddress"],
-                    OrderParams_bZx_1["oracleAddress"]
-                ],
-                [
-                    new BN(OrderParams_bZx_1["loanTokenAmount"]),
-                    new BN(OrderParams_bZx_1["interestAmount"]),
-                    new BN(OrderParams_bZx_1["initialMarginAmount"]),
-                    new BN(OrderParams_bZx_1["maintenanceMarginAmount"]),
-                    new BN(OrderParams_bZx_1["lenderRelayFee"]),
-                    new BN(OrderParams_bZx_1["traderRelayFee"]),
-                    new BN(OrderParams_bZx_1["maxDurationUnixTimestampSec"]),
-                    new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
-                    new BN(OrderParams_bZx_1["makerRole"]),
-                    new BN(OrderParams_bZx_1["salt"])
-                ],
-                ECSignature_raw_1, {
-                    from: maker2
-                })
-
-            assert.equal(hash, OrderHash_bZx_1);
-
-            await bZx.pushLoanOrderOnChain(
-                [
-                    OrderParams_bZx_1["makerAddress"],
-                    OrderParams_bZx_1["loanTokenAddress"],
-                    OrderParams_bZx_1["interestTokenAddress"],
-                    OrderParams_bZx_1["collateralTokenAddress"],
-                    OrderParams_bZx_1["feeRecipientAddress"],
-                    OrderParams_bZx_1["oracleAddress"]
-                ],
-                [
-                    new BN(OrderParams_bZx_1["loanTokenAmount"]),
-                    new BN(OrderParams_bZx_1["interestAmount"]),
-                    new BN(OrderParams_bZx_1["initialMarginAmount"]),
-                    new BN(OrderParams_bZx_1["maintenanceMarginAmount"]),
-                    new BN(OrderParams_bZx_1["lenderRelayFee"]),
-                    new BN(OrderParams_bZx_1["traderRelayFee"]),
-                    new BN(OrderParams_bZx_1["maxDurationUnixTimestampSec"]),
-                    new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
-                    new BN(OrderParams_bZx_1["makerRole"]),
-                    new BN(OrderParams_bZx_1["salt"])
-                ],
-                ECSignature_raw_1, {
-                    from: maker2
-                })
-
-            var data = await bZx.getSingleOrder.call(OrderHash_bZx_1);
-
-            let orders = decodeOrders(data);
-            assert.equal(orders.length, 1);
-            ensureOrder(orders[0], OrderParams_bZx_1, OrderHash_bZx_1);
-        })
-
         it("should take sample loan order (as lender1/trader1)", async () => {
             await bZx.takeLoanOrderAsTrader(
                 [
@@ -360,14 +304,6 @@ contract('BZxTest', function(accounts) {
                 })
 
             assert.equal(decodeOrders(await bZx.getOrdersForUser.call(lender1, 0, 10)).length, 1);
-        })
-
-        it("should take sample loan order (as lender1/trader2) on chain", async () => {
-            await bZx.takeLoanOrderOnChainAsTrader(OrderHash_bZx_1, collateralToken1.address, web3.toWei(20, "ether"), {
-                from: trader2
-            })
-
-            assert.equal(decodeOrders(await bZx.getOrdersForUser.call(trader2, 0, 10)).length, 1);
         })
 
         it("should generate loanOrderHash (as trader2)", async () => {
@@ -443,31 +379,31 @@ contract('BZxTest', function(accounts) {
         it("should get fillable orders", async () => {
             let data = await bZx.getOrdersFillable.call(0, 10);
             let orders = decodeOrders(data);
-            console.log("Fillable orders:", orders);
+            // console.log("Fillable orders:", orders);
         })
 
         it("should get single loan position", async () => {
             let data = await bZx.getSingleLoan.call(OrderHash_bZx_1, trader1);
             let loanPositions = decodeLoanPosition(data);
-            console.log(loanPositions);
+            // console.log(loanPositions);
         })
 
         it("should get loan positions (for lender1)", async () => {
             let data = await bZx.getLoansForLender.call(lender1, 10, true);
             let loanPositions = decodeLoanPosition(data);
-            console.log(loanPositions);
+            // console.log(loanPositions);
         })
 
         it("should get loan positions (for trader1)", async () => {
             let data = await bZx.getLoansForTrader.call(trader1, 10, false);
             let loanPositions = decodeLoanPosition(data);
-            console.log(loanPositions);
+            // console.log(loanPositions);
         })
 
         it("should get loan positions (for trader2)", async () => {
             var data = await bZx.getLoansForTrader.call(trader2, 10, true);
             let loanPositions = decodeLoanPosition(data);
-            console.log(loanPositions);
+            // console.log(loanPositions);
         })
 
         it("should get active loans", async () => {
@@ -486,10 +422,8 @@ contract('BZxTest', function(accounts) {
                 assert.isOk(false);
             } else {
                 var loansObjArray = data.match(new RegExp('.{1,' + (itemCount * 64) + '}', 'g'));
-                console.log("loansObjArray.length: " + loansObjArray.length);
                 for (var i = 0; i < loansObjArray.length; i++) {
                     var params = loansObjArray[i].match(new RegExp('.{1,' + 64 + '}', 'g'));
-                    console.log(i + ": params.length: " + params.length);
                     if (parseInt("0x" + params[0].substr(24)) == 0) {
                         continue;
                     }
@@ -500,10 +434,191 @@ contract('BZxTest', function(accounts) {
                     })
                 }
 
-                console.log(loans);
-
                 assert.isOk(true);
             }
+        })
+    })
+
+    context("On-chain loans", async () => {
+        let orderAsTrader;
+        let orderAsLender;
+
+        let hashOrderAsTrader;
+        let hashOrderAsLender;
+
+        before("before", async () => {
+            await reverter.snapshot();
+        })
+
+        before('Init: orders', async () => {
+            orderAsTrader = {
+                "bZxAddress": bZx.address,
+                "makerAddress": lender1, // lender
+                "loanTokenAddress": loanToken1.address,
+                "interestTokenAddress": interestToken1.address,
+                "collateralTokenAddress": utils.zeroAddress,
+                "feeRecipientAddress": utils.zeroAddress,
+                "oracleAddress": oracle.address,
+                "loanTokenAmount": web3.toWei(100000, "ether").toString(),
+                "interestAmount": web3.toWei(2, "ether").toString(), // 2 token units per day
+                "initialMarginAmount": "50", // 50%
+                "maintenanceMarginAmount": "5", // 25%
+                "lenderRelayFee": web3.toWei(0.001, "ether").toString(),
+                "traderRelayFee": web3.toWei(0.0015, "ether").toString(),
+                "maxDurationUnixTimestampSec": "2419200", // 28 days
+                "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp + 86400).toString(),
+                "makerRole": "0", // 0=lender, 1=trader
+                "salt": generatePseudoRandomSalt().toString()
+            };
+
+            orderAsLender = {
+                "bZxAddress": bZx.address,
+                "makerAddress": trader2, // lender
+                "loanTokenAddress": loanToken2.address,
+                "interestTokenAddress": interestToken2.address,
+                "collateralTokenAddress": collateralToken2.address,
+                "feeRecipientAddress": utils.zeroAddress,
+                "oracleAddress": oracle.address,
+                "loanTokenAmount": web3.toWei(100000, "ether").toString(),
+                "interestAmount": web3.toWei(2, "ether").toString(), // 2 token units per day
+                "initialMarginAmount": "50", // 50%
+                "maintenanceMarginAmount": "25", // 25%
+                "lenderRelayFee": web3.toWei(0.001, "ether").toString(),
+                "traderRelayFee": web3.toWei(0.0015, "ether").toString(),
+                "maxDurationUnixTimestampSec": "2419200", // 28 days
+                "expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp + 86400).toString(),
+                "makerRole": "1", // 0=lender, 1=trader
+                "salt": generatePseudoRandomSalt().toString()
+            };
+        })
+
+        it("should push sample loan order on chain (as maker2)", async () => {
+            let hash = await bZx.getLoanOrderHash.call(
+                [
+                    orderAsTrader["makerAddress"],
+                    orderAsTrader["loanTokenAddress"],
+                    orderAsTrader["interestTokenAddress"],
+                    orderAsTrader["collateralTokenAddress"],
+                    orderAsTrader["feeRecipientAddress"],
+                    orderAsTrader["oracleAddress"]
+                ],
+                [
+                    new BN(orderAsTrader["loanTokenAmount"]),
+                    new BN(orderAsTrader["interestAmount"]),
+                    new BN(orderAsTrader["initialMarginAmount"]),
+                    new BN(orderAsTrader["maintenanceMarginAmount"]),
+                    new BN(orderAsTrader["lenderRelayFee"]),
+                    new BN(orderAsTrader["traderRelayFee"]),
+                    new BN(orderAsTrader["maxDurationUnixTimestampSec"]),
+                    new BN(orderAsTrader["expirationUnixTimestampSec"]),
+                    new BN(orderAsTrader["makerRole"]),
+                    new BN(orderAsTrader["salt"])
+                ]);
+
+            let signature = await sign(lender1, hash);
+            assert.isTrue(await bZx.isValidSignature.call(lender1, hash, signature));
+
+            await bZx.pushLoanOrderOnChain(
+                [
+                    orderAsTrader["makerAddress"],
+                    orderAsTrader["loanTokenAddress"],
+                    orderAsTrader["interestTokenAddress"],
+                    orderAsTrader["collateralTokenAddress"],
+                    orderAsTrader["feeRecipientAddress"],
+                    orderAsTrader["oracleAddress"]
+                ],
+                [
+                    new BN(orderAsTrader["loanTokenAmount"]),
+                    new BN(orderAsTrader["interestAmount"]),
+                    new BN(orderAsTrader["initialMarginAmount"]),
+                    new BN(orderAsTrader["maintenanceMarginAmount"]),
+                    new BN(orderAsTrader["lenderRelayFee"]),
+                    new BN(orderAsTrader["traderRelayFee"]),
+                    new BN(orderAsTrader["maxDurationUnixTimestampSec"]),
+                    new BN(orderAsTrader["expirationUnixTimestampSec"]),
+                    new BN(orderAsTrader["makerRole"]),
+                    new BN(orderAsTrader["salt"])
+                ],
+                signature,
+                {from: maker2})
+
+            let orders = decodeOrders(await bZx.getSingleOrder.call(hash));
+            assert.equal(orders.length, 1);
+            ensureOrder(orders[0], orderAsTrader, hash);
+
+            hashOrderAsTrader = hash;
+        })
+
+        it("should take sample loan order (as trader2) on chain", async () => {
+            await bZx.takeLoanOrderOnChainAsTrader(hashOrderAsTrader, collateralToken1.address, web3.toWei(20, "ether"), {
+                from: trader2
+            })
+
+            //assert.equal(decodeOrders(await bZx.getOrdersForUser.call(trader2, 0, 10)).length, 1);
+        })
+
+        it("should push sample loan order on chain (as maker1)", async () => {
+            let hash = await bZx.getLoanOrderHash.call(
+                [
+                    orderAsLender["makerAddress"],
+                    orderAsLender["loanTokenAddress"],
+                    orderAsLender["interestTokenAddress"],
+                    orderAsLender["collateralTokenAddress"],
+                    orderAsLender["feeRecipientAddress"],
+                    orderAsLender["oracleAddress"]
+                ],
+                [
+                    new BN(orderAsLender["loanTokenAmount"]),
+                    new BN(orderAsLender["interestAmount"]),
+                    new BN(orderAsLender["initialMarginAmount"]),
+                    new BN(orderAsLender["maintenanceMarginAmount"]),
+                    new BN(orderAsLender["lenderRelayFee"]),
+                    new BN(orderAsLender["traderRelayFee"]),
+                    new BN(orderAsLender["maxDurationUnixTimestampSec"]),
+                    new BN(orderAsLender["expirationUnixTimestampSec"]),
+                    new BN(orderAsLender["makerRole"]),
+                    new BN(orderAsLender["salt"])
+                ]);
+
+            let signature = await sign(trader2, hash);
+
+            await bZx.pushLoanOrderOnChain(
+                [
+                    orderAsLender["makerAddress"],
+                    orderAsLender["loanTokenAddress"],
+                    orderAsLender["interestTokenAddress"],
+                    orderAsLender["collateralTokenAddress"],
+                    orderAsLender["feeRecipientAddress"],
+                    orderAsLender["oracleAddress"]
+                ],
+                [
+                    new BN(orderAsLender["loanTokenAmount"]),
+                    new BN(orderAsLender["interestAmount"]),
+                    new BN(orderAsLender["initialMarginAmount"]),
+                    new BN(orderAsLender["maintenanceMarginAmount"]),
+                    new BN(orderAsLender["lenderRelayFee"]),
+                    new BN(orderAsLender["traderRelayFee"]),
+                    new BN(orderAsLender["maxDurationUnixTimestampSec"]),
+                    new BN(orderAsLender["expirationUnixTimestampSec"]),
+                    new BN(orderAsLender["makerRole"]),
+                    new BN(orderAsLender["salt"])
+                ],
+                signature,
+                {from: maker1})
+
+            let orders = decodeOrders(await bZx.getSingleOrder.call(hash));
+            assert.equal(orders.length, 1);
+            ensureOrder(orders[0], orderAsLender, hash);
+
+            hashOrderAsLender = hash;
+        })
+
+        it("should take sample loan order (as lender2) on chain", async () => {
+            await bZx.takeLoanOrderOnChainAsLender(hashOrderAsLender, {from: lender2})
+        })
+
+        after("Clean up",  async () => {
+            await reverter.revert()
         })
     })
 
@@ -525,8 +640,6 @@ contract('BZxTest', function(accounts) {
                 "takerAssetData": assetDataUtils.encodeERC20AssetData(loanToken1.address),
             };
 
-            console.log("OrderParams_0xV2_1:", OrderParams_0xV2_1);
-
             OrderParams_0xV2_2 = {
                 "exchangeAddress": config["addresses"]["development"]["ZeroEx"]["ExchangeV2"],
                 "makerAddress": maker2,
@@ -542,13 +655,9 @@ contract('BZxTest', function(accounts) {
                 "makerAssetData": assetDataUtils.encodeERC20AssetData(maker0xV2Token1.address),
                 "takerAssetData": assetDataUtils.encodeERC20AssetData(loanToken1.address),
             };
-            console.log("OrderParams_0xV2_2:", OrderParams_0xV2_2);
 
             OrderHash_0xV2_1 = orderHashUtils.getOrderHashHex(OrderParams_0xV2_1);
             OrderHash_0xV2_2 = orderHashUtils.getOrderHashHex(OrderParams_0xV2_2);
-
-            console.log("OrderHash_0xV2_1 with 0x.js: " + OrderHash_0xV2_1);
-            console.log("OrderHash_0xV2_2 with 0x.js: " + OrderHash_0xV2_2);
 
             assert.isOk(orderHashUtils.isValidOrderHash(OrderHash_0xV2_1) && orderHashUtils.isValidOrderHash(OrderHash_0xV2_2));
 
@@ -588,9 +697,6 @@ contract('BZxTest', function(accounts) {
             const helper = await (new Contract(zeroExV2Helper.address, zeroExV2Helper.abi, signer));
             OrderHash_0xV2_1_onchain = await helper.getOrderHash(OrderParams_0xV2_1_prepped);
             OrderHash_0xV2_2_onchain = await helper.getOrderHash(OrderParams_0xV2_2_prepped);
-
-            console.log("OrderHash_0xV2_1 with contracts: " + OrderHash_0xV2_1_onchain);
-            console.log("OrderHash_0xV2_2 with contracts: " + OrderHash_0xV2_2_onchain);
 
             assert.isOk(true);
         })
@@ -926,7 +1032,13 @@ contract('BZxTest', function(accounts) {
         assert.equal(expectedOrder.maintenanceMarginAmount, order.maintenanceMarginAmount);
         assert.equal(expectedOrder.lenderRelayFee, order.lenderRelayFee);
         assert.equal(expectedOrder.traderRelayFee, order.traderRelayFee);
-        assert.equal(OrderParams_bZx_1.expirationUnixTimestampSec, order.expirationUnixTimestampSec);
+        assert.equal(expectedOrder.expirationUnixTimestampSec, order.expirationUnixTimestampSec);
         assert.equal(expectedHash, order.loanOrderHash);
+    }
+
+    let sign = async (signer, data) => {
+        let signature = web3.eth.sign(signer, data) + toHex(SignatureType.EthSign);
+        assert.isOk(await bZx.isValidSignature.call(signer, data, signature));
+        return signature;
     }
 })
