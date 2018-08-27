@@ -10,7 +10,7 @@ var secrets = "",
   mainnetMnemonic = "",
   infuraApikey = "";
 try {
-  secrets = require("../config/secrets.js");
+  secrets = require("../../config/secrets.js");
   (ropstenMnemonic = secrets["mnemonic"]["ropsten"]),
     (kovanMnemonic = secrets["mnemonic"]["kovan"]),
     (rinkebyMnemonic = secrets["mnemonic"]["rinkeby"]),

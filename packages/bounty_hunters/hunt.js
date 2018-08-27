@@ -16,7 +16,7 @@ const { BZxJS } = require("bzx.js");
 const BigNumber = require("bignumber.js");
 const moment = require("moment");
 
-const secrets = require("../config/secrets.js");
+const secrets = require("../../config/secrets.js");
 /*
 Example secrets file (with blank values):
 
