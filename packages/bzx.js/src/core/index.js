@@ -20,7 +20,7 @@ import * as weth from "../weth";
 
 const Web3 = require("web3"); // eslint-disable global-require
 
-export default class BZxJS {
+export class BZxJS {
   static generatePseudoRandomSalt = utils.generatePseudoRandomSalt;
   static noop = utils.noop;
   static toChecksumAddress = utils.toChecksumAddress;
@@ -177,3 +177,5 @@ export default class BZxJS {
   wrapEth = (...props) => weth.wrapEth(this, ...props);
   unwrapEth = (...props) => weth.unwrapEth(this, ...props);
 }
+
+export default BZxJS;
