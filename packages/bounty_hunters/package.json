@@ -2,6 +2,17 @@
   "name": "bzx-bounty_hunters",
   "version": "0.1.0",
   "private": true,
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "homepage": "https://github.com/bZxNetwork/bZx-monorepo/tree/master/packages/bounty_hunters#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bZxNetwork/bZx-monorepo.git"
+  },
+  "bugs": {
+    "url" : "https://github.com/bZxNetwork/bZx-monorepo/issues"
+  },
   "dependencies": {
     "bzx.js": "^0.1.0",
     "bignumber.js": "^7.0.1",

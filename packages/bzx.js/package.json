@@ -2,20 +2,18 @@
   "name": "bzx.js",
   "version": "0.1.0",
   "private": true,
-  "main": "dist/bzx.js",
-  "scripts": {
-    "test": "cross-env NODE_ENV=development jest -i",
-    "lint": "eslint src test",
-    "lint:fix": "eslint src --fix",
-    "prettier:fix": "prettier --write 'src/**/*.js'",
-    "prettier:pre-commit": "./scripts/pre-commit-prettier.sh",
-    "dev": "webpack --watch --config webpack.config.js",
-    "build": "webpack --config webpack.config.js"
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "homepage": "https://github.com/bZxNetwork/bZx-monorepo/tree/master/packages/bzx.js#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bZxNetwork/bZx-monorepo.git"
   },
-  "pre-commit": [
-    "prettier:pre-commit",
-    "lint"
-  ],
+  "bugs": {
+    "url" : "https://github.com/bZxNetwork/bZx-monorepo/issues"
+  },
+  "main": "dist/bzx.js",
   "dependencies": {
     "@0xproject/assert": "0.2.14",
     "@0xproject/json-schemas": "0.8.3",
@@ -66,5 +64,18 @@
     "webpack": "^3.10.0",
     "webpack-node-externals": "^1.7.2",
     "ziptool": "git+https://github.com/nayayayay/ziptool.git"
-  }
+  },
+  "scripts": {
+    "test": "cross-env NODE_ENV=development jest -i",
+    "lint": "eslint src test",
+    "lint:fix": "eslint src --fix",
+    "prettier:fix": "prettier --write 'src/**/*.js'",
+    "prettier:pre-commit": "./scripts/pre-commit-prettier.sh",
+    "dev": "webpack --watch --config webpack.config.js",
+    "build": "webpack --config webpack.config.js"
+  },
+  "pre-commit": [
+    "prettier:pre-commit",
+    "lint"
+  ]
 }
