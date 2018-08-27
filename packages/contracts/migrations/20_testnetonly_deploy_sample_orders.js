@@ -17,7 +17,7 @@ const _ = require('lodash');
 
 const Web3Utils = require('web3-utils');
 const BZxJS = require('bzx.js').default;
-const ZeroEx = require('0x.js');
+const orderUtils =  require('@0xproject/order-utils');
 
 const config = require('../protocol-config.js');
 
@@ -148,10 +148,31 @@ module.exports = function(deployer, network, accounts) {
 				"maxDurationUnixTimestampSec": "2419200", // 28 days
 				"expirationUnixTimestampSec": (web3.eth.getBlock("latest").timestamp+86400*365).toString(),
 				"makerRole": "0", // 0=lender, 1=trader
-				"salt": BZxJS.generatePseudoRandomSalt().toString()
+				"salt": orderUtils.generatePseudoRandomSalt().toString()
 			};
 			//console.log(OrderParams_bZx_1);
-			let OrderHash_bZx_1 = BZxJS.getLoanOrderHashHex(OrderParams_bZx_1);
+			let OrderHash_bZx_1 ;//= BZxJS.getLoanOrderHashHex(OrderParams_bZx_1);
+            OrderHash_bZx_1 = await bZx.getLoanOrderHash.call(
+                [
+                    OrderParams_bZx_1["makerAddress"],
+                    OrderParams_bZx_1["loanTokenAddress"],
+                    OrderParams_bZx_1["interestTokenAddress"],
+                    OrderParams_bZx_1["collateralTokenAddress"],
+                    OrderParams_bZx_1["feeRecipientAddress"],
+                    OrderParams_bZx_1["oracleAddress"]
+                ],
+                [
+                    new BN(OrderParams_bZx_1["loanTokenAmount"]),
+                    new BN(OrderParams_bZx_1["interestAmount"]),
+                    new BN(OrderParams_bZx_1["initialMarginAmount"]),
+                    new BN(OrderParams_bZx_1["maintenanceMarginAmount"]),
+                    new BN(OrderParams_bZx_1["lenderRelayFee"]),
+                    new BN(OrderParams_bZx_1["traderRelayFee"]),
+                    new BN(OrderParams_bZx_1["maxDurationUnixTimestampSec"]),
+                    new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
+                    new BN(OrderParams_bZx_1["makerRole"]),
+                    new BN(OrderParams_bZx_1["salt"])
+                ]);
 
 			/// should sign and verify orderHash (as lender1)
 			const nodeVersion = web3.version.node;
@@ -235,7 +256,7 @@ module.exports = function(deployer, network, accounts) {
 					"makerFee": web3.toWei(0.002, "ether").toString(),
 					"makerTokenAddress": maker0xToken1.address,
 					"makerTokenAmount": web3.toWei(100, "ether").toString(),
-					"salt": BZxJS.generatePseudoRandomSalt().toString(),
+					"salt": ZeroEx.generatePseudoRandomSalt().toString(),
 					"taker": NULL_ADDRESS,
 					"takerFee": web3.toWei(0.0013, "ether").toString(),
 					"takerTokenAddress": loanToken1.address,
@@ -243,7 +264,7 @@ module.exports = function(deployer, network, accounts) {
 				};
 				console.log(OrderParams_0x);
 
-				OrderHash_0x = ZeroEx.ZeroEx.getOrderHashHex(OrderParams_0x);
+				OrderHash_0x = orderUtils.orderHashUtils.getOrderHashHex(OrderParams_0x);
 
 				if (isParityNode || isTestRpc) {
 					// Parity and TestRpc nodes add the personalMessage prefix itself
