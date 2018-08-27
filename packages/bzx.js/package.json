@@ -14,6 +14,7 @@
     "url" : "https://github.com/bZxNetwork/bZx-monorepo/issues"
   },
   "main": "dist/bzx.js",
+  "types": "index.d.ts",
   "dependencies": {
     "@0xproject/assert": "0.2.14",
     "@0xproject/json-schemas": "0.8.3",
