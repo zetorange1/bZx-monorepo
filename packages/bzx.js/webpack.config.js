@@ -1,12 +1,11 @@
 const path = require("path");
 const nodeExternals = require("webpack-node-externals");
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-
+const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 
 module.exports = {
   entry: {
-    "bzx": "./src/core/index.js",
-    "bzx.min": "./src/core/index.js",
+    bzx: "./src/core/index.js",
+    "bzx.min": "./src/core/index.js"
   },
   output: {
     path: path.resolve(__dirname, "dist"),
@@ -18,7 +17,7 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        exclude: path.resolve(__dirname, 'node_modules/'),
+        exclude: path.resolve(__dirname, "node_modules/"),
         use: {
           loader: "babel-loader"
         }
@@ -30,5 +29,5 @@ module.exports = {
     new UglifyJsPlugin({
       include: /\.min\.js$/
     })
-  ],
+  ]
 };

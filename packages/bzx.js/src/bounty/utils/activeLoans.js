@@ -5,9 +5,10 @@ const NUM_LOAN_FIELDS = 3;
 
 const getLoan = params => ({
   loanOrderHash: OrderHistoryUtils.prepend0x(params[0]),
-  trader: pipe(OrderHistoryUtils.substr24, OrderHistoryUtils.prepend0x)(
-    params[1]
-  ),
+  trader: pipe(
+    OrderHistoryUtils.substr24,
+    OrderHistoryUtils.prepend0x
+  )(params[1]),
   loanEndUnixTimestampSec: OrderHistoryUtils.parseIntHex(params[2])
 });
 
@@ -24,6 +25,11 @@ export const cleanData = raw =>
         OrderHistoryUtils.remove0xPrefix,
         checkProperObjCount,
         getOrderObjArray,
-        map(pipe(OrderHistoryUtils.getOrderParams, getLoan))
+        map(
+          pipe(
+            OrderHistoryUtils.getOrderParams,
+            getLoan
+          )
+        )
       )(raw)
     : [];

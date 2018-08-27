@@ -12,9 +12,9 @@ const checkForValidSignature = order => {
 };
 
 export const takeLoanOrderAsLender = (
-    { web3, networkId },
-    { order, getObject, txOpts }
-  ) => {
+  { web3, networkId },
+  { order, getObject, txOpts }
+) => {
   checkForValidSignature(order);
 
   const bZxContract = CoreUtils.getContractInstance(
@@ -54,7 +54,7 @@ export const takeLoanOrderAsLender = (
   if (getObject) {
     return txObj;
   }
-    return txObj.send(txOpts);
+  return txObj.send(txOpts);
 };
 
 export const takeLoanOrderAsTrader = (
@@ -102,7 +102,7 @@ export const takeLoanOrderAsTrader = (
   if (getObject) {
     return txObj;
   }
-    return txObj.send(txOpts);
+  return txObj.send(txOpts);
 };
 
 export const pushLoanOrderOnChain = (
@@ -148,12 +148,18 @@ export const pushLoanOrderOnChain = (
   if (getObject) {
     return txObj;
   }
-    return txObj.send(txOpts);
+  return txObj.send(txOpts);
 };
 
 export const takeLoanOrderOnChainAsTrader = (
   { web3, networkId },
-  { loanOrderHash, collateralTokenAddress, loanTokenAmountFilled, getObject, txOpts }
+  {
+    loanOrderHash,
+    collateralTokenAddress,
+    loanTokenAmountFilled,
+    getObject,
+    txOpts
+  }
 ) => {
   const bZxContract = CoreUtils.getContractInstance(
     web3,
@@ -170,7 +176,7 @@ export const takeLoanOrderOnChainAsTrader = (
   if (getObject) {
     return txObj;
   }
-    return txObj.send(txOpts);
+  return txObj.send(txOpts);
 };
 
 export const takeLoanOrderOnChainAsLender = (
@@ -183,14 +189,12 @@ export const takeLoanOrderOnChainAsLender = (
     Addresses.getAddresses(networkId).BZx
   );
 
-  const txObj = bZxContract.methods.takeLoanOrderOnChainAsLender(
-    loanOrderHash
-  );
+  const txObj = bZxContract.methods.takeLoanOrderOnChainAsLender(loanOrderHash);
 
   if (getObject) {
     return txObj;
   }
-    return txObj.send(txOpts);
+  return txObj.send(txOpts);
 };
 
 export const cancelLoanOrder = (
@@ -236,9 +240,8 @@ export const cancelLoanOrder = (
   if (getObject) {
     return txObj;
   }
-    return txObj.send(txOpts);
+  return txObj.send(txOpts);
 };
-
 
 export const cancelLoanOrderWithHash = (
   { web3, networkId },
@@ -258,7 +261,7 @@ export const cancelLoanOrderWithHash = (
   if (getObject) {
     return txObj;
   }
-    return txObj.send(txOpts);
+  return txObj.send(txOpts);
 };
 
 export const getInitialCollateralRequired = async (

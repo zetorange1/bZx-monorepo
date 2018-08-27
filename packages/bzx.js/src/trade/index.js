@@ -17,7 +17,6 @@ export const tradePositionWith0x = (
   { web3, networkId },
   { order0x, orderHashBZx, getObject, txOpts }
 ) => {
-
   const rpcSig0x = ethUtil.toRpcSig(
     order0x.signedOrder.ecSignature.v,
     order0x.signedOrder.ecSignature.r,
@@ -55,15 +54,24 @@ export const tradePositionWith0x = (
       transformedOrder0x.takerFee,
       transformedOrder0x.expirationUnixTimestampSec,
       transformedOrder0x.salt
-    ].map(value => pipe(makeBN, padLeft, prepend0x)(value))
+    ].map(value =>
+      pipe(
+        makeBN,
+        padLeft,
+        prepend0x
+      )(value)
+    )
   ];
 
   const types = repeat("bytes32", values.length);
   const hashBuff = ethABI.solidityPack(types, values);
   const order0xTightlyPacked = ethUtil.bufferToHex(hashBuff);
 
-  const txObj = bZxContract.methods
-    .tradePositionWith0x(orderHashBZx, order0xTightlyPacked, rpcSig0x);
+  const txObj = bZxContract.methods.tradePositionWith0x(
+    orderHashBZx,
+    order0xTightlyPacked,
+    rpcSig0x
+  );
 
   if (getObject) {
     return txObj;
@@ -82,8 +90,10 @@ export const tradePositionWithOracle = (
     contracts.BZx.address
   );
 
-  const txObj = bZxContract.methods
-    .tradePositionWithOracle(orderHash, tradeTokenAddress);
+  const txObj = bZxContract.methods.tradePositionWithOracle(
+    orderHash,
+    tradeTokenAddress
+  );
 
   if (getObject) {
     return txObj;

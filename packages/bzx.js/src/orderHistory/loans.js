@@ -18,8 +18,7 @@ export const getSingleLoan = async (
     .call();
 
   const cleanedData = LoanPosUtils.cleanData(data);
-  if (cleanedData.length > 0)
-    return cleanedData[0];
+  if (cleanedData.length > 0) return cleanedData[0];
   return {};
 };
 

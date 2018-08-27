@@ -5,19 +5,19 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const React = require('react');
+const React = require("react");
 
-const siteConfig = require(process.cwd() + '/siteConfig.js');
+const siteConfig = require(process.cwd() + "/siteConfig.js");
 
 class Footer extends React.Component {
   docUrl(doc, language) {
     const baseUrl = this.props.config.baseUrl;
-    return baseUrl + 'docs/' + (language ? language + '/' : '') + doc;
+    return baseUrl + "docs/" + (language ? language + "/" : "") + doc;
   }
 
   pageUrl(doc, language) {
     const baseUrl = this.props.config.baseUrl;
-    return baseUrl + (language ? language + '/' : '') + doc;
+    return baseUrl + (language ? language + "/" : "") + doc;
   }
 
   render() {
@@ -37,7 +37,7 @@ class Footer extends React.Component {
           </a>
           <div>
             <h5>Docs</h5>
-            <a href={this.docUrl('migrations_Migrations.html')}>
+            <a href={this.docUrl("migrations_Migrations.html")}>
               Getting Started
             </a>
           </div>
@@ -46,20 +46,26 @@ class Footer extends React.Component {
             <a
               href={siteConfig.stackoverflow}
               target="_blank"
-              rel="noreferrer noopener">
+              rel="noreferrer noopener"
+            >
               Stack Overflow
             </a>
             <a
               href={siteConfig.twitter}
               target="_blank"
-              rel="noreferrer noopener">
+              rel="noreferrer noopener"
+            >
               Twitter
             </a>
           </div>
           <div>
             <h5>More</h5>
-            <a href={siteConfig.medium} target="_blank">Medium</a>
-            <a href={siteConfig.githubCompanyRepository} target="_blank">GitHub</a>
+            <a href={siteConfig.medium} target="_blank">
+              Medium
+            </a>
+            <a href={siteConfig.githubCompanyRepository} target="_blank">
+              GitHub
+            </a>
             <a
               className="github-button"
               href={siteConfig.githubRepository}
@@ -67,7 +73,8 @@ class Footer extends React.Component {
               data-count-href="/bZxNetwork/protocol_contracts/stargazers"
               data-show-count={true}
               data-count-aria-label="# stargazers on GitHub"
-              aria-label="Star this project on GitHub">
+              aria-label="Star this project on GitHub"
+            >
               Star
             </a>
           </div>

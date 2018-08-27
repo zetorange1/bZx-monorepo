@@ -2,7 +2,7 @@
 
 Frontend portal for the bZx network.
 
-__Note:__ This project is still under *heavy* construction.
+**Note:** This project is still under _heavy_ construction.
 
 Screenshots:
 
@@ -36,7 +36,7 @@ In order to interface with the development version of this library, you'll need 
 
 If you are using VSCode as your editor, make sure to install the following packages:
 
-* ESLint
+- ESLint
 
 Your settings for optimal developer experience (DX) should include:
 

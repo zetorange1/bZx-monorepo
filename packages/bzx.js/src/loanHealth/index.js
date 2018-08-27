@@ -11,13 +11,15 @@ export const changeCollateral = (
     addresses.BZx
   );
 
-  const txObj = bZxContract.methods
-    .changeCollateral(loanOrderHash, collateralTokenFilled);
+  const txObj = bZxContract.methods.changeCollateral(
+    loanOrderHash,
+    collateralTokenFilled
+  );
 
   if (getObject) {
     return txObj;
   }
-    return txObj.send(txOpts);
+  return txObj.send(txOpts);
 };
 
 export const depositCollateral = (
@@ -30,17 +32,16 @@ export const depositCollateral = (
     addresses.BZx
   );
 
-  const txObj = bZxContract.methods
-    .depositCollateral(
-      loanOrderHash,
-      collateralTokenFilled,
-      depositAmount
-    );
+  const txObj = bZxContract.methods.depositCollateral(
+    loanOrderHash,
+    collateralTokenFilled,
+    depositAmount
+  );
 
   if (getObject) {
     return txObj;
   }
-    return txObj.send(txOpts);
+  return txObj.send(txOpts);
 };
 
 export const withdrawExcessCollateral = (
@@ -53,17 +54,16 @@ export const withdrawExcessCollateral = (
     addresses.BZx
   );
 
-  const txObj = bZxContract.methods
-    .withdrawExcessCollateral(
-      loanOrderHash,
-      collateralTokenFilled,
-      withdrawAmount
-    );
+  const txObj = bZxContract.methods.withdrawExcessCollateral(
+    loanOrderHash,
+    collateralTokenFilled,
+    withdrawAmount
+  );
 
   if (getObject) {
     return txObj;
   }
-    return txObj.send(txOpts);
+  return txObj.send(txOpts);
 };
 
 export const payInterest = (
@@ -76,13 +76,12 @@ export const payInterest = (
     addresses.BZx
   );
 
-  const txObj = bZxContract.methods
-    .payInterest(loanOrderHash, trader);
+  const txObj = bZxContract.methods.payInterest(loanOrderHash, trader);
 
   if (getObject) {
     return txObj;
   }
-    return txObj.send(txOpts);
+  return txObj.send(txOpts);
 };
 
 export const getInterest = async (
@@ -115,13 +114,12 @@ export const closeLoan = (
     addresses.BZx
   );
 
-  const txObj = bZxContract.methods
-    .closeLoan(loanOrderHash);
+  const txObj = bZxContract.methods.closeLoan(loanOrderHash);
 
   if (getObject) {
     return txObj;
   }
-    return txObj.send(txOpts);
+  return txObj.send(txOpts);
 };
 
 export const withdrawProfit = (
@@ -134,13 +132,12 @@ export const withdrawProfit = (
     addresses.BZx
   );
 
-  const txObj = bZxContract.methods
-    .withdrawProfit(loanOrderHash);
+  const txObj = bZxContract.methods.withdrawProfit(loanOrderHash);
 
   if (getObject) {
     return txObj;
   }
-    return txObj.send(txOpts);
+  return txObj.send(txOpts);
 };
 
 export const getProfitOrLoss = async (

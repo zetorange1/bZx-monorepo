@@ -64,7 +64,9 @@ describe("bounty", () => {
 
       expect(activeLoan.loanOrderHash).toEqual(orderHashHex);
       expect(activeLoan.trader).toEqual(takerAddress);
-      expect(activeLoan.expirationUnixTimestampSec.toString()).toEqual(order.expirationUnixTimestampSec);
+      expect(activeLoan.expirationUnixTimestampSec.toString()).toEqual(
+        order.expirationUnixTimestampSec
+      );
     });
 
     test("should not return closed loans", async () => {

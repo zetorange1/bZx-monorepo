@@ -12,7 +12,7 @@
     "url": "https://github.com/bZxNetwork/bZx-monorepo.git"
   },
   "bugs": {
-    "url" : "https://github.com/bZxNetwork/bZx-monorepo/issues"
+    "url": "https://github.com/bZxNetwork/bZx-monorepo/issues"
   },
   "dependencies": {
     "0x-smart-contracts": "git+https://github.com/0xProject/contracts.git",

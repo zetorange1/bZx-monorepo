@@ -44,11 +44,10 @@ export const liquidateLoan = (
     addresses.BZx
   );
 
-  const txObj = bZxContract.methods
-    .liquidatePosition(loanOrderHash, trader);
+  const txObj = bZxContract.methods.liquidatePosition(loanOrderHash, trader);
 
   if (getObject) {
     return txObj;
   }
-    return txObj.send(txOpts);
+  return txObj.send(txOpts);
 };

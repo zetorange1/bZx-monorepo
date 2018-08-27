@@ -28,13 +28,15 @@ export const setAllowance = (
     tokenAddress
   );
 
-  const txObj = tokenContract.methods
-    .approve(spenderAddress, amountInBaseUnits);
+  const txObj = tokenContract.methods.approve(
+    spenderAddress,
+    amountInBaseUnits
+  );
 
   if (getObject) {
     return txObj;
   }
-    return txObj.send(txOpts);
+  return txObj.send(txOpts);
 };
 
 export const getAllowance = async (

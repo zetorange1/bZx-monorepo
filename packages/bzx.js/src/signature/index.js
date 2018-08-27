@@ -8,15 +8,15 @@ import { getContracts } from "../contracts";
 import * as Addresses from "../addresses";
 
 const SignatureTypeStr = Object.freeze({
-  "Illegal": "00",
-  "Invalid": "01",
-  "EIP712": "02",
-  "EthSign": "03",
-  "Caller": "04",
-  "Wallet": "05",
-  "Validator": "06",
-  "PreSigned": "07",
-  "Trezor": "08",
+  Illegal: "00",
+  Invalid: "01",
+  EIP712: "02",
+  EthSign: "03",
+  Caller: "04",
+  Wallet: "05",
+  Validator: "06",
+  PreSigned: "07",
+  Trezor: "08"
 });
 
 export const signOrderHashAsync = async (
@@ -59,28 +59,25 @@ export const signOrderHashAsync = async (
       signerAddress
     );
     if (isValidVRSSignature) {
-      return ethUtil.toRpcSig(
-        ecSignatureVRS.v,
-        ecSignatureVRS.r,
-        ecSignatureVRS.s
-      ) + SignatureTypeStr.EthSign;
+      return (
+        ethUtil.toRpcSig(ecSignatureVRS.v, ecSignatureVRS.r, ecSignatureVRS.s) +
+        SignatureTypeStr.EthSign
+      );
     }
   }
 
   const ecSignatureRSV = signatureUtils.parseSignatureHexAsRSV(signature);
   if (_.includes(validVParamValues, ecSignatureRSV.v)) {
-
     const isValidRSVSignature = signatureUtils.isValidSignature(
       orderHash,
       ecSignatureRSV,
       signerAddress
     );
     if (isValidRSVSignature) {
-      return ethUtil.toRpcSig(
-        ecSignatureRSV.v,
-        ecSignatureRSV.r,
-        ecSignatureRSV.s
-      ) + SignatureTypeStr.EthSign;
+      return (
+        ethUtil.toRpcSig(ecSignatureRSV.v, ecSignatureRSV.r, ecSignatureRSV.s) +
+        SignatureTypeStr.EthSign
+      );
     }
   }
 
@@ -88,7 +85,6 @@ export const signOrderHashAsync = async (
 };
 
 export const isValidSignature = ({ account, orderHash, signature }) => {
-
   // hack to support 0x v2 EthSign SignatureType format
   // recoverPersonalSignature assumes no SignatureType ending
   signature = signature.substr(0, 132); // eslint-disable-line no-param-reassign

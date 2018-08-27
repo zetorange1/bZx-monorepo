@@ -12,7 +12,7 @@
     "url": "https://github.com/bZxNetwork/bZx-monorepo.git"
   },
   "bugs": {
-    "url" : "https://github.com/bZxNetwork/bZx-monorepo/issues"
+    "url": "https://github.com/bZxNetwork/bZx-monorepo/issues"
   },
   "main": "dist/bzx.js",
   "types": "index.d.ts",

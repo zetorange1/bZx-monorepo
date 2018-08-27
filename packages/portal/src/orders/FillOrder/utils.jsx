@@ -1,7 +1,7 @@
 import moment from "moment";
 
 import styled from "styled-components";
-import { BZxJS } from "bzx.js";  // eslint-disable-line
+import { BZxJS } from "bzx.js"; // eslint-disable-line
 import { getTrackedTokens } from "../../common/trackedTokens";
 import { getTokenBalance, getSymbol, getDecimals } from "../../common/tokens";
 import { toBigNumber, fromBigNumber } from "../../common/utils";

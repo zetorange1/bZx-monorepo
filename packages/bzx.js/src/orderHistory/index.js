@@ -13,13 +13,10 @@ export const getSingleOrder = async (
     Addresses.getAddresses(networkId).BZx
   );
 
-  const data = await bZxContract.methods
-    .getSingleOrder(loanOrderHash)
-    .call();
+  const data = await bZxContract.methods.getSingleOrder(loanOrderHash).call();
 
   const cleanedData = OrderUtils.cleanData(data);
-  if (cleanedData.length > 0)
-    return cleanedData[0];
+  if (cleanedData.length > 0) return cleanedData[0];
   return {};
 };
 
@@ -33,9 +30,7 @@ export const getOrdersFillable = async (
     Addresses.getAddresses(networkId).BZx
   );
 
-  const data = await bZxContract.methods
-    .getOrdersFillable(start, count)
-    .call();
+  const data = await bZxContract.methods.getOrdersFillable(start, count).call();
 
   return OrderUtils.cleanData(data);
 };

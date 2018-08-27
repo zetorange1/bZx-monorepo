@@ -1,8 +1,6 @@
 import * as constants from "../../core/constants";
 
-export const transform0xOrder = ({
-  signedOrder
-}) => ({
+export const transform0xOrder = ({ signedOrder }) => ({
   exchangeContractAddress: signedOrder.exchangeContractAddress,
   expirationUnixTimestampSec: signedOrder.expirationUnixTimestampSec,
   feeRecipient: signedOrder.feeRecipient,

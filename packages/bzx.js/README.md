@@ -8,7 +8,7 @@ Javascript library for bZx. Allows for interaction with bZx smart contracts on t
 
 2. Run `yarn install` to install dependencies.
 
-2. Run `yarn dev` to start webpack in watch mode.
+3. Run `yarn dev` to start webpack in watch mode.
 
 Whenever a file is saved, webpack rebuilds and outputs `bzx.js` in the `/dist` directory.
 

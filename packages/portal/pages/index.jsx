@@ -383,7 +383,30 @@ class Index extends React.Component {
           >
             <Web3Container
               // eslint-disable-next-line
-              render={({ web3, zeroEx, tokens, bZx, accounts, oracles, networkId }) => this.contentSection({ providerName, web3, zeroEx, tokens, bZx, accounts, oracles, networkId }, activeCard, activeTab)}
+              render={({
+                web3,
+                zeroEx,
+                tokens,
+                bZx,
+                accounts,
+                oracles,
+                networkId
+              }) =>
+                this.contentSection(
+                  {
+                    providerName,
+                    web3,
+                    zeroEx,
+                    tokens,
+                    bZx,
+                    accounts,
+                    oracles,
+                    networkId
+                  },
+                  activeCard,
+                  activeTab
+                )
+              }
               providerName={providerName}
               setProvider={this.setProvider}
               clearProvider={this.clearProvider}

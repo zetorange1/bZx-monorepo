@@ -1,8 +1,6 @@
 {
   "docs-api": {
-    "MIGRATIONS": [
-      "migrations_Migrations"
-    ],
+    "MIGRATIONS": ["migrations_Migrations"],
     "MODIFIERS": [
       "modifiers_BZxOwnable",
       "modifiers_EMACollector",
@@ -27,10 +25,7 @@
       "oracle_OracleInterface",
       "oracle_OracleRegistry"
     ],
-    "SHARED": [
-      "shared_Debugger",
-      "shared_InternalFunctions"
-    ],
+    "SHARED": ["shared_Debugger", "shared_InternalFunctions"],
     "TOKENS": [
       "tokens_BaseToken",
       "tokens_EIP20",
@@ -60,11 +55,6 @@
       "tokens_testing_fake_ERC20AlwaysOwned",
       "tokens_testing_fake_ERC827AlwaysOwned"
     ],
-    "UNCATEGORIZED": [
-      "BZx",
-      "BZxTo0x",
-      "BZxTo0x_ExchangeInterface",
-      "BZxVault"
-    ]
+    "UNCATEGORIZED": ["BZx", "BZxTo0x", "BZxTo0x_ExchangeInterface", "BZxVault"]
   }
 }

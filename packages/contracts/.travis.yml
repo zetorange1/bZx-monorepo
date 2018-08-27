@@ -2,7 +2,7 @@ sudo: required
 dist: trusty
 language: node_js
 node_js:
-  - '9'
+  - "9"
 before_install:
   - export NODE_OPTIONS="--max_old_space_size=4096"
   - export PATH=$PATH:$(pwd)/node_modules/.bin

@@ -8,4 +8,7 @@ const formatData = raw =>
   )(raw);
 
 export const getAddresses = networkId =>
-  pipe(getContracts, formatData)(networkId);
+  pipe(
+    getContracts,
+    formatData
+  )(networkId);

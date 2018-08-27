@@ -129,8 +129,7 @@ export class BZxJS {
   takeLoanOrderOnChainAsLender = (...props) =>
     fill.takeLoanOrderOnChainAsLender(this, ...props);
 
-  cancelLoanOrder = (...props) =>
-    fill.cancelLoanOrder(this, ...props);
+  cancelLoanOrder = (...props) => fill.cancelLoanOrder(this, ...props);
 
   cancelLoanOrderWithHash = (...props) =>
     fill.cancelLoanOrderWithHash(this, ...props);
