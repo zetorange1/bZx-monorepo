@@ -1,3 +1,4 @@
+import { BigNumber } from "bignumber.js";
 import { map, mapAccum, pipe, zipWith } from "ramda";
 import { assert } from "@0xproject/assert";
 import * as utils from "../core/utils";
@@ -123,7 +124,7 @@ export const getConversionData = async (
     .call();
 
   return {
-	  "rate": 0 in data && data[0] ? data[0] : 0,
-	  "amount": 1 in data && data[1] ? data[1] : 0,
+	  "rate": 0 in data && data[0] ? data[0] : new BigNumber(0),
+	  "amount": 1 in data && data[1] ? data[1] : new BigNumber(0),
   };
 };
