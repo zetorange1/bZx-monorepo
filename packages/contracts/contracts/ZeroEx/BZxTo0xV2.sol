@@ -1,4 +1,8 @@
-
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
+ 
 pragma solidity 0.4.24;
 pragma experimental ABIEncoderV2;
 
@@ -21,7 +25,7 @@ contract BZxTo0xV2 is EIP20Wrapper, BZxOwnable {
     );
 
     bool public DEBUG = false;
-    
+
     address public exchangeV2Contract;
     address public zrxTokenContract;
     address public erc20ProxyContract;
@@ -29,19 +33,19 @@ contract BZxTo0xV2 is EIP20Wrapper, BZxOwnable {
     constructor(
         address _exchangeV2,
         address _zrxToken,
-        address _proxy) 
-        public 
+        address _proxy)
+        public
     {
         exchangeV2Contract = _exchangeV2;
         zrxTokenContract = _zrxToken;
         erc20ProxyContract = _proxy;
     }
 
-    function() 
+    function()
         public {
         revert();
     }
-    
+
     // 0xc78429c4 == "take0xV2Trade(address,address,uint256,(address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bytes,bytes)[],bytes[])"
     function take0xV2Trade(
         address trader,
@@ -102,18 +106,18 @@ contract BZxTo0xV2 is EIP20Wrapper, BZxOwnable {
         pure
         returns (
             address makerTokenAddress,
-            address takerTokenAddress) 
+            address takerTokenAddress)
     {
         bytes memory makerAssetData = order.makerAssetData;
         bytes memory takerAssetData = order.takerAssetData;
         bytes4 makerProxyID;
         bytes4 takerProxyID;
-        
+
         // example data: 0xf47261b00000000000000000000000001dc4c1cefef38a777b15aa20260a54e584b16c48
         assembly {
             makerProxyID := mload(add(makerAssetData, 32))
             takerProxyID := mload(add(takerAssetData, 32))
-            
+
             makerTokenAddress := mload(add(makerAssetData, 36))
             takerTokenAddress := mload(add(takerAssetData, 36))
         }
@@ -177,17 +181,17 @@ contract BZxTo0xV2 is EIP20Wrapper, BZxOwnable {
         ExchangeV2Interface.OrderV2[] orders0x, // Array of 0x V2 order structs
         bytes[] memory signatures0x)
         internal
-        returns (uint sourceTokenUsedAmount, uint destTokenAmount) 
+        returns (uint sourceTokenUsedAmount, uint destTokenAmount)
     {
         uint zrxTokenAmount = 0;
         for (uint i = 0; i < orders0x.length; i++) {
             // Note: takerAssetData (sourceToken) is confirmed to be the same in 0x for batch orders
-            // To confirm makerAssetData is the same for each order, rather than doing a more expensive per order bytes 
+            // To confirm makerAssetData is the same for each order, rather than doing a more expensive per order bytes
             // comparison, we will simply set takerAssetData the same in each order to the first value observed. The 0x
             // trade will fail for invalid orders.
             if (i > 0)
                 orders0x[i].makerAssetData = orders0x[0].makerAssetData;
-            
+
             if (orders0x[i].feeRecipientAddress != address(0) && // feeRecipient
                     orders0x[i].takerFee > 0 // takerFee
             ) {

@@ -1,4 +1,8 @@
-
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
+ 
 pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
@@ -7,7 +11,7 @@ import "./BZxStorage.sol";
 
 contract Proxiable {
     mapping (bytes4 => address) public targets;
-    
+
     mapping (bytes4 => bool) public targetIsPaused;
 
     function initialize(address _target) public;
@@ -24,7 +28,7 @@ contract BZxProxy is BZxStorage, Proxiable {
 
     function() payable public {
         require(!targetIsPaused[msg.sig], "BZxProxy::Function temporarily paused");
-        
+
         address target = targets[msg.sig];
         require(target != address(0), "BZxProxy::Target not found");
 
@@ -87,7 +91,7 @@ contract BZxProxy is BZxStorage, Proxiable {
         address _vault,
         address _oracleregistry,
         address _exchange0xWrapper,
-        address _exchange0xV2Wrapper) 
+        address _exchange0xV2Wrapper)
         public
         onlyOwner
     {
@@ -153,7 +157,7 @@ contract BZxProxy is BZxStorage, Proxiable {
         if (_wrapper != address(0))
             bZxTo0xContract = _wrapper;
     }
-    
+
     function set0xV2ExchangeWrapper (
         address _wrapper)
         public

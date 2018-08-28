@@ -1,3 +1,7 @@
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
 
 pragma solidity 0.4.24;
 
@@ -31,7 +35,7 @@ contract GasRefunder {
         uint startingGas = gasleft();
 
         _; // modified function body inserted here
-        
+
         calculateAndSendRefund(
             payer,
             startingGas,
@@ -71,7 +75,7 @@ contract GasRefunder {
     {
         if (percentMultiplier == 0) // 0 percentMultiplier not allowed
             percentMultiplier = 100;
-        
+
         uint refundAmount = gasUsed.mul(gasPrice).mul(percentMultiplier).div(100);
 
         if (throwOnGasRefundFail) {

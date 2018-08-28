@@ -1,4 +1,8 @@
-
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
+ 
 pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
@@ -36,9 +40,9 @@ interface KyberNetwork_Interface {
     function getExpectedRate(
         address src,
         address dest,
-        uint srcQty) 
-        external 
-        view 
+        uint srcQty)
+        external
+        view
         returns (uint expectedRate, uint slippageRate);
 }
 
@@ -62,15 +66,15 @@ contract OracleTest is EIP20Wrapper, Ownable {
 
     function testTrade(
         address destTokenAddress,
-        uint sourceEthAmount)                
+        uint sourceEthAmount)
         public
         onlyOwner
     {
         // bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")) = 0xcb3c28c7
-        
+
         bool result = kyberContract.call
             .gas(gasleft())
-            .value(sourceEthAmount)( // send Ether along 
+            .value(sourceEthAmount)( // send Ether along
             0xcb3c28c7,
             KYBER_ETH_TOKEN_ADDRESS,
             sourceEthAmount,
@@ -89,7 +93,7 @@ contract OracleTest is EIP20Wrapper, Ownable {
             case 0 { return(0, 0x20) }
             default { return(ptr, size) }
         }
-        
+
         /*function trade(
             address src,
             uint srcAmount,
@@ -106,10 +110,10 @@ contract OracleTest is EIP20Wrapper, Ownable {
         onlyOwner
     {
         // bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")) = 0xcb3c28c7
-        
+
         bool result = kyberContract.call
             .gas(gasleft())
-            .value(10**16)( // send Ether along 
+            .value(10**16)( // send Ether along
             0xcb3c28c7,
             KYBER_ETH_TOKEN_ADDRESS,
             10**16,
@@ -128,7 +132,7 @@ contract OracleTest is EIP20Wrapper, Ownable {
             case 0 { return(0, 0x20) }
             default { return(ptr, size) }
         }
-        
+
         /*function trade(
             address src,
             uint srcAmount,
@@ -145,10 +149,10 @@ contract OracleTest is EIP20Wrapper, Ownable {
         onlyOwner
     {
         // bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")) = 0xcb3c28c7
-        
+
         bool result = kyberContract.call
             .gas(gasleft())
-            .value(10**16)( // send Ether along 
+            .value(10**16)( // send Ether along
             0xcb3c28c7,
             KYBER_ETH_TOKEN_ADDRESS,
             10**16,
@@ -167,7 +171,7 @@ contract OracleTest is EIP20Wrapper, Ownable {
             case 0 { return(0, 0x20) }
             default { return(ptr, size) }
         }
-        
+
         /*function trade(
             address src,
             uint srcAmount,
@@ -188,14 +192,14 @@ contract OracleTest is EIP20Wrapper, Ownable {
         address destTokenAddress,
         uint sourceTokenAmount)
         public
-        view 
+        view
         returns (bool)
     {
         (uint rate, uint slippage) = _getExpectedRate(
             sourceTokenAddress,
             destTokenAddress,
             sourceTokenAmount);
-        
+
         if (rate > 0 && (sourceTokenAmount == 0 || slippage > 0))
             return true;
         else
@@ -207,7 +211,7 @@ contract OracleTest is EIP20Wrapper, Ownable {
         address destTokenAddress,
         uint sourceTokenAmount)
         public
-        view 
+        view
         returns (uint rate)
     {
         (rate,) = _getExpectedRate(
@@ -221,7 +225,7 @@ contract OracleTest is EIP20Wrapper, Ownable {
     */
 
     function setKyberContractAddress(
-        address newAddress) 
+        address newAddress)
         public
         onlyOwner
     {
@@ -230,7 +234,7 @@ contract OracleTest is EIP20Wrapper, Ownable {
     }
 
     function setWethContractAddress(
-        address newAddress) 
+        address newAddress)
         public
         onlyOwner
     {
@@ -278,7 +282,7 @@ contract OracleTest is EIP20Wrapper, Ownable {
         address destTokenAddress,
         uint sourceTokenAmount)
         internal
-        view 
+        view
         returns (uint expectedRate, uint slippageRate)
     {
         if (sourceTokenAddress == destTokenAddress) {
@@ -288,7 +292,7 @@ contract OracleTest is EIP20Wrapper, Ownable {
             if (sourceTokenAddress == wethContract) {
                 (expectedRate, slippageRate) = KyberNetwork_Interface(kyberContract).getExpectedRate(
                     KYBER_ETH_TOKEN_ADDRESS,
-                    destTokenAddress, 
+                    destTokenAddress,
                     sourceTokenAmount
                 );
             } else if (destTokenAddress == wethContract) {

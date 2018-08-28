@@ -1,3 +1,7 @@
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
 
 pragma solidity 0.4.24;
 
@@ -22,11 +26,11 @@ contract EMACollector {
         updateEMA(value);
     }
 
-    function updateEMA(uint value) 
+    function updateEMA(uint value)
         internal {
         /*
             Multiplier: 2 / (emaPeriods + 1)
-            EMA: (LastestValue - PreviousEMA) * Multiplier + PreviousEMA 
+            EMA: (LastestValue - PreviousEMA) * Multiplier + PreviousEMA
         */
 
         require(emaPeriods >= 2, "emaPeriods < 2");
@@ -36,7 +40,7 @@ contract EMACollector {
             return;
 
         // calculate new EMA
-        emaValue = 
+        emaValue =
             SafeMath.sub(
                 SafeMath.add(
                     value / (emaPeriods + 1) * 2,   // no overflow

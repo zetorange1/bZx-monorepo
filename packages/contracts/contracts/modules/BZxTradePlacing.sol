@@ -1,4 +1,8 @@
-
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
+ 
 pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
@@ -42,7 +46,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
         targets[0xe92476a6] = _target; // bytes4(keccak256("tradePositionWith0x(bytes32,bytes,bytes)"))
         targets[0xb3f73c40] = _target; // bytes4(keccak256("tradePositionWithOracle(bytes32,address)"))
     }
-    
+
     /// @dev Executes a 0x trade using loaned funds.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param orderData0x 0x order arguments, converted to hex, padded to 32 bytes and concatenated (multi-order batching allowed)
@@ -196,7 +200,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
             true // isManual
         );
 
-        // It is assumed that all positionToken will be traded, so the remaining token balance of the oracle 
+        // It is assumed that all positionToken will be traded, so the remaining token balance of the oracle
         // shouldn't be greater than the balance before we sent the token to be traded.
         if (balanceBeforeTrade < EIP20(loanPosition.positionTokenAddressFilled).balanceOf.gas(4999)(oracleAddresses[loanOrder.oracleAddress])) {
             revert("BZxTradePlacing::tradePositionWithOracle: balanceBeforeTrade is less");

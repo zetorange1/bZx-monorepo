@@ -1,4 +1,8 @@
-
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
+ 
 pragma solidity 0.4.24;
 pragma experimental ABIEncoderV2;
 
@@ -16,16 +20,16 @@ contract BZxTo0xV2_Interface {
     // solhint-disable max-line-length
     // ref: https://github.com/0xProject/0x-monorepo/blob/development/packages/contracts/src/2.0.0/protocol/Exchange/libs/LibOrder.sol
     struct OrderV2 {
-        address makerAddress;           // Address that created the order.      
-        address takerAddress;           // Address that is allowed to fill the order. If set to 0, any address is allowed to fill the order.          
-        address feeRecipientAddress;    // Address that will recieve fees when order is filled.      
+        address makerAddress;           // Address that created the order.
+        address takerAddress;           // Address that is allowed to fill the order. If set to 0, any address is allowed to fill the order.
+        address feeRecipientAddress;    // Address that will recieve fees when order is filled.
         address senderAddress;          // Address that is allowed to call Exchange contract methods that affect this order. If set to 0, any address is allowed to call these methods.
-        uint256 makerAssetAmount;       // Amount of makerAsset being offered by maker. Must be greater than 0.        
-        uint256 takerAssetAmount;       // Amount of takerAsset being bid on by maker. Must be greater than 0.        
+        uint256 makerAssetAmount;       // Amount of makerAsset being offered by maker. Must be greater than 0.
+        uint256 takerAssetAmount;       // Amount of takerAsset being bid on by maker. Must be greater than 0.
         uint256 makerFee;               // Amount of ZRX paid to feeRecipient by maker when order is filled. If set to 0, no transfer of ZRX from maker to feeRecipient will be attempted.
         uint256 takerFee;               // Amount of ZRX paid to feeRecipient by taker when order is filled. If set to 0, no transfer of ZRX from taker to feeRecipient will be attempted.
-        uint256 expirationTimeSeconds;  // Timestamp in seconds at which order expires.          
-        uint256 salt;                   // Arbitrary number to facilitate uniqueness of the order's hash.     
+        uint256 expirationTimeSeconds;  // Timestamp in seconds at which order expires.
+        uint256 salt;                   // Arbitrary number to facilitate uniqueness of the order's hash.
         bytes makerAssetData;           // Encoded data that can be decoded by a specified proxy contract when transferring makerAsset. The last byte references the id of this proxy.
         bytes takerAssetData;           // Encoded data that can be decoded by a specified proxy contract when transferring takerAsset. The last byte references the id of this proxy.
     }
@@ -55,7 +59,7 @@ contract BZxTradePlacing0xV2 is BZxStorage, Proxiable {
     {
         targets[0xb8b2e17d] = _target; // bytes4(keccak256("tradePositionWith0xV2(bytes32,(address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bytes,bytes)[],bytes[])"))
     }
-    
+
     /// @dev Executes a 0x trade using loaned funds.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param orders0x Array of 0x V2 order structs

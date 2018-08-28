@@ -1,4 +1,8 @@
-
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
+ 
 pragma solidity 0.4.24;
 
 import "./tokens/EIP20Wrapper.sol";
@@ -36,7 +40,7 @@ contract BZxVault is EIP20Wrapper, BZxOwnable {
         if (tokenAmount == 0) {
             return false;
         }
-        
+
         eip20TransferFrom(
             token,
             from,
@@ -57,7 +61,7 @@ contract BZxVault is EIP20Wrapper, BZxOwnable {
         if (tokenAmount == 0) {
             return false;
         }
-        
+
         eip20Transfer(
             token,
             to,
@@ -78,7 +82,7 @@ contract BZxVault is EIP20Wrapper, BZxOwnable {
         if (tokenAmount == 0) {
             return false;
         }
-        
+
         eip20TransferFrom(
             token,
             from,

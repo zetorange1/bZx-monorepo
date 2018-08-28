@@ -1,11 +1,15 @@
-
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
+ 
 pragma solidity 0.4.24;
 
 
 /**
     @title OracleInterface, an interface for bZx compatible oracle contracts
 
-    This interface is meant to be inherited by contracts implementing a 
+    This interface is meant to be inherited by contracts implementing a
     compatible oracle solution for bZx. The functions should provide logic
     for price discovery of ERC20 token pairs, and handle the trading of
     those pairs through an on-chain mechanism. All functions are called by bZx,
@@ -241,7 +245,7 @@ interface OracleInterface {
         address destTokenAddress,
         uint sourceTokenAmount)
         external
-        view 
+        view
         returns (uint sourceToDestRate, uint destTokenAmount);
 
     /// @dev Returns the profit/loss data for the current position
@@ -288,6 +292,6 @@ interface OracleInterface {
         address destTokenAddress,
         uint sourceTokenAmount)
         external
-        view 
+        view
         returns (bool);
 }

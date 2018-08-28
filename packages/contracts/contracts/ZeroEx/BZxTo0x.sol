@@ -1,4 +1,8 @@
-
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
+ 
 pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
@@ -17,17 +21,17 @@ contract BZxTo0x is EIP20Wrapper, BZxOwnable {
     address public tokenTransferProxyContract;
 
     constructor(
-        address _exchange, 
+        address _exchange,
         address _zrxToken,
-        address _proxy) 
-        public 
+        address _proxy)
+        public
     {
         exchangeContract = _exchange;
         zrxTokenContract = _zrxToken;
         tokenTransferProxyContract = _proxy;
     }
 
-    function() 
+    function()
         public {
         revert();
     }
@@ -74,7 +78,7 @@ contract BZxTo0x is EIP20Wrapper, BZxOwnable {
         pure
         returns (
             address[5][] orderAddresses,
-            uint[6][] orderValues) 
+            uint[6][] orderValues)
     {
         address maker;
         address taker;
@@ -212,7 +216,7 @@ contract BZxTo0x is EIP20Wrapper, BZxOwnable {
         uint[6][] orderValues0x,
         bytes signature)
         internal
-        returns (uint sourceTokenUsedAmount, uint destTokenAmount) 
+        returns (uint sourceTokenUsedAmount, uint destTokenAmount)
     {
         uint[3] memory summations; // takerTokenAmountTotal, makerTokenAmountTotal, zrxTokenAmount
 
@@ -222,7 +226,7 @@ contract BZxTo0x is EIP20Wrapper, BZxOwnable {
 
             summations[0] += orderValues0x[i][1]; // takerTokenAmountTotal
             summations[1] += orderValues0x[i][0]; // makerTokenAmountTotal
-            
+
             if (orderAddresses0x[i][4] != address(0) && // feeRecipient
                     orderValues0x[i][3] > 0 // takerFee
             ) {

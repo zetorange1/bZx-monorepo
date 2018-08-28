@@ -1,3 +1,7 @@
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
 
 pragma solidity 0.4.24;
 pragma experimental ABIEncoderV2;
@@ -20,7 +24,7 @@ contract ZeroExV2Helper is LibEIP712
         PreSigned,       // 0x06
         NSignatureTypes  // 0x07, number of signature types. Always leave at end.
     }
-    
+
     // Hash for the EIP712 Order Schema
     bytes32 constant internal EIP712_ORDER_SCHEMA_HASH = keccak256(abi.encodePacked(
         "Order(",
@@ -40,8 +44,8 @@ contract ZeroExV2Helper is LibEIP712
     ));
 
     constructor(
-        address _exchangeV2) 
-        public 
+        address _exchangeV2)
+        public
     {
         EIP712_DOMAIN_HASH = keccak256(abi.encode(
             EIP712_DOMAIN_SEPARATOR_SCHEMA_HASH,
@@ -50,7 +54,7 @@ contract ZeroExV2Helper is LibEIP712
             _exchangeV2
         ));
     }
-    
+
     /// @dev Calculates Keccak-256 hash of the order.
     /// @param order The order structure.
     /// @return Keccak-256 EIP712 hash of the order.
@@ -97,14 +101,14 @@ contract ZeroExV2Helper is LibEIP712
             let temp1 := mload(sub(order,  32))
             let temp2 := mload(add(order, 320))
             let temp3 := mload(add(order, 352))
-            
+
             // Hash in place
             // solhint-disable-next-line space-after-comma
             mstore(sub(order,  32), schemaHash)
             mstore(add(order, 320), makerAssetDataHash)
             mstore(add(order, 352), takerAssetDataHash)
             result := keccak256(sub(order, 32), 416)
-            
+
             // Restore
             // solhint-disable-next-line space-after-comma
             mstore(sub(order,  32), temp1)

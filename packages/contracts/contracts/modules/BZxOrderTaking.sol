@@ -1,4 +1,8 @@
-
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
+ 
 pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
@@ -118,7 +122,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
     function pushLoanOrderOnChain(
         address[6] orderAddresses,
         uint[10] orderValues,
-        bytes signature)        
+        bytes signature)
         external
         nonReentrant
         //tracksGas
@@ -199,7 +203,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         returns (uint)
     {
         return _cancelLoanOrder(
-            getLoanOrderHash(orderAddresses, orderValues), 
+            getLoanOrderHash(orderAddresses, orderValues),
             cancelLoanTokenAmount
         );
     }
@@ -217,7 +221,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         returns (uint)
     {
         return _cancelLoanOrder(
-            loanOrderHash, 
+            loanOrderHash,
             cancelLoanTokenAmount
         );
     }
@@ -329,7 +333,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
                 makerRole: orderValues[8],
                 expirationUnixTimestampSec: orderValues[7]
             });
-            
+
             if (!_verifyNewLoanOrder(
                 loanOrder,
                 loanOrderAux,
@@ -337,10 +341,10 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             )) {
                 revert("BZxOrderTaking::_addLoanOrder: loan verification failed");
             }
-            
+
             orders[loanOrderHash] = loanOrder;
             orderAux[loanOrderHash] = loanOrderAux;
-            
+
             emit LogLoanAdded (
                 loanOrderHash,
                 msg.sender,
@@ -457,7 +461,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
     {
         // this function should not be called if trader has already filled the loanOrder
         assert(!orderListIndex[loanOrder.loanOrderHash][trader].isSet);
-        
+
         orderFilledAmounts[loanOrder.loanOrderHash] = orderFilledAmounts[loanOrder.loanOrderHash].add(loanTokenAmountFilled);
 
         loanPosition = LoanPosition({
@@ -472,7 +476,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             loanEndUnixTimestampSec: block.timestamp.add(loanOrder.maxDurationUnixTimestampSec),
             active: true
         });
-        
+
         uint positionId = uint(keccak256(abi.encodePacked(
             loanOrder.loanOrderHash,
             orderPositionList[loanOrder.loanOrderHash].length,
@@ -574,9 +578,9 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         if (loanOrderAux.feeRecipientAddress != address(0)) {
             if (loanOrderAux.traderRelayFee > 0) {
                 uint paidTraderFee = _getPartialAmountNoError(loanTokenAmountFilled, loanOrder.loanTokenAmount, loanOrderAux.traderRelayFee);
-                
+
                 if (! BZxVault(vaultContract).transferTokenFrom(
-                    bZRxTokenContract, 
+                    bZRxTokenContract,
                     trader,
                     loanOrderAux.feeRecipientAddress,
                     paidTraderFee
@@ -586,9 +590,9 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             }
             if (loanOrderAux.lenderRelayFee > 0) {
                 uint paidLenderFee = _getPartialAmountNoError(loanTokenAmountFilled, loanOrder.loanTokenAmount, loanOrderAux.lenderRelayFee);
-                
+
                 if (! BZxVault(vaultContract).transferTokenFrom(
-                    bZRxTokenContract, 
+                    bZRxTokenContract,
                     lender,
                     loanOrderAux.feeRecipientAddress,
                     paidLenderFee
@@ -612,7 +616,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         if (loanOrder.loanTokenAddress == address(0)) {
             revert("BZxOrderTaking::cancelLoanOrder: loanOrder.loanTokenAddress == address(0)");
         }
-        
+
         LoanOrderAux memory loanOrderAux = orderAux[loanOrderHash];
 
         require(loanOrderAux.maker == msg.sender, "BZxOrderTaking::_cancelLoanOrder: loanOrderAux.maker != msg.sender");
@@ -642,7 +646,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             (remainingLoanTokenAmount - cancelledLoanTokenAmount),
             loanOrder.loanOrderHash
         );
-    
+
         return cancelledLoanTokenAmount;
     }
 
@@ -676,7 +680,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         returns (bool)
     {
         if (loanOrderAux.maker == address(0)
-            || loanOrder.loanTokenAddress == address(0) 
+            || loanOrder.loanTokenAddress == address(0)
             || loanOrder.interestTokenAddress == address(0)) {
             revert("BZxOrderTaking::_verifyNewLoanOrder: loanOrderAux.loanTokenAddress == address(0) || loanOrder.loanTokenAddress == address(0) || loanOrder.interestTokenAddress == address(0)");
         }
@@ -723,7 +727,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         if (collateralTokenFilled == address(0)) {
             revert("BZxOrderTaking::_verifyExistingLoanOrder: collateralTokenFilled == address(0)");
         }
-        
+
         if (loanOrderAux.expirationUnixTimestampSec > 0 && block.timestamp >= loanOrderAux.expirationUnixTimestampSec) {
             revert("BZxOrderTaking::_verifyExistingLoanOrder: block.timestamp >= loanOrderAux.expirationUnixTimestampSec");
         }
@@ -777,7 +781,7 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
                 v,
                 r,
                 s
-            );            
+            );
 
         // Signed using web3.eth_sign
         } else if (signatureType == SignatureType.EthSign) {
@@ -827,4 +831,3 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         }
     }
 }
-

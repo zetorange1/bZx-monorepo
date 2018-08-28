@@ -1,3 +1,8 @@
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
+ 
 /* solhint-disable func-order, separate-by-one-line-in-contract */
 
 pragma solidity 0.4.24;
@@ -10,7 +15,7 @@ import "./ZeroEx/ExchangeV2Interface.sol";
 // js example: var bZx = await BZx.at((await BZxProxy.deployed()).address);
 
 contract BZx is BZxStorage {
-   
+
     /*
     * BZxOrderTaking functions
     */
@@ -23,7 +28,7 @@ contract BZx is BZxStorage {
         bytes signature)
         external
         returns (uint);
-    
+
     function takeLoanOrderAsLender(
         address[6] orderAddresses,
         uint[10] orderValues,
@@ -34,17 +39,17 @@ contract BZx is BZxStorage {
     function pushLoanOrderOnChain(
         address[6] orderAddresses,
         uint[10] orderValues,
-        bytes signature)        
+        bytes signature)
         external
         returns (bytes32);
-    
+
     function takeLoanOrderOnChainAsTrader(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
         uint loanTokenAmountFilled)
         external
         returns (uint);
-    
+
     function takeLoanOrderOnChainAsLender(
         bytes32 loanOrderHash)
         external
@@ -62,9 +67,9 @@ contract BZx is BZxStorage {
         uint cancelLoanTokenAmount)
         external
         returns (uint);
-    
+
     function getLoanOrderHash(
-        address[6] orderAddresses, 
+        address[6] orderAddresses,
         uint[10] orderValues)
         public
         view

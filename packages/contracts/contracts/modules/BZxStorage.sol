@@ -1,4 +1,8 @@
-
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
+ 
 pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/ReentrancyGuard.sol";
@@ -169,6 +173,3 @@ contract BZxStorage is BZxObjects, ReentrancyGuard, Ownable, GasTracker {
     mapping (bytes32 => mapping (uint => uint)) public interestPaid; // mapping of loanOrderHash to mapping of position ids to amount of interest paid so far to a lender
     mapping (address => address) public oracleAddresses; // mapping of oracles to their current logic contract
 }
-
-
-

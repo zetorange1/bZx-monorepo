@@ -1,4 +1,7 @@
-
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
 
 pragma solidity 0.4.24;
 
@@ -29,12 +32,12 @@ contract InternalFunctions is BZxStorage {
         if (collateralTokenAmount == 0) {
             return 0;
         }
-        
+
         collateralTokenAmount = collateralTokenAmount
                                     .mul(initialMarginAmount)
                                     .div(100);
     }
-    
+
     function _getTotalInterestRequired(
         uint loanTokenAmount,
         uint loanTokenAmountFilled,
@@ -44,7 +47,7 @@ contract InternalFunctions is BZxStorage {
         pure
         returns (uint totalInterestRequired)
     {
-        if (interestAmount == 0) 
+        if (interestAmount == 0)
             return 0;
 
         totalInterestRequired = _getPartialAmountNoError(loanTokenAmountFilled, loanTokenAmount, maxDurationUnixTimestampSec.mul(interestAmount).div(86400));
@@ -56,8 +59,8 @@ contract InternalFunctions is BZxStorage {
     /// @param target Value to multiply with numerator/denominator.
     /// @return Rounding error is present.
     function _isRoundingError(
-        uint numerator, 
-        uint denominator, 
+        uint numerator,
+        uint denominator,
         uint target)
         internal
         pure
@@ -79,8 +82,8 @@ contract InternalFunctions is BZxStorage {
     /// @param target Value to calculate partial of.
     /// @return Partial value of target.
     function _getPartialAmount(
-        uint numerator, 
-        uint denominator, 
+        uint numerator,
+        uint denominator,
         uint target)
         internal
         pure
@@ -159,7 +162,7 @@ contract InternalFunctions is BZxStorage {
                 loanPosition.positionTokenAddressFilled,
                 tradeTokenAddress,
                 loanPosition.positionTokenAmountFilled);
-        } 
+        }
         else {
             tradeTokenAmountReceived = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doTrade(
                 loanPosition.positionTokenAddressFilled,
