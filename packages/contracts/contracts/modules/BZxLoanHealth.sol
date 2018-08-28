@@ -49,7 +49,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         }
 
         // can still pay any unpaid accured interest after a loan has closed
-        LoanPosition memory loanPosition = loanPositions[loanOrderHash][trader];
+        LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
         if (loanPosition.loanTokenAmountFilled == 0) {
             revert("BZxLoanHealth::payInterest: loanPosition.loanTokenAmountFilled == 0");
         }
@@ -82,7 +82,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             );
         }
 
-        LoanPosition storage loanPosition = loanPositions[loanOrderHash][trader];
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             revert("BZxLoanHealth::liquidatePosition: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
@@ -166,7 +166,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         tracksGas
         returns (bool)
     {
-        LoanPosition storage loanPosition = loanPositions[loanOrderHash][trader];
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
         require(loanPosition.loanTokenAmountFilled != 0 && loanPosition.active);
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
@@ -183,7 +183,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             loanPosition.loanTokenAmountFilled,
             loanOrder.interestAmount,
             loanOrder.maxDurationUnixTimestampSec)
-            .sub(interestPaid[loanOrder.loanOrderHash][loanPosition.trader]);
+            .sub(interestPaid[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]]);
 
         if (totalInterestToRefund > 0) {
             require(BZxVault(vaultContract).withdrawToken(
@@ -210,14 +210,14 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         }
 
         loanPosition.active = false;
-        loanList[loanPosition.index] = loanList[loanList.length - 1];
-        loanPositions[loanList[loanPosition.index].loanOrderHash][loanList[loanPosition.index].trader].index = loanPosition.index;
-        loanList.length--;
+        _removePosition(
+            loanOrder.loanOrderHash,
+            loanPosition.trader);
 
         emit LogLoanClosed(
             loanPosition.lender,
             loanPosition.trader,
-            //msg.sender, // loanCloser
+            msg.sender, // loanCloser
             false, // isLiquidation
             loanOrder.loanOrderHash
         );
@@ -251,7 +251,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             return false;
         }
 
-        LoanPosition memory loanPosition = loanPositions[loanOrderHash][trader];
+        LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             return false;
         }
@@ -294,7 +294,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             return;
         }
 
-        LoanPosition memory loanPosition = loanPositions[loanOrderHash][trader];
+        LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             return;
         }
@@ -324,7 +324,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         }
 
         // can still get interest for closed loans
-        LoanPosition memory loanPosition = loanPositions[loanOrderHash][trader];
+        LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
         if (loanPosition.loanTokenAmountFilled == 0) {
             return;
         }
@@ -359,7 +359,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             amountPaid = 0;
         } else {
             amountPaid = interestData.interestTotalAccrued.sub(interestData.interestPaidSoFar);
-            interestPaid[loanOrder.loanOrderHash][loanPosition.trader] = interestData.interestTotalAccrued; // since this function will pay all remaining accured interest
+            interestPaid[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]] = interestData.interestTotalAccrued; // since this function will pay all remaining accured interest
             
             // send the interest to the oracle for further processing (amountPaid > 0)
             if (! BZxVault(vaultContract).withdrawToken(
@@ -401,7 +401,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         internal
         returns (bool)
     {
-        LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             revert("BZxLoanHealth::_closeLoan: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
@@ -460,7 +460,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             loanPosition.loanTokenAmountFilled,
             loanOrder.interestAmount,
             loanOrder.maxDurationUnixTimestampSec)
-            .sub(interestPaid[loanOrder.loanOrderHash][loanPosition.trader]);
+            .sub(interestPaid[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]]);
         
         // refund any unused interest to the trader
         if (totalInterestToRefund > 0) {
@@ -533,20 +533,14 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
 
         // set this loan to inactive
         loanPosition.active = false;
-        
-        // replace loan in list with last loan in array
-        loanList[loanPosition.index] = loanList[loanList.length - 1];
-        
-        // update the position of this replacement
-        loanPositions[loanList[loanPosition.index].loanOrderHash][loanList[loanPosition.index].trader].index = loanPosition.index;
-        
-        // trim array
-        loanList.length--;
+        _removePosition(
+            loanOrder.loanOrderHash,
+            loanPosition.trader);
 
         emit LogLoanClosed(
             loanPosition.lender,
             loanPosition.trader,
-            //msg.sender, // loanCloser
+            msg.sender, // loanCloser
             isLiquidation,
             loanOrder.loanOrderHash
         );
@@ -561,5 +555,23 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         }
 
         return true;
+    }
+
+    function _removePosition(
+        bytes32 loanOrderHash,
+        address trader)
+        internal
+    {
+        // get positionList index
+        uint index = positionListIndex[loanPositionsIds[loanOrderHash][trader]].index;
+
+        // replace loan in list with last loan in array
+        positionList[index] = positionList[positionList.length - 1];
+        
+        // update the position of this replacement
+        positionListIndex[positionList[index].positionId].index = index;
+
+        // trim array
+        positionList.length--;
     }
 }

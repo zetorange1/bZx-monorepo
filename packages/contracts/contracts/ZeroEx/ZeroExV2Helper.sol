@@ -15,12 +15,10 @@ contract ZeroExV2Helper is LibEIP712
         Invalid,         // 0x01
         EIP712,          // 0x02
         EthSign,         // 0x03
-        Caller,          // 0x04
-        Wallet,          // 0x05
-        Validator,       // 0x06
-        PreSigned,       // 0x07
-        Trezor,          // 0x08
-        NSignatureTypes  // 0x09, number of signature types. Always leave at end.
+        Wallet,          // 0x04
+        Validator,       // 0x05
+        PreSigned,       // 0x06
+        NSignatureTypes  // 0x07, number of signature types. Always leave at end.
     }
     
     // Hash for the EIP712 Order Schema

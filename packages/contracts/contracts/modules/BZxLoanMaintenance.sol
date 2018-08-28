@@ -46,7 +46,7 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
             revert("BZxLoanHealth::depositCollateral: loanOrder.loanTokenAddress == address(0)");
         }
 
-        LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             revert("BZxLoanHealth::depositCollateral: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
@@ -99,7 +99,7 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
             revert("BZxLoanHealth::withdrawExcessCollateral: loanOrder.loanTokenAddress == address(0)");
         }
 
-        LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             revert("BZxLoanHealth::withdrawExcessCollateral: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
@@ -161,7 +161,7 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
             revert("BZxLoanHealth::changeCollateral: loanOrder.loanTokenAddress == address(0)");
         }
 
-        LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             revert("BZxLoanHealth::changeCollateral: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
@@ -230,7 +230,7 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         returns (uint profitAmount)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
 
         bool isProfit;
         (isProfit, profitAmount,) = _getProfitOrLoss(
@@ -288,7 +288,7 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         returns (bool isProfit, uint profitOrLoss, address positionTokenAddress)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        LoanPosition memory loanPosition = loanPositions[loanOrderHash][trader];
+        LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
 
         return _getProfitOrLoss(
             loanOrder,

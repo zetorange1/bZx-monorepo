@@ -20,6 +20,7 @@
     "@0xproject/order-utils": "1.0.1-rc.6",
     "@0xproject/types": "^0.2.3",
     "bignumber.js": "^7.0.1",
+    "bzx.js": "^0.1.0",
     "ethereumjs-wallet": "0.6.0",
     "ethers": "^3.0.26",
     "lodash": "^4.17.5",
@@ -38,6 +39,7 @@
     "docusaurus": "^1.2.1",
     "ganache-cli": "6.1.0",
     "minimist": "^1.2.0",
+    "mkdirp": "^0.5.1",
     "node-mv": "^0.1.3",
     "rimraf": "^2.6.2",
     "solhint": "^1.2.1",
@@ -71,6 +73,7 @@
     "network:run-coverage": "./node_modules/.bin/testrpc-sc --networkId 55 -p 8555 --gasLimit 500000000 --db ./test_network -m \"concert load couple harbor equip island argue ramp clarify fence smart topic\"",
     "test": "truffle test",
     "lint-contracts": "solhint contracts/**/*.sol",
-    "coverage": "./node_modules/.bin/solidity-coverage"
+    "coverage": "./node_modules/.bin/solidity-coverage",
+    "t": "truffle compile && truffle exec ./wrapper_test.js"
   }
 }

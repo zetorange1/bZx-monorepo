@@ -8,6 +8,11 @@ import "../modifiers/GasTracker.sol";
 
 contract BZxObjects {
 
+    struct ListIndex {
+        uint index;
+        bool isSet;
+    }
+
     struct LoanOrder {
         address loanTokenAddress;
         address interestTokenAddress;
@@ -30,16 +35,6 @@ contract BZxObjects {
         uint expirationUnixTimestampSec;
     }
 
-    struct LoanOrderIndex {
-        uint index;
-        bool active;
-    }
-
-    struct LoanRef {
-        bytes32 loanOrderHash;
-        address trader;
-    }
-
     struct LoanPosition {
         address lender;
         address trader;
@@ -50,8 +45,12 @@ contract BZxObjects {
         uint positionTokenAmountFilled;
         uint loanStartUnixTimestampSec;
         uint loanEndUnixTimestampSec;
-        uint index;
         bool active;
+    }
+
+    struct PositionRef {
+        bytes32 loanOrderHash;
+        uint positionId;
     }
 
     struct InterestData {
@@ -95,7 +94,7 @@ contract BZxObjects {
     event LogLoanClosed(
         address lender,
         address trader,
-        //address loanCloser,
+        address loanCloser,
         bool isLiquidation,
         bytes32 loanOrderHash
     );
@@ -147,17 +146,29 @@ contract BZxStorage is BZxObjects, ReentrancyGuard, Ownable, GasTracker {
     bool public DEBUG_MODE = false;
 /* solhint-enable var-name-mixedcase */
 
-    mapping (bytes32 => LoanOrder) public orders; // mapping of loanOrderHash to taken loanOrders
-    mapping (bytes32 => LoanOrderAux) public orderAux; // mapping of loanOrderHash to taken loanOrder auxiliary parameters
-    mapping (address => bytes32[]) public orderList; // mapping of lenders and trader addresses to array of loanOrderHashes
-    mapping (bytes32 => address) public orderLender; // mapping of loanOrderHash to lender address
-    mapping (bytes32 => address[]) public orderTraders; // mapping of loanOrderHash to array of trader addresses
+    // Loan Orders
+    mapping (bytes32 => LoanOrder) public orders; // mapping of loanOrderHash to on chain loanOrders
+    mapping (bytes32 => LoanOrderAux) public orderAux; // mapping of loanOrderHash to on chain loanOrder auxiliary parameters
     mapping (bytes32 => uint) public orderFilledAmounts; // mapping of loanOrderHash to loanTokenAmount filled
     mapping (bytes32 => uint) public orderCancelledAmounts; // mapping of loanOrderHash to loanTokenAmount cancelled
-    mapping (address => address) public oracleAddresses; // mapping of oracles to their current logic contract
-    mapping (bytes32 => mapping (address => LoanPosition)) public loanPositions; // mapping of loanOrderHash to mapping of traders to loanPositions
-    mapping (bytes32 => mapping (address => uint)) public interestPaid; // mapping of loanOrderHash to mapping of traders to amount of interest paid so far to a lender
 
-    LoanRef[] public loanList; // array of loans that need to be checked for liquidation or expiration
-    mapping (bytes32 => LoanOrderIndex) public orderIndexes; // mapping of loanOrderHash to LoanOrderIndex objects (fillable orders)
+    // Loan Positions
+    mapping (uint => LoanPosition) public loanPositions; // mapping of position ids to loanPositions
+    mapping (bytes32 => mapping (address => uint)) public loanPositionsIds; // mapping of loanOrderHash to mapping of trader address to position id
+
+    // Lists
+    mapping (address => bytes32[]) public orderList; // mapping of lenders and trader addresses to array of loanOrderHashes
+    mapping (bytes32 => mapping (address => ListIndex)) public orderListIndex; // mapping of loanOrderHash to mapping of lenders and trader addresses to ListIndex objects
+
+    mapping (bytes32 => uint[]) public orderPositionList; // mapping of loanOrderHash to array of order position ids
+
+    PositionRef[] public positionList; // array of loans that need to be checked for liquidation or expiration
+    mapping (uint => ListIndex) public positionListIndex; // mapping of position ids to ListIndex objects
+
+    // Other Storage
+    mapping (bytes32 => mapping (uint => uint)) public interestPaid; // mapping of loanOrderHash to mapping of position ids to amount of interest paid so far to a lender
+    mapping (address => address) public oracleAddresses; // mapping of oracles to their current logic contract
 }
+
+
+

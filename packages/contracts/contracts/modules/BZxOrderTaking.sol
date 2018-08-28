@@ -21,12 +21,10 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         Invalid,         // 0x01
         EIP712,          // 0x02
         EthSign,         // 0x03
-        Caller,          // 0x04
-        Wallet,          // 0x05
-        Validator,       // 0x06
-        PreSigned,       // 0x07
-        Trezor,          // 0x08
-        NSignatureTypes  // 0x09, number of signature types. Always leave at end.
+        Wallet,          // 0x04
+        Validator,       // 0x05
+        PreSigned,       // 0x06
+        NSignatureTypes  // 0x07, number of signature types. Always leave at end.
     }
 
     constructor() public {}
@@ -131,12 +129,12 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             orderValues,
             signature);
 
-        if (!orderIndexes[loanOrderHash].active) {
+        if (!orderListIndex[loanOrderHash][address(0)].isSet) {
             // record of fillable (non-expired, unfilled) orders
             orderList[address(0)].push(loanOrderHash);
-            orderIndexes[loanOrderHash] = LoanOrderIndex({
+            orderListIndex[loanOrderHash][address(0)] = ListIndex({
                 index: orderList[address(0)].length-1,
-                active: true
+                isSet: true
             });
         }
 
@@ -392,31 +390,17 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             trader = loanOrderAux.maker;
         }
 
+        if (orderListIndex[loanOrderHash][trader].isSet) {
+            // A trader can only fill a portion or all of a loanOrder once:
+            //  - this avoids complex interest payments for parts of an order filled at different times by the same trader
+            //  - this avoids potentially large loops when calculating margin reqirements and interest payments
+            revert("BZxOrderTaking::_takeLoanOrder: trader has already filled order");
+        }
+
         // makerRole and takerRole must not be equal and must have a value <= 1
         if (loanOrderAux.makerRole > 1 || takerRole > 1 || loanOrderAux.makerRole == takerRole) {
             revert("BZxOrderTaking::_takeLoanOrder: makerRole > 1 || takerRole > 1 || makerRole == takerRole");
         }
-
-        if (orderLender[loanOrder.loanOrderHash] == address(0)) {
-            orderList[lender].push(loanOrder.loanOrderHash);
-            orderLender[loanOrder.loanOrderHash] = lender;
-        }
-
-        orderList[trader].push(loanOrder.loanOrderHash);
-        orderTraders[loanOrder.loanOrderHash].push(trader);
-        
-        loanList.push(LoanRef({
-            loanOrderHash: loanOrder.loanOrderHash,
-            trader: trader
-        }));
-
-        // A trader can only fill a portion or all of a loanOrder once:
-        //  - this avoids complex interest payments for parts of an order filled at different times by the same trader
-        //  - this avoids potentially large loops when calculating margin reqirements and interest payments
-        LoanPosition storage loanPosition = loanPositions[loanOrder.loanOrderHash][trader];
-        if (loanPosition.loanTokenAmountFilled != 0) {
-            revert("BZxOrderTaking::_takeLoanOrder: loanPosition.loanTokenAmountFilled != 0");
-        }     
 
         uint collateralTokenAmountFilled = _fillLoanOrder(
             loanOrder,
@@ -426,19 +410,14 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
             loanTokenAmountFilled
         );
 
-        orderFilledAmounts[loanOrder.loanOrderHash] = orderFilledAmounts[loanOrder.loanOrderHash].add(loanTokenAmountFilled);
-
-        loanPosition.lender = lender;
-        loanPosition.trader = trader;
-        loanPosition.collateralTokenAddressFilled = collateralTokenFilled;
-        loanPosition.positionTokenAddressFilled = loanOrder.loanTokenAddress;
-        loanPosition.loanTokenAmountFilled = loanTokenAmountFilled;
-        loanPosition.collateralTokenAmountFilled = collateralTokenAmountFilled;
-        loanPosition.positionTokenAmountFilled = loanTokenAmountFilled;
-        loanPosition.loanStartUnixTimestampSec = block.timestamp;
-        loanPosition.loanEndUnixTimestampSec = block.timestamp.add(loanOrder.maxDurationUnixTimestampSec);
-        loanPosition.index = loanList.length-1;
-        loanPosition.active = true;
+        LoanPosition memory loanPosition = _setOrderAndPositionState(
+            loanOrder,
+            trader,
+            lender,
+            collateralTokenFilled,
+            collateralTokenAmountFilled,
+            loanTokenAmountFilled
+        );
 
         emit LogLoanTaken (
             loanPosition.lender,
@@ -464,6 +443,74 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         }
 
         return loanTokenAmountFilled;
+    }
+
+    function _setOrderAndPositionState(
+        LoanOrder memory loanOrder,
+        address trader,
+        address lender,
+        address collateralTokenFilled,
+        uint collateralTokenAmountFilled,
+        uint loanTokenAmountFilled)
+        internal
+        returns (LoanPosition memory loanPosition)
+    {
+        // this function should not be called if trader has already filled the loanOrder
+        assert(!orderListIndex[loanOrder.loanOrderHash][trader].isSet);
+        
+        orderFilledAmounts[loanOrder.loanOrderHash] = orderFilledAmounts[loanOrder.loanOrderHash].add(loanTokenAmountFilled);
+
+        loanPosition = LoanPosition({
+            lender: lender,
+            trader: trader,
+            collateralTokenAddressFilled: collateralTokenFilled,
+            positionTokenAddressFilled: loanOrder.loanTokenAddress,
+            loanTokenAmountFilled: loanTokenAmountFilled,
+            collateralTokenAmountFilled: collateralTokenAmountFilled,
+            positionTokenAmountFilled: loanTokenAmountFilled,
+            loanStartUnixTimestampSec: block.timestamp,
+            loanEndUnixTimestampSec: block.timestamp.add(loanOrder.maxDurationUnixTimestampSec),
+            active: true
+        });
+        
+        uint positionId = uint(keccak256(abi.encodePacked(
+            loanOrder.loanOrderHash,
+            orderPositionList[loanOrder.loanOrderHash].length,
+            trader,
+            lender,
+            block.timestamp
+        )));
+        assert(!positionListIndex[positionId].isSet);
+
+        loanPositions[positionId] = loanPosition;
+
+        if (!orderListIndex[loanOrder.loanOrderHash][lender].isSet) {
+            // set only once per order per lender
+            orderList[lender].push(loanOrder.loanOrderHash);
+            orderListIndex[loanOrder.loanOrderHash][lender] = ListIndex({
+                index: orderList[lender].length-1,
+                isSet: true
+            });
+        }
+
+        orderList[trader].push(loanOrder.loanOrderHash);
+        orderListIndex[loanOrder.loanOrderHash][trader] = ListIndex({
+            index: orderList[trader].length-1,
+            isSet: true
+        });
+
+        orderPositionList[loanOrder.loanOrderHash].push(positionId);
+
+        positionList.push(PositionRef({
+            loanOrderHash: loanOrder.loanOrderHash,
+            positionId: positionId
+        }));
+        positionListIndex[positionId] = ListIndex({
+            index: positionList.length-1,
+            isSet: true
+        });
+
+        loanPositionsIds[loanOrder.loanOrderHash][trader] = positionId;
     }
 
     function _fillLoanOrder(
@@ -603,20 +650,20 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         bytes32 loanOrderHash)
         internal
     {
-        if (orderIndexes[loanOrderHash].active) {
-            uint index = orderIndexes[loanOrderHash].index;
+        if (orderListIndex[loanOrderHash][address(0)].isSet) {
+            uint index = orderListIndex[loanOrderHash][address(0)].index;
             if (orderList[address(0)].length > 1) {
                 // replace order in list with last order in array
                 orderList[address(0)][index] = orderList[address(0)][orderList[address(0)].length - 1];
 
                 // update the position of this replacement
-                orderIndexes[orderList[address(0)][index]].index = index;
+                orderListIndex[orderList[address(0)][index]][address(0)].index = index;
             }
 
             // trim array and clear storage
             orderList[address(0)].length--;
-            orderIndexes[loanOrderHash].index = 0;
-            orderIndexes[loanOrderHash].active = false;
+            orderListIndex[loanOrderHash][address(0)].index = 0;
+            orderListIndex[loanOrderHash][address(0)].isSet = false;
         }
     }
 
@@ -689,12 +736,12 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         if (remainingLoanTokenAmount < loanTokenAmountFilled) {
             revert("BZxOrderTaking::_verifyExistingLoanOrder: remainingLoanTokenAmount < loanTokenAmountFilled");
         } else if (remainingLoanTokenAmount > loanTokenAmountFilled) {
-            if (!orderIndexes[loanOrder.loanOrderHash].active) {
+            if (!orderListIndex[loanOrder.loanOrderHash][address(0)].isSet) {
                 // record of fillable (non-expired, unfilled) orders
                 orderList[address(0)].push(loanOrder.loanOrderHash);
-                orderIndexes[loanOrder.loanOrderHash] = LoanOrderIndex({
+                orderListIndex[loanOrder.loanOrderHash][address(0)] = ListIndex({
                     index: orderList[address(0)].length-1,
-                    active: true
+                    isSet: true
                 });
             }
         } else { // remainingLoanTokenAmount == loanTokenAmountFilled
@@ -736,22 +783,6 @@ contract BZxOrderTaking is BZxStorage, Proxiable, InternalFunctions {
         } else if (signatureType == SignatureType.EthSign) {
             return signer == ecrecover(
                 keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)),
-                v,
-                r,
-                s
-            );
-
-        // Signature from Trezor hardware wallet.
-        // It differs from web3.eth_sign in the encoding of message length
-        // (Bitcoin varint encoding vs ascii-decimal, the latter is not
-        // self-terminating which leads to ambiguities).
-        // See also:
-        // https://en.bitcoin.it/wiki/Protocol_documentation#Variable_length_integer
-        // https://github.com/trezor/trezor-mcu/blob/master/firmware/ethereum.c#L602
-        // https://github.com/trezor/trezor-mcu/blob/master/firmware/crypto.c#L36
-        } else if (signatureType == SignatureType.Trezor) {
-            return signer == ecrecover(
-                keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n\x20", hash)),
                 v,
                 r,
                 s

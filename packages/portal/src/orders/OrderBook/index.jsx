@@ -91,14 +91,13 @@ export default class OrderBook extends React.Component {
         {orders.length > 0 ? (
           orders.map(fillableOrder => {
             fillableOrder.networkId = bZx.networkId; // eslint-disable-line no-param-reassign
-            fillableOrder.makerAddress = fillableOrder.maker; // eslint-disable-line no-param-reassign
             fillableOrder.makerRole = // eslint-disable-line no-param-reassign
               fillableOrder.collateralTokenAddress ===
               `0x0000000000000000000000000000000000000000`
                 ? `0`
                 : `1`;
             // console.log(bZx);
-            // if (fillableOrder.maker !== accounts[0].toLowerCase())
+            // if (fillableOrder.makerAddress !== accounts[0].toLowerCase())
             return (
               <OrderItem
                 key={fillableOrder.loanOrderHash}

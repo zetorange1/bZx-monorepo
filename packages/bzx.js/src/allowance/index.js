@@ -20,7 +20,7 @@ export const setAllowance = (
   assert.isETHAddressHex("ownerAddress", ownerAddress);
   assert.isETHAddressHex("spenderAddress", spenderAddress);
   assert.isETHAddressHex("tokenAddress", tokenAddress);
-  assert.isValidBaseUnitAmount("amountInBaseUnits", amountInBaseUnits);
+  // assert.isValidBaseUnitAmount("amountInBaseUnits", amountInBaseUnits);
 
   const tokenContract = CoreUtils.getContractInstance(
     web3,

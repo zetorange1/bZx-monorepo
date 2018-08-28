@@ -1,6 +1,6 @@
 import { clone, pathOr } from "ramda";
 import bZxJS from "../../core/__tests__/setup";
-import { protocol } from "../../../../config/secrets";
+import { protocol } from "../../../../../config/secrets";
 import * as CoreUtils from "../../core/utils";
 import { local as Contracts } from "../../contracts";
 

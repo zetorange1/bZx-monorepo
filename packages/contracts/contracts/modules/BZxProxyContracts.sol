@@ -22,10 +22,12 @@ contract Proxiable {
 // bZx proxy
 contract BZxProxy is BZxStorage, Proxiable {
 
-    function() public {
-        require(!targetIsPaused[msg.sig], "Function temporarily paused");
+    function() payable public {
+        require(!targetIsPaused[msg.sig], "BZxProxy::Function temporarily paused");
         
         address target = targets[msg.sig];
+        require(target != address(0), "BZxProxy::Target not found");
+
         bytes memory data = msg.data;
         assembly {
             let result := delegatecall(gas, target, add(data, 0x20), mload(data), 0, 0)

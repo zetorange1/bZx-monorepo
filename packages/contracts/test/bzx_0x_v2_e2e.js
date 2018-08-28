@@ -35,11 +35,9 @@ const SignatureType = Object.freeze({
   Invalid: 1,
   EIP712: 2,
   EthSign: 3,
-  Caller: 4,
-  Wallet: 5,
-  Validator: 6,
-  PreSigned: 7,
-  Trezor: 8
+  Wallet: 4,
+  Validator: 5,
+  PreSigned: 6
 });
 
 contract("BZxTest", function(accounts) {
@@ -1024,8 +1022,9 @@ contract("BZxTest", function(accounts) {
     });
 
     it("should change collateral (for trader1)", async () => {
+      const positionId = await bZx.loanPositionsIds.call(OrderHash_bZx_1, trader1);
       assert.equal(
-        (await bZx.loanPositions.call(OrderHash_bZx_1, trader1))[2],
+        (await bZx.loanPositions.call(positionId))[2],
         collateralToken1.address
       );
 
@@ -1067,14 +1066,15 @@ contract("BZxTest", function(accounts) {
       );
 
       assert.equal(
-        (await bZx.loanPositions.call(OrderHash_bZx_1, trader1))[2],
+        (await bZx.loanPositions.call(positionId))[2],
         interestToken1.address
       );
     });
 
     it("should crash if collateral is the same (for trader1)", async () => {
+      const positionId = await bZx.loanPositionsIds.call(OrderHash_bZx_1, trader1);
       assert.equal(
-        (await bZx.loanPositions.call(OrderHash_bZx_1, trader1))[2],
+        (await bZx.loanPositions.call(positionId))[2],
         interestToken1.address
       );
 
@@ -1090,8 +1090,9 @@ contract("BZxTest", function(accounts) {
 
     it("should increase collateral (for trader1)", async () => {
       const VALUE = 100;
+      const positionId = await bZx.loanPositionsIds.call(OrderHash_bZx_1, trader1);
       assert.equal(
-        (await bZx.loanPositions.call(OrderHash_bZx_1, trader1))[2],
+        (await bZx.loanPositions.call(positionId))[2],
         interestToken1.address
       );
 
@@ -1105,8 +1106,9 @@ contract("BZxTest", function(accounts) {
 
     it("should withdraw excess collateral (for trader1)", async () => {
       const VALUE = 100;
+      const positionId = await bZx.loanPositionsIds.call(OrderHash_bZx_1, trader1);
       assert.equal(
-        (await bZx.loanPositions.call(OrderHash_bZx_1, trader1))[2],
+        (await bZx.loanPositions.call(positionId))[2],
         interestToken1.address
       );
 
@@ -1196,7 +1198,7 @@ contract("BZxTest", function(accounts) {
 
     data = data.substr(2); // remove 0x from front
 
-    const itemCount = 16;
+    const itemCount = 15;
     const objCount = data.length / 64 / itemCount;
 
     assert.isTrue(objCount % 1 == 0);
@@ -1223,14 +1225,13 @@ contract("BZxTest", function(accounts) {
         positionTokenAmountFilled: parseInt("0x" + params[6]),
         loanStartUnixTimestampSec: parseInt("0x" + params[7]),
         loanEndUnixTimestampSec: parseInt("0x" + params[8]),
-        index: parseInt("0x" + params[9]),
-        active: parseInt("0x" + params[10]) == 1,
-        loanOrderHash: "0x" + params[11],
-        loanTokenAddress: "0x" + params[12].substr(24),
-        expirationUnixTimestampSec: parseInt("0x" + params[13]),
-        interestTokenAddress: "0x" + params[14].substr(24),
-        interestTotalAccrued: parseInt("0x" + params[15]),
-        interestPaidSoFar: parseInt("0x" + params[16])
+        active: parseInt("0x" + params[9]) == 1,
+        loanOrderHash: "0x" + params[10],
+        loanTokenAddress: "0x" + params[11].substr(24),
+        expirationUnixTimestampSec: parseInt("0x" + params[12]),
+        interestTokenAddress: "0x" + params[13].substr(24),
+        interestTotalAccrued: parseInt("0x" + params[14]),
+        interestPaidSoFar: parseInt("0x" + params[15])
       });
     }
 

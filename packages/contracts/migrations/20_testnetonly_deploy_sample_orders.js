@@ -14,9 +14,9 @@ const ethABI = require("ethereumjs-abi");
 const ethUtil = require("ethereumjs-util");
 const _ = require("lodash");
 
-const Web3Utils = require("web3-utils");
-const BZxJS = require("bzx.js").default;
-const orderUtils = require("@0xproject/order-utils");
+const Web3Utils = require('web3-utils');
+const BZxJS = require('bzx.js').default;
+const { ZeroEx } = require('0x.js');
 
 const config = require("../protocol-config.js");
 
@@ -28,11 +28,9 @@ const SignatureType = Object.freeze({
   Invalid: 1,
   EIP712: 2,
   EthSign: 3,
-  Caller: 4,
-  Wallet: 5,
-  Validator: 6,
-  PreSigned: 7,
-  Trezor: 8
+  Wallet: 4,
+  Validator: 5,
+  PreSigned: 6
 });
 
 // this migration will complete when the embedded testnet is being setup (network: testnet)
@@ -232,7 +230,7 @@ module.exports = function(deployer, network, accounts) {
           86400 * 365
         ).toString(),
         makerRole: "0", // 0=lender, 1=trader
-        salt: orderUtils.generatePseudoRandomSalt().toString()
+        salt: ZeroEx.generatePseudoRandomSalt().toString()
       };
       //console.log(OrderParams_bZx_1);
       let OrderHash_bZx_1; //= BZxJS.getLoanOrderHashHex(OrderParams_bZx_1);
@@ -365,7 +363,7 @@ module.exports = function(deployer, network, accounts) {
       };
       console.log(OrderParams_0x);
 
-      OrderHash_0x = orderUtils.orderHashUtils.getOrderHashHex(OrderParams_0x);
+      OrderHash_0x = ZeroEx.getOrderHashHex(OrderParams_0x);
 
       if (isParityNode || isTestRpc) {
         // Parity and TestRpc nodes add the personalMessage prefix itself
@@ -543,3 +541,4 @@ module.exports = function(deployer, network, accounts) {
     return ("0" + Number(d).toString(16)).slice(-2).toUpperCase();
   }
 };
+

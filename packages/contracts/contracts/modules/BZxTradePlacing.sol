@@ -62,7 +62,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
             revert("BZxTradePlacing::tradePositionWith0x: loanOrder.loanTokenAddress == address(0)");
         }
 
-        LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             revert("BZxTradePlacing::tradePositionWith0x: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
@@ -83,7 +83,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
         uint tradeTokenAmount;
         uint positionTokenUsedAmount;
         (tradeTokenAddress, tradeTokenAmount, positionTokenUsedAmount) = BZxTo0x_Interface(bZxTo0xContract).take0xTrade(
-            msg.sender, // trader
+            loanPosition.trader,
             vaultContract,
             loanPosition.positionTokenAmountFilled,
             orderData0x,
@@ -100,7 +100,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
         // trade token has to equal loan token if loan needs to be liquidated
         if (tradeTokenAddress != loanOrder.loanTokenAddress && OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
                 loanOrderHash,
-                msg.sender,
+                loanPosition.trader,
                 loanOrder.loanTokenAddress,
                 loanPosition.positionTokenAddressFilled,
                 loanPosition.collateralTokenAddressFilled,
@@ -113,7 +113,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
 
         emit LogPositionTraded(
             loanOrderHash,
-            msg.sender,
+            loanPosition.trader,
             loanPosition.positionTokenAddressFilled,
             tradeTokenAddress,
             positionTokenUsedAmount,
@@ -126,7 +126,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
             loanOrderHash,
-            msg.sender, // trader
+            loanPosition.trader,
             tradeTokenAddress,
             tradeTokenAmount,
             gasUsed // initial used gas, collected in modifier
@@ -154,7 +154,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
             revert("BZxTradePlacing::tradePositionWithOracle: loanOrder.loanTokenAddress == address(0)");
         }
 
-        LoanPosition storage loanPosition = loanPositions[loanOrderHash][msg.sender];
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             revert("BZxTradePlacing::tradePositionWithOracle: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
@@ -174,7 +174,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
         // trade token has to equal loan token if loan needs to be liquidated
         if (tradeTokenAddress != loanOrder.loanTokenAddress && OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
                 loanOrderHash,
-                msg.sender,
+                loanPosition.trader,
                 loanOrder.loanTokenAddress,
                 loanPosition.positionTokenAddressFilled,
                 loanPosition.collateralTokenAddressFilled,
@@ -208,7 +208,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
 
         emit LogPositionTraded(
             loanOrderHash,
-            msg.sender,
+            loanPosition.trader,
             loanPosition.positionTokenAddressFilled,
             tradeTokenAddress,
             loanPosition.positionTokenAmountFilled,
@@ -221,7 +221,7 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
             loanOrderHash,
-            msg.sender, // trader
+            loanPosition.trader,
             tradeTokenAddress,
             tradeTokenAmount,
             gasUsed // initial used gas, collected in modifier

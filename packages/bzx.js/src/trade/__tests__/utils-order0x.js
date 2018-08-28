@@ -2,7 +2,7 @@ import OrderUtils from "@0xproject/order-utils";
 import { pathOr } from "ramda";
 import * as signatureUtils from "../../signature/utils";
 import * as constants from "../../core/constants";
-import { protocol } from "../../../../config/secrets";
+import { protocol } from "../../../../../config/secrets";
 import { BZxJS } from "../../core/index";
 import * as Trade0xUtils from "../utils/zeroEx";
 import bZxJS from "../../core/__tests__/setup";

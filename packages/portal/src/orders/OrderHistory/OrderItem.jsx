@@ -81,7 +81,7 @@ export default class OrderItem extends React.Component {
     const { showRawOrder } = this.state;
     // const { loanPositions } = this.state;
 
-    const isMaker = takenOrder.maker === accounts[0].toLowerCase();
+    const isMaker = takenOrder.makerAddress === accounts[0].toLowerCase();
     const isLender = takenOrder.lender === accounts[0].toLowerCase();
     const date = moment(takenOrder.expirationUnixTimestampSec * 1000).utc();
     const dateStr = date.format(`MMMM Do YYYY, h:mm a UTC`);

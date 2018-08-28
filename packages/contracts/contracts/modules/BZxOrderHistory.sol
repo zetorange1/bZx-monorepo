@@ -111,7 +111,7 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
         view
         returns (bytes)
     {
-        LoanPosition memory loanPosition = loanPositions[loanOrderHash][trader];
+        LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
         if (loanPosition.loanTokenAmountFilled == 0) {
             return;
         }
@@ -127,7 +127,6 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
             loanPosition.positionTokenAmountFilled,
             loanPosition.loanStartUnixTimestampSec,
             loanPosition.loanEndUnixTimestampSec,
-            loanPosition.index,
             loanPosition.active
         );
         return _addExtraLoanData(
@@ -181,7 +180,7 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
     /// @dev Returns a bytestream of active loans.
     /// @param start The starting loan in the loan list to return.
     /// @param count The total amount of loans to return if they exist. Amount returned can be less.
-    /// @return A concatenated stream of LoanRef(loanOrderHash, trader) bytes.
+    /// @return A concatenated stream of PositionRef(loanOrderHash, trader) bytes.
     function getActiveLoans(
         uint start,
         uint count)
@@ -189,7 +188,7 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
         view
         returns (bytes)
     {
-        uint end = Math.min256(loanList.length, start.add(count));
+        uint end = Math.min256(positionList.length, start.add(count));
         if (end == 0 || start >= end) {
             return;
         }
@@ -198,12 +197,12 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
         bytes memory data;
 
         for (uint j=0; j < end-start; j++) {
-            LoanRef memory loanRef = loanList[j+start];
-            LoanPosition memory loanPosition = loanPositions[loanRef.loanOrderHash][loanRef.trader];
+            PositionRef memory positionRef = positionList[j+start];
+            LoanPosition memory loanPosition = loanPositions[positionRef.positionId];
 
             bytes memory tmpBytes = abi.encode(
-                loanRef.loanOrderHash,
-                loanRef.trader,
+                positionRef.loanOrderHash,
+                loanPosition.trader,
                 loanPosition.loanEndUnixTimestampSec
             );
             if (j == 0) {
@@ -287,11 +286,11 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
             loanOrder.maxDurationUnixTimestampSec,
             loanOrderAux.expirationUnixTimestampSec,
             loanOrder.loanOrderHash,
-            orderLender[loanOrder.loanOrderHash],
+            orderPositionList[loanOrder.loanOrderHash].length > 0 ? loanPositions[orderPositionList[loanOrder.loanOrderHash][0]].lender : address(0),
             orderFilledAmounts[loanOrder.loanOrderHash],
             orderCancelledAmounts[loanOrder.loanOrderHash],
-            orderTraders[loanOrder.loanOrderHash].length,
-            orderTraders[loanOrder.loanOrderHash].length > 0 ? loanPositions[loanOrder.loanOrderHash][orderTraders[loanOrder.loanOrderHash][0]].loanStartUnixTimestampSec : 0
+            orderPositionList[loanOrder.loanOrderHash].length, // trader count
+            orderPositionList[loanOrder.loanOrderHash].length > 0 ? loanPositions[orderPositionList[loanOrder.loanOrderHash][0]].loanStartUnixTimestampSec : 0
         );
         return abi.encodePacked(data, tmpBytes);
     }
@@ -310,13 +309,15 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
 
         uint itemCount = 0;
         for (uint j=orderList[loanParty].length; j > 0; j--) {
-            if (forLender && loanParty != orderLender[orderList[loanParty][j-1]]) {
+            bytes32 loanOrderHash = orderList[loanParty][j-1];
+            uint[] memory positionIds = orderPositionList[loanOrderHash];
+
+            if (forLender && loanParty != loanPositions[positionIds[0]].lender) {
                 continue;
             }
 
-            address[] memory traders = orderTraders[orderList[loanParty][j-1]];
-            for (uint i=traders.length; i > 0; i--) {
-                LoanPosition memory loanPosition = loanPositions[orderList[loanParty][j-1]][traders[i-1]];
+            for (uint i=positionIds.length; i > 0; i--) {
+                LoanPosition memory loanPosition = loanPositions[positionIds[i-1]];
 
                 if (activeOnly && (!loanPosition.active || (loanPosition.loanEndUnixTimestampSec > 0 && block.timestamp >= loanPosition.loanEndUnixTimestampSec))) {
                     continue;
@@ -336,7 +337,6 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
                     loanPosition.positionTokenAmountFilled,
                     loanPosition.loanStartUnixTimestampSec,
                     loanPosition.loanEndUnixTimestampSec,
-                    loanPosition.index,
                     loanPosition.active
                 );
                 tmpBytes = _addExtraLoanData(

@@ -111,18 +111,19 @@ contract InternalFunctions is BZxStorage {
         }
 
         uint interestTotalAccrued;
+        uint interestPaidSoFar = interestPaid[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]];
         if (loanPosition.active) {
             interestTotalAccrued = _getPartialAmountNoError(loanPosition.loanTokenAmountFilled, loanOrder.loanTokenAmount, interestTime.sub(loanPosition.loanStartUnixTimestampSec).mul(loanOrder.interestAmount).div(86400));
         } else {
             // this is so, because remaining interest is paid out when the loan is closed
-            interestTotalAccrued = interestPaid[loanOrder.loanOrderHash][loanPosition.trader];
+            interestTotalAccrued = interestPaidSoFar;
         }
 
         interestData = InterestData({
             lender: loanPosition.lender,
             interestTokenAddress: loanOrder.interestTokenAddress,
             interestTotalAccrued: interestTotalAccrued,
-            interestPaidSoFar: interestPaid[loanOrder.loanOrderHash][loanPosition.trader]
+            interestPaidSoFar: interestPaidSoFar
         });
     }
 
