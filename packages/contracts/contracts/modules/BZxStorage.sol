@@ -36,7 +36,6 @@ contract BZxObjects {
     }
 
     struct LoanPosition {
-        address lender;
         address trader;
         address collateralTokenAddressFilled;
         address positionTokenAddressFilled;
@@ -130,6 +129,18 @@ contract BZxObjects {
         uint amountPaid,
         uint totalAccrued
     );
+
+    event LogChangeTraderOwnership(
+        bytes32 loanOrderHash,
+        address oldOwner,
+        address newOwner
+    );
+
+    event LogChangeLenderOwnership(
+        bytes32 loanOrderHash,
+        address oldOwner,
+        address newOwner
+    );
 }
 
 
@@ -151,6 +162,7 @@ contract BZxStorage is BZxObjects, ReentrancyGuard, Ownable, GasTracker {
     mapping (bytes32 => LoanOrderAux) public orderAux; // mapping of loanOrderHash to on chain loanOrder auxiliary parameters
     mapping (bytes32 => uint) public orderFilledAmounts; // mapping of loanOrderHash to loanTokenAmount filled
     mapping (bytes32 => uint) public orderCancelledAmounts; // mapping of loanOrderHash to loanTokenAmount cancelled
+    mapping (bytes32 => address) public orderLender; // mapping of loanOrderHash to lender (only one lender per order)
 
     // Loan Positions
     mapping (uint => LoanPosition) public loanPositions; // mapping of position ids to loanPositions

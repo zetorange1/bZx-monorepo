@@ -25,6 +25,8 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         targets[0x60056cf9] = _target; // bytes4(keccak256("withdrawExcessCollateral(bytes32,address,uint256)"))
         targets[0x09c5a317] = _target; // bytes4(keccak256("changeCollateral(bytes32,address)"))
         targets[0x92a9fe8b] = _target; // bytes4(keccak256("withdrawProfit(bytes32)"))
+        targets[0xb71a86ce] = _target; // bytes4(keccak256("changeTraderOwnership(bytes32,address)"))
+        targets[0x7465577a] = _target; // bytes4(keccak256("changeLenderOwnership(bytes32,address)"))
         targets[0xb195bdf3] = _target; // bytes4(keccak256("getProfitOrLoss(bytes32,address)"))
     }
 
@@ -269,6 +271,126 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         );
 
         return profitAmount;
+    }
+
+    /// @dev Allows the trader to transfer ownership of the underlying assets in a position to another user.
+    /// @param loanOrderHash A unique hash representing the loan order
+    function changeTraderOwnership(
+        bytes32 loanOrderHash,
+        address newOwner)
+        external
+        nonReentrant
+        tracksGas
+        returns (bool)
+    {
+        if (orderListIndex[loanOrderHash][newOwner].isSet) {
+            // user can't transfer ownership to another trader or lender already in this order
+            revert("BZxLoanMaintenance::changeTraderOwnership: new owner is invalid");
+        }
+        
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        if (loanOrder.loanTokenAddress == address(0)) {
+            revert("BZxLoanMaintenance::changeTraderOwnership: loanOrder.loanTokenAddress == address(0)");
+        }
+
+        uint positionid = loanPositionsIds[loanOrderHash][msg.sender];
+        LoanPosition storage loanPosition = loanPositions[positionid];
+        if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
+            revert("BZxLoanMaintenance::changeTraderOwnership: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+        }
+
+        if (loanPosition.trader != msg.sender) {
+            revert("BZxLoanMaintenance::changeTraderOwnership: msg.sender is not the trader in this position");
+        }
+
+        // remove old owner references to loanOrder and loanPosition
+        delete loanPositionsIds[loanOrderHash][msg.sender];
+        _removeLoanOrder(
+            loanOrderHash,
+            msg.sender
+        );
+
+        // add new owner references to loanOrder and loanPosition
+        loanPosition.trader = newOwner;
+        loanPositionsIds[loanOrderHash][newOwner] = positionid;
+        orderList[newOwner].push(loanOrderHash);
+        orderListIndex[loanOrderHash][newOwner] = ListIndex({
+            index: orderList[newOwner].length-1,
+            isSet: true
+        });
+
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didChangeTraderOwnership(
+            loanOrder.loanOrderHash,
+            msg.sender, // old owner
+            newOwner,
+            gasUsed // initial used gas, collected in modifier
+        )) {
+            revert("BZxLoanMaintenance::changeTraderOwnership: OracleInterface.didChangeTraderOwnership failed");
+        }
+
+        emit LogChangeTraderOwnership(
+            loanOrder.loanOrderHash,
+            msg.sender, // old owner
+            newOwner
+        );
+
+        return true;
+    }
+
+    /// @dev Allows the lender to transfer ownership of the underlying assets in a position to another user.
+    /// @param loanOrderHash A unique hash representing the loan order
+    function changeLenderOwnership(
+        bytes32 loanOrderHash,
+        address newOwner)
+        external
+        nonReentrant
+        tracksGas
+        returns (bool)
+    {
+        if (orderLender[loanOrderHash] != msg.sender) {
+            revert("BZxLoanMaintenance::changeLenderOwnership: msg.sender is not the lender in this position");
+        }
+        
+        if (orderListIndex[loanOrderHash][newOwner].isSet) {
+            // user can't transfer ownership to another trader or lender already in this order
+            revert("BZxLoanMaintenance::changeLenderOwnership: new owner is invalid");
+        }
+
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        if (loanOrder.loanTokenAddress == address(0)) {
+            revert("BZxLoanMaintenance::changeLenderOwnership: loanOrder.loanTokenAddress == address(0)");
+        }
+
+        // remove old owner references to loanOrder
+        _removeLoanOrder(
+            loanOrderHash,
+            msg.sender
+        );
+
+        // add new owner references to loanOrder
+        orderLender[loanOrderHash] = newOwner;
+        orderList[newOwner].push(loanOrderHash);
+        orderListIndex[loanOrderHash][newOwner] = ListIndex({
+            index: orderList[newOwner].length-1,
+            isSet: true
+        });
+
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didChangeLenderOwnership(
+            loanOrder.loanOrderHash,
+            msg.sender, // old owner
+            newOwner,
+            gasUsed // initial used gas, collected in modifier
+        )) {
+            revert("BZxLoanMaintenance::changeLenderOwnership: OracleInterface.didChangeLenderOwnership failed");
+        }
+
+        emit LogChangeLenderOwnership(
+            loanOrder.loanOrderHash,
+            msg.sender, // old owner
+            newOwner
+        );
+
+        return true;
     }
 
     /*

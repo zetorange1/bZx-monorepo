@@ -120,7 +120,7 @@ contract InternalFunctions is BZxStorage {
         }
 
         interestData = InterestData({
-            lender: loanPosition.lender,
+            lender: orderLender[loanOrder.loanOrderHash],
             interestTokenAddress: loanOrder.interestTokenAddress,
             interestTotalAccrued: interestTotalAccrued,
             interestPaidSoFar: interestPaidSoFar
@@ -212,5 +212,29 @@ contract InternalFunctions is BZxStorage {
                 loanPosition.positionTokenAmountFilled,
                 loanPosition.collateralTokenAmountFilled)
         );
+    }
+
+    function _removeLoanOrder(
+        bytes32 loanOrderHash,
+        address addr)
+        internal
+    {
+        if (orderListIndex[loanOrderHash][addr].isSet) {
+            assert(orderList[addr].length > 0);
+
+            uint index = orderListIndex[loanOrderHash][addr].index;
+            if (orderList[addr].length > 1) {
+                // replace order in list with last order in array
+                orderList[addr][index] = orderList[addr][orderList[addr].length - 1];
+
+                // update the position of this replacement
+                orderListIndex[orderList[addr][index]][addr].index = index;
+            }
+
+            // trim array and clear storage
+            orderList[addr].length--;
+            orderListIndex[loanOrderHash][addr].index = 0;
+            orderListIndex[loanOrderHash][addr].isSet = false;
+        }
     }
 }

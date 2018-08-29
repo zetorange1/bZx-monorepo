@@ -88,11 +88,6 @@ contract BZx is BZxStorage {
         view
         returns (uint collateralTokenAmount);
 
-    function getUnavailableLoanTokenAmount(bytes32 loanOrderHash)
-        public
-        view
-        returns (uint);
-
     function getSingleOrder(
         bytes32 loanOrderHash)
         public
@@ -196,6 +191,18 @@ contract BZx is BZxStorage {
         bytes32 loanOrderHash)
         external
         returns (uint profitAmount);
+
+    function changeTraderOwnership(
+        bytes32 loanOrderHash,
+        address newOwner)
+        external
+        returns (bool);
+
+    function changeLenderOwnership(
+        bytes32 loanOrderHash,
+        address newOwner)
+        external
+        returns (bool);
 
     function getProfitOrLoss(
         bytes32 loanOrderHash,

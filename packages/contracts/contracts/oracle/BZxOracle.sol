@@ -271,6 +271,33 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         
         return true;
     }
+    
+    function didChangeTraderOwnership(
+        bytes32 /* loanOrderHash */,
+        address /* oldTrader */,
+        address /* newTrader */,
+        uint /* gasUsed */)
+        public
+        onlyBZx
+        updatesEMA(tx.gasprice)
+        returns (bool)
+    {
+        return true;
+    }
+
+    function didChangeLenderOwnership(
+        bytes32 /* loanOrderHash */,
+        address /* oldLender */,
+        address /* newLender */,
+        uint /* gasUsed */)
+        public
+        onlyBZx
+        updatesEMA(tx.gasprice)
+        returns (bool)
+    {
+        return true;
+    }
+
 
     function doManualTrade(
         address sourceTokenAddress,

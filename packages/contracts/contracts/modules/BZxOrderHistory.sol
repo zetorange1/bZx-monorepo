@@ -118,7 +118,7 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
 
         // all encoded params will be zero-padded to 32 bytes
         bytes memory data = abi.encode(
-            loanPosition.lender,
+            orderLender[loanOrderHash],
             loanPosition.trader,
             loanPosition.collateralTokenAddressFilled,
             loanPosition.positionTokenAddressFilled,
@@ -286,7 +286,7 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
             loanOrder.maxDurationUnixTimestampSec,
             loanOrderAux.expirationUnixTimestampSec,
             loanOrder.loanOrderHash,
-            orderPositionList[loanOrder.loanOrderHash].length > 0 ? loanPositions[orderPositionList[loanOrder.loanOrderHash][0]].lender : address(0),
+            orderLender[loanOrder.loanOrderHash],
             orderFilledAmounts[loanOrder.loanOrderHash],
             orderCancelledAmounts[loanOrder.loanOrderHash],
             orderPositionList[loanOrder.loanOrderHash].length, // trader count
@@ -312,7 +312,7 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
             bytes32 loanOrderHash = orderList[loanParty][j-1];
             uint[] memory positionIds = orderPositionList[loanOrderHash];
 
-            if (forLender && loanParty != loanPositions[positionIds[0]].lender) {
+            if (forLender && loanParty != orderLender[loanOrderHash]) {
                 continue;
             }
 
@@ -328,7 +328,7 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
                 }
 
                 bytes memory tmpBytes = abi.encode(
-                    loanPosition.lender,
+                    orderLender[loanOrderHash],
                     loanPosition.trader,
                     loanPosition.collateralTokenAddressFilled,
                     loanPosition.positionTokenAddressFilled,
