@@ -55,6 +55,19 @@ contract BZx is BZxStorage {
         external
         returns (uint);
 
+    function preSign(
+        address signer,
+        address[6] orderAddresses,
+        uint[10] orderValues,
+        bytes signature)
+        external;
+    
+    function preSignWithHash(
+        address signer,
+        bytes32 hash,
+        bytes signature)
+        external;
+
     function cancelLoanOrder(
         address[6] orderAddresses,
         uint[10] orderValues,

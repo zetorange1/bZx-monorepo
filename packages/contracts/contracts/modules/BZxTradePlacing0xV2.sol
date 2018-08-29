@@ -70,6 +70,7 @@ contract BZxTradePlacing0xV2 is BZxStorage, Proxiable {
         BZxTo0xV2_Interface.OrderV2[] memory orders0x,
         bytes[] memory signatures0x)
         public
+        nonReentrant
         tracksGas
         returns (uint)
     {

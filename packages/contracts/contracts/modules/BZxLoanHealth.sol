@@ -320,7 +320,12 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         address trader)
         public
         view
-        returns (address lender, address interestTokenAddress, uint interestTotalAccrued, uint interestPaidSoFar) {
+        returns (
+            address lender, 
+            address interestTokenAddress, 
+            uint interestTotalAccrued, 
+            uint interestPaidSoFar)
+    {
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {

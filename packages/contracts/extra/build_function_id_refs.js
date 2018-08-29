@@ -12,6 +12,8 @@ console.log("\nBZxOrderTakingOnChain functions");
 getFuncId("pushLoanOrderOnChain(address[6],uint256[10],bytes)");
 getFuncId("takeLoanOrderOnChainAsTrader(bytes32,address,uint256)");
 getFuncId("takeLoanOrderOnChainAsLender(bytes32)");
+getFuncId("preSign(address,address[6],uint256[10],bytes)");
+getFuncId("preSignWithHash(address,bytes32,bytes)");
 getFuncId("getLoanOrderHash(address[6],uint256[10])");
 getFuncId("isValidSignature(address,bytes32,bytes)");
 getFuncId(
@@ -85,7 +87,7 @@ getFuncId("isTradeSupported(address,address,uint256)");
 
 function getFuncId(funcStr) {
   console.log(
-    "targets[" +
+    "        targets[" +
       web3.sha3(funcStr).substr(0, 10) +
       '] = _target; // bytes4(keccak256("' +
       funcStr +

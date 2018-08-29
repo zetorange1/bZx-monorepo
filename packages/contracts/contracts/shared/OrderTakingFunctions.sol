@@ -17,7 +17,7 @@ import "./InternalFunctions.sol";
 contract OrderTakingFunctions is BZxStorage, InternalFunctions {
     using SafeMath for uint256;
 
-    // Allowed 0x signature types.
+    // 0x signature types.
     enum SignatureType {
         Illegal,         // 0x00, default value
         Invalid,         // 0x01
@@ -28,7 +28,6 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions {
         PreSigned,       // 0x06
         NSignatureTypes  // 0x07, number of signature types. Always leave at end.
     }
-
 
     /// @dev Calculates the sum of values already filled and cancelled for a given loanOrder.
     /// @param loanOrderHash A unique hash representing the loan order.
@@ -52,7 +51,7 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions {
         bytes32 hash,
         bytes signature)
         internal
-        pure
+        view
         returns (bool)
     {
         SignatureType signatureType;
@@ -78,6 +77,10 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions {
                 r,
                 s
             );
+        
+        // Signer signed hash previously using the preSign function.
+        } else if (signatureType == SignatureType.PreSigned) {
+            return preSigned[hash][signer];
         }
 
         // Anything else is illegal (We do not return false because
