@@ -261,7 +261,7 @@ export default class Ether extends React.Component {
       <Section>
         <SectionLabel>ETH to WETH</SectionLabel>
         <Container>
-          {this.state.ethBalance ? (
+          {this.state.ethBalance != null ? (
             <StyledDiv>
               Your current ETH balance is
               {` `}
@@ -272,7 +272,7 @@ export default class Ether extends React.Component {
               Your current Ether balance is <strong>loading...</strong>.
             </StyledDiv>
           )}
-          {this.state.wethBalance ? (
+          {this.state.wethBalance != null ? (
             <StyledDiv>
               Your current WETH balance is
               {` `}

@@ -16,7 +16,7 @@
   "main": "portal.js",
   "dependencies": {
     "@material-ui/core": "^1.5.1",
-    "bzx.js": "^0.1.0",
+    "bzx.js": "^0.3.0",
     "bignumber.js": "^7.0.1",
     "ethereum-blockies-png": "^0.1.2",
     "jest": "^23.5.0",
