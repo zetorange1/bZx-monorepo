@@ -144,6 +144,34 @@ interface OracleInterface {
         external
         returns (bool);
 
+    /// @dev Called by bZx after a trader transfers their ownership of a position to a new trader
+    /// @param loanOrderHash A unique hash representing the loan order.
+    /// @param oldTrader The old trader of the position
+    /// @param newTrader The new trader of the position
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
+    /// @return Successful execution of the function
+    function didChangeTraderOwnership(
+        bytes32 loanOrderHash,
+        address oldTrader,
+        address newTrader,
+        uint gasUsed)
+        external
+        returns (bool);
+
+    /// @dev Called by bZx after a lender transfers their ownership of a position to a new lender
+    /// @param loanOrderHash A unique hash representing the loan order.
+    /// @param oldLender The old lender of the position
+    /// @param newLender The new lender of the position
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
+    /// @return Successful execution of the function
+    function didChangeLenderOwnership(
+        bytes32 loanOrderHash,
+        address oldLender,
+        address newLender,
+        uint gasUsed)
+        external
+        returns (bool);
+
     /// @dev Places a manual on-chain trade with a liquidity provider
     /// @param sourceTokenAddress The token being sold
     /// @param destTokenAddress The token being bought

@@ -5,17 +5,18 @@ getFuncId(
   "takeLoanOrderAsTrader(address[6],uint256[10],address,uint256,bytes)"
 );
 getFuncId("takeLoanOrderAsLender(address[6],uint256[10],bytes)");
+getFuncId("cancelLoanOrder(address[6],uint256[10],uint256)");
+getFuncId("cancelLoanOrder(bytes32,uint256)");
+
+console.log("\nBZxOrderTakingOnChain functions");
 getFuncId("pushLoanOrderOnChain(address[6],uint256[10],bytes)");
 getFuncId("takeLoanOrderOnChainAsTrader(bytes32,address,uint256)");
 getFuncId("takeLoanOrderOnChainAsLender(bytes32)");
-getFuncId("cancelLoanOrder(address[6],uint256[10],uint256)");
-getFuncId("cancelLoanOrder(bytes32,uint256)");
 getFuncId("getLoanOrderHash(address[6],uint256[10])");
 getFuncId("isValidSignature(address,bytes32,bytes)");
 getFuncId(
   "getInitialCollateralRequired(address,address,address,uint256,uint256)"
 );
-getFuncId("getUnavailableLoanTokenAmount(bytes32)");
 
 console.log("\nBZxOrderHistory functions");
 getFuncId("getSingleOrder(bytes32)");
@@ -40,6 +41,8 @@ getFuncId("depositCollateral(bytes32,address,uint256)");
 getFuncId("withdrawExcessCollateral(bytes32,address,uint256)");
 getFuncId("changeCollateral(bytes32,address)");
 getFuncId("withdrawProfit(bytes32)");
+getFuncId("changeTraderOwnership(bytes32,address)");
+getFuncId("changeLenderOwnership(bytes32,address)");
 getFuncId("getProfitOrLoss(bytes32,address)");
 
 console.log("\nBZxLoanHealth functions");

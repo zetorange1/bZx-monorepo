@@ -32,12 +32,12 @@ contract InternalFunctions is BZxStorage {
         if (collateralTokenAmount == 0) {
             return 0;
         }
-
+        
         collateralTokenAmount = collateralTokenAmount
                                     .mul(initialMarginAmount)
                                     .div(100);
     }
-
+    
     function _getTotalInterestRequired(
         uint loanTokenAmount,
         uint loanTokenAmountFilled,
@@ -47,7 +47,7 @@ contract InternalFunctions is BZxStorage {
         pure
         returns (uint totalInterestRequired)
     {
-        if (interestAmount == 0)
+        if (interestAmount == 0) 
             return 0;
 
         totalInterestRequired = _getPartialAmountNoError(loanTokenAmountFilled, loanTokenAmount, maxDurationUnixTimestampSec.mul(interestAmount).div(86400));
@@ -59,8 +59,8 @@ contract InternalFunctions is BZxStorage {
     /// @param target Value to multiply with numerator/denominator.
     /// @return Rounding error is present.
     function _isRoundingError(
-        uint numerator,
-        uint denominator,
+        uint numerator, 
+        uint denominator, 
         uint target)
         internal
         pure
@@ -82,8 +82,8 @@ contract InternalFunctions is BZxStorage {
     /// @param target Value to calculate partial of.
     /// @return Partial value of target.
     function _getPartialAmount(
-        uint numerator,
-        uint denominator,
+        uint numerator, 
+        uint denominator, 
         uint target)
         internal
         pure
@@ -123,7 +123,7 @@ contract InternalFunctions is BZxStorage {
         }
 
         interestData = InterestData({
-            lender: loanPosition.lender,
+            lender: orderLender[loanOrder.loanOrderHash],
             interestTokenAddress: loanOrder.interestTokenAddress,
             interestTotalAccrued: interestTotalAccrued,
             interestPaidSoFar: interestPaidSoFar
@@ -162,7 +162,7 @@ contract InternalFunctions is BZxStorage {
                 loanPosition.positionTokenAddressFilled,
                 tradeTokenAddress,
                 loanPosition.positionTokenAmountFilled);
-        }
+        } 
         else {
             tradeTokenAmountReceived = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doTrade(
                 loanPosition.positionTokenAddressFilled,
@@ -215,5 +215,29 @@ contract InternalFunctions is BZxStorage {
                 loanPosition.positionTokenAmountFilled,
                 loanPosition.collateralTokenAmountFilled)
         );
+    }
+
+    function _removeLoanOrder(
+        bytes32 loanOrderHash,
+        address addr)
+        internal
+    {
+        if (orderListIndex[loanOrderHash][addr].isSet) {
+            assert(orderList[addr].length > 0);
+
+            uint index = orderListIndex[loanOrderHash][addr].index;
+            if (orderList[addr].length > 1) {
+                // replace order in list with last order in array
+                orderList[addr][index] = orderList[addr][orderList[addr].length - 1];
+
+                // update the position of this replacement
+                orderListIndex[orderList[addr][index]][addr].index = index;
+            }
+
+            // trim array and clear storage
+            orderList[addr].length--;
+            orderListIndex[loanOrderHash][addr].index = 0;
+            orderListIndex[loanOrderHash][addr].isSet = false;
+        }
     }
 }

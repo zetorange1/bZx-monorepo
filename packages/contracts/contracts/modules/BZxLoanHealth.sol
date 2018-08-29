@@ -57,7 +57,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         if (loanPosition.loanTokenAmountFilled == 0) {
             revert("BZxLoanHealth::payInterest: loanPosition.loanTokenAmountFilled == 0");
         }
-
+        
         uint amountPaid = _payInterest(
             loanOrder,
             loanPosition,
@@ -100,7 +100,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             _emitMarginLog(loanOrder, loanPosition);
         }
 
-        // If the position token is not the loan token, then we need to buy back the loan token
+        // If the position token is not the loan token, then we need to buy back the loan token 
         // prior to closing the loan. Liquidation checks will be run in _tradePositionWithOracle.
         if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
             uint loanTokenAmount = _tradePositionWithOracle(
@@ -155,7 +155,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         nonReentrant
         tracksGas
         returns (bool)
-    {
+    { 
         return _closeLoan(
             loanOrderHash,
             gasUsed // initial used gas, collected in modifier
@@ -208,18 +208,18 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         if (loanPosition.positionTokenAmountFilled > 0) {
             require(BZxVault(vaultContract).withdrawToken(
                 loanPosition.positionTokenAddressFilled,
-                loanPosition.lender,
+                orderLender[loanOrderHash],
                 loanPosition.positionTokenAmountFilled
             ));
         }
 
         loanPosition.active = false;
         _removePosition(
-            loanOrder.loanOrderHash,
+            loanOrderHash,
             loanPosition.trader);
 
         emit LogLoanClosed(
-            loanPosition.lender,
+            orderLender[loanOrderHash],
             loanPosition.trader,
             msg.sender, // loanCloser
             false, // isLiquidation
@@ -338,7 +338,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             loanPosition
         );
         return (
-            interestData.lender,
+            orderLender[loanOrderHash],
             interestData.interestTokenAddress,
             interestData.interestTotalAccrued,
             interestData.interestPaidSoFar
@@ -364,7 +364,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         } else {
             amountPaid = interestData.interestTotalAccrued.sub(interestData.interestPaidSoFar);
             interestPaid[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]] = interestData.interestTotalAccrued; // since this function will pay all remaining accured interest
-
+            
             // send the interest to the oracle for further processing (amountPaid > 0)
             if (! BZxVault(vaultContract).withdrawToken(
                 interestData.interestTokenAddress,
@@ -378,7 +378,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didPayInterest(
                 loanOrder.loanOrderHash,
                 loanPosition.trader,
-                loanPosition.lender,
+                orderLender[loanOrder.loanOrderHash],
                 interestData.interestTokenAddress,
                 amountPaid,
                 convert,
@@ -390,7 +390,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
 
         emit LogPayInterest(
             loanOrder.loanOrderHash,
-            loanPosition.lender,
+            orderLender[loanOrder.loanOrderHash],
             loanPosition.trader,
             amountPaid,
             interestData.interestTotalAccrued
@@ -465,7 +465,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             loanOrder.interestAmount,
             loanOrder.maxDurationUnixTimestampSec)
             .sub(interestPaid[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]]);
-
+        
         // refund any unused interest to the trader
         if (totalInterestToRefund > 0) {
             if (! BZxVault(vaultContract).withdrawToken(
@@ -495,7 +495,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
                 loanOrder.initialMarginAmount,
                 loanOrder.maintenanceMarginAmount,
                 isLiquidation);
-
+            
             loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.add(loanTokenAmountCovered);
             loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(collateralTokenAmountUsed);
         }
@@ -528,7 +528,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             // send remaining loan token back to the lender
             if (! BZxVault(vaultContract).withdrawToken(
                 loanPosition.positionTokenAddressFilled, // same as loanTokenAddress
-                loanPosition.lender,
+                orderLender[loanOrder.loanOrderHash],
                 loanPosition.positionTokenAmountFilled
             )) {
                 revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken loan failed");
@@ -542,7 +542,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             loanPosition.trader);
 
         emit LogLoanClosed(
-            loanPosition.lender,
+            orderLender[loanOrder.loanOrderHash],
             loanPosition.trader,
             msg.sender, // loanCloser
             isLiquidation,
@@ -566,16 +566,23 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         address trader)
         internal
     {
-        // get positionList index
-        uint index = positionListIndex[loanPositionsIds[loanOrderHash][trader]].index;
+        uint positionId = loanPositionsIds[loanOrderHash][trader];
+        if (positionListIndex[positionId].isSet) {
+            assert(positionList.length > 0);
 
-        // replace loan in list with last loan in array
-        positionList[index] = positionList[positionList.length - 1];
+            if (positionList.length > 1) {
+                // get positionList index
+                uint index = positionListIndex[positionId].index;
+                
+                // replace loan in list with last loan in array
+                positionList[index] = positionList[positionList.length - 1];
+                
+                // update the position of this replacement
+                positionListIndex[positionList[index].positionId].index = index;
+            }
 
-        // update the position of this replacement
-        positionListIndex[positionList[index].positionId].index = index;
-
-        // trim array
-        positionList.length--;
+            // trim array
+            positionList.length--;
+        }
     }
 }
