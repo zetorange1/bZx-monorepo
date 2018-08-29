@@ -7,7 +7,7 @@ module.exports = function(deployer, network, accounts) {
     var bZxProxy = await BZxProxy.deployed();
     await bZxProxy.replaceContract(BZxTradePlacing.address);
 
-    await deployer.deploy(BZxTradePlacing0xV2);
-    await bZxProxy.replaceContract(BZxTradePlacing0xV2.address);
+    /*await deployer.deploy(BZxTradePlacing0xV2);
+    await bZxProxy.replaceContract(BZxTradePlacing0xV2.address);*/
   });
 };

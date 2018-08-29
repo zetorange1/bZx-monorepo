@@ -40,7 +40,7 @@ module.exports = function(deployer, network, accounts) {
       BZxVault.address,
       OracleRegistry.address,
       BZxTo0x.address,
-      BZxTo0xV2.address
+      "0x0000000000000000000000000000000000000000" // BZxTo0xV2.address
     );
 
     var vault = await BZxVault.deployed();
@@ -56,7 +56,7 @@ module.exports = function(deployer, network, accounts) {
       MAX_UINT
     );
 
-    var bZxTo0xV2 = await BZxTo0xV2.deployed();
+    /*var bZxTo0xV2 = await BZxTo0xV2.deployed();
     await bZxTo0xV2.transferBZxOwnership(bZxProxy.address);
 
     // ERC20Proxy needs to have unlimited transfer approval for ZRX from BZxTo0xV2
@@ -64,6 +64,6 @@ module.exports = function(deployer, network, accounts) {
       config["addresses"][network]["ZeroEx"]["ZRXToken"],
       config["addresses"][network]["ZeroEx"]["ERC20Proxy"],
       MAX_UINT
-    );
+    );*/
   });
 };
