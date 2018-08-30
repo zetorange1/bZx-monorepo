@@ -14,7 +14,7 @@
     "url": "https://github.com/bZxNetwork/bZx-monorepo/issues"
   },
   "dependencies": {
-    "bzx.js": "^0.1.0",
+    "bzx.js": "^0.3.0",
     "bignumber.js": "^7.0.1",
     "minimist": "^1.2.0",
     "moment": "^2.22.1",
