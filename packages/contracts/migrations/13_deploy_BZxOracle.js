@@ -7,7 +7,7 @@ var OracleRegistry = artifacts.require("OracleRegistry");
 
 var config = require("../protocol-config.js");
 
-const OLD_ORACLE_ADDRESS = "0x8593F6028b5B6c4F7899f9cf2e0bA2750b7f6Ee2";
+const OLD_ORACLE_ADDRESS = "";
 
 module.exports = function(deployer, network, accounts) {
   network = network.replace("-fork", "");
@@ -58,11 +58,11 @@ module.exports = function(deployer, network, accounts) {
         var oracleRegistry = await OracleRegistry.deployed();
 
         if (OLD_ORACLE_ADDRESS) {
-          //var bZxOracleOld = await BZxOracle.at(OLD_ORACLE_ADDRESS);
-          /*await bZxOracleOld.transferEther(
+          var bZxOracleOld = await BZxOracle.at(OLD_ORACLE_ADDRESS);
+          await bZxOracleOld.transferEther(
             oracleAddress,
             web3.toWei(10000000, "ether")
-          );*/
+          );
           //await bZxOracleOld.transferToken(bzrx_token_address, oracleAddress, "75218865740740738");
           await oracleRegistry.removeOracle(OLD_ORACLE_ADDRESS, 0);
           await bZxProxy.setOracleReference(OLD_ORACLE_ADDRESS, oracleAddress);

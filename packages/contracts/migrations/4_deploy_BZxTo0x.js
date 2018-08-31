@@ -21,13 +21,12 @@ module.exports = function(deployer, network, accounts) {
 			await bZxTo0x.setDebugMode(true);
 		}*/
 
-      // no main 0x V2 deployment yet
-      /*await deployer.deploy(
+      await deployer.deploy(
         BZxTo0xV2,
         config["addresses"][network]["ZeroEx"]["ExchangeV2"],
         config["addresses"][network]["ZeroEx"]["ZRXToken"],
         config["addresses"][network]["ZeroEx"]["ERC20Proxy"]
-      );*/
+      );
 
       if (network == "development") {
         await deployer.deploy(
