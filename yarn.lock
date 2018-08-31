@@ -6640,6 +6640,12 @@ ganache-cli@6.1.0:
     source-map-support "^0.5.3"
     webpack-cli "^2.0.9"
 
+ganache-cli@6.1.8:
+  version "6.1.8"
+  resolved "https://registry.yarnpkg.com/ganache-cli/-/ganache-cli-6.1.8.tgz#49a8a331683a9652183f82ef1378d17e1814fcd3"
+  dependencies:
+    source-map-support "^0.5.3"
+
 gauge@~2.7.3:
   version "2.7.4"
   resolved "https://registry.yarnpkg.com/gauge/-/gauge-2.7.4.tgz#2c03405c7538c39d7eb37b317022e325fb018bf7"
