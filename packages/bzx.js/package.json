@@ -64,6 +64,7 @@
     "regenerator-runtime": "^0.11.1",
     "uglifyjs-webpack-plugin": "^1.3.0",
     "webpack": "^3.10.0",
+    "webpack-bundle-analyzer": "^2.13.1",
     "webpack-node-externals": "^1.7.2",
     "ziptool": "git+https://github.com/nayayayay/ziptool.git"
   },
@@ -74,7 +75,8 @@
     "prettier:fix": "prettier --write 'src/**/*.js'",
     "prettier:pre-commit": "./scripts/pre-commit-prettier.sh",
     "dev": "webpack --watch --config webpack.config.js",
-    "build": "webpack --config webpack.config.js"
+    "build": "webpack --config webpack.config.js",
+    "build-analyze": "rimraf ./dist/compilation-stats.json && webpack --config webpack.config.js --json > ./dist/compilation-stats.json && webpack-bundle-analyzer ./dist/compilation-stats.json"
   },
   "pre-commit": [
     "prettier:pre-commit",
