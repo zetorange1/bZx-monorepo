@@ -7,6 +7,7 @@ const BigNumber = require("bignumber.js");
 const moment = require("moment");
 const minimist = require("minimist");
 const HDWalletProvider = require("truffle-hdwallet-provider");
+const winston = require("winston");
 
 // importing secrets
 const secrets = require("../../config/secrets.js");
@@ -28,6 +29,19 @@ const checkIntervalSecs = 10;
 
 // max number of active loans returned
 const batchSize = 10;
+
+const logger = winston.createLogger({
+  format: winston.format.combine(
+    winston.format.timestamp({
+      format: 'YYYY-MM-DD HH:mm:ss'
+    }),
+    winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
+  ),
+  transports: [
+    new winston.transports.Console({ level: 'debug' }),
+    // new winston.transports.File({ filename: "combined.log" })
+  ]
+});
 
 // global subscription on
 let blocksSubscription;
@@ -87,19 +101,19 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
     const { loanOrderHash, trader, expirationUnixTimestampSec } = loansObjArray[i];
 
     const idx = position + i;
-    console.log(`${idx} :: Current Block: ${await web3.eth.getBlockNumber()}`);
-    console.log(`${idx} :: loanOrderHash: ${loanOrderHash}`);
-    console.log(`${idx} :: trader: ${trader}`);
-    console.log(`${idx} :: expirationUnixTimestampSec: ${expirationUnixTimestampSec}`);
+    logger.log("info", `${idx} :: Current Block: ${await web3.eth.getBlockNumber()}`);
+    logger.log("info", `${idx} :: loanOrderHash: ${loanOrderHash}`);
+    logger.log("info", `${idx} :: trader: ${trader}`);
+    logger.log("info", `${idx} :: expirationUnixTimestampSec: ${expirationUnixTimestampSec}`);
     const marginData = await bzx.getMarginLevels({
       loanOrderHash,
       trader
     });
-    // console.log(marginData);
+    // logger.log("info",  marginData);
     const { initialMarginAmount, maintenanceMarginAmount, currentMarginAmount } = marginData;
-    console.log(`${idx} :: initialMarginAmount: ${initialMarginAmount}`);
-    console.log(`${idx} :: maintenanceMarginAmount: ${maintenanceMarginAmount}`);
-    console.log(`${idx} :: currentMarginAmount: ${currentMarginAmount}`);
+    logger.log("info", `${idx} :: initialMarginAmount: ${initialMarginAmount}`);
+    logger.log("info", `${idx} :: maintenanceMarginAmount: ${maintenanceMarginAmount}`);
+    logger.log("info", `${idx} :: currentMarginAmount: ${currentMarginAmount}`);
 
     const isUnSafe = !BigNumber(currentMarginAmount)
       .dividedBy(1e18)
@@ -110,7 +124,7 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
     const isExpired = moment(moment().utc()).isAfter(expireDate);
 
     if (isExpired || isUnSafe) {
-      console.log(`${idx} :: Load is UNSAFE! Attempting to liquidate...`);
+      logger.log("info", `${idx} :: Load is UNSAFE! Attempting to liquidate...`);
 
       const txOpts = {
         from: sender,
@@ -129,30 +143,31 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
         await txObj
           .estimateGas(txOpts)
           .then(gas => {
-            // console.log(gas);
+            // logger.log(gas);
             txOpts.gas = gas;
             txObj
               .send(txOpts)
               .once("transactionHash", hash => {
-                console.log(`\n${idx} :: Transaction submitted. Tx hash: ${hash}`);
+                logger.log("info", `\n${idx} :: Transaction submitted. Tx hash: ${hash}`);
               })
               .then(() => {
-                console.log(`\n${idx} :: Liquidation complete!`);
+                logger.log("info", `\n${idx} :: Liquidation complete!`);
               })
               .catch(error => {
-                console.log(`\n${idx} :: Liquidation error -> ${error.message}`);
+                logger.log("error", `\n${idx} :: Liquidation error -> ${error.message}`);
               });
           })
           .catch(error => {
-            console.log(
+            logger.log(
+              "error",
               `\n${idx} :: The transaction is failing. This loan cannot be liquidated at this time -> ${error.message}`
             );
           });
       } catch (error) {
-        console.log(`\n${idx} :: Liquidation error! -> ${error.message}`);
+        logger.log("error", `\n${idx} :: Liquidation error! -> ${error.message}`);
       }
     } else {
-      console.log(`${idx} :: Load is safe.\n`);
+      logger.log("info", `${idx} :: Load is safe.\n`);
     }
   }
 
@@ -166,7 +181,7 @@ async function processBlockOrders(web3, bzx, sender) {
       start: position, // starting item
       count: batchSize // max number of items returned
     });
-    // console.log(loansObjArray);
+    // logger.log("info", loansObjArray);
 
     const loanCount = await processBatchOrders(web3, bzx, sender, loansObjArray, position);
     if (loanCount < batchSize) {
@@ -181,19 +196,26 @@ function startListeningForBlocks(web3, web3WS, bzx, sender) {
   const subscription = web3WS.eth
     .subscribe("newBlockHeaders", (error, result) => {
       if (error) {
-        console.log(error);
+        logger.log("error", error);
         process.exit();
       }
 
-      // console.log(result);
+      // logger.log("info", result);
     })
     .on("data", async transaction => {
-      // console.log(transaction);
+      // logger.log("info", transaction);
       await processBlockOrders(web3, bzx, sender);
-      console.log("Waiting for next block...");
+      logger.log("info", "Waiting for next block...");
     })
     .on("error", error => {
-      console.log(error);
+      logger.log("error", "Subscription error:");
+      logger.log("error", error);
+      // we can try to reconnect here, but it looks like provider already trying to do so
+    })
+    .on("end", error => {
+      logger.log("error", "Subscription end:");
+      logger.log("error", error);
+      // we can try to reconnect here, but it looks like provider already trying to do so
     });
 
   return subscription;
@@ -202,7 +224,7 @@ function startListeningForBlocks(web3, web3WS, bzx, sender) {
 async function startQueryingForBlocks(web3, bzx, sender) {
   while (true) {
     await processBlockOrders(web3, bzx, sender);
-    console.log(`Waiting ${checkIntervalSecs} seconds until next check...`);
+    logger.log("info", `Waiting ${checkIntervalSecs} seconds until next check...`);
 
     await snooze(checkIntervalSecs * 1000);
   }
@@ -217,14 +239,14 @@ async function main(web3, web3WS, bzx) {
   // sender = web3.eth.accounts.privateKeyToAccount(secrets["private_key"][network]).address;
 
   // const nonce = await web3.eth.getTransactionCount(sender);
-  // console.log("nonce: "+nonce);
+  // logger.log("info", "nonce: "+nonce);
 
   if (trackBlocks && !web3WS) {
-    console.log("Alert: The web3 provider used doesn't support websockets. Will check using checkIntervalSecs.");
+    logger.log("warn", "Alert: The web3 provider used doesn't support websockets. Will check using checkIntervalSecs.");
     trackBlocks = false;
   }
 
-  console.log("Waiting for blocks...");
+  logger.log("info", "Waiting for blocks...");
 
   if (trackBlocks) {
     blocksSubscription = startListeningForBlocks(web3, web3WS, bzx, sender);
@@ -235,11 +257,11 @@ async function main(web3, web3WS, bzx) {
 
 process.on("unhandledRejection", console.error.bind(console));
 process.on("SIGINT", async () => {
-  console.log("Caught interrupt signal");
+  logger.log("info", "Caught interrupt signal");
 
   if (blocksSubscription) {
     blocksSubscription.unsubscribe((error, success) => {
-      if (success) console.log("Successfully unsubscribed!");
+      if (success) logger.log("info", "Successfully unsubscribed!");
 
       process.exit();
     });
@@ -252,14 +274,15 @@ process.on("SIGINT", async () => {
   try {
     const network = getNetworkFromCommandLineParams();
 
-    console.log(`Connecting to network ${network}...`);
+    logger.log("info", `Connecting to network ${network}...`);
     const { web3, web3WS } = initWeb3(network);
     const bzx = await initBZX(web3);
 
     await main(web3, web3WS, bzx);
 
-    console.log("Execution finished, bye!...");
+    logger.log("info", "Execution finished, bye!...");
   } catch (error) {
-    console.log(error);
+    logger.log("error", "Global error:");
+    logger.log("error", error);
   }
 })();
