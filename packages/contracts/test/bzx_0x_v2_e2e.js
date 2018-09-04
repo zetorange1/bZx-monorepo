@@ -23,6 +23,7 @@ import {
 var config = require("../protocol-config.js");
 
 const Reverter = require("./utils/reverter");
+const eventsHelper = require("./utils/eventsHelper");
 const utils = require("./utils/utils.js");
 
 const MAX_UINT = new BigNumber(2)
@@ -828,7 +829,7 @@ contract("BZxTest", function(accounts) {
           new BN(orderAsTrader["salt"])
         ]
       );
-      
+
       let signature = "0x"+"00".repeat(65)+"06"; // SignatureType == PreSigned (null-padded to 66 bytes)
 
       try {
@@ -1234,32 +1235,30 @@ contract("BZxTest", function(accounts) {
     it("should pay lender interest (for trader1)", async () => {
       let interest = await bZx.getInterest.call(OrderHash_bZx_1, trader1);
 
-      let amount2pay = await bZx.payInterest.call(OrderHash_bZx_1, trader1, {
-        from: trader1
-      });
+      let amount2pay = await bZx.payInterest.call(OrderHash_bZx_1, trader1, {from: trader1});
 
-      let vaultInitialBalance = await interestToken1.balanceOf.call(
-        vault.address
-      );
-      let oracleInitialBalance = await interestToken1.balanceOf.call(
-        oracle.address
-      );
+      let vaultInitialBalance = await interestToken1.balanceOf.call(vault.address);
+      let oracleInitialBalance = await interestToken1.balanceOf.call(oracle.address);
       let lenderInitialBalance = await interestToken1.balanceOf.call(lender1);
 
-      await bZx.payInterest(OrderHash_bZx_1, trader1, { from: trader1 });
+      let tx = await bZx.payInterest(OrderHash_bZx_1, trader1, {from: trader1});
+
+      let payInterestEvent = eventsHelper.extractEvents(tx, "LogPayInterest")[0];
+      let amountPaid = payInterestEvent.args.amountPaid;
+
+      assert.isTrue(amountPaid.gte(amount2pay));
 
       let vaultBalance = await interestToken1.balanceOf.call(vault.address);
       let oracleBalance = await interestToken1.balanceOf.call(oracle.address);
       let lenderBalance = await interestToken1.balanceOf.call(lender1);
 
-      let receivedTokens = lenderBalance
-        .sub(lenderInitialBalance)
-        .add(oracleBalance.sub(oracleInitialBalance));
+      let receivedTokens = lenderBalance.sub(lenderInitialBalance).add(oracleBalance.sub(oracleInitialBalance));
+
       let sendTokens = vaultInitialBalance.sub(vaultBalance);
 
-      assert.equal(amount2pay.toString(), receivedTokens.toString());
-      assert.equal(amount2pay.toString(), sendTokens.toString());
-      assert.equal(amount2pay.toString(), interest[2].toString());
+      assert.equal(amountPaid.toString(), receivedTokens.toString());
+      assert.equal(amountPaid.toString(), sendTokens.toString());
+      assert.equal(amountPaid.toString(), interest[2].toString());
 
       assert.equal(interestToken1.address, interest[1]);
     });
