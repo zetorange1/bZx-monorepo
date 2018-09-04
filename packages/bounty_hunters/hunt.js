@@ -209,31 +209,27 @@ async function startQueryingForBlocks(web3, bzx, sender) {
 }
 
 async function main(web3, web3WS, bzx) {
-  try {
-    const accounts = await web3.eth.getAccounts();
-    if (!accounts) {
-      process.exit();
-    }
-    const sender = accounts[0];
-    // sender = web3.eth.accounts.privateKeyToAccount(secrets["private_key"][network]).address;
+  const accounts = await web3.eth.getAccounts();
+  if (!accounts) {
+    process.exit();
+  }
+  const sender = accounts[0];
+  // sender = web3.eth.accounts.privateKeyToAccount(secrets["private_key"][network]).address;
 
-    // const nonce = await web3.eth.getTransactionCount(sender);
-    // console.log("nonce: "+nonce);
+  // const nonce = await web3.eth.getTransactionCount(sender);
+  // console.log("nonce: "+nonce);
 
-    if (trackBlocks && !web3WS) {
-      console.log("Alert: The web3 provider used doesn't support websockets. Will check using checkIntervalSecs.");
-      trackBlocks = false;
-    }
+  if (trackBlocks && !web3WS) {
+    console.log("Alert: The web3 provider used doesn't support websockets. Will check using checkIntervalSecs.");
+    trackBlocks = false;
+  }
 
-    console.log("Waiting for blocks...");
+  console.log("Waiting for blocks...");
 
-    if (trackBlocks) {
-      blocksSubscription = startListeningForBlocks(web3, web3WS, bzx, sender);
-    } else {
-      await startQueryingForBlocks(web3, bzx, sender);
-    }
-  } catch (error) {
-    console.log(error);
+  if (trackBlocks) {
+    blocksSubscription = startListeningForBlocks(web3, web3WS, bzx, sender);
+  } else {
+    await startQueryingForBlocks(web3, bzx, sender);
   }
 }
 
