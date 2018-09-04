@@ -49,7 +49,8 @@ function initWeb3(network) {
   let provider, providerWS;
   if (network !== "development") {
     if (walletType === "mnemonic") {
-      provider = new HDWalletProvider(secrets.mnemonic[network], `https://${network}.infura.io/`);
+      const infuraAuth = (secrets.infura_apikey) ? `${secrets.infura_apikey}/` : "";
+      provider = new HDWalletProvider(secrets.mnemonic[network], `https://${network}.infura.io/${infuraAuth}`);
       providerWS = new Web3.providers.WebsocketProvider(`wss://${network}.infura.io/ws`);
     } else if (walletType === "ledger") {
       // TODO: ledger code
