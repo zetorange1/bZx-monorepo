@@ -66,8 +66,10 @@ function initWeb3(network) {
   let provider, providerWS;
   if (network !== "development") {
     if (walletType === "mnemonic") {
-      const infuraAuth = (secrets.infura_apikey) ? `${secrets.infura_apikey}/` : "";
+      const infuraAuth = secrets.infura_apikey ? `${secrets.infura_apikey}/` : "";
       provider = new HDWalletProvider(secrets.mnemonic[network], `https://${network}.infura.io/${infuraAuth}`);
+      // https://github.com/ethereum/web3.js/issues/1559
+      // but web3@1.0.0-beta.36 is not yet available
       providerWS = new Web3.providers.WebsocketProvider(`wss://${network}.infura.io/ws`);
     } else if (walletType === "ledger") {
       // TODO: ledger code
@@ -199,6 +201,7 @@ function startListeningForBlocks(web3, web3WS, bzx, sender) {
   const subscription = web3WS.eth
     .subscribe("newBlockHeaders", (error, result) => {
       if (error) {
+        logger.log("error", "Subscription start:");
         logger.log("error", error);
         process.exit();
       }
