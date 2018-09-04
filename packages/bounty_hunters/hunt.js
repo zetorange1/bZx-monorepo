@@ -27,7 +27,10 @@ let trackBlocks = true;
 // if trackBlocks = true, this is ignored
 const checkIntervalSecs = 10;
 
-// max number of active loans returned
+// the number of seconds to wait between rechecking hashrate
+const pingIntervalSecs = 30;
+
+// max number of active loans returned in a batch
 const batchSize = 10;
 
 const logger = winston.createLogger({
@@ -230,6 +233,15 @@ async function startQueryingForBlocks(web3, bzx, sender) {
   }
 }
 
+async function startPingWS(web3WS) {
+  while (true) {
+    await web3WS.eth.getHashrate();
+    logger.log("info", "Pinging server to avoid ws disconnection due to inactivity");
+
+    await snooze(pingIntervalSecs * 1000);
+  }
+}
+
 async function main(web3, web3WS, bzx) {
   const accounts = await web3.eth.getAccounts();
   if (!accounts) {
@@ -250,6 +262,7 @@ async function main(web3, web3WS, bzx) {
 
   if (trackBlocks) {
     blocksSubscription = startListeningForBlocks(web3, web3WS, bzx, sender);
+    await startPingWS(web3WS);
   } else {
     await startQueryingForBlocks(web3, bzx, sender);
   }
