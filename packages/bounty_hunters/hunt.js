@@ -16,7 +16,7 @@ const secrets = require("../../config/secrets.js");
 const walletType = "mnemonic"; // or private_key or ledger
 
 // the gas price to use for liquidation transactions
-const defaultGasPrice = BigNumber(2).times(10 ** 9);
+const defaultGasPrice = BigNumber(5).times(10 ** 9);
 
 // if true, recheck loans on each now block
 // if false, check on an interval set by checkIntervalSecs
@@ -114,7 +114,8 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
       const txOpts = {
         from: sender,
         // gas: 1000000, // gas estimated in bzx.js
-        gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+        // gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+        gasPrice: defaultGasPrice
       };
 
       const txObj = await bzx.liquidateLoan({
