@@ -36,12 +36,12 @@ const batchSize = 10;
 const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.timestamp({
-      format: 'YYYY-MM-DD HH:mm:ss'
+      format: "YYYY-MM-DD HH:mm:ss"
     }),
     winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
   ),
   transports: [
-    new winston.transports.Console({ level: 'debug' }),
+    new winston.transports.Console({ level: "debug" })
     // new winston.transports.File({ filename: "combined.log" })
   ]
 });
