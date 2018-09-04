@@ -5,15 +5,15 @@
  
 pragma solidity 0.4.24;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../tokens/EIP20.sol";
 import "../tokens/EIP20Wrapper.sol";
 import "../modifiers/BZxOwnable.sol";
 
 import "./ExchangeInterface.sol";
+import "./BZxTo0xShared.sol";
 
 
-contract BZxTo0x is EIP20Wrapper, BZxOwnable {
+contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
     using SafeMath for uint256;
 
     address public exchangeContract;
@@ -156,19 +156,6 @@ contract BZxTo0x is EIP20Wrapper, BZxOwnable {
         }
     }
 
-    /// @dev Calculates partial value given a numerator and denominator.
-    /// @param numerator Numerator.
-    /// @param denominator Denominator.
-    /// @param target Value to calculate partial of.
-    /// @return Partial value of target.
-    function getPartialAmount(uint numerator, uint denominator, uint target)
-        public
-        pure
-        returns (uint)
-    {
-        return SafeMath.div(SafeMath.mul(numerator, target), denominator);
-    }
-
     function set0xExchange (
         address _exchange)
         public
@@ -218,7 +205,8 @@ contract BZxTo0x is EIP20Wrapper, BZxOwnable {
         internal
         returns (uint sourceTokenUsedAmount, uint destTokenAmount)
     {
-        uint[3] memory summations; // takerTokenAmountTotal, makerTokenAmountTotal, zrxTokenAmount
+        uint[4] memory summations; // takerTokenAmountTotal, makerTokenAmountTotal, zrxTokenAmount, takerTokenRemaining
+        summations[3] = sourceTokenAmountToUse; // takerTokenRemaining
 
         for (uint i = 0; i < orderAddresses0x.length; i++) {
             // Note: takerToken is confirmed to be the same in 0x for batch orders
@@ -227,12 +215,24 @@ contract BZxTo0x is EIP20Wrapper, BZxOwnable {
             summations[0] += orderValues0x[i][1]; // takerTokenAmountTotal
             summations[1] += orderValues0x[i][0]; // makerTokenAmountTotal
 
-            if (orderAddresses0x[i][4] != address(0) && // feeRecipient
+            // calculate required takerFee
+            if (summations[3] > 0 && orderAddresses0x[i][4] != address(0) && // feeRecipient
                     orderValues0x[i][3] > 0 // takerFee
             ) {
-                summations[2] += orderValues0x[i][3]; // zrxTokenAmount
+                if (summations[3] >= orderValues0x[i][1]) {
+                    summations[2] += orderValues0x[i][3]; // takerFee
+                    summations[3] -= orderValues0x[i][1]; // takerTokenAmount
+                } else {
+                    summations[2] += _safeGetPartialAmountFloor(
+                        summations[3],
+                        orderValues0x[i][1], // takerTokenAmount
+                        orderValues0x[i][3] // takerFee
+                    );
+                    summations[3] = 0;
+                }
             }
         }
+
         if (summations[2] > 0) {
             // The 0x TokenTransferProxy already has unlimited transfer allowance for ZRX from this contract (set during deployment of this contract)
             eip20TransferFrom(
@@ -271,7 +271,7 @@ contract BZxTo0x is EIP20Wrapper, BZxOwnable {
                 s[0]);
         }
 
-        destTokenAmount = getPartialAmount(
+        destTokenAmount = _safeGetPartialAmountFloor(
             sourceTokenUsedAmount,
             summations[0], // takerTokenAmountTotal (aka sourceTokenAmount)
             summations[1]  // makerTokenAmountTotal (aka destTokenAmount)

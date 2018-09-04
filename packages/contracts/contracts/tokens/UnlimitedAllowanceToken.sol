@@ -30,24 +30,24 @@ contract UnlimitedAllowanceToken is StandardToken {
     /// @param _to Address to transfer to.
     /// @param _value Amount to transfer.
     /// @return Success of transfer.
-    function transferFrom(address _from, address _to, uint _value)
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value)
         public
         returns (bool)
     {
         uint allowance = allowed[_from][msg.sender];
-        if (balances[_from] >= _value
-            && allowance >= _value
-            && balances[_to] + _value >= balances[_to]
-        ) {
-            balances[_to] += _value;
-            balances[_from] -= _value;
-            if (allowance < MAX_UINT) {
-                allowed[_from][msg.sender] -= _value;
-            }
-            emit Transfer(_from, _to, _value);
-            return true;
-        } else {
-            return false;
+        require(_value <= balances[_from]);
+        require(_value <= allowance);
+        require(_to != address(0));
+
+        balances[_from] = balances[_from].sub(_value);
+        balances[_to] = balances[_to].add(_value);
+        if (allowance < MAX_UINT) {
+            allowed[_from][msg.sender] = allowance.sub(_value);
         }
+        emit Transfer(_from, _to, _value);
+        return true;
     }
 }

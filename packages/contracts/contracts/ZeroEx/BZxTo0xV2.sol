@@ -6,15 +6,15 @@
 pragma solidity 0.4.24;
 pragma experimental ABIEncoderV2;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../tokens/EIP20.sol";
 import "../tokens/EIP20Wrapper.sol";
 import "../modifiers/BZxOwnable.sol";
 
 import "./ExchangeV2Interface.sol";
+import "./BZxTo0xShared.sol";
 
 
-contract BZxTo0xV2 is EIP20Wrapper, BZxOwnable {
+contract BZxTo0xV2 is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
     using SafeMath for uint256;
 
     event LogFillResults(
@@ -184,18 +184,28 @@ contract BZxTo0xV2 is EIP20Wrapper, BZxOwnable {
         returns (uint sourceTokenUsedAmount, uint destTokenAmount)
     {
         uint zrxTokenAmount = 0;
+        uint takerAssetRemaining = sourceTokenAmountToUse;
         for (uint i = 0; i < orders0x.length; i++) {
             // Note: takerAssetData (sourceToken) is confirmed to be the same in 0x for batch orders
             // To confirm makerAssetData is the same for each order, rather than doing a more expensive per order bytes
-            // comparison, we will simply set takerAssetData the same in each order to the first value observed. The 0x
+            // comparison, we will simply set makerAssetData the same in each order to the first value observed. The 0x
             // trade will fail for invalid orders.
             if (i > 0)
                 orders0x[i].makerAssetData = orders0x[0].makerAssetData;
 
-            if (orders0x[i].feeRecipientAddress != address(0) && // feeRecipient
-                    orders0x[i].takerFee > 0 // takerFee
-            ) {
-                zrxTokenAmount += orders0x[i].takerFee; // zrxTokenAmount
+            // calculate required takerFee
+            if (takerAssetRemaining > 0 && orders0x[i].takerFee > 0) { // takerFee
+                if (takerAssetRemaining >= orders0x[i].takerAssetAmount) {
+                    zrxTokenAmount += orders0x[i].takerFee;
+                    takerAssetRemaining -= orders0x[i].takerAssetAmount;
+                } else {
+                    zrxTokenAmount += _safeGetPartialAmountFloor(
+                        takerAssetRemaining,
+                        orders0x[i].takerAssetAmount,
+                        orders0x[i].takerFee
+                    );
+                    takerAssetRemaining = 0;
+                }
             }
         }
 
@@ -225,6 +235,14 @@ contract BZxTo0xV2 is EIP20Wrapper, BZxOwnable {
                 orders0x[0],
                 sourceTokenAmountToUse,
                 signatures0x[0]);
+        }
+
+        if (zrxTokenAmount > 0 && fillResults.takerFeePaid < zrxTokenAmount) {
+            // refund unused ZRX token (if any)
+            eip20Transfer(
+                zrxTokenContract,
+                trader,
+                zrxTokenAmount.sub(fillResults.takerFeePaid));
         }
 
         if (DEBUG) {

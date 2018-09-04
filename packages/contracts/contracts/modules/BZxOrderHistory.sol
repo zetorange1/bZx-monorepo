@@ -7,12 +7,11 @@ pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 
-import "./BZxStorage.sol";
-import "./BZxProxyContracts.sol";
+import "../proxy/BZxProxiable.sol";
 import "../shared/InternalFunctions.sol";
 
 
-contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
+contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -377,7 +376,7 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
 
-        InterestData memory interestData = _getInterest(loanOrder, loanPosition);
+        InterestData memory interestData = _getInterestData(loanOrder, loanPosition);
 
         bytes memory tmpBytes = abi.encode(
             loanOrderHash,

@@ -1243,7 +1243,7 @@ contract("BZxTest", function(accounts) {
 
       let tx = await bZx.payInterest(OrderHash_bZx_1, trader1, {from: trader1});
 
-      let payInterestEvent = eventsHelper.extractEvents(tx, "LogPayInterest")[0];
+      let payInterestEvent = eventsHelper.extractEvents(tx, "LogPayInterestForPosition")[0];
       let amountPaid = payInterestEvent.args.amountPaid;
 
       assert.isTrue(amountPaid.gte(amount2pay));

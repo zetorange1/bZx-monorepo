@@ -4,14 +4,15 @@
  */
 
 pragma solidity 0.4.24;
+pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 
-import "./BZxProxyContracts.sol";
+import "../proxy/BZxProxiable.sol";
 import "../shared/OrderTakingFunctions.sol";
 
 
-contract BZxOrderTaking is BZxStorage, Proxiable, OrderTakingFunctions {
+contract BZxOrderTaking is BZxStorage, BZxProxiable, OrderTakingFunctions {
     using SafeMath for uint256;
 
     constructor() public {}

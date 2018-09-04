@@ -8,8 +8,7 @@ pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-import "./BZxStorage.sol";
-import "./BZxProxyContracts.sol";
+import "../proxy/BZxProxiable.sol";
 
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
@@ -48,7 +47,7 @@ contract BZxTo0xV2_Interface {
             uint sourceTokenUsedAmount);
 }
 
-contract BZxTradePlacing0xV2 is BZxStorage, Proxiable {
+contract BZxTradePlacing0xV2 is BZxStorage, BZxProxiable {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -138,10 +137,8 @@ contract BZxTradePlacing0xV2 is BZxStorage, Proxiable {
         loanPosition.positionTokenAmountFilled = tradeTokenAmount;
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
-            loanOrderHash,
-            loanPosition.trader,
-            tradeTokenAddress,
-            tradeTokenAmount,
+            loanOrder,
+            loanPosition,
             gasUsed // initial used gas, collected in modifier
         )) {
             revert("BZxTradePlacing::tradePositionWith0x: OracleInterface.didTradePosition failed");

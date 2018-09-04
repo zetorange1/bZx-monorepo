@@ -4,11 +4,11 @@
  */
  
 pragma solidity 0.4.24;
+pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 
-import "./BZxStorage.sol";
-import "./BZxProxyContracts.sol";
+import "../proxy/BZxProxiable.sol";
 import "../shared/InternalFunctions.sol";
 
 import "../BZxVault.sol";
@@ -33,7 +33,7 @@ interface BZxTo0x_Interface {
 }
 
 
-contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
+contract BZxTradePlacing is BZxStorage, BZxProxiable, InternalFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -129,10 +129,8 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
         loanPosition.positionTokenAmountFilled = tradeTokenAmount;
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
-            loanOrderHash,
-            loanPosition.trader,
-            tradeTokenAddress,
-            tradeTokenAmount,
+            loanOrder,
+            loanPosition,
             gasUsed // initial used gas, collected in modifier
         )) {
             revert("BZxTradePlacing::tradePositionWith0x: OracleInterface.didTradePosition failed");
@@ -224,10 +222,8 @@ contract BZxTradePlacing is BZxStorage, Proxiable, InternalFunctions {
         loanPosition.positionTokenAmountFilled = tradeTokenAmount;
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
-            loanOrderHash,
-            loanPosition.trader,
-            tradeTokenAddress,
-            tradeTokenAmount,
+            loanOrder,
+            loanPosition,
             gasUsed // initial used gas, collected in modifier
         )) {
             revert("BZxTradePlacing::tradePositionWithOracle: OracleInterface.didTradePosition");

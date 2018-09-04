@@ -4,9 +4,10 @@
  */
 
 pragma solidity 0.4.24;
+pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "../modules/BZxStorage.sol";
+import "../storage/BZxStorage.sol";
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 
@@ -50,76 +51,123 @@ contract InternalFunctions is BZxStorage {
         if (interestAmount == 0) 
             return 0;
 
-        totalInterestRequired = _getPartialAmountNoError(loanTokenAmountFilled, loanTokenAmount, maxDurationUnixTimestampSec.mul(interestAmount).div(86400));
+        totalInterestRequired = _safeGetPartialAmountFloor(loanTokenAmountFilled, loanTokenAmount, maxDurationUnixTimestampSec.mul(interestAmount).div(86400));
     }
 
-    /// @dev Checks if rounding error > 0.1%.
+    /// @dev source: https://github.com/0xProject/0x-monorepo/blob/99fbf384fdcae26eb608f9e0c95a852b7cb7bd99/packages/contracts/src/2.0.0/protocol/Exchange/libs/LibMath.sol
+    /// @dev Calculates partial value given a numerator and denominator rounded down.
+    ///      Reverts if rounding error is >= 0.1%
+    /// @param numerator Numerator.
+    /// @param denominator Denominator.
+    /// @param target Value to calculate partial of.
+    /// @return Partial value of target rounded down.
+    function _safeGetPartialAmountFloor(
+        uint256 numerator,
+        uint256 denominator,
+        uint256 target
+    )
+        internal
+        pure
+        returns (uint256 partialAmount)
+    {
+        require(
+            denominator > 0,
+            "DIVISION_BY_ZERO"
+        );
+
+        require(
+            !_isRoundingErrorFloor(
+                numerator,
+                denominator,
+                target
+            ),
+            "ROUNDING_ERROR"
+        );
+        
+        partialAmount = SafeMath.div(
+            SafeMath.mul(numerator, target),
+            denominator
+        );
+        return partialAmount;
+    }
+
+    /// @dev source: https://github.com/0xProject/0x-monorepo/blob/99fbf384fdcae26eb608f9e0c95a852b7cb7bd99/packages/contracts/src/2.0.0/protocol/Exchange/libs/LibMath.sol
+    /// @dev Checks if rounding error >= 0.1% when rounding down.
     /// @param numerator Numerator.
     /// @param denominator Denominator.
     /// @param target Value to multiply with numerator/denominator.
     /// @return Rounding error is present.
-    function _isRoundingError(
-        uint numerator, 
-        uint denominator, 
-        uint target)
+    function _isRoundingErrorFloor(
+        uint256 numerator,
+        uint256 denominator,
+        uint256 target
+    )
         internal
         pure
-        returns (bool)
+        returns (bool isError)
     {
-        uint remainder = mulmod(target, numerator, denominator);
-        if (remainder == 0) return false; // No rounding error.
-
-        uint errPercentageTimes1000000 = SafeMath.div(
-            SafeMath.mul(remainder, 1000000),
-            SafeMath.mul(numerator, target)
+        require(
+            denominator > 0,
+            "DIVISION_BY_ZERO"
         );
-        return errPercentageTimes1000000 > 1000;
+        
+        // The absolute rounding error is the difference between the rounded
+        // value and the ideal value. The relative rounding error is the
+        // absolute rounding error divided by the absolute value of the
+        // ideal value. This is undefined when the ideal value is zero.
+        //
+        // The ideal value is `numerator * target / denominator`.
+        // Let's call `numerator * target % denominator` the remainder.
+        // The absolute error is `remainder / denominator`.
+        //
+        // When the ideal value is zero, we require the absolute error to
+        // be zero. Fortunately, this is always the case. The ideal value is
+        // zero iff `numerator == 0` and/or `target == 0`. In this case the
+        // remainder and absolute error are also zero. 
+        if (target == 0 || numerator == 0) {
+            return false;
+        }
+        
+        // Otherwise, we want the relative rounding error to be strictly
+        // less than 0.1%.
+        // The relative error is `remainder / (numerator * target)`.
+        // We want the relative error less than 1 / 1000:
+        //        remainder / (numerator * denominator)  <  1 / 1000
+        // or equivalently:
+        //        1000 * remainder  <  numerator * target
+        // so we have a rounding error iff:
+        //        1000 * remainder  >=  numerator * target
+        uint256 remainder = mulmod(
+            target,
+            numerator,
+            denominator
+        );
+        isError = SafeMath.mul(1000, remainder) >= SafeMath.mul(numerator, target);
+        return isError;
     }
 
-    /// @dev Calculates partial value given a numerator and denominator.
-    /// @param numerator Numerator.
-    /// @param denominator Denominator.
-    /// @param target Value to calculate partial of.
-    /// @return Partial value of target.
-    function _getPartialAmount(
-        uint numerator, 
-        uint denominator, 
-        uint target)
-        internal
-        pure
-        returns (uint)
-    {
-        return numerator.mul(target).div(denominator);
-    }
-
-    function _getPartialAmountNoError(uint numerator, uint denominator, uint target)
-        internal
-        pure
-        returns (uint)
-    {
-        require(!_isRoundingError(numerator, denominator, target), "rounding error");
-        return _getPartialAmount(numerator, denominator, target);
-    }
-
-    function _getInterest(
+    function _getInterestData(
         LoanOrder loanOrder,
         LoanPosition loanPosition)
         internal
         view
         returns (InterestData interestData)
     {
-        uint interestTime = block.timestamp;
-        if (interestTime > loanPosition.loanEndUnixTimestampSec) {
-            interestTime = loanPosition.loanEndUnixTimestampSec;
-        }
+        uint interestTotalAccrued = 0;
+        uint interestPaidSoFar = 0;
+        if (loanOrder.interestAmount > 0) {
+            uint interestTime = block.timestamp;
+            if (interestTime > loanPosition.loanEndUnixTimestampSec) {
+                interestTime = loanPosition.loanEndUnixTimestampSec;
+            }
 
-        uint interestTotalAccrued;
-        uint interestPaidSoFar = interestPaid[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]];
-        if (loanPosition.active) {
-            interestTotalAccrued = _getPartialAmountNoError(loanPosition.loanTokenAmountFilled, loanOrder.loanTokenAmount, interestTime.sub(loanPosition.loanStartUnixTimestampSec).mul(loanOrder.interestAmount).div(86400));
-        } else {
-            // this is so, because remaining interest is paid out when the loan is closed
-            interestTotalAccrued = interestPaidSoFar;
+            interestPaidSoFar = interestPaid[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]];
+            if (loanPosition.active) {
+                interestTotalAccrued = _safeGetPartialAmountFloor(loanPosition.loanTokenAmountFilled, loanOrder.loanTokenAmount, interestTime.sub(loanPosition.loanStartUnixTimestampSec).mul(loanOrder.interestAmount).div(86400));
+            } else {
+                // this is so, because remaining interest is paid out when the loan is closed
+                interestTotalAccrued = interestPaidSoFar;
+            }
         }
 
         interestData = InterestData({
@@ -150,13 +198,8 @@ contract InternalFunctions is BZxStorage {
         uint tradeTokenAmountReceived;
         if (isLiquidation && block.timestamp < loanPosition.loanEndUnixTimestampSec) { // checks for non-expired loan
             tradeTokenAmountReceived = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).verifyAndLiquidate(
-                loanOrder.loanTokenAddress,
-                loanPosition.positionTokenAddressFilled,
-                loanPosition.collateralTokenAddressFilled,
-                loanPosition.loanTokenAmountFilled,
-                loanPosition.positionTokenAmountFilled,
-                loanPosition.collateralTokenAmountFilled,
-                loanOrder.maintenanceMarginAmount);
+                loanOrder,
+                loanPosition);
         } else if (isManual) {
             tradeTokenAmountReceived = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doManualTrade(
                 loanPosition.positionTokenAddressFilled,

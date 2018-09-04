@@ -49,6 +49,7 @@ getFuncId("getProfitOrLoss(bytes32,address)");
 
 console.log("\nBZxLoanHealth functions");
 getFuncId("payInterest(bytes32,address)");
+getFuncId("payInterestForOrder(bytes32)");
 getFuncId("liquidatePosition(bytes32,address)");
 getFuncId("closeLoan(bytes32)");
 getFuncId("forceCloanLoan(bytes32,address)");

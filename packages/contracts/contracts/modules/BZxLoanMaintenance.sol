@@ -4,18 +4,18 @@
  */
 
 pragma solidity 0.4.24;
+pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 
-import "./BZxStorage.sol";
-import "./BZxProxyContracts.sol";
+import "../proxy/BZxProxiable.sol";
 import "../shared/InternalFunctions.sol";
 
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 
 
-contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
+contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -76,8 +76,8 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.add(depositAmount);
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didDepositCollateral(
-            loanOrder.loanOrderHash,
-            msg.sender,
+            loanOrder,
+            loanPosition,
             gasUsed // initial used gas, collected in modifier
         )) {
             revert("BZxLoanHealth::depositCollateral: OracleInterface.didDepositCollateral failed");
@@ -141,8 +141,8 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(excessCollateral);
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didWithdrawCollateral(
-            loanOrder.loanOrderHash,
-            msg.sender,
+            loanOrder,
+            loanPosition,
             gasUsed // initial used gas, collected in modifier
         )) {
             revert("BZxLoanHealth::withdrawExcessCollateral: OracleInterface.didWithdrawCollateral failed");
@@ -214,8 +214,8 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         loanPosition.collateralTokenAmountFilled = collateralTokenAmountFilled;
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didChangeCollateral(
-            loanOrder.loanOrderHash,
-            msg.sender,
+            loanOrder,
+            loanPosition,
             gasUsed // initial used gas, collected in modifier
         )) {
             revert("BZxLoanHealth::changeCollateral: OracleInterface.didChangeCollateral failed");
@@ -259,8 +259,8 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(profitAmount);
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didWithdrawProfit(
-            loanOrder.loanOrderHash,
-            msg.sender,
+            loanOrder,
+            loanPosition,
             profitAmount,
             gasUsed // initial used gas, collected in modifier
         )) {
@@ -324,9 +324,9 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         });
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didChangeTraderOwnership(
-            loanOrder.loanOrderHash,
+            loanOrder,
+            loanPosition,
             msg.sender, // old owner
-            newOwner,
             gasUsed // initial used gas, collected in modifier
         )) {
             revert("BZxLoanMaintenance::changeTraderOwnership: OracleInterface.didChangeTraderOwnership failed");
@@ -380,7 +380,7 @@ contract BZxLoanMaintenance is BZxStorage, Proxiable, InternalFunctions {
         });
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didChangeLenderOwnership(
-            loanOrder.loanOrderHash,
+            loanOrder,
             msg.sender, // old owner
             newOwner,
             gasUsed // initial used gas, collected in modifier
