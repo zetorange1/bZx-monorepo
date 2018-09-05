@@ -28,10 +28,7 @@ export default function withRoot(Component) {
       const { pageContext } = this;
       // MuiThemeProvider makes the theme available down the React tree thanks to React context.
       return (
-        <MuiThemeProvider
-          theme={pageContext.theme}
-          sheetsManager={pageContext.sheetsManager}
-        >
+        <MuiThemeProvider theme={pageContext.theme} sheetsManager={pageContext.sheetsManager}>
           <Component {...this.props} />
         </MuiThemeProvider>
       );

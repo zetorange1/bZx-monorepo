@@ -5,39 +5,12 @@ export const PERMA_TOKEN_SYMBOLS = [`BZRX`, `BZRXFAKE`, `ZRX`, `WETH`];
 export const FAUCET_TOKEN_SYMBOLS = {
   mainnet: [`BZRXFAKE`],
   ropsten: [`BZRX`],
-  rinkeby: [
-    `BZRX`,
-    `TEST0`,
-    `TEST1`,
-    `TEST2`,
-    `TEST3`,
-    `TEST4`,
-    `TEST5`,
-    `TEST6`,
-    `TEST7`,
-    `TEST8`,
-    `TEST9`
-  ],
-  kovan: [
-    `BZRX`,
-    `TEST0`,
-    `TEST1`,
-    `TEST2`,
-    `TEST3`,
-    `TEST4`,
-    `TEST5`,
-    `TEST6`,
-    `TEST7`,
-    `TEST8`,
-    `TEST9`
-  ]
+  rinkeby: [`BZRX`, `TEST0`, `TEST1`, `TEST2`, `TEST3`, `TEST4`, `TEST5`, `TEST6`, `TEST7`, `TEST8`, `TEST9`],
+  kovan: [`BZRX`, `TEST0`, `TEST1`, `TEST2`, `TEST3`, `TEST4`, `TEST5`, `TEST6`, `TEST7`, `TEST8`, `TEST9`]
 };
 
 // Gets an array of addresses of the perma tokens.
-const getPermaTokens = tokens =>
-  tokens
-    .filter(t => PERMA_TOKEN_SYMBOLS.includes(t.symbol))
-    .map(t => t.address);
+const getPermaTokens = tokens => tokens.filter(t => PERMA_TOKEN_SYMBOLS.includes(t.symbol)).map(t => t.address);
 
 // Gets an array of all tracked token addresses (including perma tokens).
 export const getTrackedTokens = tokens => {

@@ -23,19 +23,8 @@ export const getInitialCollateralRequired = async (
     initialMarginAmount
   );
 
-export const getTokenConversionData = (
-  sourceTokenAddress,
-  destTokenAddress,
-  sourceTokenAmount,
-  oracleAddress,
-  bZx
-) =>
-  bZx.getConversionData(
-    sourceTokenAddress,
-    destTokenAddress,
-    toBigNumber(sourceTokenAmount).toFixed(0),
-    oracleAddress
-  );
+export const getTokenConversionData = (sourceTokenAddress, destTokenAddress, sourceTokenAmount, oracleAddress, bZx) =>
+  bZx.getConversionData(sourceTokenAddress, destTokenAddress, toBigNumber(sourceTokenAmount).toFixed(0), oracleAddress);
 
 export const getTokenConversionAmount = async (
   sourceTokenAddress,
