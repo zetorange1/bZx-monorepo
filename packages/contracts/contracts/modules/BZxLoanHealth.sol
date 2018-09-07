@@ -97,7 +97,8 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions {
 
             (uint amountPaid, uint interestTotalAccrued) = _setInterestPaidForPosition(
                 loanOrder,
-                loanPosition);
+                loanPosition,
+                orderPositionList[loanOrderHash][i]);
             totalAmountPaid += amountPaid;
             totalAmountAccrued += interestTotalAccrued;
         }
@@ -269,6 +270,7 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions {
             ));
         }
 
+        loanPosition.loanTokenAmountUsed = 0;
         loanPosition.active = false;
         _removePosition(
             loanOrderHash,
@@ -413,7 +415,8 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions {
 
     function _setInterestPaidForPosition(
         LoanOrder loanOrder,
-        LoanPosition loanPosition)
+        LoanPosition loanPosition,
+        uint positionId)
         internal
         returns (uint amountPaid, uint interestTotalAccrued)
     {
@@ -426,7 +429,7 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions {
             amountPaid = 0;
         } else {
             amountPaid = interestTotalAccrued.sub(interestData.interestPaidSoFar);
-            interestPaid[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]] = interestTotalAccrued; // since this function will pay all remaining accured interest
+            interestPaid[loanOrder.loanOrderHash][positionId] = interestTotalAccrued; // since this function will pay all remaining accured interest
         }
     }
 
@@ -436,6 +439,9 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions {
         bool convert)
         internal
     {
+        if (amountPaid == 0)
+            return;
+        
         // send the interest to the oracle for further processing (amountPaid > 0)
         if (! BZxVault(vaultContract).withdrawToken(
             loanOrder.interestTokenAddress,
@@ -467,7 +473,8 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions {
         uint interestTotalAccrued;
         (amountPaid, interestTotalAccrued) = _setInterestPaidForPosition(
             loanOrder,
-            loanPosition);
+            loanPosition,
+            loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]);
 
         if (amountPaid > 0) {
             _sendInterest(
@@ -626,7 +633,7 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions {
             }
         }
 
-        // set this loan to inactive
+        loanPosition.loanTokenAmountUsed = 0;
         loanPosition.active = false;
         _removePosition(
             loanOrder.loanOrderHash,

@@ -30,18 +30,6 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions {
         NSignatureTypes  // 0x07, number of signature types. Always leave at end.
     }
 
-    /// @dev Calculates the sum of values already filled and cancelled for a given loanOrder.
-    /// @param loanOrderHash A unique hash representing the loan order.
-    /// @return Sum of values already filled and cancelled.
-    function _getUnavailableLoanTokenAmount(
-        bytes32 loanOrderHash)
-        internal
-        view
-        returns (uint)
-    {
-        return orderFilledAmounts[loanOrderHash].add(orderCancelledAmounts[loanOrderHash]);
-    }
-
     /// @dev Verifies that an order signature is valid.
     /// @param signer address of signer.
     /// @param hash Signed Keccak-256 hash.

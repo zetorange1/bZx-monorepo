@@ -222,6 +222,12 @@ contract BZx is BZxStorage {
         external
         returns (bool);
 
+    function increaseLoanableAmount(
+        bytes32 loanOrderHash,
+        uint loanTokenAmountToAdd)      
+        external
+        returns (bool);
+
     function getProfitOrLoss(
         bytes32 loanOrderHash,
         address trader)

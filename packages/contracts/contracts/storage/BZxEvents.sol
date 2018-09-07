@@ -98,4 +98,11 @@ contract BZxEvents {
         address oldOwner,
         address newOwner
     );
+
+    event LogIncreasedLoanableAmount(
+        bytes32 loanOrderHash,
+        address lender,
+        uint loanTokenAmountAdded,
+        uint loanTokenAmountFillable
+    );
 }

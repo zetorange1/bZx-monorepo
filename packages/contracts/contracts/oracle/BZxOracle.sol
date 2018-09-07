@@ -309,6 +309,20 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         return true;
     }
 
+    function didIncreaseLoanableAmount(
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        address /* lender */,
+        uint /* loanTokenAmountAdded */,
+        uint /* totalNewFillableAmount */,
+        uint /* gasUsed */)
+        public
+        onlyBZx
+        updatesEMA(tx.gasprice)
+        returns (bool)
+    {
+        return true;
+    }
+
 
     function doManualTrade(
         address sourceTokenAddress,

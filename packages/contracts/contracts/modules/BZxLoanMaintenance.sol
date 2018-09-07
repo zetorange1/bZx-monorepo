@@ -14,6 +14,8 @@ import "../shared/InternalFunctions.sol";
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 
+import "../tokens/EIP20.sol";
+
 
 contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
     using SafeMath for uint256;
@@ -31,6 +33,7 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
         targets[bytes4(keccak256("withdrawProfit(bytes32)"))] = _target;
         targets[bytes4(keccak256("changeTraderOwnership(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("changeLenderOwnership(bytes32,address)"))] = _target;
+        targets[bytes4(keccak256("increaseLoanableAmount(bytes32,uint256)"))] = _target;
         targets[bytes4(keccak256("getProfitOrLoss(bytes32,address)"))] = _target;
     }
 
@@ -279,6 +282,8 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
 
     /// @dev Allows the trader to transfer ownership of the underlying assets in a position to another user.
     /// @param loanOrderHash A unique hash representing the loan order
+    /// @param newOwner The address receiving the transfer
+    /// @return True on success
     function changeTraderOwnership(
         bytes32 loanOrderHash,
         address newOwner)
@@ -343,6 +348,8 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
 
     /// @dev Allows the lender to transfer ownership of the underlying assets in a position to another user.
     /// @param loanOrderHash A unique hash representing the loan order
+    /// @param newOwner The address receiving the transfer
+    /// @return True on success
     function changeLenderOwnership(
         bytes32 loanOrderHash,
         address newOwner)
@@ -392,6 +399,59 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
             loanOrder.loanOrderHash,
             msg.sender, // old owner
             newOwner
+        );
+
+        return true;
+    }
+
+    /// @dev Allows a lender to increase the amount of token they will loan out for an order
+    /// @dev The order must already be on chain and have been partially filled
+    /// @dev Ensures the lender has enough balance and allowance
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param loanTokenAmountToAdd The amount to increase the loan token
+    /// @return True on success
+    function increaseLoanableAmount(
+        bytes32 loanOrderHash,
+        uint loanTokenAmountToAdd)      
+        external
+        nonReentrant
+        tracksGas
+        returns (bool)
+    {
+        if (orderLender[loanOrderHash] != msg.sender) {
+            revert("BZxOrderTaking::increaseLoanableAmount: msg.sender is not the lender");
+        }
+
+        LoanOrder storage loanOrder = orders[loanOrderHash];
+        if (loanOrder.loanTokenAddress == address(0)) {
+            revert("BZxOrderTaking::increaseLoanableAmount: loanOrder.loanTokenAddress == address(0)");
+        }
+
+        uint totalNewFillableAmount = loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrderHash)).add(loanTokenAmountToAdd);
+        
+        // ensure adequate token balance
+        require (EIP20(loanOrder.loanTokenAddress).balanceOf.gas(4999)(msg.sender) >= totalNewFillableAmount, "BZxOrderTaking::increaseLoanableAmount: lender balance is insufficient");
+
+        // ensure adequate token allowance
+        require (EIP20(loanOrder.loanTokenAddress).allowance.gas(4999)(msg.sender, vaultContract) >= totalNewFillableAmount, "BZxOrderTaking::increaseLoanableAmount: lender allowance is insufficient");
+        
+        loanOrder.loanTokenAmount = loanOrder.loanTokenAmount.add(loanTokenAmountToAdd);
+
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didIncreaseLoanableAmount(
+            loanOrder,
+            msg.sender,
+            loanTokenAmountToAdd,
+            totalNewFillableAmount,
+            gasUsed // initial used gas, collected in modifier
+        )) {
+            revert("BZxOrderTaking::increaseLoanableAmount: OracleInterface.didIncreaseLoanableAmount failed");
+        }
+
+        emit LogIncreasedLoanableAmount(
+            loanOrderHash,
+            msg.sender,
+            loanTokenAmountToAdd,
+            totalNewFillableAmount
         );
 
         return true;

@@ -15,6 +15,18 @@ import "../oracle/OracleInterface.sol";
 contract InternalFunctions is BZxStorage {
     using SafeMath for uint256;
 
+    /// @dev Calculates the sum of values already filled and cancelled for a given loanOrder.
+    /// @param loanOrderHash A unique hash representing the loan order.
+    /// @return Sum of values already filled and cancelled.
+    function _getUnavailableLoanTokenAmount(
+        bytes32 loanOrderHash)
+        internal
+        view
+        returns (uint)
+    {
+        return orderFilledAmounts[loanOrderHash].add(orderCancelledAmounts[loanOrderHash]);
+    }
+
     function _getInitialCollateralRequired(
         address loanTokenAddress,
         address collateralTokenAddress,

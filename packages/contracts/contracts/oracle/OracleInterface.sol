@@ -175,6 +175,22 @@ contract OracleInterface {
         public
         returns (bool);
 
+    /// @dev Called by bZx after a lender increases the fillable amount of a loan order already on chain and partially filled
+    /// @param loanOrder The loanOrder object
+    /// @param lender The lender
+    /// @param loanTokenAmountAdded The amount of loan token that was added to the order
+    /// @param totalNewFillableAmount The total fillable amount still available for this order
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
+    /// @return Successful execution of the function
+    function didIncreaseLoanableAmount(
+        BZxObjects.LoanOrder memory loanOrder,
+        address lender,
+        uint loanTokenAmountAdded,
+        uint totalNewFillableAmount,
+        uint gasUsed)
+        public
+        returns (bool);
+
     /// @dev Places a manual on-chain trade with a liquidity provider
     /// @param sourceTokenAddress The token being sold
     /// @param destTokenAddress The token being bought
