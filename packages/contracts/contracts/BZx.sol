@@ -8,7 +8,7 @@
 pragma solidity 0.4.24;
 pragma experimental ABIEncoderV2;
 
-import "./modules/BZxStorage.sol";
+import "./storage/BZxStorage.sol";
 import "./ZeroEx/ExchangeV2Interface.sol";
 
 // This interface is meant to used with the deployed BZxProxy contract (modules/BZxProxyContracts.sol) address.
@@ -54,6 +54,19 @@ contract BZx is BZxStorage {
         bytes32 loanOrderHash)
         external
         returns (uint);
+
+    function preSign(
+        address signer,
+        address[6] orderAddresses,
+        uint[10] orderValues,
+        bytes signature)
+        external;
+    
+    function preSignWithHash(
+        address signer,
+        bytes32 hash,
+        bytes signature)
+        external;
 
     function cancelLoanOrder(
         address[6] orderAddresses,
@@ -223,6 +236,11 @@ contract BZx is BZxStorage {
     function payInterest(
         bytes32 loanOrderHash,
         address trader)
+        external
+        returns (uint);
+
+    function payInterestForOrder(
+        bytes32 loanOrderHash)
         external
         returns (uint);
 

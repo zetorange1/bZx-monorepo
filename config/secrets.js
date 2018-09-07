@@ -7,5 +7,13 @@ module.exports = {
     kovan: "",
     rinkeby: "",
     mainnet: ""
+  },
+  private_key: {
+    testnet: "",
+    b0xnet: "",
+    ropsten: "",
+    kovan: "",
+    rinkeby: "",
+    mainnet: ""
   }
 };

@@ -70,12 +70,10 @@ contract OracleTest is EIP20Wrapper, Ownable {
         public
         onlyOwner
     {
-        // bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")) = 0xcb3c28c7
-
         bool result = kyberContract.call
             .gas(gasleft())
             .value(sourceEthAmount)( // send Ether along
-            0xcb3c28c7,
+            bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")),
             KYBER_ETH_TOKEN_ADDRESS,
             sourceEthAmount,
             destTokenAddress,
@@ -109,12 +107,10 @@ contract OracleTest is EIP20Wrapper, Ownable {
         public
         onlyOwner
     {
-        // bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")) = 0xcb3c28c7
-
         bool result = kyberContract.call
             .gas(gasleft())
             .value(10**16)( // send Ether along
-            0xcb3c28c7,
+            bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")),
             KYBER_ETH_TOKEN_ADDRESS,
             10**16,
             0x0000000000000000000000000000000000000001,
@@ -148,12 +144,10 @@ contract OracleTest is EIP20Wrapper, Ownable {
         public
         onlyOwner
     {
-        // bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")) = 0xcb3c28c7
-
         bool result = kyberContract.call
             .gas(gasleft())
             .value(10**16)( // send Ether along
-            0xcb3c28c7,
+            bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")),
             KYBER_ETH_TOKEN_ADDRESS,
             10**16,
             0xDb0040451F373949A4Be60dcd7b6B8D6E42658B6,

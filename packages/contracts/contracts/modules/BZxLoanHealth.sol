@@ -8,15 +8,14 @@ pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 
-import "./BZxStorage.sol";
-import "./BZxProxyContracts.sol";
+import "../proxy/BZxProxiable.sol";
 import "../shared/InternalFunctions.sol";
 
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 
 
-contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
+contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -26,13 +25,14 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         public
         onlyOwner
     {
-        targets[0xe7246aa3] = _target; // bytes4(keccak256("payInterest(bytes32,address)"))
-        targets[0xe75a4a2c] = _target; // bytes4(keccak256("liquidatePosition(bytes32,address)"))
-        targets[0xf4ff7d2d] = _target; // bytes4(keccak256("closeLoan(bytes32)"))
-        targets[0x6e46c9bb] = _target; // bytes4(keccak256("forceCloanLoan(bytes32,address)"))
-        targets[0xee73722f] = _target; // bytes4(keccak256("shouldLiquidate(bytes32,address)"))
-        targets[0xdb4d0ae0] = _target; // bytes4(keccak256("getMarginLevels(bytes32,address)"))
-        targets[0x60068e2d] = _target; // bytes4(keccak256("getInterest(bytes32,address)"))
+        targets[bytes4(keccak256("payInterest(bytes32,address)"))] = _target;
+        targets[bytes4(keccak256("payInterestForOrder(bytes32)"))] = _target;
+        targets[bytes4(keccak256("liquidatePosition(bytes32,address)"))] = _target;
+        targets[bytes4(keccak256("closeLoan(bytes32)"))] = _target;
+        targets[bytes4(keccak256("forceCloanLoan(bytes32,address)"))] = _target;
+        targets[bytes4(keccak256("shouldLiquidate(bytes32,address)"))] = _target;
+        targets[bytes4(keccak256("getMarginLevels(bytes32,address)"))] = _target;
+        targets[bytes4(keccak256("getInterest(bytes32,address)"))] = _target;
     }
 
     /// @dev Pays the lender of a loan the total amount of interest accrued for a loan.
@@ -53,19 +53,72 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             revert("BZxLoanHealth::payInterest: loanOrder.loanTokenAddress == address(0)");
         }
 
-        // can still pay any unpaid accured interest after a loan has closed
         LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
         if (loanPosition.loanTokenAmountFilled == 0) {
             revert("BZxLoanHealth::payInterest: loanPosition.loanTokenAmountFilled == 0");
         }
         
-        uint amountPaid = _payInterest(
+        uint amountPaid = _payInterestForPosition(
             loanOrder,
             loanPosition,
             true // convert
         );
 
         return amountPaid;
+    }
+
+    /// @dev Pays the lender the total amount of interest accrued from all loans for a given order.
+    /// @dev This function can potentially run out of gas before finishing if there are two many loans assigned to
+    /// @dev an order. If this occurs, interest owed can be paid out using the payInterest function. Payouts are
+    /// @dev automatic as positions close, as well.
+    /// @dev Note that this function can be safely called by anyone.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @return The amount of interest paid out.
+    function payInterestForOrder(
+        bytes32 loanOrderHash)
+        external
+        nonReentrant
+        tracksGas
+        returns (uint)
+    {
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        if (loanOrder.loanTokenAddress == address(0)) {
+            revert("BZxLoanHealth::payInterest: loanOrder.loanTokenAddress == address(0)");
+        }
+
+        uint totalAmountPaid = 0;
+        uint totalAmountAccrued = 0;
+        for (uint i=0; i < orderPositionList[loanOrderHash].length; i++) {
+            // can still pay any unpaid accured interest after a loan has closed
+            LoanPosition memory loanPosition = loanPositions[orderPositionList[loanOrderHash][i]];
+            if (loanPosition.loanTokenAmountFilled == 0) {
+                revert("BZxLoanHealth::payInterest: loanPosition.loanTokenAmountFilled == 0");
+            }
+
+            (uint amountPaid, uint interestTotalAccrued) = _setInterestPaidForPosition(
+                loanOrder,
+                loanPosition);
+            totalAmountPaid += amountPaid;
+            totalAmountAccrued += interestTotalAccrued;
+        }
+
+        if (totalAmountPaid > 0) {
+            _sendInterest(
+                loanOrder,
+                totalAmountPaid,
+                true // convert
+            );
+        }
+
+        emit LogPayInterestForOrder(
+            loanOrder.loanOrderHash,
+            orderLender[loanOrder.loanOrderHash],
+            totalAmountPaid,
+            interestTotalAccrued,
+            orderPositionList[loanOrderHash].length
+        );
+
+        return totalAmountPaid;
     }
 
     /// @dev Checks that a position meets the conditions for liquidation, then closes the position and loan.
@@ -177,25 +230,27 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         require(loanOrder.loanTokenAddress != address(0));
 
-        _payInterest(
+        _payInterestForPosition(
             loanOrder,
             loanPosition,
             false // convert
         );
 
-        uint totalInterestToRefund = _getTotalInterestRequired(
-            loanOrder.loanTokenAmount,
-            loanPosition.loanTokenAmountFilled,
-            loanOrder.interestAmount,
-            loanOrder.maxDurationUnixTimestampSec)
-            .sub(interestPaid[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]]);
+        if (loanOrder.interestAmount > 0) {
+            uint totalInterestToRefund = _getTotalInterestRequired(
+                loanOrder.loanTokenAmount,
+                loanPosition.loanTokenAmountFilled,
+                loanOrder.interestAmount,
+                loanOrder.maxDurationUnixTimestampSec)
+                .sub(interestPaid[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]]);
 
-        if (totalInterestToRefund > 0) {
-            require(BZxVault(vaultContract).withdrawToken(
+            if (totalInterestToRefund > 0) {
+                require(BZxVault(vaultContract).withdrawToken(
                 loanOrder.interestTokenAddress,
                 loanPosition.trader,
                 totalInterestToRefund
-            ));
+                ));
+            }
         }
 
         if (loanPosition.collateralTokenAmountFilled > 0) {
@@ -228,7 +283,8 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         );
 
         require(OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didCloseLoan(
-            loanOrder.loanOrderHash,
+            loanOrder,
+            loanPosition,
             msg.sender, // loanCloser
             false, // isLiquidation
             gasUsed
@@ -321,7 +377,12 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         address trader)
         public
         view
-        returns (address lender, address interestTokenAddress, uint interestTotalAccrued, uint interestPaidSoFar) {
+        returns (
+            address lender, 
+            address interestTokenAddress, 
+            uint interestTotalAccrued, 
+            uint interestPaidSoFar)
+    {
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
@@ -334,7 +395,7 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             return;
         }
 
-        InterestData memory interestData = _getInterest(
+        InterestData memory interestData = _getInterestData(
             loanOrder,
             loanPosition
         );
@@ -349,52 +410,79 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
     /*
     * Internal functions
     */
-    function _payInterest(
+
+    function _setInterestPaidForPosition(
+        LoanOrder loanOrder,
+        LoanPosition loanPosition)
+        internal
+        returns (uint amountPaid, uint interestTotalAccrued)
+    {
+        InterestData memory interestData = _getInterestData(
+            loanOrder,
+            loanPosition);
+
+        interestTotalAccrued = interestData.interestTotalAccrued;
+        if (interestData.interestPaidSoFar >= interestTotalAccrued) {
+            amountPaid = 0;
+        } else {
+            amountPaid = interestTotalAccrued.sub(interestData.interestPaidSoFar);
+            interestPaid[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]] = interestTotalAccrued; // since this function will pay all remaining accured interest
+        }
+    }
+
+    function _sendInterest(
+        LoanOrder loanOrder,
+        uint amountPaid,
+        bool convert)
+        internal
+    {
+        // send the interest to the oracle for further processing (amountPaid > 0)
+        if (! BZxVault(vaultContract).withdrawToken(
+            loanOrder.interestTokenAddress,
+            oracleAddresses[loanOrder.oracleAddress],
+            amountPaid
+        )) {
+            revert("BZxLoanHealth::_payInterestForPosition: BZxVault.withdrawToken failed");
+        }
+
+        // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didPayInterest(
+            loanOrder,
+            orderLender[loanOrder.loanOrderHash],
+            amountPaid,
+            convert,
+            gasUsed // initial used gas, collected in modifier
+        )) {
+            revert("BZxLoanHealth::_payInterestForPosition: OracleInterface.didPayInterest failed");
+        }
+    }
+
+    function _payInterestForPosition(
         LoanOrder loanOrder,
         LoanPosition loanPosition,
         bool convert)
         internal
         returns (uint amountPaid)
     {
-        InterestData memory interestData = _getInterest(
+        uint interestTotalAccrued;
+        (amountPaid, interestTotalAccrued) = _setInterestPaidForPosition(
             loanOrder,
             loanPosition);
 
-        if (interestData.interestPaidSoFar >= interestData.interestTotalAccrued) {
-            amountPaid = 0;
-        } else {
-            amountPaid = interestData.interestTotalAccrued.sub(interestData.interestPaidSoFar);
-            interestPaid[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]] = interestData.interestTotalAccrued; // since this function will pay all remaining accured interest
-            
-            // send the interest to the oracle for further processing (amountPaid > 0)
-            if (! BZxVault(vaultContract).withdrawToken(
-                interestData.interestTokenAddress,
-                oracleAddresses[loanOrder.oracleAddress],
-                amountPaid
-            )) {
-                revert("BZxLoanHealth::_payInterest: BZxVault.withdrawToken failed");
-            }
-
-            // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
-            if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didPayInterest(
-                loanOrder.loanOrderHash,
-                loanPosition.trader,
-                orderLender[loanOrder.loanOrderHash],
-                interestData.interestTokenAddress,
+        if (amountPaid > 0) {
+            _sendInterest(
+                loanOrder,
                 amountPaid,
-                convert,
-                gasUsed // initial used gas, collected in modifier
-            )) {
-                revert("BZxLoanHealth::_payInterest: OracleInterface.didPayInterest failed");
-            }
+                convert
+            );
         }
 
-        emit LogPayInterest(
+        emit LogPayInterestForPosition(
             loanOrder.loanOrderHash,
             orderLender[loanOrder.loanOrderHash],
             loanPosition.trader,
             amountPaid,
-            interestData.interestTotalAccrued
+            interestTotalAccrued
         );
 
         return amountPaid;
@@ -453,12 +541,13 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
     {
         require(loanPosition.positionTokenAddressFilled == loanOrder.loanTokenAddress, "BZxLoanHealth::_finalizeLoan: loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress");
 
-        // pay any remaining interest to the lender
-        _payInterest(
-            loanOrder,
-            loanPosition,
-            true // convert
-        );
+        if (loanOrder.interestAmount > 0) {
+            // pay any remaining interest to the lender
+            _payInterestForPosition(
+                loanOrder,
+                loanPosition,
+                true // convert
+            );
 
         uint positionId = loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader];
 
@@ -475,8 +564,9 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
                 loanOrder.interestTokenAddress,
                 loanPosition.trader,
                 totalInterestToRefund
-            )) {
+                )) {
                 revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken interest failed");
+                }
             }
         }
 
@@ -551,7 +641,8 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
         );
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didCloseLoan(
-            loanOrder.loanOrderHash,
+            loanOrder,
+            loanPosition,
             msg.sender, // loanCloser
             isLiquidation,
             gasUsed

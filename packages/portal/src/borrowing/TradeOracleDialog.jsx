@@ -160,9 +160,8 @@ export default class TradeOracleDialog extends React.Component {
             <TokenPicker
               tokens={this.props.tokens.filter(
                 t =>
-                  t.address !== this.props.positionTokenAddressFilled &&
-                  this.state.tradeToken.address !==
-                    this.props.positionTokenAddressFilled
+                  this.state.tradeToken.address === this.props.positionTokenAddressFilled ||
+                    t.address !== this.props.positionTokenAddressFilled
               )}
               setAddress={this.setTokenAddress}
               value={this.state.tradeToken.address}

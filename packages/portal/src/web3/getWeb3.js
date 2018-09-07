@@ -28,14 +28,9 @@ const resolveWeb3 = async (resolve, providerName) => {
       try {
         const engine = new ProviderEngine();
         const networkId = 3; // Ropsten for now
-        const LedgerWalletSubprovider = await LedgerWallet(
-          () => networkId,
-          `44'/60'/0'/0`
-        );
+        const LedgerWalletSubprovider = await LedgerWallet(() => networkId, `44'/60'/0'/0`);
         engine.addProvider(LedgerWalletSubprovider);
-        engine.addProvider(
-          new RpcSubprovider({ rpcUrl: `https://ropsten.infura.io/` })
-        );
+        engine.addProvider(new RpcSubprovider({ rpcUrl: `https://ropsten.infura.io/` }));
         engine.start();
         web3 = new Web3(engine);
         resolve(web3);

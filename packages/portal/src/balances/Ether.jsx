@@ -107,7 +107,8 @@ export default class Ether extends React.Component {
     const txOpts = {
       from: accounts[0],
       // gas: 1000000,
-      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+      gasPrice: web3.utils.toWei(`5`, `gwei`).toString(),
+      value: toBigNumber(wrapAmount, 1e18)
     };
 
     const txObj = await bZx.wrapEth({
@@ -121,9 +122,9 @@ export default class Ether extends React.Component {
         .estimateGas(txOpts)
         .then(gas => {
           console.log(gas);
-          txOpts.gas = window.gasValue(gas);
+          txOpts.gas = window.gasValue(gas)+10000; // WETH deposit gas estimate seems to often be under
           txObj
-            .send({ ...txOpts, value: toBigNumber(wrapAmount, 1e18) })
+            .send(txOpts)
             .once(`transactionHash`, hash => {
               alert(`Transaction submitted, transaction hash:`, {
                 component: () => (
@@ -261,7 +262,7 @@ export default class Ether extends React.Component {
       <Section>
         <SectionLabel>ETH to WETH</SectionLabel>
         <Container>
-          {this.state.ethBalance ? (
+          {this.state.ethBalance != null ? (
             <StyledDiv>
               Your current ETH balance is
               {` `}
@@ -272,7 +273,7 @@ export default class Ether extends React.Component {
               Your current Ether balance is <strong>loading...</strong>.
             </StyledDiv>
           )}
-          {this.state.wethBalance ? (
+          {this.state.wethBalance != null ? (
             <StyledDiv>
               Your current WETH balance is
               {` `}

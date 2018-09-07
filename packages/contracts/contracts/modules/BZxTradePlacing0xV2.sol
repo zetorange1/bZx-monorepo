@@ -8,8 +8,7 @@ pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-import "./BZxStorage.sol";
-import "./BZxProxyContracts.sol";
+import "../proxy/BZxProxiable.sol";
 
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
@@ -48,7 +47,7 @@ contract BZxTo0xV2_Interface {
             uint sourceTokenUsedAmount);
 }
 
-contract BZxTradePlacing0xV2 is BZxStorage, Proxiable {
+contract BZxTradePlacing0xV2 is BZxStorage, BZxProxiable {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -57,7 +56,7 @@ contract BZxTradePlacing0xV2 is BZxStorage, Proxiable {
         address _target)
         public
     {
-        targets[0xb8b2e17d] = _target; // bytes4(keccak256("tradePositionWith0xV2(bytes32,(address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bytes,bytes)[],bytes[])"))
+        targets[bytes4(keccak256("tradePositionWith0xV2(bytes32,(address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bytes,bytes)[],bytes[])"))] = _target;
     }
 
     /// @dev Executes a 0x trade using loaned funds.
@@ -70,6 +69,7 @@ contract BZxTradePlacing0xV2 is BZxStorage, Proxiable {
         BZxTo0xV2_Interface.OrderV2[] memory orders0x,
         bytes[] memory signatures0x)
         public
+        nonReentrant
         tracksGas
         returns (uint)
     {
@@ -137,10 +137,8 @@ contract BZxTradePlacing0xV2 is BZxStorage, Proxiable {
         loanPosition.positionTokenAmountFilled = tradeTokenAmount;
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
-            loanOrderHash,
-            loanPosition.trader,
-            tradeTokenAddress,
-            tradeTokenAmount,
+            loanOrder,
+            loanPosition,
             gasUsed // initial used gas, collected in modifier
         )) {
             revert("BZxTradePlacing::tradePositionWith0x: OracleInterface.didTradePosition failed");

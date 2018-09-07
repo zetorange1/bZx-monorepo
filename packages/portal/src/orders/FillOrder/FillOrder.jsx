@@ -97,18 +97,22 @@ export default class FillOrder extends React.Component {
       loanTokenAmount &&
       initialMarginAmount
     ) {
-      this.setState({ [`collateralTokenAmount`]: `loading...` });
-      collateralRequired = fromBigNumber(
-        await getInitialCollateralRequired(
-          loanTokenAddress,
-          collateralTokenAddress,
-          oracleAddress,
-          loanTokenAmount,
-          initialMarginAmount,
-          this.props.bZx
-        ),
-        10 ** getDecimals(this.props.tokens, collateralTokenAddress)
-      );
+      if (collateralTokenAddress && collateralTokenAddress !== `0x0000000000000000000000000000000000000000`) {
+        this.setState({ [`collateralTokenAmount`]: `loading...` });
+        collateralRequired = fromBigNumber(
+          await getInitialCollateralRequired(
+            loanTokenAddress,
+            collateralTokenAddress,
+            oracleAddress,
+            loanTokenAmount,
+            initialMarginAmount,
+            this.props.bZx
+          ),
+          10 ** getDecimals(this.props.tokens, collateralTokenAddress)
+        );
+      } else {
+        collateralRequired = `0`;
+      }
       // console.log(`collateralRequired: ${collateralRequired}`);
       if (collateralRequired === 0) {
         collateralRequired = `(unsupported)`;

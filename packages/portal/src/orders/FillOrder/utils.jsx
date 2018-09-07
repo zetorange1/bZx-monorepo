@@ -413,6 +413,7 @@ export const submitFillOrder = (
       getObject: true
     });
   }
+  console.log(txOpts);
 
   try {
     txObj
@@ -506,7 +507,7 @@ export const submitFillOrderWithHash = (
       getObject: true
     });
   }
-  // console.log(txObj,txObj.encodeABI());
+  console.log(txOpts);
 
   try {
     txObj
@@ -588,6 +589,7 @@ export const submitCancelOrder = (
     ),
     getObject: true
   });
+  console.log(txOpts);
 
   try {
     txObj
@@ -670,6 +672,7 @@ export const submitCancelOrderWithHash = (
     ),
     getObject: true
   });
+  console.log(txOpts);
 
   try {
     txObj

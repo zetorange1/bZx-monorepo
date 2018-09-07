@@ -7,12 +7,11 @@ pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 
-import "./BZxStorage.sol";
-import "./BZxProxyContracts.sol";
+import "../proxy/BZxProxiable.sol";
 import "../shared/InternalFunctions.sol";
 
 
-contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
+contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -22,13 +21,13 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
         public
         onlyOwner
     {
-        targets[0xd8c73360] = _target; // bytes4(keccak256("getSingleOrder(bytes32)"))
-        targets[0xbe992eed] = _target; // bytes4(keccak256("getOrdersFillable(uint256,uint256)"))
-        targets[0x5914d266] = _target; // bytes4(keccak256("getOrdersForUser(address,uint256,uint256)"))
-        targets[0x49bd01ca] = _target; // bytes4(keccak256("getSingleLoan(bytes32,address)"))
-        targets[0x512e5f9b] = _target; // bytes4(keccak256("getLoansForLender(address,uint256,bool)"))
-        targets[0x9974d431] = _target; // bytes4(keccak256("getLoansForTrader(address,uint256,bool)"))
-        targets[0x982260bc] = _target; // bytes4(keccak256("getActiveLoans(uint256,uint256)"))
+        targets[bytes4(keccak256("getSingleOrder(bytes32)"))] = _target;
+        targets[bytes4(keccak256("getOrdersFillable(uint256,uint256)"))] = _target;
+        targets[bytes4(keccak256("getOrdersForUser(address,uint256,uint256)"))] = _target;
+        targets[bytes4(keccak256("getSingleLoan(bytes32,address)"))] = _target;
+        targets[bytes4(keccak256("getLoansForLender(address,uint256,bool)"))] = _target;
+        targets[bytes4(keccak256("getLoansForTrader(address,uint256,bool)"))] = _target;
+        targets[bytes4(keccak256("getActiveLoans(uint256,uint256)"))] = _target;
     }
 
     /// @dev Returns a bytestream of a single order.
@@ -377,7 +376,7 @@ contract BZxOrderHistory is BZxStorage, Proxiable, InternalFunctions {
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
 
-        InterestData memory interestData = _getInterest(loanOrder, loanPosition);
+        InterestData memory interestData = _getInterestData(loanOrder, loanPosition);
 
         bytes memory tmpBytes = abi.encode(
             loanOrderHash,

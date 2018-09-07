@@ -6,7 +6,7 @@
 pragma solidity 0.4.24;
 pragma experimental ABIEncoderV2;
 
-import "../modules/BZxStorage.sol";
+import "../storage/BZxObjects.sol";
 
 
 /**
@@ -31,29 +31,31 @@ import "../modules/BZxStorage.sol";
 contract OracleInterface {
 
     /// @dev Called by bZx after a loan order is taken
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param orderAddresses loanTokenAddress, collateralTokenAddress, interestTokenAddress, taker
-    /// @param orderAmounts loanTokenAmount, collateralTokenAmount, interestTokenAmount, gasUsed, positionId
+    /// @param loanOrder The loanOrder object
+    /// @param loanOrderAux The loanOrderAux object
+    /// @param loanPosition The loanPosition object
+    /// @param positionId The position id of the loan
+    /// @param taker The user that filled/took the loan
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didTakeOrder(
-        bytes32 loanOrderHash,
-        address[4] orderAddresses,
-        uint[5] orderAmounts)
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanOrderAux memory loanOrderAux,
+        BZxObjects.LoanPosition memory loanPosition,
+        uint positionId,
+        address taker,
+        uint gasUsed)
         public
         returns (bool);
 
     /// @dev Called by bZx after a position token is traded
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param trader The trader doing the trade
-    /// @param tradeTokenAddress The token that was bought in the trade
-    /// @param tradeTokenAmount The amount of token that was bought
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didTradePosition(
-        bytes32 loanOrderHash,
-        address trader,
-        address tradeTokenAddress,
-        uint tradeTokenAmount,
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
         uint gasUsed)
         public
         returns (bool);
@@ -61,19 +63,15 @@ contract OracleInterface {
     /// @dev Called by bZx after interest should be paid to a lender
     /// @dev Assume the interest token has already been transfered to
     /// @dev this contract before this function is called.
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param trader The trader
+    /// @param loanOrder The loanOrder object
     /// @param lender The lender
-    /// @param interestTokenAddress The token that will be paid for interest
     /// @param amountOwed The amount interest to pay
     /// @param convert A boolean indicating if the interest should be converted to Ether
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didPayInterest(
-        bytes32 loanOrderHash,
-        address trader,
+        BZxObjects.LoanOrder memory loanOrder,
         address lender,
-        address interestTokenAddress,
         uint amountOwed,
         bool convert,
         uint gasUsed)
@@ -82,65 +80,67 @@ contract OracleInterface {
 
     /// @dev Called by bZx after a borrower has deposited additional collateral
     /// @dev token for an open loan
-    /// @param loanOrderHash A unique hash representing the loan order.
-    /// @param borrower The borrower
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didDepositCollateral(
-        bytes32 loanOrderHash,
-        address borrower,
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
         uint gasUsed)
         public
         returns (bool);
 
     /// @dev Called by bZx after a borrower has withdrawn excess collateral
     /// @dev token for an open loan
-    /// @param loanOrderHash A unique hash representing the loan order.
-    /// @param borrower The borrower
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didWithdrawCollateral(
-        bytes32 loanOrderHash,
-        address borrower,
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
         uint gasUsed)
         public
         returns (bool);
 
     /// @dev Called by bZx after a borrower has changed the collateral token
     /// @dev used for an open loan
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param borrower The borrower
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didChangeCollateral(
-        bytes32 loanOrderHash,
-        address borrower,
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
         uint gasUsed)
         public
         returns (bool);
 
     /// @dev Called by bZx after a borrower has withdraw their profits, if any
-    /// @dev used for an open loan
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param borrower The borrower
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
+    /// @param profitAmount The amount of profit withdrawn
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didWithdrawProfit(
-        bytes32 loanOrderHash,
-        address borrower,
-        uint profitOrLoss,
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
+        uint profitAmount,
         uint gasUsed)
         public
         returns (bool);
 
     /// @dev Called by bZx after a loan is closed
-    /// @param loanOrderHash A unique hash representing the loan order.
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
     /// @param loanCloser The user that closed the loan
     /// @param isLiquidation A boolean indicating if the loan was closed due to liquidation
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didCloseLoan(
-        bytes32 loanOrderHash,
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
         address loanCloser,
         bool isLiquidation,
         uint gasUsed)
@@ -148,27 +148,27 @@ contract OracleInterface {
         returns (bool);
 
     /// @dev Called by bZx after a trader transfers their ownership of a position to a new trader
-    /// @param loanOrderHash A unique hash representing the loan order.
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
     /// @param oldTrader The old trader of the position
-    /// @param newTrader The new trader of the position
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didChangeTraderOwnership(
-        bytes32 loanOrderHash,
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
         address oldTrader,
-        address newTrader,
         uint gasUsed)
         public
         returns (bool);
 
     /// @dev Called by bZx after a lender transfers their ownership of a position to a new lender
-    /// @param loanOrderHash A unique hash representing the loan order.
+    /// @param loanOrder The loanOrder object
     /// @param oldLender The old lender of the position
     /// @param newLender The new lender of the position
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didChangeLenderOwnership(
-        bytes32 loanOrderHash,
+        BZxObjects.LoanOrder memory loanOrder,
         address oldLender,
         address newLender,
         uint gasUsed)
@@ -201,22 +201,12 @@ contract OracleInterface {
 
     /// @dev Verifies a position has fallen below margin maintenance
     /// @dev then liquidates the position on-chain
-    /// @param loanTokenAddress The token that was loaned
-    /// @param positionTokenAddress The token in the current position (could also be the loanToken)
-    /// @param collateralTokenAddress The token used for collateral
-    /// @param loanTokenAmount The amount of loan token
-    /// @param positionTokenAmount The amount of position token
-    /// @param collateralTokenAmount The amount of collateral token
-    /// @param maintenanceMarginAmount The maintenance margin amount from the loan
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
     /// @return The amount of destToken bought
     function verifyAndLiquidate(
-        address loanTokenAddress,
-        address positionTokenAddress,
-        address collateralTokenAddress,
-        uint loanTokenAmount,
-        uint positionTokenAmount,
-        uint collateralTokenAmount,
-        uint maintenanceMarginAmount)
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition)
         public
         returns (uint);
 
@@ -226,10 +216,10 @@ contract OracleInterface {
     /// @param positionId The position id of the loan
     /// @param loanTokenAmountNeeded The amount of loan token needed to cover losses
     /// @param isLiquidation A boolean indicating if the loan was closed due to liquidation
-    /// @return The amount of destToken bought
+    /// @return loanTokenAmountCovered and collateralTokenAmountUsed
     function processCollateral(
-        BZxStorage.LoanOrder memory loanOrder,
-        BZxStorage.LoanPosition memory loanPosition,
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
         uint positionId,
         uint loanTokenAmountNeeded,
         bool isLiquidation)

@@ -1,12 +1,10 @@
 
 pragma solidity 0.4.24;
 
-import "openzeppelin-solidity/contracts/token/ERC20/BurnableToken.sol";
-
 import "./UnlimitedAllowanceToken.sol";
 
 
-contract BaseToken is UnlimitedAllowanceToken, BurnableToken {
+contract BaseToken is UnlimitedAllowanceToken {
     string public name;
     uint8 public decimals;
     string public symbol;

@@ -5,26 +5,10 @@
  
 pragma solidity 0.4.24;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "./BZxStorage.sol";
+import "./BZxProxiable.sol";
 
 
-contract Proxiable {
-    mapping (bytes4 => address) public targets;
-
-    mapping (bytes4 => bool) public targetIsPaused;
-
-    function initialize(address _target) public;
-
-    function _replaceContract(address _target) internal {
-        // bytes4(keccak256("initialize(address)")) == 0xc4d66de8
-        require(_target.delegatecall(0xc4d66de8, _target), "Proxiable::_replaceContract: failed");
-    }
-}
-
-
-// bZx proxy
-contract BZxProxy is BZxStorage, Proxiable {
+contract BZxProxy is BZxStorage, BZxProxiable {
 
     function() payable public {
         require(!targetIsPaused[msg.sig], "BZxProxy::Function temporarily paused");

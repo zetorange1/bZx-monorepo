@@ -15,6 +15,7 @@ import "../modifiers/GasRefunder.sol";
 import "../tokens/EIP20.sol";
 import "../tokens/EIP20Wrapper.sol";
 import "./OracleInterface.sol";
+import "../storage/BZxObjects.sol";
 
 
 // solhint-disable-next-line contract-name-camelcase
@@ -128,40 +129,39 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function() public payable {}
 
 
-    // orderAddresses: loanTokenAddress, collateralTokenAddress, interestTokenAddress, taker
-    // orderValues: loanTokenAmount, collateralTokenAmount, interestTokenAmount, gasUsed, positionId
     function didTakeOrder(
-        bytes32 /* loanOrderHash */,
-        address[4] orderAddresses,
-        uint[5] orderValues)
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanOrderAux /* loanOrderAux */,
+        BZxObjects.LoanPosition loanPosition,
+        uint positionId,
+        address /* taker */,
+        uint /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
         returns (bool)
     {
         uint collateralInEthAmount;
-        if (orderAddresses[1] != wethContract) {
+        if (loanPosition.collateralTokenAddressFilled != wethContract) {
             (uint ethToCollateralRate,) = _getExpectedRate(
                 wethContract,
-                orderAddresses[1], // collateralTokenAddress
+                loanPosition.collateralTokenAddressFilled,
                 0
             );
-            collateralInEthAmount = orderValues[1].mul(_getDecimalPrecision(wethContract, orderAddresses[1])).div(ethToCollateralRate);
+            collateralInEthAmount = loanPosition.collateralTokenAmountFilled.mul(_getDecimalPrecision(wethContract, loanPosition.collateralTokenAddressFilled)).div(ethToCollateralRate);
         } else {
-            collateralInEthAmount = orderValues[1];
+            collateralInEthAmount = loanPosition.collateralTokenAmountFilled;
         }
 
         require(!enforceMinimum || collateralInEthAmount >= minimumCollateralInEthAmount, "collateral below minimum for BZxOracle");
-        collateralInEthAmounts[orderValues[4]] = collateralInEthAmount;
+        collateralInEthAmounts[positionId] = collateralInEthAmount;
 
         return true;
     }
 
     function didTradePosition(
-        bytes32 /* loanOrderHash */,
-        address /* trader */,
-        address /* tradeTokenAddress */,
-        uint /* tradeTokenAmount */,
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanPosition memory /* loanPosition */,
         uint /* gasUsed */)
         public
         onlyBZx
@@ -172,10 +172,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
 
     function didPayInterest(
-        bytes32 /* loanOrderHash */,
-        address /* trader */,
+        BZxObjects.LoanOrder memory loanOrder,
         address lender,
-        address interestTokenAddress,
         uint amountOwed,
         bool convert,
         uint /* gasUsed */)
@@ -190,20 +188,20 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         // Transfers the interest to the lender, less the interest fee.
         // The fee is retained by the oracle.
         if (!_transferToken(
-            interestTokenAddress,
+            loanOrder.interestTokenAddress,
             lender,
             amountOwed.sub(interestFee))) {
             revert("BZxOracle::didPayInterest: _transferToken failed");
         }
 
         // TODO: Block withdrawal below a certain amount
-        if (interestTokenAddress == wethContract) {
+        if (loanOrder.interestTokenAddress == wethContract) {
             // interest paid in WETH is withdrawn to Ether
             //WETH_Interface(wethContract).withdraw(interestFee);
-        } else if (convert && interestTokenAddress != bZRxTokenContract) {
+        } else if (convert && loanOrder.interestTokenAddress != bZRxTokenContract) {
             // interest paid in BZRX is retained as is, other tokens are sold for Ether
             _doTradeForEth(
-                interestTokenAddress,
+                loanOrder.interestTokenAddress,
                 interestFee,
                 this, // BZxOracle receives the Ether proceeds
                 MAX_FOR_KYBER // no limit on the dest amount
@@ -214,8 +212,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
 
     function didDepositCollateral(
-        bytes32 /* loanOrderHash */,
-        address /* borrower */,
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanPosition memory /* loanPosition */,
         uint /* gasUsed */)
         public
         onlyBZx
@@ -226,8 +224,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
 
     function didWithdrawCollateral(
-        bytes32 /* loanOrderHash */,
-        address /* borrower */,
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanPosition memory /* loanPosition */,
         uint /* gasUsed */)
         public
         onlyBZx
@@ -238,8 +236,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
 
     function didChangeCollateral(
-        bytes32 /* loanOrderHash */,
-        address /* borrower */,
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanPosition memory /* loanPosition */,
         uint /* gasUsed */)
         public
         onlyBZx
@@ -250,9 +248,9 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
 
     function didWithdrawProfit(
-        bytes32 /* loanOrderHash */,
-        address /* borrower */,
-        uint /* profitOrLoss */,
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanPosition memory /* loanPosition */,
+        uint /* profitAmount */,
         uint /* gasUsed */)
         public
         onlyBZx
@@ -263,7 +261,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
 
     function didCloseLoan(
-        bytes32 /* loanOrderHash */,
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanPosition memory /* loanPosition */,
         address loanCloser,
         bool isLiquidation,
         uint gasUsed)
@@ -285,9 +284,9 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
     
     function didChangeTraderOwnership(
-        bytes32 /* loanOrderHash */,
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanPosition memory /* loanPosition */,
         address /* oldTrader */,
-        address /* newTrader */,
         uint /* gasUsed */)
         public
         onlyBZx
@@ -298,7 +297,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
 
     function didChangeLenderOwnership(
-        bytes32 /* loanOrderHash */,
+        BZxObjects.LoanOrder memory /* loanOrder */,
         address /* oldLender */,
         address /* newLender */,
         uint /* gasUsed */)
@@ -347,13 +346,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
 
     function verifyAndLiquidate(
-        address loanTokenAddress,
-        address positionTokenAddress,
-        address collateralTokenAddress,
-        uint loanTokenAmount,
-        uint positionTokenAmount,
-        uint collateralTokenAmount,
-        uint maintenanceMarginAmount)
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition)
         public
         onlyBZx
         returns (uint destTokenAmount)
@@ -361,20 +355,20 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         if (!shouldLiquidate(
             0x0,
             0x0,
-            loanTokenAddress,
-            positionTokenAddress,
-            collateralTokenAddress,
-            loanTokenAmount,
-            positionTokenAmount,
-            collateralTokenAmount,
-            maintenanceMarginAmount)) {
+            loanOrder.loanTokenAddress,
+            loanPosition.positionTokenAddressFilled,
+            loanPosition.collateralTokenAddressFilled,
+            loanPosition.loanTokenAmountFilled,
+            loanPosition.positionTokenAmountFilled,
+            loanPosition.collateralTokenAmountFilled,
+            loanOrder.maintenanceMarginAmount)) {
             return 0;
         }
 
         destTokenAmount = _doTrade(
-            positionTokenAddress,
-            loanTokenAddress,
-            positionTokenAmount,
+            loanPosition.positionTokenAddressFilled,
+            loanOrder.loanTokenAddress,
+            loanPosition.positionTokenAmountFilled,
             MAX_FOR_KYBER); // no limit on the dest amount
     }
 
@@ -1015,9 +1009,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
             /* the following code is to allow the Kyber trade to fail silently and not revert if it does, preventing a "bubble up" */
 
-            // bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")) = 0xcb3c28c7
             bool result = kyberContract.call(
-                0xcb3c28c7,
+                bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")),
                 sourceTokenAddress,
                 sourceTokenAmount,
                 KYBER_ETH_TOKEN_ADDRESS,
@@ -1082,10 +1075,9 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
             /* the following code is to allow the Kyber trade to fail silently and not revert if it does, preventing a "bubble up" */
 
-            // bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")) = 0xcb3c28c7
             bool result = kyberContract.call
                 .value(sourceEthAmount)( // send Ether along
-                0xcb3c28c7,
+                bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")),
                 KYBER_ETH_TOKEN_ADDRESS,
                 sourceEthAmount,
                 destTokenAddress,

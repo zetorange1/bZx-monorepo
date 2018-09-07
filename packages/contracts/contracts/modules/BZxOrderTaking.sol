@@ -4,14 +4,15 @@
  */
 
 pragma solidity 0.4.24;
+pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 
-import "./BZxProxyContracts.sol";
+import "../proxy/BZxProxiable.sol";
 import "../shared/OrderTakingFunctions.sol";
 
 
-contract BZxOrderTaking is BZxStorage, Proxiable, OrderTakingFunctions {
+contract BZxOrderTaking is BZxStorage, BZxProxiable, OrderTakingFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -21,10 +22,10 @@ contract BZxOrderTaking is BZxStorage, Proxiable, OrderTakingFunctions {
         public
         onlyOwner
     {
-        targets[0x22cab5a1] = _target; // bytes4(keccak256("takeLoanOrderAsTrader(address[6],uint256[10],address,uint256,bytes)"))
-        targets[0x8facb50c] = _target; // bytes4(keccak256("takeLoanOrderAsLender(address[6],uint256[10],bytes)"))
-        targets[0xc1a5bb10] = _target; // bytes4(keccak256("cancelLoanOrder(address[6],uint256[10],uint256)"))
-        targets[0x8c0a1d7c] = _target; // bytes4(keccak256("cancelLoanOrder(bytes32,uint256)"))
+        targets[bytes4(keccak256("takeLoanOrderAsTrader(address[6],uint256[10],address,uint256,bytes)"))] = _target;
+        targets[bytes4(keccak256("takeLoanOrderAsLender(address[6],uint256[10],bytes)"))] = _target;
+        targets[bytes4(keccak256("cancelLoanOrder(address[6],uint256[10],uint256)"))] = _target;
+        targets[bytes4(keccak256("cancelLoanOrder(bytes32,uint256)"))] = _target;
     }
 
     /// @dev Takes the order as trader

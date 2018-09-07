@@ -14,14 +14,13 @@
     "url": "https://github.com/bZxNetwork/bZx-monorepo/issues"
   },
   "dependencies": {
-    "bzx.js": "^0.1.0",
     "bignumber.js": "^7.0.1",
+    "bzx.js": "^0.3.0",
     "minimist": "^1.2.0",
     "moment": "^2.22.1",
-    "web3": "1.0.0-beta.34"
-  },
-  "devDependencies": {
-    "truffle-hdwallet-provider": "0.0.3"
+    "truffle-hdwallet-provider": "^0.0.6",
+    "web3": "1.0.0-beta.34",
+    "winston": "^3.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

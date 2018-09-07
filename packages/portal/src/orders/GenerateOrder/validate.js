@@ -9,10 +9,7 @@ const validRange = (min, max, val) => {
   throw new Error(`Invalid range`);
 };
 
-const checkCoinsAdded = (
-  { loanTokenAddress, interestTokenAddress, collateralTokenAddress, role },
-  tokens
-) => {
+const checkCoinsAdded = ({ loanTokenAddress, interestTokenAddress, collateralTokenAddress, role }, tokens) => {
   const trackedTokens = getTrackedTokens(tokens);
 
   if (role === `lender`) {
@@ -32,18 +29,9 @@ const checkAllowance = async (bZx, accounts, tokenAddress) => {
 };
 
 const checkCoinsApproved = async (bZx, accounts, state) => {
-  const {
-    loanTokenAddress,
-    interestTokenAddress,
-    collateralTokenAddress,
-    role
-  } = state;
+  const { loanTokenAddress, interestTokenAddress, collateralTokenAddress, role } = state;
   if (role === `lender`) {
-    const loanTokenAllowed = await checkAllowance(
-      bZx,
-      accounts,
-      loanTokenAddress
-    );
+    const loanTokenAllowed = await checkAllowance(bZx, accounts, loanTokenAddress);
     return loanTokenAllowed;
   }
   const a = await checkAllowance(bZx, accounts, interestTokenAddress);
@@ -61,26 +49,19 @@ const checkCoinsAllowed = (state, tokens, networkId) => {
   };
 
   // early return if there is no restricted list for this network
-  if (notAllowed[networkId] === undefined || notAllowed[networkId] === [])
-    return true;
+  if (notAllowed[networkId] === undefined || notAllowed[networkId] === []) return true;
 
   const loanToken = tokens.filter(t => t.address === loanTokenAddress)[0];
-  const invalidLoanToken = notAllowed[networkId].includes(
-    loanToken && loanToken.symbol
-  );
+  const invalidLoanToken = notAllowed[networkId].includes(loanToken && loanToken.symbol);
 
   if (role === `lender`) {
     return !invalidLoanToken;
   }
 
   // for trader, check collateral token as well
-  const collateralToken = tokens.filter(
-    t => t.address === collateralTokenAddress
-  )[0];
+  const collateralToken = tokens.filter(t => t.address === collateralTokenAddress)[0];
 
-  const invalidCollateralToken = notAllowed[networkId].includes(
-    collateralToken && collateralToken.symbol
-  );
+  const invalidCollateralToken = notAllowed[networkId].includes(collateralToken && collateralToken.symbol);
 
   const invalid = invalidLoanToken || invalidCollateralToken;
   return !invalid;
@@ -108,9 +89,7 @@ export default async (bZx, accounts, state, tokens) => {
     validRange(40, 100, initialMarginAmount);
     validRange(20, 90, maintenanceMarginAmount);
     if (maintenanceMarginAmount > initialMarginAmount) {
-      throw Error(
-        `The maintenance margin amount cannot be larger than initial margin amount.`
-      );
+      throw Error(`The maintenance margin amount cannot be larger than initial margin amount.`);
     }
   } catch (error) {
     // eslint-disable-next-line no-undef
@@ -144,17 +123,8 @@ export default async (bZx, accounts, state, tokens) => {
   }
 
   if (role === `trader`) {
-    const interestTokenBalance = await getTokenBalance(
-      bZx,
-      interestTokenAddress,
-      accounts
-    );
-    if (
-      toBigNumber(
-        interestTotalAmount,
-        10 ** getDecimals(tokens, interestTokenAddress)
-      ).gt(interestTokenBalance)
-    ) {
+    const interestTokenBalance = await getTokenBalance(bZx, interestTokenAddress, accounts);
+    if (toBigNumber(interestTotalAmount, 10 ** getDecimals(tokens, interestTokenAddress)).gt(interestTokenBalance)) {
       alert(
         `Your interest token balance is too low. You need at least ${interestTotalAmount} ${getSymbol(
           tokens,
@@ -164,16 +134,9 @@ export default async (bZx, accounts, state, tokens) => {
       return false;
     }
 
-    const collateralTokenBalance = await getTokenBalance(
-      bZx,
-      collateralTokenAddress,
-      accounts
-    );
+    const collateralTokenBalance = await getTokenBalance(bZx, collateralTokenAddress, accounts);
     if (
-      toBigNumber(
-        collateralTokenAmount,
-        10 ** getDecimals(tokens, collateralTokenAddress)
-      ).gt(collateralTokenBalance)
+      toBigNumber(collateralTokenAmount, 10 ** getDecimals(tokens, collateralTokenAddress)).gt(collateralTokenBalance)
     ) {
       alert(
         `Your collteral token balance is too low. You need at least ${collateralTokenAmount} ${getSymbol(
@@ -184,17 +147,8 @@ export default async (bZx, accounts, state, tokens) => {
       return false;
     }
   } else {
-    const loanTokenBalance = await getTokenBalance(
-      bZx,
-      loanTokenAddress,
-      accounts
-    );
-    if (
-      toBigNumber(
-        loanTokenAmount,
-        10 ** getDecimals(tokens, loanTokenAddress)
-      ).gt(loanTokenBalance)
-    ) {
+    const loanTokenBalance = await getTokenBalance(bZx, loanTokenAddress, accounts);
+    if (toBigNumber(loanTokenAmount, 10 ** getDecimals(tokens, loanTokenAddress)).gt(loanTokenBalance)) {
       alert(
         `Your loan token balance is too low. You need at least ${loanTokenAmount} ${getSymbol(
           tokens,
