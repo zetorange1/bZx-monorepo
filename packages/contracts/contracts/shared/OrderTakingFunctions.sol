@@ -353,7 +353,7 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions {
             if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTakeOrder(
                 loanOrder.loanOrderHash,
                 [loanOrder.loanTokenAddress, collateralTokenFilled, loanOrder.interestTokenAddress, msg.sender],
-                [loanTokenAmountFilled, collateralTokenAmountFilled, loanOrder.interestAmount, gasUsed]
+                [loanTokenAmountFilled, collateralTokenAmountFilled, loanOrder.interestAmount, gasUsed, loanPositionsIds[loanOrder.loanOrderHash][trader]]
             )) {
                 revert("BZxOrderTaking::_takeLoanOrder: OracleInterface.didTakeOrder failed");
             }

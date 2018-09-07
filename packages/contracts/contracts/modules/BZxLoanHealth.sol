@@ -4,6 +4,7 @@
  */
 
 pragma solidity 0.4.24;
+pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 
@@ -459,12 +460,14 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             true // convert
         );
 
+        uint positionId = loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader];
+
         uint totalInterestToRefund = _getTotalInterestRequired(
             loanOrder.loanTokenAmount,
             loanPosition.loanTokenAmountFilled,
             loanOrder.interestAmount,
             loanOrder.maxDurationUnixTimestampSec)
-            .sub(interestPaid[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]]);
+            .sub(interestPaid[loanOrder.loanOrderHash][positionId]);
         
         // refund any unused interest to the trader
         if (totalInterestToRefund > 0) {
@@ -488,14 +491,12 @@ contract BZxLoanHealth is BZxStorage, Proxiable, InternalFunctions {
             }
 
             (uint loanTokenAmountCovered, uint collateralTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).processCollateral(
-                loanPosition.collateralTokenAddressFilled,
-                loanOrder.loanTokenAddress,
-                loanPosition.collateralTokenAmountFilled,
+                loanOrder,
+                loanPosition,
+                positionId,
                 loanPosition.positionTokenAmountFilled < loanPosition.loanTokenAmountFilled ? loanPosition.loanTokenAmountFilled - loanPosition.positionTokenAmountFilled : 0,
-                loanOrder.initialMarginAmount,
-                loanOrder.maintenanceMarginAmount,
                 isLiquidation);
-            
+
             loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.add(loanTokenAmountCovered);
             loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(collateralTokenAmountUsed);
         }

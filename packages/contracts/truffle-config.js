@@ -10,7 +10,7 @@ var secrets = "",
   mainnetMnemonic = "",
   infuraApikey = "";
 try {
-  secrets = require("../../config/secrets.js");
+  secrets = require("../../../config/secrets.js");
   (ropstenMnemonic = secrets["mnemonic"]["ropsten"]),
     (kovanMnemonic = secrets["mnemonic"]["kovan"]),
     (rinkebyMnemonic = secrets["mnemonic"]["rinkeby"]),
@@ -29,14 +29,14 @@ module.exports = {
       host: "localhost",
       port: 8545,
       network_id: "50",
-      gas: 4700000,
+      gas: 6721975,
       gasPrice: 20000000000
     },
     testnet: {
       host: "localhost",
       port: 8545,
       network_id: "50",
-      gas: 4700000,
+      gas: 6721975,
       gasPrice: 20000000000
     },
     coverage: {
@@ -52,7 +52,7 @@ module.exports = {
         "https://ropsten.infura.io/" + infuraApikey
       ),
       network_id: 3,
-      gas: 4700000,
+      gas: 6721975,
       gasPrice: 50000000000
     },
     kovan: {
@@ -61,7 +61,7 @@ module.exports = {
         "https://kovan.infura.io/" + infuraApikey
       ),
       network_id: 42,
-      gas: 4700000,
+      gas: 6721975,
       gasPrice: 20000000000
     },
     rinkeby: {
@@ -70,7 +70,7 @@ module.exports = {
         "https://rinkeby.infura.io/" + infuraApikey
       ),
       network_id: 4,
-      gas: 4700000,
+      gas: 6721975,
       gasPrice: 20000000000
     },
     mainnet: {
@@ -79,7 +79,7 @@ module.exports = {
         "https://mainnet.infura.io/" + infuraApikey
       ),
       network_id: 1,
-      gas: 4700000,
+      gas: 6721975,
       gasPrice: 10000000000
     }
   },

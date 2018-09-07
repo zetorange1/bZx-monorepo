@@ -4,6 +4,9 @@
  */
  
 pragma solidity 0.4.24;
+pragma experimental ABIEncoderV2;
+
+import "../modules/BZxStorage.sol";
 
 
 /**
@@ -25,18 +28,18 @@ pragma solidity 0.4.24;
     !!! Safeguard of user funds should be of the utmost importance !!!
  */
 // solhint-disable-next-line contract-name-camelcase
-interface OracleInterface {
+contract OracleInterface {
 
     /// @dev Called by bZx after a loan order is taken
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param orderAddresses loanTokenAddress, collateralTokenAddress, interestTokenAddress, taker
-    /// @param orderAmounts loanTokenAmount, collateralTokenAmount, interestTokenAmount, gasUsed
+    /// @param orderAmounts loanTokenAmount, collateralTokenAmount, interestTokenAmount, gasUsed, positionId
     /// @return Successful execution of the function
     function didTakeOrder(
         bytes32 loanOrderHash,
         address[4] orderAddresses,
-        uint[4] orderAmounts)
-        external
+        uint[5] orderAmounts)
+        public
         returns (bool);
 
     /// @dev Called by bZx after a position token is traded
@@ -52,7 +55,7 @@ interface OracleInterface {
         address tradeTokenAddress,
         uint tradeTokenAmount,
         uint gasUsed)
-        external
+        public
         returns (bool);
 
     /// @dev Called by bZx after interest should be paid to a lender
@@ -74,7 +77,7 @@ interface OracleInterface {
         uint amountOwed,
         bool convert,
         uint gasUsed)
-        external
+        public
         returns (bool);
 
     /// @dev Called by bZx after a borrower has deposited additional collateral
@@ -87,7 +90,7 @@ interface OracleInterface {
         bytes32 loanOrderHash,
         address borrower,
         uint gasUsed)
-        external
+        public
         returns (bool);
 
     /// @dev Called by bZx after a borrower has withdrawn excess collateral
@@ -100,7 +103,7 @@ interface OracleInterface {
         bytes32 loanOrderHash,
         address borrower,
         uint gasUsed)
-        external
+        public
         returns (bool);
 
     /// @dev Called by bZx after a borrower has changed the collateral token
@@ -113,7 +116,7 @@ interface OracleInterface {
         bytes32 loanOrderHash,
         address borrower,
         uint gasUsed)
-        external
+        public
         returns (bool);
 
     /// @dev Called by bZx after a borrower has withdraw their profits, if any
@@ -127,7 +130,7 @@ interface OracleInterface {
         address borrower,
         uint profitOrLoss,
         uint gasUsed)
-        external
+        public
         returns (bool);
 
     /// @dev Called by bZx after a loan is closed
@@ -141,7 +144,7 @@ interface OracleInterface {
         address loanCloser,
         bool isLiquidation,
         uint gasUsed)
-        external
+        public
         returns (bool);
 
     /// @dev Called by bZx after a trader transfers their ownership of a position to a new trader
@@ -155,7 +158,7 @@ interface OracleInterface {
         address oldTrader,
         address newTrader,
         uint gasUsed)
-        external
+        public
         returns (bool);
 
     /// @dev Called by bZx after a lender transfers their ownership of a position to a new lender
@@ -169,7 +172,7 @@ interface OracleInterface {
         address oldLender,
         address newLender,
         uint gasUsed)
-        external
+        public
         returns (bool);
 
     /// @dev Places a manual on-chain trade with a liquidity provider
@@ -181,7 +184,7 @@ interface OracleInterface {
         address sourceTokenAddress,
         address destTokenAddress,
         uint sourceTokenAmount)
-        external
+        public
         returns (uint);
 
     /// @dev Places an automatic on-chain trade with a liquidity provider
@@ -193,7 +196,7 @@ interface OracleInterface {
         address sourceTokenAddress,
         address destTokenAddress,
         uint sourceTokenAmount)
-        external
+        public
         returns (uint);
 
     /// @dev Verifies a position has fallen below margin maintenance
@@ -214,28 +217,24 @@ interface OracleInterface {
         uint positionTokenAmount,
         uint collateralTokenAmount,
         uint maintenanceMarginAmount)
-        external
+        public
         returns (uint);
 
     /// @dev Liquidates collateral to cover loan losses and does any other processing required by the oracle
-    /// @param collateralTokenAddress The collateral token
-    /// @param loanTokenAddress The loan token
-    /// @param collateralTokenAmountUsable The total amount of collateral usable for processing
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
+    /// @param positionId The position id of the loan
     /// @param loanTokenAmountNeeded The amount of loan token needed to cover losses
-    /// @param initialMarginAmount The initial margin amount set for the loan
-    /// @param maintenanceMarginAmount The maintenance margin amount set for the loan
     /// @param isLiquidation A boolean indicating if the loan was closed due to liquidation
     /// @return The amount of destToken bought
     function processCollateral(
-        address collateralTokenAddress,
-        address loanTokenAddress,
-        uint collateralTokenAmountUsable,
+        BZxStorage.LoanOrder memory loanOrder,
+        BZxStorage.LoanPosition memory loanPosition,
+        uint positionId,
         uint loanTokenAmountNeeded,
-        uint initialMarginAmount,
-        uint maintenanceMarginAmount,
         bool isLiquidation)
-        external
-        returns (uint, uint);
+        public
+        returns (uint loanTokenAmountCovered, uint collateralTokenAmountUsed);
 
     /// @dev Checks if a position has fallen below margin
     /// @dev maintenance and should be liquidated
@@ -259,7 +258,7 @@ interface OracleInterface {
         uint positionTokenAmount,
         uint collateralTokenAmount,
         uint maintenanceMarginAmount)
-        external
+        public
         view
         returns (bool);
 
@@ -272,7 +271,7 @@ interface OracleInterface {
         address sourceTokenAddress,
         address destTokenAddress,
         uint sourceTokenAmount)
-        external
+        public
         view
         returns (uint sourceToDestRate, uint destTokenAmount);
 
@@ -287,7 +286,7 @@ interface OracleInterface {
         address loanTokenAddress,
         uint positionTokenAmount,
         uint loanTokenAmount)
-        external
+        public
         view
         returns (bool isProfit, uint profitOrLoss);
 
@@ -306,7 +305,7 @@ interface OracleInterface {
         uint loanTokenAmount,
         uint positionTokenAmount,
         uint collateralTokenAmount)
-        external
+        public
         view
         returns (uint);
 
@@ -319,7 +318,7 @@ interface OracleInterface {
         address sourceTokenAddress,
         address destTokenAddress,
         uint sourceTokenAmount)
-        external
+        public
         view
         returns (bool);
 }

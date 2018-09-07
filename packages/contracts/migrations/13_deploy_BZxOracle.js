@@ -34,6 +34,12 @@ module.exports = function(deployer, network, accounts) {
 
   if (bzrx_token_address) {
     // ensure deployed protocol token
+    
+    let valueAmount = "0";
+    if (!OLD_ORACLE_ADDRESS) {
+      valueAmount = web3.toWei(1, "ether");
+    }
+
     deployer
       .deploy(
         BZxOracle,
@@ -41,9 +47,10 @@ module.exports = function(deployer, network, accounts) {
         config["addresses"][network]["KyberContractAddress"],
         config["addresses"][network]["ZeroEx"]["WETH9"],
         bzrx_token_address,
-        { from: accounts[0], value: web3.toWei(1, "ether") }
+        { from: accounts[0], value: valueAmount }
       )
-      .then(async function(oracle) {
+      .then(async function() {
+        var oracle = await BZxOracle.deployed();
         // seeds BZxOracle with 1 Ether
 
         var bZxProxy = await BZxProxy.deployed();
@@ -58,13 +65,14 @@ module.exports = function(deployer, network, accounts) {
         var oracleRegistry = await OracleRegistry.deployed();
 
         if (OLD_ORACLE_ADDRESS) {
-          var bZxOracleOld = await BZxOracle.at(OLD_ORACLE_ADDRESS);
+          var CURRENT_OLD_ORACLE_ADDRESS = await oracleRegistry.oracleAddresses(0);
+          var bZxOracleOld = await BZxOracle.at(CURRENT_OLD_ORACLE_ADDRESS);
           await bZxOracleOld.transferEther(
             oracleAddress,
             web3.toWei(10000000, "ether")
           );
           //await bZxOracleOld.transferToken(bzrx_token_address, oracleAddress, "75218865740740738");
-          await oracleRegistry.removeOracle(OLD_ORACLE_ADDRESS, 0);
+          await oracleRegistry.removeOracle(CURRENT_OLD_ORACLE_ADDRESS, 0);
           await bZxProxy.setOracleReference(OLD_ORACLE_ADDRESS, oracleAddress);
         }
 

@@ -1,5 +1,6 @@
 
 pragma solidity 0.4.24;
+pragma experimental ABIEncoderV2;
 
 import "../../oracle/BZxOracle.sol";
 
@@ -84,6 +85,19 @@ contract TestNetOracle is BZxOracle {
             } else {
                 destTokenAmount = sourceTokenAmount;
             }
+
+            if (maxDestTokenAmount < sourceTokenAmount) {
+                destTokenAmount = maxDestTokenAmount;
+            } else {
+                destTokenAmount = sourceTokenAmount;
+            }
+
+            if (!_transferToken(
+                destTokenAddress,
+                vaultContract,
+                destTokenAmount)) {
+                revert("TestNetOracle::_doTrade: _transferToken failed");
+            }
         } else {
             (uint tradeRate,) = getTradeData(sourceTokenAddress, destTokenAddress, 0);
             destTokenAmount = sourceTokenAmount.mul(tradeRate).div(_getDecimalPrecision(sourceTokenAddress, destTokenAddress));
@@ -97,29 +111,33 @@ contract TestNetOracle is BZxOracle {
             require(Faucet(faucetContract).oracleExchange(
                 destTokenAddress,
                 vaultContract,
-                destTokenAmount), "TestNetFaucet::_doTrade: trade failed");
+                destTokenAmount), "TestNetOracle::_doTrade: trade failed");
         }
     }
 
     function _doTradeForEth(
         address /*sourceTokenAddress*/,
-        uint sourceTokenAmount,
+        uint /* sourceTokenAmount */,
         address /*receiver*/,
-        uint destEthAmountNeeded)
+        uint /* destEthAmountNeeded */)
         internal
         returns (uint destTokenAmountReceived)
     {
-        destTokenAmountReceived = destEthAmountNeeded < sourceTokenAmount ? destEthAmountNeeded : sourceTokenAmount;
+        destTokenAmountReceived = 0;//destEthAmountNeeded < sourceTokenAmount ? destEthAmountNeeded : sourceTokenAmount;
     }
 
     function _doTradeWithEth(
-        address /*destTokenAddress*/,
+        address destTokenAddress,
         uint sourceEthAmount,
-        address, /*receiver*/
+        address receiver,
         uint destTokenAmountNeeded)
         internal
         returns (uint destTokenAmountReceived)
     {
         destTokenAmountReceived = destTokenAmountNeeded < sourceEthAmount ? destTokenAmountNeeded : sourceEthAmount;
+        require(Faucet(faucetContract).oracleExchange(
+            destTokenAddress,
+            receiver,
+            destTokenAmountReceived), "TestNetOracle::_doTrade: trade failed");
     }
 }

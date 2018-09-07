@@ -271,6 +271,13 @@ Smart Contracts
 ==================
 `;
 
+  let fqdn = "";
+  if (network !== `mainnet`) {
+    fqdn = network + `.etherscan.io`;
+  } else {
+    fqdn = `etherscan.io`;
+  }
+
   Object.keys(addresses).forEach(function(item, index) {
     if (addresses[item] == "") {
       addresses[item] = "[abi only]";
@@ -286,8 +293,8 @@ Smart Contracts
       outHTML +=
         item +
         ` :: <a href="https://` +
-        network +
-        `.etherscan.io/address/` +
+        fqdn +
+        `/address/` +
         addresses[item] +
         `" target="_blank">` +
         addresses[item] +
@@ -307,8 +314,8 @@ Smart Contracts
         item +
         " :: " +
         `<a href="https://` +
-        network +
-        `.etherscan.io/address/` +
+        fqdn +
+        `/address/` +
         addresses_0x[item] +
         `" target="_blank">` +
         addresses_0x[item] +
@@ -321,8 +328,8 @@ Smart Contracts
         item +
         " :: " +
         `<a href="https://` +
-        network +
-        `.etherscan.io/address/` +
+        fqdn +
+        `/address/` +
         addresses_0x[item] +
         `" target="_blank">` +
         addresses_0x[item] +

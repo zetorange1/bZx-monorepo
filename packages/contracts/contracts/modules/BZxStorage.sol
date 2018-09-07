@@ -184,4 +184,5 @@ contract BZxStorage is BZxObjects, ReentrancyGuard, Ownable, GasTracker {
     // Other Storage
     mapping (bytes32 => mapping (uint => uint)) public interestPaid; // mapping of loanOrderHash to mapping of position ids to amount of interest paid so far to a lender
     mapping (address => address) public oracleAddresses; // mapping of oracles to their current logic contract
+    mapping (bytes32 => mapping (address => bool)) public preSigned; // mapping of hash => signer => signed
 }
