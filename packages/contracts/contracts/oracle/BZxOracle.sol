@@ -197,7 +197,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         // TODO: Block withdrawal below a certain amount
         if (loanOrder.interestTokenAddress == wethContract) {
             // interest paid in WETH is withdrawn to Ether
-            //WETH_Interface(wethContract).withdraw(interestFee);
+            WETH_Interface(wethContract).withdraw(interestFee);
         } else if (convert && loanOrder.interestTokenAddress != bZRxTokenContract) {
             // interest paid in BZRX is retained as is, other tokens are sold for Ether
             _doTradeForEth(
