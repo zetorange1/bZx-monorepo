@@ -9,10 +9,10 @@ pragma solidity 0.4.24;
 contract BZxEvents {
 
     event LogLoanAdded (
-        bytes32 loanOrderHash,
+        bytes32 indexed loanOrderHash,
         address adder,
-        address maker,
-        address feeRecipientAddress,
+        address indexed maker,
+        address indexed feeRecipientAddress,
         uint lenderRelayFee,
         uint traderRelayFee,
         uint maxDuration,
@@ -20,8 +20,8 @@ contract BZxEvents {
     );
 
     event LogLoanTaken (
-        address lender,
-        address trader,
+        address indexed lender,
+        address indexed trader,
         address collateralTokenAddressFilled,
         address positionTokenAddressFilled,
         uint loanTokenAmountFilled,
@@ -29,27 +29,27 @@ contract BZxEvents {
         uint positionTokenAmountFilled,
         uint loanStartUnixTimestampSec,
         bool active,
-        bytes32 loanOrderHash
+        bytes32 indexed loanOrderHash
     );
 
     event LogLoanCancelled(
-        address maker,
+        address indexed maker,
         uint cancelLoanTokenAmount,
         uint remainingLoanTokenAmount,
-        bytes32 loanOrderHash
+        bytes32 indexed loanOrderHash
     );
 
     event LogLoanClosed(
-        address lender,
-        address trader,
+        address indexed lender,
+        address indexed trader,
         address loanCloser,
         bool isLiquidation,
-        bytes32 loanOrderHash
+        bytes32 indexed loanOrderHash
     );
 
     event LogPositionTraded(
-        bytes32 loanOrderHash,
-        address trader,
+        bytes32 indexed loanOrderHash,
+        address indexed trader,
         address sourceTokenAddress,
         address destTokenAddress,
         uint sourceTokenAmount,
@@ -57,51 +57,51 @@ contract BZxEvents {
     );
 
     event LogMarginLevels(
-        bytes32 loanOrderHash,
-        address trader,
+        bytes32 indexed loanOrderHash,
+        address indexed trader,
         uint initialMarginAmount,
         uint maintenanceMarginAmount,
         uint currentMarginAmount
     );
 
     event LogWithdrawProfit(
-        bytes32 loanOrderHash,
-        address trader,
+        bytes32 indexed loanOrderHash,
+        address indexed trader,
         uint profitWithdrawn,
         uint remainingPosition
     );
 
     event LogPayInterestForOrder(
-        bytes32 loanOrderHash,
-        address lender,
+        bytes32 indexed loanOrderHash,
+        address indexed lender,
         uint amountPaid,
         uint totalAccrued,
         uint loanCount
     );
 
     event LogPayInterestForPosition(
-        bytes32 loanOrderHash,
-        address lender,
-        address trader,
+        bytes32 indexed loanOrderHash,
+        address indexed lender,
+        address indexed trader,
         uint amountPaid,
         uint totalAccrued
     );
 
     event LogChangeTraderOwnership(
-        bytes32 loanOrderHash,
-        address oldOwner,
-        address newOwner
+        bytes32 indexed loanOrderHash,
+        address indexed oldOwner,
+        address indexed newOwner
     );
 
     event LogChangeLenderOwnership(
-        bytes32 loanOrderHash,
-        address oldOwner,
-        address newOwner
+        bytes32 indexed loanOrderHash,
+        address indexed oldOwner,
+        address indexed newOwner
     );
 
     event LogIncreasedLoanableAmount(
-        bytes32 loanOrderHash,
-        address lender,
+        bytes32 indexed loanOrderHash,
+        address indexed lender,
         uint loanTokenAmountAdded,
         uint loanTokenAmountFillable
     );
