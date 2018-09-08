@@ -48,10 +48,7 @@ contract BZxStorage is BZxObjects, BZxEvents, ReentrancyGuard, Ownable, GasTrack
 
     // Other Storage
     mapping (bytes32 => mapping (uint => uint)) public interestPaid; // mapping of loanOrderHash to mapping of position ids to amount of interest paid so far to a lender
-    //mapping (bytes32 => uint) public interestPaid; // mapping of loanOrderHash to mapping of position ids to amount of interest paid so far to a lender
-
     mapping (address => address) public oracleAddresses; // mapping of oracles to their current logic contract
-
     mapping (bytes32 => mapping (address => bool)) public preSigned; // mapping of hash => signer => signed
     mapping (address => mapping (address => bool)) public allowedValidators; // mapping of signer => validator => approved
 }
