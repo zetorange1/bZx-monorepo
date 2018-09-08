@@ -17,6 +17,12 @@ contract BZxOrderTakingOnChain is BZxStorage, BZxProxiable, OrderTakingFunctions
 
     constructor() public {}
 
+    function()  
+        public
+    {
+        revert("fallback not allowed");
+    }
+
     function initialize(
         address _target)
         public

@@ -2,48 +2,52 @@
  * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
- 
+
 pragma solidity 0.4.24;
 
-import "./BZxProxiable.sol";
+import "../proxy/BZxProxiable.sol";
 
 
-contract BZxProxy is BZxStorage, BZxProxiable {
+contract BZxProxySettings is BZxStorage, BZxProxiable {
 
-    function() payable public {
-        require(!targetIsPaused[msg.sig], "BZxProxy::Function temporarily paused");
+    constructor() public {}
 
-        address target = targets[msg.sig];
-        require(target != address(0), "BZxProxy::Target not found");
-
-        bytes memory data = msg.data;
-        assembly {
-            let result := delegatecall(gas, target, add(data, 0x20), mload(data), 0, 0)
-            let size := returndatasize
-            let ptr := mload(0x40)
-            returndatacopy(ptr, 0, size)
-            switch result
-            case 0 { revert(ptr, size) }
-            default { return(ptr, size) }
-        }
+    function()  
+        public
+    {
+        revert("fallback not allowed");
     }
 
     function initialize(
-        address)
+        address _target)
         public
+        onlyOwner
     {
-        revert();
+        targets[bytes4(keccak256("replaceContract(address)"))] = _target;
+        targets[bytes4(keccak256("setTarget(string,address)"))] = _target;
+        targets[bytes4(keccak256("toggleTargetPause(string,bool)"))] = _target;
+        targets[bytes4(keccak256("setBZxAddresses(address,address,address,address,address)"))] = _target;
+        targets[bytes4(keccak256("setDebugMode(bool)"))] = _target;
+        targets[bytes4(keccak256("setBZRxToken(address)"))] = _target;
+        targets[bytes4(keccak256("setVault(address)"))] = _target;
+        targets[bytes4(keccak256("setOracleRegistry(address)"))] = _target;
+        targets[bytes4(keccak256("setOracleReference(address,address)"))] = _target;
+        targets[bytes4(keccak256("set0xExchangeWrapper(address)"))] = _target;
+        targets[bytes4(keccak256("set0xV2ExchangeWrapper(address)"))] = _target;
+        targets[bytes4(keccak256("getTarget(string)"))] = _target;
+        targets[bytes4(keccak256("getTargetPause(string)"))] = _target;
     }
 
     /*
      * Owner only functions
      */
+
     function replaceContract(
         address _target)
         public
         onlyOwner
     {
-        _replaceContract(_target);
+        require(_target.delegatecall(bytes4(keccak256("initialize(address)")), _target), "Proxiable::_replaceContract: failed");
     }
 
     function setTarget(
@@ -79,7 +83,6 @@ contract BZxProxy is BZxStorage, BZxProxiable {
         public
         onlyOwner
     {
-        if (_bZRxToken != address(0) && _vault != address(0) && _oracleregistry != address(0) && _exchange0xWrapper != address(0) && _exchange0xV2Wrapper != address(0))
         bZRxTokenContract = _bZRxToken;
         vaultContract = _vault;
         oracleRegistryContract = _oracleregistry;

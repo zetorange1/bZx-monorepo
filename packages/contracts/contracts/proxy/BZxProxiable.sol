@@ -14,8 +14,4 @@ contract BZxProxiable {
     mapping (bytes4 => bool) public targetIsPaused;
 
     function initialize(address _target) public;
-
-    function _replaceContract(address _target) internal {
-        require(_target.delegatecall(bytes4(keccak256("initialize(address)")), _target), "Proxiable::_replaceContract: failed");
-    }
 }

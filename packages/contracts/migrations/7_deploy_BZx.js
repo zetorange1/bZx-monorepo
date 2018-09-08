@@ -1,4 +1,5 @@
 var BZxProxy = artifacts.require("BZxProxy");
+var BZxProxySettings = artifacts.require("BZxProxySettings");
 
 var TestNetBZRxToken = artifacts.require("TestNetBZRxToken");
 var BZxVault = artifacts.require("BZxVault");
@@ -18,8 +19,12 @@ module.exports = function(deployer, network, accounts) {
   network = network.replace("-fork", "");
   if (network == "develop" || network == "testnet" || network == "coverage")
     network = "development";
-
-  deployer.deploy(BZxProxy).then(async function(bZxProxy) {
+    
+  deployer.deploy(BZxProxySettings).then(async function() {
+  
+    await deployer.deploy(BZxProxy, BZxProxySettings.address);
+    var bZxProxy = await BZxProxySettings.at(BZxProxy.address);
+     
     var bzrx_token_address;
     if (
       network == "mainnet" ||

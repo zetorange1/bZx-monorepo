@@ -3,6 +3,7 @@ var BZxOracle;
 var TestNetBZRxToken = artifacts.require("TestNetBZRxToken");
 var BZxVault = artifacts.require("BZxVault");
 var BZxProxy = artifacts.require("BZxProxy");
+var BZxProxySettings = artifacts.require("BZxProxySettings");
 var OracleRegistry = artifacts.require("OracleRegistry");
 
 var config = require("../protocol-config.js");
@@ -53,7 +54,7 @@ module.exports = function(deployer, network, accounts) {
         var oracle = await BZxOracle.deployed();
         // seeds BZxOracle with 1 Ether
 
-        var bZxProxy = await BZxProxy.deployed();
+        var bZxProxy = await BZxProxySettings.at(BZxProxy.address);
         await oracle.transferBZxOwnership(BZxProxy.address);
         await bZxProxy.setOracleReference(BZxOracle.address, BZxOracle.address);
 

@@ -1,4 +1,5 @@
 var BZxProxy = artifacts.require("BZxProxy");
+var BZxProxySettings = artifacts.require("BZxProxySettings");
 var BZxTo0x = artifacts.require("BZxTo0x");
 var BZx = artifacts.require("BZx");
 var BZxVault = artifacts.require("BZxVault");
@@ -71,7 +72,7 @@ module.exports = function(deployer, network, accounts) {
     var ECSignature_raw_1;
 
     deployer.then(async function() {
-      var bZxProxy = await BZxProxy.deployed();
+      var bZxProxy = await BZxProxySettings.at(BZxProxy.address);
       var bZx = await BZx.at(bZxProxy.address);
       var vault = await BZxVault.deployed();
       var oracle = await BZxOracle.deployed();

@@ -52,6 +52,12 @@ contract BZxTradePlacing0xV2 is BZxStorage, BZxProxiable {
 
     constructor() public {}
 
+    function()  
+        public
+    {
+        revert("fallback not allowed");
+    }
+
     function initialize(
         address _target)
         public

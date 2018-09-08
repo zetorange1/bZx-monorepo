@@ -16,6 +16,12 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
 
     constructor() public {}
 
+    function()  
+        public
+    {
+        revert("fallback not allowed");
+    }
+
     function initialize(
         address _target)
         public
