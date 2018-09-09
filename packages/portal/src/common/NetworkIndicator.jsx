@@ -103,7 +103,7 @@ export default class NetworkIndicator extends React.Component {
               </div>
               <br/>
               <div style={{ display: `inline-flex` }}>
-                Gas Price: {fromBigNumber(window.defaultGasPrice, 1E9)} gewi
+                Gas Price: {fromBigNumber(window.defaultGasPrice, 1E9)} gwei
                 <ChangeButton href="" onClick={this.toggleGasDialog}>
                   <ChangeButtonLabel>Change</ChangeButtonLabel>
                 </ChangeButton>
