@@ -90,16 +90,17 @@ export default class WithdrawCollateralDialog extends React.Component {
   };
 
   render() {
-    const { collateralToken } = this.props;
+    const { collateralToken, excessCollateral } = this.props;
     return (
       <Dialog open={this.props.open} onClose={this.props.onClose}>
         <DialogTitle>Withdraw Collateral</DialogTitle>
         <DialogContent>
           <p>
             If the value of your collateral is above the initial margin amount,
-            you may choose to withdraw some of this collateral up to that
-            amount. If you try to withdraw too much, only the maximum allowed
-            will be withdrawn.
+            you may choose to withdraw some of the excess amount. If you specify too much, 
+            only the excess is withdrawn.
+            <br/><br/>
+            Current Excess: {excessCollateral ? `${excessCollateral}` : `0`} {collateralToken.symbol}
           </p>
           <FormControl margin="normal" fullWidth>
             <InputLabel>Amount to withdraw</InputLabel>

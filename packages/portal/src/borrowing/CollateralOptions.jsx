@@ -47,7 +47,8 @@ export default class CollateralOptions extends React.Component {
       accounts,
       web3,
       loanOrderHash,
-      collateralToken
+      collateralToken,
+      excessCollateral
     } = this.props;
     return (
       <Fragment>
@@ -96,6 +97,7 @@ export default class CollateralOptions extends React.Component {
           tokens={tokens}
           accounts={accounts}
           collateralToken={collateralToken}
+          excessCollateral={excessCollateral}
           loanOrderHash={loanOrderHash}
         />
       </Fragment>

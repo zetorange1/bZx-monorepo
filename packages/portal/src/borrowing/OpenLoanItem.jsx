@@ -17,7 +17,7 @@ import OrderItem from "../orders/OrderHistory/OrderItem";
 
 import { COLORS } from "../styles/constants";
 import { getSymbol, getDecimals } from "../common/tokens";
-import { fromBigNumber } from "../common/utils";
+import { toBigNumber, fromBigNumber, getInitialCollateralRequired } from "../common/utils";
 
 import ProfitOrLoss from "./ProfitOrLoss";
 
@@ -77,7 +77,8 @@ export default class OpenedLoan extends React.Component {
     initialMarginAmount: null,
     maintenanceMarginAmount: null,
     currentMarginAmount: null,
-    order: null
+    order: null,
+    initialCollateralRequired: null
   };
 
   componentDidMount = async () => {
@@ -93,6 +94,8 @@ export default class OpenedLoan extends React.Component {
   }
 
   getSingleOrder = async () => {
+    if (this.state.order)
+      return;
     const { bZx } = this.props;
     const order = await bZx.getSingleOrder({
       loanOrderHash: this.props.data.loanOrderHash
@@ -102,18 +105,33 @@ export default class OpenedLoan extends React.Component {
   };
 
   getMarginLevels = async () => {
-    const { bZx, data } = this.props;
+    const { tokens, bZx, data } = this.props;
+    
+    await this.getSingleOrder();
+    
     this.setState({ loadingMargins: true });
     const marginLevels = await bZx.getMarginLevels({
       loanOrderHash: data.loanOrderHash,
       trader: data.trader
     });
 
+    let initialCollateralRequired = await getInitialCollateralRequired(
+      data.loanTokenAddress,
+      data.collateralTokenAddressFilled,
+      this.state.order.oracleAddress,
+      data.loanTokenAmountFilled,
+      marginLevels.initialMarginAmount,
+      bZx
+    );
+
+    console.log("initialCollateralRequired: ",initialCollateralRequired.toString());
+
     await this.setState({
       loadingMargins: false,
       initialMarginAmount: marginLevels.initialMarginAmount,
       maintenanceMarginAmount: marginLevels.maintenanceMarginAmount,
-      currentMarginAmount: marginLevels.currentMarginAmount
+      currentMarginAmount: marginLevels.currentMarginAmount,
+      initialCollateralRequired
     });
   };
 
@@ -147,7 +165,8 @@ export default class OpenedLoan extends React.Component {
       initialMarginAmount,
       maintenanceMarginAmount,
       currentMarginAmount,
-      order
+      order,
+      initialCollateralRequired
     } = this.state;
 
     const collateralToken = tokens.filter(
@@ -171,6 +190,11 @@ export default class OpenedLoan extends React.Component {
 
     const loanExpireDate = moment(loanEndUnixTimestampSec * 1000).utc();
     const loanExpireDateStr = loanExpireDate.format(`MMMM Do YYYY, h:mm a UTC`);
+
+    const excessCollateral = initialCollateralRequired && toBigNumber(collateralTokenAmountFilled).gt(initialCollateralRequired) ?
+      fromBigNumber(toBigNumber(collateralTokenAmountFilled).minus(initialCollateralRequired),
+        10 ** getDecimals(tokens, collateralTokenAddressFilled)
+      ) : null;
 
     return (
       <Card>
@@ -241,6 +265,11 @@ export default class OpenedLoan extends React.Component {
               )}
               {` `}
               {collateralTokenSymbol}
+              {excessCollateral ? (
+                <Fragment>
+                  &nbsp;&nbsp;&nbsp;({excessCollateral} {collateralTokenSymbol} excess)
+                </Fragment>
+              ) : ``}
             </DataPoint>
           </DataPointContainer>
 
@@ -323,6 +352,7 @@ export default class OpenedLoan extends React.Component {
               web3={web3}
               loanOrderHash={loanOrderHash}
               collateralToken={collateralToken}
+              excessCollateral={excessCollateral}
             />
           </LowerUpperRight>
         </CardContent>
