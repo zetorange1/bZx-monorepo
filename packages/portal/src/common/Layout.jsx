@@ -8,6 +8,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import Nav from "./Nav";
 // import Footer from "./Footer";
 import { DIMENSIONS } from "../styles/constants";
+import { toBigNumber } from "./utils";
 
 const Container = styled.div`
   /* make it full height and width */
@@ -58,6 +59,7 @@ export default class Layout extends React.Component {
     };
     window.tokenSymbols = {};
     window.tokenDecimals = {};
+    window.defaultGasPrice = toBigNumber(5, 1E9);
   };
 
   showAlert = (text, alertComponent = null) => {
@@ -72,7 +74,11 @@ export default class Layout extends React.Component {
     const AlertComponent = this.state.alertComponent;
     return (
       <Container>
-        <Nav {...this.props} />
+        <Nav 
+          { ...this.props }
+          gasAmount={this.state.gasAmount}
+          setGasAmount={this.setGasAmount}
+        />
         <Content>
           <ContentContainer>{this.props.children}</ContentContainer>
         </Content>

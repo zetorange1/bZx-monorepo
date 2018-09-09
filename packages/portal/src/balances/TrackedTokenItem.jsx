@@ -143,7 +143,7 @@ export default class TrackedTokenItem extends React.Component {
     const txOpts = {
       from: accounts[0],
       // gas: 100000,
-      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+      gasPrice: window.defaultGasPrice.toString()
     };
 
     const txObj = await bZx.transferToken({
@@ -237,7 +237,7 @@ export default class TrackedTokenItem extends React.Component {
     const txOpts = {
       from: accounts[0],
       // gas: 100000,
-      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+      gasPrice: window.defaultGasPrice.toString()
     };
 
     const txObj = await bZx.requestFaucetToken({
@@ -335,7 +335,7 @@ export default class TrackedTokenItem extends React.Component {
     const txOpts = {
       from: accounts[0],
       // gas: 1000000,
-      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+      gasPrice: window.defaultGasPrice.toString()
     };
 
     const txObj = await bZx.setAllowanceUnlimited({
@@ -421,7 +421,7 @@ export default class TrackedTokenItem extends React.Component {
     const txOpts = {
       from: accounts[0],
       // gas: 1000000,
-      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+      gasPrice: window.defaultGasPrice.toString()
     };
 
     const txObj = await bZx.resetAllowance({

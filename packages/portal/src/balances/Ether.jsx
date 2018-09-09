@@ -107,7 +107,7 @@ export default class Ether extends React.Component {
     const txOpts = {
       from: accounts[0],
       // gas: 1000000,
-      gasPrice: web3.utils.toWei(`5`, `gwei`).toString(),
+      gasPrice: window.defaultGasPrice.toString(),
       value: toBigNumber(wrapAmount, 1e18)
     };
 
@@ -188,7 +188,7 @@ export default class Ether extends React.Component {
     const txOpts = {
       from: accounts[0],
       // gas: 1000000,
-      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+      gasPrice: window.defaultGasPrice.toString()
     };
 
     const txObj = await bZx.unwrapEth({
