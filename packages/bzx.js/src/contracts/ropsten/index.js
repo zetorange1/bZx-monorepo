@@ -13,6 +13,10 @@ import ZRXToken from "./ZRXToken.json";
 import WETH from "./WETH.json";
 import TokenTransferProxy from "./TokenTransferProxy.json";
 
+import { TokenList as TokenArray } from "./TokenList";
+
+export const TokenList = TokenArray;
+
 export default {
   BZx,
   BZxOracle,

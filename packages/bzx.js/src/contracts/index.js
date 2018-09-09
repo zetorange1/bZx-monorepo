@@ -1,7 +1,7 @@
 import { map } from "ramda";
 import _local from "./local";
-import _mainnet from "./mainnet";
-import _ropsten from "./ropsten";
+import _mainnet, { TokenList as mainnetTokens } from "./mainnet";
+import _ropsten, { TokenList as ropstenTokens } from "./ropsten";
 import _kovan from "./kovan";
 import _rinkeby from "./rinkeby";
 
@@ -28,5 +28,13 @@ const networksById = {
   42: kovan
 };
 
+const tokensById = {
+  1: mainnetTokens,
+  3: ropstenTokens
+};
+
 export const getContracts = (networkId = null) =>
   networksById[networkId] ? networksById[networkId] : local;
+
+export const tokenList = (networkId = null) =>
+  tokensById[networkId] ? tokensById[networkId] : undefined;

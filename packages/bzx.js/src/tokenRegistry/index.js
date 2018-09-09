@@ -1,8 +1,15 @@
 import * as utils from "../core/utils";
-import { getContracts } from "../contracts";
+import { getContracts, tokenList } from "../contracts";
 import * as Addresses from "../addresses";
 
 export const getTokenList = async ({ web3, networkId }) => {
+  
+  let tokens = await tokenList(networkId);
+  if (tokens)
+    return tokens;
+
+  // fallback to on chain TokenRegistry if local list not found
+  
   const tokenRegistryContract = await utils.getContractInstance(
     web3,
     getContracts(networkId).TokenRegistry.abi,
@@ -31,7 +38,7 @@ export const getTokenList = async ({ web3, networkId }) => {
   });
 
   const tokensRaw = await Promise.all(getTokenPs);
-  const tokens = tokensRaw.filter(token => !!token);
+  tokens = tokensRaw.filter(token => !!token);
 
   return tokens;
 };
