@@ -6,7 +6,6 @@ const { BZxJS } = require("bzx.js");
 const BigNumber = require("bignumber.js");
 const moment = require("moment");
 const minimist = require("minimist");
-const HDWalletProvider = require("truffle-hdwallet-provider");
 const winston = require("winston");
 
 // importing secrets
@@ -66,6 +65,7 @@ function initWeb3(network) {
   let provider, providerWS;
   if (network !== "development") {
     if (walletType === "mnemonic") {
+      const HDWalletProvider = require("truffle-hdwallet-provider");
       const infuraAuth = secrets.infura_apikey ? `${secrets.infura_apikey}/` : "";
       provider = new HDWalletProvider(secrets.mnemonic[network], `https://${network}.infura.io/${infuraAuth}`);
       // https://github.com/ethereum/web3.js/issues/1559
@@ -74,13 +74,18 @@ function initWeb3(network) {
     } else if (walletType === "ledger") {
       // TODO: ledger code
       process.exit();
+    } else if (walletType === "private_key") {
+      if (!secrets.private_key[network]) {
+        logger.log("error", "Private Key missing from secrets.js file!");
+        process.exit();
+      }
+      var PrivateKeyProvider = require("truffle-privatekey-provider");
+      const infuraAuth = secrets.infura_apikey ? `${secrets.infura_apikey}/` : "";
+      const privateKey = secrets.private_key[network];
+      provider = new PrivateKeyProvider(privateKey, `https://${network}.infura.io/${infuraAuth}`);
+      providerWS = new Web3.providers.WebsocketProvider(`wss://${network}.infura.io/ws`);
     } else {
-      // private_key
-      // TODO: private key code
       process.exit();
-
-      // provider = new Web3.providers.HttpProvider("https://"+network+".infura.io");
-      // providerWS = new Web3.providers.WebsocketProvider("wss://"+network+".infura.io/ws");
     }
   } else {
     provider = new Web3.providers.HttpProvider("http://localhost:8545");
@@ -103,13 +108,13 @@ async function initBZX(web3) {
 async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
   /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
   for (let i = 0; i < loansObjArray.length; i++) {
-    const { loanOrderHash, trader, expirationUnixTimestampSec } = loansObjArray[i];
+    const { loanOrderHash, trader, loanEndUnixTimestampSec } = loansObjArray[i];
 
     const idx = position + i;
     logger.log("info", `${idx} :: Current Block: ${await web3.eth.getBlockNumber()}`);
     logger.log("info", `${idx} :: loanOrderHash: ${loanOrderHash}`);
     logger.log("info", `${idx} :: trader: ${trader}`);
-    logger.log("info", `${idx} :: expirationUnixTimestampSec: ${expirationUnixTimestampSec}`);
+    logger.log("info", `${idx} :: loanEndUnixTimestampSec: ${loanEndUnixTimestampSec}`);
     const marginData = await bzx.getMarginLevels({
       loanOrderHash,
       trader
@@ -125,7 +130,7 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
       .plus(2) // start reporting "unsafe" when 2% above maintenance threshold
       .gt(maintenanceMarginAmount);
 
-    const expireDate = moment(expirationUnixTimestampSec * 1000).utc();
+    const expireDate = moment(loanEndUnixTimestampSec * 1000).utc();
     const isExpired = moment(moment().utc()).isAfter(expireDate);
 
     if (isExpired || isUnSafe) {
