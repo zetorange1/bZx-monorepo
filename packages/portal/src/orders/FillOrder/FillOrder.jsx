@@ -16,6 +16,8 @@ import Expiration from "./Expiration";
 import Inputs from "./Inputs";
 import CancelInputs from "./CancelInputs";
 
+import BZxComponent from "../../common/BZxComponent";
+
 import {
   validateFillOrder,
   validateCancelOrder,
@@ -46,7 +48,7 @@ const defaultToken = tokens => {
   return token;
 };
 
-export default class FillOrder extends React.Component {
+export default class FillOrder extends BZxComponent {
   state = {
     fillOrderAmount: 0,
     collateralTokenAddress: defaultToken(this.props.tokens).address,
@@ -130,9 +132,9 @@ export default class FillOrder extends React.Component {
 
   getSingleOrder = async loanOrderHash => {
     const { bZx } = this.props;
-    const order = await bZx.getSingleOrder({
+    const order = await this.wrapAndRun(bZx.getSingleOrder({
       loanOrderHash
-    });
+    }));
     return order;
   };
 

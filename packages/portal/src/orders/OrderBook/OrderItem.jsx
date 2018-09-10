@@ -63,17 +63,6 @@ export default class OrderItem extends React.Component {
   // state = { loanPositions: [] };
   state = { showRawOrder: false };
 
-  async componentDidMount() {
-    // const { bZx, accounts } = this.props;
-    // const loanPositions = await bZx.getLoanPositions({
-    //   loanPartyAddress: accounts[0].toLowerCase(),
-    //   start: 0,
-    //   count: 10
-    // });
-    // console.log(`loanPositions`, loanPositions);
-    // this.setState({ loanPositions });
-  }
-
   toggleShowRawOrder = () =>
     this.setState(p => ({ showRawOrder: !p.showRawOrder }));
 

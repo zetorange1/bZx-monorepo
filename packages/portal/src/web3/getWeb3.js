@@ -10,6 +10,19 @@ import LedgerWallet from "ledger-wallet-provider";
 // import WebsocketSubProvider from 'web3-provider-engine/subproviders/websocket';
 // import TrezorWallet from 'trezor-wallet-provider';
 
+/* export const getWeb3ByNetworkId = async (networkId) => {
+  switch (networkId) {
+    case 1:
+        return (new Web3(new Web3.providers.HttpProvider(`https://mainnet.infura.io/`)));
+        break;
+    case 3:
+        return (new Web3(new Web3.providers.HttpProvider(`https://ropsten.infura.io/`)));
+        break;
+    default: 
+        return (new Web3(new Web3.providers.HttpProvider('http://localhost:8545')));
+  }
+} */
+
 const resolveWeb3 = async (resolve, providerName) => {
   let { web3 } = window;
   switch (providerName) {

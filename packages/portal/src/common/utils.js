@@ -61,3 +61,29 @@ export const getTokenConversionRate = async (
 
   return data.rate;
 };
+
+const caughtReject = rejection => {
+  try {
+    rejection();
+  } catch (e) {
+    // console.log(e);
+  }
+};
+
+export const makeCancelable = promise => {
+  let hasCanceled = false;
+
+  const wrappedPromise = new Promise((resolve, reject) => {
+    promise.then(
+      val => (hasCanceled ? caughtReject({ isCanceled: true }) : resolve(val)),
+      error => (hasCanceled ? caughtReject({ isCanceled: true }) : reject(error))
+    );
+  });
+
+  return {
+    promise: wrappedPromise,
+    cancel() {
+      hasCanceled = true;
+    }
+  };
+};

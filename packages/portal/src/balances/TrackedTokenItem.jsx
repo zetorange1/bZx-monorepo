@@ -20,6 +20,7 @@ import {
   FAUCET_TOKEN_SYMBOLS
 } from "../common/trackedTokens";
 import { fromBigNumber, toBigNumber } from "../common/utils";
+import BZxComponent from "../common/BZxComponent";
 
 const Container = styled.div`
   display: flex;
@@ -81,7 +82,7 @@ const TxHashLink = styled.a.attrs({
 }
 `;
 
-export default class TrackedTokenItem extends React.Component {
+export default class TrackedTokenItem extends BZxComponent {
   state = {
     showSendDialog: false,
     showRequestDialog: false,
@@ -101,10 +102,12 @@ export default class TrackedTokenItem extends React.Component {
 
   getBalance = async () => {
     const { bZx, token, accounts } = this.props;
-    const balance = await bZx.getBalance({
+    
+    const balance = await this.wrapAndRun(bZx.getBalance({
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase()
-    });
+    }));
+  
     console.log(`balance of`, token.name, balance.toNumber());
     this.setState({
       balance: fromBigNumber(balance, 10 ** token.decimals)
@@ -115,10 +118,12 @@ export default class TrackedTokenItem extends React.Component {
     const { bZx, token, accounts } = this.props;
     console.log(`checking allowance`);
     console.log(token.name, token.address);
-    const allowance = await bZx.getAllowance({
+    
+    const allowance = await this.wrapAndRun(bZx.getAllowance({
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase()
-    });
+    }));
+
     console.log(`Allowance:`, allowance.toNumber());
     this.setState({
       approved: allowance.toNumber() !== 0,

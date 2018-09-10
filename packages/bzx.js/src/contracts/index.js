@@ -1,7 +1,7 @@
 import { map } from "ramda";
 import _local from "./local";
-import _mainnet, { TokenList as mainnetTokens } from "./mainnet";
-import _ropsten, { TokenList as ropstenTokens } from "./ropsten";
+import _mainnet, { TokenList as mainnetTokens, OracleList as mainnetOracles } from "./mainnet";
+import _ropsten, { TokenList as ropstenTokens, OracleList as ropstenOracles } from "./ropsten";
 import _kovan from "./kovan";
 import _rinkeby from "./rinkeby";
 
@@ -33,8 +33,16 @@ const tokensById = {
   3: ropstenTokens
 };
 
+const oraclesById = {
+  1: mainnetOracles,
+  3: ropstenOracles
+};
+
 export const getContracts = (networkId = null) =>
   networksById[networkId] ? networksById[networkId] : local;
 
 export const tokenList = (networkId = null) =>
   tokensById[networkId] ? tokensById[networkId] : undefined;
+
+export const oracleList = (networkId = null) =>
+  oraclesById[networkId] ? oraclesById[networkId] : undefined;

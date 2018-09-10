@@ -14,6 +14,8 @@ import { COLORS } from "../styles/constants";
 
 import WithdrawInterest from "./WithdrawInterest";
 
+import BZxComponent from "../common/BZxComponent";
+
 const CardContent = styled(MuiCardContent)`
   position: relative;
 `;
@@ -63,7 +65,7 @@ const UpperRight = styled.div`
 //   right: 16px;
 // `;
 
-export default class LoanItem extends React.Component {
+export default class LoanItem extends BZxComponent {
   state = {
     showOrderDialog: false,
     order: undefined
@@ -71,9 +73,9 @@ export default class LoanItem extends React.Component {
 
   getSingleOrder = async loanOrderHash => {
     const { bZx } = this.props;
-    const order = await bZx.getSingleOrder({
+    const order = await this.wrapAndRun(bZx.getSingleOrder({
       loanOrderHash
-    });
+    }));
     return order;
   };
 

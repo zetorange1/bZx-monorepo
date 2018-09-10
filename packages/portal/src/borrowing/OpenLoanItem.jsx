@@ -21,6 +21,8 @@ import { toBigNumber, fromBigNumber, getInitialCollateralRequired } from "../com
 
 import ProfitOrLoss from "./ProfitOrLoss";
 
+import BZxComponent from "../common/BZxComponent";
+
 const CardContent = styled(MuiCardContent)`
   position: relative;
 `;
@@ -70,10 +72,11 @@ const LowerUpperRight = styled.div`
   right: 16px;
 `;
 
-export default class OpenedLoan extends React.Component {
+export default class OpenedLoan extends BZxComponent {
   state = {
     showOrderDialog: false,
     loadingMargins: true,
+    error: false,
     initialMarginAmount: null,
     maintenanceMarginAmount: null,
     currentMarginAmount: null,
@@ -93,46 +96,59 @@ export default class OpenedLoan extends React.Component {
       this.getMarginLevels();
   }
 
+  querying = false
   getSingleOrder = async () => {
-    if (this.state.order)
+    if (this.querying || this.state.order)
       return;
+    this.querying = true;
     const { bZx } = this.props;
-    const order = await bZx.getSingleOrder({
+    const order = await this.wrapAndRun(bZx.getSingleOrder({
       loanOrderHash: this.props.data.loanOrderHash
-    });
+    }));
     console.log(`Order data`, order);
-    this.setState({ order });
+    await this.setState({ order });
+    this.querying = false;
   };
 
   getMarginLevels = async () => {
     const { tokens, bZx, data } = this.props;
     
-    await this.getSingleOrder();
-    
-    this.setState({ loadingMargins: true });
-    const marginLevels = await bZx.getMarginLevels({
-      loanOrderHash: data.loanOrderHash,
-      trader: data.trader
-    });
+    this.setState({ loadingMargins: true, error: false });
 
-    let initialCollateralRequired = await getInitialCollateralRequired(
-      data.loanTokenAddress,
-      data.collateralTokenAddressFilled,
-      this.state.order.oracleAddress,
-      data.loanTokenAmountFilled,
-      marginLevels.initialMarginAmount,
-      bZx
-    );
 
-    console.log("initialCollateralRequired: ",initialCollateralRequired.toString());
 
-    await this.setState({
-      loadingMargins: false,
-      initialMarginAmount: marginLevels.initialMarginAmount,
-      maintenanceMarginAmount: marginLevels.maintenanceMarginAmount,
-      currentMarginAmount: marginLevels.currentMarginAmount,
-      initialCollateralRequired
-    });
+    try {
+      await this.getSingleOrder();
+
+      const marginLevels = await this.wrapAndRun(bZx.getMarginLevels({
+        loanOrderHash: data.loanOrderHash,
+        trader: data.trader
+      }));
+      console.log(marginLevels);
+
+      let initialCollateralRequired = await getInitialCollateralRequired(
+        data.loanTokenAddress,
+        data.collateralTokenAddressFilled,
+        this.state.order.oracleAddress,
+        data.loanTokenAmountFilled,
+        marginLevels.initialMarginAmount,
+        bZx
+      );
+
+      console.log("initialCollateralRequired: ",initialCollateralRequired.toString());
+
+      await this.setState({
+        loadingMargins: false,
+        initialMarginAmount: marginLevels.initialMarginAmount,
+        maintenanceMarginAmount: marginLevels.maintenanceMarginAmount,
+        currentMarginAmount: marginLevels.currentMarginAmount,
+        initialCollateralRequired
+      });
+
+    } catch(e) {
+      console.log(e);
+      this.setState({ error: true });
+    }
   };
 
   toggleOrderDialog = async event => {
@@ -162,6 +178,7 @@ export default class OpenedLoan extends React.Component {
 
     const {
       loadingMargins,
+      error,
       initialMarginAmount,
       maintenanceMarginAmount,
       currentMarginAmount,
@@ -302,9 +319,13 @@ export default class OpenedLoan extends React.Component {
 
           <br />
 
-          {loadingMargins ? (
+          {loadingMargins && !error ? (
             <DataPointContainer>Loading margin levels...</DataPointContainer>
-          ) : (
+          ) : 
+          error ? (
+            <DataPointContainer>Error loading margin. Please refresh.</DataPointContainer>
+          ) : 
+          (
             <Fragment>
               <DataPointContainer>
                 <Label>Initial margin</Label>

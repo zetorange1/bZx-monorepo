@@ -11,6 +11,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import Section, { SectionLabel } from "../common/FormSection";
 import { fromBigNumber, toBigNumber } from "../common/utils";
+import BZxComponent from "../common/BZxComponent";
 
 const Container = styled.div`
   width: 100%;
@@ -49,7 +50,7 @@ const TxHashLink = styled.a.attrs({
 }
 `;
 
-export default class Ether extends React.Component {
+export default class Ether extends BZxComponent {
   state = {
     ethBalance: null,
     wethBalance: null,
@@ -73,10 +74,11 @@ export default class Ether extends React.Component {
   getWethBalance = async () => {
     const { bZx, tokens, accounts } = this.props;
     const token = await tokens.filter(t => t.symbol === `WETH`)[0];
-    const balance = await bZx.getBalance({
+    
+    const balance = await this.wrapAndRun(bZx.getBalance({
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase()
-    });
+    }));
     console.log(`balance of`, token.name, balance.toNumber());
     this.setState({ wethBalance: fromBigNumber(balance, 1e18) });
   };
@@ -85,7 +87,7 @@ export default class Ether extends React.Component {
 
   updateBalances = async () => {
     const { web3, accounts } = this.props;
-    const balanceInWei = await web3.eth.getBalance(accounts[0]);
+    const balanceInWei = await this.wrapAndRun(web3.eth.getBalance(accounts[0]));
     await this.getWethBalance();
     this.setState({ ethBalance: balanceInWei / 1e18 });
   };

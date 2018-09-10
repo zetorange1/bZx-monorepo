@@ -6,6 +6,7 @@ import DialogContent from "@material-ui/core/DialogContent";
 import { COLORS } from "../styles/constants";
 import { fromBigNumber } from "../common/utils";
 import { SectionLabel } from "../common/FormSection";
+import BZxComponent from "../common/BZxComponent";
 
 const DataPointContainer = styled.div`
   display: flex;
@@ -33,9 +34,10 @@ const TxHashLink = styled.a.attrs({
 }
 `;
 
-export default class ProfitOrLoss extends React.Component {
+export default class ProfitOrLoss extends BZxComponent {
   state = {
     loading: true,
+    error: false,
     profit: 0,
     isProfit: null,
     showDialog: false
@@ -55,23 +57,23 @@ export default class ProfitOrLoss extends React.Component {
 
   getProfitOrLoss = async () => {
     const { bZx, web3, loanOrderHash, accounts } = this.props;
-    const txOpts = {
-      from: accounts[0],
-      gas: 1000000,
-      gasPrice: window.defaultGasPrice.toString()
-    };
-    const data = await bZx.getProfitOrLoss({
-      loanOrderHash,
-      trader: accounts[0],
-      txOpts
-    });
-    console.log(`Profit ->`);
-    console.log(data);
-    this.setState({
-      loading: false,
-      profit: data.profitOrLoss,
-      isProfit: data.isProfit
-    });
+    this.setState({ loading: true, error: false });
+    try {
+      const data = await this.wrapAndRun(bZx.getProfitOrLoss({
+        loanOrderHash,
+        trader: accounts[0]
+      }));
+      console.log(`Profit ->`);
+      console.log(data);
+      await this.setState({
+        loading: false,
+        profit: data.profitOrLoss,
+        isProfit: data.isProfit
+      });
+    } catch(e) {
+      console.log(e);
+      this.setState({ error: true, loading: false });
+    }
   };
 
   withdrawProfit = async () => {
@@ -137,15 +139,18 @@ export default class ProfitOrLoss extends React.Component {
   closeDialog = () => this.setState({ showDialog: false });
 
   render() {
-    const { loading, profit, isProfit, showDialog } = this.state;
+    const { loading, error, profit, isProfit, showDialog } = this.state;
     const { symbol, decimals } = this.props;
     return (
       <Fragment>
         <br />
         <DataPointContainer>
           <Label>Profit/Loss</Label>
-          {loading ? (
-            <DataPoint>Loading...</DataPoint>
+          {loading && !error ? (
+            <DataPointContainer><DataPoint>Loading profit...</DataPoint></DataPointContainer>
+          ) : 
+          error ? (
+            <DataPointContainer><DataPoint>Error loading profit. Please refresh.</DataPoint></DataPointContainer>
           ) : (
             <Fragment>
               <DataPoint>

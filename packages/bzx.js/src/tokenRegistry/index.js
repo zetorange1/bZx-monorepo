@@ -8,7 +8,8 @@ export const getTokenList = async ({ web3, networkId }) => {
   if (tokens)
     return tokens;
 
-  // fallback to on chain TokenRegistry if local list not found
+  // Fallback to on chain TokenRegistry if local list not found
+  // Note: The local list is a stopgap to address MetaMask/Infura instability
   
   const tokenRegistryContract = await utils.getContractInstance(
     web3,
