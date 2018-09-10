@@ -7,13 +7,14 @@ const BigNumber = require("bignumber.js");
 const moment = require("moment");
 const minimist = require("minimist");
 const winston = require("winston");
+const os = require("os");
 
 // importing secrets
 const secrets = require("../../config/secrets.js");
 
 // the wallet type to use
 // mnemonic or private_key must be defined in the secrets.js file the given network
-const walletType = "mnemonic"; // or private_key or ledger
+const walletType = "private_key"; // or private_key or ledger
 
 // the gas price to use for liquidation transactions
 const defaultGasPrice = BigNumber(5).times(10 ** 9);
@@ -37,7 +38,7 @@ const logger = winston.createLogger({
     winston.format.timestamp({
       format: "YYYY-MM-DD HH:mm:ss"
     }),
-    winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
+    winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message} ${(info.stack) ? os.EOL + info.stack : ""}`)
   ),
   transports: [
     new winston.transports.Console({ level: "debug" })
@@ -108,76 +109,82 @@ async function initBZX(web3) {
 async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
   /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
   for (let i = 0; i < loansObjArray.length; i++) {
-    const { loanOrderHash, trader, loanEndUnixTimestampSec } = loansObjArray[i];
+    try {
+      const {loanOrderHash, trader, loanEndUnixTimestampSec} = loansObjArray[i];
 
-    const idx = position + i;
-    logger.log("info", `${idx} :: Current Block: ${await web3.eth.getBlockNumber()}`);
-    logger.log("info", `${idx} :: loanOrderHash: ${loanOrderHash}`);
-    logger.log("info", `${idx} :: trader: ${trader}`);
-    logger.log("info", `${idx} :: loanEndUnixTimestampSec: ${loanEndUnixTimestampSec}`);
-    const marginData = await bzx.getMarginLevels({
-      loanOrderHash,
-      trader
-    });
-    // logger.log("info",  marginData);
-    const { initialMarginAmount, maintenanceMarginAmount, currentMarginAmount } = marginData;
-    logger.log("info", `${idx} :: initialMarginAmount: ${initialMarginAmount}`);
-    logger.log("info", `${idx} :: maintenanceMarginAmount: ${maintenanceMarginAmount}`);
-    logger.log("info", `${idx} :: currentMarginAmount: ${currentMarginAmount}`);
-
-    const isUnSafe = !BigNumber(currentMarginAmount)
-      .dividedBy(1e18)
-      .plus(2) // start reporting "unsafe" when 2% above maintenance threshold
-      .gt(maintenanceMarginAmount);
-
-    const expireDate = moment(loanEndUnixTimestampSec * 1000).utc();
-    const isExpired = moment(moment().utc()).isAfter(expireDate);
-
-    if (isExpired || isUnSafe) {
-      logger.log("info", `${idx} :: Load is UNSAFE! Attempting to liquidate...`);
-
-      const txOpts = {
-        from: sender,
-        // gas: 1000000, // gas estimated in bzx.js
-        // gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
-        gasPrice: defaultGasPrice
-      };
-
-      const txObj = await bzx.liquidateLoan({
+      const idx = position + i;
+      logger.log("info", `${idx} :: Current Block: ${await web3.eth.getBlockNumber()}`);
+      logger.log("info", `${idx} :: loanOrderHash: ${loanOrderHash}`);
+      logger.log("info", `${idx} :: trader: ${trader}`);
+      logger.log("info", `${idx} :: loanEndUnixTimestampSec: ${loanEndUnixTimestampSec}`);
+      const marginData = await bzx.getMarginLevels({
         loanOrderHash,
-        trader,
-        getObject: true
+        trader
       });
+      // logger.log("info",  marginData);
+      const {initialMarginAmount, maintenanceMarginAmount, currentMarginAmount} = marginData;
+      logger.log("info", `${idx} :: initialMarginAmount: ${initialMarginAmount}`);
+      logger.log("info", `${idx} :: maintenanceMarginAmount: ${maintenanceMarginAmount}`);
+      logger.log("info", `${idx} :: currentMarginAmount: ${currentMarginAmount}`);
 
-      try {
-        await txObj
-          .estimateGas(txOpts)
-          .then(gas => {
-            // logger.log(gas);
-            txOpts.gas = gas;
-            txObj
-              .send(txOpts)
-              .once("transactionHash", hash => {
-                logger.log("info", `\n${idx} :: Transaction submitted. Tx hash: ${hash}`);
-              })
-              .then(() => {
-                logger.log("info", `\n${idx} :: Liquidation complete!`);
-              })
-              .catch(error => {
-                logger.log("error", `\n${idx} :: Liquidation error -> ${error.message}`);
-              });
-          })
-          .catch(error => {
-            logger.log(
-              "error",
-              `\n${idx} :: The transaction is failing. This loan cannot be liquidated at this time -> ${error.message}`
-            );
-          });
-      } catch (error) {
-        logger.log("error", `\n${idx} :: Liquidation error! -> ${error.message}`);
+      const isUnSafe = !BigNumber(currentMarginAmount)
+        .dividedBy(1e18)
+        .plus(2) // start reporting "unsafe" when 2% above maintenance threshold
+        .gt(maintenanceMarginAmount);
+
+      const expireDate = moment(loanEndUnixTimestampSec * 1000).utc();
+      const isExpired = moment(moment().utc()).isAfter(expireDate);
+
+      if (isExpired || isUnSafe) {
+        logger.log("info", `${idx} :: Load is UNSAFE! Attempting to liquidate...`);
+
+        const txOpts = {
+          from: sender,
+          // gas: 1000000, // gas estimated in bzx.js
+          // gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+          gasPrice: defaultGasPrice
+        };
+
+        const txObj = await bzx.liquidateLoan({
+          loanOrderHash,
+          trader,
+          getObject: true
+        });
+
+        try {
+          await txObj
+            .estimateGas(txOpts)
+            .then(gas => {
+              // logger.log(gas);
+              txOpts.gas = gas;
+              txObj
+                .send(txOpts)
+                .once("transactionHash", hash => {
+                  logger.log("info", `\n${idx} :: Transaction submitted. Tx hash: ${hash}`);
+                })
+                .then(() => {
+                  logger.log("info", `\n${idx} :: Liquidation complete!`);
+                })
+                .catch(error => {
+                  logger.log("error", `\n${idx} :: Liquidation error -> ${error.message}`);
+                });
+            })
+            .catch(error => {
+              logger.log(
+                "error",
+                `\n${idx} :: The transaction is failing. This loan cannot be liquidated at this time -> ${error.message}`
+              );
+            });
+        } catch (error) {
+          logger.log("error", `\n${idx} :: Liquidation error! -> ${error.message}`);
+        }
+      } else {
+        logger.log("info", `${idx} :: Load is safe.\n`);
       }
-    } else {
-      logger.log("info", `${idx} :: Load is safe.\n`);
+    }
+    catch(error) {
+      logger.log("error", "processBatchOrders catch");
+      logger.log("error", error);
     }
   }
 
@@ -187,17 +194,23 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
 async function processBlockOrders(web3, bzx, sender) {
   let position = 0;
   while (true) {
-    const loansObjArray = await bzx.getActiveLoans({
-      start: position, // starting item
-      count: batchSize // max number of items returned
-    });
-    // logger.log("info", loansObjArray);
+    try {
+      const loansObjArray = await bzx.getActiveLoans({
+        start: position, // starting item
+        count: batchSize // max number of items returned
+      });
+      // logger.log("info", loansObjArray);
 
-    const loanCount = await processBatchOrders(web3, bzx, sender, loansObjArray, position);
-    if (loanCount < batchSize) {
-      break;
-    } else {
-      position += batchSize;
+      const loanCount = await processBatchOrders(web3, bzx, sender, loansObjArray, position);
+      if (loanCount < batchSize) {
+        break;
+      } else {
+        position += batchSize;
+      }
+    }
+    catch(error) {
+      logger.log("error", "processBlockOrders catch");
+      logger.log("error", error);
     }
   }
 }
@@ -215,6 +228,7 @@ function startListeningForBlocks(web3, web3WS, bzx, sender) {
     })
     .on("data", async transaction => {
       // logger.log("info", transaction);
+      logger.log("info", "Just got block...");
       await processBlockOrders(web3, bzx, sender);
       logger.log("info", "Waiting for next block...");
     })
@@ -226,6 +240,8 @@ function startListeningForBlocks(web3, web3WS, bzx, sender) {
     .on("end", error => {
       logger.log("error", "Subscription end:");
       logger.log("error", error);
+
+      unsubscribeAndExit();
       // we can try to reconnect here, but it looks like provider already trying to do so
     });
 
@@ -234,7 +250,13 @@ function startListeningForBlocks(web3, web3WS, bzx, sender) {
 
 async function startQueryingForBlocks(web3, bzx, sender) {
   while (true) {
-    await processBlockOrders(web3, bzx, sender);
+    try {
+      await processBlockOrders(web3, bzx, sender);
+    }
+    catch (error) {
+      logger.log("error", "startQueryingForBlocks catch");
+      logger.log("error", error);
+    }
     logger.log("info", `Waiting ${checkIntervalSecs} seconds until next check...`);
 
     await snooze(checkIntervalSecs * 1000);
@@ -243,7 +265,13 @@ async function startQueryingForBlocks(web3, bzx, sender) {
 
 async function startPingWS(web3WS) {
   while (true) {
-    await web3WS.eth.getHashrate();
+    try {
+      await web3WS.eth.getHashrate();
+    }
+    catch (error) {
+      logger.log("error", "startQueryingForBlocks catch");
+      logger.log("error", error);
+    }
     logger.log("info", "Pinging server to avoid ws disconnection due to inactivity");
 
     await snooze(pingIntervalSecs * 1000);
@@ -276,10 +304,7 @@ async function main(web3, web3WS, bzx) {
   }
 }
 
-process.on("unhandledRejection", console.error.bind(console));
-process.on("SIGINT", async () => {
-  logger.log("info", "Caught interrupt signal");
-
+function unsubscribeAndExit() {
   if (blocksSubscription) {
     blocksSubscription.unsubscribe((error, success) => {
       if (success) logger.log("info", "Successfully unsubscribed!");
@@ -289,6 +314,17 @@ process.on("SIGINT", async () => {
   } else {
     process.exit();
   }
+}
+
+process.on("unhandledRejection", error => {
+  logger.log("error", "unhandledRejection catch");
+  logger.log("error", error);
+});
+
+process.on("SIGINT", async () => {
+  logger.log("info", "Caught interrupt signal");
+
+  unsubscribeAndExit();
 });
 
 (async () => {
@@ -305,5 +341,6 @@ process.on("SIGINT", async () => {
   } catch (error) {
     logger.log("error", "Global error:");
     logger.log("error", error);
+    unsubscribeAndExit();
   }
 })();
