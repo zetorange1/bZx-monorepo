@@ -113,7 +113,6 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
       const {loanOrderHash, trader, loanEndUnixTimestampSec} = loansObjArray[i];
 
       const idx = position + i;
-      logger.log("info", `${idx} :: Current Block: ${await web3.eth.getBlockNumber()}`);
       logger.log("info", `${idx} :: loanOrderHash: ${loanOrderHash}`);
       logger.log("info", `${idx} :: trader: ${trader}`);
       logger.log("info", `${idx} :: loanEndUnixTimestampSec: ${loanEndUnixTimestampSec}`);
@@ -195,6 +194,8 @@ async function processBlockOrders(web3, bzx, sender) {
   let position = 0;
   while (true) {
     try {
+      logger.log("info", `Current Block: ${await web3.eth.getBlockNumber()}`);
+      
       const loansObjArray = await bzx.getActiveLoans({
         start: position, // starting item
         count: batchSize // max number of items returned
