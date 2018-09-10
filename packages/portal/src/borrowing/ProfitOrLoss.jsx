@@ -150,7 +150,7 @@ export default class ProfitOrLoss extends BZxComponent {
             <DataPointContainer><DataPoint>Loading profit...</DataPoint></DataPointContainer>
           ) : 
           error ? (
-            <DataPointContainer><DataPoint>Error loading profit. Please refresh.</DataPoint></DataPointContainer>
+            <DataPointContainer><DataPoint>Web3 error loading profit. Please refresh.</DataPoint></DataPointContainer>
           ) : (
             <Fragment>
               <DataPoint>

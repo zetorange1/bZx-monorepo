@@ -323,7 +323,7 @@ export default class OpenedLoan extends BZxComponent {
             <DataPointContainer>Loading margin levels...</DataPointContainer>
           ) : 
           error ? (
-            <DataPointContainer>Error loading margin. Please refresh.</DataPointContainer>
+            <DataPointContainer>Web3 error loading margin. Please refresh.</DataPointContainer>
           ) : 
           (
             <Fragment>
