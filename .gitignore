@@ -5,6 +5,7 @@
 /**/ignore/
 /**/test_network/**
 /**/html_public_test
+/packages/bzx.js-docs/_book
 /packages/portal/live_site
 /packages/contracts/html_public_test
 *.log
