@@ -50,24 +50,24 @@ export default class Bounties extends BZxComponent {
   render() {
     const { bZx, tokens, accounts, web3 } = this.props;
     const { loans, loading, error, count } = this.state;
-    if (loans.length === 0) {
+    if (error) {
+      return (
+        <div>
+          <InfoContainer>
+            <ShowCount>Web3 error loading loans. Please refresh in a few minutes.</ShowCount>
+            <Button onClick={this.getLoans} variant="raised" disabled={false}>
+              Refresh
+            </Button>
+          </InfoContainer>
+        </div>
+      );
+    } else if (loans.length === 0) {
       return (
         <div>
           <InfoContainer>
             <ShowCount>No loans found.</ShowCount>
             <Button onClick={this.getLoans} variant="raised" disabled={loading}>
               {loading ? `Refreshing...` : `Refresh`}
-            </Button>
-          </InfoContainer>
-        </div>
-      );
-    } else if (error) {
-      return (
-        <div>
-          <InfoContainer>
-            <ShowCount>Web3 error loading loans. Please try again.</ShowCount>
-            <Button onClick={this.getLoans} variant="raised" disabled={false}>
-              Refresh
             </Button>
           </InfoContainer>
         </div>

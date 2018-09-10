@@ -61,7 +61,18 @@ export default class OrderHistory extends BZxComponent {
   render() {
     const { bZx, accounts, tokens } = this.props;
     const { orders, loading, error, count } = this.state;
-    if (orders.length === 0) {
+    if (error) {
+      return (
+        <div>
+          <InfoContainer>
+            <ShowCount>Web3 error loading loan orders. Please refresh in a few minutes.</ShowCount>
+            <Button onClick={this.getOrdersForUser} variant="raised" disabled={false}>
+              Refresh
+            </Button>
+          </InfoContainer>
+        </div>
+      );
+    } else if (orders.length === 0) {
       return (
         <div>
           <InfoContainer>
@@ -72,17 +83,6 @@ export default class OrderHistory extends BZxComponent {
               disabled={loading}
             >
               {loading ? `Refreshing...` : `Refresh`}
-            </Button>
-          </InfoContainer>
-        </div>
-      );
-    } else if (error) {
-      return (
-        <div>
-          <InfoContainer>
-            <ShowCount>Web3 error loading loan orders. Please try again.</ShowCount>
-            <Button onClick={this.getOrdersForUser} variant="raised" disabled={false}>
-              Refresh
             </Button>
           </InfoContainer>
         </div>

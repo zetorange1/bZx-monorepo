@@ -60,7 +60,18 @@ export default class OrderBook extends BZxComponent {
   render() {
     const { bZx, accounts, tokens, changeTab } = this.props;
     const { orders, loading, error, count } = this.state;
-    if (orders.length === 0) {
+    if (error) {
+      return (
+        <div>
+          <InfoContainer>
+            <ShowCount>Web3 error loading loan orders. Please refresh in a few minutes.</ShowCount>
+            <Button onClick={this.getOrdersFillable} variant="raised" disabled={false}>
+              Refresh
+            </Button>
+          </InfoContainer>
+        </div>
+      );
+    } else if (orders.length === 0) {
       return (
         <div>
           <InfoContainer>
@@ -71,17 +82,6 @@ export default class OrderBook extends BZxComponent {
               disabled={loading}
             >
               {loading ? `Refreshing...` : `Refresh`}
-            </Button>
-          </InfoContainer>
-        </div>
-      );
-    } else if (error) {
-      return (
-        <div>
-          <InfoContainer>
-            <ShowCount>Web3 error loading loan orders. Please try again.</ShowCount>
-            <Button onClick={this.getOrdersFillable} variant="raised" disabled={false}>
-              Refresh
             </Button>
           </InfoContainer>
         </div>

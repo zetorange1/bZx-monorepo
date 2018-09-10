@@ -251,7 +251,7 @@ export default class LoanItem extends BZxComponent {
             <DataPointContainer>Loading margin levels...</DataPointContainer>
           ) : 
           error ? (
-            <DataPointContainer>Web3 error loading margin. Please refresh.</DataPointContainer>
+            <DataPointContainer>Web3 error loading margin. Please refresh in a few minutes.</DataPointContainer>
           ) : 
           (
             <Fragment>

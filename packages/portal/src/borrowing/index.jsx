@@ -54,24 +54,24 @@ export default class Borrowing extends BZxComponent {
     const { loans, loading, error, count } = this.state;
     const openLoans = loans.filter(p => p.active === 1);
     const closedLoans = loans.filter(p => p.active === 0);
-    if (loans.length === 0) {
+    if (error) {
+      return (
+        <div>
+          <InfoContainer>
+            <ShowCount>Web3 error loading loans. Please refresh in a few minutes.</ShowCount>
+            <Button onClick={this.getLoans} variant="raised" disabled={false}>
+              Refresh
+            </Button>
+          </InfoContainer>
+        </div>
+      );
+    } else if (loans.length === 0) {
       return (
         <div>
           <InfoContainer>
             <ShowCount>No loans found.</ShowCount>
             <Button onClick={this.getLoans} variant="raised" disabled={loading}>
               {loading ? `Refreshing...` : `Refresh`}
-            </Button>
-          </InfoContainer>
-        </div>
-      );
-    } else if (error) {
-      return (
-        <div>
-          <InfoContainer>
-            <ShowCount>Web3 error loading loans. Please try again.</ShowCount>
-            <Button onClick={this.getLoans} variant="raised" disabled={false}>
-              Refresh
             </Button>
           </InfoContainer>
         </div>
