@@ -1,0 +1,16 @@
+
+install pm2:
+sudo npm install -g pm2
+
+setup pm2:
+mkdir logs
+pm2 start "yarn hunt mainnet" -e ./logs/mainnet_err.log -o ./logs/mainnet.log --name mainnet_hunt
+pm2 save
+
+manage pm2:
+pm2 list
+pm2 info mainnet_hunt
+pm2 stop mainnet_hunt
+pm2 start mainnet_hunt
+pm2 delete mainnet_hunt
+

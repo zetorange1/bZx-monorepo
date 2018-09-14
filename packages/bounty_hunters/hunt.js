@@ -135,7 +135,7 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
       const isExpired = moment(moment().utc()).isAfter(expireDate);
 
       if (isExpired || isUnSafe) {
-        logger.log("info", `${idx} :: Load is UNSAFE! Attempting to liquidate...`);
+        logger.log("info", `${idx} :: Loan is UNSAFE! Attempting to liquidate...`);
 
         const txOpts = {
           from: sender,
@@ -153,9 +153,9 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
         try {
           await txObj
             .estimateGas(txOpts)
-            .then(gas => {
-              // logger.log(gas);
-              txOpts.gas = gas;
+            .then(gasEstimate => {
+              // logger.log(gasEstimate);
+              txOpts.gas = Math.round(gasEstimate + gasEstimate * 0.1);
               txObj
                 .send(txOpts)
                 .once("transactionHash", hash => {
@@ -178,7 +178,7 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
           logger.log("error", `\n${idx} :: Liquidation error! -> ${error.message}`);
         }
       } else {
-        logger.log("info", `${idx} :: Load is safe.\n`);
+        logger.log("info", `${idx} :: Loan is safe.\n`);
       }
     }
     catch(error) {
