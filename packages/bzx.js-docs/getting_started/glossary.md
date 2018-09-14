@@ -14,6 +14,8 @@
 
 **Short position** is an exchange deal, which has the intent to get some funds in exchange for another, but to own them just for a short period, until price changes and funds would be sold with the profit.
 
+**Collateral** is an asset that a borrower offers as a way for a lender to secure the loan.
+
 **Margin trading** is usage of the borrowed funds when trading in a short position with the goal to increase profits while also increasing risks.
 
 **Margin call** is a situation, when trader, who uses margin trading loses his own funds (collateral) in a short position, and market forces close of trader’s short position.
