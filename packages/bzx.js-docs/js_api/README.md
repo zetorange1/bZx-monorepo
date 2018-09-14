@@ -1339,10 +1339,137 @@ Transfers specified amount of tokens to `to address` address.
 
 ### Structures
 
-
-
 ________________________________________________________________________________
 
-### Constants
+##### ITokenDescription
 
+```typescript
+export declare interface ITokenDescription {
+  address: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+  url: string;
+}
+```
 ________________________________________________________________________________
+
+##### IOracleDescription
+
+```typescript
+export declare interface IOracleDescription {
+  address: string;
+  name: string;
+}
+```
+________________________________________________________________________________
+
+##### ILoanOrderActive
+
+```typescript
+export declare interface ILoanOrderActive {
+  loanOrderHash: string;
+  trader: string;
+  loanEndUnixTimestampSec: number;
+}
+
+```
+________________________________________________________________________________
+
+##### ILoanOrderFillable
+
+```typescript
+export declare interface ILoanOrderFillable {
+  makerAddress: string;
+  loanTokenAddress: string;
+  interestTokenAddress: string;
+  collateralTokenAddress: string;
+  feeRecipientAddress: string;
+  oracleAddress: string;
+  loanTokenAmount: BigNumber;
+  interestAmount: BigNumber;
+  initialMarginAmount: BigNumber;
+  maintenanceMarginAmount: BigNumber;
+  lenderRelayFee: BigNumber;
+  traderRelayFee: BigNumber;
+  maxDurationUnixTimestampSec: number;
+  expirationUnixTimestampSec: number;
+  loanOrderHash: string;
+  lender: string;
+  orderFilledAmount: BigNumber;
+  orderCancelledAmount: BigNumber;
+  orderTraderCount: number;
+  addedUnixTimestampSec: number;
+}
+```
+________________________________________________________________________________
+
+##### ILoanOrderFillRequest
+
+```typescript
+export declare interface ILoanOrderFillRequest {
+  makerAddress: string;
+  loanTokenAddress: string;
+  interestTokenAddress: string;
+  collateralTokenAddress: string;
+  feeRecipientAddress: string;
+  oracleAddress: string;
+  loanTokenAmount: BigNumber;
+  interestAmount: BigNumber;
+  initialMarginAmount: BigNumber;
+  maintenanceMarginAmount: BigNumber;
+  lenderRelayFee: BigNumber;
+  traderRelayFee: BigNumber;
+  maxDurationUnixTimestampSec: number;
+  expirationUnixTimestampSec: number;
+  makerRole: number;
+  salt: string;
+  signature: string;
+}
+```
+________________________________________________________________________________
+
+##### ILoanPositionState
+
+```typescript
+export declare interface ILoanPositionState {
+  lender: string;
+  trader: string;
+  collateralTokenAddressFilled: string;
+  positionTokenAddressFilled: string;
+  loanTokenAddress: string;
+  interestTokenAddress: string;
+  loanTokenAmountFilled: BigNumber;
+  collateralTokenAmountFilled: BigNumber;
+  positionTokenAmountFilled: BigNumber;
+  loanStartUnixTimestampSec: number;
+  loanEndUnixTimestampSec: number;
+  active: boolean;
+  interestTotalAccrued: BigNumber;
+  interestPaidSoFar: BigNumber;
+  loanOrderHash: string;
+}
+```
+________________________________________________________________________________
+
+##### IZeroExOrder
+
+```typescript
+export declare interface IZeroExOrder {
+  signedOrder: any;
+  exchangeContractAddress: string;
+  expirationUnixTimestampSec: number;
+  feeRecipient: string;
+  maker: string;
+  makerFee: number;
+  makerTokenAddress: string;
+  makerTokenAmount: number;
+  salt: string;
+  taker: string;
+  takerFee: number;
+  takerTokenAddress: string;
+  takerTokenAmount: number;
+}
+```
+________________________________________________________________________________
+
