@@ -1,3 +1,6 @@
+---
+showToc: false
+---
 # Building from sources
 
 You may want to build our library from sources to learn internal details or/and to contribute to our project.

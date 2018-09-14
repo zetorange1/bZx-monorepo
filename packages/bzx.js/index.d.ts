@@ -31,9 +31,6 @@ export declare interface ILoanOrderFillable extends ILoanOrderValuesBase {
 export declare interface ILoanOrderFillRequest extends ILoanOrderValuesBase {
   makerRole: number;
   salt: string;
-}
-
-export declare interface ILoanOrderFillRequestSigned extends ILoanOrderFillRequest {
   signature: string;
 }
 
@@ -43,7 +40,7 @@ export declare interface ILoanOrderActive {
   loanEndUnixTimestampSec: number;
 }
 
-export declare interface ILoanPosition {
+export declare interface ILoanPositionState {
   lender: string;
   trader: string;
   collateralTokenAddressFilled: string;
@@ -150,7 +147,7 @@ export declare class BZxJS {
   }): { rate: BigNumber; amount: BigNumber };
 
   takeLoanOrderAsTrader(params: {
-    order: ILoanOrderFillRequestSigned;
+    order: ILoanOrderFillRequest;
     collateralTokenAddress: string;
     loanTokenAmountFilled: BigNumber;
     getObject: boolean;
@@ -158,13 +155,13 @@ export declare class BZxJS {
   }): Promise<BigNumber> | TransactionObject<BigNumber>;
 
   takeLoanOrderAsLender(params: {
-    order: ILoanOrderFillRequestSigned;
+    order: ILoanOrderFillRequest;
     getObject: boolean;
     txOpts: Tx;
   }): Promise<BigNumber> | TransactionObject<BigNumber>;
 
   pushLoanOrderOnChain(params: {
-    order: ILoanOrderFillRequestSigned;
+    order: ILoanOrderFillRequest;
     getObject: boolean;
     txOpts: Tx;
   }): Promise<any> | TransactionObject<any>;
@@ -184,7 +181,7 @@ export declare class BZxJS {
   }): Promise<any> | TransactionObject<any>;
 
   cancelLoanOrder(params: {
-    order: ILoanOrderFillRequestSigned;
+    order: ILoanOrderFillRequest;
     cancelLoanTokenAmount: BigNumber;
     getObject: boolean;
     txOpts: Tx;
@@ -203,12 +200,16 @@ export declare class BZxJS {
     txOpts: Tx;
   }): Promise<boolean> | TransactionObject<boolean>;
 
-  getSingleLoan(params: { loanOrderHash: string; trader: string }): ILoanPosition;
-  getLoansForLender(params: { address: string; count: number; activeOnly: boolean }): ILoanPosition[];
-  getLoansForTrader(params: { address: string; count: number; activeOnly: boolean }): ILoanPosition[];
+  getSingleLoan(params: { loanOrderHash: string; trader: string }): ILoanPositionState;
+
+  getLoansForLender(params: { address: string; count: number; activeOnly: boolean }): ILoanPositionState[];
+
+  getLoansForTrader(params: { address: string; count: number; activeOnly: boolean }): ILoanPositionState[];
 
   getSingleOrder(params: { loanOrderHash: string }): ILoanOrderFillable;
+
   getOrdersFillable(params: { start: number; count: number }): ILoanOrderFillable[];
+
   getOrdersForUser(params: { loanPartyAddress: string; start: number; count: number }): ILoanOrderFillable[];
 
   tradePositionWith0x(params: {
@@ -264,6 +265,7 @@ export declare class BZxJS {
     profitOrLoss: BigNumber;
     positionTokenAddress: string;
   };
+
   withdrawProfit(params: {
     loanOrderHash: string;
     getObject: boolean;
@@ -279,6 +281,7 @@ export declare class BZxJS {
     interestTotalAccrued: BigNumber;
     interestPaidSoFar: BigNumber;
   };
+
   payInterest(params: {
     loanOrderHash: string;
     trader: string;
@@ -287,6 +290,7 @@ export declare class BZxJS {
   }): Promise<BigNumber> | TransactionObject<BigNumber>;
 
   getActiveLoans(params: { start: number; count: number }): ILoanOrderActive[];
+
   getMarginLevels(params: {
     loanOrderHash;
     trader;
@@ -295,6 +299,7 @@ export declare class BZxJS {
     maintenanceMarginAmount: BigNumber;
     currentMarginAmount: BigNumber;
   };
+
   liquidateLoan(params: {
     loanOrderHash: string;
     trader: string;

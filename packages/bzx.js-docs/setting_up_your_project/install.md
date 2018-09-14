@@ -1,3 +1,6 @@
+---
+showToc: false
+---
 # Install and import
 
 ### Install

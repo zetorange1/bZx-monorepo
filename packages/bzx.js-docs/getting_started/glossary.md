@@ -4,7 +4,7 @@
 
 **Trade order** is an order to exchange to move funds between users' accounts.
 
-**Lend order** is an order to the lending platform to take the lender's funds and provide the borrower with that funds directly or indirectly.
+**Loan order** is an order to the lending platform to take the lender's funds and provide the borrower with that funds directly or indirectly.
 
 **Orderbook** is the place, where users can publish their orders.
 
