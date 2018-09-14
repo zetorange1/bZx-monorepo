@@ -10,6 +10,19 @@ import LedgerWallet from "ledger-wallet-provider";
 // import WebsocketSubProvider from 'web3-provider-engine/subproviders/websocket';
 // import TrezorWallet from 'trezor-wallet-provider';
 
+/* export const getWeb3ByNetworkId = async (networkId) => {
+  switch (networkId) {
+    case 1:
+        return (new Web3(new Web3.providers.HttpProvider(`https://mainnet.infura.io/`)));
+        break;
+    case 3:
+        return (new Web3(new Web3.providers.HttpProvider(`https://ropsten.infura.io/`)));
+        break;
+    default: 
+        return (new Web3(new Web3.providers.HttpProvider('http://localhost:8545')));
+  }
+} */
+
 const resolveWeb3 = async (resolve, providerName) => {
   let { web3 } = window;
   switch (providerName) {
@@ -27,10 +40,10 @@ const resolveWeb3 = async (resolve, providerName) => {
     case `Ledger`: {
       try {
         const engine = new ProviderEngine();
-        const networkId = 3; // Ropsten for now
+        const networkId = 1; // Mainnet only for now
         const LedgerWalletSubprovider = await LedgerWallet(() => networkId, `44'/60'/0'/0`);
         engine.addProvider(LedgerWalletSubprovider);
-        engine.addProvider(new RpcSubprovider({ rpcUrl: `https://ropsten.infura.io/` }));
+        engine.addProvider(new RpcSubprovider({ rpcUrl: `https://mainnet.infura.io/` }));
         engine.start();
         web3 = new Web3(engine);
         resolve(web3);

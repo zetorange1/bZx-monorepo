@@ -122,7 +122,7 @@ export const pushOrderOnChain = (order, web3, bZx, accounts) => {
   const txOpts = {
     from: accounts[0],
     // gas: 1000000, // gas estimated in bZx.js
-    gasPrice: web3.utils.toWei(`1`, `gwei`).toString()
+    gasPrice: window.defaultGasPrice.toString()
   };
 
   // console.log(`order`, order);

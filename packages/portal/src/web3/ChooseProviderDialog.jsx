@@ -77,7 +77,7 @@ export default class ChooseProviderDialog extends React.Component {
               >
                 <ProviderIcon id="Ledger" src="/static/ledger.png" />
               </ProviderItem>
-              (Ropsten only)
+              (Mainnet only)
             </ProviderContainer>
             {/* <ProviderContainer>
               <ProviderItem href={``} id={`Trezor`} onClick={this.handleChooseProvider}>

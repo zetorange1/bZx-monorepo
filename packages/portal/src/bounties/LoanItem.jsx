@@ -15,6 +15,8 @@ import { fromBigNumber } from "../common/utils";
 
 import { COLORS } from "../styles/constants";
 
+import BZxComponent from "../common/BZxComponent";
+
 const TxHashLink = styled.a.attrs({
   target: `_blank`,
   rel: `noopener noreferrer`
@@ -58,9 +60,10 @@ const Label = styled.span`
   color: ${COLORS.gray};
 `;
 
-export default class LoanItem extends React.Component {
+export default class LoanItem extends BZxComponent {
   state = {
     loadingMargins: true,
+    error: false,
     initialMarginAmount: null,
     maintenanceMarginAmount: null,
     currentMarginAmount: null,
@@ -74,18 +77,23 @@ export default class LoanItem extends React.Component {
 
   getMarginLevels = async () => {
     const { bZx, data } = this.props;
-    this.setState({ loadingMargins: true });
-    const marginLevels = await bZx.getMarginLevels({
-      loanOrderHash: data.loanOrderHash,
-      trader: data.trader
-    });
-    console.log(marginLevels);
-    this.setState({
-      loadingMargins: false,
-      initialMarginAmount: marginLevels.initialMarginAmount,
-      maintenanceMarginAmount: marginLevels.maintenanceMarginAmount,
-      currentMarginAmount: marginLevels.currentMarginAmount
-    });
+    this.setState({ loadingMargins: true, error: false });
+    try {
+      const marginLevels = await this.wrapAndRun(bZx.getMarginLevels({
+        loanOrderHash: data.loanOrderHash,
+        trader: data.trader
+      }));
+      console.log(marginLevels);
+      this.setState({
+        loadingMargins: false,
+        initialMarginAmount: marginLevels.initialMarginAmount,
+        maintenanceMarginAmount: marginLevels.maintenanceMarginAmount,
+        currentMarginAmount: marginLevels.currentMarginAmount
+      });
+    } catch(e) {
+      console.log(e);
+      this.setState({ error: true, loading: false });
+    }
   };
 
   getSingleOrder = async loanOrderHash => {
@@ -120,7 +128,7 @@ export default class LoanItem extends React.Component {
     const txOpts = {
       from: accounts[0],
       // gas: 1000000, // gas estimated in bZx.js
-      gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
+      gasPrice: window.defaultGasPrice.toString()
     };
 
     if (bZx.portalProviderName !== `MetaMask`) {
@@ -176,13 +184,14 @@ export default class LoanItem extends React.Component {
     const { data, tokens, bZx, accounts } = this.props;
     const {
       loadingMargins,
+      error,
       initialMarginAmount,
       maintenanceMarginAmount,
       currentMarginAmount
     } = this.state;
-    const isUnSafe = !BigNumber(currentMarginAmount)
+    const isUnSafe = currentMarginAmount ? !BigNumber(currentMarginAmount)
       .dividedBy(1e18)
-      .gt(maintenanceMarginAmount);
+      .gt(maintenanceMarginAmount) : false;
     const date = moment(data.loanEndUnixTimestampSec * 1000).utc();
     const dateStr = date.format(`MMMM Do YYYY, h:mm a UTC`);
     const isExpired = moment(moment().utc()).isAfter(date);
@@ -238,9 +247,13 @@ export default class LoanItem extends React.Component {
             </DataPoint>
           </DataPointContainer>
 
-          {loadingMargins ? (
+          {loadingMargins && !error ? (
             <DataPointContainer>Loading margin levels...</DataPointContainer>
-          ) : (
+          ) : 
+          error ? (
+            <DataPointContainer>Web3 error loading margin. Please refresh in a few minutes.</DataPointContainer>
+          ) : 
+          (
             <Fragment>
               <DataPointContainer>
                 <Label>Initial margin</Label>

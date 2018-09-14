@@ -1,25 +1,13 @@
-/*
-
-  Copyright 2018 bZeroX, LLC
-  Adapted from MultiSigWalletWithTimeLock.sol, Copyright 2017 ZeroEx Intl.
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-
-*/
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Adapted from MultiSigWalletWithTimeLock.sol, Copyright 2017 ZeroEx Intl.
+ * Licensed under the Apache License, Version 2.0.
+ */
 
 pragma solidity 0.4.24;
 
 import "./MultiSigWallet.sol";
+
 
 contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
 
@@ -70,48 +58,48 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
         secondsTimeLockedDefault = _secondsTimeLockedDefault;
 
         customTimeLockFunctions.push("transferOwnership(address)");
-        customTimeLocks[0xf2fde38b].isSet = true;
-        customTimeLocks[0xf2fde38b].secondsTimeLocked = 2419200; // 28 days
+        customTimeLocks[bytes4(keccak256("transferOwnership(address)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("transferOwnership(address)"))].secondsTimeLocked = 2419200; // 28 days
 
         customTimeLockFunctions.push("transferBZxOwnership(address)");
-        customTimeLocks[0x72e98a79].isSet = true;
-        customTimeLocks[0x72e98a79].secondsTimeLocked = 2419200;
+        customTimeLocks[bytes4(keccak256("transferBZxOwnership(address)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("transferBZxOwnership(address)"))].secondsTimeLocked = 2419200;
 
         customTimeLockFunctions.push("replaceContract(address)");
-        customTimeLocks[0xfb08fdaa].isSet = true;
-        customTimeLocks[0xfb08fdaa].secondsTimeLocked = 2419200;
+        customTimeLocks[bytes4(keccak256("replaceContract(address)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("replaceContract(address)"))].secondsTimeLocked = 2419200;
 
         customTimeLockFunctions.push("setTarget(string,address)");
-        customTimeLocks[0xc11296fc].isSet = true;
-        customTimeLocks[0xc11296fc].secondsTimeLocked = 2419200;
+        customTimeLocks[bytes4(keccak256("setTarget(string,address)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("setTarget(string,address)"))].secondsTimeLocked = 2419200;
 
-        customTimeLockFunctions.push("setBZxAddresses(address,address,address,address)");
-        customTimeLocks[0x0dc2e439].isSet = true;
-        customTimeLocks[0x0dc2e439].secondsTimeLocked = 2419200;
+        customTimeLockFunctions.push("setBZxAddresses(address,address,address,address,address)");
+        customTimeLocks[bytes4(keccak256("setBZxAddresses(address,address,address,address,address)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("setBZxAddresses(address,address,address,address,address)"))].secondsTimeLocked = 2419200;
 
         customTimeLockFunctions.push("setVault(address)");
-        customTimeLocks[0x6817031b].isSet = true;
-        customTimeLocks[0x6817031b].secondsTimeLocked = 2419200;
+        customTimeLocks[bytes4(keccak256("setVault(address)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("setVault(address)"))].secondsTimeLocked = 2419200;
 
         customTimeLockFunctions.push("changeDefaultTimeLock(uint256)");
-        customTimeLocks[0x98257d84].isSet = true;
-        customTimeLocks[0x98257d84].secondsTimeLocked = 2419200;
+        customTimeLocks[bytes4(keccak256("changeDefaultTimeLock(uint256)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("changeDefaultTimeLock(uint256)"))].secondsTimeLocked = 2419200;
 
         customTimeLockFunctions.push("changeCustomTimeLock(string,uint256)");
-        customTimeLocks[0xa2035fef].isSet = true;
-        customTimeLocks[0xa2035fef].secondsTimeLocked = 2419200;
+        customTimeLocks[bytes4(keccak256("changeCustomTimeLock(string,uint256)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("changeCustomTimeLock(string,uint256)"))].secondsTimeLocked = 2419200;
 
         customTimeLockFunctions.push("removeCustomTimeLock(string)");
-        customTimeLocks[0x64df19da].isSet = true;
-        customTimeLocks[0x64df19da].secondsTimeLocked = 2419200;
+        customTimeLocks[bytes4(keccak256("removeCustomTimeLock(string)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("removeCustomTimeLock(string)"))].secondsTimeLocked = 2419200;
 
         customTimeLockFunctions.push("toggleTargetPause(string,bool)");
-        customTimeLocks[0x48fcc6db].isSet = true;
-        customTimeLocks[0x48fcc6db].secondsTimeLocked = 0;
+        customTimeLocks[bytes4(keccak256("toggleTargetPause(string,bool)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("toggleTargetPause(string,bool)"))].secondsTimeLocked = 0;
 
         customTimeLockFunctions.push("toggleDebug(bool)");
-        customTimeLocks[0x4491645b].isSet = true;
-        customTimeLocks[0x4491645b].secondsTimeLocked = 0;
+        customTimeLocks[bytes4(keccak256("toggleDebug(bool)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("toggleDebug(bool)"))].secondsTimeLocked = 0;
     }
 
     /// @dev Changes the default duration of the time lock for transactions.

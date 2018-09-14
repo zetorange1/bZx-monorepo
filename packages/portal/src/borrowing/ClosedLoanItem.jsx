@@ -11,6 +11,8 @@ import { COLORS } from "../styles/constants";
 import { getSymbol, getDecimals } from "../common/tokens";
 import { fromBigNumber } from "../common/utils";
 
+import BZxComponent from "../common/BZxComponent";
+
 const CardContent = styled(MuiCardContent)`
   position: relative;
 `;
@@ -60,7 +62,7 @@ const UpperRight = styled.div`
 //   right: 16px;
 // `;
 
-export default class ClosedLoan extends React.Component {
+export default class ClosedLoan extends BZxComponent {
   state = {
     showOrderDialog: false,
     order: undefined
@@ -68,9 +70,9 @@ export default class ClosedLoan extends React.Component {
 
   getSingleOrder = async loanOrderHash => {
     const { bZx } = this.props;
-    const order = await bZx.getSingleOrder({
+    const order = await this.wrapAndRun(bZx.getSingleOrder({
       loanOrderHash
-    });
+    }));
     return order;
   };
 

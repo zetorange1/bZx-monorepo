@@ -5,6 +5,8 @@ import Section, { SectionLabel } from "../common/FormSection";
 import OpenedLoan from "./OpenLoanItem";
 import ClosedLoan from "./ClosedLoanItem";
 
+import BZxComponent from "../common/BZxComponent";
+
 const InfoContainer = styled.div`
   display: flex;
   align-items: center;
@@ -19,8 +21,8 @@ const Button = styled(MuiButton)`
   margin: 6px !important;
 `;
 
-export default class Borrowing extends React.Component {
-  state = { loans: [], loading: false, count: 10 };
+export default class Borrowing extends BZxComponent {
+  state = { loans: [], loading: false, error: false, count: 10 };
 
   componentDidMount() {
     this.getLoans();
@@ -29,13 +31,18 @@ export default class Borrowing extends React.Component {
   getLoans = async () => {
     const { bZx, accounts } = this.props;
     this.setState({ loading: true });
-    const loans = await bZx.getLoansForTrader({
-      address: accounts[0],
-      start: 0,
-      count: this.state.count
-    });
-    console.log(loans);
-    this.setState({ loans, loading: false });
+    try {
+      const loans = await this.wrapAndRun(bZx.getLoansForTrader({
+        address: accounts[0],
+        count: this.state.count,
+        activeOnly: false
+      }));
+      console.log(loans);
+      this.setState({ loans, loading: false, error: false });
+    } catch(e) {
+      console.log(e);
+      this.setState({ error: true, loading: false, loans: [] });
+    }
   };
 
   increaseCount = () => {
@@ -44,10 +51,21 @@ export default class Borrowing extends React.Component {
 
   render() {
     const { bZx, tokens, accounts, web3 } = this.props;
-    const { loans, loading, count } = this.state;
+    const { loans, loading, error, count } = this.state;
     const openLoans = loans.filter(p => p.active === 1);
     const closedLoans = loans.filter(p => p.active === 0);
-    if (loans.length === 0) {
+    if (error) {
+      return (
+        <div>
+          <InfoContainer>
+            <ShowCount>Web3 error loading loans. Please refresh in a few minutes.</ShowCount>
+            <Button onClick={this.getLoans} variant="raised" disabled={false}>
+              Refresh
+            </Button>
+          </InfoContainer>
+        </div>
+      );
+    } else if (loans.length === 0) {
       return (
         <div>
           <InfoContainer>

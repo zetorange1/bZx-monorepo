@@ -384,7 +384,7 @@ export const submitFillOrder = (
   const txOpts = {
     from: accounts[0],
     // gas: 1000000, // gas estimated in bZx.js
-    gasPrice: web3.utils.toWei(`1`, `gwei`).toString()
+    gasPrice: window.defaultGasPrice.toString()
   };
   const makerIsLender = order.makerRole === `0`;
 
@@ -479,7 +479,7 @@ export const submitFillOrderWithHash = (
   const txOpts = {
     from: accounts[0],
     // gas: 1000000, // gas estimated in bZx.js
-    gasPrice: web3.utils.toWei(`1`, `gwei`).toString()
+    gasPrice: window.defaultGasPrice.toString()
   };
 
   // console.log(`loanOrderHash`, loanOrderHash);
@@ -570,7 +570,7 @@ export const submitCancelOrder = (
   const txOpts = {
     from: accounts[0],
     // gas: 1000000, // gas estimated in bZx.js
-    gasPrice: web3.utils.toWei(`1`, `gwei`).toString()
+    gasPrice: window.defaultGasPrice.toString()
   };
 
   // console.log(`order`, order);
@@ -653,7 +653,7 @@ export const submitCancelOrderWithHash = (
   const txOpts = {
     from: accounts[0],
     // gas: 1000000, // gas estimated in bZx.js
-    gasPrice: web3.utils.toWei(`1`, `gwei`).toString()
+    gasPrice: window.defaultGasPrice.toString()
   };
 
   // console.log(`loanOrderHash`, loanOrderHash);

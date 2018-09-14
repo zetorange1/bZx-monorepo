@@ -49,7 +49,7 @@ export const HeaderTitleSiteName = styled.div`
 `;
 
 export const HeaderTitleContext = styled.div`
-  padding-top: 25px;
+  padding-top: 40px;
   text-transform: uppercase;
 `;
 
