@@ -103,22 +103,18 @@ contract BZxTradePlacing is BZxStorage, BZxProxiable, InternalFunctions {
             revert("BZxTradePlacing::tradePositionWith0x: tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled");
         }
 
-        if (DEBUG_MODE) {
-            _emitMarginLog(loanOrder, loanPosition);
-        }
-
-        // trade token has to equal loan token if loan needs to be liquidated
-        if (tradeTokenAddress != loanOrder.loanTokenAddress && OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
+        // trade can't trigger liquidation
+        if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
                 loanOrderHash,
                 loanPosition.trader,
                 loanOrder.loanTokenAddress,
-                loanPosition.positionTokenAddressFilled,
+                tradeTokenAddress,
                 loanPosition.collateralTokenAddressFilled,
                 loanPosition.loanTokenAmountFilled,
-                loanPosition.positionTokenAmountFilled,
+                tradeTokenAmount,
                 loanPosition.collateralTokenAmountFilled,
                 loanOrder.maintenanceMarginAmount)) {
-            revert("BZxTradePlacing::tradePositionWith0x: liquidation required");
+            revert("BZxTradePlacing::tradePositionWith0x: trade triggers liquidation");
         }
 
         emit LogPositionTraded(
@@ -175,24 +171,6 @@ contract BZxTradePlacing is BZxStorage, BZxProxiable, InternalFunctions {
             revert("BZxTradePlacing::tradePositionWithOracle: tradeTokenAddress == loanPosition.positionTokenAddressFilled");
         }
 
-        if (DEBUG_MODE) {
-            _emitMarginLog(loanOrder, loanPosition);
-        }
-
-        // trade token has to equal loan token if loan needs to be liquidated
-        if (tradeTokenAddress != loanOrder.loanTokenAddress && OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
-                loanOrderHash,
-                loanPosition.trader,
-                loanOrder.loanTokenAddress,
-                loanPosition.positionTokenAddressFilled,
-                loanPosition.collateralTokenAddressFilled,
-                loanPosition.loanTokenAmountFilled,
-                loanPosition.positionTokenAmountFilled,
-                loanPosition.collateralTokenAmountFilled,
-                loanOrder.maintenanceMarginAmount)) {
-            revert("BZxTradePlacing::tradePositionWithOracle: liquidation required");
-        }
-
         // check the current token balance of the oracle before sending token to be traded
         uint balanceBeforeTrade = EIP20(loanPosition.positionTokenAddressFilled).balanceOf.gas(4999)(oracleAddresses[loanOrder.oracleAddress]); // Changes to state require at least 5000 gas
 
@@ -212,6 +190,20 @@ contract BZxTradePlacing is BZxStorage, BZxProxiable, InternalFunctions {
 
         if (tradeTokenAmount == 0) {
             revert("BZxTradePlacing::tradePositionWithOracle: tradeTokenAmount == 0");
+        }
+
+        // trade can't trigger liquidation
+        if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
+                loanOrderHash,
+                loanPosition.trader,
+                loanOrder.loanTokenAddress,
+                tradeTokenAddress,
+                loanPosition.collateralTokenAddressFilled,
+                loanPosition.loanTokenAmountFilled,
+                tradeTokenAmount,
+                loanPosition.collateralTokenAmountFilled,
+                loanOrder.maintenanceMarginAmount)) {
+            revert("BZxTradePlacing::tradePositionWithOracle: trade triggers liquidation");
         }
 
         emit LogPositionTraded(

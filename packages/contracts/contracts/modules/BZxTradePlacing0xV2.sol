@@ -115,18 +115,18 @@ contract BZxTradePlacing0xV2 is BZxStorage, BZxProxiable {
             revert("BZxTradePlacing::tradePositionWith0x: tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled");
         }
 
-        // trade token has to equal loan token if loan needs to be liquidated
-        if (tradeTokenAddress != loanOrder.loanTokenAddress && OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
+        // trade can't trigger liquidation
+        if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
                 loanOrderHash,
                 loanPosition.trader,
                 loanOrder.loanTokenAddress,
-                loanPosition.positionTokenAddressFilled,
+                tradeTokenAddress,
                 loanPosition.collateralTokenAddressFilled,
                 loanPosition.loanTokenAmountFilled,
-                loanPosition.positionTokenAmountFilled,
+                tradeTokenAmount,
                 loanPosition.collateralTokenAmountFilled,
                 loanOrder.maintenanceMarginAmount)) {
-            revert("BZxTradePlacing::tradePositionWith0x: liquidation required");
+            revert("BZxTradePlacing::tradePositionWith0x: trade triggers liquidation");
         }
 
         emit LogPositionTraded(

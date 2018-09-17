@@ -160,14 +160,25 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
 
     function didTradePosition(
-        BZxObjects.LoanOrder memory /* loanOrder */,
-        BZxObjects.LoanPosition memory /* loanPosition */,
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
         uint /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
         returns (bool)
     {
+        require (
+            getCurrentMarginAmount(
+                loanOrder.loanTokenAddress,
+                loanPosition.positionTokenAddressFilled,
+                loanPosition.collateralTokenAddressFilled,
+                loanPosition.loanTokenAmountFilled,
+                loanPosition.positionTokenAmountFilled,
+                loanPosition.collateralTokenAmountFilled) > loanOrder.maintenanceMarginAmount.mul(10**18),
+            "BZxOracle::didTradePosition: trade triggers liquidation"
+        );
+
         return true;
     }
 
