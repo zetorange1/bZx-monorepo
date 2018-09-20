@@ -1,3 +1,7 @@
+/**
+ * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
 
 pragma solidity 0.4.24;
 
@@ -159,7 +163,7 @@ contract BZRxToken is UnlimitedAllowanceToken, DetailedERC20, Ownable {
     }
 
     /**
-    * @dev Function to stop minting new tokens.
+    * @dev Function to stop locking token.
     * @return True if the operation was successful.
     */
     function finishLocking() 
@@ -173,6 +177,10 @@ contract BZRxToken is UnlimitedAllowanceToken, DetailedERC20, Ownable {
         return true;
     }
 
+    /**
+    * @dev Function to add minter address.
+    * @return True if the operation was successful.
+    */
     function addMinter(
         address _minter) 
         public 
@@ -184,6 +192,10 @@ contract BZRxToken is UnlimitedAllowanceToken, DetailedERC20, Ownable {
         return true;
     }
 
+    /**
+    * @dev Function to remove minter address.
+    * @return True if the operation was successful.
+    */
     function removeMinter(
         address _minter) 
         public 
@@ -195,6 +207,10 @@ contract BZRxToken is UnlimitedAllowanceToken, DetailedERC20, Ownable {
         return true;
     }
 
+    /**
+    * @dev Function to check balance and allowance for a spender.
+    * @return True transfer will succeed based on balance and allowance.
+    */
     function canTransfer(
         address _spender,
         address _from,
