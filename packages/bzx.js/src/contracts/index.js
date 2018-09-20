@@ -42,7 +42,7 @@ export const getContracts = (networkId = null) =>
   networksById[networkId] ? networksById[networkId] : local;
 
 export const tokenList = (networkId = null) =>
-  tokensById[networkId] ? tokensById[networkId] : undefined;
+  tokensById[networkId] ? toLowerCase(tokensById[networkId]) : undefined;
 
 export const oracleList = (networkId = null) =>
   oraclesById[networkId] ? oraclesById[networkId] : undefined;
