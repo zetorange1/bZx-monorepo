@@ -1,7 +1,6 @@
 var TokenRegistry = artifacts.require("TokenRegistry");
 
 var BZRxToken = artifacts.require("BZRxToken");
-var TestNetBZRxToken = artifacts.require("TestNetBZRxToken");
 
 var config = require("../protocol-config.js");
 
@@ -34,7 +33,7 @@ module.exports = function(deployer, network, accounts) {
         config["addresses"][network]["BZRXToken"]
       );
     } else {
-      bzrx_token = await TestNetBZRxToken.deployed();
+      bzrx_token = await BZRxToken.deployed();
     }
     var bzrx_token_name = await bzrx_token.name.call();
     var bzrx_token_symbol = await bzrx_token.symbol.call();

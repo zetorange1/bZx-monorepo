@@ -1,6 +1,6 @@
 var BZxOracle;
 
-var TestNetBZRxToken = artifacts.require("TestNetBZRxToken");
+var BZRxToken = artifacts.require("BZRxToken");
 var BZxVault = artifacts.require("BZxVault");
 var BZxProxy = artifacts.require("BZxProxy");
 var BZxProxySettings = artifacts.require("BZxProxySettings");
@@ -30,7 +30,7 @@ module.exports = function(deployer, network, accounts) {
   ) {
     bzrx_token_address = config["addresses"][network]["BZRXToken"];
   } else {
-    bzrx_token_address = TestNetBZRxToken.address;
+    bzrx_token_address = BZRxToken.address;
   }
 
   if (bzrx_token_address) {

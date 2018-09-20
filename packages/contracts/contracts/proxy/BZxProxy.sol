@@ -18,8 +18,8 @@ contract BZxProxy is BZxStorage, BZxProxiable {
     }
     
     function() 
-        payable 
         public
+        payable 
     {
         require(!targetIsPaused[msg.sig], "BZxProxy::Function temporarily paused");
 

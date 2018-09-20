@@ -4,7 +4,9 @@ var BZxTo0x = artifacts.require("BZxTo0x");
 var BZx = artifacts.require("BZx");
 var BZxVault = artifacts.require("BZxVault");
 var BZxOracle = artifacts.require("TestNetOracle");
-var TestNetBZRxToken = artifacts.require("TestNetBZRxToken");
+var BZRxToken = artifacts.require("BZRxToken");
+var BZRxTokenSale = artifacts.require("BZRxTokenSale");
+var WETH_Interface = artifacts.require("WETH_Interface");
 var ERC20 = artifacts.require("ERC20"); // for testing with any ERC20 token
 
 //var fs = require('fs');
@@ -57,7 +59,7 @@ module.exports = function(deployer, network, accounts) {
     var lender2_account = accounts[2]; // lender 2
     var trader2_account = accounts[1]; // trader 2
     var makerOf0xOrder_account = accounts[6]; // maker of 0x order
-    //var relay1_account = accounts[9]; // relay 1
+    var relay1_account = accounts[9]; // relay 1
 
     var test_tokens = [];
     var loanToken1;
@@ -76,12 +78,22 @@ module.exports = function(deployer, network, accounts) {
       var bZx = await BZx.at(bZxProxy.address);
       var vault = await BZxVault.deployed();
       var oracle = await BZxOracle.deployed();
-      var bzrx_token = await TestNetBZRxToken.deployed();
+      var bzrx_token = await BZRxToken.deployed();
+      var bzrx_tokensale = await BZRxTokenSale.deployed();
+
+      await bzrx_tokensale.closeSale(false);
 
       var bZxTo0x = await BZxTo0x.deployed();
       //var zrx_token;
       var zrx_token = await ERC20.at(
         config["addresses"]["development"]["ZeroEx"]["ZRXToken"]
+      );
+
+      var weth = await WETH_Interface.at(
+        config["addresses"][network]["ZeroEx"]["WETH9"]
+      );
+      var weth_token = await ERC20.at(
+        config["addresses"][network]["ZeroEx"]["WETH9"]
       );
 
       for (var i = 0; i < 10; i++) {
@@ -98,36 +110,30 @@ module.exports = function(deployer, network, accounts) {
       maker0xToken1 = test_tokens[5];
 
       await Promise.all([
-        await bzrx_token.transfer(
+        await bzrx_token.mint(
           lender1_account,
-          web3.toWei(1000000, "ether"),
+          web3.toWei(100, "ether"),
           { from: owner_account }
         ),
-        await bzrx_token.transfer(
-          lender2_account,
-          web3.toWei(1000000, "ether"),
-          { from: owner_account }
+        await weth.deposit(
+          { from: lender2_account, value: web3.toWei(10, "ether") }
         ),
-        await bzrx_token.transfer(
-          trader1_account,
-          web3.toWei(1000000, "ether"),
-          { from: owner_account }
+        await weth.deposit(
+          { from: trader1_account, value: web3.toWei(10, "ether") }
         ),
-        await bzrx_token.transfer(
-          trader2_account,
-          web3.toWei(1000000, "ether"),
-          { from: owner_account }
+        await weth.deposit(
+          { from: trader2_account, value: web3.toWei(0.00001, "ether") }
         ),
         await bzrx_token.approve(vault.address, MAX_UINT, {
           from: lender1_account
         }),
-        await bzrx_token.approve(vault.address, MAX_UINT, {
+        await weth_token.approve(bzrx_tokensale.address, MAX_UINT, {
           from: lender2_account
         }),
-        await bzrx_token.approve(vault.address, MAX_UINT, {
+        await weth_token.approve(bzrx_tokensale.address, MAX_UINT, {
           from: trader1_account
         }),
-        await bzrx_token.approve(vault.address, MAX_UINT, {
+        await weth_token.approve(bzrx_tokensale.address, MAX_UINT, {
           from: trader2_account
         }),
         await loanToken1.transfer(
@@ -217,7 +223,7 @@ module.exports = function(deployer, network, accounts) {
         loanTokenAddress: loanToken1.address,
         interestTokenAddress: interestToken1.address,
         collateralTokenAddress: NULL_ADDRESS,
-        feeRecipientAddress: NULL_ADDRESS,
+        feeRecipientAddress: relay1_account,
         oracleAddress: oracle.address,
         loanTokenAmount: web3.toWei(10000, "ether").toString(),
         interestAmount: web3.toWei(2.5, "ether").toString(), // 2 token units per day
@@ -355,12 +361,12 @@ module.exports = function(deployer, network, accounts) {
         maker: makerOf0xOrder_account,
         makerFee: web3.toWei(0.002, "ether").toString(),
         makerTokenAddress: maker0xToken1.address,
-        makerTokenAmount: web3.toWei(100, "ether").toString(),
+        makerTokenAmount: web3.toWei(75.1, "ether").toString(),
         salt: ZeroEx.generatePseudoRandomSalt().toString(),
         taker: NULL_ADDRESS,
         takerFee: web3.toWei(0.0013, "ether").toString(),
         takerTokenAddress: loanToken1.address,
-        takerTokenAmount: web3.toWei(66, "ether").toString()
+        takerTokenAmount: web3.toWei(100, "ether").toString()
       };
       console.log(OrderParams_0x);
 
@@ -427,9 +433,9 @@ module.exports = function(deployer, network, accounts) {
 
       console.log("Before profit:");
       console.log(
-        await bZx.getProfitOrLoss.call(OrderHash_bZx_1, trader1_account, {
+        (await bZx.getProfitOrLoss.call(OrderHash_bZx_1, trader1_account, {
           from: lender2_account
-        })
+        })).toString()
       );
 
       console.log(
@@ -445,9 +451,16 @@ module.exports = function(deployer, network, accounts) {
       );
       console.log("After profit:");
       console.log(
-        await bZx.getProfitOrLoss.call(OrderHash_bZx_1, trader1_account, {
+        (await bZx.getProfitOrLoss.call(OrderHash_bZx_1, trader1_account, {
           from: lender2_account
-        })
+        })).toString()
+      );
+
+      console.log("Margin Levels:");
+      console.log(
+        (await bZx.getMarginLevels.call(OrderHash_bZx_1, trader1_account, {
+          from: lender2_account
+        })).toString()
       );
     });
   }

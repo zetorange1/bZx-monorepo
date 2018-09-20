@@ -61,7 +61,7 @@ module.exports = {
         "https://kovan.infura.io/" + infuraApikey
       ),
       network_id: 42,
-      gas: 6721975,
+      gas: 8000000,
       gasPrice: 20000000000
     },
     rinkeby: {

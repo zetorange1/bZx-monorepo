@@ -33,9 +33,11 @@ function proceed() {
     BZxTo0xV2: "unknown",
     BZxOracle: "unknown",
     BZRxToken: "unknown",
+    BZRxTokenSale: "unknown",
     TokenRegistry: "unknown",
     OracleRegistry: "unknown",
-    TestNetFaucet: "unknown"
+    TestNetFaucet: "unknown",
+    TestNetPriceFeed: "unknown"
   };
   var replacements = {};
 
@@ -70,7 +72,7 @@ function proceed() {
       }
       replacements["BZxOracle"] = "TestNetOracle";
       if (network == "development") {
-        replacements["BZRxToken"] = "TestNetBZRxToken";
+        //replacements["BZRxToken"] = "TestNetBZRxToken";
       }
     }
   } else {
