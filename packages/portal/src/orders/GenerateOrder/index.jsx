@@ -6,7 +6,7 @@ import TokensSection from "./Tokens";
 import MarginAmountsSection from "./MarginAmounts";
 import ExpirationSection from "./Expiration";
 import OracleSection from "./Oracle";
-// import RelayExchangeSection from "./RelayExchange";
+import RelayExchangeSection from "./RelayExchange";
 import Submission from "./Submission";
 import Result from "./Result";
 import { getDecimals } from "../../common/tokens";
@@ -179,9 +179,9 @@ export default class GenerateOrder extends React.Component {
   };
 
   setRelayCheckbox = (e, value) =>
-    this.setState({ sendToRelayExchange: value });
+    this.setState(p => ({ sendToRelayExchange: value, pushOnChain: value ? !value : p.pushOnChain }));
 
-  pushOnChainCheckbox = (e, value) => this.setState({ pushOnChain: value });
+  pushOnChainCheckbox = (e, value) => this.setState(p => ({ pushOnChain: value, sendToRelayExchange: value ? !value : p.sendToRelayExchange }));
 
   refreshCollateralAmount = async () => {
     if (this.state.role === `trader`) {
@@ -362,7 +362,7 @@ export default class GenerateOrder extends React.Component {
           expirationDate={this.state.expirationDate}
         />
 
-        {/* <Divider />
+        <Divider />
 
         <RelayExchangeSection
           // state setters
@@ -371,15 +371,17 @@ export default class GenerateOrder extends React.Component {
           // form states
           sendToRelayExchange={this.state.sendToRelayExchange}
           feeRecipientAddress={this.state.feeRecipientAddress}
+          pushOnChain={this.state.pushOnChain}
           lenderRelayFee={this.state.lenderRelayFee}
           traderRelayFee={this.state.traderRelayFee}
-        /> */}
+        />
 
         <Divider />
 
         <Submission
           pushOnChainCheckbox={this.pushOnChainCheckbox}
           pushOnChain={this.state.pushOnChain}
+          sendToRelayExchange={this.state.sendToRelayExchange}
           onSubmit={this.handleSubmit}
         />
 
