@@ -47,7 +47,7 @@ contract BZRxToken is UnlimitedAllowanceToken, DetailedERC20, Ownable {
         minters[msg.sender] = true;
     }
 
-    /// @dev ERC20 transferFrom, modified such that an allowance of MAX_UINT represents an unlimited allowance.
+    /// @dev ERC20 transferFrom function
     /// @param _from Address to transfer from.
     /// @param _to Address to transfer to.
     /// @param _value Amount to transfer.
@@ -70,11 +70,10 @@ contract BZRxToken is UnlimitedAllowanceToken, DetailedERC20, Ownable {
         revert("this token is locked for transfers");
     }
 
-    /**
-    * @dev Transfer token for a specified address
-    * @param _to The address to transfer to.
-    * @param _value The amount to be transferred.
-    */
+    /// @dev ERC20 transfer function
+    /// @param _to Address to transfer to.
+    /// @param _value Amount to transfer.
+    /// @return Success of transfer.
     function transfer(
         address _to, 
         uint256 _value) 
