@@ -77,7 +77,10 @@ export default class FillOrder extends BZxComponent {
           orderDetail.orderCancelledAmount;
         this.setState({ loanTokenAvailable });
       } else {
-        this.setState({ loanTokenAvailable: this.props.order.loanTokenAmount });
+        const cancelledAmount = await this.props.bZx.orderCancelledAmount(
+          orderHash
+        );
+        this.setState({ loanTokenAvailable: this.props.order.loanTokenAmount-cancelledAmount });
       }
     } catch (e) {} // eslint-disable-line no-empty
   }

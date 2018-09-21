@@ -11,7 +11,7 @@ export const transferToken = (
     tokenAddress
   );
 
-  const txObj = tokenContract.methods.transfer(to, amount);
+  const txObj = tokenContract.methods.transfer(to, web3.utils.toBN(amount).toString(10));
 
   if (getObject) {
     return txObj;

@@ -137,6 +137,11 @@ export class BZxJS {
   getInitialCollateralRequired = async (...props) =>
     fill.getInitialCollateralRequired(this, ...props);
 
+  orderFilledAmount = async (...props) =>
+    fill.orderFilledAmount(this, ...props);
+  orderCancelledAmount = async (...props) =>
+    fill.orderCancelledAmount(this, ...props);
+
   getSingleOrder = async (...props) =>
     orderHistory.getSingleOrder(this, ...props);
   getOrdersFillable = async (...props) =>

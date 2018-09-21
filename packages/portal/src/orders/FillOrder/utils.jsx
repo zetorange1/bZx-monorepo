@@ -360,7 +360,7 @@ export const validateCancelOrder = async (
     }
 
     console.log(`validateCancelOrder`);
-    console.log(order, cancelOrderAmount);
+    //console.log(order, cancelOrderAmount);
     return true;
   } catch (e) {
     console.error(e);

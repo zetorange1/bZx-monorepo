@@ -30,7 +30,7 @@ export const setAllowance = (
 
   const txObj = tokenContract.methods.approve(
     spenderAddress,
-    amountInBaseUnits
+    web3.utils.toBN(amountInBaseUnits).toString(10)
   );
 
   if (getObject) {

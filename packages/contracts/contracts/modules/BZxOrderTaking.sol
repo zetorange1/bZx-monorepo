@@ -31,7 +31,7 @@ contract BZxOrderTaking is BZxStorage, BZxProxiable, OrderTakingFunctions {
         targets[bytes4(keccak256("takeLoanOrderAsTrader(address[6],uint256[10],address,uint256,bytes)"))] = _target;
         targets[bytes4(keccak256("takeLoanOrderAsLender(address[6],uint256[10],bytes)"))] = _target;
         targets[bytes4(keccak256("cancelLoanOrder(address[6],uint256[10],uint256)"))] = _target;
-        targets[bytes4(keccak256("cancelLoanOrder(bytes32,uint256)"))] = _target;
+        targets[bytes4(keccak256("cancelLoanOrderWithHash(bytes32,uint256)"))] = _target;
     }
 
     /// @dev Takes the order as trader
@@ -111,17 +111,44 @@ contract BZxOrderTaking is BZxStorage, BZxProxiable, OrderTakingFunctions {
         tracksGas
         returns (uint)
     {
-        return _cancelLoanOrder(
-            _getLoanOrderHash(orderAddresses, orderValues), 
-            cancelLoanTokenAmount
+        bytes32 loanOrderHash = _getLoanOrderHash(orderAddresses, orderValues);
+
+        require(orderAddresses[0] == msg.sender, "BZxOrderTaking::cancelLoanOrder: makerAddress != msg.sender");
+        require(orderValues[0] > 0 && cancelLoanTokenAmount > 0, "BZxOrderTaking::cancelLoanOrder: invalid params");
+
+        if (orderValues[7] > 0 && block.timestamp >= orderValues[7]) {
+            _removeLoanOrder(loanOrderHash, address(0));
+            return 0;
+        }
+
+        uint remainingLoanTokenAmount = orderValues[0].sub(_getUnavailableLoanTokenAmount(loanOrderHash));
+        uint cancelledLoanTokenAmount = Math.min256(cancelLoanTokenAmount, remainingLoanTokenAmount);
+        if (cancelledLoanTokenAmount == 0) {
+            // none left to cancel
+            return 0;
+        }
+
+        if (remainingLoanTokenAmount == cancelledLoanTokenAmount) {
+            _removeLoanOrder(loanOrderHash, address(0));
+        }
+
+        orderCancelledAmounts[loanOrderHash] = orderCancelledAmounts[loanOrderHash].add(cancelledLoanTokenAmount);
+
+        emit LogLoanCancelled(
+            msg.sender,
+            cancelledLoanTokenAmount,
+            (remainingLoanTokenAmount - cancelledLoanTokenAmount),
+            loanOrderHash
         );
+    
+        return cancelledLoanTokenAmount;
     }
 
     /// @dev Cancels remaining (untaken) loan
     /// @param loanOrderHash A unique hash representing the loan order.
     /// @param cancelLoanTokenAmount The amount of remaining unloaned token to cancel.
     /// @return The amount of loan token canceled.
-    function cancelLoanOrder(
+    function cancelLoanOrderWithHash(
         bytes32 loanOrderHash,
         uint cancelLoanTokenAmount)
         external
@@ -129,36 +156,15 @@ contract BZxOrderTaking is BZxStorage, BZxProxiable, OrderTakingFunctions {
         tracksGas
         returns (uint)
     {
-        return _cancelLoanOrder(
-            loanOrderHash, 
-            cancelLoanTokenAmount
-        );
-    }
-
-
-    /*
-    * Internal functions
-    */
-
-
-
-
-    // this cancels any reminaing un-loaned loanToken in the order
-    function _cancelLoanOrder(
-        bytes32 loanOrderHash,
-        uint cancelLoanTokenAmount)
-        internal
-        returns (uint)
-    {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
-            revert("BZxOrderTaking::cancelLoanOrder: loanOrder.loanTokenAddress == address(0)");
+            revert("BZxOrderTaking::cancelLoanOrderWithHash: loanOrder.loanTokenAddress == address(0)");
         }
         
         LoanOrderAux memory loanOrderAux = orderAux[loanOrderHash];
 
-        require(loanOrderAux.maker == msg.sender, "BZxOrderTaking::_cancelLoanOrder: loanOrderAux.maker != msg.sender");
-        require(loanOrder.loanTokenAmount > 0 && cancelLoanTokenAmount > 0, "BZxOrderTaking::_cancelLoanOrder: invalid params");
+        require(loanOrderAux.maker == msg.sender, "BZxOrderTaking::cancelLoanOrderWithHash: loanOrderAux.maker != msg.sender");
+        require(loanOrder.loanTokenAmount > 0 && cancelLoanTokenAmount > 0, "BZxOrderTaking::cancelLoanOrderWithHash: invalid params");
 
         if (loanOrderAux.expirationUnixTimestampSec > 0 && block.timestamp >= loanOrderAux.expirationUnixTimestampSec) {
             _removeLoanOrder(loanOrder.loanOrderHash, address(0));

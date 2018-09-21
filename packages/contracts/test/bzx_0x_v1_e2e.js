@@ -71,9 +71,8 @@ let BZxTo0xV2 = artifacts.require("BZxTo0xV2");
 let BZxOracle = artifacts.require("TestNetOracle");
 let BZxOracleRegistry = artifacts.require("OracleRegistry");
 let BZRxTokenRegistry = artifacts.require("TokenRegistry");
-let BZRxToken = artifacts.require("TestNetBZRxToken");
+let BZRxToken = artifacts.require("BZRxToken");
 let ERC20 = artifacts.require("ERC20"); // for testing with any ERC20 token
-let BaseToken = artifacts.require("BaseToken");
 let Exchange0x = artifacts.require("ExchangeInterface");
 let Exchange0xV2 = artifacts.require("ExchangeV2InterfaceWithEvents");
 
@@ -111,7 +110,7 @@ contract("BZxTest", function(accounts) {
   var bZxTo0xV2;
 
   var oracle_registry;
-  var bzrx_token;
+  //var bzrx_token;
   var token_registry;
 
   var bZxEvents;
@@ -131,7 +130,6 @@ contract("BZxTest", function(accounts) {
   var OrderParams_bZx_1, OrderParams_bZx_2;
   var OrderHash_bZx_1, OrderHash_bZx_2;
   var ECSignature_raw_1, ECSignature_raw_2;
-  var ECSignature_1, ECSignature_2;
 
   var OrderParams_0x_1, OrderParams_0x_2;
   var OrderHash_0x_1, OrderHash_0x_2;
@@ -144,7 +142,6 @@ contract("BZxTest", function(accounts) {
     OrderHash_0xV2_1_onchain,
     OrderHash_0xV2_2_onchain;
   var ECSignature_0xV2_raw_1, ECSignature_0xV2_raw_2;
-  var ECSignature_0xV2_1, ECSignature_0xV2_2;
 
   var OrderParams_0xV2_1_prepped, OrderParams_0xV2_2_prepped;
 
@@ -182,7 +179,7 @@ contract("BZxTest", function(accounts) {
 
   before("retrieve all deployed contracts", async function() {
     await Promise.all([
-      (bzrx_token = await BZRxToken.deployed()),
+      //(bzrx_token = await BZRxToken.deployed()),
       (vault = await BZxVault.deployed()),
       (bZxTo0x = await BZxTo0x.deployed()),
       (bZxTo0xV2 = await BZxTo0xV2.deployed()),
@@ -221,7 +218,7 @@ contract("BZxTest", function(accounts) {
     maker0xV2Token1 = test_tokens[7];
 
     await Promise.all([
-      await bzrx_token.transfer(lender1_account, web3.toWei(1000000, "ether"), {
+      /*await bzrx_token.transfer(lender1_account, web3.toWei(1000000, "ether"), {
         from: owner_account
       }),
       await bzrx_token.transfer(lender2_account, web3.toWei(1000000, "ether"), {
@@ -244,7 +241,7 @@ contract("BZxTest", function(accounts) {
       }),
       await bzrx_token.approve(vault.address, MAX_UINT, {
         from: trader2_account
-      }),
+      }),*/
       await loanToken1.transfer(lender1_account, web3.toWei(1000000, "ether"), {
         from: owner_account
       }),

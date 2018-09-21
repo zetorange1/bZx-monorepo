@@ -30,7 +30,7 @@ export const getOrdersFillable = async (
     Addresses.getAddresses(networkId).BZx
   );
 
-  const data = await bZxContract.methods.getOrdersFillable(start, count).call();
+  const data = await bZxContract.methods.getOrdersFillable(web3.utils.toBN(start).toString(10), web3.utils.toBN(count).toString(10)).call();
 
   return OrderUtils.cleanData(data);
 };
