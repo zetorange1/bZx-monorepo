@@ -59,7 +59,7 @@ export default class Trade0xDialog extends React.Component {
       alert(`Please confirm this transaction on your device.`);
     }
 
-    const txObj = await bZx.tradePositionWith0x({
+    const txObj = await bZx.tradePositionWith0xV2({
       order0x,
       orderHashBZx: loanOrderHash,
       getObject: true,
@@ -113,10 +113,10 @@ export default class Trade0xDialog extends React.Component {
     const { value } = this.state;
     return (
       <Dialog open={this.props.open} onClose={this.props.onClose}>
-        <DialogTitle>Execute Trade with 0x Order</DialogTitle>
+        <DialogTitle>Execute Trade with 0x V2 Order</DialogTitle>
         <DialogContent>
           <Section>
-            <SectionLabel>1. Paste in your 0x order</SectionLabel>
+            <SectionLabel>1. Paste in your 0x V2 order</SectionLabel>
             <TextArea
               cols="30"
               rows="10"
@@ -130,7 +130,10 @@ export default class Trade0xDialog extends React.Component {
             <p>
               This function is for the user to present a pre-existing 0x order
               found elsewhere to bZx, so bZx can be the taker on behalf of the
-              user.
+              user. This form supports version 2 of the 0x protocol.
+              <br/><br/>
+              If the 0x order won't fill the entire position balance, or would 
+              result in a margin call, the trade will fail.
             </p>
             <Button
               onClick={this.executeTrade}

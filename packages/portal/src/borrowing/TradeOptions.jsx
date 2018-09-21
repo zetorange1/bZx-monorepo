@@ -58,7 +58,7 @@ export default class TradeOptions extends React.Component {
           open={Boolean(anchorEl)}
           onClose={this.handleClose}
         >
-          <MenuItem onClick={this.handle0xTradeClick}>With a 0x order</MenuItem>
+          <MenuItem onClick={this.handle0xTradeClick}>With a 0x V2 order</MenuItem>
           <MenuItem onClick={this.handleOracleTradeClick}>
             With the Kyber oracle
           </MenuItem>

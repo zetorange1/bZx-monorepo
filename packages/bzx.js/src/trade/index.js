@@ -4,6 +4,7 @@ import BN from "bn.js";
 import ethABI from "ethereumjs-abi";
 import ethUtil from "ethereumjs-util";
 import OrderUtils from "@0xproject/order-utils";
+
 import * as CoreUtils from "../core/utils";
 import { getContracts } from "../contracts";
 import * as ZeroExTradeUtils from "./utils/zeroEx";
@@ -71,6 +72,44 @@ export const tradePositionWith0x = (
     orderHashBZx,
     order0xTightlyPacked,
     rpcSig0x
+  );
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
+};
+
+export const tradePositionWith0xV2 = (
+  { web3, networkId },
+  { order0x, orderHashBZx, getObject, txOpts }
+) => {
+  const contracts = getContracts(networkId);
+  const bZxContract = CoreUtils.getContractInstance(
+    web3,
+    contracts.BZx.abi,
+    contracts.BZx.address
+  );
+
+  const order0xPrepped = [
+    order0x.signedOrder.makerAddress,
+    order0x.signedOrder.takerAddress,
+    order0x.signedOrder.feeRecipientAddress,
+    order0x.signedOrder.senderAddress,
+    order0x.signedOrder.makerAssetAmount,
+    order0x.signedOrder.takerAssetAmount,
+    order0x.signedOrder.makerFee,
+    order0x.signedOrder.takerFee,
+    order0x.signedOrder.expirationTimeSeconds,
+    order0x.signedOrder.salt,
+    order0x.signedOrder.makerAssetData,
+    order0x.signedOrder.takerAssetData
+  ];
+
+  const txObj = bZxContract.methods.tradePositionWith0xV2(
+    orderHashBZx,
+    [order0xPrepped],
+    [order0x.signedOrder.signature]
   );
 
   if (getObject) {
