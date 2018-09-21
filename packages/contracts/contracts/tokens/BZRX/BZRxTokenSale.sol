@@ -139,6 +139,9 @@ contract BZRxTokenSale is Ownable {
                                 .mul(73).div(1000)              // fixed price per token $0.073
                                 .mul(10**18).div(ethRate);      // curent ETH/USD rate
 
+            // discount on purchase
+            wethValue -= wethValue.mul(bonusMultiplier).div(100).sub(wethValue);
+
             require(StandardToken(wethContractAddress).transferFrom(
                 _from,
                 this,
@@ -147,8 +150,6 @@ contract BZRxTokenSale is Ownable {
 
             ethRaised += wethValue;
 
-            uint tokenAmountAndBonus = _value.mul(bonusMultiplier).div(100);
-
             TokenPurchases storage purchase = purchases[_from];
 
             if (purchase.totalETH == 0) {
@@ -156,12 +157,11 @@ contract BZRxTokenSale is Ownable {
             }
 
             purchase.totalETH += wethValue;
-            purchase.totalTokens += tokenAmountAndBonus;
-            purchase.totalTokenBonus += tokenAmountAndBonus.sub(_value);
+            purchase.totalTokens += _value;
 
             return BZRxToken(bZRxTokenContractAddress).mint(
                 _to,
-                _value.mul(bonusMultiplier).div(100)
+                _value
             );
         }
     }

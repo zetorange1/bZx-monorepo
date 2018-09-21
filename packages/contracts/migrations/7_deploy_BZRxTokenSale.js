@@ -34,7 +34,7 @@ module.exports = function(deployer, network, accounts) {
       return;
     }
 
-    var tokensale = await deployer.deploy(
+    await deployer.deploy(
       BZRxTokenSale, 
       BZRxToken.address, 
       BZxVault.address, 
