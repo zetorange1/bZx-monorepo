@@ -1,6 +1,6 @@
 {
   "name": "bzx.js",
-  "version": "0.3.1",
+  "version": "0.3.3",
   "private": true,
   "description": "",
   "keywords": [],
@@ -33,8 +33,8 @@
     "lodash": "^4.17.4",
     "moment": "^2.22.1",
     "ramda": "^0.25.0",
-    "web3": "1.0.0-beta.34",
-    "web3-utils": "1.0.0-beta.34"
+    "web3": "1.0.0-beta.36",
+    "web3-utils": "1.0.0-beta.36"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -61,8 +61,8 @@
     "jest": "^23.5.0",
     "pre-commit": "^1.2.2",
     "prettier": "^1.10.2",
-    "rimraf": "^2.6.2",
     "regenerator-runtime": "^0.11.1",
+    "rimraf": "^2.6.2",
     "webpack": "^4.17.1",
     "webpack-bundle-analyzer": "^2.13.1",
     "webpack-merge": "^4.1.4",

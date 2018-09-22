@@ -95,7 +95,7 @@ export const takeLoanOrderAsTrader = (
     orderAddresses,
     orderValues,
     collateralTokenAddress,
-    loanTokenAmountFilled,
+    web3.utils.toBN(loanTokenAmountFilled).toString(10),
     order.signature
   );
 
@@ -170,7 +170,7 @@ export const takeLoanOrderOnChainAsTrader = (
   const txObj = bZxContract.methods.takeLoanOrderOnChainAsTrader(
     loanOrderHash,
     collateralTokenAddress,
-    loanTokenAmountFilled
+    web3.utils.toBN(loanTokenAmountFilled).toString(10)
   );
 
   if (getObject) {
@@ -234,7 +234,7 @@ export const cancelLoanOrder = (
   const txObj = bZxContract.methods.cancelLoanOrder(
     orderAddresses,
     orderValues,
-    cancelLoanTokenAmount
+    web3.utils.toBN(cancelLoanTokenAmount).toString(10)
   );
 
   if (getObject) {
@@ -253,9 +253,9 @@ export const cancelLoanOrderWithHash = (
     Addresses.getAddresses(networkId).BZx
   );
 
-  const txObj = bZxContract.methods.cancelLoanOrder(
+  const txObj = bZxContract.methods.cancelLoanOrderWithHash(
     loanOrderHash,
-    cancelLoanTokenAmount
+    web3.utils.toBN(cancelLoanTokenAmount).toString(10)
   );
 
   if (getObject) {
@@ -292,4 +292,44 @@ export const getInitialCollateralRequired = async (
     console.log(e);
   }
   return initialCollateralRequired;
+};
+
+export const orderFilledAmount = async (
+  { web3, networkId },
+  loanOrderHash
+) => {
+  const bZxContract = await CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).BZx.abi,
+    Addresses.getAddresses(networkId).BZx
+  );
+  let filledAmount = null;
+  try {
+    filledAmount = await bZxContract.methods
+      .orderFilledAmounts(loanOrderHash)
+      .call();
+  } catch (e) {
+    console.log(e);
+  }
+  return filledAmount;
+};
+
+export const orderCancelledAmount = async (
+  { web3, networkId },
+  loanOrderHash
+) => {
+  const bZxContract = await CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).BZx.abi,
+    Addresses.getAddresses(networkId).BZx
+  );
+  let cancelledAmount = null;
+  try {
+    cancelledAmount = await bZxContract.methods
+      .orderCancelledAmounts(loanOrderHash)
+      .call();
+  } catch (e) {
+    console.log(e);
+  }
+  return cancelledAmount;
 };

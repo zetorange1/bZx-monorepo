@@ -4,9 +4,9 @@ export const PERMA_TOKEN_SYMBOLS = [`BZRX`, `BZRXFAKE`, `ZRX`, `WETH`];
 
 export const FAUCET_TOKEN_SYMBOLS = {
   mainnet: [`BZRXFAKE`],
-  ropsten: [`BZRX`],
-  rinkeby: [`BZRX`, `TEST0`, `TEST1`, `TEST2`, `TEST3`, `TEST4`, `TEST5`, `TEST6`, `TEST7`, `TEST8`, `TEST9`],
-  kovan: [`BZRX`, `TEST0`, `TEST1`, `TEST2`, `TEST3`, `TEST4`, `TEST5`, `TEST6`, `TEST7`, `TEST8`, `TEST9`]
+  ropsten: [],
+  rinkeby: [`TEST0`, `TEST1`, `TEST2`, `TEST3`, `TEST4`, `TEST5`, `TEST6`, `TEST7`, `TEST8`, `TEST9`],
+  kovan: [`TEST0`, `TEST1`, `TEST2`, `TEST3`, `TEST4`, `TEST5`, `TEST6`, `TEST7`, `TEST8`, `TEST9`]
 };
 
 // Gets an array of addresses of the perma tokens.

@@ -31,7 +31,7 @@ export const compileObject = async (web3, state, account, bZx, tokens) => {
         ? `0x0000000000000000000000000000000000000000`
         : state.collateralTokenAddress,
     feeRecipientAddress: sendToRelayExchange
-      ? state.feeRecipientAddress
+      ? state.feeRecipientAddress.toLowerCase()
       : `0x0000000000000000000000000000000000000000`,
     oracleAddress: state.oracleAddress,
 

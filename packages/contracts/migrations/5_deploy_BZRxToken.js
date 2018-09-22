@@ -1,4 +1,6 @@
-var TestNetBZRxToken = artifacts.require("TestNetBZRxToken");
+var BZRxToken = artifacts.require("BZRxToken");
+
+var config = require("../protocol-config.js");
 
 module.exports = function(deployer, network, accounts) {
   network = network.replace("-fork", "");
@@ -7,10 +9,13 @@ module.exports = function(deployer, network, accounts) {
     network == "develop" ||
     network == "development" ||
     network == "testnet" ||
-    network == "coverage"
+    network == "coverage" || 
+    network == "kovan" || 
+    network == "ropsten"
   ) {
-    network = "development";
+    if (network != "kovan")
+      network = "development";
 
-    deployer.deploy(TestNetBZRxToken);
+    deployer.deploy(BZRxToken);
   }
 };

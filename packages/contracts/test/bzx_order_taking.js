@@ -174,12 +174,12 @@ contract("BZxTest: order taking", function(accounts) {
         })
 
         it("should allow to cancel `trader` off-chain order loan", async () => {
-            let cancelledLoanTokenAmount = await bZx.cancelLoanOrder.call(
+            let cancelledLoanTokenAmount = await bZx.cancelLoanOrderWithHash.call(
                 orderHash,
                 MAX_UINT,
                 {from: lender1})
 
-            let tx = await bZx.cancelLoanOrder(
+            let tx = await bZx.cancelLoanOrderWithHash(
                 orderHash,
                 MAX_UINT,
                 {from: lender1}
@@ -223,7 +223,7 @@ contract("BZxTest: order taking", function(accounts) {
         })
 
         it("there should be nothing to cancel", async () => {
-            let cancelledLoanTokenAmount = await bZx.cancelLoanOrder.call(
+            let cancelledLoanTokenAmount = await bZx.cancelLoanOrderWithHash.call(
                 orderHash,
                 MAX_UINT,
                 {from: trader2}
@@ -272,12 +272,12 @@ contract("BZxTest: order taking", function(accounts) {
         });
 
         it("should allow to cancel 'trader' on-chain order loan", async () => {
-            let cancelledLoanTokenAmount = await bZx.cancelLoanOrder.call(
+            let cancelledLoanTokenAmount = await bZx.cancelLoanOrderWithHash.call(
                 orderHash,
                 MAX_UINT,
                 {from: lender1})
 
-            let tx = await bZx.cancelLoanOrder(
+            let tx = await bZx.cancelLoanOrderWithHash(
                 orderHash,
                 MAX_UINT,
                 {from: lender1}
@@ -323,7 +323,7 @@ contract("BZxTest: order taking", function(accounts) {
         });
 
         it("there should be nothing to cancel", async () => {
-            let cancelledLoanTokenAmount = await bZx.cancelLoanOrder.call(
+            let cancelledLoanTokenAmount = await bZx.cancelLoanOrderWithHash.call(
                 orderHash,
                 MAX_UINT,
                 {from: trader2}
@@ -380,12 +380,12 @@ contract("BZxTest: order taking", function(accounts) {
         });
 
         it("should allow to cancel `trader` on-chain order loan", async () => {
-            let cancelledLoanTokenAmount = await bZx.cancelLoanOrder.call(
+            let cancelledLoanTokenAmount = await bZx.cancelLoanOrderWithHash.call(
                 orderHash,
                 MAX_UINT,
                 {from: order["makerAddress"]})
 
-            let tx = await bZx.cancelLoanOrder(
+            let tx = await bZx.cancelLoanOrderWithHash(
                 orderHash,
                 MAX_UINT,
                 {from: order["makerAddress"]}
@@ -438,7 +438,7 @@ contract("BZxTest: order taking", function(accounts) {
         });
 
         it("there should be nothing to cancel", async () => {
-            let cancelledLoanTokenAmount = await bZx.cancelLoanOrder.call(
+            let cancelledLoanTokenAmount = await bZx.cancelLoanOrderWithHash.call(
                 orderHash,
                 MAX_UINT,
                 {from: order["makerAddress"]}

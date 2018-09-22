@@ -29,7 +29,7 @@ export const unwrapEth = (
     addresses.WETH
   );
 
-  const txObj = wethContract.methods.withdraw(amount);
+  const txObj = wethContract.methods.withdraw(web3.utils.toBN(amount).toString(10));
 
   if (getObject) {
     return txObj;

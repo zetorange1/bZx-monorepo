@@ -3,7 +3,7 @@ import styled from "styled-components";
 import Input from "@material-ui/core/Input";
 import InputLabel from "@material-ui/core/InputLabel";
 import InputAdornment from "@material-ui/core/InputAdornment";
-import { FormControl, FormControlLabel } from "@material-ui/core/FormControl";
+import { FormControl, FormControlLabel } from "@material-ui/core";
 import Checkbox from "@material-ui/core/Checkbox";
 import TextField from "@material-ui/core/TextField";
 import Section, { SectionLabel } from "../../common/FormSection";
@@ -14,6 +14,7 @@ const AddressTextField = styled(TextField)`
 
 export default ({
   sendToRelayExchange,
+  pushOnChain,
   setRelayCheckbox,
   setStateForInput,
   feeRecipientAddress,
@@ -26,9 +27,9 @@ export default ({
     <div>
       <FormControlLabel
         control={
-          <Checkbox checked={sendToRelayExchange} onChange={setRelayCheckbox} />
+          <Checkbox checked={sendToRelayExchange} onChange={setRelayCheckbox} disabled={pushOnChain} />
         }
-        label="Send to relay/exchange"
+        label="Set relay/exchange fees"
       />
     </div>
 

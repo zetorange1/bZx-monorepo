@@ -49,7 +49,7 @@ export const setupBZxToken = async ({
   const allAddresses = [...lenders, ...traders];
 
   const bZxTokenPromises = allAddresses.map(address =>
-    bZxToken.methods.transfer(address, transferAmount).send(clone(ownerTxOpts))
+    bZxToken.methods.transfer(address, bZxJS.web3.utils.toBN(transferAmount).toString(10)).send(clone(ownerTxOpts))
   );
   const allowancePromises = allAddresses.map(address =>
     bZxJS.setAllowanceUnlimited({

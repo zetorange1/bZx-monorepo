@@ -75,7 +75,7 @@ contract BZx is BZxStorage {
         external
         returns (uint);
 
-    function cancelLoanOrder(
+    function cancelLoanOrderWithHash(
         bytes32 loanOrderHash,
         uint cancelLoanTokenAmount)
         external

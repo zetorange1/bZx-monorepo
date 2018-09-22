@@ -35,7 +35,7 @@ export const depositCollateral = (
   const txObj = bZxContract.methods.depositCollateral(
     loanOrderHash,
     collateralTokenFilled,
-    depositAmount
+    web3.utils.toBN(depositAmount).toString(10)
   );
 
   if (getObject) {
@@ -57,7 +57,7 @@ export const withdrawExcessCollateral = (
   const txObj = bZxContract.methods.withdrawExcessCollateral(
     loanOrderHash,
     collateralTokenFilled,
-    withdrawAmount
+    web3.utils.toBN(withdrawAmount).toString(10)
   );
 
   if (getObject) {

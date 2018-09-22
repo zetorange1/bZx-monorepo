@@ -11,7 +11,7 @@ export const getActiveLoans = async (
     getContracts(networkId).BZx.abi,
     addresses.BZx
   );
-  const data = await bZxContract.methods.getActiveLoans(start, count).call();
+  const data = await bZxContract.methods.getActiveLoans(web3.utils.toBN(start).toString(10), web3.utils.toBN(count).toString(10)).call();
   return ActiveLoansUtils.cleanData(data);
 };
 

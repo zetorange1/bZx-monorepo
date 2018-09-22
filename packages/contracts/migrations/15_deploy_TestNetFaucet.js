@@ -1,10 +1,10 @@
-const DEPOSIT_BZRX = true;
+//const DEPOSIT_BZRX = false;
 
 var TestNetFaucet = artifacts.require("TestNetFaucet");
 var TestNetOracle = artifacts.require("TestNetOracle");
 
-var BZRxToken = artifacts.require("BZRxToken");
-var TestNetBZRxToken = artifacts.require("TestNetBZRxToken");
+/*var BZRxToken = artifacts.require("BZRxToken");
+var TestNetBZRxToken = artifacts.require("TestNetBZRxToken");*/
 
 var config = require("../protocol-config.js");
 
@@ -31,7 +31,7 @@ module.exports = function(deployer, network, accounts) {
       await testNetFaucet.setOracleContractAddress(oracle.address);
     }
 
-    if (DEPOSIT_BZRX) {
+    /*if (DEPOSIT_BZRX) {
       var bzrx_token;
       if (network == "ropsten" || network == "kovan" || network == "rinkeby") {
         bzrx_token = await BZRxToken.at(
@@ -45,6 +45,6 @@ module.exports = function(deployer, network, accounts) {
         testNetFaucet.address,
         web3.toWei(100000000000000000, "ether")
       );
-    }
+    }*/
   });
 };

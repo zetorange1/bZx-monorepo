@@ -137,6 +137,11 @@ export class BZxJS {
   getInitialCollateralRequired = async (...props) =>
     fill.getInitialCollateralRequired(this, ...props);
 
+  orderFilledAmount = async (...props) =>
+    fill.orderFilledAmount(this, ...props);
+  orderCancelledAmount = async (...props) =>
+    fill.orderCancelledAmount(this, ...props);
+
   getSingleOrder = async (...props) =>
     orderHistory.getSingleOrder(this, ...props);
   getOrdersFillable = async (...props) =>
@@ -153,6 +158,7 @@ export class BZxJS {
   transferToken = (...props) => transfer.transferToken(this, ...props);
 
   tradePositionWith0x = (...props) => trade.tradePositionWith0x(this, ...props);
+  tradePositionWith0xV2 = (...props) => trade.tradePositionWith0xV2(this, ...props);
   tradePositionWithOracle = (...props) =>
     trade.tradePositionWithOracle(this, ...props);
 

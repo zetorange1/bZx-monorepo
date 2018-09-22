@@ -25,7 +25,7 @@ contract UnlimitedAllowanceToken is StandardToken {
 
     uint internal constant MAX_UINT = 2**256 - 1;
     
-    /// @dev ERC20 transferFrom, modified such that an allowance of MAX_UINT represents an unlimited allowance.
+    /// @dev ERC20 transferFrom, modified such that an allowance of MAX_UINT represents an unlimited allowance, and to add revert reasons.
     /// @param _from Address to transfer from.
     /// @param _to Address to transfer to.
     /// @param _value Amount to transfer.
@@ -38,9 +38,9 @@ contract UnlimitedAllowanceToken is StandardToken {
         returns (bool)
     {
         uint allowance = allowed[_from][msg.sender];
-        require(_value <= balances[_from]);
-        require(_value <= allowance);
-        require(_to != address(0));
+        require(_value <= balances[_from], "insufficient balance");
+        require(_value <= allowance, "insufficient allowance");
+        require(_to != address(0), "token burn not allowed");
 
         balances[_from] = balances[_from].sub(_value);
         balances[_to] = balances[_to].add(_value);
@@ -48,6 +48,24 @@ contract UnlimitedAllowanceToken is StandardToken {
             allowed[_from][msg.sender] = allowance.sub(_value);
         }
         emit Transfer(_from, _to, _value);
+        return true;
+    }
+
+    /// @dev Transfer token for a specified address, modified to add revert reasons.
+    /// @param _to The address to transfer to.
+    /// @param _value The amount to be transferred.
+    function transfer(
+        address _to,
+        uint256 _value)
+        public 
+        returns (bool)
+    {
+        require(_value <= balances[msg.sender], "insufficient balance");
+        require(_to != address(0), "token burn not allowed");
+
+        balances[msg.sender] = balances[msg.sender].sub(_value);
+        balances[_to] = balances[_to].add(_value);
+        emit Transfer(msg.sender, _to, _value);
         return true;
     }
 }
