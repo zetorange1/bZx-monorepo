@@ -73,10 +73,10 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
     // Bounty hunters are remembursed from collateral
     // The oracle requires a minimum amount
-    uint public minimumCollateralInEthAmount = 0.5 ether;
+    uint public minimumCollateralInWethAmount = 0.5 ether;
 
-    // If true, the collateral must not be below minimumCollateralInEthAmount for the loan to be opened
-    // If false, the loan can be opened, but it won't be insured by the insurance fund if collateral is below minimumCollateralInEthAmount
+    // If true, the collateral must not be below minimumCollateralInWethAmount for the loan to be opened
+    // If false, the loan can be opened, but it won't be insured by the insurance fund if collateral is below minimumCollateralInWethAmount
     bool public enforceMinimum = false;
 
     // Percentage of interest retained as fee
@@ -105,7 +105,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     address public bZRxTokenContract;
 /* solhint-enable var-name-mixedcase */
 
-    mapping (uint => uint) public collateralInEthAmounts; // mapping of position ids to initial collateralInEthAmounts
+    mapping (uint => uint) public collateralInWethAmounts; // mapping of position ids to initial collateralInWethAmounts
 
     constructor(
         address _vaultContract,
@@ -141,20 +141,20 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         updatesEMA(tx.gasprice)
         returns (bool)
     {
-        uint collateralInEthAmount;
+        uint collateralInWethAmount;
         if (loanPosition.collateralTokenAddressFilled != wethContract) {
             (uint ethToCollateralRate,) = _getExpectedRate(
                 wethContract,
                 loanPosition.collateralTokenAddressFilled,
                 0
             );
-            collateralInEthAmount = loanPosition.collateralTokenAmountFilled.mul(_getDecimalPrecision(wethContract, loanPosition.collateralTokenAddressFilled)).div(ethToCollateralRate);
+            collateralInWethAmount = loanPosition.collateralTokenAmountFilled.mul(_getDecimalPrecision(wethContract, loanPosition.collateralTokenAddressFilled)).div(ethToCollateralRate);
         } else {
-            collateralInEthAmount = loanPosition.collateralTokenAmountFilled;
+            collateralInWethAmount = loanPosition.collateralTokenAmountFilled;
         }
 
-        require(!enforceMinimum || collateralInEthAmount >= minimumCollateralInEthAmount, "collateral below minimum for BZxOracle");
-        collateralInEthAmounts[positionId] = collateralInEthAmount;
+        require(!enforceMinimum || collateralInWethAmount >= minimumCollateralInWethAmount, "collateral below minimum for BZxOracle");
+        collateralInWethAmounts[positionId] = collateralInWethAmount;
 
         return true;
     }
@@ -208,13 +208,13 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         // TODO: Block withdrawal below a certain amount
         if (loanOrder.interestTokenAddress == wethContract) {
             // interest paid in WETH is withdrawn to Ether
-            WETH_Interface(wethContract).withdraw(interestFee);
+            //WETH_Interface(wethContract).withdraw(interestFee);
         } else if (convert && loanOrder.interestTokenAddress != bZRxTokenContract) {
-            // interest paid in BZRX is retained as is, other tokens are sold for Ether
-            _doTradeForEth(
+            // interest paid in BZRX is retained as is, other tokens are sold for WETH
+            _doTradeForWeth(
                 loanOrder.interestTokenAddress,
                 interestFee,
-                this, // BZxOracle receives the Ether proceeds
+                this, // BZxOracle receives the WETH proceeds
                 MAX_FOR_KYBER // no limit on the dest amount
             );
         }
@@ -415,7 +415,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             revert("BZxOracle::processCollateral: collateralTokenBalance < loanPosition.collateralTokenAmountFilled");
         }
 
-        uint etherAmountReceived = _getEtherFromCollateral(
+        uint wethAmountReceived = _getWethFromCollateral(
             loanPosition.collateralTokenAddressFilled,
             loanOrder.loanTokenAddress,
             loanPosition.collateralTokenAmountFilled,
@@ -424,34 +424,34 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         );
 
         if (loanTokenAmountNeeded > 0) {
-            uint etherBalanceBefore = address(this).balance;
+            //uint wethBalanceBefore = EIP20(wethContract).balanceOf.gas(4999)(this);
             
-            if (collateralInEthAmounts[positionId] >= minimumCollateralInEthAmount && 
+            if (collateralInWethAmounts[positionId] >= minimumCollateralInWethAmount && 
                 (minInitialMarginAmount == 0 || loanOrder.initialMarginAmount >= minInitialMarginAmount) &&
                 (minMaintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= minMaintenanceMarginAmount)) {
                 // cover losses with collateral proceeds + oracle insurance
-                loanTokenAmountCovered = _doTradeWithEth(
+                loanTokenAmountCovered = _doTradeWithWeth(
                     loanOrder.loanTokenAddress,
-                    address(this).balance, // maximum usable amount
+                    MAX_FOR_KYBER, // maximum usable amount
                     vaultContract,
                     loanTokenAmountNeeded
                 );
             } else {
                 // cover losses with just collateral proceeds
-                loanTokenAmountCovered = _doTradeWithEth(
+                loanTokenAmountCovered = _doTradeWithWeth(
                     loanOrder.loanTokenAddress,
-                    etherAmountReceived, // maximum usable amount
+                    wethAmountReceived, // maximum usable amount
                     vaultContract,
                     loanTokenAmountNeeded
                 );
             }
 
-            require(etherBalanceBefore >= address(this).balance, "ethBalanceBefore < address(this).balance");
-            uint etherAmountUsed = etherBalanceBefore - address(this).balance;
-            if (etherAmountReceived > etherAmountUsed) {
+            /*require(wethBalanceBefore >= EIP20(wethContract).balanceOf.gas(4999)(this), "wethBalanceBefore < wethBalanceNow");
+            uint wethAmountUsed = wethBalanceBefore - address(this).balance;
+            if (wethAmountReceived > wethAmountUsed) {
                 // deposit excess ETH back to WETH
-                WETH_Interface(wethContract).deposit.value(etherAmountReceived-etherAmountUsed)();
-            }
+                WETH_Interface(wethContract).deposit.value(wethAmountReceived-wethAmountUsed)();
+            }*/
         }
 
         collateralTokenAmountUsed = collateralTokenBalance.sub(EIP20(loanPosition.collateralTokenAddressFilled).balanceOf.gas(4999)(this)); // Changes to state require at least 5000 gas
@@ -610,26 +610,34 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         return collateralToLoanAmount.add(positionToLoanAmount).sub(loanTokenAmount).mul(10**20).div(loanTokenAmount);
     }
 
-    /*
-    * Owner functions
-    */
-
     function setDecimals(
         EIP20 token)
         public
-        onlyOwner
     {
         decimals[token] = token.decimals();
     }
 
-    function setMinimumCollateralInEthAmount(
+    function setDecimalsBatch(
+        EIP20[] tokens)
+        public
+    {
+        for (uint i=0; i < tokens.length; i++) {
+            decimals[tokens[i]] = tokens[i].decimals();
+        }
+    }
+
+    /*
+    * Owner functions
+    */
+
+    function setMinimumCollateralInWethAmount(
         uint newValue,
         bool enforce)
         public
         onlyOwner
     {
-        if (newValue != minimumCollateralInEthAmount)
-            minimumCollateralInEthAmount = newValue;
+        if (newValue != minimumCollateralInWethAmount)
+            minimumCollateralInWethAmount = newValue;
 
         if (enforce != enforceMinimum)
             enforceMinimum = enforce;
@@ -766,36 +774,36 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     * Internal functions
     */
 
-    function _getEtherFromCollateral(
+    function _getWethFromCollateral(
         address collateralTokenAddress,
         address loanTokenAddress,
         uint collateralTokenAmountUsable,
         uint loanTokenAmountNeeded,
         bool isLiquidation)
         internal
-        returns (uint etherAmountReceived)
+        returns (uint wethAmountReceived)
     {
-        uint etherAmountNeeded = 0;
+        uint wethAmountNeeded = 0;
 
         if (loanTokenAmountNeeded > 0) {
             if (loanTokenAddress == wethContract) {
-                etherAmountNeeded = loanTokenAmountNeeded;
+                wethAmountNeeded = loanTokenAmountNeeded;
             } else {
-                (uint etherToLoan,) = _getExpectedRate(
+                (uint wethToLoan,) = _getExpectedRate(
                     wethContract,
                     loanTokenAddress,
                     0
                 );
-                etherAmountNeeded = loanTokenAmountNeeded.mul(_getDecimalPrecision(wethContract, loanTokenAddress)).div(etherToLoan);
+                wethAmountNeeded = loanTokenAmountNeeded.mul(_getDecimalPrecision(wethContract, loanTokenAddress)).div(wethToLoan);
             }
         }
 
-        // trade collateral token for ether
-        etherAmountReceived = _doTradeForEth(
+        // trade collateral token for WETH
+        wethAmountReceived = _doTradeForWeth(
             collateralTokenAddress,
             collateralTokenAmountUsable,
             this, // BZxOracle receives the Ether proceeds
-            !isLiquidation ? etherAmountNeeded : etherAmountNeeded.add(gasUpperBound.mul(emaValue).mul(bountyRewardPercent).div(100))
+            !isLiquidation ? wethAmountNeeded : wethAmountNeeded.add(gasUpperBound.mul(emaValue).mul(bountyRewardPercent).div(100))
         );
     }
 
@@ -833,37 +841,11 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             expectedRate = 10**18;
             slippageRate = 0;
         } else {
-            if (sourceTokenAddress == wethContract) {
-                (expectedRate, slippageRate) = KyberNetwork_Interface(kyberContract).getExpectedRate(
-                    KYBER_ETH_TOKEN_ADDRESS,
-                    destTokenAddress,
-                    sourceTokenAmount
-                );
-            } else if (destTokenAddress == wethContract) {
-                (expectedRate, slippageRate) = KyberNetwork_Interface(kyberContract).getExpectedRate(
-                    sourceTokenAddress,
-                    KYBER_ETH_TOKEN_ADDRESS,
-                    sourceTokenAmount
-                );
-            } else {
-                (uint sourceToEther, uint sourceToEtherSlippage) = KyberNetwork_Interface(kyberContract).getExpectedRate(
-                    sourceTokenAddress,
-                    KYBER_ETH_TOKEN_ADDRESS,
-                    sourceTokenAmount
-                );
-                if (sourceTokenAmount > 0) {
-                    sourceTokenAmount = sourceTokenAmount.mul(sourceToEther).div(_getDecimalPrecision(sourceTokenAddress, wethContract));
-                }
-
-                (uint etherToDest, uint etherToDestSlippage) = KyberNetwork_Interface(kyberContract).getExpectedRate(
-                    KYBER_ETH_TOKEN_ADDRESS,
-                    destTokenAddress,
-                    sourceTokenAmount
-                );
-
-                expectedRate = sourceToEther.mul(etherToDest).div(10**18);
-                slippageRate = sourceToEtherSlippage.mul(etherToDestSlippage).div(10**18);
-            }
+            (expectedRate, slippageRate) = KyberNetwork_Interface(kyberContract).getExpectedRate(
+                sourceTokenAddress,
+                destTokenAddress,
+                sourceTokenAmount
+            );
         }
     }
 
@@ -889,131 +871,58 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 revert("BZxOracle::_doTrade: _transferToken failed");
             }
         } else {
-            uint tempAllowance = 0;
-            if (sourceTokenAddress == wethContract) {
-                WETH_Interface(wethContract).withdraw(sourceTokenAmount);
-
-                destTokenAmount = KyberNetwork_Interface(kyberContract).trade
-                    .value(sourceTokenAmount)( // send Ether along
-                    KYBER_ETH_TOKEN_ADDRESS,
-                    sourceTokenAmount,
-                    destTokenAddress,
-                    vaultContract, // bZxVault recieves the destToken
-                    maxDestTokenAmount,
-                    0, // no min coversation rate
-                    address(0)
-                );
-            } else if (destTokenAddress == wethContract) {
-                // re-up the Kyber spend approval if needed
-                tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(this, kyberContract);
-                if (tempAllowance < sourceTokenAmount) {
-                    if (tempAllowance > 0) {
-                        // reset approval to 0
-                        eip20Approve(
-                            sourceTokenAddress,
-                            kyberContract,
-                            0);
-                    }
-
+            // re-up the Kyber spend approval if needed
+            uint tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(this, kyberContract);
+            if (tempAllowance < sourceTokenAmount) {
+                if (tempAllowance > 0) {
+                    // reset approval to 0
                     eip20Approve(
                         sourceTokenAddress,
                         kyberContract,
-                        MAX_FOR_KYBER);
+                        0);
                 }
 
-                destTokenAmount = KyberNetwork_Interface(kyberContract).trade(
+                eip20Approve(
                     sourceTokenAddress,
-                    sourceTokenAmount,
-                    KYBER_ETH_TOKEN_ADDRESS,
-                    this, // BZxOracle receives the Ether proceeds
-                    maxDestTokenAmount,
-                    0, // no min coversation rate
-                    address(0)
-                );
-
-                WETH_Interface(wethContract).deposit.value(destTokenAmount)();
-
-                if (!_transferToken(
-                    destTokenAddress,
-                    vaultContract,
-                    destTokenAmount)) {
-                    revert("BZxOracle::_doTrade: _transferToken failed");
-                }
-            } else {
-                // re-up the Kyber spend approval if needed
-                tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(this, kyberContract);
-                if (tempAllowance < sourceTokenAmount) {
-                    if (tempAllowance > 0) {
-                        // reset approval to 0
-                        eip20Approve(
-                            sourceTokenAddress,
-                            kyberContract,
-                            0);
-                    }
-
-                    eip20Approve(
-                        sourceTokenAddress,
-                        kyberContract,
-                        MAX_FOR_KYBER);
-                }
-
-                uint maxDestEtherAmount = maxDestTokenAmount;
-                if (maxDestTokenAmount < MAX_FOR_KYBER) {
-                    uint etherToDest;
-                    (etherToDest,) = KyberNetwork_Interface(kyberContract).getExpectedRate(
-                        KYBER_ETH_TOKEN_ADDRESS,
-                        destTokenAddress,
-                        0
-                    );
-                    maxDestEtherAmount = maxDestTokenAmount.mul(_getDecimalPrecision(wethContract, destTokenAddress)).div(etherToDest);
-                }
-
-                uint destEtherAmount = KyberNetwork_Interface(kyberContract).trade(
-                    sourceTokenAddress,
-                    sourceTokenAmount,
-                    KYBER_ETH_TOKEN_ADDRESS,
-                    this, // BZxOracle receives the Ether proceeds
-                    maxDestEtherAmount,
-                    0, // no min coversation rate
-                    address(0)
-                );
-
-                destTokenAmount = KyberNetwork_Interface(kyberContract).trade
-                    .value(destEtherAmount)( // send Ether along
-                    KYBER_ETH_TOKEN_ADDRESS,
-                    destEtherAmount,
-                    destTokenAddress,
-                    vaultContract, // bZxVault recieves the destToken
-                    maxDestTokenAmount,
-                    0, // no min coversation rate
-                    address(0)
-                );
+                    kyberContract,
+                    MAX_FOR_KYBER);
             }
+
+            destTokenAmount = KyberNetwork_Interface(kyberContract).trade(
+                sourceTokenAddress,
+                sourceTokenAmount,
+                destTokenAddress,
+                this, // BZxOracle receives the Ether proceeds
+                maxDestTokenAmount,
+                0, // no min coversation rate
+                address(0)
+            );
         }
     }
 
-    function _doTradeForEth(
+    function _doTradeForWeth(
         address sourceTokenAddress,
         uint sourceTokenAmount,
         address receiver,
-        uint destEthAmountNeeded)
+        uint destWethAmountNeeded)
         internal
-        returns (uint destEthAmountReceived)
+        returns (uint destWethAmountReceived)
     {
         if (sourceTokenAddress == wethContract) {
-            if (destEthAmountNeeded > sourceTokenAmount)
-                destEthAmountNeeded = sourceTokenAmount;
-            WETH_Interface(wethContract).withdraw(destEthAmountNeeded);
+            if (destWethAmountNeeded > sourceTokenAmount)
+                destWethAmountNeeded = sourceTokenAmount;
+            //WETH_Interface(wethContract).withdraw(destWethAmountNeeded);
 
             if (receiver != address(this)) {
-                if (!_transferEther(
+                if (!_transferToken(
+                    wethContract,
                     receiver,
-                    destEthAmountNeeded)) {
-                    revert("BZxOracle::_doTradeForEth: _transferEther failed");
+                    destWethAmountNeeded)) {
+                    revert("BZxOracle::_doTradeForWeth: _transferToken failed");
                 }
             }
 
-            destEthAmountReceived = destEthAmountNeeded;
+            destWethAmountReceived = destWethAmountNeeded;
         } else {
             // re-up the Kyber spend approval if needed
             uint tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(this, kyberContract);
@@ -1038,9 +947,9 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")),
                 sourceTokenAddress,
                 sourceTokenAmount,
-                KYBER_ETH_TOKEN_ADDRESS,
+                wethContract,
                 receiver,
-                destEthAmountNeeded,
+                destWethAmountNeeded,
                 0, // no min coversation rate
                 address(0)
             );
@@ -1048,63 +957,70 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             assembly {
                 switch result
                 case 0 {
-                    destEthAmountReceived := 0
+                    destWethAmountReceived := 0
                 }
                 default {
                     returndatacopy(0, 0, 0x20) 
-                    destEthAmountReceived := mload(0)
+                    destWethAmountReceived := mload(0)
                 }
             }
         }
     }
 
-    function _doTradeWithEth(
+    function _doTradeWithWeth(
         address destTokenAddress,
-        uint sourceEthAmount,
+        uint sourceWethAmount,
         address receiver,
         uint destTokenAmountNeeded)
         internal
         returns (uint destTokenAmountReceived)
     {
+        uint wethBalance = EIP20(wethContract).balanceOf.gas(4999)(this);
         if (destTokenAddress == wethContract) {
-            if (destTokenAmountNeeded > sourceEthAmount)
-                destTokenAmountNeeded = sourceEthAmount;
-            if (destTokenAmountNeeded > address(this).balance)
-                destTokenAmountNeeded = address(this).balance;
+            if (destTokenAmountNeeded > sourceWethAmount)
+                destTokenAmountNeeded = sourceWethAmount;
+            if (destTokenAmountNeeded > wethBalance)
+                destTokenAmountNeeded = wethBalance;
 
-            WETH_Interface(wethContract).deposit.value(destTokenAmountNeeded)();
+            //WETH_Interface(wethContract).deposit.value(destTokenAmountNeeded)();
             if (receiver != address(this)) {
                 if (!_transferToken(
                     wethContract,
                     receiver,
                     destTokenAmountNeeded)) {
-                    revert("BZxOracle::_doTradeWithEth: _transferToken failed");
+                    revert("BZxOracle::_doTradeWithWeth: _transferToken failed");
                 }
             }
 
             destTokenAmountReceived = destTokenAmountNeeded;
         } else {
-            if (sourceEthAmount >= address(this).balance) {
-                // only send a little more than needed, rather than the entire contract balance
-                (uint etherToDest,) = KyberNetwork_Interface(kyberContract).getExpectedRate(
-                    KYBER_ETH_TOKEN_ADDRESS,
-                    destTokenAddress,
-                    0
-                );
-                // calculate amount of ETH to use with a 5% buffer (unused ETH is returned by Kyber)
-                sourceEthAmount = destTokenAmountNeeded.mul(_getDecimalPrecision(wethContract, destTokenAddress)).div(etherToDest).mul(105).div(100);
-                if (sourceEthAmount > address(this).balance) {
-                    sourceEthAmount = address(this).balance;
+            if (sourceWethAmount > wethBalance) {
+                sourceWethAmount = wethBalance;
+            }
+
+            // re-up the Kyber spend approval if needed
+            uint tempAllowance = EIP20(wethContract).allowance.gas(4999)(this, kyberContract);
+            if (tempAllowance < sourceWethAmount) {
+                if (tempAllowance > 0) {
+                    // reset approval to 0
+                    eip20Approve(
+                        wethContract,
+                        kyberContract,
+                        0);
                 }
+
+                eip20Approve(
+                    wethContract,
+                    kyberContract,
+                    MAX_FOR_KYBER);
             }
 
             /* the following code is to allow the Kyber trade to fail silently and not revert if it does, preventing a "bubble up" */
 
-            bool result = kyberContract.call
-                .value(sourceEthAmount)( // send Ether along
+            bool result = kyberContract.call(
                 bytes4(keccak256("trade(address,uint256,address,address,uint256,uint256,address)")),
-                KYBER_ETH_TOKEN_ADDRESS,
-                sourceEthAmount,
+                wethContract,
+                sourceWethAmount,
                 destTokenAddress,
                 receiver,
                 destTokenAmountNeeded,
