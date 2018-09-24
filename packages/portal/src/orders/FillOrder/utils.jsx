@@ -117,7 +117,7 @@ export const validateFillOrder = async (
       return false;
     }
 
-    if (order.expirationUnixTimestampSec <= moment().unix()) {
+    if (order.expirationUnixTimestampSec > 0 && order.expirationUnixTimestampSec <= moment().unix()) {
       alert(`This order has expired. It can no longer be filled.`);
       return false;
     }

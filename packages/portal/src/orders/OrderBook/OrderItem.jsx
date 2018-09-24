@@ -295,7 +295,7 @@ export default class OrderItem extends React.Component {
 
           <DataPointContainer>
             <Label>Expires</Label>
-            <DataPoint>{`${dateStr} (${date.fromNow()})`}</DataPoint>
+            <DataPoint>{fillableOrder.expirationUnixTimestampSec > 0 ? `${dateStr} (${date.fromNow()})` : `No expiration`}</DataPoint>
           </DataPointContainer>
 
           {isUsingRelay && (

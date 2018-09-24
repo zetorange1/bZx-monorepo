@@ -442,7 +442,13 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
         // ensure adequate token allowance
         require (EIP20(loanOrder.loanTokenAddress).allowance.gas(4999)(msg.sender, vaultContract) >= totalNewFillableAmount, "BZxOrderTaking::increaseLoanableAmount: lender allowance is insufficient");
         
-        loanOrder.loanTokenAmount = loanOrder.loanTokenAmount.add(loanTokenAmountToAdd);
+        uint newLoanTokenAmount = loanOrder.loanTokenAmount.add(loanTokenAmountToAdd);
+
+        // Interest amount per day is calculated based on the fraction of loan token filled over total loanTokenAmount.
+        // Since total loanTokenAmount is increasing, we increase interest proportionally.
+        loanOrder.interestAmount = loanOrder.interestAmount.mul(newLoanTokenAmount).div(loanOrder.loanTokenAmount);
+
+        loanOrder.loanTokenAmount = newLoanTokenAmount;
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didIncreaseLoanableAmount(
             loanOrder,

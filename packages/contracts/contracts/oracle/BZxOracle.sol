@@ -17,12 +17,7 @@ import "../tokens/EIP20Wrapper.sol";
 import "./OracleInterface.sol";
 import "../storage/BZxObjects.sol";
 
-
-// solhint-disable-next-line contract-name-camelcase
-interface WETH_Interface {
-    function deposit() external payable;
-    function withdraw(uint wad) external;
-}
+import "../shared/WETHInterface.sol";
 
 
 // solhint-disable-next-line contract-name-camelcase
@@ -207,7 +202,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         // TODO: Block withdrawal below a certain amount
         if (loanOrder.interestTokenAddress == wethContract) {
             // interest paid in WETH is withdrawn to Ether
-            //WETH_Interface(wethContract).withdraw(interestFee);
+            //WETHInterface(wethContract).withdraw(interestFee);
         } else if (convert && loanOrder.interestTokenAddress != bZRxTokenContract) {
             // interest paid in BZRX is retained as is, other tokens are sold for WETH
             _doTradeForWeth(
@@ -448,7 +443,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             uint wethAmountUsed = wethBalanceBefore - address(this).balance;
             if (wethAmountReceived > wethAmountUsed) {
                 // deposit excess ETH back to WETH
-                WETH_Interface(wethContract).deposit.value(wethAmountReceived-wethAmountUsed)();
+                WETHInterface(wethContract).deposit.value(wethAmountReceived-wethAmountUsed)();
             }*/
         }
 
@@ -909,7 +904,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         if (sourceTokenAddress == wethContract) {
             if (destWethAmountNeeded > sourceTokenAmount)
                 destWethAmountNeeded = sourceTokenAmount;
-            //WETH_Interface(wethContract).withdraw(destWethAmountNeeded);
+            //WETHInterface(wethContract).withdraw(destWethAmountNeeded);
 
             if (receiver != address(this)) {
                 if (!_transferToken(
@@ -980,7 +975,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             if (destTokenAmountNeeded > wethBalance)
                 destTokenAmountNeeded = wethBalance;
 
-            //WETH_Interface(wethContract).deposit.value(destTokenAmountNeeded)();
+            //WETHInterface(wethContract).deposit.value(destTokenAmountNeeded)();
             if (receiver != address(this)) {
                 if (!_transferToken(
                     wethContract,

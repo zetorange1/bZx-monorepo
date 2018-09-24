@@ -8,14 +8,11 @@ pragma solidity 0.4.24;
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 import "./BZRxToken.sol";
+import "../../shared/WETHInterface.sol";
 
 
 interface PriceFeed {
     function read() external view returns (bytes32);
-}
-
-interface WETHToken {
-    function withdraw(uint wad) external;
 }
 
 contract BZRxTokenSale is Ownable {
@@ -247,7 +244,7 @@ contract BZRxTokenSale is Ownable {
         if (balance == 0)
             return false;
 
-        WETHToken(wethContractAddress).withdraw(balance);
+        WETHInterface(wethContractAddress).withdraw(balance);
         return true;
     }
 

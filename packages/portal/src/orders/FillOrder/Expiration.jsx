@@ -29,7 +29,7 @@ export default ({ expirationUnixTimestampSec }) => {
       <Container>
         <DataContainer>
           <Title>Expires</Title>
-          <div>{`${expiryDateStr} (${expiryDate.fromNow()})`}</div>
+          <div>{expirationUnixTimestampSec > 0 ? `${expiryDateStr} (${expiryDate.fromNow()})` : `No expiration`}</div>
         </DataContainer>
       </Container>
     </Fragment>
