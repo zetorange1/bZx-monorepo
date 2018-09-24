@@ -55,21 +55,7 @@ module.exports = function(deployer, network, accounts) {
     var bZxTo0x = await BZxTo0x.deployed();
     await bZxTo0x.transferBZxOwnership(bZxProxy.address);
 
-    // TokenTransferProxy needs to have unlimited transfer approval for ZRX from BZxTo0x
-    await bZxTo0x.approveFor(
-      config["addresses"][network]["ZeroEx"]["ZRXToken"],
-      config["addresses"][network]["ZeroEx"]["TokenTransferProxy"],
-      MAX_UINT
-    );
-
     var bZxTo0xV2 = await BZxTo0xV2.deployed();
     await bZxTo0xV2.transferBZxOwnership(bZxProxy.address);
-
-    // ERC20Proxy needs to have unlimited transfer approval for ZRX from BZxTo0xV2
-    await bZxTo0xV2.approveFor(
-      config["addresses"][network]["ZeroEx"]["ZRXToken"],
-      config["addresses"][network]["ZeroEx"]["ERC20Proxy"],
-      MAX_UINT
-    );
   });
 };

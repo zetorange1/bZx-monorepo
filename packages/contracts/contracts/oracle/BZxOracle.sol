@@ -17,8 +17,6 @@ import "../tokens/EIP20Wrapper.sol";
 import "./OracleInterface.sol";
 import "../storage/BZxObjects.sol";
 
-import "../shared/WETHInterface.sol";
-
 
 // solhint-disable-next-line contract-name-camelcase
 interface KyberNetwork_Interface {
@@ -199,12 +197,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             revert("BZxOracle::didPayInterest: _transferToken failed");
         }
 
-        // TODO: Block withdrawal below a certain amount
-        if (loanOrder.interestTokenAddress == wethContract) {
-            // interest paid in WETH is withdrawn to Ether
-            //WETHInterface(wethContract).withdraw(interestFee);
-        } else if (convert && loanOrder.interestTokenAddress != bZRxTokenContract) {
-            // interest paid in BZRX is retained as is, other tokens are sold for WETH
+        if (convert && loanOrder.interestTokenAddress != wethContract && loanOrder.interestTokenAddress != bZRxTokenContract) {
+            // interest paid in WETH or BZRX is retained as is, other tokens are sold for WETH
             _doTradeForWeth(
                 loanOrder.interestTokenAddress,
                 interestFee,
@@ -417,8 +411,6 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         );
 
         if (loanTokenAmountNeeded > 0) {
-            //uint wethBalanceBefore = EIP20(wethContract).balanceOf.gas(4999)(this);
-            
             if (collateralInWethAmounts[loanPosition.positionId] >= minimumCollateralInWethAmount && 
                 (minInitialMarginAmount == 0 || loanOrder.initialMarginAmount >= minInitialMarginAmount) &&
                 (minMaintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= minMaintenanceMarginAmount)) {
@@ -438,13 +430,6 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                     loanTokenAmountNeeded
                 );
             }
-
-            /*require(wethBalanceBefore >= EIP20(wethContract).balanceOf.gas(4999)(this), "wethBalanceBefore < wethBalanceNow");
-            uint wethAmountUsed = wethBalanceBefore - address(this).balance;
-            if (wethAmountReceived > wethAmountUsed) {
-                // deposit excess ETH back to WETH
-                WETHInterface(wethContract).deposit.value(wethAmountReceived-wethAmountUsed)();
-            }*/
         }
 
         collateralTokenAmountUsed = collateralTokenBalance.sub(EIP20(loanPosition.collateralTokenAddressFilled).balanceOf.gas(4999)(this)); // Changes to state require at least 5000 gas
@@ -795,7 +780,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         wethAmountReceived = _doTradeForWeth(
             collateralTokenAddress,
             collateralTokenAmountUsable,
-            this, // BZxOracle receives the Ether proceeds
+            this, // BZxOracle receives the WETH proceeds
             !isLiquidation ? wethAmountNeeded : wethAmountNeeded.add(gasUpperBound.mul(emaValue).mul(bountyRewardPercent).div(100))
         );
     }
@@ -885,7 +870,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 sourceTokenAddress,
                 sourceTokenAmount,
                 destTokenAddress,
-                this, // BZxOracle receives the Ether proceeds
+                vaultContract, // BZxVault receives the trade proceeds
                 maxDestTokenAmount,
                 0, // no min coversation rate
                 address(0)
@@ -904,7 +889,6 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         if (sourceTokenAddress == wethContract) {
             if (destWethAmountNeeded > sourceTokenAmount)
                 destWethAmountNeeded = sourceTokenAmount;
-            //WETHInterface(wethContract).withdraw(destWethAmountNeeded);
 
             if (receiver != address(this)) {
                 if (!_transferToken(
@@ -975,7 +959,6 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             if (destTokenAmountNeeded > wethBalance)
                 destTokenAmountNeeded = wethBalance;
 
-            //WETHInterface(wethContract).deposit.value(destTokenAmountNeeded)();
             if (receiver != address(this)) {
                 if (!_transferToken(
                     wethContract,

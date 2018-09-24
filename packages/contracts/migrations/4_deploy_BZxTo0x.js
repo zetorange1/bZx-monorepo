@@ -21,11 +21,25 @@ module.exports = function(deployer, network, accounts) {
 			await bZxTo0x.setDebugMode(true);
 		}*/
 
-      await deployer.deploy(
+      // TokenTransferProxy needs to have unlimited transfer approval for ZRX from BZxTo0x
+      await bZxTo0x.approveFor(
+        config["addresses"][network]["ZeroEx"]["ZRXToken"],
+        config["addresses"][network]["ZeroEx"]["TokenTransferProxy"],
+        MAX_UINT
+      );
+
+      var bZxTo0xV2 = await deployer.deploy(
         BZxTo0xV2,
         config["addresses"][network]["ZeroEx"]["ExchangeV2"],
         config["addresses"][network]["ZeroEx"]["ZRXToken"],
         config["addresses"][network]["ZeroEx"]["ERC20Proxy"]
+      );
+
+      // ERC20Proxy needs to have unlimited transfer approval for ZRX from BZxTo0xV2
+      await bZxTo0xV2.approveFor(
+        config["addresses"][network]["ZeroEx"]["ZRXToken"],
+        config["addresses"][network]["ZeroEx"]["ERC20Proxy"],
+        MAX_UINT
       );
 
       if (network == "development") {
