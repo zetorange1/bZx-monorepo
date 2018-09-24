@@ -9,12 +9,6 @@ var BZxTo0xV2 = artifacts.require("BZxTo0xV2");
 
 var config = require("../protocol-config.js");
 
-const BigNumber = require("bignumber.js");
-const MAX_UINT = new BigNumber(2)
-  .pow(256)
-  .minus(1)
-  .toString();
-
 module.exports = function(deployer, network, accounts) {
   network = network.replace("-fork", "");
   if (network == "develop" || network == "testnet" || network == "coverage")

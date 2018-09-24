@@ -6,7 +6,7 @@ var BZxVault = artifacts.require("BZxVault");
 var BZxOracle = artifacts.require("TestNetOracle");
 var BZRxToken = artifacts.require("BZRxToken");
 var BZRxTokenSale = artifacts.require("BZRxTokenSale");
-var WETH_Interface = artifacts.require("WETH_Interface");
+var WETHInterface = artifacts.require("WETHInterface");
 var ERC20 = artifacts.require("ERC20"); // for testing with any ERC20 token
 
 //var fs = require('fs');
@@ -89,7 +89,7 @@ module.exports = function(deployer, network, accounts) {
         config["addresses"]["development"]["ZeroEx"]["ZRXToken"]
       );
 
-      var weth = await WETH_Interface.at(
+      var weth = await WETHInterface.at(
         config["addresses"][network]["ZeroEx"]["WETH9"]
       );
       var weth_token = await ERC20.at(

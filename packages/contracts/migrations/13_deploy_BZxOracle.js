@@ -12,7 +12,7 @@ var EIP20 = artifacts.require("EIP20");
 
 var config = require("../protocol-config.js");
 
-const OLD_ORACLE_ADDRESS = "0xb55b3c2332b820138eec3cdd7881bbedc4b90e7f";
+const OLD_ORACLE_ADDRESS = "";
 
 module.exports = function(deployer, network, accounts) {
   network = network.replace("-fork", "");
@@ -58,7 +58,7 @@ module.exports = function(deployer, network, accounts) {
         var oracle = await BZxOracle.deployed();
         // seeds BZxOracle with 1 Ether
 
-        var wethT = await EIP20.at(weth.address);
+        var wethT = await EIP20.at(config["addresses"][network]["ZeroEx"]["WETH9"]);
         if (!OLD_ORACLE_ADDRESS) {
           var weth = await WETH.at(config["addresses"][network]["ZeroEx"]["WETH9"]);
           await weth.deposit({ value: valueAmount });

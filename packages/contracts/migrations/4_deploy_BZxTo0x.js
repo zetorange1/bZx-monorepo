@@ -4,6 +4,12 @@ var ZeroExV2Helper = artifacts.require("ZeroExV2Helper");
 
 var config = require("../protocol-config.js");
 
+const BigNumber = require("bignumber.js");
+const MAX_UINT = new BigNumber(2)
+  .pow(256)
+  .minus(1)
+  .toString();
+
 module.exports = function(deployer, network, accounts) {
   network = network.replace("-fork", "");
   if (network == "develop" || network == "testnet" || network == "coverage")
