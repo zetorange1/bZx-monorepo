@@ -1,11 +1,15 @@
-# Overview
+# Introduction
 
-The bZx platform from the business standpoint is a market for decentralised lending: available for everybody and easy to use from both the Portal dApp and from external relayers.
+Welcome to the bZx.js documentation. bZx.js is a Javascript library for interacting with the bZx protocol. With it, you can easily make calls to the bZx smart contracts as well as any token adhering to the token standards supported by the protocol. Functionality includes generating, signing, filling and cancelling orders, verifying an orders signature, setting or checking a users ERC20/ERC721 token balance/allowance and much more.
 
-The bZx platform from the technical standpoint is the protocol for the decentralized margin trading that runs as a series of smart contracts on the Ethereum blockchain and bzx.js library that provides the way for interactions with that contracts from javascript code.
+### Links
 
-**The primary goal** of this documentation is to provide developers with the platform understanding needed to build applications working with the bZx protocol.
+**Main site:** https://bzx.network
 
-**The secondary goal** is to be the primary and up to date source of truth about contracts and libraries structure and architecture.
+**Docs site (this one):** https://bzx.network/docs/
 
-**The third goal** is to share with the community our best practices and contribution rules, to provide easy onboarding for peoples who want to contribute to this project, become part of our team and part of the decentralized revolution.
+**Telegram channel:** https://t.me/b0xNet
+
+**Git organization:** https://github.com/bZxNetwork
+
+**Git monorepo:** https://github.com/bZxNetwork/bZx-monorepo
