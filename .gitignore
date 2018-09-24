@@ -17,3 +17,5 @@ secrets.js
 .next
 .idea
 package-lock.json
+packages/contracts/scripts/doxity/pages/docs
+packages/contracts/scripts/doxity/.cache
