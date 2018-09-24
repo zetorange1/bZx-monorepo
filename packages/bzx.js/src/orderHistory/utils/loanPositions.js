@@ -1,7 +1,7 @@
 import { pipe, map } from "ramda";
 import * as Utils from "./index";
 
-const NUM_LOAN_POS_FIELDS = 15;
+const NUM_LOAN_POS_FIELDS = 16;
 
 const getLoanPosition = params => ({
   ...map(pipe(Utils.substr24, Utils.prepend0x), {
@@ -20,7 +20,8 @@ const getLoanPosition = params => ({
     loanEndUnixTimestampSec: params[8],
     active: params[9],
     interestTotalAccrued: params[13],
-    interestPaidSoFar: params[14]
+    interestPaidSoFar: params[14],
+    interestLastPaidDate: params[15]
   }),
   ...map(pipe(Utils.prepend0x), {
     loanOrderHash: params[10]

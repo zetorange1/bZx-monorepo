@@ -210,18 +210,9 @@ export default class ClosedLoan extends BZxComponent {
           </DataPointContainer>
 
           <DataPointContainer>
-            <Label>Interest paid so far</Label>
+            <Label>Total interest paid</Label>
             <DataPoint>
               {fromBigNumber(interestPaidSoFar, 10 ** interestTokenDecimals)}
-              {` `}
-              {interestTokenSymbol}
-            </DataPoint>
-          </DataPointContainer>
-
-          <DataPointContainer>
-            <Label>Interest accrued (total)</Label>
-            <DataPoint>
-              {fromBigNumber(interestTotalAccrued, 10 ** interestTokenDecimals)}
               {` `}
               {interestTokenSymbol}
             </DataPoint>
@@ -230,7 +221,7 @@ export default class ClosedLoan extends BZxComponent {
           {/* <LowerUpperRight>[Collateral Options]</LowerUpperRight> */}
         </CardContent>
 
-        <CardActions>
+        {/*<CardActions>
           <DataPointContainer style={{ marginLeft: `12px` }}>
             <Label>Active Trade</Label>
             <DataPoint>{Boolean(tradeOpened).toString()}</DataPoint>
@@ -247,7 +238,7 @@ export default class ClosedLoan extends BZxComponent {
               {positionTokenSymbol}
             </DataPoint>
           </DataPointContainer>
-        </CardActions>
+        </CardActions>*/}
       </Card>
     );
   }

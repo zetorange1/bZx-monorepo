@@ -136,6 +136,7 @@ export const pushOrderOnChain = (order, web3, bZx, accounts) => {
     order,
     getObject: true
   });
+  console.log(txObj);
 
   try {
     txObj

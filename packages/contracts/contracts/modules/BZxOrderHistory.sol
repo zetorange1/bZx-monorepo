@@ -109,7 +109,7 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
         );
     }
 
-    /// @dev Returns a bytestream of loan data for a lender.
+    /// @dev Returns a bytestream of loan data for a trader.
     /// @param loanOrderHash A unique hash representing the loan order.
     /// @param trader The address of the trader/borrower of a loan.
     /// @return A concatenated stream of bytes.
@@ -389,7 +389,8 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
             loanOrder.loanTokenAddress,
             interestData.interestTokenAddress,
             interestData.interestTotalAccrued,
-            interestData.interestPaidSoFar
+            interestData.interestPaidSoFar,
+            interestData.interestLastPaidDate
         );
         return abi.encodePacked(data, tmpBytes);
     }

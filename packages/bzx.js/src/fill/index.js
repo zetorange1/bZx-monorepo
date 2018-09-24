@@ -127,16 +127,16 @@ export const pushLoanOrderOnChain = (
   ];
 
   const orderValues = [
-    order.loanTokenAmount,
-    order.interestAmount,
-    order.initialMarginAmount,
-    order.maintenanceMarginAmount,
-    order.lenderRelayFee,
-    order.traderRelayFee,
-    order.maxDurationUnixTimestampSec,
-    order.expirationUnixTimestampSec,
-    order.makerRole,
-    order.salt
+    web3.utils.toBN(order.loanTokenAmount).toString(10),
+    web3.utils.toBN(order.interestAmount).toString(10),
+    web3.utils.toBN(order.initialMarginAmount).toString(10),
+    web3.utils.toBN(order.maintenanceMarginAmount).toString(10),
+    web3.utils.toBN(order.lenderRelayFee).toString(10),
+    web3.utils.toBN(order.traderRelayFee).toString(10),
+    web3.utils.toBN(order.maxDurationUnixTimestampSec).toString(10),
+    web3.utils.toBN(order.expirationUnixTimestampSec).toString(10),
+    web3.utils.toBN(order.makerRole).toString(10),
+    web3.utils.toBN(order.salt).toString(10)
   ];
 
   const txObj = bZxContract.methods.pushLoanOrderOnChain(

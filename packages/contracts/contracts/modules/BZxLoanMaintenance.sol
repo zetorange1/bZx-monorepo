@@ -280,7 +280,8 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
             loanOrder.loanOrderHash,
             msg.sender,
             profitAmount,
-            loanPosition.positionTokenAmountFilled
+            loanPosition.positionTokenAmountFilled,
+            loanPosition.positionId
         );
 
         return profitAmount;

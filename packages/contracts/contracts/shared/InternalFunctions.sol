@@ -169,13 +169,24 @@ contract InternalFunctions is BZxStorage {
         uint interestPaidSoFar = 0;
         if (loanOrder.interestAmount > 0) {
             uint interestTime = block.timestamp;
+            uint interestLastPaidDate = interestPaidDate[loanOrder.loanOrderHash][loanPosition.positionId];
             if (interestTime > loanPosition.loanEndUnixTimestampSec) {
                 interestTime = loanPosition.loanEndUnixTimestampSec;
             }
+            if (interestLastPaidDate == 0) {
+                interestLastPaidDate = loanPosition.loanStartUnixTimestampSec;
+            }
 
-            interestPaidSoFar = interestPaid[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]];
+            interestPaidSoFar = interestPaid[loanOrder.loanOrderHash][loanPosition.positionId];
             if (loanPosition.active) {
-                interestTotalAccrued = _safeGetPartialAmountFloor(loanPosition.loanTokenAmountFilled, loanOrder.loanTokenAmount, interestTime.sub(loanPosition.loanStartUnixTimestampSec).mul(loanOrder.interestAmount).div(86400));
+                interestTotalAccrued = _safeGetPartialAmountFloor(
+                    loanPosition.loanTokenAmountFilled, 
+                    loanOrder.loanTokenAmount, 
+                    interestTime
+                        .sub(interestLastPaidDate)
+                        .mul(loanOrder.interestAmount)
+                        .div(86400)
+                ).add(interestPaidSoFar);
             } else {
                 // this is so, because remaining interest is paid out when the loan is closed
                 interestTotalAccrued = interestPaidSoFar;
@@ -186,7 +197,8 @@ contract InternalFunctions is BZxStorage {
             lender: orderLender[loanOrder.loanOrderHash],
             interestTokenAddress: loanOrder.interestTokenAddress,
             interestTotalAccrued: interestTotalAccrued,
-            interestPaidSoFar: interestPaidSoFar
+            interestPaidSoFar: interestPaidSoFar,
+            interestLastPaidDate: interestLastPaidDate > loanPosition.loanStartUnixTimestampSec ? interestLastPaidDate : 0
         });
     }
 
@@ -246,7 +258,8 @@ contract InternalFunctions is BZxStorage {
             loanPosition.trader,
             initialMarginAmount,
             maintenanceMarginAmount,
-            currentMarginAmount
+            currentMarginAmount,
+            loanPosition.positionId
         );
     }
 

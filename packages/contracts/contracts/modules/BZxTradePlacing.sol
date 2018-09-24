@@ -123,7 +123,8 @@ contract BZxTradePlacing is BZxStorage, BZxProxiable, InternalFunctions {
             loanPosition.positionTokenAddressFilled,
             tradeTokenAddress,
             positionTokenUsedAmount,
-            tradeTokenAmount
+            tradeTokenAmount,
+            loanPosition.positionId
         );
 
         // the trade token becomes the new position token
@@ -212,7 +213,8 @@ contract BZxTradePlacing is BZxStorage, BZxProxiable, InternalFunctions {
             loanPosition.positionTokenAddressFilled,
             tradeTokenAddress,
             loanPosition.positionTokenAmountFilled,
-            tradeTokenAmount
+            tradeTokenAmount,
+            loanPosition.positionId
         );
 
         // the trade token becomes the new position token

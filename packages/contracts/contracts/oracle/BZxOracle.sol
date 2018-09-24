@@ -133,7 +133,6 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanOrderAux /* loanOrderAux */,
         BZxObjects.LoanPosition loanPosition,
-        uint positionId,
         address /* taker */,
         uint /* gasUsed */)
         public
@@ -154,7 +153,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         }
 
         require(!enforceMinimum || collateralInWethAmount >= minimumCollateralInWethAmount, "collateral below minimum for BZxOracle");
-        collateralInWethAmounts[positionId] = collateralInWethAmount;
+        collateralInWethAmounts[loanPosition.positionId] = collateralInWethAmount;
 
         return true;
     }
@@ -401,7 +400,6 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function processCollateral(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint positionId,
         uint loanTokenAmountNeeded,
         bool isLiquidation) 
         public
@@ -426,7 +424,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         if (loanTokenAmountNeeded > 0) {
             //uint wethBalanceBefore = EIP20(wethContract).balanceOf.gas(4999)(this);
             
-            if (collateralInWethAmounts[positionId] >= minimumCollateralInWethAmount && 
+            if (collateralInWethAmounts[loanPosition.positionId] >= minimumCollateralInWethAmount && 
                 (minInitialMarginAmount == 0 || loanOrder.initialMarginAmount >= minInitialMarginAmount) &&
                 (minMaintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= minMaintenanceMarginAmount)) {
                 // cover losses with collateral proceeds + oracle insurance

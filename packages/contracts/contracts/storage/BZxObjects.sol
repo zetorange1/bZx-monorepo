@@ -46,6 +46,7 @@ contract BZxObjects {
         uint loanStartUnixTimestampSec;
         uint loanEndUnixTimestampSec;
         bool active;
+        uint positionId;
     }
 
     struct PositionRef {
@@ -58,6 +59,7 @@ contract BZxObjects {
         address interestTokenAddress;
         uint interestTotalAccrued;
         uint interestPaidSoFar;
+        uint interestLastPaidDate;
     }
 
 }

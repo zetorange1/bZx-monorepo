@@ -46,8 +46,12 @@ contract BZxStorage is BZxObjects, BZxEvents, ReentrancyGuard, Ownable, GasTrack
     PositionRef[] public positionList; // array of loans that need to be checked for liquidation or expiration
     mapping (uint => ListIndex) public positionListIndex; // mapping of position ids to ListIndex objects
 
-    // Other Storage
+    // Interest
+    mapping (bytes32 => mapping (uint => uint)) public interestTotal; // mapping of loanOrderHash to mapping of position ids to total interest escrowed when the loan opens
     mapping (bytes32 => mapping (uint => uint)) public interestPaid; // mapping of loanOrderHash to mapping of position ids to amount of interest paid so far to a lender
+    mapping (bytes32 => mapping (uint => uint)) public interestPaidDate; // mapping of loanOrderHash to mapping of position ids to timestamp of last interest pay date
+
+    // Other Storage
     mapping (address => address) public oracleAddresses; // mapping of oracles to their current logic contract
     mapping (bytes32 => mapping (address => bool)) public preSigned; // mapping of hash => signer => signed
     mapping (address => mapping (address => bool)) public allowedValidators; // mapping of signer => validator => approved

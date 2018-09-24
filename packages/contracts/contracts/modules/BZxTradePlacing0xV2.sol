@@ -135,7 +135,8 @@ contract BZxTradePlacing0xV2 is BZxStorage, BZxProxiable {
             loanPosition.positionTokenAddressFilled,
             tradeTokenAddress,
             positionTokenUsedAmount,
-            tradeTokenAmount
+            tradeTokenAmount,
+            loanPosition.positionId
         );
 
         // the trade token becomes the new position token

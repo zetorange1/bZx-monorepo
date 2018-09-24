@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import styled from "styled-components";
 import MuiCard from "@material-ui/core/Card";
 import MuiCardContent from "@material-ui/core/CardContent";
@@ -108,7 +109,8 @@ export default class LoanItem extends BZxComponent {
       positionTokenAmountFilled,
       loanOrderHash,
       trader,
-      loanStartUnixTimestampSec
+      loanStartUnixTimestampSec,
+      active
     } = this.props.data;
 
     const collateralTokenSymbol = getSymbol(
@@ -244,50 +246,67 @@ export default class LoanItem extends BZxComponent {
             </DataPoint>
           </DataPointContainer>
 
-          <br />
+          {active ? (
+            <Fragment>
+              <br />
 
-          <DataPointContainer>
-            <Label>Total interest accrued</Label>
-            <DataPoint>
-              {fromBigNumber(interestTotalAccrued, 10 ** interestTokenDecimals)}
-              {` `}
-              {interestTokenSymbol}
-            </DataPoint>
-          </DataPointContainer>
+              <DataPointContainer>
+                <Label>Total interest accrued</Label>
+                <DataPoint>
+                  {fromBigNumber(interestTotalAccrued, 10 ** interestTokenDecimals)}
+                  {` `}
+                  {interestTokenSymbol}
+                </DataPoint>
+              </DataPointContainer>
 
-          <DataPointContainer>
-            <Label>Total interest withdrawn</Label>
-            <DataPoint>
-              {fromBigNumber(interestPaidSoFar, 10 ** interestTokenDecimals)}
-              {` `}
-              {interestTokenSymbol}
-            </DataPoint>
-          </DataPointContainer>
+              <DataPointContainer>
+                <Label>Total interest withdrawn</Label>
+                <DataPoint>
+                  {fromBigNumber(interestPaidSoFar, 10 ** interestTokenDecimals)}
+                  {` `}
+                  {interestTokenSymbol}
+                </DataPoint>
+              </DataPointContainer>
 
-          <DataPointContainer>
-            <Label>Available for withdrawal (minus fees)</Label>
-            <DataPoint style={{ marginRight: `12px` }}>
-              {fromBigNumber(
-                availableForWithdrawal,
-                10 ** interestTokenDecimals
-              )}
-              {` `}
-              {interestTokenSymbol}
-            </DataPoint>
-          </DataPointContainer>
+              <DataPointContainer>
+                <Label>Available for withdrawal (minus fees)</Label>
+                <DataPoint style={{ marginRight: `12px` }}>
+                  {fromBigNumber(
+                    availableForWithdrawal,
+                    10 ** interestTokenDecimals
+                  )}
+                  {` `}
+                  {interestTokenSymbol}
+                </DataPoint>
+              </DataPointContainer>
 
-          <div style={{ marginTop: `12px` }}>
-            <WithdrawInterest
-              bZx={bZx}
-              trader={trader}
-              availableForWithdrawal={availableForWithdrawal}
-              symbol={interestTokenSymbol}
-              decimals={interestTokenDecimals}
-              accounts={accounts}
-              web3={web3}
-              loanOrderHash={loanOrderHash}
-            />
-          </div>
+              <div style={{ marginTop: `12px` }}>
+                <WithdrawInterest
+                  bZx={bZx}
+                  trader={trader}
+                  availableForWithdrawal={availableForWithdrawal}
+                  symbol={interestTokenSymbol}
+                  decimals={interestTokenDecimals}
+                  accounts={accounts}
+                  web3={web3}
+                  loanOrderHash={loanOrderHash}
+                />
+              </div>
+            </Fragment>
+          ) : (
+            <Fragment>
+              <DataPointContainer>
+                <Label>Total interest earned</Label>
+                <DataPoint>
+                  {fromBigNumber(interestTotalAccrued, 10 ** interestTokenDecimals)}
+                  {` `}
+                  {interestTokenSymbol}
+                </DataPoint>
+              </DataPointContainer>
+            </Fragment>
+          )}
+
+
 
           {/* this.props.closed && <br /> */}
 

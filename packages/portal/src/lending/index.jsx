@@ -94,7 +94,7 @@ export default class Borrowing extends BZxComponent {
           <SectionLabel>Open Loans ({openLoans.length})</SectionLabel>
           {openLoans.map(data => (
             <LoanItem
-              key={data.loanOrderHash + data.trader}
+              key={data.loanOrderHash + data.trader + data.loanStartUnixTimestampSec}
               bZx={bZx}
               tokens={tokens}
               accounts={accounts}
@@ -107,7 +107,7 @@ export default class Borrowing extends BZxComponent {
           <SectionLabel>Closed Loans ({closedLoans.length})</SectionLabel>
           {closedLoans.map(data => (
             <LoanItem
-              key={data.loanOrderHash + data.trader}
+              key={data.loanOrderHash + data.trader + data.loanStartUnixTimestampSec}
               bZx={bZx}
               tokens={tokens}
               accounts={accounts}

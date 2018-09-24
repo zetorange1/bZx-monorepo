@@ -34,7 +34,6 @@ contract OracleInterface {
     /// @param loanOrder The loanOrder object
     /// @param loanOrderAux The loanOrderAux object
     /// @param loanPosition The loanPosition object
-    /// @param positionId The position id of the loan
     /// @param taker The user that filled/took the loan
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
@@ -42,7 +41,6 @@ contract OracleInterface {
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanOrderAux memory loanOrderAux,
         BZxObjects.LoanPosition memory loanPosition,
-        uint positionId,
         address taker,
         uint gasUsed)
         public
@@ -229,14 +227,12 @@ contract OracleInterface {
     /// @dev Liquidates collateral to cover loan losses and does any other processing required by the oracle
     /// @param loanOrder The loanOrder object
     /// @param loanPosition The loanPosition object
-    /// @param positionId The position id of the loan
     /// @param loanTokenAmountNeeded The amount of loan token needed to cover losses
     /// @param isLiquidation A boolean indicating if the loan was closed due to liquidation
     /// @return loanTokenAmountCovered and collateralTokenAmountUsed
     function processCollateral(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint positionId,
         uint loanTokenAmountNeeded,
         bool isLiquidation)
         public

@@ -22,14 +22,14 @@ contract BZxEvents {
     event LogLoanTaken (
         address indexed lender,
         address indexed trader,
-        address collateralTokenAddressFilled,
-        address positionTokenAddressFilled,
-        uint loanTokenAmountFilled,
-        uint collateralTokenAmountFilled,
-        uint positionTokenAmountFilled,
-        uint loanStartUnixTimestampSec,
-        bool active,
-        bytes32 indexed loanOrderHash
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        uint loanTokenAmount,
+        uint collateralTokenAmount,
+        uint loanEndUnixTimestampSec,
+        bool firstFill,
+        bytes32 indexed loanOrderHash,
+        uint positionId
     );
 
     event LogLoanCancelled(
@@ -44,7 +44,8 @@ contract BZxEvents {
         address indexed trader,
         address loanCloser,
         bool isLiquidation,
-        bytes32 indexed loanOrderHash
+        bytes32 indexed loanOrderHash,
+        uint positionId
     );
 
     event LogPositionTraded(
@@ -53,7 +54,8 @@ contract BZxEvents {
         address sourceTokenAddress,
         address destTokenAddress,
         uint sourceTokenAmount,
-        uint destTokenAmount
+        uint destTokenAmount,
+        uint positionId
     );
 
     event LogMarginLevels(
@@ -61,14 +63,16 @@ contract BZxEvents {
         address indexed trader,
         uint initialMarginAmount,
         uint maintenanceMarginAmount,
-        uint currentMarginAmount
+        uint currentMarginAmount,
+        uint positionId
     );
 
     event LogWithdrawProfit(
         bytes32 indexed loanOrderHash,
         address indexed trader,
         uint profitWithdrawn,
-        uint remainingPosition
+        uint remainingPosition,
+        uint positionId
     );
 
     event LogPayInterestForOrder(
@@ -84,7 +88,8 @@ contract BZxEvents {
         address indexed lender,
         address indexed trader,
         uint amountPaid,
-        uint totalAccrued
+        uint totalAccrued,
+        uint positionId
     );
 
     event LogChangeTraderOwnership(

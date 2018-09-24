@@ -1470,7 +1470,7 @@ contract("BZxTest", function(accounts) {
 
     data = data.substr(2); // remove 0x from front
 
-    const itemCount = 15;
+    const itemCount = 16;
     const objCount = data.length / 64 / itemCount;
 
     assert.isTrue(objCount % 1 == 0);
@@ -1503,7 +1503,8 @@ contract("BZxTest", function(accounts) {
         expirationUnixTimestampSec: parseInt("0x" + params[12]),
         interestTokenAddress: "0x" + params[13].substr(24),
         interestTotalAccrued: parseInt("0x" + params[14]),
-        interestPaidSoFar: parseInt("0x" + params[15])
+        interestPaidSoFar: parseInt("0x" + params[15]),
+        interestLastPaidDate: parseInt("0x" + params[16])
       });
     }
 

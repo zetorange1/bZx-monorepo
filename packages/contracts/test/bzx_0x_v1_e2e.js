@@ -1326,7 +1326,7 @@ contract("BZxTest", function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 15;
+    const itemCount = 16;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -1349,21 +1349,23 @@ contract("BZxTest", function(accounts) {
           continue;
         }
         loanPositions.push({
-          lender: "0x"+params[0].substr(24),
-          trader: "0x"+params[1].substr(24),
-          collateralTokenAddressFilled: "0x"+params[2].substr(24),
-          positionTokenAddressFilled: "0x"+params[3].substr(24),
-          loanTokenAmountFilled: parseInt("0x"+params[4]),
-          collateralTokenAmountFilled: parseInt("0x"+params[5]),
-          positionTokenAmountFilled: parseInt("0x"+params[6]),
-          loanStartUnixTimestampSec: parseInt("0x"+params[7]),
-          loanEndUnixTimestampSec: parseInt("0x"+params[8]),
-          active: parseInt("0x"+params[9]),
-          loanOrderHash: "0x"+params[10],
-          loanTokenAddress: "0x"+params[11].substr(24),
-          interestTokenAddress: "0x"+params[12].substr(24),
-          interestTotalAccrued: parseInt("0x"+params[13]),
-          interestPaidSoFar: parseInt("0x"+params[14])
+          lender: "0x" + params[0].substr(24),
+          trader: "0x" + params[1].substr(24),
+          collateralTokenAddressFilled: "0x" + params[2].substr(24),
+          positionTokenAddressFilled: "0x" + params[3].substr(24),
+          loanTokenAmountFilled: parseInt("0x" + params[4]),
+          collateralTokenAmountFilled: parseInt("0x" + params[5]),
+          positionTokenAmountFilled: parseInt("0x" + params[6]),
+          loanStartUnixTimestampSec: parseInt("0x" + params[7]),
+          loanEndUnixTimestampSec: parseInt("0x" + params[8]),
+          active: parseInt("0x" + params[9]) == 1,
+          loanOrderHash: "0x" + params[10],
+          loanTokenAddress: "0x" + params[11].substr(24),
+          expirationUnixTimestampSec: parseInt("0x" + params[12]),
+          interestTokenAddress: "0x" + params[13].substr(24),
+          interestTotalAccrued: parseInt("0x" + params[14]),
+          interestPaidSoFar: parseInt("0x" + params[15]),
+          interestLastPaidDate: parseInt("0x" + params[16])
         });
       }
 
@@ -1396,7 +1398,7 @@ contract("BZxTest", function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 15;
+    const itemCount = 16;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -1420,21 +1422,23 @@ contract("BZxTest", function(accounts) {
           continue;
         }
         loanPositions.push({
-          lender: "0x"+params[0].substr(24),
-          trader: "0x"+params[1].substr(24),
-          collateralTokenAddressFilled: "0x"+params[2].substr(24),
-          positionTokenAddressFilled: "0x"+params[3].substr(24),
-          loanTokenAmountFilled: parseInt("0x"+params[4]),
-          collateralTokenAmountFilled: parseInt("0x"+params[5]),
-          positionTokenAmountFilled: parseInt("0x"+params[6]),
-          loanStartUnixTimestampSec: parseInt("0x"+params[7]),
-          loanEndUnixTimestampSec: parseInt("0x"+params[8]),
-          active: parseInt("0x"+params[9]),
-          loanOrderHash: "0x"+params[10],
-          loanTokenAddress: "0x"+params[11].substr(24),
-          interestTokenAddress: "0x"+params[12].substr(24),
-          interestTotalAccrued: parseInt("0x"+params[13]),
-          interestPaidSoFar: parseInt("0x"+params[14])
+          lender: "0x" + params[0].substr(24),
+          trader: "0x" + params[1].substr(24),
+          collateralTokenAddressFilled: "0x" + params[2].substr(24),
+          positionTokenAddressFilled: "0x" + params[3].substr(24),
+          loanTokenAmountFilled: parseInt("0x" + params[4]),
+          collateralTokenAmountFilled: parseInt("0x" + params[5]),
+          positionTokenAmountFilled: parseInt("0x" + params[6]),
+          loanStartUnixTimestampSec: parseInt("0x" + params[7]),
+          loanEndUnixTimestampSec: parseInt("0x" + params[8]),
+          active: parseInt("0x" + params[9]) == 1,
+          loanOrderHash: "0x" + params[10],
+          loanTokenAddress: "0x" + params[11].substr(24),
+          expirationUnixTimestampSec: parseInt("0x" + params[12]),
+          interestTokenAddress: "0x" + params[13].substr(24),
+          interestTotalAccrued: parseInt("0x" + params[14]),
+          interestPaidSoFar: parseInt("0x" + params[15]),
+          interestLastPaidDate: parseInt("0x" + params[16])
         });
       }
 
@@ -1467,7 +1471,7 @@ contract("BZxTest", function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 15;
+    const itemCount = 16;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -1491,21 +1495,23 @@ contract("BZxTest", function(accounts) {
           continue;
         }
         loanPositions.push({
-          lender: "0x"+params[0].substr(24),
-          trader: "0x"+params[1].substr(24),
-          collateralTokenAddressFilled: "0x"+params[2].substr(24),
-          positionTokenAddressFilled: "0x"+params[3].substr(24),
-          loanTokenAmountFilled: parseInt("0x"+params[4]),
-          collateralTokenAmountFilled: parseInt("0x"+params[5]),
-          positionTokenAmountFilled: parseInt("0x"+params[6]),
-          loanStartUnixTimestampSec: parseInt("0x"+params[7]),
-          loanEndUnixTimestampSec: parseInt("0x"+params[8]),
-          active: parseInt("0x"+params[9]),
-          loanOrderHash: "0x"+params[10],
-          loanTokenAddress: "0x"+params[11].substr(24),
-          interestTokenAddress: "0x"+params[12].substr(24),
-          interestTotalAccrued: parseInt("0x"+params[13]),
-          interestPaidSoFar: parseInt("0x"+params[14])
+          lender: "0x" + params[0].substr(24),
+          trader: "0x" + params[1].substr(24),
+          collateralTokenAddressFilled: "0x" + params[2].substr(24),
+          positionTokenAddressFilled: "0x" + params[3].substr(24),
+          loanTokenAmountFilled: parseInt("0x" + params[4]),
+          collateralTokenAmountFilled: parseInt("0x" + params[5]),
+          positionTokenAmountFilled: parseInt("0x" + params[6]),
+          loanStartUnixTimestampSec: parseInt("0x" + params[7]),
+          loanEndUnixTimestampSec: parseInt("0x" + params[8]),
+          active: parseInt("0x" + params[9]) == 1,
+          loanOrderHash: "0x" + params[10],
+          loanTokenAddress: "0x" + params[11].substr(24),
+          expirationUnixTimestampSec: parseInt("0x" + params[12]),
+          interestTokenAddress: "0x" + params[13].substr(24),
+          interestTotalAccrued: parseInt("0x" + params[14]),
+          interestPaidSoFar: parseInt("0x" + params[15]),
+          interestLastPaidDate: parseInt("0x" + params[16])
         });
       }
 
@@ -1538,7 +1544,7 @@ contract("BZxTest", function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 15;
+    const itemCount = 16;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -1562,21 +1568,23 @@ contract("BZxTest", function(accounts) {
           continue;
         }
         loanPositions.push({
-          lender: "0x"+params[0].substr(24),
-          trader: "0x"+params[1].substr(24),
-          collateralTokenAddressFilled: "0x"+params[2].substr(24),
-          positionTokenAddressFilled: "0x"+params[3].substr(24),
-          loanTokenAmountFilled: parseInt("0x"+params[4]),
-          collateralTokenAmountFilled: parseInt("0x"+params[5]),
-          positionTokenAmountFilled: parseInt("0x"+params[6]),
-          loanStartUnixTimestampSec: parseInt("0x"+params[7]),
-          loanEndUnixTimestampSec: parseInt("0x"+params[8]),
-          active: parseInt("0x"+params[9]),
-          loanOrderHash: "0x"+params[10],
-          loanTokenAddress: "0x"+params[11].substr(24),
-          interestTokenAddress: "0x"+params[12].substr(24),
-          interestTotalAccrued: parseInt("0x"+params[13]),
-          interestPaidSoFar: parseInt("0x"+params[14])
+          lender: "0x" + params[0].substr(24),
+          trader: "0x" + params[1].substr(24),
+          collateralTokenAddressFilled: "0x" + params[2].substr(24),
+          positionTokenAddressFilled: "0x" + params[3].substr(24),
+          loanTokenAmountFilled: parseInt("0x" + params[4]),
+          collateralTokenAmountFilled: parseInt("0x" + params[5]),
+          positionTokenAmountFilled: parseInt("0x" + params[6]),
+          loanStartUnixTimestampSec: parseInt("0x" + params[7]),
+          loanEndUnixTimestampSec: parseInt("0x" + params[8]),
+          active: parseInt("0x" + params[9]) == 1,
+          loanOrderHash: "0x" + params[10],
+          loanTokenAddress: "0x" + params[11].substr(24),
+          expirationUnixTimestampSec: parseInt("0x" + params[12]),
+          interestTokenAddress: "0x" + params[13].substr(24),
+          interestTotalAccrued: parseInt("0x" + params[14]),
+          interestPaidSoFar: parseInt("0x" + params[15]),
+          interestLastPaidDate: parseInt("0x" + params[16])
         });
       }
 

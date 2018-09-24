@@ -119,7 +119,7 @@ contract TestNetOracle is BZxOracle {
         }
     }
 
-    function _doTradeForEth(
+    function _doTradeForWeth(
         address /*sourceTokenAddress*/,
         uint /* sourceTokenAmount */,
         address /*receiver*/,
@@ -130,7 +130,7 @@ contract TestNetOracle is BZxOracle {
         destTokenAmountReceived = 0;//destEthAmountNeeded < sourceTokenAmount ? destEthAmountNeeded : sourceTokenAmount;
     }
 
-    function _doTradeWithEth(
+    function _doTradeWithWeth(
         address destTokenAddress,
         uint sourceEthAmount,
         address receiver,
