@@ -10,7 +10,7 @@
   },
   "scripts": {
     "clean-all": "rm -rf ./node_modules && rm -rf ./packages/*/node_modules",
-    "build-all": "cd ./packages/contracts && yarn run build && yarn run preptestnet && cd ./../.. && cd ./packages/bzx.js && yarn run build && cd ./../.. && cd ./packages/portal && yarn run build",
+    "build-all": "cd ./packages/contracts && yarn run build && yarn run preptestnet && cd ./../.. && cd ./packages/bzx.js && yarn run build && cd ./../.. && cd ./packages/bzx.js-docs && yarn run build  && cd ./../.. && cd ./packages/portal && yarn run build",
     "build-js": "cd ./packages/bzx.js && yarn run build && cd ./../.. && cd ./packages/portal && yarn run build"
   }
 }
