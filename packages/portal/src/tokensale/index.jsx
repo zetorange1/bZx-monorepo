@@ -261,7 +261,7 @@ export default class Tokensale extends BZxComponent {
             </DataPointContainer>
 
             <DataPointContainer>
-              <Label>bZx Protocol Token (BZRX)</Label>
+              <Label>BZRX Protocol Token (BZRX)</Label>
               <DataPoint>
                 <AddressLink href={bzrxTokenAddressLink}>
                   {bzrxTokenAddress}
