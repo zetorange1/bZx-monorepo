@@ -12,7 +12,7 @@ The entry point of the system. This interface is meant to used with the deployed
 // js example: 
 var bZx = await BZx.at((await BZxProxy.deployed()).address);
 ```
-Provides users with the abilities to:
+Provides users with the abilities to use:
 - Order taking functions,
 - Trade placing functions,
 - Loan maintenance functions,
@@ -20,13 +20,12 @@ Provides users with the abilities to:
 
 See also `BZxProxy.sol` contract.
 
-The next foundational blocks in the ecosystem are top-level contracts modules that provides all needed interfaces to trade using loaned ERC20 tokens.
+The next foundational blocks in the ecosystem are top-level contracts modules that provide all needed interfaces to trade using loaned ERC20 tokens.
 
 ### BZxOrderTaking.sol / BZxOrderTakingOnChain.sol
 The key contract is `BZxOrderTaking`/`BZxOrderTakingOnChain` that manages order taking and allows users to
 - Take the order as `trader`,
 - Take the order as `lender`,
-- Cancel remaining (untaken) `loan`,
 - Cancel remaining (untaken) `loan`.
 
 _Dev notes:_ This smart contract is deployed and attached to the system as submodule of _BZx_ and not designed to be used directly. Use `BZx.sol` and `BZxProxy.sol` instead.
