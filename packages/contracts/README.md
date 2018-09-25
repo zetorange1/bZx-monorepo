@@ -64,3 +64,25 @@ The contract which keeps track of all oracles registered in the system. `Oracles
 ## Documention
 https://bZxNetwork.github.io/bZx-monorepo/
 
+### How to build docs
+
+1. Make sure that `node_modules` are updated
+```
+yarn install
+```
+
+2. Go to `smart contracts` folder
+```
+cd ./packages/contracts/
+```
+
+3. Initialize `doxity` by installing node modules
+```
+cd ./scripts/doxity
+npm i
+```
+
+4. Go back to `smart contracts` folder and build the docs by running
+```
+./extra/generate_documentation_doxity.sh
+``` 
