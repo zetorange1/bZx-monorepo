@@ -2,6 +2,7 @@ import BZx from "./BZx.json";
 import BZxOracle from "./BZxOracle.json";
 import BZxTo0x from "./BZxTo0x.json";
 import BZxToken from "./BZRxToken.json";
+import BZRxTokenSale from "./BZRxTokenSale.json";
 import BZxVault from "./BZxVault.json";
 import EIP20 from "./EIP20.json";
 import OracleRegistry from "./OracleRegistry.json";
@@ -24,6 +25,7 @@ export default {
   BZxOracle,
   BZxTo0x,
   BZxToken,
+  BZRxTokenSale,
   BZxVault,
   EIP20,
   OracleRegistry,

@@ -182,6 +182,8 @@ export class BZxJS {
 
   wrapEth = (...props) => weth.wrapEth(this, ...props);
   unwrapEth = (...props) => weth.unwrapEth(this, ...props);
+
+  getWeb3Contract = (...props) => utils.getWeb3Contract(this, ...props);
 }
 
 export default BZxJS;

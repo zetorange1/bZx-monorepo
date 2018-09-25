@@ -14,6 +14,7 @@ import {
   Content,
   ContentContainer
 } from "../src/common/MainContent";
+import { withRouter } from 'next/router'
 
 import Balances from "../src/balances";
 
@@ -27,6 +28,8 @@ import Borrowing from "../src/borrowing";
 import Lending from "../src/lending";
 
 import Bounties from "../src/bounties";
+
+import Tokensale from "../src/tokensale";
 
 import Web3Container from "../src/web3/Web3Container";
 import NetworkIndicator from "../src/common/NetworkIndicator";
@@ -42,7 +45,7 @@ const TABS = [
 
 class Index extends React.Component {
   state = {
-    activeCard: `Balances`,
+    activeCard: `balances`,
     activeTab: `Orders_GenOrder`,
     activeOrder: null,
     trackedTokens: [],
@@ -52,6 +55,13 @@ class Index extends React.Component {
     hideChooseProviderDialog: false,
     lastTokenRefresh: null
   };
+
+  componentDidMount() {
+    console.log(`this.props.router.query.p`,this.props.router.query.p);
+    if (this.props.router.query.p) {
+      this.setState({ activeCard: this.props.router.query.p });
+    }
+  }
 
   setProvider = provider => {
     switch (provider) {
@@ -109,7 +119,7 @@ class Index extends React.Component {
 
   headerSection = cardId => {
     switch (cardId) {
-      case `Balances`:
+      case `balances`:
         return (
           <Fragment>
             <HeaderTitle>
@@ -120,7 +130,7 @@ class Index extends React.Component {
           </Fragment>
         );
         break; // eslint-disable-line no-unreachable
-      case `Orders`:
+      case `orders`:
         return (
           <Fragment>
             <HeaderTitle>
@@ -142,7 +152,7 @@ class Index extends React.Component {
           </Fragment>
         );
         break; // eslint-disable-line no-unreachable
-      case `Borrowing`:
+      case `borrowing`:
         return (
           <Fragment>
             <HeaderTitle>
@@ -153,7 +163,7 @@ class Index extends React.Component {
           </Fragment>
         );
         break; // eslint-disable-line no-unreachable
-      case `Lending`:
+      case `lending`:
         return (
           <Fragment>
             <HeaderTitle>
@@ -164,12 +174,23 @@ class Index extends React.Component {
           </Fragment>
         );
         break; // eslint-disable-line no-unreachable
-      case `Bounties`:
+      case `bounties`:
         return (
           <Fragment>
             <HeaderTitle>
               <HeaderTitleSiteName>bZx Portal</HeaderTitleSiteName>
               <HeaderTitleContext>Bounties</HeaderTitleContext>
+            </HeaderTitle>
+            <HeaderData />
+          </Fragment>
+        );
+        break; // eslint-disable-line no-unreachable
+      case `tokensale`:
+        return (
+          <Fragment>
+            <HeaderTitle>
+              <HeaderTitleSiteName>bZx Portal</HeaderTitleSiteName>
+              <HeaderTitleContext>Buy BZRX Token</HeaderTitleContext>
             </HeaderTitle>
             <HeaderData />
           </Fragment>
@@ -187,7 +208,7 @@ class Index extends React.Component {
     tabId
   ) => {
     switch (cardId) {
-      case `Balances`:
+      case `balances`:
         return (
           <Fragment>
             <NetworkIndicator
@@ -209,7 +230,7 @@ class Index extends React.Component {
           </Fragment>
         );
         break; // eslint-disable-line no-unreachable
-      case `Orders`:
+      case `orders`:
         return (
           <Fragment>
             <NetworkIndicator
@@ -267,7 +288,7 @@ class Index extends React.Component {
           </Fragment>
         );
         break; // eslint-disable-line no-unreachable
-      case `Borrowing`:
+      case `borrowing`:
         return (
           <Fragment>
             <NetworkIndicator
@@ -290,7 +311,7 @@ class Index extends React.Component {
           </Fragment>
         );
         break; // eslint-disable-line no-unreachable
-      case `Lending`:
+      case `lending`:
         return (
           <Fragment>
             <NetworkIndicator
@@ -312,7 +333,7 @@ class Index extends React.Component {
           </Fragment>
         );
         break; // eslint-disable-line no-unreachable
-      case `Bounties`:
+      case `bounties`:
         return (
           <Fragment>
             <NetworkIndicator
@@ -330,6 +351,32 @@ class Index extends React.Component {
             </p>
             <Divider />
             <Bounties
+              web3={web3}
+              zeroEx={zeroEx}
+              bZx={bZx}
+              accounts={accounts}
+              tokens={tokens}
+            />
+          </Fragment>
+        );
+        break; // eslint-disable-line no-unreachable
+      case `tokensale`:
+        return (
+          <Fragment>
+            <NetworkIndicator
+              networkId={networkId}
+              accounts={accounts}
+              etherscanURL={bZx.etherscanURL}
+              providerName={this.state.providerName}
+              clearProvider={this.clearProvider}
+            />
+            <p>
+              Purchase BZRX Token for immediate delivery to your ERC20-compatable wallet!
+              <br/><br/>
+              Please note that the token cannot be transferred out of your wallet until after the public sale ends.
+            </p>
+            <Divider />
+            <Tokensale
               web3={web3}
               zeroEx={zeroEx}
               bZx={bZx}
@@ -422,4 +469,4 @@ class Index extends React.Component {
   }
 }
 
-export default withRoot(Index);
+export default withRouter(withRoot(Index));

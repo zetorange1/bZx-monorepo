@@ -2,6 +2,7 @@ import BZx from "../../../../contracts/test_network/deployed/BZx.json";
 import BZxOracle from "../../../../contracts/test_network/deployed/BZxOracle.json";
 import BZxTo0x from "../../../../contracts/test_network/deployed/BZxTo0x.json";
 import BZxToken from "../../../../contracts/test_network/deployed/BZRxToken.json";
+import BZRxTokenSale from "../../../../contracts/test_network/deployed/BZRxTokenSale.json";
 import BZxVault from "../../../../contracts/test_network/deployed/BZxVault.json";
 import EIP20 from "../../../../contracts/test_network/deployed/EIP20.json";
 import OracleRegistry from "../../../../contracts/test_network/deployed/OracleRegistry.json";
@@ -27,6 +28,7 @@ export default {
   BZxOracle,
   BZxTo0x,
   BZxToken,
+  BZRxTokenSale,
   BZxVault,
   EIP20,
   OracleRegistry,

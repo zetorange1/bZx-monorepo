@@ -83,20 +83,23 @@ class NavContent extends React.Component {
         {this.props.web3IsReceived ? (
           <Fragment>
             <HorizontalNav>
-              <NavLink id="Balances" onClick={this.changeCardClick}>
+              <NavLink id="balances" onClick={this.changeCardClick}>
                 Balances
               </NavLink>
-              <NavLink id="Orders" onClick={this.changeCardClick}>
+              <NavLink id="orders" onClick={this.changeCardClick}>
                 Orders
               </NavLink>
-              <NavLink id="Borrowing" onClick={this.changeCardClick}>
+              <NavLink id="borrowing" onClick={this.changeCardClick}>
                 Borrowing
               </NavLink>
-              <NavLink id="Lending" onClick={this.changeCardClick}>
+              <NavLink id="lending" onClick={this.changeCardClick}>
                 Lending
               </NavLink>
-              <NavLink id="Bounties" onClick={this.changeCardClick}>
+              <NavLink id="bounties" onClick={this.changeCardClick}>
                 Bounties
+              </NavLink>
+              <NavLink id="tokensale" onClick={this.changeCardClick}>
+                Buy Token
               </NavLink>
               <NavLink
                 style={{ textDecoration: `none` }}
@@ -112,20 +115,23 @@ class NavContent extends React.Component {
             />
             <Drawer show={this.state.showSideNav}>
               <VerticalNav>
-                <NavLink id="Balances" onClick={this.changeCardClick}>
+                <NavLink id="balances" onClick={this.changeCardClick}>
                   Balances
                 </NavLink>
-                <NavLink id="Orders" onClick={this.changeCardClick}>
+                <NavLink id="orders" onClick={this.changeCardClick}>
                   Orders
                 </NavLink>
-                <NavLink id="Borrowing" onClick={this.changeCardClick}>
+                <NavLink id="borrowing" onClick={this.changeCardClick}>
                   Borrowing
                 </NavLink>
-                <NavLink id="Lending" onClick={this.changeCardClick}>
+                <NavLink id="lending" onClick={this.changeCardClick}>
                   Lending
                 </NavLink>
-                <NavLink id="Bounties" onClick={this.changeCardClick}>
+                <NavLink id="bounties" onClick={this.changeCardClick}>
                   Bounties
+                </NavLink>
+                <NavLink id="tokensale" onClick={this.changeCardClick}>
+                  Buy token
                 </NavLink>
                 <NavLink
                   style={{ textDecoration: `none` }}
