@@ -165,7 +165,8 @@ export default class Tokensale extends BZxComponent {
               this.setState({ buyAmount: ``, showBuyDialog: false });
             })
             .then(async () => {
-              alert(`Your purchase is complete. Please refresh to see your balances.`);
+              alert(`Your purchase is complete. It may take a few minutes for this page to update.`);
+              this.refreshTokenData();
             })
             .catch(error => {
               console.error(error.message);
