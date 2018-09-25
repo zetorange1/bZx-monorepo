@@ -40,7 +40,8 @@ module.exports = function(deployer, network, accounts) {
       BZxVault.address, 
       config["addresses"][network]["ZeroEx"]["WETH9"], 
       priceContractAddress,
-      currentBonus);
+      currentBonus
+    );
 
     var bZRxToken = await BZRxToken.deployed();
     await bZRxToken.addMinter(BZRxTokenSale.address);
