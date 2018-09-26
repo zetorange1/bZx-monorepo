@@ -189,36 +189,18 @@ export default class Tokensale extends BZxComponent {
             })
             .catch(error => {
               console.error(error.message);
-              if (
-                error.message.includes(`denied transaction signature`) ||
-                error.message.includes(`Condition of use not satisfied`) ||
-                error.message.includes(`Invalid status`)
-              ) {
-                alert();
-              }
+              alert(`The purchase cannot be completed at this time. The tokensale may be temporarily paused or has ended.`);
               this.setState({ buyAmount: ``, showBuyDialog: false });
             });
         })
         .catch(error => {
           console.error(error.message);
-          if (
-            error.message.includes(`denied transaction signature`) ||
-            error.message.includes(`Condition of use not satisfied`) ||
-            error.message.includes(`Invalid status`)
-          ) {
-            alert();
-          }
+          alert(`The purchase cannot be completed at this time. The tokensale may be temporarily paused or has ended.`);
           this.setState({ buyAmount: ``, showBuyDialog: false });
         });
     } catch (error) {
       console.error(error.message);
-      if (
-        error.message.includes(`denied transaction signature`) ||
-        error.message.includes(`Condition of use not satisfied`) ||
-        error.message.includes(`Invalid status`)
-      ) {
-        alert();
-      }
+      alert(`The purchase cannot be completed at this time. The tokensale may be temporarily paused or has ended.`);
       this.setState({ buyAmount: ``, showBuyDialog: false });
     }
   };

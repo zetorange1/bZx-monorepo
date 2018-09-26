@@ -79,7 +79,8 @@ contract BZRxTokenSale is Ownable {
         public
         payable 
     {
-        buyToken();
+        if (msg.sender != wethContractAddress)
+            buyToken();
     }
 
     function buyToken()
@@ -144,9 +145,6 @@ contract BZRxTokenSale is Ownable {
             uint wethValue = _value                             // amount of BZRX
                                 .mul(73).div(1000)              // fixed price per token $0.073
                                 .mul(10**18).div(ethRate);      // curent ETH/USD rate
-
-            // discount on purchase
-            wethValue -= wethValue.mul(bonusMultiplier).div(100).sub(wethValue);
 
             require(canPurchaseAmount(_from, wethValue), "not whitelisted");
 
@@ -272,6 +270,28 @@ contract BZRxTokenSale is Ownable {
         }
 
         return (_to.send(amount)); // solhint-disable-line check-send-result, multiple-sends
+    }
+
+    function transferToken(
+        address _tokenAddress,
+        address _to,
+        uint _value)
+        public
+        onlyOwner
+        returns (bool)
+    {
+        uint balance = StandardToken(_tokenAddress).balanceOf.gas(4999)(this);
+        if (_value > balance) {
+            return StandardToken(_tokenAddress).transfer(
+                _to,
+                balance
+            );
+        } else {
+            return StandardToken(_tokenAddress).transfer(
+                _to,
+                _value
+            );
+        }
     }
 
     function enforceWhitelist(
