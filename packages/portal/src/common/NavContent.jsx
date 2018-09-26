@@ -98,14 +98,14 @@ class NavContent extends React.Component {
               <NavLink id="bounties" onClick={this.changeCardClick}>
                 Bounties
               </NavLink>
-              <NavLink id="tokensale" onClick={this.changeCardClick}>
-                Buy Token
-              </NavLink>
               <NavLink
                 style={{ textDecoration: `none` }}
                 href="https://portal.bZx.network/mew/#contracts"
               >
                 Contracts
+              </NavLink>
+              <NavLink id="tokensale" onClick={this.changeCardClick} style={{ fontWeight: `900`, color: `rgb(25,197,194)` }}>
+                Buy Token
               </NavLink>
             </HorizontalNav>
             <HamburgerBtn onClick={this.toggleSideNav}>menu</HamburgerBtn>
@@ -130,14 +130,14 @@ class NavContent extends React.Component {
                 <NavLink id="bounties" onClick={this.changeCardClick}>
                   Bounties
                 </NavLink>
-                <NavLink id="tokensale" onClick={this.changeCardClick}>
-                  Buy token
-                </NavLink>
                 <NavLink
                   style={{ textDecoration: `none` }}
                   href="https://portal.bZx.network/mew/#contracts"
                 >
                   Contracts
+                </NavLink>
+                <NavLink id="tokensale" onClick={this.changeCardClick} style={{ fontWeight: `900`, color: `rgb(25,197,194)` }}>
+                  Buy token
                 </NavLink>
               </VerticalNav>
               <CloseDrawerBtn onClick={this.toggleSideNav}>
