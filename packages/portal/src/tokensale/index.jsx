@@ -76,8 +76,27 @@ export default class Tokensale extends BZxComponent {
 
   async componentDidMount() {
     const tokensaleContract = await this.props.bZx.getWeb3Contract(`BZRxTokenSale`);
-    const bzrxTokenAddress = await this.wrapAndRun(tokensaleContract.methods.bZRxTokenContractAddress().call());
-    const currentTokenBonus = await this.wrapAndRun(tokensaleContract.methods.bonusMultiplier().call());
+    
+    let bzrxTokenAddress, currentTokenBonus;
+
+    switch (this.props.bZx.networkId) {
+      case 1: {
+        bzrxTokenAddress = `0x1c74cFF0376FB4031Cd7492cD6dB2D66c3f2c6B9`;
+        currentTokenBonus = `110`;
+        break;
+      }
+      case 3: {
+        bzrxTokenAddress = `0xF8b0B6Ee32a617beca665b6c5B241AC15b1ACDD5`;
+        currentTokenBonus = `110`;
+        break;
+      }
+      default: {
+        bzrxTokenAddress = await this.wrapAndRun(tokensaleContract.methods.bZRxTokenContractAddress().call());
+        currentTokenBonus = await this.wrapAndRun(tokensaleContract.methods.bonusMultiplier().call());
+        break;
+      }
+    }
+
     console.log(`BZRX Token:`, bzrxTokenAddress);
 
     await this.setState({ 
@@ -272,7 +291,7 @@ export default class Tokensale extends BZxComponent {
             <br/>
 
             <DataPointContainer>
-              <Label>Token Tokens Received</Label>
+              <Label>Total Tokens Received</Label>
               <DataPoint>
                 {fromBigNumber(
                   totalTokens,
