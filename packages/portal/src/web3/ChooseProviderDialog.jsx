@@ -67,9 +67,10 @@ export default class ChooseProviderDialog extends React.Component {
                   src="/static/metamask.png"
                 />
               </ProviderItem>
-              (Mainnet or Ropsten)
+              <br/>
+              MetaMask now supports Ledger and Trezor devices!
             </ProviderContainer>
-            <ProviderContainer>
+            {/* <ProviderContainer>
               <ProviderItem
                 href=""
                 id="Ledger"
@@ -79,7 +80,7 @@ export default class ChooseProviderDialog extends React.Component {
               </ProviderItem>
               (Mainnet only)
             </ProviderContainer>
-            {/* <ProviderContainer>
+            <ProviderContainer>
               <ProviderItem href={``} id={`Trezor`} onClick={this.handleChooseProvider}>
                 <ProviderIcon id={`Trezor`} src={`/static/trezor.png`} />
               </ProviderItem>

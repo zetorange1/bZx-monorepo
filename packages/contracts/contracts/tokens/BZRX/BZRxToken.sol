@@ -39,7 +39,7 @@ contract BZRxToken is UnlimitedAllowanceToken, DetailedERC20, Ownable {
     constructor()
         public
         DetailedERC20(
-            "BZRX Protocol Token",
+            "bZx Protocol Token",
             "BZRX", 
             18
         )
@@ -154,11 +154,9 @@ contract BZRxToken is UnlimitedAllowanceToken, DetailedERC20, Ownable {
         public 
         onlyOwner 
         canMint 
-        returns (bool)
     {
         mintingFinished = true;
         emit MintFinished();
-        return true;
     }
 
     /**
@@ -169,11 +167,9 @@ contract BZRxToken is UnlimitedAllowanceToken, DetailedERC20, Ownable {
         public 
         onlyOwner 
         isLocked 
-        returns (bool)
     {
         lockingFinished = true;
         emit LockingFinished();
-        return true;
     }
 
     /**
@@ -185,10 +181,8 @@ contract BZRxToken is UnlimitedAllowanceToken, DetailedERC20, Ownable {
         public 
         onlyOwner 
         canMint 
-        returns (bool)
     {
         minters[_minter] = true;
-        return true;
     }
 
     /**
@@ -200,10 +194,8 @@ contract BZRxToken is UnlimitedAllowanceToken, DetailedERC20, Ownable {
         public 
         onlyOwner 
         canMint 
-        returns (bool)
     {
         minters[_minter] = false;
-        return true;
     }
 
     /**

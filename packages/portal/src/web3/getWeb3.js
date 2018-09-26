@@ -1,10 +1,10 @@
 /* globals window, document */
 import Web3 from "web3";
-import ProviderEngine from "web3-provider-engine";
-import RpcSubprovider from "web3-provider-engine/subproviders/rpc";
+// import ProviderEngine from "web3-provider-engine";
+// import RpcSubprovider from "web3-provider-engine/subproviders/rpc";
 
 // Ledger
-import LedgerWallet from "ledger-wallet-provider";
+// import LedgerWallet from "ledger-wallet-provider";
 
 // Trezor
 // import WebsocketSubProvider from 'web3-provider-engine/subproviders/websocket';
@@ -38,7 +38,8 @@ const resolveWeb3 = async (resolve, providerName) => {
       break;
     }
     case `Ledger`: {
-      try {
+      resolve(false);
+      /* try {
         const engine = new ProviderEngine();
         const networkId = 1; // Mainnet only for now
         const LedgerWalletSubprovider = await LedgerWallet(() => networkId, `44'/60'/0'/0`);
@@ -50,7 +51,7 @@ const resolveWeb3 = async (resolve, providerName) => {
       } catch (e) {
         console.error(e);
         resolve(false);
-      }
+      } */
       break;
     }
     case `Trezor`: {
