@@ -1,15 +1,15 @@
-linkPrefix = "/bZx-monorepo"
+linkPrefix = "/contracts"
 name = "bzx-contracts"
 license = "Apache-2.0"
 version = "0.3.4"
 description = "bZx Smart Contracts"
 author = "bZeroX LLC 2018"
-buildTime = 2018-09-24T22:38:10.312Z
+buildTime = 2018-09-25T23:49:44.222Z
 target = "scripts/doxity"
 src = "contracts/*"
 dir = "pages/docs"
 source = "https://github.com/DigixGlobal/doxity-gatsby-starter-project/archive/a4886b7a7a04c018ac04fed3125d7d4785e74bed.tar.gz"
-out = "./../../docs"
+out = "./_book"
 homepage = "https://github.com/bZxNetwork/bZx-monorepo/tree/master/packages/contracts#readme"
 
 [interaction]

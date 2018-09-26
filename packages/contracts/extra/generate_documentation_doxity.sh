@@ -10,6 +10,10 @@ fi
 
 ln -s $CURDIR/../../$OPENZEPPELIN $CURDIR/$OPENZEPPELIN
 
+if [ ! -f $CURDIR/scripts/doxity/pages/docs ]; then
+    mkdir -p $CURDIR/scripts/doxity/pages/docs
+fi
+
 command="$CURDIR/node_modules/.bin/doxity build"
 
 eval "$command"
