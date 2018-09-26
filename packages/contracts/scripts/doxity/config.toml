@@ -1,4 +1,4 @@
-linkPrefix = "/contracts"
+linkPrefix = "/bZx-monorepo"
 name = "bzx-contracts"
 license = "Apache-2.0"
 version = "0.3.4"
