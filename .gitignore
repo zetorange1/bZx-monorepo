@@ -7,6 +7,7 @@
 /**/html_public_test
 /packages/bzx.js-docs/_book
 /packages/portal/live_site
+/packages/contracts/_book
 /packages/contracts/html_public_test
 *.log
 secrets.js
@@ -18,3 +19,6 @@ secrets.js
 .idea
 package-lock.json
 /packages/contracts/scripts/doxity/pages/docs/*.json
+/packages/contracts/scripts/doxity/pages/index.md
+/packages/contracts/scripts/doxity/config.toml
+/docs/
