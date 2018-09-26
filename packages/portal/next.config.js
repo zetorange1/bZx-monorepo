@@ -1,8 +1,7 @@
 module.exports = {
   exportPathMap() {
     return {
-      "/": { page: `/` },
-      "/tokensale": { page: '/', query: { p: `tokensale` } }
+      "/": { page: `/` }
     };
   },
   assetPrefix: process.env.IS_STAGING ? "/new" : ""
