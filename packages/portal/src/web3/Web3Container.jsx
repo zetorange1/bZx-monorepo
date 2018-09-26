@@ -42,6 +42,11 @@ export default class Web3Container extends React.Component {
     networkId: null
   };
 
+  async componentDidMount() {
+    this.setState({ loading: true, errorMsg: `` });
+    await this.loadWeb3(this.props.providerName);
+  }
+
   async componentWillReceiveProps(nextProps) {
     if (nextProps.getWeb3) {
       this.setState({ loading: true, errorMsg: `` });

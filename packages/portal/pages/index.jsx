@@ -49,15 +49,14 @@ class Index extends React.Component {
     activeTab: `Orders_GenOrder`,
     activeOrder: null,
     trackedTokens: [],
-    providerName: ``,
-    getWeb3: false,
+    providerName: `MetaMask`,
+    getWeb3: true,
     web3IsReceived: false,
     hideChooseProviderDialog: false,
     lastTokenRefresh: null
   };
 
   componentDidMount() {
-    console.log(`this.props.router.query.p`,this.props.router.query.p);
     if (this.props.router.query.p) {
       this.setState({ activeCard: this.props.router.query.p });
     }
@@ -66,13 +65,13 @@ class Index extends React.Component {
   setProvider = provider => {
     switch (provider) {
       case `MetaMask`:
-      case `Ledger`:
         this.setState({
           providerName: provider,
           getWeb3: true,
           web3IsReceived: false
         });
         break;
+      case `Ledger`:
       case `Trezor`:
       default:
         this.setState({
@@ -86,9 +85,10 @@ class Index extends React.Component {
 
   toggleProviderDialog = event => {
     event.preventDefault();
-    this.setState(p => ({
+    /*this.setState(p => ({
       hideChooseProviderDialog: !p.hideChooseProviderDialog
-    }));
+    }));*/
+    this.setProvider(`MetaMask`);
   };
 
   changeCard = cardId => this.setState({ activeCard: cardId });

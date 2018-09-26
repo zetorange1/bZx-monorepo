@@ -51,9 +51,9 @@ export default class ChooseProviderDialog extends React.Component {
 
   render() {
     return (
-      <Dialog open={this.props.open}>
-        <DialogTitle>Choose Wallet Provider</DialogTitle>
-        <DialogContent style={{ padding: `unset` }}>
+      <Dialog open={this.props.open} disableBackdropClick={false}>
+        <DialogTitle style={{ textAlign: `center` }}>Wallet Provider</DialogTitle>
+        <DialogContent style={{ padding: `0 24px 0px` }}>
           <Container>
             <ProviderContainer>
               <ProviderItem
