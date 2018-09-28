@@ -59,7 +59,7 @@ export default class Layout extends React.Component {
     };
     window.tokenSymbols = {};
     window.tokenDecimals = {};
-    window.defaultGasPrice = toBigNumber(5, 1E9);
+    window.defaultGasPrice = toBigNumber(10, 1E9);
   };
 
   showAlert = (text, alertComponent = null) => {
