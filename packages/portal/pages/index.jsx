@@ -45,7 +45,7 @@ const TABS = [
 
 class Index extends React.Component {
   state = {
-    activeCard: `balances`,
+    activeCard: `tokensale`,
     activeTab: `Orders_GenOrder`,
     activeOrder: null,
     trackedTokens: [],
