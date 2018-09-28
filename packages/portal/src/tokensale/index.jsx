@@ -233,7 +233,7 @@ export default class Tokensale extends BZxComponent {
 
     const tokensaleContractAddress = tokensaleContract ? tokensaleContract._address : null;
     const tokensaleContractLink = `${this.props.bZx.etherscanURL}address/${tokensaleContractAddress}`;
-    const bzrxTokenAddressLink = `${this.props.bZx.etherscanURL}token/${bzrxTokenAddress}`;
+    const bzrxTokenAddressLink = `${this.props.bZx.etherscanURL}address/${bzrxTokenAddress}`;
 
     return (
       <div>
