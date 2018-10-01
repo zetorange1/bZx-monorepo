@@ -11,7 +11,7 @@ pragma experimental ABIEncoderV2;
 import "./storage/BZxStorage.sol";
 import "./ZeroEx/ExchangeV2Interface.sol";
 
-// This interface is meant to used with the deployed BZxProxy contract (modules/BZxProxyContracts.sol) address.
+// This interface is meant to used with the deployed BZxProxy contract (proxy/BZxProxy.sol) address.
 // js example: var bZx = await BZx.at((await BZxProxy.deployed()).address);
 
 contract BZx is BZxStorage {
