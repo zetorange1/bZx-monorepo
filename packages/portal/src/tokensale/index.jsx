@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import styled from "styled-components";
 import MuiButton from "@material-ui/core/Button";
 import BZxComponent from "../common/BZxComponent";
@@ -359,13 +360,27 @@ export default class Tokensale extends BZxComponent {
             <DialogTitle>Purchase BZRX Tokens</DialogTitle>
             <DialogContent>
               <DialogContentText>
-                BZRX tokens cost $0.073 each. Please specify the amount of Ether you want
-                to send for your purchase. BZRX will be purchased at the current ETH rate 
-                (${toBigNumber(
-                  fromBigNumber(ethRate, 10 ** 18)
-                ).toFixed(2)}
-                {` `}
-                {`per ETH`}). Your purchase will include an additional token bonus of {currentTokenBonus}%.
+                {this.state.affiliateHex ? (
+                  <Fragment>
+                    Please specify the amount of Ether you want
+                    to send for your purchase. BZRX will be purchased at the current ETH rate 
+                    (${toBigNumber(
+                      fromBigNumber(ethRate, 10 ** 18)
+                    ).toFixed(2)}
+                    {` `}
+                    {`per ETH`}).
+                  </Fragment>
+                ) : (
+                  <Fragment>
+                    BZRX tokens cost $0.073 each. Please specify the amount of Ether you want
+                    to send for your purchase. BZRX will be purchased at the current ETH rate 
+                    (${toBigNumber(
+                      fromBigNumber(ethRate, 10 ** 18)
+                    ).toFixed(2)}
+                    {` `}
+                    {`per ETH`}). Your purchase will include an additional token bonus of {currentTokenBonus}%.
+                  </Fragment>
+                )}
               </DialogContentText>
               <br/>
               <FormControl fullWidth>
