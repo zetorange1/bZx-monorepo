@@ -1,3 +1,18 @@
+const glob = require('glob');
+
+module.exports = {
+  exportPathMap() {
+    const pathMap = {}
+    glob.sync('pages/**/*.jsx', { ignore: 'pages/_document.jsx' }).forEach(s => {
+      const path = s.split(/(pages|\.)/)[2].replace(/^\/index$/, '/')
+      pathMap[path] = { page: path }
+    })
+    return pathMap;
+  },
+  assetPrefix: process.env.IS_STAGING ? "/new" : ""
+};
+
+/*
 module.exports = {
   exportPathMap() {
     return {
@@ -6,3 +21,4 @@ module.exports = {
   },
   assetPrefix: process.env.IS_STAGING ? "/new" : ""
 };
+*/

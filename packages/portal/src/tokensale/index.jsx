@@ -1,10 +1,8 @@
 import styled from "styled-components";
 import MuiButton from "@material-ui/core/Button";
-import Section, { SectionLabel } from "../common/FormSection";
 import BZxComponent from "../common/BZxComponent";
 import { COLORS } from "../styles/constants";
 import { fromBigNumber, toBigNumber } from "../common/utils";
-import { getSymbol, getDecimals } from "../common/tokens";
 import { Input, InputLabel, InputAdornment, FormControl, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@material-ui/core";
 
 const InfoContainer = styled.div`
@@ -60,6 +58,22 @@ const TxHashLink = styled.a.attrs({
 }
 `;
 
+function stringToHex (tmp) {
+  if (!tmp)
+    return '';
+  
+  var str = '',
+      i = 0,
+      tmp_len = tmp.length,
+      c;
+
+  for (; i < tmp_len; i += 1) {
+      c = tmp.charCodeAt(i);
+      str += c.toString(16);
+  }
+  return str;
+}
+
 export default class Tokensale extends BZxComponent {
   state = { 
     loading: false, 
@@ -71,7 +85,8 @@ export default class Tokensale extends BZxComponent {
     tokensaleContract: null,
     bzrxTokenAddress: null,
     showBuyDialog: false,
-    buyAmount: 0
+    buyAmount: 0,
+    affiliateHex: stringToHex(this.props.affiliate)
   };
 
   async componentDidMount() {
@@ -109,7 +124,7 @@ export default class Tokensale extends BZxComponent {
   }
 
   refreshTokenData = async () => {
-    const { bZx, accounts } = this.props;
+    const { accounts } = this.props;
     const { tokensaleContract } = this.state;
     await this.setState({ loading: true });
     
@@ -171,8 +186,9 @@ export default class Tokensale extends BZxComponent {
         .then(gas => {
           console.log(gas);
           txOpts.gas = window.gasValue(gas)+10000;
-          txObj
-            .send(txOpts)
+          txOpts.data = `0xa4821719` + this.state.affiliateHex;
+          console.log(txOpts);
+          web3.eth.sendTransaction(txOpts)
             .once(`transactionHash`, hash => {
               alert(`Transaction submitted, transaction hash:`, {
                 component: () => (
@@ -206,7 +222,6 @@ export default class Tokensale extends BZxComponent {
   };
 
   render() {
-    const { bZx, accounts, web3 } = this.props;
     const { 
       loading,
       error,
