@@ -362,13 +362,13 @@ export default class Tokensale extends BZxComponent {
               <DialogContentText>
                 {this.state.affiliateHex ? (
                   <Fragment>
-                    Please specify the amount of Ether you want
+                    BZRX tokens cost $0.073 each. Please specify the amount of Ether you want
                     to send for your purchase. BZRX will be purchased at the current ETH rate 
                     (${toBigNumber(
                       fromBigNumber(ethRate, 10 ** 18)
                     ).toFixed(2)}
                     {` `}
-                    {`per ETH`}).
+                    {`per ETH`}). Your purchase will include an additional token bonus of {currentTokenBonus}%.
                   </Fragment>
                 ) : (
                   <Fragment>
