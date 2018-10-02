@@ -107,7 +107,7 @@ const traderAddress = "0x6ecbe1db9ef729cbe972c83fb886247691fb6beb";
     interestTokenAddress: artifacts.testToken0.address.toLowerCase(),
     collateralTokenAddress: artifacts.testToken0.address.toLowerCase(),
     feeRecipientAddress: utils.zeroAddress.toLowerCase(),
-    oracleAddress: artifacts.testNetOracle.networks["50"].address.toLowerCase(),
+    oracleAddress: oracles[0].address.toLowerCase(),
     loanTokenAmount: c.web3.utils.toWei("100", "ether"),
     interestAmount: c.web3.utils.toWei("0.2", "ether"),
     initialMarginAmount: "50",
