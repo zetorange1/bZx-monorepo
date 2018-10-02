@@ -18,10 +18,12 @@
     "bzx.js": "^0.3.4",
     "cross-env": "^5.2.0",
     "moment": "^2.22.1",
+    "rimraf": "^2.6.2",
     "web3": "1.0.0-beta.34",
     "winston": "^3.0.0"
   },
   "scripts": {
+    "network": "./scripts/network.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
     "scenario:all": "node ./scenarios/es6/all.js"
   }
