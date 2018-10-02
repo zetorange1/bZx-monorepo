@@ -161,19 +161,19 @@ export declare class BZxJS {
     loanTokenAmountFilled: BigNumber;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   takeLoanOrderAsLender(params: {
     order: ILoanOrderFillRequest;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   pushLoanOrderOnChain(params: {
     order: ILoanOrderFillRequest;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<any> | TransactionObject<any>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   takeLoanOrderOnChainAsTrader(params: {
     loanOrderHash: string;
@@ -181,33 +181,33 @@ export declare class BZxJS {
     loanTokenAmountFilled: BigNumber;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<any> | TransactionObject<any>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   takeLoanOrderOnChainAsLender(params: {
     loanOrderHash: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<any> | TransactionObject<any>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   cancelLoanOrder(params: {
     order: ILoanOrderFillRequest;
     cancelLoanTokenAmount: BigNumber;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   cancelLoanOrderWithHash(params: {
     loanOrderHash: string;
     cancelLoanTokenAmount: BigNumber;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   closeLoan(params: {
     loanOrderHash: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   getSingleLoan(params: { loanOrderHash: string; trader: string }): ILoanPositionState;
 
