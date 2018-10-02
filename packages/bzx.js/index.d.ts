@@ -1,7 +1,11 @@
 import { BigNumber } from "@0xproject/utils";
-import { Provider, TransactionObject, Tx } from "web3/types";
+import { TransactionObject, Tx } from "web3/eth/types";
+import { Provider } from "web3/providers";
+import { TransactionReceipt } from "web3/types";
 
 export declare interface ILoanOrderValuesBase {
+  bZxAddress: string;
+
   makerAddress: string;
   loanTokenAddress: string;
   interestTokenAddress: string;
@@ -9,28 +13,28 @@ export declare interface ILoanOrderValuesBase {
   feeRecipientAddress: string;
   oracleAddress: string;
 
-  loanTokenAmount: BigNumber;
-  interestAmount: BigNumber;
-  initialMarginAmount: BigNumber;
-  maintenanceMarginAmount: BigNumber;
-  lenderRelayFee: BigNumber;
-  traderRelayFee: BigNumber;
-  maxDurationUnixTimestampSec: number;
-  expirationUnixTimestampSec: number;
+  loanTokenAmount: number | string;
+  interestAmount: number | string;
+  initialMarginAmount: number | string;
+  maintenanceMarginAmount: number | string;
+  lenderRelayFee: number | string;
+  traderRelayFee: number | string;
+  maxDurationUnixTimestampSec: string;
+  expirationUnixTimestampSec: string;
 }
 
 export declare interface ILoanOrderFillable extends ILoanOrderValuesBase {
   loanOrderHash: string;
   lender: string;
-  orderFilledAmount: BigNumber;
-  orderCancelledAmount: BigNumber;
+  orderFilledAmount: number | string;
+  orderCancelledAmount: number | string;
   orderTraderCount: number;
   addedUnixTimestampSec: number;
 }
 
 export declare interface ILoanOrderFillRequest extends ILoanOrderValuesBase {
   makerRole: number;
-  salt: string;
+  salt: BigNumber | string;
   signature: string;
 }
 
@@ -108,10 +112,10 @@ export declare class BZxJS {
     tokenAddress: string;
     ownerAddress: string;
     spenderAddress: string;
-    amountInBaseUnits: BigNumber;
+    amountInBaseUnits: BigNumber | string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   setAllowanceUnlimited(params: {
     tokenAddress: string;
@@ -119,7 +123,7 @@ export declare class BZxJS {
     spenderAddress: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   resetAllowance(params: {
     tokenAddress: string;
@@ -127,7 +131,7 @@ export declare class BZxJS {
     spenderAddress: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   getAllowance(params: { tokenAddress: string; ownerAddress: string; spenderAddress: string }): BigNumber;
 
@@ -137,7 +141,12 @@ export declare class BZxJS {
 
   getOracleList(): IOracleDescription[];
 
-  isTradeSupported(params: { sourceTokenAddress: string; destTokenAddress: string; oracleAddress: string }): boolean;
+  isTradeSupported(params: {
+    sourceTokenAddress: string;
+    destTokenAddress: string;
+    oracleAddress: string;
+    sourceTokenAmount: string;
+  }): boolean;
 
   getConversionData(params: {
     sourceTokenAddress: string;
@@ -322,9 +331,17 @@ export declare class BZxJS {
     txOpts: Tx;
   }): Promise<boolean> | TransactionObject<boolean>;
 
-  wrapEth(params: { amount: BigNumber; getObject: boolean; txOpts: Tx }): Promise<string> | TransactionObject<string>;
+  wrapEth(params: {
+    amount: BigNumber;
+    getObject: boolean;
+    txOpts: Tx;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
-  unwrapEth(params: { amount: BigNumber; getObject: boolean; txOpts: Tx }): Promise<string> | TransactionObject<string>;
+  unwrapEth(params: {
+    amount: BigNumber;
+    getObject: boolean;
+    txOpts: Tx;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   static generatePseudoRandomSalt(): BigNumber;
 
