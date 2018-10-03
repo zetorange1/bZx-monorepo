@@ -56,7 +56,6 @@ module.exports = function(deployer, network, accounts) {
       )
       .then(async function() {
         var oracle = await BZxOracle.deployed();
-        // seeds BZxOracle with 1 Ether
 
         var wethT = await EIP20.at(config["addresses"][network]["ZeroEx"]["WETH9"]);
         if (!OLD_ORACLE_ADDRESS) {

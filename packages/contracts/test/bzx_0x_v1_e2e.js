@@ -82,7 +82,7 @@ let BZx = artifacts.require("BZx"); // BZx interface
 let ZeroExV2Helper = artifacts.require("ZeroExV2Helper");
 
 let currentGasPrice = 8000000000; // 8 gwei
-let currentEthPrice = 500; // USD
+let currentEthPrice = 250; // USD
 
 const MAX_UINT = new BigNumber(2)
   .pow(256)

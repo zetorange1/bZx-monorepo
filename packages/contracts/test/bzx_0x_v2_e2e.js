@@ -41,6 +41,9 @@ const SignatureType = Object.freeze({
   PreSigned: 6
 });
 
+let currentGasPrice = 8000000000; // 8 gwei
+let currentEthPrice = 250; // USD
+
 contract("BZxTest", function(accounts) {
   let reverter = new Reverter(web3);
 
@@ -1428,6 +1431,8 @@ contract("BZxTest", function(accounts) {
       assert.isTrue(loans[0].active);
 
       await bZx.liquidatePosition(OrderHash_bZx_1, trader1, { from: maker1 });
+      //let txn = await bZx.liquidatePosition(OrderHash_bZx_1, trader1, { from: maker1 });
+      //console.log(txPrettyPrint(txn, "should liquidate position"));
 
       loans = decodeLoanPosition(
         await bZx.getSingleLoan.call(OrderHash_bZx_1, trader1)
@@ -1603,3 +1608,89 @@ contract("BZxTest", function(accounts) {
     return signature;
   };
 });
+
+function txLogsPrint(logs) {
+  var ret = "";
+  if (logs === undefined) {
+    logs = [];
+  }
+  if (logs.length > 0) {
+    logs = logs.sort(function(a, b) {
+      return a.blockNumber > b.blockNumber
+        ? 1
+        : b.blockNumber > a.blockNumber
+          ? -1
+          : 0;
+    });
+    ret = ret + "\n  LOGS --> " + "\n";
+    for (var i = 0; i < logs.length; i++) {
+      var log = logs[i];
+      //console.log(log);
+      ret =
+        ret + "  " + i + ": " + log.event + " " + JSON.stringify(log.args);
+      if (log.event == "GasRefund") {
+        ret =
+          ret +
+          " -> Refund: " +
+          ((log.args.refundAmount / 1e18) * currentEthPrice).toFixed(2) +
+          "USD @ " +
+          currentEthPrice +
+          "USD/ETH)";
+      }
+      ret = ret + " " + log.transactionHash + " " + log.blockNumber + "\n\n";
+    }
+  }
+  return ret;
+}
+
+function txPrettyPrint(tx, desc) {
+  var ret = desc + "\n";
+  if (tx.tx === undefined) {
+    ret = ret + JSON.stringify(tx);
+  } else {
+    ret = ret + "  tx: " + tx.tx + "\n";
+    if (tx.receipt !== undefined) {
+      ret = ret + "  blockNumber: " + tx.receipt.blockNumber + "\n";
+      ret =
+        ret +
+        "  gasUsed: " +
+        tx.receipt.gasUsed +
+        " -> x" +
+        currentGasPrice +
+        " = " +
+        tx.receipt.gasUsed * currentGasPrice +
+        " (" +
+        (
+          ((tx.receipt.gasUsed * currentGasPrice) / 1e18) *
+          currentEthPrice
+        ).toFixed(2) +
+        "USD @ " +
+        currentEthPrice +
+        "USD/ETH)\n";
+      ret =
+        ret +
+        "  cumulativeGasUsed: " +
+        tx.receipt.cumulativeGasUsed +
+        " -> x" +
+        currentGasPrice +
+        " = " +
+        tx.receipt.cumulativeGasUsed * currentGasPrice +
+        " (" +
+        (
+          ((tx.receipt.cumulativeGasUsed * currentGasPrice) / 1e18) *
+          currentEthPrice
+        ).toFixed(2) +
+        "USD @ " +
+        currentEthPrice +
+        "USD/ETH)\n";
+      ret = ret + "  status: " + tx.receipt.status + "\n";
+    }
+
+    if (tx.logs === undefined) {
+      tx.logs = [];
+    }
+    //tx.logs = tx.logs.concat(events);
+    ret = ret + txLogsPrint(tx.logs);
+  }
+  return ret;
+}
