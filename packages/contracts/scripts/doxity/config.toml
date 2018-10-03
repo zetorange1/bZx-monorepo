@@ -1,10 +1,10 @@
-linkPrefix = "/contracts"
+linkPrefix = "/docs/contracts"
 name = "bzx-contracts"
 license = "Apache-2.0"
 version = "0.3.4"
 description = "bZx Smart Contracts"
 author = "bZeroX LLC 2018"
-buildTime = 2018-09-26T13:15:29.358Z
+buildTime = 2018-10-03T20:35:42.926Z
 target = "scripts/doxity"
 src = "contracts/*"
 dir = "pages/docs"
