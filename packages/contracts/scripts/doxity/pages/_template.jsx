@@ -45,7 +45,7 @@ export default class Index extends Component {
                   <ContractDropdown pages={childRoutes} location={this.props.location} />
                 }
                 {config.homepage &&
-                  <Menu.Item as={'a'} target="_blank" href={config.homepage}>
+                  <Menu.Item as={'a'} href={config.homepage}>
                     <Icon name="home" />
                   </Menu.Item>
                 }
