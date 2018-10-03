@@ -32,7 +32,8 @@ module.exports = function(deployer, network, accounts) {
     network == "kovan" ||
     network == "rinkeby"
   ) {
-    bzrx_token_address = config["addresses"][network]["BZRXToken"];
+    //bzrx_token_address = config["addresses"][network]["BZRXToken"];
+    bzrx_token_address = BZRxToken.address;
   } else {
     bzrx_token_address = BZRxToken.address;
   }

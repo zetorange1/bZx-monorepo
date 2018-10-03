@@ -26,7 +26,7 @@ module.exports = function(deployer, network, accounts) {
     else if (network == "kovan") {
       priceContractAddress = "0xa5aA4e07F5255E14F02B385b1f04b35cC50bdb66";
     }
-    else if (network == "ropsten" || network == "development") {
+    else if (network == "ropsten" || network == "rinkeby" || network == "development") {
       await deployer.deploy(TestNetPriceFeed);
       priceContractAddress = TestNetPriceFeed.address;
     }
