@@ -11,6 +11,7 @@ const { allowanceManagementScenario } = require("./allowanceManagementScenario")
 const { oracleTradeScenario } = require("./oracleTradeScenario");
 const { lendOrderScenario, lendOrderOnChainScenario } = require("./lendOrderScenario");
 const { borrowOrderScenario, borrowOrderOnChainScenario } = require("./borrowOrderScenario");
+const { collateralManagementScenario } = require("./collateralManagementScenario");
 
 // constants from ganache-cli address 0 and 1
 const lenderAddress = "0x5409ed021d9299bf6814279a6a1411a7e866a631";
@@ -29,10 +30,11 @@ const traderAddress = "0x6ecbe1db9ef729cbe972c83fb886247691fb6beb";
   console.dir(oracles);
 
   await wethExchangeScenario(l, c, lenderAddress);
-  await allowanceManagementScenario(l, c, lenderAddress);
+  await allowanceManagementScenario(l, c, lenderAddress, traderAddress);
   await oracleTradeScenario(l, c, tokens, oracles);
   await lendOrderScenario(l, c, lenderAddress, traderAddress, oracles);
   await lendOrderOnChainScenario(l, c, lenderAddress, traderAddress, oracles);
   await borrowOrderScenario(l, c, lenderAddress, traderAddress, oracles);
   await borrowOrderOnChainScenario(l, c, lenderAddress, traderAddress, oracles);
+  await collateralManagementScenario(l, c, lenderAddress, traderAddress, tokens, oracles);
 })();

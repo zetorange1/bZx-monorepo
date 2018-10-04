@@ -239,8 +239,8 @@ export declare class BZxJS {
     loanTokenAddress: string,
     collateralTokenAddress: string,
     oracleAddress: string,
-    loanTokenAmountFilled: BigNumber,
-    initialMarginAmount: BigNumber
+    loanTokenAmountFilled: BigNumber | string,
+    initialMarginAmount: BigNumber | string
   ): Promise<BigNumber>;
 
   changeCollateral(params: {
@@ -256,7 +256,7 @@ export declare class BZxJS {
     depositAmount: BigNumber;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   withdrawExcessCollateral(params: {
     loanOrderHash: string;
@@ -264,7 +264,7 @@ export declare class BZxJS {
     withdrawAmount: BigNumber;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   getProfitOrLoss(params: {
     loanOrderHash: string;
