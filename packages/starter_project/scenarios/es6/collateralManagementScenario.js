@@ -1,3 +1,4 @@
+const BigNumber = require("bignumber.js");
 const { BZxJS } = require("bzx.js");
 
 const artifacts = require("./../../artifacts");
