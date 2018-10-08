@@ -1,4 +1,3 @@
-const BigNumber = require("bignumber.js");
 const { BZxJS } = require("bzx.js");
 
 const artifacts = require("./../../artifacts");
@@ -7,21 +6,26 @@ const utils = require("./../../utils");
 async function collateralManagementScenario(l, c, lenderAddress, traderAddress, tokens, oracles) {
   const latestBlock = await c.web3.eth.getBlock("latest");
 
+  const loanToken = artifacts.testToken0;
+  const interestToken = artifacts.testToken1;
+  const collateral1Token = artifacts.testToken2;
+  const collateral2Token = artifacts.testToken3;
+
   // creating lend order (loan order created by lender, lend proposal)
   const lendOrder = {
     bZxAddress: artifacts.bZx.address.toLowerCase(),
     makerAddress: lenderAddress.toLowerCase(),
-    loanTokenAddress: artifacts.testToken0.address.toLowerCase(),
-    interestTokenAddress: artifacts.testToken0.address.toLowerCase(),
+    loanTokenAddress: loanToken.address.toLowerCase(),
+    interestTokenAddress: interestToken.address.toLowerCase(),
     collateralTokenAddress: utils.zeroAddress.toLowerCase(),
     feeRecipientAddress: utils.zeroAddress.toLowerCase(),
     oracleAddress: oracles[0].address.toLowerCase(),
-    loanTokenAmount: c.web3.utils.toWei("100", "ether"),
+    loanTokenAmount: c.web3.utils.toWei("10", "ether"),
     interestAmount: c.web3.utils.toWei("0.2", "ether"),
     initialMarginAmount: "50",
     maintenanceMarginAmount: "25",
-    lenderRelayFee: c.web3.utils.toWei("0.001", "ether"),
-    traderRelayFee: c.web3.utils.toWei("0.0015", "ether"),
+    lenderRelayFee: c.web3.utils.toWei("0.0015", "ether"),
+    traderRelayFee: c.web3.utils.toWei("0.0025", "ether"),
     maxDurationUnixTimestampSec: "2419200",
     expirationUnixTimestampSec: (latestBlock.timestamp + 86400).toString(),
     makerRole: "0", // 0=lender, 1=trader
@@ -56,93 +60,47 @@ async function collateralManagementScenario(l, c, lenderAddress, traderAddress, 
   // taking lend order by trader and pushing it to bzx contract
   let transactionReceipt = await c.bzxjs.takeLoanOrderAsTrader({
     order: signedLendOrder,
-    collateralTokenAddress: artifacts.testToken1.address,
+    collateralTokenAddress: collateral1Token.address,
     loanTokenAmountFilled: c.web3.utils.toWei("1", "ether"),
     getObject: false,
     txOpts: { from: traderAddress, gasLimit: utils.gasLimit }
   });
   console.dir(transactionReceipt);
 
-  // getting balance of testToken1
-  let balance = await c.bzxjs.getBalance({
-    tokenAddress: artifacts.testToken1.address.toLowerCase(),
-    ownerAddress: traderAddress.toLowerCase()
-  });
-  console.dir(balance.toString());
-
-  if (balance.lte(new BigNumber(100))) {
-    // getting faucet testToken1
-    transactionReceipt = await c.bzxjs.requestFaucetToken({
-      tokenAddress: artifacts.testToken1.address,
-      receiverAddress: traderAddress,
-      getObject: false,
-      txOpts: { from: traderAddress, gasLimit: utils.gasLimit }
-    });
-    console.dir(transactionReceipt);
-
-    // getting balance of testToken1
-    balance = await c.bzxjs.getBalance({
-      tokenAddress: artifacts.testToken1.address.toLowerCase(),
-      ownerAddress: traderAddress.toLowerCase()
-    });
-    console.dir(balance.toString());
-  }
-
-  // getting balance of testToken1
-  balance = await c.bzxjs.getBalance({
-    tokenAddress: artifacts.testToken2.address.toLowerCase(),
-    ownerAddress: traderAddress.toLowerCase()
-  });
-  console.dir(balance.toString());
-
-  if (balance.lte(new BigNumber(100))) {
-    // getting faucet testToken1
-    transactionReceipt = await c.bzxjs.requestFaucetToken({
-      tokenAddress: artifacts.testToken2.address,
-      receiverAddress: traderAddress,
-      getObject: false,
-      txOpts: { from: traderAddress, gasLimit: utils.gasLimit }
-    });
-    console.dir(transactionReceipt);
-
-    // getting balance of testToken1
-    balance = await c.bzxjs.getBalance({
-      tokenAddress: artifacts.testToken2.address.toLowerCase(),
-      ownerAddress: traderAddress.toLowerCase()
-    });
-    console.dir(balance.toString());
-  }
-
+  // calculate required collateral
   const initialCollateralRequired = await c.bzxjs.getInitialCollateralRequired(
-    artifacts.testToken0.address.toLowerCase(),
-    artifacts.testToken0.address.toLowerCase(),
+    loanToken.address.toLowerCase(),
+    collateral1Token.address.toLowerCase(),
     oracles[0].address.toLowerCase(),
-    "5",
+    "50",
     "25"
   );
   console.dir(initialCollateralRequired);
 
+  // increase collateral for specified order
   transactionReceipt = await c.bzxjs.depositCollateral({
     loanOrderHash: lendOrderHash,
-    collateralTokenFilled: artifacts.testToken1.address,
-    depositAmount: "1",
+    collateralTokenFilled: collateral1Token.address,
+    depositAmount: initialCollateralRequired * 2,
     getObject: false,
     txOpts: { from: traderAddress, gasLimit: utils.gasLimit }
   });
   console.dir(transactionReceipt);
 
+  // decrease collateral for specified order by withdrawing some tokens
   transactionReceipt = await c.bzxjs.withdrawExcessCollateral({
     loanOrderHash: lendOrderHash,
-    collateralTokenFilled: artifacts.testToken1.address,
-    withdrawAmount: "1",
+    collateralTokenFilled: collateral1Token.address,
+    withdrawAmount: initialCollateralRequired,
     getObject: false,
     txOpts: { from: traderAddress, gasLimit: utils.gasLimit }
   });
   console.dir(transactionReceipt);
 
+  // change collateral token specified
   transactionReceipt = await c.bzxjs.changeCollateral({
     loanOrderHash: lendOrderHash,
-    collateralTokenFilled: artifacts.testToken2.address,
+    collateralTokenFilled: collateral2Token.address,
     getObject: false,
     txOpts: { from: traderAddress, gasLimit: utils.gasLimit }
   });

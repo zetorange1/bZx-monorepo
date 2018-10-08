@@ -6,21 +6,25 @@ const utils = require("./../../utils");
 async function borrowOrderScenario(l, c, lenderAddress, traderAddress, oracles) {
   const latestBlock = await c.web3.eth.getBlock("latest");
 
+  const loanToken = artifacts.testToken0;
+  const interestToken = artifacts.testToken1;
+  const collateralToken = artifacts.testToken2;
+
   // creating borrow order (loan order created by borrower, borrow proposal)
   const borrowOrder = {
     bZxAddress: artifacts.bZx.address.toLowerCase(),
     makerAddress: traderAddress.toLowerCase(),
-    loanTokenAddress: artifacts.testToken0.address.toLowerCase(),
-    interestTokenAddress: artifacts.testToken0.address.toLowerCase(),
-    collateralTokenAddress: artifacts.testToken1.address.toLowerCase(),
+    loanTokenAddress: loanToken.address.toLowerCase(),
+    interestTokenAddress: interestToken.address.toLowerCase(),
+    collateralTokenAddress: collateralToken.address.toLowerCase(),
     feeRecipientAddress: utils.zeroAddress.toLowerCase(),
     oracleAddress: oracles[0].address.toLowerCase(),
-    loanTokenAmount: c.web3.utils.toWei("100", "ether"),
+    loanTokenAmount: c.web3.utils.toWei("10", "ether"),
     interestAmount: c.web3.utils.toWei("0.2", "ether"),
     initialMarginAmount: "50",
     maintenanceMarginAmount: "25",
-    lenderRelayFee: c.web3.utils.toWei("0.001", "ether"),
-    traderRelayFee: c.web3.utils.toWei("0.0015", "ether"),
+    lenderRelayFee: c.web3.utils.toWei("0.0015", "ether"),
+    traderRelayFee: c.web3.utils.toWei("0.0025", "ether"),
     maxDurationUnixTimestampSec: "2419200",
     expirationUnixTimestampSec: (latestBlock.timestamp + 86400).toString(),
     makerRole: "1", // 0=borrower, 1=trader
@@ -72,21 +76,25 @@ async function borrowOrderScenario(l, c, lenderAddress, traderAddress, oracles) 
 async function borrowOrderOnChainScenario(l, c, lenderAddress, traderAddress, oracles) {
   const latestBlock = await c.web3.eth.getBlock("latest");
 
+  const loanToken = artifacts.testToken0;
+  const interestToken = artifacts.testToken1;
+  const collateralToken = artifacts.testToken2;
+
   // creating borrow order (loan order created by borrower, borrow proposal)
   const borrowOrder = {
     bZxAddress: artifacts.bZx.address.toLowerCase(),
     makerAddress: traderAddress.toLowerCase(),
-    loanTokenAddress: artifacts.testToken0.address.toLowerCase(),
-    interestTokenAddress: artifacts.testToken0.address.toLowerCase(),
-    collateralTokenAddress: artifacts.testToken1.address.toLowerCase(),
+    loanTokenAddress: loanToken.address.toLowerCase(),
+    interestTokenAddress: interestToken.address.toLowerCase(),
+    collateralTokenAddress: collateralToken.address.toLowerCase(),
     feeRecipientAddress: utils.zeroAddress.toLowerCase(),
     oracleAddress: oracles[0].address.toLowerCase(),
-    loanTokenAmount: c.web3.utils.toWei("100", "ether"),
+    loanTokenAmount: c.web3.utils.toWei("10", "ether"),
     interestAmount: c.web3.utils.toWei("0.2", "ether"),
     initialMarginAmount: "50",
     maintenanceMarginAmount: "25",
-    lenderRelayFee: c.web3.utils.toWei("0.001", "ether"),
-    traderRelayFee: c.web3.utils.toWei("0.0015", "ether"),
+    lenderRelayFee: c.web3.utils.toWei("0.0015", "ether"),
+    traderRelayFee: c.web3.utils.toWei("0.0025", "ether"),
     maxDurationUnixTimestampSec: "2419200",
     expirationUnixTimestampSec: (latestBlock.timestamp + 86400).toString(),
     makerRole: "1", // 0=borrower, 1=trader
