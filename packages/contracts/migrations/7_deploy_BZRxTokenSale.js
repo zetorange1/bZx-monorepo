@@ -1,7 +1,7 @@
 
 var BZRxTokenSale = artifacts.require("BZRxTokenSale");
 var BZRxToken = artifacts.require("BZRxToken");
-var TestNetPriceFeed = artifacts.require("TestNetPriceFeed");
+//var TestNetPriceFeed = artifacts.require("TestNetPriceFeed");
 
 var BZxProxy = artifacts.require("BZxProxy");
 var BZxProxySettings = artifacts.require("BZxProxySettings");
@@ -20,7 +20,7 @@ module.exports = function(deployer, network, accounts) {
 
   deployer.then(async function() {
 
-    if (network == "mainnet") {
+    /*if (network == "mainnet") {
       priceContractAddress = "0x729D19f657BD0614b4985Cf1D82531c67569197B";
     }
     else if (network == "kovan") {
@@ -32,20 +32,24 @@ module.exports = function(deployer, network, accounts) {
     }
     else {
       return;
-    }
+    }*/
 
-    await deployer.deploy(
+    var tokensale = await deployer.deploy(
       BZRxTokenSale, 
       BZRxToken.address, 
       BZxVault.address, 
       config["addresses"][network]["ZeroEx"]["WETH9"], 
-      priceContractAddress,
-      currentBonus
+      currentBonus,
+      "19474000000000000000"
     );
+
+    if (network == "development") {
+      await tokensale.closeSale(false);
+    }
 
     var bZRxToken = await BZRxToken.deployed();
     await bZRxToken.addMinter(BZRxTokenSale.address);
-    await bZRxToken.addMinter(BZxVault.address);
+    //await bZRxToken.addMinter(BZxVault.address);
 
     // bZx Proxy uses BZRxTokenSale contract as BZRX token until the tokensale ends
     var bZxProxy = await BZxProxySettings.at(BZxProxy.address);

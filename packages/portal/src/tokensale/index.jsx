@@ -6,6 +6,8 @@ import { COLORS } from "../styles/constants";
 import { fromBigNumber, toBigNumber } from "../common/utils";
 import { Input, InputLabel, InputAdornment, FormControl, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@material-ui/core";
 
+const IsSaleLive = true;
+
 const InfoContainer = styled.div`
   display: flex;
   align-items: center;
@@ -79,11 +81,12 @@ export default class Tokensale extends BZxComponent {
   state = { 
     loading: false, 
     error: false,
-    totalETH: 0, 
-    totalTokens: 0,
-    totalTokenBonus: 0,
-    ethRate: 0,
+    tokenBalance: 0,
+    //totalTokens: 0,
+    //totalTokenBonus: 0,
+    //ethRate: 0,
     tokensaleContract: null,
+    tokenContract: null,
     bzrxTokenAddress: null,
     showBuyDialog: false,
     buyAmount: 0,
@@ -92,32 +95,34 @@ export default class Tokensale extends BZxComponent {
 
   async componentDidMount() {
     const tokensaleContract = await this.props.bZx.getWeb3Contract(`BZRxTokenSale`);
-    
-    let bzrxTokenAddress, currentTokenBonus;
+    const tokenContract = await this.props.bZx.getWeb3Contract(`BZxToken`);
+    console.log(`Token contract:`, tokenContract._address);
+
+    let currentTokenBonus;
 
     switch (this.props.bZx.networkId) {
       case 1: {
-        bzrxTokenAddress = `0x1c74cFF0376FB4031Cd7492cD6dB2D66c3f2c6B9`;
+        //bzrxTokenAddress = `0x1c74cFF0376FB4031Cd7492cD6dB2D66c3f2c6B9`;
         currentTokenBonus = `110`;
         break;
       }
       case 3: {
-        bzrxTokenAddress = `0xF8b0B6Ee32a617beca665b6c5B241AC15b1ACDD5`;
+        //bzrxTokenAddress = `0xF8b0B6Ee32a617beca665b6c5B241AC15b1ACDD5`;
         currentTokenBonus = `110`;
         break;
       }
       default: {
-        bzrxTokenAddress = await this.wrapAndRun(tokensaleContract.methods.bZRxTokenContractAddress().call());
+        //bzrxTokenAddress = await this.wrapAndRun(tokensaleContract.methods.bZRxTokenContractAddress().call());
         currentTokenBonus = await this.wrapAndRun(tokensaleContract.methods.bonusMultiplier().call());
         break;
       }
     }
 
-    console.log(`BZRX Token:`, bzrxTokenAddress);
+    //console.log(`BZRX Token:`, bzrxTokenAddress);
 
     await this.setState({ 
       tokensaleContract,
-      bzrxTokenAddress,
+      tokenContract,
       currentTokenBonus: toBigNumber(currentTokenBonus).minus(100).toString()
     });
 
@@ -126,23 +131,22 @@ export default class Tokensale extends BZxComponent {
 
   refreshTokenData = async () => {
     const { accounts } = this.props;
-    const { tokensaleContract } = this.state;
+    const { tokenContract } = this.state;
     await this.setState({ loading: true });
     
-    console.log(`Tokensale contract:`, tokensaleContract._address);
+    console.log(`Token contract:`, tokenContract._address);
 
     try {
-      const tokenData = await this.wrapAndRun(tokensaleContract.methods.purchases(accounts[0]).call());
+      const tokenBalance = await this.wrapAndRun(tokenContract.methods.balanceOf(accounts[0]).call());
+      
+      //const tokenData = await this.wrapAndRun(tokensaleContract.methods.purchases(accounts[0]).call());
       //console.log(tokenData);
 
-      const ethRate = await this.wrapAndRun(tokensaleContract.methods.getEthRate().call());
+      //const ethRate = await this.wrapAndRun(tokensaleContract.methods.getEthRate().call());
       //console.log(ethRate);
 
       this.setState({ 
-        totalETH: tokenData.totalETH,
-        totalTokenBonus: tokenData.totalTokenBonus,
-        totalTokens: tokenData.totalTokens,
-        ethRate,
+        tokenBalance: tokenBalance,
         loading: false, 
         error: false 
       });
@@ -151,9 +155,7 @@ export default class Tokensale extends BZxComponent {
       this.setState({ 
         error: true, 
         loading: false, 
-        totalETH: 0,
-        totalTokenBonus: 0,
-        totalTokens: 0,
+        tokenBalance: 0,
       });
     }
 
@@ -226,12 +228,9 @@ export default class Tokensale extends BZxComponent {
     const { 
       loading,
       error,
-      totalETH,
-      totalTokens,
-      totalTokenBonus,
-      ethRate,
+      tokenBalance,
       tokensaleContract,
-      bzrxTokenAddress,
+      tokenContract,
       currentTokenBonus
     } = this.state;
     if (error) {
@@ -249,6 +248,8 @@ export default class Tokensale extends BZxComponent {
 
     const tokensaleContractAddress = tokensaleContract ? tokensaleContract._address : null;
     const tokensaleContractLink = `${this.props.bZx.etherscanURL}address/${tokensaleContractAddress}`;
+
+    const bzrxTokenAddress = tokenContract ? tokenContract._address : null;
     const bzrxTokenAddressLink = `${this.props.bZx.etherscanURL}address/${bzrxTokenAddress}`;
 
     return (
@@ -267,7 +268,12 @@ export default class Tokensale extends BZxComponent {
 
         <InfoContainer>
           <ShowInfo>
-
+            {!IsSaleLive ? (
+            <Fragment>
+              <div style={{ fontWeight: `900` }}>*** The token sale is temporarily paused and will resume shortly. Please check back later. ***</div>
+              <br/>
+            </Fragment>
+            ) : ``}
             <DataPointContainer>
               <Label>Tokensale Contract</Label>
               <DataPoint>
@@ -289,25 +295,13 @@ export default class Tokensale extends BZxComponent {
             <br/>
 
             <DataPointContainer>
-              <Label>Total Tokens Received</Label>
+              <Label>Token Balance</Label>
               <DataPoint>
                 {fromBigNumber(
-                  totalTokens,
+                  tokenBalance,
                   10 ** 18
                 )}
                 {` `}
-                {`BZRX`}
-              </DataPoint>
-            </DataPointContainer>
-
-            <DataPointContainer>
-              <Label>Bonus Tokens Received</Label>
-              <DataPoint>
-                {fromBigNumber(
-                  totalTokenBonus,
-                  10 ** 18
-                )}
-                {`  `}
                 {`BZRX`}
               </DataPoint>
             </DataPointContainer>
@@ -315,25 +309,9 @@ export default class Tokensale extends BZxComponent {
             <br/>
 
             <DataPointContainer>
-              <Label>ETH Spent</Label>
+              <Label>Token Price (locked)</Label>
               <DataPoint>
-                {fromBigNumber(
-                  totalETH,
-                  10 ** 18
-                )}
-                {` `}
-                {`ETH`}
-              </DataPoint>
-            </DataPointContainer>
-
-            <DataPointContainer>
-              <Label>Current ETH Price</Label>
-              <DataPoint>
-                ${toBigNumber(
-                  fromBigNumber(ethRate, 10 ** 18)
-                ).toFixed(2)}
-                {` `}
-                {`per ETH`}
+                0.000073 ETH
               </DataPoint>
             </DataPointContainer>
 
@@ -344,6 +322,7 @@ export default class Tokensale extends BZxComponent {
                 variant="raised"
                 color="primary"
                 onClick={this.toggleBuyDialog}
+                disabled={!IsSaleLive}
                 style={{ marginLeft: `12px` }}
               >
                 Purchase BZRX Token
@@ -362,23 +341,13 @@ export default class Tokensale extends BZxComponent {
               <DialogContentText>
                 {this.state.affiliateHex ? (
                   <Fragment>
-                    BZRX tokens cost $0.073 each. Please specify the amount of Ether you want
-                    to send for your purchase. BZRX will be purchased at the current ETH rate 
-                    (${toBigNumber(
-                      fromBigNumber(ethRate, 10 ** 18)
-                    ).toFixed(2)}
-                    {` `}
-                    {`per ETH`}). Your purchase will include an additional token bonus of {currentTokenBonus}%.
+                    BZRX tokens cost 0.000073 ETH each. Please specify the amount of Ether you want
+                    to send for your purchase. Your purchase will include an additional token bonus of {currentTokenBonus}%.
                   </Fragment>
                 ) : (
                   <Fragment>
-                    BZRX tokens cost $0.073 each. Please specify the amount of Ether you want
-                    to send for your purchase. BZRX will be purchased at the current ETH rate 
-                    (${toBigNumber(
-                      fromBigNumber(ethRate, 10 ** 18)
-                    ).toFixed(2)}
-                    {` `}
-                    {`per ETH`}). Your purchase will include an additional token bonus of {currentTokenBonus}%.
+                    BZRX tokens cost 0.000073 ETH each. Please specify the amount of Ether you want
+                    to send for your purchase. Your purchase will include an additional token bonus of {currentTokenBonus}%.
                   </Fragment>
                 )}
               </DialogContentText>
