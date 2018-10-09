@@ -44,13 +44,6 @@ const TABS = [
   { id: `Orders_OrderHistory`, label: `Order History` }
 ];
 
-const AffiliateDiv = styled.div`
-  font-size: medium;
-  font-family: monospace;
-  letter-spacing: normal;
-  margin-bottom: -14px;
-`;
-
 const getDomainData = () => {
   if (typeof window === 'undefined')
     return {};
@@ -573,7 +566,6 @@ switch (domainData.subdomain) {
                   <Fragment>
                     <HeaderTitle>
                       <HeaderTitleSiteName>bZx Portal</HeaderTitleSiteName>
-                      <AffiliateDiv>Affiliate {this.state.subLink}</AffiliateDiv>
                       <HeaderTitleContext style={{ display: `inline-flex` }}>
                         Buy BZRX Token
                       </HeaderTitleContext>
