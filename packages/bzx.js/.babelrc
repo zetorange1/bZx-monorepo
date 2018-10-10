@@ -1,17 +1,21 @@
 {
-  "plugins": [
-    "transform-es2015-modules-commonjs",
-    "transform-class-properties"
-  ],
   "presets": [
     [
-      "env",
+      "@babel/preset-env",
       {
+        "modules": false,
         "targets": {
           "browsers": ["last 2 Chrome versions"]
         }
       }
-    ],
-    "stage-3"
+    ]
+  ],
+  "plugins": [
+    "@babel/plugin-proposal-class-properties",
+    "@babel/plugin-proposal-object-rest-spread",
+    "@babel/plugin-transform-member-expression-literals",
+    "@babel/plugin-transform-modules-commonjs",
+    "@babel/plugin-transform-property-literals",
+    ["@babel/plugin-transform-runtime", { "regenerator": true }]
   ]
 }
