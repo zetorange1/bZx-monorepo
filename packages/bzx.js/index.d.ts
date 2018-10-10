@@ -228,6 +228,13 @@ export declare class BZxJS {
     txOpts: Tx;
   }): Promise<string> | TransactionObject<string>;
 
+  tradePositionWith0xV2(params: {
+    order0x: IZeroExOrder;
+    orderHashBZx: string;
+    getObject: boolean;
+    txOpts: Tx;
+  }): Promise<string> | TransactionObject<string>;
+
   tradePositionWithOracle(params: {
     orderHash: string;
     tradeTokenAddress: string;
