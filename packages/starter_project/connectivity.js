@@ -9,7 +9,7 @@ async function initConnectivity() {
   const networkId = await web3.eth.net.getId();
 
   // init bZx
-  const bzxjs = new BZxJS(web3.currentProvider, { networkId });
+  const bzxjs = new BZxJS(web3, { networkId });
 
   return { provider, web3, bzxjs };
 }
