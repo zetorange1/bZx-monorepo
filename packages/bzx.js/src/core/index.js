@@ -18,8 +18,6 @@ import * as loanHealth from "../loanHealth";
 import * as bounty from "../bounty";
 import * as weth from "../weth";
 
-const Web3 = require("web3"); // eslint-disable global-require
-
 export class BZxJS {
   static generatePseudoRandomSalt = utils.generatePseudoRandomSalt;
   static noop = utils.noop;
@@ -27,14 +25,10 @@ export class BZxJS {
 
   /* On Metamask, provider.host is undefined
   Force users to provide host url */
-  constructor(
-    provider,
-    { networkId, addresses = Addresses.getAddresses(networkId) } = {}
-  ) {
+  constructor(web3, { networkId, addresses = Addresses.getAddresses(networkId) } = {}) {
     if (!networkId) throw new Error(Errors.NoNetworkId);
 
-    assert.isWeb3Provider("provider", provider);
-    this.web3 = new Web3(provider);
+    this.web3 = web3;
     this.addresses = addresses;
     this.networkId = networkId;
     switch (networkId) {
