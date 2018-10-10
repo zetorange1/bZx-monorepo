@@ -602,6 +602,8 @@ switch (domainData.subdomain) {
                         Purchase BZRX Token for immediate delivery to your ERC20-compatable wallet!
                         <br/><br/>
                         Please note that the token cannot be transferred out of your wallet until after the public sale ends, unless the token is being used with the bZx protocol.
+                        <br/><br/>
+                        You can read more about the BZRX token on <a href="https://medium.com/@b0xNet/bzx-public-presale-announcement-ae13aa95ee7a">Medium</a>.
                       </p>
                       <Divider />
                       <Tokensale
