@@ -75,7 +75,7 @@ contract BZRxAirDrop is Ownable {
         }
     }
 
-    function batchSendAmounts(
+    function batchSendAmount(
         address[] receivers,
         uint256 tokenAmount)
         public
