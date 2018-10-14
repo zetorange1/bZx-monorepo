@@ -208,18 +208,18 @@ export default class Tokensale extends BZxComponent {
             })
             .catch(error => {
               console.error(error.message);
-              alert(`The purchase cannot be completed at this time. The tokensale may be temporarily paused or has ended.`);
+              alert(`The purchase did not complete. Please try again.`);
               this.setState({ buyAmount: ``, showBuyDialog: false });
             });
         })
         .catch(error => {
           console.error(error.message);
-          alert(`The purchase cannot be completed at this time. The tokensale may be temporarily paused or has ended.`);
+          alert(`The purchase did not complete. Please try again.`);
           this.setState({ buyAmount: ``, showBuyDialog: false });
         });
     } catch (error) {
       console.error(error.message);
-      alert(`The purchase cannot be completed at this time. The tokensale may be temporarily paused or has ended.`);
+      alert(`The purchase did not complete. Please try again.`);
       this.setState({ buyAmount: ``, showBuyDialog: false });
     }
   };
