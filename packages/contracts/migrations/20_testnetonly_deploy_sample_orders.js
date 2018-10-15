@@ -261,7 +261,8 @@ module.exports = function(deployer, network, accounts) {
           new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
           new BN(OrderParams_bZx_1["makerRole"]),
           new BN(OrderParams_bZx_1["salt"])
-        ]
+        ],
+        "0x12a1232124", // oracleData
       );
 
       /// should sign and verify orderHash (as lender1)
@@ -306,6 +307,7 @@ module.exports = function(deployer, network, accounts) {
             new BN(OrderParams_bZx_1["makerRole"]),
             new BN(OrderParams_bZx_1["salt"])
           ],
+          "0x12a1232124", // oracleData
           collateralToken1.address,
           web3.toWei(12.3, "ether"),
           ECSignature_raw_1,
@@ -340,6 +342,7 @@ module.exports = function(deployer, network, accounts) {
             new BN(OrderParams_bZx_1["makerRole"]),
             new BN(OrderParams_bZx_1["salt"])
           ],
+          "0x12a1232124", // oracleData
           collateralToken2.address,
           web3.toWei(20, "ether"),
           ECSignature_raw_1,

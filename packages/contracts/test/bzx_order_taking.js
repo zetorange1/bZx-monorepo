@@ -158,7 +158,8 @@ contract("BZxTest: order taking", function(accounts) {
 
             orderHash = await bZx.getLoanOrderHash.call(
                 orderAddresses(order),
-                orderValues(order)
+                orderValues(order),
+        		"" // oracleData
             );
 
             let signature = await sign(lender1, orderHash);
@@ -166,6 +167,7 @@ contract("BZxTest: order taking", function(accounts) {
             await bZx.takeLoanOrderAsTrader(
                 orderAddresses(order),
                 orderValues(order),
+                "", // oracleData
                 collateralToken1.address,
                 loanTokenFilled,
                 signature,
@@ -209,7 +211,8 @@ contract("BZxTest: order taking", function(accounts) {
 
             orderHash = await bZx.getLoanOrderHash.call(
                 orderAddresses(order),
-                orderValues(order)
+                orderValues(order),
+        		"" // oracleData
             );
 
             let signature = await sign(trader2, orderHash);
@@ -217,6 +220,7 @@ contract("BZxTest: order taking", function(accounts) {
             await bZx.takeLoanOrderAsLender(
                 orderAddresses(order),
                 orderValues(order),
+                "", // oracleData
                 signature,
                 {from: lender2}
             );
@@ -251,7 +255,8 @@ contract("BZxTest: order taking", function(accounts) {
 
             orderHash = await bZx.getLoanOrderHash.call(
                 orderAddresses(order),
-                orderValues(order)
+                orderValues(order),
+        		"" // oracleData
             );
 
             let signature = await sign(lender1, orderHash);
@@ -259,6 +264,7 @@ contract("BZxTest: order taking", function(accounts) {
             await bZx.pushLoanOrderOnChain(
                 orderAddresses(order),
                 orderValues(order),
+                "", // oracleData
                 signature,
                 {from: maker2}
             );
@@ -307,7 +313,8 @@ contract("BZxTest: order taking", function(accounts) {
 
             orderHash = await bZx.getLoanOrderHash.call(
                 orderAddresses(order),
-                orderValues(order)
+                orderValues(order),
+        		"" // oracleData
             );
 
             let signature = await sign(trader2, orderHash);
@@ -315,6 +322,7 @@ contract("BZxTest: order taking", function(accounts) {
             await bZx.pushLoanOrderOnChain(
                 orderAddresses(order),
                 orderValues(order),
+                "", // oracleData
                 signature,
                 {from: maker1}
             );
@@ -351,7 +359,8 @@ contract("BZxTest: order taking", function(accounts) {
 
             orderHash = await bZx.getLoanOrderHash.call(
                 orderAddresses(order),
-                orderValues(order)
+                orderValues(order),
+        		"" // oracleData
             );
 
             let signature = "0x"+"00".repeat(65)+"06"; // SignatureType == PreSigned (null-padded to 66 bytes)
@@ -360,6 +369,7 @@ contract("BZxTest: order taking", function(accounts) {
                 order["makerAddress"],
                 orderAddresses(order),
                 orderValues(order),
+                "", // oracleData
                 signature,
                 {from: order["makerAddress"]}
             );
@@ -367,6 +377,7 @@ contract("BZxTest: order taking", function(accounts) {
             await bZx.pushLoanOrderOnChain(
                 orderAddresses(order),
                 orderValues(order),
+                "", // oracleData
                 signature,
                 {from: maker2}
             );
@@ -415,7 +426,8 @@ contract("BZxTest: order taking", function(accounts) {
 
             orderHash = await bZx.getLoanOrderHash.call(
                 orderAddresses(order),
-                orderValues(order)
+                orderValues(order),
+        		"" // oracleData
             );
 
             let signature = "0x"+"00".repeat(65)+"06"; // SignatureType == PreSigned (null-padded to 66 bytes)
@@ -430,6 +442,7 @@ contract("BZxTest: order taking", function(accounts) {
             await bZx.pushLoanOrderOnChain(
                 orderAddresses(order),
                 orderValues(order),
+                "", // oracleData
                 signature,
                 { from: maker1 }
             );

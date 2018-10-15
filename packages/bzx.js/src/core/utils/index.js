@@ -102,7 +102,11 @@ export const getLoanOrderHashAsync = async ({ web3, networkId }, order) => {
     Addresses.getAddresses(networkId).BZx
   );
   return bZxContract.methods
-    .getLoanOrderHash(orderAddresses, orderValues)
+    .getLoanOrderHash(
+      orderAddresses, 
+      orderValues,
+      "" // oracleData
+    )
     .call();
 };
 

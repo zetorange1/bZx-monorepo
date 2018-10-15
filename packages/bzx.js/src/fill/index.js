@@ -48,6 +48,7 @@ export const takeLoanOrderAsLender = (
   const txObj = bZxContract.methods.takeLoanOrderAsLender(
     orderAddresses,
     orderValues,
+    "", // oracleData
     order.signature
   );
 
@@ -94,6 +95,7 @@ export const takeLoanOrderAsTrader = (
   const txObj = bZxContract.methods.takeLoanOrderAsTrader(
     orderAddresses,
     orderValues,
+    "", // oracleData
     collateralTokenAddress,
     web3.utils.toBN(loanTokenAmountFilled).toString(10),
     order.signature
@@ -142,6 +144,7 @@ export const pushLoanOrderOnChain = (
   const txObj = bZxContract.methods.pushLoanOrderOnChain(
     orderAddresses,
     orderValues,
+    "", // oracleData
     order.signature
   );
 
@@ -234,6 +237,7 @@ export const cancelLoanOrder = (
   const txObj = bZxContract.methods.cancelLoanOrder(
     orderAddresses,
     orderValues,
+    "", // oracleData
     web3.utils.toBN(cancelLoanTokenAmount).toString(10)
   );
 

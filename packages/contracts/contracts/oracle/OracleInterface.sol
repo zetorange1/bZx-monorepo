@@ -30,6 +30,22 @@ import "../storage/BZxObjects.sol";
 // solhint-disable-next-line contract-name-camelcase
 contract OracleInterface {
 
+    /// @dev Called by bZx after a loan order is added
+    /// @param loanOrder The loanOrder object
+    /// @param loanOrderAux The loanOrderAux object
+    /// @param oracleData An arbitrary length bytes stream to pass to the oracle.
+    /// @param taker The user that filled/took the loan
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
+    /// @return Successful execution of the function
+    function didAddOrder(
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanOrderAux loanOrderAux,
+        bytes oracleData,
+        address taker,
+        uint gasUsed)
+        public
+        returns (bool);
+
     /// @dev Called by bZx after a loan order is taken
     /// @param loanOrder The loanOrder object
     /// @param loanOrderAux The loanOrderAux object

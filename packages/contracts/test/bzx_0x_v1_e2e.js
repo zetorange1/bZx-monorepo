@@ -613,7 +613,8 @@ contract("BZxTest", function(accounts) {
           new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
           new BN(OrderParams_bZx_1["makerRole"]),
           new BN(OrderParams_bZx_1["salt"])
-        ]
+        ],
+        "" // oracleData
       )
       .then(
         function(orderHash) {
@@ -693,6 +694,7 @@ contract("BZxTest", function(accounts) {
           new BN(OrderParams_bZx_1["makerRole"]),
           new BN(OrderParams_bZx_1["salt"])
         ],
+        "", // oracleData
         ECSignature_raw_1,
         {
           from: makerOf0xOrder2_account,
@@ -739,6 +741,7 @@ contract("BZxTest", function(accounts) {
           new BN(OrderParams_bZx_1["makerRole"]),
           new BN(OrderParams_bZx_1["salt"])
         ],
+        "", // oracleData
         collateralToken1.address,
         web3.toWei(12.3, "ether"),
         ECSignature_raw_1,
@@ -842,7 +845,8 @@ contract("BZxTest", function(accounts) {
           new BN(OrderParams_bZx_2["expirationUnixTimestampSec"]),
           new BN(OrderParams_bZx_2["makerRole"]),
           new BN(OrderParams_bZx_2["salt"])
-        ]
+        ],
+        "" // oracleData
       )
       .then(
         function(orderHash) {
@@ -924,6 +928,7 @@ contract("BZxTest", function(accounts) {
           new BN(OrderParams_bZx_2["makerRole"]),
           new BN(OrderParams_bZx_2["salt"])
         ],
+        "", // oracleData
         ECSignature_raw_2,
         { from: lender2_account, gasPrice: web3.toWei(30, "gwei") }
       );

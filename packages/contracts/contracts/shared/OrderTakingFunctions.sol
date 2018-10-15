@@ -114,7 +114,8 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
 
     function _getLoanOrderHash(
         address[6] orderAddresses,
-        uint[10] orderValues)
+        uint[10] orderValues,
+        bytes oracleData)
         internal
         view
         returns (bytes32)
@@ -122,18 +123,20 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
         return(keccak256(abi.encodePacked(
             address(this),
             orderAddresses,
-            orderValues
+            orderValues,
+            oracleData
         )));
     }
 
     function _addLoanOrder(
         address[6] orderAddresses,
         uint[10] orderValues,
+        bytes oracleData,
         bytes signature)
         internal
         returns (bytes32 loanOrderHash)
     {
-        loanOrderHash = _getLoanOrderHash(orderAddresses, orderValues);
+        loanOrderHash = _getLoanOrderHash(orderAddresses, orderValues, oracleData);
         if (orders[loanOrderHash].loanTokenAddress == address(0)) {
             LoanOrder memory loanOrder = LoanOrder({
                 loanTokenAddress: orderAddresses[1],
@@ -178,6 +181,16 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
                 loanOrder.maxDurationUnixTimestampSec,
                 loanOrderAux.makerRole
             );
+
+            if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didAddOrder(
+                loanOrder,
+                loanOrderAux,
+                oracleData,
+                msg.sender,
+                gasUsed
+            )) {
+                revert("BZxOrderTaking::_addLoanOrder: OracleInterface.didAddOrder failed");
+            }
         }
 
         return loanOrderHash;

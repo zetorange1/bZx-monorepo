@@ -28,15 +28,16 @@ contract BZxOrderTaking is BZxStorage, BZxProxiable, OrderTakingFunctions {
         public
         onlyOwner
     {
-        targets[bytes4(keccak256("takeLoanOrderAsTrader(address[6],uint256[10],address,uint256,bytes)"))] = _target;
-        targets[bytes4(keccak256("takeLoanOrderAsLender(address[6],uint256[10],bytes)"))] = _target;
-        targets[bytes4(keccak256("cancelLoanOrder(address[6],uint256[10],uint256)"))] = _target;
+        targets[bytes4(keccak256("takeLoanOrderAsTrader(address[6],uint256[10],bytes,address,uint256,bytes)"))] = _target;
+        targets[bytes4(keccak256("takeLoanOrderAsLender(address[6],uint256[10],bytes,bytes)"))] = _target;
+        targets[bytes4(keccak256("cancelLoanOrder(address[6],uint256[10],bytes,uint256)"))] = _target;
         targets[bytes4(keccak256("cancelLoanOrderWithHash(bytes32,uint256)"))] = _target;
     }
 
     /// @dev Takes the order as trader
     /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), and salt.
+    /// @param oracleData An arbitrary length bytes stream to pass to the oracle.
     /// @param collateralTokenFilled Desired address of the collateralTokenAddress the trader wants to use.
     /// @param loanTokenAmountFilled Desired amount of loanToken the trader wants to borrow.
     /// @param signature ECDSA signature in raw bytes (rsv).
@@ -46,6 +47,7 @@ contract BZxOrderTaking is BZxStorage, BZxProxiable, OrderTakingFunctions {
     function takeLoanOrderAsTrader(
         address[6] orderAddresses,
         uint[10] orderValues,
+        bytes oracleData,
         address collateralTokenFilled,
         uint loanTokenAmountFilled,
         bytes signature)
@@ -57,6 +59,7 @@ contract BZxOrderTaking is BZxStorage, BZxProxiable, OrderTakingFunctions {
         bytes32 loanOrderHash = _addLoanOrder(
             orderAddresses,
             orderValues,
+            oracleData,
             signature);
 
         return _takeLoanOrder(
@@ -70,6 +73,7 @@ contract BZxOrderTaking is BZxStorage, BZxProxiable, OrderTakingFunctions {
     /// @dev Takes the order as lender
     /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), and salt.
+    /// @param oracleData An arbitrary length bytes stream to pass to the oracle.
     /// @param signature ECDSA signature in raw bytes (rsv).
     /// @return Total amount of loanToken borrowed (uint).
     /// @dev Lenders have to fill the entire desired amount the trader wants to borrow.
@@ -77,6 +81,7 @@ contract BZxOrderTaking is BZxStorage, BZxProxiable, OrderTakingFunctions {
     function takeLoanOrderAsLender(
         address[6] orderAddresses,
         uint[10] orderValues,
+        bytes oracleData,
         bytes signature)
         external
         nonReentrant
@@ -86,6 +91,7 @@ contract BZxOrderTaking is BZxStorage, BZxProxiable, OrderTakingFunctions {
         bytes32 loanOrderHash = _addLoanOrder(
             orderAddresses,
             orderValues,
+            oracleData,
             signature);
 
         // lenders have to fill the entire uncanceled loanTokenAmount
@@ -100,18 +106,20 @@ contract BZxOrderTaking is BZxStorage, BZxProxiable, OrderTakingFunctions {
     /// @dev Cancels remaining (untaken) loan
     /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), and salt.
+    /// @param oracleData An arbitrary length bytes stream to pass to the oracle.
     /// @param cancelLoanTokenAmount The amount of remaining unloaned token to cancel.
     /// @return The amount of loan token canceled.
     function cancelLoanOrder(
         address[6] orderAddresses,
         uint[10] orderValues,
+        bytes oracleData,
         uint cancelLoanTokenAmount)
         external
         nonReentrant
         tracksGas
         returns (uint)
     {
-        bytes32 loanOrderHash = _getLoanOrderHash(orderAddresses, orderValues);
+        bytes32 loanOrderHash = _getLoanOrderHash(orderAddresses, orderValues, oracleData);
 
         require(orderAddresses[0] == msg.sender, "BZxOrderTaking::cancelLoanOrder: makerAddress != msg.sender");
         require(orderValues[0] > 0 && cancelLoanTokenAmount > 0, "BZxOrderTaking::cancelLoanOrder: invalid params");

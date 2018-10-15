@@ -340,7 +340,8 @@ contract("BZxTest", function(accounts) {
           new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
           new BN(OrderParams_bZx_1["makerRole"]),
           new BN(OrderParams_bZx_1["salt"])
-        ]
+        ],
+        "" // oracleData
       );
 
       assert.notEqual(OrderHash_bZx_1, "");
@@ -382,6 +383,7 @@ contract("BZxTest", function(accounts) {
           new BN(OrderParams_bZx_1["makerRole"]),
           new BN(OrderParams_bZx_1["salt"])
         ],
+        "", // oracleData
         collateralToken1.address,
         web3.toWei(12.3, "ether"),
         ECSignature_raw_1,
@@ -417,7 +419,8 @@ contract("BZxTest", function(accounts) {
           new BN(OrderParams_bZx_2["expirationUnixTimestampSec"]),
           new BN(OrderParams_bZx_2["makerRole"]),
           new BN(OrderParams_bZx_2["salt"])
-        ]
+        ],
+        "" // oracleData
       );
     });
 
@@ -463,6 +466,7 @@ contract("BZxTest", function(accounts) {
           new BN(OrderParams_bZx_2["makerRole"]),
           new BN(OrderParams_bZx_2["salt"])
         ],
+        "", // oracleData
         ECSignature_raw_2,
         {
           from: lender2
@@ -631,7 +635,8 @@ contract("BZxTest", function(accounts) {
           new BN(orderAsTrader["expirationUnixTimestampSec"]),
           new BN(orderAsTrader["makerRole"]),
           new BN(orderAsTrader["salt"])
-        ]
+        ],
+        "" // oracleData
       );
 
       let signature = await sign(lender1, hash);
@@ -658,6 +663,7 @@ contract("BZxTest", function(accounts) {
           new BN(orderAsTrader["makerRole"]),
           new BN(orderAsTrader["salt"])
         ],
+        "", // oracleData
         signature,
         { from: maker2 }
       );
@@ -703,7 +709,8 @@ contract("BZxTest", function(accounts) {
           new BN(orderAsLender["expirationUnixTimestampSec"]),
           new BN(orderAsLender["makerRole"]),
           new BN(orderAsLender["salt"])
-        ]
+        ],
+        "" // oracleData
       );
 
       let signature = await sign(trader2, hash);
@@ -729,6 +736,7 @@ contract("BZxTest", function(accounts) {
           new BN(orderAsLender["makerRole"]),
           new BN(orderAsLender["salt"])
         ],
+        "", // oracleData
         signature,
         { from: maker1 }
       );
@@ -830,7 +838,8 @@ contract("BZxTest", function(accounts) {
           new BN(orderAsTrader["expirationUnixTimestampSec"]),
           new BN(orderAsTrader["makerRole"]),
           new BN(orderAsTrader["salt"])
-        ]
+        ],
+        "" // oracleData
       );
 
       let signature = "0x"+"00".repeat(65)+"06"; // SignatureType == PreSigned (null-padded to 66 bytes)
@@ -858,6 +867,7 @@ contract("BZxTest", function(accounts) {
             new BN(orderAsTrader["makerRole"]),
             new BN(orderAsTrader["salt"])
           ],
+          "", // oracleData
           signature,
           { from: maker2 }
         );
@@ -888,6 +898,7 @@ contract("BZxTest", function(accounts) {
           new BN(orderAsTrader["makerRole"]),
           new BN(orderAsTrader["salt"])
         ],
+        "", // oracleData
         signature,
         { from: orderAsTrader["makerAddress"] }
       );
@@ -913,6 +924,7 @@ contract("BZxTest", function(accounts) {
           new BN(orderAsTrader["makerRole"]),
           new BN(orderAsTrader["salt"])
         ],
+        "", // oracleData
         signature,
         { from: maker2 }
       );
@@ -958,7 +970,8 @@ contract("BZxTest", function(accounts) {
           new BN(orderAsLender["expirationUnixTimestampSec"]),
           new BN(orderAsLender["makerRole"]),
           new BN(orderAsLender["salt"])
-        ]
+        ],
+        "" // oracleData
       );
 
       let signature = "0x"+"00".repeat(65)+"06"; // SignatureType == PreSigned (null-padded to 66 bytes)
@@ -1002,6 +1015,7 @@ contract("BZxTest", function(accounts) {
           new BN(orderAsLender["makerRole"]),
           new BN(orderAsLender["salt"])
         ],
+        "", // oracleData
         signature,
         { from: maker1 }
       );
