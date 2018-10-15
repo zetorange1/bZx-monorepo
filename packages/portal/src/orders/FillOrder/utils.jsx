@@ -170,8 +170,8 @@ export const validateFillOrder = async (
         t => t.address === collateralTokenAddress
       )[0];
       const notAllowed = {
-        1: [`ZRX`, `BZRXFAKE`],
-        3: [`ZRX`, `BZRX`],
+        1: [`BZRXFAKE`],
+        3: [`ZRX`, `BZRXFAKE`],
         4: [],
         42: [`ZRX`, `WETH`]
       };
