@@ -95,7 +95,7 @@ export const getLoanOrderHashHex = order => {
 };
 
 export const getLoanOrderHashAsync = async ({ web3, networkId }, order) => {
-  const { orderAddresses, orderValues } = getLoanOrderHashArgs(order, false);
+  const { orderAddresses, orderValues, oracleData } = getLoanOrderHashArgs(order, false);
   const bZxContract = await getContractInstance(
     web3,
     getContracts(networkId).BZx.abi,
@@ -103,9 +103,9 @@ export const getLoanOrderHashAsync = async ({ web3, networkId }, order) => {
   );
   return bZxContract.methods
     .getLoanOrderHash(
-      orderAddresses, 
+      orderAddresses,
       orderValues,
-      "" // oracleData
+      oracleData || ""
     )
     .call();
 };
