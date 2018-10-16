@@ -66,8 +66,9 @@ const getLoanOrderHashArgs = (order, shouldFormatAsStrings) => {
     order.oracleAddress
   ];
   const orderValues = getOrderValues(order, shouldFormatAsStrings);
+  const oracleData = order.oracleData || "0x";
 
-  return { orderAddresses, orderValues };
+  return { orderAddresses, orderValues, oracleData };
 };
 
 export const doesContractExistAtAddress = async (web3, address) => {
@@ -84,12 +85,12 @@ export const getContractInstance = (web3, abi, address) => {
 };
 
 export const getLoanOrderHashHex = order => {
-  const { orderAddresses, orderValues } = getLoanOrderHashArgs(order, true);
-
+  const { orderAddresses, orderValues, oracleData } = getLoanOrderHashArgs(order, true);
   const orderHashHex = Web3Utils.soliditySha3(
     { t: "address", v: order.bZxAddress },
     { t: "address[6]", v: orderAddresses },
-    { t: "uint256[10]", v: orderValues }
+    { t: "uint256[10]", v: orderValues },
+    { t: "bytes", v: oracleData }
   );
   return orderHashHex;
 };
@@ -105,7 +106,7 @@ export const getLoanOrderHashAsync = async ({ web3, networkId }, order) => {
     .getLoanOrderHash(
       orderAddresses,
       orderValues,
-      oracleData || ""
+      oracleData
     )
     .call();
 };

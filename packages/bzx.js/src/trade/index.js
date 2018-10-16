@@ -91,11 +91,11 @@ export const tradePositionWith0xV2 = (
     contracts.BZx.address
   );
 
-  let preppedOrders = [];
-  let sigs = [];
+  const preppedOrders = [];
+  const sigs = [];
 
   if (Array.isArray(order0x)) {
-    for(let i=0; i < order0x.length; i++) {
+    for(let i=0; i < order0x.length; i+=1) {
       preppedOrders.push([
         order0x[i].signedOrder.makerAddress,
         order0x[i].signedOrder.takerAddress,

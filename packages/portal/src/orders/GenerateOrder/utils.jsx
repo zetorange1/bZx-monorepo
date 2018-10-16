@@ -63,7 +63,9 @@ export const compileObject = async (web3, state, account, bZx, tokens) => {
     maxDurationUnixTimestampSec: Math.round(state.maxDuration).toString(),
 
     // expiration date/time
-    expirationUnixTimestampSec: state.expirationDate.unix().toString()
+    expirationUnixTimestampSec: state.expirationDate.unix().toString(),
+
+    oracleData: state.oracleData
   };
 };
 

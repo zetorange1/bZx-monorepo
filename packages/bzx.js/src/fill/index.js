@@ -48,7 +48,7 @@ export const takeLoanOrderAsLender = (
   const txObj = bZxContract.methods.takeLoanOrderAsLender(
     orderAddresses,
     orderValues,
-    oracleData || "",
+    oracleData || "0x",
     order.signature
   );
 
@@ -63,7 +63,7 @@ export const takeLoanOrderAsTrader = (
   { order, oracleData, collateralTokenAddress, loanTokenAmountFilled, getObject, txOpts }
 ) => {
   checkForValidSignature(order);
-
+  console.log(order, oracleData, collateralTokenAddress, loanTokenAmountFilled, getObject, txOpts);
   const bZxContract = CoreUtils.getContractInstance(
     web3,
     getContracts(networkId).BZx.abi,
@@ -95,7 +95,7 @@ export const takeLoanOrderAsTrader = (
   const txObj = bZxContract.methods.takeLoanOrderAsTrader(
     orderAddresses,
     orderValues,
-    oracleData || "",
+    oracleData || "0x",
     collateralTokenAddress,
     web3.utils.toBN(loanTokenAmountFilled).toString(10),
     order.signature
@@ -144,7 +144,7 @@ export const pushLoanOrderOnChain = (
   const txObj = bZxContract.methods.pushLoanOrderOnChain(
     orderAddresses,
     orderValues,
-    oracleData || "",
+    oracleData || "0x",
     order.signature
   );
 
@@ -237,7 +237,7 @@ export const cancelLoanOrder = (
   const txObj = bZxContract.methods.cancelLoanOrder(
     orderAddresses,
     orderValues,
-    oracleData || "",
+    oracleData || "0x",
     web3.utils.toBN(cancelLoanTokenAmount).toString(10)
   );
 
