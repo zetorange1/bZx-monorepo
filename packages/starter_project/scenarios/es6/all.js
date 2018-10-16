@@ -36,14 +36,14 @@ const trader2Address = "0x4404ac8bd8f9618d27ad2f1485aa1b2cfd82482d";  // account
 
   await seedTokensByERC20Scenario(l, c, ownerAddress, lenderAddress, trader1Address, trader2Address);
   // await seedTokensByFaucetScenario(l, c, lenderAddress, trader1Address, trader2Address);
-  await wethExchangeScenario(l, c, trader2Address);
-  await allowanceManagementScenario(l, c, lenderAddress);
+  // await wethExchangeScenario(l, c, trader2Address);
+  // await allowanceManagementScenario(l, c, lenderAddress);
   await allowancePrepareScenario(l, c, lenderAddress, trader1Address);
-  await lendOrderScenario(l, c, lenderAddress, trader1Address, oracles);
-  await lendOrderOnChainScenario(l, c, lenderAddress, trader1Address, oracles);
-  await borrowOrderScenario(l, c, lenderAddress, trader1Address, oracles);
-  await borrowOrderOnChainScenario(l, c, lenderAddress, trader1Address, oracles);
-  await collateralManagementScenario(l, c, lenderAddress, trader1Address, tokens, oracles);
+  // await lendOrderScenario(l, c, lenderAddress, trader1Address, oracles);
+  // await lendOrderOnChainScenario(l, c, lenderAddress, trader1Address, oracles);
+  // await borrowOrderScenario(l, c, lenderAddress, trader1Address, oracles);
+  // await borrowOrderOnChainScenario(l, c, lenderAddress, trader1Address, oracles);
+  // await collateralManagementScenario(l, c, lenderAddress, trader1Address, tokens, oracles);
   await zeroExTradeScenario(l, c, lenderAddress, trader1Address, trader2Address, tokens, oracles);
   // await oracleTradeScenario(l, c, tokens, oracles);
 })();

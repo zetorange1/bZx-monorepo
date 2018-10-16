@@ -6,7 +6,9 @@ const TestToken2 = require("./../contracts/test_network/deployed/TestToken2");
 const TestToken3 = require("./../contracts/test_network/deployed/TestToken3");
 const TestToken4 = require("./../contracts/test_network/deployed/TestToken4");
 const WETH = require("./../contracts/test_network/deployed/WETH");
+const ZeroExV2Helper = require("./../contracts/test_network/build_contracts/ZeroExV2Helper");
 
+module.exports.zeroExV2Helper = ZeroExV2Helper;
 module.exports.bZx = BZx;
 module.exports.bZxVault = BZxVault;
 module.exports.testToken0 = TestToken0;
