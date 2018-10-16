@@ -37,7 +37,8 @@ function proceed() {
     TokenRegistry: "unknown",
     OracleRegistry: "unknown",
     TestNetFaucet: "unknown",
-    TestNetPriceFeed: "unknown"
+    TestNetPriceFeed: "unknown",
+    ZeroExV2Helper: "unknown"
   };
   var replacements = {};
 
@@ -78,6 +79,10 @@ function proceed() {
   } else {
     delete addresses["TestNetFaucet"];
     addresses["BZRXFakeFaucet"] = "unknown";
+  }
+
+  if (network != "development") {
+    delete addresses["ZeroExV2Helper"];
   }
 
   addresses["OracleInterface"] = "unknown";
