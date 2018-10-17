@@ -52,11 +52,11 @@ const artifacts = require("./../../artifacts");
   const zeroExOrderHash = orderHashUtils.getOrderHashHex(zeroExOrder);
   console.dir("[TRACE] zeroExOrderHash (by 0x.js): " + zeroExOrderHash);
 
-  // checking exchange order has has right format
+  // checking exchange order has right format
   const isValidZeroExOrderHash1 = orderHashUtils.isValidOrderHash(zeroExOrderHash1);
   console.dir("[TRACE] isValidZeroExOrderHash (by helper): " + isValidZeroExOrderHash1);
 
-  // checking exchange order has has right format
+  // checking exchange order has right format
   const isValidZeroExOrderHash = orderHashUtils.isValidOrderHash(zeroExOrderHash);
   console.dir("[TRACE] isValidZeroExOrderHash (by 0x.js): " + isValidZeroExOrderHash);
 })();
