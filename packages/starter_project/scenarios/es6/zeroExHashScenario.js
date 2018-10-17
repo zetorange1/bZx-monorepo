@@ -49,13 +49,13 @@ const artifacts = require("./../../artifacts");
   const signer = await provider.getSigner(trader2);
   const helper = await new Contract(artifacts.zeroExV2Helper.address, artifacts.zeroExV2Helper.abi, signer);
   const zeroExOrderHash1 = await helper.getOrderHash(zeroExOrder);
-  console.dir("[TRACE] zeroExOrderHash1: " + zeroExOrderHash1);
+  console.dir("[TRACE] zeroExOrderHash (by helper): " + zeroExOrderHash1);
 
   // creating hash for exchange order
   const zeroExOrderHash = orderHashUtils.getOrderHashHex(zeroExOrder);
-  console.dir("[TRACE] zeroExOrderHash: " + zeroExOrderHash);
+  console.dir("[TRACE] zeroExOrderHash (by 0x.js): " + zeroExOrderHash);
 
   // checking exchange order has right
   const isValidZeroExOrderHash = orderHashUtils.isValidOrderHash(zeroExOrderHash1);
-  console.dir("[TRACE] isValidZeroExOrderHash: " + isValidZeroExOrderHash);
+  console.dir("[TRACE] isValidZeroExOrderHash (by 0x.js): " + isValidZeroExOrderHash);
 })();
