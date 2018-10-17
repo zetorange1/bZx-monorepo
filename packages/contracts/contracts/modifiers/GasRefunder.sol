@@ -28,7 +28,7 @@ contract GasRefunder {
     {
         _; // modified function body inserted here
 
-        calculateAndSendRefund(
+        calculateAndSendGasRefund(
             payer,
             gasUsed,
             gasPrice,
@@ -42,7 +42,7 @@ contract GasRefunder {
 
         _; // modified function body inserted here
 
-        calculateAndSendRefund(
+        calculateAndSendGasRefund(
             payer,
             startingGas,
             gasPrice,
@@ -50,45 +50,61 @@ contract GasRefunder {
         );
     }
 
-    function calculateAndSendRefund(
+    function calculateAndSendGasRefund(
         address payer,
         uint gasUsed,
         uint gasPrice,
         uint percentMultiplier)
         internal
     {
-
-        if (gasUsed == 0 || gasPrice == 0)
-            return;
-
-        gasUsed = gasUsed - gasleft();
-
-        sendRefund(
-            payer,
+        (uint refundAmount, uint finalGasUsed) = getGasRefund(
             gasUsed,
             gasPrice,
             percentMultiplier
         );
+
+        if (refundAmount > 0) {
+            sendGasRefund(
+                payer,
+                refundAmount,
+                finalGasUsed,
+                gasPrice
+            );
+        }
     }
 
-    function sendRefund(
-        address payer,
+    function getGasRefund(
         uint gasUsed,
         uint gasPrice,
         uint percentMultiplier)
         internal
-        returns (bool)
+        view
+        returns (uint refundAmount, uint finalGasUsed)
     {
+        if (gasUsed == 0 || gasPrice == 0)
+            return;
+
         if (percentMultiplier == 0) // 0 percentMultiplier not allowed
             percentMultiplier = 100;
 
-        uint refundAmount = gasUsed.mul(gasPrice).mul(percentMultiplier).div(100);
+        finalGasUsed = gasUsed - gasleft();
 
+        refundAmount = finalGasUsed.mul(gasPrice).mul(percentMultiplier).div(100);
+    }
+
+    function sendGasRefund(
+        address payer,
+        uint refundAmount,
+        uint finalGasUsed,
+        uint gasPrice)
+        internal
+        returns (bool)
+    {
         if (throwOnGasRefundFail) {
             payer.transfer(refundAmount);
             emit GasRefund(
                 payer,
-                gasUsed,
+                finalGasUsed,
                 gasPrice,
                 refundAmount,
                 true
@@ -97,7 +113,7 @@ contract GasRefunder {
             // allow payer.send(refundAmount) to silently fail
             emit GasRefund(
                 payer,
-                gasUsed,
+                finalGasUsed,
                 gasPrice,
                 refundAmount,
                 payer.send(refundAmount) // solhint-disable-line check-send-result

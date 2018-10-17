@@ -29,7 +29,7 @@ export default class WithdrawCollateralDialog extends React.Component {
     const { bZx, accounts, web3, loanOrderHash, collateralToken } = this.props;
     const txOpts = {
       from: accounts[0],
-      gas: 1000000,
+      gas: 10000000,
       gasPrice: window.defaultGasPrice.toString()
     };
 

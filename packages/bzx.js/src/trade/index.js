@@ -91,25 +91,49 @@ export const tradePositionWith0xV2 = (
     contracts.BZx.address
   );
 
-  const order0xPrepped = [
-    order0x.signedOrder.makerAddress,
-    order0x.signedOrder.takerAddress,
-    order0x.signedOrder.feeRecipientAddress,
-    order0x.signedOrder.senderAddress,
-    order0x.signedOrder.makerAssetAmount,
-    order0x.signedOrder.takerAssetAmount,
-    order0x.signedOrder.makerFee,
-    order0x.signedOrder.takerFee,
-    order0x.signedOrder.expirationTimeSeconds,
-    order0x.signedOrder.salt,
-    order0x.signedOrder.makerAssetData,
-    order0x.signedOrder.takerAssetData
-  ];
+  const preppedOrders = [];
+  const sigs = [];
+
+  if (Array.isArray(order0x)) {
+    for(let i=0; i < order0x.length; i+=1) {
+      preppedOrders.push([
+        order0x[i].signedOrder.makerAddress,
+        order0x[i].signedOrder.takerAddress,
+        order0x[i].signedOrder.feeRecipientAddress,
+        order0x[i].signedOrder.senderAddress,
+        order0x[i].signedOrder.makerAssetAmount,
+        order0x[i].signedOrder.takerAssetAmount,
+        order0x[i].signedOrder.makerFee,
+        order0x[i].signedOrder.takerFee,
+        order0x[i].signedOrder.expirationTimeSeconds,
+        order0x[i].signedOrder.salt,
+        order0x[i].signedOrder.makerAssetData,
+        order0x[i].signedOrder.takerAssetData
+      ]);
+      sigs.push(order0x[i].signedOrder.signature);
+    }
+  } else {
+    preppedOrders.push([
+      order0x.signedOrder.makerAddress,
+      order0x.signedOrder.takerAddress,
+      order0x.signedOrder.feeRecipientAddress,
+      order0x.signedOrder.senderAddress,
+      order0x.signedOrder.makerAssetAmount,
+      order0x.signedOrder.takerAssetAmount,
+      order0x.signedOrder.makerFee,
+      order0x.signedOrder.takerFee,
+      order0x.signedOrder.expirationTimeSeconds,
+      order0x.signedOrder.salt,
+      order0x.signedOrder.makerAssetData,
+      order0x.signedOrder.takerAssetData
+    ]);
+    sigs.push(order0x.signedOrder.signature);
+  }
 
   const txObj = bZxContract.methods.tradePositionWith0xV2(
     orderHashBZx,
-    [order0xPrepped],
-    [order0x.signedOrder.signature]
+    preppedOrders,
+    sigs
   );
 
   if (getObject) {

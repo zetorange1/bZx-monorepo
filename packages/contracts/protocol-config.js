@@ -57,7 +57,7 @@ module.exports = {
         WETH9: "0xc778417e063141139fce010982780140aa0cd5ab"
       },
       KyberContractAddress: "", // Rinkeby
-      BZRXToken: "0xd0c640eEd54c3877ABb958fa9753F50900325fC5",
+      BZRXToken: "0xb70ce29af9de22e28509cdcf3e0368b5a550548a",
       MultiSig: ""
     },
     mainnet: {

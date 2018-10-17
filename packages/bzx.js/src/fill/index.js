@@ -13,7 +13,7 @@ const checkForValidSignature = order => {
 
 export const takeLoanOrderAsLender = (
   { web3, networkId },
-  { order, getObject, txOpts }
+  { order, oracleData, getObject, txOpts }
 ) => {
   checkForValidSignature(order);
 
@@ -48,6 +48,7 @@ export const takeLoanOrderAsLender = (
   const txObj = bZxContract.methods.takeLoanOrderAsLender(
     orderAddresses,
     orderValues,
+    oracleData || "0x",
     order.signature
   );
 
@@ -59,10 +60,10 @@ export const takeLoanOrderAsLender = (
 
 export const takeLoanOrderAsTrader = (
   { web3, networkId },
-  { order, collateralTokenAddress, loanTokenAmountFilled, getObject, txOpts }
+  { order, oracleData, collateralTokenAddress, loanTokenAmountFilled, getObject, txOpts }
 ) => {
   checkForValidSignature(order);
-
+  console.log(order, oracleData, collateralTokenAddress, loanTokenAmountFilled, getObject, txOpts);
   const bZxContract = CoreUtils.getContractInstance(
     web3,
     getContracts(networkId).BZx.abi,
@@ -94,6 +95,7 @@ export const takeLoanOrderAsTrader = (
   const txObj = bZxContract.methods.takeLoanOrderAsTrader(
     orderAddresses,
     orderValues,
+    oracleData || "0x",
     collateralTokenAddress,
     web3.utils.toBN(loanTokenAmountFilled).toString(10),
     order.signature
@@ -107,7 +109,7 @@ export const takeLoanOrderAsTrader = (
 
 export const pushLoanOrderOnChain = (
   { web3, networkId },
-  { order, getObject, txOpts }
+  { order, oracleData, getObject, txOpts }
 ) => {
   checkForValidSignature(order);
 
@@ -142,6 +144,7 @@ export const pushLoanOrderOnChain = (
   const txObj = bZxContract.methods.pushLoanOrderOnChain(
     orderAddresses,
     orderValues,
+    oracleData || "0x",
     order.signature
   );
 
@@ -199,7 +202,7 @@ export const takeLoanOrderOnChainAsLender = (
 
 export const cancelLoanOrder = (
   { web3, networkId },
-  { order, cancelLoanTokenAmount, getObject, txOpts }
+  { order, oracleData, cancelLoanTokenAmount, getObject, txOpts }
 ) => {
   checkForValidSignature(order);
 
@@ -234,6 +237,7 @@ export const cancelLoanOrder = (
   const txObj = bZxContract.methods.cancelLoanOrder(
     orderAddresses,
     orderValues,
+    oracleData || "0x",
     web3.utils.toBN(cancelLoanTokenAmount).toString(10)
   );
 

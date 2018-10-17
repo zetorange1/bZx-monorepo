@@ -11,7 +11,8 @@ module.exports = function(deployer, network, accounts) {
     network == "testnet" ||
     network == "coverage" || 
     network == "kovan" || 
-    network == "ropsten"
+    network == "ropsten" || 
+    network == "rinkeby"
   ) {
     if (network != "kovan")
       network = "development";

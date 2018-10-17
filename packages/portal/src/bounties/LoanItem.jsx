@@ -127,7 +127,7 @@ export default class LoanItem extends BZxComponent {
 
     const txOpts = {
       from: accounts[0],
-      // gas: 1000000, // gas estimated in bZx.js
+      gas: 10000000,
       gasPrice: window.defaultGasPrice.toString()
     };
 

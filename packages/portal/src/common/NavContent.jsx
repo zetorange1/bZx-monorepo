@@ -80,7 +80,7 @@ class NavContent extends React.Component {
         <a href="https://bZx.network/">
           <ImgLogo src="/static/logo.svg" />
         </a>
-        {this.props.web3IsReceived ? (
+        {this.props.web3IsReceived && !this.props.noHeaderBar? (
           <Fragment>
             <HorizontalNav>
               <NavLink id="balances" onClick={this.changeCardClick}>

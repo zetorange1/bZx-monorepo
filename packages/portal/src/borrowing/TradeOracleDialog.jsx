@@ -67,8 +67,8 @@ export default class TradeOracleDialog extends React.Component {
     const { tradeToken } = this.state;
 
     const notAllowed = {
-      1: [`ZRX`, `BZRXFAKE`],
-      3: [`ZRX`, `BZRX`],
+      1: [`BZRXFAKE`],
+      3: [`ZRX`, `BZRXFAKE`],
       4: [],
       42: [`ZRX`, `WETH`]
     };
@@ -86,7 +86,7 @@ export default class TradeOracleDialog extends React.Component {
 
     const txOpts = {
       from: accounts[0],
-      gas: 1000000,
+      gas: 10000000,
       gasPrice: window.defaultGasPrice.toString()
     };
 

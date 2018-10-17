@@ -122,13 +122,13 @@ export const validateFillOrder = async (
       return false;
     }
 
-    const oracle = oracles.filter(o => o.address === order.oracleAddress)[0];
+    /*const oracle = oracles.filter(o => o.address === order.oracleAddress)[0];
     if (!oracle) {
       alert(
         `The oracle of this order is no longer active. Please try a different order.`
       );
       return false;
-    }
+    }*/
 
     const makerRole = order.makerRole === `0` ? `lender` : `trader`;
     const trackedTokens = getTrackedTokens(tokens);
@@ -170,8 +170,8 @@ export const validateFillOrder = async (
         t => t.address === collateralTokenAddress
       )[0];
       const notAllowed = {
-        1: [`ZRX`, `BZRXFAKE`],
-        3: [`ZRX`, `BZRX`],
+        1: [`BZRXFAKE`],
+        3: [`ZRX`, `BZRXFAKE`],
         4: [],
         42: [`ZRX`, `WETH`]
       };
@@ -383,7 +383,7 @@ export const submitFillOrder = (
 ) => {
   const txOpts = {
     from: accounts[0],
-    // gas: 1000000, // gas estimated in bZx.js
+    gas: 10000000,
     gasPrice: window.defaultGasPrice.toString()
   };
   const makerIsLender = order.makerRole === `0`;

@@ -147,7 +147,7 @@ export default class TrackedTokenItem extends BZxComponent {
 
     const txOpts = {
       from: accounts[0],
-      // gas: 100000,
+      gas: 10000000,
       gasPrice: window.defaultGasPrice.toString()
     };
 

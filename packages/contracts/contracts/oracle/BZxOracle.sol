@@ -17,6 +17,7 @@ import "../tokens/EIP20Wrapper.sol";
 import "./OracleInterface.sol";
 import "../storage/BZxObjects.sol";
 
+import "../shared/WETHInterface.sol";
 
 // solhint-disable-next-line contract-name-camelcase
 interface KyberNetwork_Interface {
@@ -121,6 +122,20 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     // The contract needs to be able to receive Ether from Kyber trades
     function() public payable {}
 
+
+    function didAddOrder(
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanOrderAux /* loanOrderAux */,
+        bytes /* oracleData */,
+        address /* taker */,
+        uint /* gasUsed */)
+        public
+        onlyBZx
+        updatesEMA(tx.gasprice)
+        returns (bool)
+    {
+        return true;
+    }
 
     function didTakeOrder(
         BZxObjects.LoanOrder memory /* loanOrder */,
@@ -272,11 +287,27 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     {
         // sends gas and bounty reward to bounty hunter
         if (isLiquidation) {
-            calculateAndSendRefund(
-                loanCloser,
+            (uint refundAmount, uint finalGasUsed) = getGasRefund(
                 gasUsed,
                 emaValue,
-                bountyRewardPercent);
+                bountyRewardPercent
+            );
+
+            if (refundAmount > 0) {
+                // refunds are paid in ETH
+                uint wethBalance = EIP20(wethContract).balanceOf.gas(4999)(this);
+                if (refundAmount > wethBalance)
+                    refundAmount = wethBalance;
+
+                WETHInterface(wethContract).withdraw(refundAmount);
+
+                sendGasRefund(
+                    loanCloser,
+                    refundAmount,
+                    finalGasUsed,
+                    emaValue
+                );
+            }
         }
 
         return true;

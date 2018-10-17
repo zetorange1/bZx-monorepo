@@ -4,6 +4,7 @@
  */
 
 pragma solidity 0.4.24;
+pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 
@@ -34,6 +35,9 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
         targets[bytes4(keccak256("getLoansForLender(address,uint256,bool)"))] = _target;
         targets[bytes4(keccak256("getLoansForTrader(address,uint256,bool)"))] = _target;
         targets[bytes4(keccak256("getActiveLoans(uint256,uint256)"))] = _target;
+        targets[bytes4(keccak256("getLoanOrder(bytes32)"))] = _target;
+        targets[bytes4(keccak256("getLoanOrderAux(bytes32)"))] = _target;
+        targets[bytes4(keccak256("getLoanPosition(uint256)"))] = _target;
     }
 
     /// @dev Returns a bytestream of a single order.
@@ -222,6 +226,39 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
         }
 
         return data;
+    }
+
+    /// @dev Returns a LoanOrder object.
+    /// @param loanOrderHash A unique hash representing the loan order.
+    function getLoanOrder(
+        bytes32 loanOrderHash)
+        public
+        view
+        returns (LoanOrder)
+    {
+        return orders[loanOrderHash];
+    }
+
+    /// @dev Returns a LoanOrderAux object.
+    /// @param loanOrderHash A unique hash representing the loan order.
+    function getLoanOrderAux(
+        bytes32 loanOrderHash)
+        public
+        view
+        returns (LoanOrderAux)
+    {
+        return orderAux[loanOrderHash];
+    }
+
+    /// @dev Returns a LoanPosition object.
+    /// @param positionId A unqiue id representing the loan position.
+    function getLoanPosition(
+        uint positionId)
+        public
+        view
+        returns (LoanPosition)
+    {
+        return loanPositions[positionId];
     }
 
     /*

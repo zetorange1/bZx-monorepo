@@ -42,8 +42,8 @@ const checkCoinsApproved = async (bZx, accounts, state) => {
 const checkCoinsAllowed = (state, tokens, networkId) => {
   const { loanTokenAddress, collateralTokenAddress, role } = state;
   const notAllowed = {
-    1: [`ZRX`, `BZRXFAKE`],
-    3: [`ZRX`, `BZRX`],
+    1: [`BZRXFAKE`],
+    3: [`ZRX`, `BZRXFAKE`],
     4: [],
     42: [`ZRX`, `WETH`]
   };

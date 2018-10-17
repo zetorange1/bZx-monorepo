@@ -223,6 +223,10 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
         );
     }
 
+    /// @dev Called by an admin to force close a loan early and return assets to the lender and trader as is.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param trader The trader of the position
+    /// @return True on success
     function forceCloanLoan(
         bytes32 loanOrderHash,
         address trader)

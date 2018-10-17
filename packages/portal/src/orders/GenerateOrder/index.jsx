@@ -93,6 +93,8 @@ export default class GenerateOrder extends React.Component {
     lenderRelayFee: 0,
     traderRelayFee: 0,
 
+    oracleData: `0x`,
+
     pushOnChain: false,
 
     orderHash: `0x_temp_order_hash`,
