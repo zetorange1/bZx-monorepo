@@ -1,11 +1,6 @@
 const Web3 = require("web3");
 
-const {
-  assetDataUtils,
-  ContractWrappers,
-  generatePseudoRandomSalt,
-  orderHashUtils,
-} = require("0x.js");
+const { assetDataUtils, ContractWrappers, generatePseudoRandomSalt, orderHashUtils } = require("0x.js");
 
 const { providers, Contract } = require("ethers");
 
@@ -13,8 +8,8 @@ const artifacts = require("./../../artifacts");
 
 (async function zeroExHashScenario() {
   const zeroAddress = "0x0000000000000000000000000000000000000000";
-  const trader1 = "0x06cef8e666768cc40cc78cf93d9611019ddcb628";  // accounts[6]
-  const trader2 = "0x4404ac8bd8f9618d27ad2f1485aa1b2cfd82482d";  // accounts[7]
+  const trader1 = "0x06cef8e666768cc40cc78cf93d9611019ddcb628"; // accounts[6]
+  const trader2 = "0x4404ac8bd8f9618d27ad2f1485aa1b2cfd82482d"; // accounts[7]
   const ganacheUri = "http://localhost:8545";
   const ganacheNetworkId = 50;
 
@@ -33,7 +28,7 @@ const artifacts = require("./../../artifacts");
     senderAddress: zeroAddress,
     makerAddress: trader2,
     takerAddress: zeroAddress,
-    makerFee: web3.utils.toWei("0.00000", "ether").toString(),
+    makerFee: web3.utils.toWei("0.000", "ether").toString(),
     takerFee: web3.utils.toWei("0.000", "ether").toString(),
     makerAssetAmount: web3.utils.toWei("12", "ether"),
     takerAssetAmount: web3.utils.toWei("12", "ether"),
@@ -42,7 +37,7 @@ const artifacts = require("./../../artifacts");
     salt: generatePseudoRandomSalt().toString(),
     exchangeAddress: exchangeAddress.toLowerCase(),
     feeRecipientAddress: trader1, // here we can point address for relay fees
-    expirationTimeSeconds: "" + (latestBlock.timestamp + 86400),
+    expirationTimeSeconds: (latestBlock.timestamp + 86400).toString()
   };
 
   const provider = await new providers.Web3Provider(web3.currentProvider);
