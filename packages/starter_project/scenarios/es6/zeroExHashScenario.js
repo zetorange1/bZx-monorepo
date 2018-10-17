@@ -24,6 +24,7 @@ const artifacts = require("./../../artifacts");
   const contractWrappers = new ContractWrappers(httpProvider, { networkId: ganacheNetworkId });
   const exchangeAddress = contractWrappers.exchange.getContractAddress();
 
+  // setting up order
   const zeroExOrder = {
     senderAddress: zeroAddress,
     makerAddress: trader2,
@@ -40,21 +41,22 @@ const artifacts = require("./../../artifacts");
     expirationTimeSeconds: (latestBlock.timestamp + 86400).toString()
   };
 
+  // creating hash for exchange order with ZeroExV2Helper contract
   const provider = await new providers.Web3Provider(web3.currentProvider);
   const signer = await provider.getSigner(trader2);
   const helper = await new Contract(artifacts.zeroExV2Helper.address, artifacts.zeroExV2Helper.abi, signer);
   const zeroExOrderHash1 = await helper.getOrderHash(zeroExOrder);
   console.dir("[TRACE] zeroExOrderHash (by helper): " + zeroExOrderHash1);
 
-  // creating hash for exchange order
+  // creating hash for exchange order with orderHashUtils by 0x.js
   const zeroExOrderHash = orderHashUtils.getOrderHashHex(zeroExOrder);
   console.dir("[TRACE] zeroExOrderHash (by 0x.js): " + zeroExOrderHash);
 
-  // checking exchange order has right
+  // checking exchange order has has right format
   const isValidZeroExOrderHash1 = orderHashUtils.isValidOrderHash(zeroExOrderHash1);
   console.dir("[TRACE] isValidZeroExOrderHash (by helper): " + isValidZeroExOrderHash1);
 
-  // checking exchange order has right
+  // checking exchange order has has right format
   const isValidZeroExOrderHash = orderHashUtils.isValidOrderHash(zeroExOrderHash);
   console.dir("[TRACE] isValidZeroExOrderHash (by 0x.js): " + isValidZeroExOrderHash);
 })();
