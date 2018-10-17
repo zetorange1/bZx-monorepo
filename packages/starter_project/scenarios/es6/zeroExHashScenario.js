@@ -56,6 +56,10 @@ const artifacts = require("./../../artifacts");
   console.dir("[TRACE] zeroExOrderHash (by 0x.js): " + zeroExOrderHash);
 
   // checking exchange order has right
-  const isValidZeroExOrderHash = orderHashUtils.isValidOrderHash(zeroExOrderHash1);
+  const isValidZeroExOrderHash1 = orderHashUtils.isValidOrderHash(zeroExOrderHash1);
+  console.dir("[TRACE] isValidZeroExOrderHash (by helper): " + isValidZeroExOrderHash1);
+
+  // checking exchange order has right
+  const isValidZeroExOrderHash = orderHashUtils.isValidOrderHash(zeroExOrderHash);
   console.dir("[TRACE] isValidZeroExOrderHash (by 0x.js): " + isValidZeroExOrderHash);
 })();
