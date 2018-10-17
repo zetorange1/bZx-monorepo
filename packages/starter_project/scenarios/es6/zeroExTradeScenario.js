@@ -199,7 +199,7 @@ console.log("Exchange address: " + exchangeAddress.toLowerCase());
 
   const provider = await new providers.Web3Provider(c.web3.currentProvider);
   const signer = await provider.getSigner(maker);
-  const helper = await new Contract("0xc802aa38684f3b44ce636304370915d0e6bd6fb0", artifacts.zeroExV2Helper.abi, signer);
+  const helper = await new Contract(artifacts.zeroExV2Helper.address, artifacts.zeroExV2Helper.abi, signer);
   const zeroExOrderHash1 = await helper.getOrderHash(zeroExOrder);
   console.dir("[TRACE] zeroExOrderHash1: " + zeroExOrderHash1);
 
