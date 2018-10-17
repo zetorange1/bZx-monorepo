@@ -176,7 +176,7 @@ export default class Tokensale extends BZxComponent {
 
     const txOpts = {
       from: accounts[0],
-      // gas: 1000000,
+      gas: 10000000,
       gasPrice: window.defaultGasPrice.toString(),
       value: toBigNumber(buyAmount, 1e18)
     };

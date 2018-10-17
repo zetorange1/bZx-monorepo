@@ -31,7 +31,7 @@ export default class DepositCollateralDialog extends React.Component {
 
     const txOpts = {
       from: accounts[0],
-      gas: 1000000,
+      gas: 10000000,
       gasPrice: window.defaultGasPrice.toString()
     };
 
