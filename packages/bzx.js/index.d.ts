@@ -4,8 +4,6 @@ import { Provider } from "web3/providers";
 import { TransactionReceipt } from "web3/types";
 
 export declare interface ILoanOrderValuesBase {
-  bZxAddress: string;
-
   makerAddress: string;
   loanTokenAddress: string;
   interestTokenAddress: string;
@@ -19,22 +17,24 @@ export declare interface ILoanOrderValuesBase {
   maintenanceMarginAmount: number | string;
   lenderRelayFee: number | string;
   traderRelayFee: number | string;
-  maxDurationUnixTimestampSec: string;
-  expirationUnixTimestampSec: string;
+  maxDurationUnixTimestampSec: number | string;
+  expirationUnixTimestampSec: number | string;
 }
 
 export declare interface ILoanOrderFillable extends ILoanOrderValuesBase {
   loanOrderHash: string;
   lender: string;
-  orderFilledAmount: number | string;
-  orderCancelledAmount: number | string;
+  orderFilledAmount: number;
+  orderCancelledAmount: number;
   orderTraderCount: number;
   addedUnixTimestampSec: number;
 }
 
 export declare interface ILoanOrderFillRequest extends ILoanOrderValuesBase {
+  bZxAddress: string;
+
   makerRole: number;
-  salt: BigNumber | string;
+  salt: string;
   signature: string;
 }
 
@@ -47,27 +47,28 @@ export declare interface ILoanOrderActive {
 export declare interface ILoanPositionState {
   lender: string;
   trader: string;
-  collateralTokenAddressFilled: string;
-  positionTokenAddressFilled: string;
-  loanTokenAddress: string;
-  interestTokenAddress: string;
-
-  loanTokenAmountFilled: BigNumber;
-  collateralTokenAmountFilled: BigNumber;
-  positionTokenAmountFilled: BigNumber;
-
-  loanStartUnixTimestampSec: number;
-  loanEndUnixTimestampSec: number;
-  active: boolean;
-
-  interestTotalAccrued: BigNumber;
-  interestPaidSoFar: BigNumber;
 
   loanOrderHash: string;
+  loanStartUnixTimestampSec: number;
+  loanEndUnixTimestampSec: number;
+  active: number;
+
+  loanTokenAddress: string;
+  loanTokenAmountFilled: number;
+
+  collateralTokenAddressFilled: string;
+  collateralTokenAmountFilled: number;
+
+  positionTokenAddressFilled: number;
+  positionTokenAmountFilled: number;
+
+  interestTokenAddress: string;
+  interestTotalAccrued: number;
+  interestLastPaidDate: number;
+  interestPaidSoFar: number;
 }
 
 export declare interface IZeroExOrder {
-  signedOrder: any;
   exchangeContractAddress: string;
   expirationUnixTimestampSec: number;
   feeRecipient: string;
@@ -80,6 +81,75 @@ export declare interface IZeroExOrder {
   takerFee: number;
   takerTokenAddress: string;
   takerTokenAmount: number;
+}
+
+export declare interface IZeroExV2Order {
+  senderAddress: string;
+  makerAddress: string;
+  takerAddress: string;
+  makerFee: string;
+  takerFee: string;
+  makerAssetAmount: string;
+  takerAssetAmount: string;
+  makerAssetData: any;
+  takerAssetData: any;
+  salt: string;
+  exchangeAddress: string;
+  feeRecipientAddress: string;
+  expirationTimeSeconds: string;
+}
+
+export declare interface ITokenMetadata {
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+
+export declare interface IZeroExV2OrderMetadata {
+  makerToken: ITokenMetadata;
+  takerToken: ITokenMetadata;
+}
+
+export declare interface ISignatureParams {
+  v: number;
+  r: Buffer;
+  s: Buffer;
+}
+
+export declare interface IZeroExOrderSigned extends IZeroExOrder {
+  ecSignature: ISignatureParams;
+}
+
+export declare interface IZeroExV2OrderSigned extends IZeroExV2Order {
+  signature: string;
+}
+
+export declare interface IZeroExTradeRequest {
+  signedOrder: IZeroExOrderSigned;
+}
+
+export declare interface IZeroExV2TradeRequest {
+  signedOrder: IZeroExV2OrderSigned;
+  metadata: IZeroExV2OrderMetadata;
+}
+
+export declare interface IMarginLevel {
+  initialMarginAmount: string;
+  maintenanceMarginAmount: string;
+  currentMarginAmount: string;
+}
+
+export declare interface IInterestStatus {
+  lender: string;
+  interestTokenAddress: string;
+  interestTotalAccrued: string;
+  interestPaidSoFar: string;
+}
+
+export declare interface IProfitStatus {
+  isProfit: boolean;
+  profitOrLoss: string;
+  positionTokenAddress: string;
 }
 
 export declare interface ITokenDescription {
@@ -222,14 +292,14 @@ export declare class BZxJS {
   getOrdersForUser(params: { loanPartyAddress: string; start: number; count: number }): ILoanOrderFillable[];
 
   tradePositionWith0x(params: {
-    order0x: IZeroExOrder;
+    order0x: IZeroExTradeRequest;
     orderHashBZx: string;
     getObject: boolean;
     txOpts: Tx;
   }): Promise<string> | TransactionObject<string>;
 
   tradePositionWith0xV2(params: {
-    order0x: IZeroExOrder;
+    order0x: IZeroExV2TradeRequest;
     orderHashBZx: string;
     getObject: boolean;
     txOpts: Tx;
@@ -276,52 +346,36 @@ export declare class BZxJS {
   getProfitOrLoss(params: {
     loanOrderHash: string;
     trader: string;
-  }): {
-    isProfit: boolean;
-    profitOrLoss: BigNumber;
-    positionTokenAddress: string;
-  };
+  }): IProfitStatus;
 
   withdrawProfit(params: {
     loanOrderHash: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   getInterest(params: {
     loanOrderHash: string;
-    traderAddress: string;
-  }): {
-    lender: string;
-    interestTokenAddress: string;
-    interestTotalAccrued: BigNumber;
-    interestPaidSoFar: BigNumber;
-  };
+    trader: string;
+  }): IInterestStatus;
 
   payInterest(params: {
     loanOrderHash: string;
     trader: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   getActiveLoans(params: { start: number; count: number }): ILoanOrderActive[];
 
-  getMarginLevels(params: {
-    loanOrderHash;
-    trader;
-  }): {
-    initialMarginAmount: BigNumber;
-    maintenanceMarginAmount: BigNumber;
-    currentMarginAmount: BigNumber;
-  };
+  getMarginLevels(params: { loanOrderHash: string; trader: string }): IMarginLevel;
 
   liquidateLoan(params: {
     loanOrderHash: string;
     trader: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   transferToken(params: {
     tokenAddress: string;
@@ -329,14 +383,14 @@ export declare class BZxJS {
     amount: BigNumber;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   requestFaucetToken(params: {
     tokenAddress: string;
     receiverAddress: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   wrapEth(params: {
     amount: BigNumber;
