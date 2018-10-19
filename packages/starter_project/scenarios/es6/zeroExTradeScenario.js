@@ -148,24 +148,38 @@ async function zeroExTradeScenario(l, c, lenderAddress, trader1Address, trader2A
   });
   console.log(transactionReceipt);
 
-  // // checking exchange order funds availability
-  // await contractWrappers.exchange.validateFillOrderThrowIfInvalidAsync(
-  //   zeroExOrderSigned,
-  //   new BigNumber(c.web3.utils.toWei("1", "ether")),
-  //   exchangeOrderTaker
-  // );
-  //
-  // txHash = await contractWrappers.exchange.fillOrderAsync(
-  //   zeroExOrderSigned,
-  //   new BigNumber(c.web3.utils.toWei("1", "ether")),
-  //   exchangeOrderTaker,
-  //   {
-  //     from: exchangeOrderTaker,
-  //     gasLimit: utils.gasLimit
-  //   }
-  // );
+  // getting interest status (amounts accrued and paid) before payout
+  let interestBeforePayout = await c.bzxjs.getInterest({ loanOrderHash: lendOrderHash, trader: trader1Address });
+  console.dir(interestBeforePayout);
 
-  console.dir(zeroExOrder);
+  // pay interest to lender
+  // this function can be safely called by anyone
+  transactionReceipt = await c.bzxjs.payInterest({
+    loanOrderHash: lendOrderHash,
+    trader: trader1Address,
+    getObject: false,
+    txOpts: { from: trader1Address, gasLimit: utils.gasLimit }
+  });
+  console.dir(transactionReceipt);
+
+  // getting interest status (amounts accrued and paid) after payout
+  let interestAfterPayout = await c.bzxjs.getInterest({ loanOrderHash: lendOrderHash, trader: trader1Address });
+  console.dir(interestAfterPayout);
+
+  // calculating current profit or loss
+  let profitOrLoss = await c.bzxjs.getProfitOrLoss({ loanOrderHash: lendOrderHash, trader: trader1Address });
+  console.dir(profitOrLoss);
+
+  // withdrawing profit if any
+  // we should make this check before calling withdrawProfit, or we can get revert if no profit there
+  if (profitOrLoss.isProfit && profitOrLoss.profitOrLoss !== "0") {
+    transactionReceipt = await c.bzxjs.withdrawProfit({
+      loanOrderHash: lendOrderHash,
+      getObject: false,
+      txOpts: { from: trader1Address, gasLimit: utils.gasLimit }
+    });
+    console.dir(transactionReceipt);
+  }
 }
 
 module.exports.zeroExTradeScenario = zeroExTradeScenario;
