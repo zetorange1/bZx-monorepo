@@ -1,8 +1,5 @@
 #!/usr/bin/env node
 
-// const BigNumber =  require("bignumber.js");
-// const BN =  require("bn.js");
-
 const { initConnectivity } = require("./../../connectivity");
 const { initLogger } = require("./../../logging");
 
@@ -15,6 +12,8 @@ const { lendOrderScenario, lendOrderOnChainScenario } = require("./lendOrderScen
 const { borrowOrderScenario, borrowOrderOnChainScenario } = require("./borrowOrderScenario");
 const { collateralManagementScenario } = require("./collateralManagementScenario");
 const { zeroExTradeScenario } = require("./zeroExTradeScenario");
+const { loanLiquidateScenario } = require("./loanLiquidateScenario");
+const { ordersListingScenario } = require("./ordersListingScenario");
 
 const { ownerAddress, lenderAddress, trader1Address, trader2Address } = require("./../../addresses");
 
@@ -42,4 +41,6 @@ const { ownerAddress, lenderAddress, trader1Address, trader2Address } = require(
   // await collateralManagementScenario(l, c, lenderAddress, trader1Address, tokens, oracles);
   await zeroExTradeScenario(l, c, lenderAddress, trader1Address, trader2Address, tokens, oracles);
   // await oracleTradeScenario(l, c, tokens, oracles);
+  // await loanLiquidateScenario(l, c, lenderAddress, trader1Address, trader2Address, tokens, oracles);
+  // await ordersListingScenario(l, c, lenderAddress, trader1Address, trader2Address, tokens, oracles);
 })();
