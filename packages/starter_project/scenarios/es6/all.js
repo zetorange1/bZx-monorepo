@@ -30,7 +30,7 @@ const { ownerAddress, lenderAddress, trader1Address, trader2Address } = require(
   console.dir(oracles);
 
   await tokensSeedByERC20Scenario(l, c, ownerAddress, lenderAddress, trader1Address, trader2Address);
-  await tokensSeedByFaucetScenario(l, c, lenderAddress, trader1Address, trader2Address);
+  // await tokensSeedByFaucetScenario(l, c, lenderAddress, trader1Address, trader2Address);
   await wethExchangeScenario(l, c, trader2Address);
   await allowanceManagementScenario(l, c, lenderAddress);
   await allowancePrepareScenario(l, c, lenderAddress, trader1Address);
