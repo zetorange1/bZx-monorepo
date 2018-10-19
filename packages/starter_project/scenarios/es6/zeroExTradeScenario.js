@@ -24,7 +24,7 @@ async function zeroExTradeScenario(l, c, lenderAddress, trader1Address, trader2A
 
   let transactionReceipt, transactionHash;
 
-  // initializing zerExV2 contracts wrappers
+  // initializing zeroExV2 contracts wrappers
   const contractWrappers = new ContractWrappers(c.provider, { networkId: utils.ganacheNetworkId });
   const zeroExExchangeAddress = contractWrappers.exchange.getContractAddress();
 
