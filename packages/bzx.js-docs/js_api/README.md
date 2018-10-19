@@ -62,14 +62,14 @@ Creates an instance of BZxJS.
 
 ```typescript
   constructor(
-    provider: Provider,
+    web3: Web3,
     params: { networkId: number; addresses?: string[] }
   );
 ```
 
 ###### Arguments
 
-`provider` web3 provider
+`web3` web3 instance
 
 `params.networkid` id of the network to connect (for example `3` for `ropsten`)
 
@@ -89,14 +89,14 @@ ________________________________________________________________________________
 
 ##### getAllowance
 
-Get the amount of tokens granted to withdraw by `spenderAddress`.
+Get the amount of tokens at `params.tokenAddress` granted to withdraw by `params.spenderAddress` from `params.ownerAddress`.
 
 ```typescript
   getAllowance(params: {
     tokenAddress: string;
     ownerAddress: string;
     spenderAddress: string;
-  }): BigNumber;
+  }): Promise<BigNumber>;
 ```
 
 ###### Arguments
@@ -115,17 +115,17 @@ ________________________________________________________________________________
 
 ##### setAllowance
 
-Allow `spenderAddress` to withdraw tokens from `ownerAddress`, multiple times, up to the `amountInBaseUnits` amount.
+Allow `params.spenderAddress` to withdraw tokens at `params.tokenAddress` from `params.ownerAddress`, multiple times, up to the `params.amountInBaseUnits` amount.
 
 ```typescript
   setAllowance(params: {
     tokenAddress: string;
     ownerAddress: string;
     spenderAddress: string;
-    amountInBaseUnits: BigNumber;
+    amountInBaseUnits: BigNumber | string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -138,19 +138,19 @@ Allow `spenderAddress` to withdraw tokens from `ownerAddress`, multiple times, u
 
 `params.amountInBaseUnits` amount of tokens that are allowed to use
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `boolean` value indicating if the operation succeeded
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
 ##### setAllowanceUnlimited
 
-Allow `spenderAddress` to withdraw tokens from `ownerAddress`, multiple times, without the limit.
+Allow `params.spenderAddress` to withdraw tokens from `params.ownerAddress`, multiple times, without the limit.
 
 ```typescript
   setAllowanceUnlimited(params: {
@@ -159,7 +159,7 @@ Allow `spenderAddress` to withdraw tokens from `ownerAddress`, multiple times, w
     spenderAddress: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -170,19 +170,19 @@ Allow `spenderAddress` to withdraw tokens from `ownerAddress`, multiple times, w
 
 `params.spenderAddress` address of the spender of the tokens - wallet who gets right to use tokens
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `boolean` value indicating if the operation succeeded
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
 ##### resetAllowance
 
-Disallow `spenderAddress` to withdraw tokens from `ownerAddress`.
+Disallow `params.spenderAddress` to withdraw tokens from `params.ownerAddress`.
 
 ```typescript
   resetAllowance(params: {
@@ -191,7 +191,7 @@ Disallow `spenderAddress` to withdraw tokens from `ownerAddress`.
     spenderAddress: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -202,13 +202,13 @@ Disallow `spenderAddress` to withdraw tokens from `ownerAddress`.
 
 `params.spenderAddress` address of the spender of the tokens - wallet who gets right to use tokens
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `boolean` value indicating if the operation succeeded
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 #### Hash
 
@@ -219,7 +219,7 @@ ________________________________________________________________________________
 Calculate Keccak-256 hash of loan order with specified parameters.
 
 ```typescript
-  getLoanOrderHashHex(order): Promise<string>;
+  getLoanOrderHashHex(order: ILoanOrderFillRequest): string;
 ```
 
 ###### Arguments
@@ -237,7 +237,7 @@ ________________________________________________________________________________
 Calculate Keccak-256 hash of order with specified parameters.
 
 ```typescript
-  getLoanOrderHashAsync(order): Promise<string>;
+  getLoanOrderHashAsync(order: ILoanOrderFillRequest): Promise<string>;
 ```
 
 ###### Arguments
@@ -283,16 +283,20 @@ ________________________________________________________________________________
 Check order hash signature validity.
 
 ```typescript
-  static isValidSignature({ account, orderHash, signature }): boolean;
+  static isValidSignature(params: {
+    account: string,
+    orderHash: string,
+    signature: string
+  }): boolean;
 ```
 
 ###### Arguments
 
-`account` account who signed the loan order hash
+`params.account` account who signed the loan order hash
 
-`orderHash` loan order hash
+`params.orderHash` loan order hash
 
-`signature` loan order signature
+`params.signature` loan order signature
 
 ###### Returns
 
@@ -305,16 +309,20 @@ ________________________________________________________________________________
 Check order hash signature validity.
 
 ```typescript
-  isValidSignatureAsync({ account, orderHash, signature }): Promise<boolean>;
+  isValidSignatureAsync(params: {
+    account: string,
+    orderHash: string,
+    signature: string
+  }): Promise<boolean>;
 ```
 
 ###### Arguments
 
-`account` account who signed the loan order hash
+`params.account` account who signed the loan order hash
 
-`orderHash` loan order hash
+`params.orderHash` loan order hash
 
-`signature` loan order signature
+`params.signature` loan order signature
 
 ###### Returns
 
@@ -329,7 +337,7 @@ ________________________________________________________________________________
 Provide metadata for all registered tokens.
 
 ```typescript
-  getTokenList(): ITokenDescription[];
+  getTokenList(): Promise<ITokenDescription[]>;
 ```
 
 ###### Arguments
@@ -338,7 +346,7 @@ None
 
 ###### Returns
 
-Array of `ITokenDescription`
+`Promise` for an array of `ITokenDescription`
 
 ________________________________________________________________________________
 
@@ -347,7 +355,7 @@ ________________________________________________________________________________
 Provide metadata for all registered oracles.
 
 ```typescript
-  getOracleList(): IOracleDescription[];
+  getOracleList(): Promise<IOracleDescription[]>;
 ```
 
 ###### Arguments
@@ -356,25 +364,28 @@ None
 
 ###### Returns
 
-Array of `IOracleDescription`
+`Promise` for an array of `IOracleDescription`
 
 ________________________________________________________________________________
 
 ##### isTradeSupported
 
-Check if specified `oracleAddress` supports exchange operation of provided tokens.
+Check if specified `params.oracleAddress` supports exchange operation of provided tokens.
 
 ```typescript
   isTradeSupported(params: { 
     sourceTokenAddress: string; 
+    sourceTokenAmount: string;
     destTokenAddress: string; 
-    oracleAddress: string 
-  }): boolean;
+    oracleAddress: string;
+  }): Promise<boolean>;
 ```
 
 ###### Arguments
 
 `sourceTokenAddress` address of source token's ERC20 contract
+
+`sourceTokenAmount` amount of source tokens to exchange
 
 `destTokenAddress` address of destination token's ERC20 contract
 
@@ -382,7 +393,7 @@ Check if specified `oracleAddress` supports exchange operation of provided token
 
 ###### Returns
 
-`boolean` value indicating if oracle is able to make exchange operation between tokens
+`Promise` for `boolean` value indicating if oracle is able to make exchange operation between tokens
 
 ________________________________________________________________________________
 
@@ -393,29 +404,25 @@ Get terms of exchange operation between tokens in the specific amount using sele
 ```typescript
   getConversionData(params: {
     sourceTokenAddress: string;
+    sourceTokenAmount: string;
     destTokenAddress: string;
-    sourceTokenAmount: BigNumber;
     oracleAddress: string;
-  }): { rate: BigNumber; amount: BigNumber };
+  }): Promise<IConversionData>;
 ```
 
 ###### Arguments
 
 `sourceTokenAddress` address of source token's ERC20 contract
 
-`destTokenAddress` address of destination token's ERC20 contract
+`sourceTokenAmount` amount of source tokens to exchange
 
-`sourceTokenAmount` amount of tokens to exchange
+`destTokenAddress` address of destination token's ERC20 contract
 
 `oracleAddress` address of oracle to check tokens pair support
 
 ###### Returns
 
-Object with the next set of fields:
-
-`rate` available exchange rate
-
-`amount` available amount of tokens to exchange
+`Promise` for `IConversionData` value containing exchange rate and available amount of tokens for exchange
 
 #### Loan orders
 
@@ -423,12 +430,12 @@ ________________________________________________________________________________
 
 ##### getSingleOrder
 
-.
+Get single loan order by it's `params.loanOrderHash`.
 
 ```typescript
   getSingleOrder(params: { 
     loanOrderHash: string 
-  }): ILoanOrderFillable;
+  }): Promise<ILoanOrderFillable>;
 ```
 
 ###### Arguments
@@ -437,7 +444,7 @@ ________________________________________________________________________________
 
 ###### Returns
 
-`ILoanOrderFillable` which represents the current state of specified loan order
+`Promise` for `ILoanOrderFillable` which represents the current fill state of specified loan order
 
 ________________________________________________________________________________
 
@@ -449,7 +456,7 @@ Get the list of loan orders that are available for taking.
   getOrdersFillable(params: { 
     start: number; 
     count: number 
-  }): ILoanOrderFillable[];
+  }): Promise<ILoanOrderFillable[]>;
 ```
 
 ###### Arguments
@@ -460,20 +467,20 @@ Get the list of loan orders that are available for taking.
 
 ###### Returns
 
-Array of `ILoanOrderFillable` every item of which represents the current fill state of specified loan order
+`Promise` for an array of `ILoanOrderFillable` every item of which represents the current fill state of specified loan order
 
 ________________________________________________________________________________
 
 ##### getOrdersForUser
 
-Return the list of loan orders filtered by specified `loanPartyAddress`.
+Return the list of loan orders filtered by specified `params.loanPartyAddress`.
 
 ```typescript
   getOrdersForUser(params: {
     loanPartyAddress: string; 
     start: number;
     count: number
-  }): ILoanOrderFillable[];
+  }): Promise<ILoanOrderFillable[]>;
 ```
 
 ###### Arguments
@@ -486,7 +493,7 @@ Return the list of loan orders filtered by specified `loanPartyAddress`.
 
 ###### Returns
 
-Array of `ILoanOrderFillable` every item of which represents the current fill state of specified loan order
+`Promise` for an array of `ILoanOrderFillable` every item of which represents the current fill state of specified loan order
 
 ________________________________________________________________________________
 
@@ -501,7 +508,7 @@ Take loan order created and signed by the lender and push it on-chain.
     loanTokenAmountFilled: BigNumber;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -512,13 +519,13 @@ Take loan order created and signed by the lender and push it on-chain.
 
 `params.loanTokenAmountFilled` desired amount of loanToken the trader wants to borrow
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `BigNumber` containing the total amount of loanToken borrowed
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
@@ -531,20 +538,20 @@ Take loan order created and signed by the trader and push it on-chain.
     order: ILoanOrderFillRequest;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
 
-`params.order`signed loan order `ILoanOrderFillRequest`
+`params.order` signed loan order `ILoanOrderFillRequest`
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `BigNumber` containing the total amount of loanToken borrowed
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
@@ -557,20 +564,20 @@ Push signed loan order on-chain.
     order: ILoanOrderFillRequest;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<string> | TransactionObject<string>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
 
-`params.order`signed loan order `ILoanOrderFillRequest`
+`params.order` signed loan order `ILoanOrderFillRequest`
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for a unique hash `string` representing the loan order
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
@@ -585,7 +592,7 @@ Take loan order created and signed by the lender and already located on-chain (p
     loanTokenAmountFilled: BigNumber;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<any> | TransactionObject<any>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -596,13 +603,13 @@ Take loan order created and signed by the lender and already located on-chain (p
 
 `params.loanTokenAmountFilled` desired amount of loanToken the trader wants to borrow
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `BigNumber` containing the total amount of loanToken borrowed
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
@@ -615,20 +622,20 @@ Take loan order created and signed by the trader and already located on-chain (p
     loanOrderHash: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<any> | TransactionObject<any>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
 
 `params.loanOrderHash` a unique hash representing the loan order
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `BigNumber` containing the total amount of loanToken borrowed
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
@@ -640,7 +647,7 @@ Get the loan order current execution state.
   getSingleLoan(params: { 
     loanOrderHash: string;
     trader: string 
-  }): ILoanPositionState;
+  }): Promise<ILoanPositionState>;
 ```
 
 ###### Arguments
@@ -651,20 +658,20 @@ Get the loan order current execution state.
 
 ###### Returns
 
-`ILoanPositionState` which represents the current state of specified loan order
+`Promise` for `ILoanPositionState` which represents the current state of specified loan order
 
 ________________________________________________________________________________
 
 ##### getLoansForLender
 
-Get the list of loan orders with current execution state filtered by lender `address`.
+Get the list of loan orders with current execution state filtered by lender `params.address`.
 
 ```typescript
   getLoansForLender(params: { 
     address: string; 
     count: number; 
     activeOnly: boolean 
-  }): ILoanPositionState[];
+  }): Promise<ILoanPositionState[]>;
 ```
 
 ###### Arguments
@@ -677,20 +684,20 @@ Get the list of loan orders with current execution state filtered by lender `add
 
 ###### Returns
 
-An array of `ILoanPositionState` every item of which represents the current state of related loan order
+`Promise` for an array of `ILoanPositionState` every item of which represents the current state of related loan order
 
 ________________________________________________________________________________
 
 ##### getLoansForTrader
 
-Get the list of loan orders with current execution state filtered by trader `address`.
+Get the list of loan orders with current execution state filtered by trader `params.address`.
 
 ```typescript
   getLoansForTrader(params: { 
     address: string; 
     count: number; 
     activeOnly: boolean 
-  }): ILoanPositionState[];
+  }): Promise<ILoanPositionState[]>;
 ```
 
 ###### Arguments
@@ -703,7 +710,7 @@ Get the list of loan orders with current execution state filtered by trader `add
 
 ###### Returns
 
-An array of `ILoanPositionState` every item of which represents the current state of related loan order
+`Promise` for an array of `ILoanPositionState` every item of which represents the current state of related loan order
 
 ________________________________________________________________________________
 
@@ -715,7 +722,7 @@ Get the paginated list of active loan orders.
   getActiveLoans(params: { 
     start: number; 
     count: number 
-  }): ILoanOrderActive[];
+  }): Promise<ILoanOrderActive[]>;
 ```
 
 ###### Arguments
@@ -726,7 +733,7 @@ Get the paginated list of active loan orders.
 
 ###### Returns
 
-An array of `ILoanOrderActive` every item of which contains a unique hash representing the loan order, trader and expiration timestamp of the loan order
+`Promise` for an array of `ILoanOrderActive` every item of which contains a unique hash representing the loan order, trader and expiration timestamp of the loan order
 
 ________________________________________________________________________________
 
@@ -736,13 +743,9 @@ Get current margin data for the loan order.
 
 ```typescript
   getMarginLevels(params: {
-    loanOrderHash;
-    trader;
-  }): {
-    initialMarginAmount: BigNumber;
-    maintenanceMarginAmount: BigNumber;
-    currentMarginAmount: BigNumber;
-  };
+    loanOrderHash: string;
+    trader: string;
+  }): Promise<IMarginLevel>;
 ```
 
 ###### Arguments
@@ -753,13 +756,7 @@ Get current margin data for the loan order.
 
 ###### Returns
 
-`Object` with the next set of fields:
-
-`initialMarginAmount` the initial margin percentage set on the loan order
-
-`maintenanceMarginAmount` the maintenance margin percentage set on the loan order
-
-`currentMarginAmount` the current margin percentage, representing the health of the loan (i.e., 54350000000000000000 == 54.35%)
+`Promise` for `IMarginLevel` which represents current state of margin of the loan order
 
 ________________________________________________________________________________
 
@@ -771,11 +768,7 @@ Get the current profit/loss data of the position.
   getProfitOrLoss(params: {
     loanOrderHash: string;
     trader: string;
-  }): {
-    isProfit: boolean;
-    profitOrLoss: BigNumber;
-    positionTokenAddress: string;
-  };
+  }): Promise<IProfitStatus>;
 ```
 
 ###### Arguments
@@ -786,13 +779,7 @@ Get the current profit/loss data of the position.
 
 ###### Returns
 
-`Object` with the next set of fields:
-
-`isProfit` `false` it there's a loss, `true` otherwise
-
-`profitOrLoss` the amount of profit or the amount of loss (denominated in `positionToken`)
-
-`positionTokenAddress` ERC20 contract address of the position token used in this order
+`Promise` for `IProfitStatus` which represents current state of profits/losses of the loan order
 
 ________________________________________________________________________________
 
@@ -805,20 +792,20 @@ Withdraw profits, if any. This function should be called by the trader.
     loanOrderHash: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
 
 `params.loanOrderHash` a unique hash representing the loan order
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `BigNumber` containing the amount of profit withdrawn denominated in `positionToken`
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
@@ -829,32 +816,19 @@ Get current interest data for the loan order.
 ```typescript
   getInterest(params: {
     loanOrderHash: string;
-    traderAddress: string;
-  }): {
-    lender: string;
-    interestTokenAddress: string;
-    interestTotalAccrued: BigNumber;
-    interestPaidSoFar: BigNumber;
-  };
+    trader: string;
+  }): Promise<IInterestStatus>;
 ```
 
 ###### Arguments
 
 `params.loanOrderHash` a unique hash representing the loan order
 
-`params.traderAddress` the address of the trader in the loan order
+`params.trader` the address of the trader in the loan order
 
 ###### Returns
 
-`Object` with the next set of fields:
-
-`lender` address of the lender in the loan order
-
-`interestTokenAddress` ERC20 contract address of the interest token used in this order
-
-`interestTotalAccrued` the total amount of interest that has been earned so far
-
-`interestPaidSoFar` the amount of earned interest that has been withdrawn
+`Promise` for `IInterestStatus` which represents current state of interests of the loan order
 
 ________________________________________________________________________________
 
@@ -868,7 +842,7 @@ Pay the lender of a loan the total amount of interest accrued for a loan.
     trader: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -877,13 +851,13 @@ Pay the lender of a loan the total amount of interest accrued for a loan.
 
 `params.trader` the address of the trader in the loan order
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `BigNumber` containing the amount of interest paid out
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
@@ -894,10 +868,10 @@ Cancels remaining (untaken) loan.
 ```typescript
   cancelLoanOrder(params: {
     order: ILoanOrderFillRequest;
-    cancelLoanTokenAmount: BigNumber;
+    cancelLoanTokenAmount: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -906,13 +880,13 @@ Cancels remaining (untaken) loan.
 
 `params.cancelLoanTokenAmount` the amount of remaining unloaned token to cancel
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `BigNumber` containing the amount of loan token canceled
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
@@ -923,10 +897,10 @@ Cancels remaining (untaken) loan.
 ```typescript
   cancelLoanOrderWithHash(params: {
     loanOrderHash: string;
-    cancelLoanTokenAmount: BigNumber;
+    cancelLoanTokenAmount: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -935,13 +909,13 @@ Cancels remaining (untaken) loan.
 
 `params.cancelLoanTokenAmount` the amount of remaining unloaned token to cancel
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `BigNumber` containing the amount of loan token canceled
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
@@ -954,20 +928,20 @@ Called by the trader to close their loan early.
     loanOrderHash: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
 
 `params.loanOrderHash` a unique hash representing the loan order
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `boolean` value indicating if the operation succeeded
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
@@ -975,7 +949,7 @@ ________________________________________________________________________________
 
 Checks that a position meets the conditions for liquidation, then closes the position and loan.
 
-If called by `trader` himself, calls `closeLoan`.
+If called by `params.trader` himself, calls `closeLoan`.
 
 ```typescript
   liquidateLoan(params: {
@@ -983,7 +957,7 @@ If called by `trader` himself, calls `closeLoan`.
     trader: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -992,13 +966,13 @@ If called by `trader` himself, calls `closeLoan`.
 
 `params.trader` the trader of the position
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `boolean` value indicating if the operation succeeded
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 #### Collateral
 
@@ -1013,9 +987,9 @@ Calculates the initial collateral required to open the loan.
     loanTokenAddress: string,
     collateralTokenAddress: string,
     oracleAddress: string,
-    loanTokenAmountFilled: BigNumber,
-    initialMarginAmount: BigNumber
-  ): Promise<BigNumber>;
+    loanTokenAmountFilled: string,
+    initialMarginAmount: string
+  ): Promise<string>;
 ```
 
 ###### Arguments
@@ -1032,7 +1006,7 @@ Calculates the initial collateral required to open the loan.
 
 ###### Returns
 
-`Promise` for `BigNumber` containing the minimum collateral requirement to open the loan
+`Promise` for `string` containing the minimum collateral requirement to open the loan
 
 ________________________________________________________________________________
 
@@ -1048,7 +1022,7 @@ This function will transfer in the initial margin requirement of the new token a
     collateralTokenFilled: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -1057,13 +1031,13 @@ This function will transfer in the initial margin requirement of the new token a
 
 `params.collateralTokenFilled` the address of the collateral token used
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `boolean` value indicating if the operation succeeded
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
@@ -1075,10 +1049,10 @@ Increase the collateral for a loan.
   depositCollateral(params: {
     loanOrderHash: string;
     collateralTokenFilled: string;
-    depositAmount: BigNumber;
+    depositAmount: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -1089,13 +1063,13 @@ Increase the collateral for a loan.
 
 `params.depositAmount` the amount of additional collateral token to deposit.
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `BigNumber` containing the amount of additional collateral token to deposit.
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
@@ -1109,10 +1083,10 @@ Excess collateral is any amount above the initial margin.
   withdrawExcessCollateral(params: {
     loanOrderHash: string;
     collateralTokenFilled: string;
-    withdrawAmount: BigNumber;
+    withdrawAmount: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -1123,13 +1097,13 @@ Excess collateral is any amount above the initial margin.
 
 `params.withdrawAmount` the amount of excess collateral token to withdraw
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` for `BigNumber` containing actual amount withdrawn
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 #### Trade
 
@@ -1141,11 +1115,11 @@ Execute a 0x trade using loaned funds.
 
 ```typescript
   tradePositionWith0x(params: {
-    order0x: IZeroExOrder;
+    order0x: IZeroExTradeRequest;
     orderHashBZx: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<string> | TransactionObject<string>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -1154,19 +1128,48 @@ Execute a 0x trade using loaned funds.
 
 `params.orderHashBZx` a unique hash representing the loan order
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `string` containing transaction id
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
+
+________________________________________________________________________________
+
+##### tradePositionWith0xV2
+
+Execute a 0x trade using loaned funds on 0x V2 protocol network.
+
+```typescript
+  tradePositionWith0x(params: {
+    order0x: IZeroExV2TradeRequest;
+    orderHashBZx: string;
+    getObject: boolean;
+    txOpts: Tx;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
+```
+
+###### Arguments
+
+`params.order0x` ZeroEx (c) trade order description
+
+`params.orderHashBZx` a unique hash representing the loan order
+
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
+
+`params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
+
+###### Returns
+
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
 ##### tradePositionWithOracle
 
-Execute a market order trade using the oracle contract specified in the loan referenced by `orderHash`.
+Execute a market order trade using the oracle contract specified in the loan referenced by `params.orderHash`.
 
 ```typescript
   tradePositionWithOracle(params: {
@@ -1174,7 +1177,7 @@ Execute a market order trade using the oracle contract specified in the loan ref
     tradeTokenAddress: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<string> | TransactionObject<string>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -1183,13 +1186,13 @@ Execute a market order trade using the oracle contract specified in the loan ref
 
 `params.tradeTokenAddress` ERC20 contract address of the token to buy in the trade
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `string` containing transaction id
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
@@ -1203,23 +1206,23 @@ Converts ETH to WETH Tokens.
 
 ```typescript
   wrapEth(params: {
-    amount: BigNumber;
+    amount: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<string> | TransactionObject<string>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
 
 `params.amount` amount of ETH to convert to WETH
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `string` containing transaction id
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
@@ -1229,23 +1232,23 @@ Converts ETH to WETH Tokens.
 
 ```typescript
   unwrapEth(params: {
-    amount: BigNumber;
+    amount: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<string> | TransactionObject<string>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
 
 `params.amount` amount of WETH to convert to ETH
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`string` containing transaction id
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 #### Utils
 
@@ -1271,10 +1274,10 @@ ________________________________________________________________________________
 
 ##### getBalance
 
-Get balance of specific ERC20 token at `ownerAddress`
+Get balance of specific ERC20 token at `params.ownerAddress`
 
 ```typescript
-  getBalance(params: { tokenAddress: string; ownerAddress: string }): BigNumber;
+  getBalance(params: { tokenAddress: string; ownerAddress: string }): Promise<BigNumber>;
 ```
 
 ###### Arguments
@@ -1284,7 +1287,7 @@ Get balance of specific ERC20 token at `ownerAddress`
 
 ###### Returns
 
-`BigNumber` instance
+`Promise` for `BigNumber` instance
 
 ________________________________________________________________________________
 
@@ -1308,7 +1311,7 @@ ________________________________________________________________________________
 
 ##### requestFaucetToken
 
-Request test token transfer `receiverAddress`.
+Request test token transfer `params.receiverAddress`.
 
 ```typescript
   requestFaucetToken(params: {
@@ -1316,7 +1319,7 @@ Request test token transfer `receiverAddress`.
     receiverAddress: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -1325,13 +1328,13 @@ Request test token transfer `receiverAddress`.
 
 `params.receiverAddress` recipient wallet address
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `boolean` value indicating if the operation succeeded
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ________________________________________________________________________________
 
@@ -1355,7 +1358,7 @@ ________________________________________________________________________________
 
 ##### transferToken
 
-Transfers specified amount of tokens to `to address` address.
+Transfers specified amount of tokens to `to` address.
 
 ```typescript
   transferToken(params: {
@@ -1364,7 +1367,7 @@ Transfers specified amount of tokens to `to address` address.
     amount: BigNumber;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 ```
 
 ###### Arguments
@@ -1375,13 +1378,13 @@ Transfers specified amount of tokens to `to address` address.
 
 `params.amount` amount of tokens to transfer
 
-`params.getObject` should this function return `TransactionObject` (`true`) or `Promise` (`false`)
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
 
 ###### Returns
 
-`Promise` or `TransactionObject` for `boolean` value indicating if the operation succeeded
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 
 ### Structures
 
@@ -1432,18 +1435,18 @@ export declare interface ILoanOrderFillable {
   collateralTokenAddress: string;
   feeRecipientAddress: string;
   oracleAddress: string;
-  loanTokenAmount: BigNumber;
-  interestAmount: BigNumber;
-  initialMarginAmount: BigNumber;
-  maintenanceMarginAmount: BigNumber;
-  lenderRelayFee: BigNumber;
-  traderRelayFee: BigNumber;
-  maxDurationUnixTimestampSec: number;
-  expirationUnixTimestampSec: number;
+  loanTokenAmount: number | string;
+  interestAmount: number | string;
+  initialMarginAmount: number | string;
+  maintenanceMarginAmount: number | string;
+  lenderRelayFee: number | string;
+  traderRelayFee: number | string;
+  maxDurationUnixTimestampSec: number | string;
+  expirationUnixTimestampSec: number | string;
   loanOrderHash: string;
   lender: string;
-  orderFilledAmount: BigNumber;
-  orderCancelledAmount: BigNumber;
+  orderFilledAmount: number;
+  orderCancelledAmount: number;
   orderTraderCount: number;
   addedUnixTimestampSec: number;
 }
@@ -1460,14 +1463,15 @@ export declare interface ILoanOrderFillRequest {
   collateralTokenAddress: string;
   feeRecipientAddress: string;
   oracleAddress: string;
-  loanTokenAmount: BigNumber;
-  interestAmount: BigNumber;
-  initialMarginAmount: BigNumber;
-  maintenanceMarginAmount: BigNumber;
-  lenderRelayFee: BigNumber;
-  traderRelayFee: BigNumber;
-  maxDurationUnixTimestampSec: number;
-  expirationUnixTimestampSec: number;
+  loanTokenAmount: number | string;
+  interestAmount: number | string;
+  initialMarginAmount: number | string;
+  maintenanceMarginAmount: number | string;
+  lenderRelayFee: number | string;
+  traderRelayFee: number | string;
+  maxDurationUnixTimestampSec: number | string;
+  expirationUnixTimestampSec: number | string;
+  bZxAddress: string;
   makerRole: number;
   salt: string;
   signature: string;
@@ -1481,19 +1485,20 @@ ________________________________________________________________________________
 export declare interface ILoanPositionState {
   lender: string;
   trader: string;
-  collateralTokenAddressFilled: string;
-  positionTokenAddressFilled: string;
-  loanTokenAddress: string;
-  interestTokenAddress: string;
-  loanTokenAmountFilled: BigNumber;
-  collateralTokenAmountFilled: BigNumber;
-  positionTokenAmountFilled: BigNumber;
+  loanOrderHash: string;
   loanStartUnixTimestampSec: number;
   loanEndUnixTimestampSec: number;
-  active: boolean;
-  interestTotalAccrued: BigNumber;
-  interestPaidSoFar: BigNumber;
-  loanOrderHash: string;
+  active: number;
+  loanTokenAddress: string;
+  loanTokenAmountFilled: number;
+  collateralTokenAddressFilled: string;
+  collateralTokenAmountFilled: number;
+  positionTokenAddressFilled: number;
+  positionTokenAmountFilled: number;
+  interestTokenAddress: string;
+  interestTotalAccrued: number;
+  interestLastPaidDate: number;
+  interestPaidSoFar: number;
 }
 ```
 ________________________________________________________________________________
@@ -1502,7 +1507,6 @@ ________________________________________________________________________________
 
 ```typescript
 export declare interface IZeroExOrder {
-  signedOrder: any;
   exchangeContractAddress: string;
   expirationUnixTimestampSec: number;
   feeRecipient: string;
@@ -1515,6 +1519,140 @@ export declare interface IZeroExOrder {
   takerFee: number;
   takerTokenAddress: string;
   takerTokenAmount: number;
+}
+```
+________________________________________________________________________________
+
+##### IZeroExV2Order
+
+```typescript
+export declare interface IZeroExV2Order {
+  senderAddress: string;
+  makerAddress: string;
+  takerAddress: string;
+  makerFee: string;
+  takerFee: string;
+  makerAssetAmount: string;
+  takerAssetAmount: string;
+  makerAssetData: any;
+  takerAssetData: any;
+  salt: string;
+  exchangeAddress: string;
+  feeRecipientAddress: string;
+  expirationTimeSeconds: string;
+}
+```
+________________________________________________________________________________
+
+##### ITokenMetadata
+
+```typescript
+export declare interface ITokenMetadata {
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+```
+________________________________________________________________________________
+
+##### IZeroExV2OrderMetadata
+
+```typescript
+export declare interface IZeroExV2OrderMetadata {
+  makerToken: ITokenMetadata;
+  takerToken: ITokenMetadata;
+}
+```
+________________________________________________________________________________
+
+##### ISignatureParams
+
+```typescript
+export declare interface ISignatureParams {
+  v: number;
+  r: Buffer;
+  s: Buffer;
+}
+```
+________________________________________________________________________________
+
+##### IZeroExOrderSigned
+
+```typescript
+export declare interface IZeroExOrderSigned extends IZeroExOrder {
+  ecSignature: ISignatureParams;
+}
+```
+________________________________________________________________________________
+
+##### IZeroExV2OrderSigned
+
+```typescript
+export declare interface IZeroExV2OrderSigned extends IZeroExV2Order {
+  signature: string;
+}
+```
+________________________________________________________________________________
+
+##### IZeroExTradeRequest
+
+```typescript
+export declare interface IZeroExTradeRequest {
+  signedOrder: IZeroExOrderSigned;
+}
+```
+________________________________________________________________________________
+
+##### IZeroExV2TradeRequest
+
+```typescript
+export declare interface IZeroExV2TradeRequest {
+  signedOrder: IZeroExV2OrderSigned;
+  metadata: IZeroExV2OrderMetadata;
+}
+```
+________________________________________________________________________________
+
+##### IConversionData
+
+```typescript
+export declare interface IConversionData {
+  rate: string;
+  amount: string;
+}
+```
+________________________________________________________________________________
+
+##### IMarginLevel
+
+```typescript
+export declare interface IMarginLevel {
+  initialMarginAmount: string;
+  maintenanceMarginAmount: string;
+  currentMarginAmount: string;
+}
+```
+________________________________________________________________________________
+
+##### IInterestStatus
+
+```typescript
+export declare interface IInterestStatus {
+  lender: string;
+  interestTokenAddress: string;
+  interestTotalAccrued: string;
+  interestPaidSoFar: string;
+}
+```
+________________________________________________________________________________
+
+##### IProfitStatus
+
+```typescript
+export declare interface IProfitStatus {
+  isProfit: boolean;
+  profitOrLoss: string;
+  positionTokenAddress: string;
 }
 ```
 ________________________________________________________________________________
