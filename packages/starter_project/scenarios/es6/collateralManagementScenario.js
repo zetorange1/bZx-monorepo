@@ -1,3 +1,5 @@
+const BigNumber = require("bignumber.js");
+
 const { BZxJS } = require("bzx.js");
 
 const artifacts = require("./../../artifacts");
@@ -81,7 +83,7 @@ async function collateralManagementScenario(l, c, lenderAddress, traderAddress, 
   transactionReceipt = await c.bzxjs.depositCollateral({
     loanOrderHash: lendOrderHash,
     collateralTokenFilled: collateral1Token.address,
-    depositAmount: initialCollateralRequired * 2,
+    depositAmount: (new BigNumber(initialCollateralRequired)).multipliedBy(2).toString(),
     getObject: false,
     txOpts: { from: traderAddress, gasLimit: utils.gasLimit }
   });
@@ -91,7 +93,7 @@ async function collateralManagementScenario(l, c, lenderAddress, traderAddress, 
   transactionReceipt = await c.bzxjs.withdrawExcessCollateral({
     loanOrderHash: lendOrderHash,
     collateralTokenFilled: collateral1Token.address,
-    withdrawAmount: initialCollateralRequired,
+    withdrawAmount: (new BigNumber(initialCollateralRequired)).multipliedBy(2).toString(),
     getObject: false,
     txOpts: { from: traderAddress, gasLimit: utils.gasLimit }
   });
