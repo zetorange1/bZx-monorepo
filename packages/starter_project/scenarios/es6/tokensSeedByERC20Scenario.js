@@ -1,7 +1,7 @@
 const artifacts = require("./../../artifacts");
 const utils = require("./../../utils");
 
-async function seedTokensByERC20Scenario(l, c, ownerAddress, lenderAddress, trader1Address, trader2Address) {
+async function tokensSeedByERC20Scenario(l, c, ownerAddress, lenderAddress, trader1Address, trader2Address) {
   const loanToken = artifacts.testToken0;
   const interestToken = artifacts.testToken1;
   const collateral1Token = artifacts.testToken2;
@@ -104,4 +104,4 @@ async function seedTokensByERC20Scenario(l, c, ownerAddress, lenderAddress, trad
   console.dir(balance.toString());
 }
 
-module.exports.seedTokensByERC20Scenario = seedTokensByERC20Scenario;
+module.exports.tokensSeedByERC20Scenario = tokensSeedByERC20Scenario;

@@ -1,7 +1,7 @@
 const artifacts = require("./../../artifacts");
 const utils = require("./../../utils");
 
-async function seedTokensByFaucetScenario(l, c, lenderAddress, trader1Address, trader2Address) {
+async function tokensSeedByFaucetScenario(l, c, lenderAddress, trader1Address, trader2Address) {
   const loanToken = artifacts.testToken0;
   const interestToken = artifacts.testToken1;
   const collateral1Token = artifacts.testToken2;
@@ -126,4 +126,4 @@ async function seedTokensByFaucetScenario(l, c, lenderAddress, trader1Address, t
   console.dir(balance.toString());
 }
 
-module.exports.seedTokensByFaucetScenario = seedTokensByFaucetScenario;
+module.exports.tokensSeedByFaucetScenario = tokensSeedByFaucetScenario;

@@ -6,8 +6,8 @@
 const { initConnectivity } = require("./../../connectivity");
 const { initLogger } = require("./../../logging");
 
-const { seedTokensByERC20Scenario } = require("./seedTokensByERC20Scenario");
-const { seedTokensByFaucetScenario } = require("./seedTokensByFaucetScenario");
+const { tokensSeedByERC20Scenario } = require("./tokensSeedByERC20Scenario");
+const { tokensSeedByFaucetScenario } = require("./tokensSeedByFaucetScenario");
 const { wethExchangeScenario } = require("./wethExchangeScenario");
 const { allowanceManagementScenario, allowancePrepareScenario } = require("./allowanceManagementScenario");
 const { oracleTradeScenario } = require("./oracleTradeScenario");
@@ -30,8 +30,8 @@ const { ownerAddress, lenderAddress, trader1Address, trader2Address } = require(
   const oracles = await c.bzxjs.getOracleList();
   console.dir(oracles);
 
-  await seedTokensByERC20Scenario(l, c, ownerAddress, lenderAddress, trader1Address, trader2Address);
-  // await seedTokensByFaucetScenario(l, c, lenderAddress, trader1Address, trader2Address);
+  await tokensSeedByERC20Scenario(l, c, ownerAddress, lenderAddress, trader1Address, trader2Address);
+  // await tokensSeedByFaucetScenario(l, c, lenderAddress, trader1Address, trader2Address);
   // await wethExchangeScenario(l, c, trader2Address);
   // await allowanceManagementScenario(l, c, lenderAddress);
   await allowancePrepareScenario(l, c, lenderAddress, trader1Address);
