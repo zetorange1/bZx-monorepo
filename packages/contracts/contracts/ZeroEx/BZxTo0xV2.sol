@@ -196,14 +196,14 @@ contract BZxTo0xV2 is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
             // calculate required takerFee
             if (takerAssetRemaining > 0 && orders0x[i].takerFee > 0) { // takerFee
                 if (takerAssetRemaining >= orders0x[i].takerAssetAmount) {
-                    zrxTokenAmount += orders0x[i].takerFee;
-                    takerAssetRemaining -= orders0x[i].takerAssetAmount;
+                    zrxTokenAmount = zrxTokenAmount.add(orders0x[i].takerFee);
+                    takerAssetRemaining = takerAssetRemaining.sub(orders0x[i].takerAssetAmount);
                 } else {
-                    zrxTokenAmount += _safeGetPartialAmountFloor(
+                    zrxTokenAmount = zrxTokenAmount.add(_safeGetPartialAmountFloor(
                         takerAssetRemaining,
                         orders0x[i].takerAssetAmount,
                         orders0x[i].takerFee
-                    );
+                    ));
                     takerAssetRemaining = 0;
                 }
             }

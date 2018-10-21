@@ -409,10 +409,12 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
                     revert("InternalFunctions::_setOrderAndPositionState: BZxVault.withdrawToken failed");
                 }
                 
-                loanPosition.positionTokenAmountFilled += OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doTrade(
+                (uint amountFilled,) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doTrade(
                     loanOrder.loanTokenAddress,
                     loanPosition.positionTokenAddressFilled,
-                    loanTokenAmountFilled);
+                    loanTokenAmountFilled,
+                    MAX_UINT);
+                loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.add(amountFilled);
 
                 // It is assumed that all of the loan token will be traded, so the remaining token balance of the oracle
                 // shouldn't be greater than the balance before we sent the token to be traded.
@@ -420,11 +422,11 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
                     revert("BZxTradePlacing::_setOrderAndPositionState: balanceBeforeTrade is less");
                 }
             } else {
-                loanPosition.positionTokenAmountFilled += loanTokenAmountFilled;
+                loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.add(loanTokenAmountFilled);
             }
 
-            loanPosition.loanTokenAmountFilled += loanTokenAmountFilled;
-            loanPosition.collateralTokenAmountFilled += collateralTokenAmountFilled;
+            loanPosition.loanTokenAmountFilled = loanPosition.loanTokenAmountFilled.add(loanTokenAmountFilled);
+            loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.add(collateralTokenAmountFilled);
 
             loanPositions[positionId] = loanPosition;
         } else {
@@ -498,7 +500,7 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
         internal
         returns (uint)
     {
-        uint collateralTokenAmountFilled = _getInitialCollateralRequired(
+        uint collateralTokenAmountFilled = _getCollateralRequired(
             loanOrder.loanTokenAddress,
             collateralTokenFilled,
             oracleAddresses[loanOrder.oracleAddress],
@@ -566,20 +568,15 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
     {
         // interest-free loan is permitted
         if (loanOrder.interestAmount > 0) {
-            
+
             if (block.timestamp > loanPosition.loanStartUnixTimestampSec) {
                 // pay any accured interest from an earlier loan fill
-                (uint amountPaid,) = _setInterestPaidForPosition(
+                _payInterestForPosition(
                     loanOrder,
-                    loanPosition);
-
-                if (amountPaid > 0) {
-                    _sendInterest(
-                        loanOrder,
-                        amountPaid,
-                        true // convert
-                    );
-                }
+                    loanPosition,
+                    true, // convert,
+                    false // emitEvent
+                );
             }
             
             // Total interest required if loan is kept open for the full duration.
@@ -592,7 +589,8 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
             );
 
             if (totalInterestRequired > 0) {
-                interestTotal[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]] += totalInterestRequired;
+                interestTotal[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]] = 
+                    interestTotal[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]].add(totalInterestRequired);
 
                 // deposit interest token
                 if (! BZxVault(vaultContract).depositToken(

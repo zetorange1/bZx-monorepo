@@ -2,19 +2,19 @@ const web3 = require("web3-utils");
 
 console.log("\nBZxOrderTaking functions");
 getFuncId(
-  "takeLoanOrderAsTrader(address[6],uint256[10],address,uint256,bytes)"
+  "takeLoanOrderAsTrader(address[6],uint256[10],bytes,address,uint256,bytes)"
 );
-getFuncId("takeLoanOrderAsLender(address[6],uint256[10],bytes)");
-getFuncId("cancelLoanOrder(address[6],uint256[10],uint256)");
+getFuncId("takeLoanOrderAsLender(address[6],uint256[10],bytes,bytes)");
+getFuncId("cancelLoanOrder(address[6],uint256[10],bytes,uint256)");
 getFuncId("cancelLoanOrder(bytes32,uint256)");
 
 console.log("\nBZxOrderTakingOnChain functions");
-getFuncId("pushLoanOrderOnChain(address[6],uint256[10],bytes)");
+getFuncId("pushLoanOrderOnChain(address[6],uint256[10],bytes,bytes)");
 getFuncId("takeLoanOrderOnChainAsTrader(bytes32,address,uint256)");
 getFuncId("takeLoanOrderOnChainAsLender(bytes32)");
-getFuncId("preSign(address,address[6],uint256[10],bytes)");
+getFuncId("preSign(address,address[6],uint256[10],bytes,bytes)");
 getFuncId("preSignWithHash(address,bytes32,bytes)");
-getFuncId("getLoanOrderHash(address[6],uint256[10])");
+getFuncId("getLoanOrderHash(address[6],uint256[10],bytes)");
 getFuncId("isValidSignature(address,bytes32,bytes)");
 getFuncId(
   "getInitialCollateralRequired(address,address,address,uint256,uint256)"
@@ -51,6 +51,7 @@ console.log("\nBZxLoanHealth functions");
 getFuncId("payInterest(bytes32,address)");
 getFuncId("payInterestForOrder(bytes32)");
 getFuncId("liquidatePosition(bytes32,address)");
+getFuncId("closeLoanPartially(bytes32,uint256)");
 getFuncId("closeLoan(bytes32)");
 getFuncId("forceCloanLoan(bytes32,address)");
 getFuncId("shouldLiquidate(bytes32,address)");

@@ -35,6 +35,7 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
         targets[bytes4(keccak256("payInterest(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("payInterestForOrder(bytes32)"))] = _target;
         targets[bytes4(keccak256("liquidatePosition(bytes32,address)"))] = _target;
+        targets[bytes4(keccak256("closeLoanPartially(bytes32,uint256)"))] = _target;
         targets[bytes4(keccak256("closeLoan(bytes32)"))] = _target;
         targets[bytes4(keccak256("forceCloanLoan(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("shouldLiquidate(bytes32,address)"))] = _target;
@@ -68,7 +69,8 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
         uint amountPaid = _payInterestForPosition(
             loanOrder,
             loanPosition,
-            true // convert
+            true, // convert
+            true // emitEvent
         );
 
         return amountPaid;
@@ -105,8 +107,8 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
             (uint amountPaid, uint interestTotalAccrued) = _setInterestPaidForPosition(
                 loanOrder,
                 loanPosition);
-            totalAmountPaid += amountPaid;
-            totalAmountAccrued += interestTotalAccrued;
+            totalAmountPaid = totalAmountPaid.add(amountPaid);
+            totalAmountAccrued = totalAmountAccrued.add(interestTotalAccrued);
         }
 
         if (totalAmountPaid > 0) {
@@ -164,16 +166,28 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
         // If the position token is not the loan token, then we need to buy back the loan token 
         // prior to closing the loan. Liquidation checks will be run in _tradePositionWithOracle.
         if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
-            uint loanTokenAmount = _tradePositionWithOracle(
+            (uint loanTokenAmount, uint positionTokenAmountUsed) = _tradePositionWithOracle(
                 loanOrder,
                 loanPosition,
                 loanOrder.loanTokenAddress, // tradeTokenAddress
+                MAX_UINT,
                 !DEBUG_MODE, // isLiquidation
                 false // isManual
             );
 
             if (loanTokenAmount == 0) {
                 revert("BZxLoanHealth::liquidatePosition: loanTokenAmount == 0");
+            }
+
+            if (positionTokenAmountUsed < loanPosition.positionTokenAmountFilled) {
+                // left over sourceToken needs to be dispursed
+                if (! BZxVault(vaultContract).withdrawToken(
+                    loanPosition.positionTokenAddressFilled,
+                    loanTokenAmount >= loanPosition.loanTokenAmountFilled ? loanPosition.trader : orderLender[loanOrderHash],
+                    loanPosition.positionTokenAmountFilled.sub(positionTokenAmountUsed)
+                )) {
+                    revert("BZxLoanHealth::liquidatePosition: BZxVault.withdrawToken profit failed");
+                }
             }
 
             // the loan token becomes the new position token
@@ -205,6 +219,25 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
         ),"BZxLoanHealth::liquidatePosition: _finalizeLoan failed");
 
         return true;
+    }
+
+    /// @dev Called by the trader to close part of their loan early.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param closeAmount The amount of the loan token to return to the lender
+    /// @return True on success
+    function closeLoanPartially(
+        bytes32 loanOrderHash,
+        uint closeAmount)
+        external
+        nonReentrant
+        tracksGas
+        returns (bool)
+    { 
+        return _closeLoanPartially(
+            loanOrderHash,
+            closeAmount,
+            gasUsed // initial used gas, collected in modifier
+        );
     }
 
     /// @dev Called by the trader to close their loan early.
@@ -247,7 +280,8 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
             _payInterestForPosition(
                 loanOrder,
                 loanPosition,
-                false // convert
+                false, // convert,
+                true // emitEvent
             );
         
             uint totalInterestToRefund = interestTotal[loanOrder.loanOrderHash][loanPosition.positionId]
@@ -427,6 +461,111 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
     * Internal functions
     */
 
+    function _closeLoanPartially(
+        bytes32 loanOrderHash,
+        uint closeAmount,
+        uint gasUsed)
+        internal
+        returns (bool)
+    {
+        if (closeAmount == 0) {
+            return false;
+        }
+        
+        uint positionId = loanPositionsIds[loanOrderHash][msg.sender];
+        LoanPosition storage loanPosition = loanPositions[positionId];
+        if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
+            revert("BZxLoanHealth::_closeLoanPartially: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+        }
+
+        if (closeAmount >= loanPosition.loanTokenAmountFilled) {
+            return _closeLoan(
+                loanOrderHash,
+                gasUsed // initial used gas, collected in modifier
+            );
+        }
+
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        if (loanOrder.loanTokenAddress == address(0)) {
+            revert("BZxLoanHealth::_closeLoanPartially: loanOrder.loanTokenAddress == address(0)");
+        }
+
+        // pay lender interest so far, and do partial interest refund to trader
+        if (loanOrder.interestAmount > 0) {
+            _payInterestForPosition(
+                loanOrder,
+                loanPosition,
+                true, // convert
+                false // emitEvent
+            );
+
+            uint remainingInterest = interestTotal[loanOrderHash][positionId]
+                .sub(interestPaid[loanOrderHash][positionId]);
+
+            uint remainingInterestRequired = _getTotalInterestRequired(
+                loanOrder.loanTokenAmount,
+                loanPosition.loanTokenAmountFilled-closeAmount,
+                loanOrder.interestAmount,
+                loanPosition.loanEndUnixTimestampSec.sub(block.timestamp)
+            );
+
+            if (remainingInterestRequired < remainingInterest) {
+                if (! BZxVault(vaultContract).withdrawToken(
+                    loanOrder.interestTokenAddress,
+                    loanPosition.trader,
+                    remainingInterest-remainingInterestRequired
+                )) {
+                    revert("BZxLoanHealth::_closeLoanPartially: BZxVault.withdrawToken interest failed");
+                }
+
+                // account for interest paid back (refunded) to the trader
+                interestPaid[loanOrderHash][positionId] = interestPaid[loanOrderHash][positionId].add(remainingInterest-remainingInterestRequired);
+            }
+        }
+
+        if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
+            (uint loanTokenAmountClosed, uint positionTokenAmountUsed) = _tradePositionWithOracle(
+                loanOrder,
+                loanPosition,
+                loanOrder.loanTokenAddress, // tradeTokenAddress
+                closeAmount,
+                false, // isLiquidation
+                false // isManual
+            );
+
+            if (loanTokenAmountClosed < closeAmount) {
+                revert("BZxLoanHealth::_closeLoanPartially: loanTokenAmountClosed < closeAmount");
+            }
+
+            loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(positionTokenAmountUsed);
+        } else {
+            loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(closeAmount);
+        }
+
+        loanPosition.loanTokenAmountFilled = loanPosition.loanTokenAmountFilled.sub(closeAmount);
+
+        // send closed token back to the lender
+        if (! BZxVault(vaultContract).withdrawToken(
+            loanOrder.loanTokenAddress,
+            orderLender[loanOrderHash],
+            closeAmount
+        )) {
+            revert("BZxLoanHealth::_closeLoanPartially: BZxVault.withdrawToken loan failed");
+        }
+        
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didCloseLoanPartially(
+            loanOrder,
+            loanPosition,
+            msg.sender, // loanCloser
+            closeAmount,
+            gasUsed
+        )) {
+            revert("BZxLoanHealth::_closeLoanPartially: OracleInterface.didCloseLoanPartially failed");
+        }
+
+        return true;
+    }
+
     function _closeLoan(
         bytes32 loanOrderHash,
         uint gasUsed)
@@ -445,16 +584,28 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
 
         // If the position token is not the loan token, then we need to buy back the loan token prior to closing the loan.
         if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
-            uint loanTokenAmount = _tradePositionWithOracle(
+            (uint loanTokenAmount, uint positionTokenAmountUsed) = _tradePositionWithOracle(
                 loanOrder,
                 loanPosition,
                 loanOrder.loanTokenAddress, // tradeTokenAddress
+                MAX_UINT, // close the entire position
                 false, // isLiquidation
                 false // isManual
             );
 
             if (loanTokenAmount == 0) {
                 revert("BZxLoanHealth::_closeLoan: loanTokenAmount == 0");
+            }
+
+            if (positionTokenAmountUsed < loanPosition.positionTokenAmountFilled) {
+                // left over sourceToken needs to be dispursed
+                if (! BZxVault(vaultContract).withdrawToken(
+                    loanPosition.positionTokenAddressFilled,
+                    loanTokenAmount >= loanPosition.loanTokenAmountFilled ? loanPosition.trader : orderLender[loanOrderHash],
+                    loanPosition.positionTokenAmountFilled.sub(positionTokenAmountUsed)
+                )) {
+                    revert("BZxLoanHealth::liquidatePosition: BZxVault.withdrawToken profit failed");
+                }
             }
 
             // the loan token becomes the new position token
@@ -485,7 +636,8 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
             _payInterestForPosition(
                 loanOrder,
                 loanPosition,
-                true // convert
+                true, // convert
+                true // emitEvent
             );
 
             uint totalInterestToRefund = interestTotal[loanOrder.loanOrderHash][loanPosition.positionId]
@@ -547,7 +699,7 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
                 )) {
                     revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken profit failed");
                 }
-                loanPosition.positionTokenAmountFilled -= profit;
+                loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(profit);
             }
 
             // send remaining loan token back to the lender

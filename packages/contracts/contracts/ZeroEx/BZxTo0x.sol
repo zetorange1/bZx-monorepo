@@ -212,22 +212,22 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
             // Note: takerToken is confirmed to be the same in 0x for batch orders
             require(orderAddresses0x[i][2] == orderAddresses0x[0][2], "makerToken must be the same for each order"); // // makerToken (aka destTokenAddress) must be the same for each order
 
-            summations[0] += orderValues0x[i][1]; // takerTokenAmountTotal
-            summations[1] += orderValues0x[i][0]; // makerTokenAmountTotal
+            summations[0] = summations[0].add(orderValues0x[i][1]); // takerTokenAmountTotal
+            summations[1] = summations[1].add(orderValues0x[i][0]); // makerTokenAmountTotal
 
             // calculate required takerFee
             if (summations[3] > 0 && orderAddresses0x[i][4] != address(0) && // feeRecipient
                     orderValues0x[i][3] > 0 // takerFee
             ) {
                 if (summations[3] >= orderValues0x[i][1]) {
-                    summations[2] += orderValues0x[i][3]; // takerFee
-                    summations[3] -= orderValues0x[i][1]; // takerTokenAmount
+                    summations[2] = summations[2].add(orderValues0x[i][3]); // takerFee
+                    summations[3] = summations[3].sub(orderValues0x[i][1]); // takerTokenAmount
                 } else {
-                    summations[2] += _safeGetPartialAmountFloor(
+                    summations[2] = summations[2].add(_safeGetPartialAmountFloor(
                         summations[3],
                         orderValues0x[i][1], // takerTokenAmount
                         orderValues0x[i][3] // takerFee
-                    );
+                    ));
                     summations[3] = 0;
                 }
             }

@@ -27,12 +27,12 @@ contract InternalFunctions is BZxStorage {
         return orderFilledAmounts[loanOrderHash].add(orderCancelledAmounts[loanOrderHash]);
     }
 
-    function _getInitialCollateralRequired(
+    function _getCollateralRequired(
         address loanTokenAddress,
         address collateralTokenAddress,
         address oracleAddress,
         uint loanTokenAmountFilled,
-        uint initialMarginAmount)
+        uint marginAmount)
         internal
         view
         returns (uint collateralTokenAmount)
@@ -47,7 +47,7 @@ contract InternalFunctions is BZxStorage {
         }
         
         collateralTokenAmount = collateralTokenAmount
-                                    .mul(initialMarginAmount)
+                                    .mul(marginAmount)
                                     .div(100);
     }
     
@@ -205,11 +205,12 @@ contract InternalFunctions is BZxStorage {
     function _tradePositionWithOracle(
         LoanOrder loanOrder,
         LoanPosition memory loanPosition,
-        address tradeTokenAddress,
+        address destTokenAddress,
+        uint maxDestTokenAmount,
         bool isLiquidation,
         bool isManual)
         internal
-        returns (uint)
+        returns (uint destTokenAmountReceived, uint positionTokenAmountUsed)
     {
         // transfer the current position token to the Oracle contract
         if (!BZxVault(vaultContract).withdrawToken(
@@ -219,25 +220,24 @@ contract InternalFunctions is BZxStorage {
             revert("InternalFunctions::_tradePositionWithOracle: BZxVault.withdrawToken failed");
         }
 
-        uint tradeTokenAmountReceived;
         if (isLiquidation && block.timestamp < loanPosition.loanEndUnixTimestampSec) { // checks for non-expired loan
-            tradeTokenAmountReceived = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).verifyAndLiquidate(
+            (destTokenAmountReceived, positionTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).verifyAndLiquidate(
                 loanOrder,
                 loanPosition);
         } else if (isManual) {
-            tradeTokenAmountReceived = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doManualTrade(
+            (destTokenAmountReceived, positionTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doManualTrade(
                 loanPosition.positionTokenAddressFilled,
-                tradeTokenAddress,
-                loanPosition.positionTokenAmountFilled);
+                destTokenAddress,
+                loanPosition.positionTokenAmountFilled,
+                maxDestTokenAmount);
         } 
         else {
-            tradeTokenAmountReceived = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doTrade(
+            (destTokenAmountReceived, positionTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doTrade(
                 loanPosition.positionTokenAddressFilled,
-                tradeTokenAddress,
-                loanPosition.positionTokenAmountFilled);
+                destTokenAddress,
+                loanPosition.positionTokenAmountFilled,
+                maxDestTokenAmount);
         }
-
-        return tradeTokenAmountReceived;
     }
 
     function _emitMarginLog(

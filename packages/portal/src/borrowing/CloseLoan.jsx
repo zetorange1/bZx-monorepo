@@ -1,9 +1,13 @@
 import { Fragment } from "react";
 import styled from "styled-components";
 import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogContent from "@material-ui/core/DialogContent";
+import { Dialog, DialogTitle, DialogContent } from "@material-ui/core";
 import { SectionLabel } from "../common/FormSection";
+import FormControl from "@material-ui/core/FormControl";
+import Input from "@material-ui/core/Input";
+import InputLabel from "@material-ui/core/InputLabel";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import { toBigNumber, fromBigNumber } from "../common/utils";
 
 const TxHashLink = styled.a.attrs({
   target: `_blank`,
@@ -16,28 +20,57 @@ const TxHashLink = styled.a.attrs({
 `;
 
 export default class CloseLoan extends React.Component {
-  state = { showDialog: false };
+  state = { showDialog: false, closeAmount: ``, fullClose: false };
+
+  setAmount = e => this.setState({ closeAmount: e.target.value });
 
   openDialog = () => this.setState({ showDialog: true });
   closeDialog = () => this.setState({ showDialog: false });
 
   closeLoan = async () => {
-    const { bZx, web3, accounts, loanOrderHash } = this.props;
+    await this.setState({ closeAmount: ``, fullClose: true });
+    await this.closeLoanPart();
+  };
+
+  closeLoanPart = async () => {
+    const { closeAmount, fullClose } = this.state;
+    const { 
+      bZx, 
+      web3, 
+      accounts, 
+      loanOrderHash, 
+      loanToken,
+      loanTokenAmountFilled 
+    } = this.props;
+
+    const closeAmountBN = closeAmount ? toBigNumber(closeAmount, 10 ** loanToken.decimals) : toBigNumber(0);
+
+    if (!fullClose && (closeAmountBN.lte(0) || closeAmountBN.gte(loanTokenAmountFilled)))
+      return;
 
     const txOpts = {
       from: accounts[0],
-      gas: 10000000,
+      gas: 2000000,
       gasPrice: window.defaultGasPrice.toString()
     };
 
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-
-    const txObj = await bZx.closeLoan({
-      loanOrderHash,
-      getObject: true
-    });
+    
+    let txObj;
+    if (fullClose) {
+      txObj = await bZx.closeLoan({
+        loanOrderHash,
+        getObject: true
+      });
+    } else {
+      txObj = await bZx.closeLoanPartially({
+        loanOrderHash,
+        closeAmount: closeAmountBN,
+        getObject: true
+      });
+    }
     console.log(txOpts);
 
     try {
@@ -60,6 +93,9 @@ export default class CloseLoan extends React.Component {
             .then(() => {
               alert(`Loan closure complete.`);
               this.closeDialog();
+            })
+            .finally(() => {
+              this.setState({ closeAmount: ``, fullClose: false });
             })
             .catch(error => {
               console.error(error);
@@ -84,6 +120,7 @@ export default class CloseLoan extends React.Component {
   };
 
   render() {
+    const { loanToken, loanTokenAmountFilled } = this.props;
     return (
       <Fragment>
         <Button
@@ -97,16 +134,38 @@ export default class CloseLoan extends React.Component {
           <DialogContent>
             <SectionLabel>Close Loan</SectionLabel>
             <p>
-              This will close your loan and the borrowed tokens will be returned
-              to the lender. If the position token is not the loan token, then a
-              trade will be automatically executed with the Kyber oracle in
-              order to make the lender whole. If the lender is still not made
-              whole, the collateral token will be sold to cover the losses.
+              This will close part or all of your loan by closing any open positions 
+              and returning the loaned token to the lender. If your position has a loss, 
+              some of the stored collateral will be spent to make the lender whole. 
+              Any unused interest and collateral will be returned to you.
             </p>
-            <p>Any unused interest and collateral will be returned to you.</p>
-            <Button onClick={this.closeLoan} variant="raised" color="primary">
-              I understand, close loan.
+            <p>Enter the amount of loan token you want to return to the lender 
+              and click "Close Part of Loan", or click "Close Entire Loan" to close the entire loan.
+              <br/><br/>
+              Amount borrowed: {fromBigNumber(loanTokenAmountFilled, 10 ** loanToken.decimals)}
+              {` `}
+              {loanToken.symbol}
+            </p>
+            <FormControl margin="normal" fullWidth>
+            <InputLabel>Amount to close</InputLabel>
+            <Input
+              value={this.state.closeAmount}
+              type="number"
+              onChange={this.setAmount}
+              endAdornment={
+                <InputAdornment position="end">
+                  {loanToken.symbol}
+                </InputAdornment>
+              }
+            /><br/>
+            <Button onClick={this.closeLoanPart} variant="raised" color="primary">
+              Close Part of Loan
             </Button>
+            <br/><br/>
+            <Button onClick={this.closeLoan} variant="raised" color="primary">
+              Close Entire Loan
+            </Button>  
+            </FormControl>        
           </DialogContent>
         </Dialog>
       </Fragment>

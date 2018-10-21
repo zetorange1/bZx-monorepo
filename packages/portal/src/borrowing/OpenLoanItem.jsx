@@ -115,7 +115,7 @@ export default class OpenedLoan extends BZxComponent {
     
     this.setState({ loadingMargins: true, error: false });
 
-
+//here -> why are margin lookups failing after doing a partial loan close 
 
     try {
       await this.getSingleOrder();
@@ -189,8 +189,11 @@ export default class OpenedLoan extends BZxComponent {
     const collateralToken = tokens.filter(
       t => t.address === collateralTokenAddressFilled
     )[0];
+    const loanToken = tokens.filter(
+      t => t.address === loanTokenAddress
+    )[0];
     const collateralTokenSymbol = collateralToken.symbol;
-    const loanTokenSymbol = getSymbol(tokens, loanTokenAddress);
+    const loanTokenSymbol = loanToken.symbol;
     const interestTokenSymbol = getSymbol(tokens, interestTokenAddress);
     const positionTokenSymbol = getSymbol(tokens, positionTokenAddressFilled);
 
@@ -208,10 +211,11 @@ export default class OpenedLoan extends BZxComponent {
     const loanExpireDate = moment(loanEndUnixTimestampSec * 1000).utc();
     const loanExpireDateStr = loanExpireDate.format(`MMMM Do YYYY, h:mm a UTC`);
 
-    const excessCollateral = initialCollateralRequired && toBigNumber(collateralTokenAmountFilled).gt(initialCollateralRequired) ?
+    const excessCollateral = ``;
+    /*const excessCollateral = initialCollateralRequired && toBigNumber(collateralTokenAmountFilled).gt(initialCollateralRequired) ?
       fromBigNumber(toBigNumber(collateralTokenAmountFilled).minus(initialCollateralRequired),
         10 ** getDecimals(tokens, collateralTokenAddressFilled)
-      ) : null;
+      ) : null;*/
 
     return (
       <Card>
@@ -412,6 +416,8 @@ export default class OpenedLoan extends BZxComponent {
             accounts={accounts}
             web3={web3}
             loanOrderHash={loanOrderHash}
+            loanToken={loanToken}
+            loanTokenAmountFilled={loanTokenAmountFilled}
           />
         </CardActions>
       </Card>

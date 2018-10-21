@@ -123,7 +123,7 @@ export const getOrderHash = obj => BZxJS.getLoanOrderHashHex(obj);
 export const pushOrderOnChain = (order, web3, bZx, accounts) => {
   const txOpts = {
     from: accounts[0],
-    gas: 10000000,
+    gas: 2000000,
     gasPrice: window.defaultGasPrice.toString()
   };
 

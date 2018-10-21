@@ -346,7 +346,7 @@ contract BZx is BZxStorage {
     /// @dev Excess collateral is any amount above the initial margin.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param collateralTokenFilled The address of the collateral token used.
-    /// @return withdrawAmount The amount of excess collateral token to withdraw. The actual amount withdrawn will be less if there's less excess.
+    /// @return excessCollateral The amount of excess collateral token to withdraw. The actual amount withdrawn will be less if there's less excess.
     function withdrawExcessCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
@@ -358,12 +358,12 @@ contract BZx is BZxStorage {
     /// @dev This function will transfer in the initial margin requirement of the new token and the old token will be refunded to the trader.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param collateralTokenFilled The address of the collateral token used.
-    /// @return True on success
+    /// @return collateralTokenAmountFilled The amount of new collateral token filled
     function changeCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled)
         external
-        returns (bool);
+        returns (uint collateralTokenAmountFilled);
 
     /// @dev Allows the trader to withdraw their profits, if any.
     /// @dev Profits are paid out from the current positionToken.
@@ -453,6 +453,16 @@ contract BZx is BZxStorage {
     function liquidatePosition(
         bytes32 loanOrderHash,
         address trader)
+        external
+        returns (bool);
+
+    /// @dev Called by the trader to close part of their loan early.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param closeAmount The amount of the loan token to return to the lender
+    /// @return True on success
+    function closeLoanPartially(
+        bytes32 loanOrderHash,
+        uint closeAmount)
         external
         returns (bool);
 

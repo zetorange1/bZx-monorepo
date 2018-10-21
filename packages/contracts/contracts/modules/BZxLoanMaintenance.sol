@@ -99,7 +99,7 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
     /// @dev Excess collateral is any amount above the initial margin.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param collateralTokenFilled The address of the collateral token used.
-    /// @return withdrawAmount The amount of excess collateral token to withdraw. The actual amount withdrawn will be less if there's less excess.
+    /// @return excessCollateral The amount of excess collateral token to withdraw. The actual amount withdrawn will be less if there's less excess.
     function withdrawExcessCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
@@ -123,18 +123,30 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
             revert("BZxLoanHealth::withdrawExcessCollateral: collateralTokenFilled != loanPosition.collateralTokenAddressFilled");
         }
 
-        // the new collateral amount must be enough to satify the initial margin requirement of the loan
-        uint initialCollateralTokenAmount = _getInitialCollateralRequired(
+        uint positionToLoanTokenAmount;
+        if (loanPosition.positionTokenAddressFilled == loanOrder.loanTokenAddress) {
+            positionToLoanTokenAmount = loanPosition.positionTokenAmountFilled;
+        } else {
+            (, positionToLoanTokenAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+                loanPosition.positionTokenAddressFilled,
+                loanOrder.loanTokenAddress,
+                loanPosition.positionTokenAmountFilled);
+        }
+
+        uint initialCollateralTokenAmount = _getCollateralRequired(
             loanOrder.loanTokenAddress,
             loanPosition.collateralTokenAddressFilled,
             oracleAddresses[loanOrder.oracleAddress],
-            loanPosition.loanTokenAmountFilled,
+            positionToLoanTokenAmount < loanPosition.loanTokenAmountFilled ?
+                loanPosition.loanTokenAmountFilled.add(loanPosition.loanTokenAmountFilled.sub(positionToLoanTokenAmount).mul(100).div(loanOrder.initialMarginAmount)) :
+                loanPosition.loanTokenAmountFilled.sub(positionToLoanTokenAmount.sub(loanPosition.loanTokenAmountFilled).mul(100).div(loanOrder.initialMarginAmount)),
             loanOrder.initialMarginAmount
         );
+
         if (initialCollateralTokenAmount == 0 || initialCollateralTokenAmount >= loanPosition.collateralTokenAmountFilled) {
             revert("BZxLoanHealth::withdrawExcessCollateral: initialCollateralTokenAmount == 0 || initialCollateralTokenAmount >= loanPosition.collateralTokenAmountFilled");
         }
-
+        
         excessCollateral = Math.min256(withdrawAmount, loanPosition.collateralTokenAmountFilled-initialCollateralTokenAmount);
 
         // transfer excess collateral to trader
@@ -156,20 +168,22 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
         )) {
             revert("BZxLoanHealth::withdrawExcessCollateral: OracleInterface.didWithdrawCollateral failed");
         }
+
+        return excessCollateral;
     }
 
     /// @dev Allows the trader to change the collateral token being used for a loan.
     /// @dev This function will transfer in the initial margin requirement of the new token and the old token will be refunded to the trader.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param collateralTokenFilled The address of the collateral token used.
-    /// @return True on success
+    /// @return collateralTokenAmountFilled The amount of new collateral token filled
     function changeCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled)
         external
         nonReentrant
         tracksGas
-        returns (bool)
+        returns (uint collateralTokenAmountFilled)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
@@ -189,12 +203,24 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
             revert("BZxLoanHealth::changeCollateral: block.timestamp >= loanPosition.loanEndUnixTimestampSec");
         }
 
+        uint positionToLoanTokenAmount;
+        if (loanPosition.positionTokenAddressFilled == loanOrder.loanTokenAddress) {
+            positionToLoanTokenAmount = loanPosition.positionTokenAmountFilled;
+        } else {
+            (, positionToLoanTokenAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+                loanPosition.positionTokenAddressFilled,
+                loanOrder.loanTokenAddress,
+                loanPosition.positionTokenAmountFilled);
+        }
+
         // the new collateral amount must be enough to satify the initial margin requirement of the loan
-        uint collateralTokenAmountFilled = _getInitialCollateralRequired(
+        collateralTokenAmountFilled = _getCollateralRequired(
             loanOrder.loanTokenAddress,
             collateralTokenFilled,
             oracleAddresses[loanOrder.oracleAddress],
-            loanPosition.loanTokenAmountFilled,
+            positionToLoanTokenAmount < loanPosition.loanTokenAmountFilled ?
+                loanPosition.loanTokenAmountFilled.add(loanPosition.loanTokenAmountFilled.sub(positionToLoanTokenAmount).mul(100).div(loanOrder.initialMarginAmount)) :
+                loanPosition.loanTokenAmountFilled.sub(positionToLoanTokenAmount.sub(loanPosition.loanTokenAmountFilled).mul(100).div(loanOrder.initialMarginAmount)),
             loanOrder.initialMarginAmount
         );
         if (collateralTokenAmountFilled == 0) {
@@ -230,7 +256,7 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
             revert("BZxLoanHealth::changeCollateral: OracleInterface.didChangeCollateral failed");
         }
 
-        return true;
+        return collateralTokenAmountFilled;
     }
 
     /// @dev Allows the trader to withdraw their profits, if any.

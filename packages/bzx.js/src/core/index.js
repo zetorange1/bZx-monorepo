@@ -170,7 +170,9 @@ export class BZxJS {
   getProfitOrLoss = (...props) => loanHealth.getProfitOrLoss(this, ...props);
   withdrawProfit = (...props) => loanHealth.withdrawProfit(this, ...props);
 
+  closeLoanPartially = (...props) => loanHealth.closeLoanPartially(this, ...props);
   closeLoan = (...props) => loanHealth.closeLoan(this, ...props);
+
   payInterest = (...props) => loanHealth.payInterest(this, ...props);
   getInterest = (...props) => loanHealth.getInterest(this, ...props);
 

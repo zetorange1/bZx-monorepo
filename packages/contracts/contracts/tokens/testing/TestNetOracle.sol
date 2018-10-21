@@ -81,41 +81,66 @@ contract TestNetOracle is BZxOracle {
         uint sourceTokenAmount,
         uint maxDestTokenAmount)
         internal
-        returns (uint destTokenAmount)
+        returns (uint destTokenAmountReceived, uint sourceTokenAmountUsed)
     {
+        if (maxDestTokenAmount > MAX_FOR_KYBER)
+            maxDestTokenAmount = MAX_FOR_KYBER;
+        
         if (sourceTokenAddress == destTokenAddress) {
-            if (maxDestTokenAmount < MAX_FOR_KYBER) {
-                destTokenAmount = maxDestTokenAmount;
-            } else {
-                destTokenAmount = sourceTokenAmount;
-            }
-
             if (maxDestTokenAmount < sourceTokenAmount) {
-                destTokenAmount = maxDestTokenAmount;
+                destTokenAmountReceived = maxDestTokenAmount;
+                sourceTokenAmountUsed = maxDestTokenAmount;
             } else {
-                destTokenAmount = sourceTokenAmount;
+                destTokenAmountReceived = sourceTokenAmount;
+                sourceTokenAmountUsed = sourceTokenAmount;
             }
 
             if (!_transferToken(
                 destTokenAddress,
                 vaultContract,
-                destTokenAmount)) {
+                destTokenAmountReceived)) {
                 revert("TestNetOracle::_doTrade: _transferToken failed");
+            }
+
+            if (sourceTokenAmountUsed < sourceTokenAmount) {
+                // send unused source token back
+                if (!_transferToken(
+                    sourceTokenAddress,
+                    vaultContract,
+                    sourceTokenAmount-sourceTokenAmountUsed)) {
+                    revert("TestNetOracle::_doTrade: _transferToken failed");
+                }
             }
         } else {
             (uint tradeRate,) = getTradeData(sourceTokenAddress, destTokenAddress, 0);
-            destTokenAmount = sourceTokenAmount.mul(tradeRate).div(_getDecimalPrecision(sourceTokenAddress, destTokenAddress));
-            if (destTokenAmount > maxDestTokenAmount) {
-                destTokenAmount = maxDestTokenAmount;
+            uint precision = _getDecimalPrecision(sourceTokenAddress, destTokenAddress);
+            destTokenAmountReceived = sourceTokenAmount.mul(tradeRate).div(precision);
+
+            if (destTokenAmountReceived > maxDestTokenAmount) {
+                destTokenAmountReceived = maxDestTokenAmount;
+                sourceTokenAmountUsed = destTokenAmountReceived.mul(precision).div(tradeRate);
+            } else {
+                sourceTokenAmountUsed = sourceTokenAmount;
             }
+
             _transferToken(
                 sourceTokenAddress,
                 faucetContract,
-                sourceTokenAmount);
+                sourceTokenAmountUsed);
             require(Faucet(faucetContract).oracleExchange(
                 destTokenAddress,
                 vaultContract,
-                destTokenAmount), "TestNetOracle::_doTrade: trade failed");
+                destTokenAmountReceived), "TestNetOracle::_doTrade: trade failed");
+
+            if (sourceTokenAmountUsed < sourceTokenAmount) {
+                // send unused source token back
+                if (!_transferToken(
+                    sourceTokenAddress,
+                    vaultContract,
+                    sourceTokenAmount-sourceTokenAmountUsed)) {
+                    revert("TestNetOracle::_doTrade: _transferToken failed");
+                }
+            }
         }
     }
 

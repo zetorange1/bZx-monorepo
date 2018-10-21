@@ -50,7 +50,7 @@ contract InterestFunctions is BZxStorage, InternalFunctions {
             oracleAddresses[loanOrder.oracleAddress],
             amountPaid
         )) {
-            revert("BZxLoanHealth::_payInterestForPosition: BZxVault.withdrawToken failed");
+            revert("BZxLoanHealth::_sendInterest: BZxVault.withdrawToken failed");
         }
 
         // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
@@ -61,19 +61,19 @@ contract InterestFunctions is BZxStorage, InternalFunctions {
             convert,
             gasUsed // initial used gas, collected in modifier
         )) {
-            revert("BZxLoanHealth::_payInterestForPosition: OracleInterface.didPayInterest failed");
+            revert("BZxLoanHealth::_sendInterest: OracleInterface.didPayInterest failed");
         }
     }
 
     function _payInterestForPosition(
         LoanOrder loanOrder,
         LoanPosition loanPosition,
-        bool convert)
+        bool convert,
+        bool emitEvent)
         internal
-        returns (uint amountPaid)
+        returns (uint)
     {
-        uint interestTotalAccrued;
-        (amountPaid, interestTotalAccrued) = _setInterestPaidForPosition(
+        (uint amountPaid, uint interestTotalAccrued) = _setInterestPaidForPosition(
             loanOrder,
             loanPosition);
 
@@ -85,15 +85,17 @@ contract InterestFunctions is BZxStorage, InternalFunctions {
             );
         }
 
-        emit LogPayInterestForPosition(
-            loanOrder.loanOrderHash,
-            orderLender[loanOrder.loanOrderHash],
-            loanPosition.trader,
-            amountPaid,
-            interestTotalAccrued,
-            loanPosition.positionId
-        );
-
+        if (emitEvent) {
+            emit LogPayInterestForPosition(
+                loanOrder.loanOrderHash,
+                orderLender[loanOrder.loanOrderHash],
+                loanPosition.trader,
+                amountPaid,
+                interestTotalAccrued,
+                loanPosition.positionId
+            );
+        }
+        
         return amountPaid;
     }
 }

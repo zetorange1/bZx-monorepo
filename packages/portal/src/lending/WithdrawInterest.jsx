@@ -30,7 +30,7 @@ export default class WithdrawInterest extends React.Component {
 
     const txOpts = {
       from: accounts[0],
-      gas: 10000000,
+      gas: 2000000,
       gasPrice: window.defaultGasPrice.toString()
     };
 

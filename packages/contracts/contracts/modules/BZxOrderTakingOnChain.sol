@@ -208,7 +208,7 @@ contract BZxOrderTakingOnChain is BZxStorage, BZxProxiable, OrderTakingFunctions
         view
         returns (uint collateralTokenAmount)
     {
-        collateralTokenAmount = _getInitialCollateralRequired(
+        collateralTokenAmount = _getCollateralRequired(
             loanTokenAddress,
             collateralTokenAddress,
             oracleAddress,

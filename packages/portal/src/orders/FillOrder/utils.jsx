@@ -383,7 +383,7 @@ export const submitFillOrder = (
 ) => {
   const txOpts = {
     from: accounts[0],
-    gas: 10000000,
+    gas: 2000000,
     gasPrice: window.defaultGasPrice.toString()
   };
   const makerIsLender = order.makerRole === `0`;

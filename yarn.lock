@@ -7180,7 +7180,7 @@ ganache-cli@6.1.0:
     source-map-support "^0.5.3"
     webpack-cli "^2.0.9"
 
-ganache-cli@6.1.8:
+ganache-cli@^6.1.8:
   version "6.1.8"
   resolved "https://registry.yarnpkg.com/ganache-cli/-/ganache-cli-6.1.8.tgz#49a8a331683a9652183f82ef1378d17e1814fcd3"
   dependencies:

@@ -274,6 +274,20 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         return true;
     }
 
+    function didCloseLoanPartially(
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanPosition memory /* loanPosition */,
+        address /* loanCloser */,
+        uint /* closeAmount */,
+        uint /* gasUsed */)
+        public
+        onlyBZx
+        updatesEMA(tx.gasprice)
+        returns (bool)
+    {
+        return true;
+    }
+
     function didCloseLoan(
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanPosition memory /* loanPosition */,
@@ -357,17 +371,18 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function doManualTrade(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount)
+        uint sourceTokenAmount,
+        uint maxDestTokenAmount)
         public
         onlyBZx
-        returns (uint destTokenAmount)
+        returns (uint destTokenAmountReceived, uint sourceTokenAmountUsed)
     {
         if (isManualTradingAllowed) {
-            destTokenAmount = _doTrade(
+            (destTokenAmountReceived, sourceTokenAmountUsed) = _doTrade(
                 sourceTokenAddress,
                 destTokenAddress,
                 sourceTokenAmount,
-                MAX_FOR_KYBER); // no limit on the dest amount
+                maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER);
         }
         else {
             revert("Manual trading is disabled.");
@@ -377,16 +392,17 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function doTrade(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount)
+        uint sourceTokenAmount,
+        uint maxDestTokenAmount)
         public
         onlyBZx
-        returns (uint destTokenAmount)
+        returns (uint destTokenAmountReceived, uint sourceTokenAmountUsed)
     {
-        destTokenAmount = _doTrade(
+        (destTokenAmountReceived, sourceTokenAmountUsed) = _doTrade(
             sourceTokenAddress,
             destTokenAddress,
             sourceTokenAmount,
-            MAX_FOR_KYBER); // no limit on the dest amount
+            maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER);
     }
 
     function verifyAndLiquidate(
@@ -394,7 +410,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         BZxObjects.LoanPosition memory loanPosition)
         public
         onlyBZx
-        returns (uint destTokenAmount)
+        returns (uint destTokenAmountReceived, uint sourceTokenAmountUsed)
     {
         if (!shouldLiquidate(
             0x0,
@@ -406,10 +422,19 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             loanPosition.positionTokenAmountFilled,
             loanPosition.collateralTokenAmountFilled,
             loanOrder.maintenanceMarginAmount)) {
-            return 0;
+
+            // send unused source token back
+            if (!_transferToken(
+                loanPosition.positionTokenAddressFilled,
+                vaultContract,
+                loanPosition.positionTokenAmountFilled)) {
+                revert("BZxOracle::verifyAndLiquidate: _transferToken failed");
+            }
+
+            return (0,0);
         }
 
-        destTokenAmount = _doTrade(
+        (destTokenAmountReceived, sourceTokenAmountUsed) = _doTrade(
             loanPosition.positionTokenAddressFilled,
             loanOrder.loanTokenAddress,
             loanPosition.positionTokenAmountFilled,
@@ -616,7 +641,12 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             positionToLoanAmount = positionTokenAmount.mul(positionToLoanRate).div(_getDecimalPrecision(positionTokenAddress, loanTokenAddress));
         }
 
-        return collateralToLoanAmount.add(positionToLoanAmount).sub(loanTokenAmount).mul(10**20).div(loanTokenAmount);
+        uint totalCollateral = collateralToLoanAmount.add(positionToLoanAmount);
+        if (totalCollateral > loanTokenAmount) {
+            return totalCollateral.sub(loanTokenAmount).mul(10**20).div(loanTokenAmount);
+        } else {
+            return 0;
+        }
     }
 
     function setDecimals(
@@ -864,20 +894,35 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         uint sourceTokenAmount,
         uint maxDestTokenAmount)
         internal
-        returns (uint destTokenAmount)
+        returns (uint destTokenAmountReceived, uint sourceTokenAmountUsed)
     {
+        if (maxDestTokenAmount > MAX_FOR_KYBER)
+            maxDestTokenAmount = MAX_FOR_KYBER;
+
         if (sourceTokenAddress == destTokenAddress) {
             if (maxDestTokenAmount < sourceTokenAmount) {
-                destTokenAmount = maxDestTokenAmount;
+                destTokenAmountReceived = maxDestTokenAmount;
+                sourceTokenAmountUsed = maxDestTokenAmount;
             } else {
-                destTokenAmount = sourceTokenAmount;
+                destTokenAmountReceived = sourceTokenAmount;
+                sourceTokenAmountUsed = sourceTokenAmount;
             }
 
             if (!_transferToken(
                 destTokenAddress,
                 vaultContract,
-                destTokenAmount)) {
+                destTokenAmountReceived)) {
                 revert("BZxOracle::_doTrade: _transferToken failed");
+            }
+
+            if (sourceTokenAmountUsed < sourceTokenAmount) {
+                // send unused source token back
+                if (!_transferToken(
+                    sourceTokenAddress,
+                    vaultContract,
+                    sourceTokenAmount-sourceTokenAmountUsed)) {
+                    revert("BZxOracle::_doTrade: _transferToken failed");
+                }
             }
         } else {
             // re-up the Kyber spend approval if needed
@@ -897,7 +942,9 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                     MAX_FOR_KYBER);
             }
 
-            destTokenAmount = KyberNetwork_Interface(kyberContract).trade(
+            uint sourceBalanceBefore = EIP20(sourceTokenAddress).balanceOf.gas(4999)(this);
+
+            destTokenAmountReceived = KyberNetwork_Interface(kyberContract).trade(
                 sourceTokenAddress,
                 sourceTokenAmount,
                 destTokenAddress,
@@ -906,6 +953,17 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 0, // no min coversation rate
                 address(0)
             );
+
+            sourceTokenAmountUsed = sourceBalanceBefore.sub(EIP20(sourceTokenAddress).balanceOf.gas(4999)(this));
+            if (sourceTokenAmountUsed < sourceTokenAmount) {
+                // send unused source token back
+                if (!_transferToken(
+                    sourceTokenAddress,
+                    vaultContract,
+                    sourceTokenAmount-sourceTokenAmountUsed)) {
+                    revert("BZxOracle::_doTrade: _transferToken failed");
+                }
+            }
         }
     }
 

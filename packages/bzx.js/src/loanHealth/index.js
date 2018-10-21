@@ -104,6 +104,27 @@ export const getInterest = async (
   };
 };
 
+export const closeLoanPartially = (
+  { web3, networkId, addresses },
+  { loanOrderHash, closeAmount, getObject, txOpts }
+) => {
+  const bZxContract = CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
+  );
+
+  const txObj = bZxContract.methods.closeLoanPartially(
+    loanOrderHash, 
+    web3.utils.toBN(closeAmount).toString(10)
+  );
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
+};
+
 export const closeLoan = (
   { web3, networkId, addresses },
   { loanOrderHash, getObject, txOpts }

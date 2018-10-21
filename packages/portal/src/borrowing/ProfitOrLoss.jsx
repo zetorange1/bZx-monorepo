@@ -80,7 +80,7 @@ export default class ProfitOrLoss extends BZxComponent {
     const { bZx, accounts, web3, loanOrderHash } = this.props;
     const txOpts = {
       from: accounts[0],
-      gas: 10000000,
+      gas: 2000000,
       gasPrice: window.defaultGasPrice.toString()
     };
 

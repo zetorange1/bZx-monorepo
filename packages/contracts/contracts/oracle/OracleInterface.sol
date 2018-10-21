@@ -145,6 +145,22 @@ contract OracleInterface {
         public
         returns (bool);
 
+    /// @dev Called by bZx after a loan is partially closed
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
+    /// @param loanCloser The user that closed the loan
+    /// @param closeAmount The amount of loan token being returned to the lender
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
+    /// @return Successful execution of the function
+    function didCloseLoanPartially(
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
+        address loanCloser,
+        uint closeAmount,
+        uint gasUsed)
+        public
+        returns (bool);
+
     /// @dev Called by bZx after a loan is closed
     /// @param loanOrder The loanOrder object
     /// @param loanPosition The loanPosition object
@@ -209,36 +225,40 @@ contract OracleInterface {
     /// @param sourceTokenAddress The token being sold
     /// @param destTokenAddress The token being bought
     /// @param sourceTokenAmount The amount of token being sold
-    /// @return The amount of destToken bought
+    /// @param maxDestTokenAmount The desired amount of token to buy
+    /// @return The amount of destToken bought and the amount of source token used
     function doManualTrade(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount)
+        uint sourceTokenAmount,
+        uint maxDestTokenAmount)
         public
-        returns (uint);
+        returns (uint, uint);
 
     /// @dev Places an automatic on-chain trade with a liquidity provider
     /// @param sourceTokenAddress The token being sold
     /// @param destTokenAddress The token being bought
     /// @param sourceTokenAmount The amount of token being sold
-    /// @return The amount of destToken bought
+    /// @param maxDestTokenAmount The desired amount of token to buy
+    /// @return The amount of destToken bought and the amount of source token used
     function doTrade(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount)
+        uint sourceTokenAmount,
+        uint maxDestTokenAmount)
         public
-        returns (uint);
+        returns (uint, uint);
 
     /// @dev Verifies a position has fallen below margin maintenance
     /// @dev then liquidates the position on-chain
     /// @param loanOrder The loanOrder object
     /// @param loanPosition The loanPosition object
-    /// @return The amount of destToken bought
+    /// @return The amount of destToken bought and the amount of source token used
     function verifyAndLiquidate(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition)
         public
-        returns (uint);
+        returns (uint, uint);
 
     /// @dev Liquidates collateral to cover loan losses and does any other processing required by the oracle
     /// @param loanOrder The loanOrder object

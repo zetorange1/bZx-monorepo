@@ -172,21 +172,17 @@ contract BZxTradePlacing is BZxStorage, BZxProxiable, InternalFunctions {
             revert("BZxTradePlacing::tradePositionWithOracle: tradeTokenAddress == loanPosition.positionTokenAddressFilled");
         }
 
-        // check the current token balance of the oracle before sending token to be traded
-        uint balanceBeforeTrade = EIP20(loanPosition.positionTokenAddressFilled).balanceOf.gas(4999)(oracleAddresses[loanOrder.oracleAddress]); // Changes to state require at least 5000 gas
-
-        uint tradeTokenAmount = _tradePositionWithOracle(
+        (uint tradeTokenAmount, uint positionTokenAmountUsed) = _tradePositionWithOracle(
             loanOrder,
             loanPosition,
             tradeTokenAddress,
+            MAX_UINT,
             false, // isLiquidation
             true // isManual
         );
 
-        // It is assumed that all positionToken will be traded, so the remaining token balance of the oracle
-        // shouldn't be greater than the balance before we sent the token to be traded.
-        if (balanceBeforeTrade < EIP20(loanPosition.positionTokenAddressFilled).balanceOf.gas(4999)(oracleAddresses[loanOrder.oracleAddress])) {
-            revert("BZxTradePlacing::tradePositionWithOracle: balanceBeforeTrade is less");
+        if (positionTokenAmountUsed < loanPosition.positionTokenAmountFilled) {
+            revert("BZxTradePlacing::tradePositionWithOracle: positionTokenAmountUsed < positionTokenAmountFilled");
         }
 
         if (tradeTokenAmount == 0) {
