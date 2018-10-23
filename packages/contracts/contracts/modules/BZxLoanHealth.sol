@@ -492,6 +492,7 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
 
         // pay lender interest so far, and do partial interest refund to trader
         if (loanOrder.interestAmount > 0) {
+            // pays any owed interest to the lender
             _payInterestForPosition(
                 loanOrder,
                 loanPosition,
@@ -510,6 +511,7 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
             );
 
             if (remainingInterestRequired < remainingInterest) {
+                // refund unneeded interest to the trader
                 if (! BZxVault(vaultContract).withdrawToken(
                     loanOrder.interestTokenAddress,
                     loanPosition.trader,
@@ -517,10 +519,15 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
                 )) {
                     revert("BZxLoanHealth::_closeLoanPartially: BZxVault.withdrawToken interest failed");
                 }
-
-                // account for interest paid back (refunded) to the trader
-                interestPaid[loanOrderHash][positionId] = interestPaid[loanOrderHash][positionId].add(remainingInterest-remainingInterestRequired);
+            } else if (remainingInterestRequired > remainingInterest) {
+                // this state should never be hit, be we are being safe
+                revert("BZxLoanHealth::_closeLoanPartially: remainingInterestRequired > remainingInterest");
             }
+
+            // reset interest values
+            interestTotal[loanOrderHash][positionId] = remainingInterestRequired;
+            interestPaid[loanOrderHash][positionId] = 0;
+            interestPaidDate[loanOrderHash][positionId] = 0;
         }
 
         if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
