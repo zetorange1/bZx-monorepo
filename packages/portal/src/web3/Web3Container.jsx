@@ -15,7 +15,7 @@ const LoadingContainer = styled.div`
   display: flex;
   flex-direction: column;
   jsutify-content: center;
-  align-items; center;
+  align-items: center;
 `;
 
 const CancelButton = styled.a.attrs({
