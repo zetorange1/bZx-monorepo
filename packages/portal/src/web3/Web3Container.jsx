@@ -116,7 +116,7 @@ export default class Web3Container extends React.Component {
       }
     };
 
-    const bZx = new BZxJS(web3.currentProvider, { networkId });
+    const bZx = new BZxJS(web3, { networkId });
     bZx.portalProviderName = providerName; // setting custom field
 
     //const web3Query = await getWeb3ByNetworkId(networkId);

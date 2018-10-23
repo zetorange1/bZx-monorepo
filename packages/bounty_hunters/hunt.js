@@ -103,7 +103,7 @@ function initWeb3(network) {
 
 async function initBZX(web3) {
   const networkId = await web3.eth.net.getId();
-  return new BZxJS(web3.currentProvider, { networkId });
+  return new BZxJS(web3, { networkId });
 }
 
 async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
