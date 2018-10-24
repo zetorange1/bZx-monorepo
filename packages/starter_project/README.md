@@ -1,6 +1,6 @@
 # Starter project
 
-This repo contains sample scripts to help qui start with bzx.js use.
+This repo contains sample scripts to help quickly get started using the bzx.js library.
 
 # Usage
 
