@@ -86,7 +86,7 @@ export const getOracleList = async ({ web3, networkId }) => {
 
 export const isTradeSupported = async (
   { web3, networkId },
-  { sourceTokenAddress, destTokenAddress, oracleAddress }
+  { sourceTokenAddress, destTokenAddress, oracleAddress, sourceTokenAmount }
 ) => {
   assert.isETHAddressHex("sourceTokenAddress", sourceTokenAddress);
   assert.isETHAddressHex("destTokenAddress", destTokenAddress);
@@ -100,10 +100,10 @@ export const isTradeSupported = async (
 
   const queriesP = Promise.all([
     oracleContract.methods
-      .isTradeSupported(sourceTokenAddress, destTokenAddress)
+      .isTradeSupported(sourceTokenAddress, destTokenAddress, sourceTokenAmount)
       .call(),
     oracleContract.methods
-      .isTradeSupported(destTokenAddress, sourceTokenAddress)
+      .isTradeSupported(destTokenAddress, sourceTokenAddress, sourceTokenAmount)
       .call()
   ]);
 

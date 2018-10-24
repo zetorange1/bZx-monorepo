@@ -1,5 +1,7 @@
 import { BigNumber } from "@0xproject/utils";
-import { Provider, TransactionObject, Tx } from "web3/types";
+import { TransactionObject, Tx } from "web3/eth/types";
+import { TransactionReceipt } from "web3/types";
+import Web3 = require("web3");
 
 export declare interface ILoanOrderValuesBase {
   makerAddress: string;
@@ -9,26 +11,28 @@ export declare interface ILoanOrderValuesBase {
   feeRecipientAddress: string;
   oracleAddress: string;
 
-  loanTokenAmount: BigNumber;
-  interestAmount: BigNumber;
-  initialMarginAmount: BigNumber;
-  maintenanceMarginAmount: BigNumber;
-  lenderRelayFee: BigNumber;
-  traderRelayFee: BigNumber;
-  maxDurationUnixTimestampSec: number;
-  expirationUnixTimestampSec: number;
+  loanTokenAmount: number | string;
+  interestAmount: number | string;
+  initialMarginAmount: number | string;
+  maintenanceMarginAmount: number | string;
+  lenderRelayFee: number | string;
+  traderRelayFee: number | string;
+  maxDurationUnixTimestampSec: number | string;
+  expirationUnixTimestampSec: number | string;
 }
 
 export declare interface ILoanOrderFillable extends ILoanOrderValuesBase {
   loanOrderHash: string;
   lender: string;
-  orderFilledAmount: BigNumber;
-  orderCancelledAmount: BigNumber;
+  orderFilledAmount: number;
+  orderCancelledAmount: number;
   orderTraderCount: number;
   addedUnixTimestampSec: number;
 }
 
 export declare interface ILoanOrderFillRequest extends ILoanOrderValuesBase {
+  bZxAddress: string;
+
   makerRole: number;
   salt: string;
   signature: string;
@@ -43,27 +47,28 @@ export declare interface ILoanOrderActive {
 export declare interface ILoanPositionState {
   lender: string;
   trader: string;
-  collateralTokenAddressFilled: string;
-  positionTokenAddressFilled: string;
-  loanTokenAddress: string;
-  interestTokenAddress: string;
-
-  loanTokenAmountFilled: BigNumber;
-  collateralTokenAmountFilled: BigNumber;
-  positionTokenAmountFilled: BigNumber;
-
-  loanStartUnixTimestampSec: number;
-  loanEndUnixTimestampSec: number;
-  active: boolean;
-
-  interestTotalAccrued: BigNumber;
-  interestPaidSoFar: BigNumber;
 
   loanOrderHash: string;
+  loanStartUnixTimestampSec: number;
+  loanEndUnixTimestampSec: number;
+  active: number;
+
+  loanTokenAddress: string;
+  loanTokenAmountFilled: number;
+
+  collateralTokenAddressFilled: string;
+  collateralTokenAmountFilled: number;
+
+  positionTokenAddressFilled: number;
+  positionTokenAmountFilled: number;
+
+  interestTokenAddress: string;
+  interestTotalAccrued: number;
+  interestLastPaidDate: number;
+  interestPaidSoFar: number;
 }
 
 export declare interface IZeroExOrder {
-  signedOrder: any;
   exchangeContractAddress: string;
   expirationUnixTimestampSec: number;
   feeRecipient: string;
@@ -76,6 +81,80 @@ export declare interface IZeroExOrder {
   takerFee: number;
   takerTokenAddress: string;
   takerTokenAmount: number;
+}
+
+export declare interface IZeroExV2Order {
+  senderAddress: string;
+  makerAddress: string;
+  takerAddress: string;
+  makerFee: string;
+  takerFee: string;
+  makerAssetAmount: string;
+  takerAssetAmount: string;
+  makerAssetData: any;
+  takerAssetData: any;
+  salt: string;
+  exchangeAddress: string;
+  feeRecipientAddress: string;
+  expirationTimeSeconds: string;
+}
+
+export declare interface ITokenMetadata {
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+
+export declare interface IZeroExV2OrderMetadata {
+  makerToken: ITokenMetadata;
+  takerToken: ITokenMetadata;
+}
+
+export declare interface ISignatureParams {
+  v: number;
+  r: Buffer;
+  s: Buffer;
+}
+
+export declare interface IZeroExOrderSigned extends IZeroExOrder {
+  ecSignature: ISignatureParams;
+}
+
+export declare interface IZeroExV2OrderSigned extends IZeroExV2Order {
+  signature: string;
+}
+
+export declare interface IZeroExTradeRequest {
+  signedOrder: IZeroExOrderSigned;
+}
+
+export declare interface IZeroExV2TradeRequest {
+  signedOrder: IZeroExV2OrderSigned;
+  metadata: IZeroExV2OrderMetadata;
+}
+
+export declare interface IConversionData {
+  rate: string;
+  amount: string;
+}
+
+export declare interface IMarginLevel {
+  initialMarginAmount: string;
+  maintenanceMarginAmount: string;
+  currentMarginAmount: string;
+}
+
+export declare interface IInterestStatus {
+  lender: string;
+  interestTokenAddress: string;
+  interestTotalAccrued: string;
+  interestPaidSoFar: string;
+}
+
+export declare interface IProfitStatus {
+  isProfit: boolean;
+  profitOrLoss: string;
+  positionTokenAddress: string;
 }
 
 export declare interface ITokenDescription {
@@ -92,11 +171,11 @@ export declare interface IOracleDescription {
 }
 
 export declare class BZxJS {
-  constructor(provider: Provider, params: { networkId: number; addresses?: string[] });
+  constructor(web3: Web3, params: { networkId: number; addresses?: string[] });
 
   getLoanOrderHashAsync(order: ILoanOrderFillRequest): Promise<string>;
 
-  isValidSignatureAsync({ account, orderHash, signature }): Promise<boolean>;
+  isValidSignatureAsync(params: { account: string; orderHash: string; signature: string }): Promise<boolean>;
 
   signOrderHashAsync(
     orderHash: string,
@@ -108,10 +187,10 @@ export declare class BZxJS {
     tokenAddress: string;
     ownerAddress: string;
     spenderAddress: string;
-    amountInBaseUnits: BigNumber;
+    amountInBaseUnits: BigNumber | string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   setAllowanceUnlimited(params: {
     tokenAddress: string;
@@ -119,7 +198,7 @@ export declare class BZxJS {
     spenderAddress: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   resetAllowance(params: {
     tokenAddress: string;
@@ -127,24 +206,29 @@ export declare class BZxJS {
     spenderAddress: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
-  getAllowance(params: { tokenAddress: string; ownerAddress: string; spenderAddress: string }): BigNumber;
+  getAllowance(params: { tokenAddress: string; ownerAddress: string; spenderAddress: string }): Promise<BigNumber>;
 
-  getBalance(params: { tokenAddress: string; ownerAddress: string }): BigNumber;
+  getBalance(params: { tokenAddress: string; ownerAddress: string }): Promise<BigNumber>;
 
-  getTokenList(): ITokenDescription[];
+  getTokenList(): Promise<ITokenDescription[]>;
 
-  getOracleList(): IOracleDescription[];
+  getOracleList(): Promise<IOracleDescription[]>;
 
-  isTradeSupported(params: { sourceTokenAddress: string; destTokenAddress: string; oracleAddress: string }): boolean;
+  isTradeSupported(params: {
+    sourceTokenAddress: string;
+    destTokenAddress: string;
+    sourceTokenAmount: string;
+    oracleAddress: string;
+  }): Promise<boolean>;
 
   getConversionData(params: {
     sourceTokenAddress: string;
     destTokenAddress: string;
     sourceTokenAmount: BigNumber;
     oracleAddress: string;
-  }): { rate: BigNumber; amount: BigNumber };
+  }): Promise<IConversionData>;
 
   takeLoanOrderAsTrader(params: {
     order: ILoanOrderFillRequest;
@@ -152,19 +236,19 @@ export declare class BZxJS {
     loanTokenAmountFilled: BigNumber;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   takeLoanOrderAsLender(params: {
     order: ILoanOrderFillRequest;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   pushLoanOrderOnChain(params: {
     order: ILoanOrderFillRequest;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<any> | TransactionObject<any>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   takeLoanOrderOnChainAsTrader(params: {
     loanOrderHash: string;
@@ -172,140 +256,125 @@ export declare class BZxJS {
     loanTokenAmountFilled: BigNumber;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<any> | TransactionObject<any>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   takeLoanOrderOnChainAsLender(params: {
     loanOrderHash: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<any> | TransactionObject<any>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   cancelLoanOrder(params: {
     order: ILoanOrderFillRequest;
-    cancelLoanTokenAmount: BigNumber;
+    cancelLoanTokenAmount: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   cancelLoanOrderWithHash(params: {
     loanOrderHash: string;
-    cancelLoanTokenAmount: BigNumber;
+    cancelLoanTokenAmount: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   closeLoan(params: {
     loanOrderHash: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
-  getSingleLoan(params: { loanOrderHash: string; trader: string }): ILoanPositionState;
+  getSingleLoan(params: { loanOrderHash: string; trader: string }): Promise<ILoanPositionState>;
 
-  getLoansForLender(params: { address: string; count: number; activeOnly: boolean }): ILoanPositionState[];
+  getLoansForLender(params: { address: string; count: number; activeOnly: boolean }): Promise<ILoanPositionState[]>;
 
-  getLoansForTrader(params: { address: string; count: number; activeOnly: boolean }): ILoanPositionState[];
+  getLoansForTrader(params: { address: string; count: number; activeOnly: boolean }): Promise<ILoanPositionState[]>;
 
-  getSingleOrder(params: { loanOrderHash: string }): ILoanOrderFillable;
+  getSingleOrder(params: { loanOrderHash: string }): Promise<ILoanOrderFillable>;
 
-  getOrdersFillable(params: { start: number; count: number }): ILoanOrderFillable[];
+  getOrdersFillable(params: { start: number; count: number }): Promise<ILoanOrderFillable[]>;
 
-  getOrdersForUser(params: { loanPartyAddress: string; start: number; count: number }): ILoanOrderFillable[];
+  getOrdersForUser(params: { loanPartyAddress: string; start: number; count: number }): Promise<ILoanOrderFillable[]>;
 
   tradePositionWith0x(params: {
-    order0x: IZeroExOrder;
+    order0x: IZeroExTradeRequest;
     orderHashBZx: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<string> | TransactionObject<string>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
+
+  tradePositionWith0xV2(params: {
+    order0x: IZeroExV2TradeRequest;
+    orderHashBZx: string;
+    getObject: boolean;
+    txOpts: Tx;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   tradePositionWithOracle(params: {
     orderHash: string;
     tradeTokenAddress: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<string> | TransactionObject<string>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   getInitialCollateralRequired(
     loanTokenAddress: string,
     collateralTokenAddress: string,
     oracleAddress: string,
-    loanTokenAmountFilled: BigNumber,
-    initialMarginAmount: BigNumber
-  ): Promise<BigNumber>;
+    loanTokenAmountFilled: string,
+    initialMarginAmount: string
+  ): Promise<string>;
 
   changeCollateral(params: {
     loanOrderHash: string;
     collateralTokenFilled: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   depositCollateral(params: {
     loanOrderHash: string;
     collateralTokenFilled: string;
-    depositAmount: BigNumber;
+    depositAmount: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   withdrawExcessCollateral(params: {
     loanOrderHash: string;
     collateralTokenFilled: string;
-    withdrawAmount: BigNumber;
+    withdrawAmount: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
-  getProfitOrLoss(params: {
-    loanOrderHash: string;
-    trader: string;
-  }): {
-    isProfit: boolean;
-    profitOrLoss: BigNumber;
-    positionTokenAddress: string;
-  };
+  getProfitOrLoss(params: { loanOrderHash: string; trader: string }): Promise<IProfitStatus>;
 
   withdrawProfit(params: {
     loanOrderHash: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
-  getInterest(params: {
-    loanOrderHash: string;
-    traderAddress: string;
-  }): {
-    lender: string;
-    interestTokenAddress: string;
-    interestTotalAccrued: BigNumber;
-    interestPaidSoFar: BigNumber;
-  };
+  getInterest(params: { loanOrderHash: string; trader: string }): Promise<IInterestStatus>;
 
   payInterest(params: {
     loanOrderHash: string;
     trader: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<BigNumber> | TransactionObject<BigNumber>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
-  getActiveLoans(params: { start: number; count: number }): ILoanOrderActive[];
+  getActiveLoans(params: { start: number; count: number }): Promise<ILoanOrderActive[]>;
 
-  getMarginLevels(params: {
-    loanOrderHash;
-    trader;
-  }): {
-    initialMarginAmount: BigNumber;
-    maintenanceMarginAmount: BigNumber;
-    currentMarginAmount: BigNumber;
-  };
+  getMarginLevels(params: { loanOrderHash: string; trader: string }): Promise<IMarginLevel>;
 
   liquidateLoan(params: {
     loanOrderHash: string;
     trader: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   transferToken(params: {
     tokenAddress: string;
@@ -313,18 +382,26 @@ export declare class BZxJS {
     amount: BigNumber;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   requestFaucetToken(params: {
     tokenAddress: string;
     receiverAddress: string;
     getObject: boolean;
     txOpts: Tx;
-  }): Promise<boolean> | TransactionObject<boolean>;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
-  wrapEth(params: { amount: BigNumber; getObject: boolean; txOpts: Tx }): Promise<string> | TransactionObject<string>;
+  wrapEth(params: {
+    amount: BigNumber;
+    getObject: boolean;
+    txOpts: Tx;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
-  unwrapEth(params: { amount: BigNumber; getObject: boolean; txOpts: Tx }): Promise<string> | TransactionObject<string>;
+  unwrapEth(params: {
+    amount: BigNumber;
+    getObject: boolean;
+    txOpts: Tx;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   static generatePseudoRandomSalt(): BigNumber;
 
@@ -332,9 +409,9 @@ export declare class BZxJS {
 
   static toChecksumAddress(address: string): string;
 
-  static getLoanOrderHashHex(order): string;
+  static getLoanOrderHashHex(order: ILoanOrderFillRequest): string;
 
-  static isValidSignature({ account, orderHash, signature }): boolean;
+  static isValidSignature(params: { account: string; orderHash: string; signature: string }): boolean;
 }
 
 export default BZxJS;

@@ -80,7 +80,7 @@ function initWeb3(network) {
         logger.log("error", "Private Key missing from secrets.js file!");
         process.exit();
       }
-      var PrivateKeyProvider = require("truffle-privatekey-provider");
+      const PrivateKeyProvider = require("truffle-privatekey-provider");
       const infuraAuth = secrets.infura_apikey ? `${secrets.infura_apikey}/` : "";
       const privateKey = secrets.private_key[network];
       provider = new PrivateKeyProvider(privateKey, `https://${network}.infura.io/${infuraAuth}`);
@@ -103,7 +103,7 @@ function initWeb3(network) {
 
 async function initBZX(web3) {
   const networkId = await web3.eth.net.getId();
-  return new BZxJS(web3.currentProvider, { networkId });
+  return new BZxJS(web3, { networkId });
 }
 
 async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {

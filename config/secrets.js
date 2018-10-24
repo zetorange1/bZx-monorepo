@@ -1,7 +1,7 @@
 module.exports = {
   infura_apikey: "",
   mnemonic: {
-    testnet: "",
+    testnet: "concert load couple harbor equip island argue ramp clarify fence smart topic",
     b0xnet: "",
     ropsten: "",
     kovan: "",

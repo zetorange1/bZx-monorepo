@@ -28,7 +28,6 @@ export const generatePseudoRandomSalt = () => {
 const getOrderValues = (order, shouldFormatAsStrings) => {
   // Must be strings in production for Web3Utils.soliditySha3 for some reason
   if (shouldFormatAsStrings) {
-    console.log(order);
     return [
       order.loanTokenAmount.toString(),
       order.interestAmount.toString(),
@@ -96,7 +95,7 @@ export const getLoanOrderHashHex = order => {
 };
 
 export const getLoanOrderHashAsync = async ({ web3, networkId }, order) => {
-  const { orderAddresses, orderValues, oracleData } = getLoanOrderHashArgs(order, false);
+  const { orderAddresses, orderValues, oracleData } = getLoanOrderHashArgs(order, true);
   const bZxContract = await getContractInstance(
     web3,
     getContracts(networkId).BZx.abi,
