@@ -17,11 +17,11 @@ const secrets = require("../../config/secrets.js");
 const walletType = "private_key"; // or private_key or ledger
 
 // the gas price to use for liquidation transactions
-const defaultGasPrice = BigNumber(5).times(10 ** 9);
+const defaultGasPrice = BigNumber(12).times(10 ** 9);
 
 // if true, recheck loans on each now block
 // if false, check on an interval set by checkIntervalSecs
-let trackBlocks = true;
+let trackBlocks = false;
 
 // the number of seconds to wait between rechecking each loan
 // if trackBlocks = true, this is ignored
@@ -48,6 +48,8 @@ const logger = winston.createLogger({
 
 // global subscription on
 let blocksSubscription;
+
+let txnsInProgress = {};
 
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -108,9 +110,14 @@ async function initBZX(web3) {
 
 async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
   /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
+  logger.log("info", "Sender account: "+sender);
   for (let i = 0; i < loansObjArray.length; i++) {
     try {
       const {loanOrderHash, trader, loanEndUnixTimestampSec} = loansObjArray[i];
+
+	  if (txnsInProgress[loanOrderHash+trader]) {
+		  continue;
+	  }
 
       const idx = position + i;
       logger.log("info", `${idx} :: loanOrderHash: ${loanOrderHash}`);
@@ -128,7 +135,6 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
 
       const isUnSafe = !BigNumber(currentMarginAmount)
         .dividedBy(1e18)
-        .plus(2) // start reporting "unsafe" when 2% above maintenance threshold
         .gt(maintenanceMarginAmount);
 
       const expireDate = moment(loanEndUnixTimestampSec * 1000).utc();
@@ -160,12 +166,15 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
                 .send(txOpts)
                 .once("transactionHash", hash => {
                   logger.log("info", `\n${idx} :: Transaction submitted. Tx hash: ${hash}`);
+				  txnsInProgress[loanOrderHash+trader] = true;
                 })
                 .then(() => {
                   logger.log("info", `\n${idx} :: Liquidation complete!`);
+				  delete txnsInProgress[loanOrderHash+trader];
                 })
                 .catch(error => {
                   logger.log("error", `\n${idx} :: Liquidation error -> ${error.message}`);
+				  delete txnsInProgress[loanOrderHash+trader];
                 });
             })
             .catch(error => {
@@ -173,9 +182,11 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
                 "error",
                 `\n${idx} :: The transaction is failing. This loan cannot be liquidated at this time -> ${error.message}`
               );
+			  delete txnsInProgress[loanOrderHash+trader];
             });
         } catch (error) {
           logger.log("error", `\n${idx} :: Liquidation error! -> ${error.message}`);
+		  delete txnsInProgress[loanOrderHash+trader];
         }
       } else {
         logger.log("info", `${idx} :: Loan is safe.\n`);
