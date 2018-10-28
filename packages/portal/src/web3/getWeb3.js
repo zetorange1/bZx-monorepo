@@ -31,6 +31,8 @@ const resolveWeb3 = async (resolve, providerName) => {
       if (alreadyInjected) {
         console.log(`Injected web3 detected.`);
         web3 = new Web3(web3.currentProvider);
+        let enabledAccounts = await web3.currentProvider.enable();
+        console.log(`enabledAccounts`, enabledAccounts);
         resolve(web3);
       } else {
         resolve(false);
