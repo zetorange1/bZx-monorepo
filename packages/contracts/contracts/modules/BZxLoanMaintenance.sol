@@ -16,6 +16,7 @@ import "../oracle/OracleInterface.sol";
 
 import "../tokens/EIP20.sol";
 
+// TODO: Function for borrowed token deposit for overcollateralized loans
 
 contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
     using SafeMath for uint256;
@@ -36,6 +37,7 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
         targets[bytes4(keccak256("depositCollateral(bytes32,address,uint256)"))] = _target;
         targets[bytes4(keccak256("withdrawExcessCollateral(bytes32,address,uint256)"))] = _target;
         targets[bytes4(keccak256("changeCollateral(bytes32,address)"))] = _target;
+        targets[bytes4(keccak256("withdrawPosition(bytes32)"))] = _target;
         targets[bytes4(keccak256("withdrawProfit(bytes32)"))] = _target;
         targets[bytes4(keccak256("changeTraderOwnership(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("changeLenderOwnership(bytes32,address)"))] = _target;
@@ -257,6 +259,61 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
         }
 
         return collateralTokenAmountFilled;
+    }
+
+    /// @dev Allows the trader to withdraw some or all of the position token for overcollateralized loans
+    /// @dev The trader will only be able to withdraw an amount the keeps the loan at or above initial margin
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param withdrawAmount The amount of position token withdrawn
+    /// @return True on success
+    function withdrawPosition(
+        bytes32 loanOrderHash,
+        uint withdrawAmount)
+        external
+        nonReentrant
+        tracksGas
+        returns (bool)
+    {
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
+
+        require(withdrawAmount <= loanPosition.positionTokenAmountFilled, "BZxLoanHealth::withdrawPosition: withdrawAmount amount too high");
+
+        uint currentMargin = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getCurrentMarginAmount(
+            loanOrder.loanTokenAddress,
+            loanPosition.positionTokenAddressFilled,
+            loanPosition.collateralTokenAddressFilled,
+            loanPosition.loanTokenAmountFilled,
+            loanPosition.positionTokenAmountFilled,
+            loanPosition.collateralTokenAmountFilled);
+
+        uint initialMarginAmount = loanOrder.initialMarginAmount.mul(10**18);
+        require(currentMargin > initialMarginAmount, "BZxLoanHealth::withdrawPosition: current margin too low");
+
+        uint amountToWithdraw = Math.min256(withdrawAmount, loanPosition.positionTokenAmountFilled.sub(loanPosition.positionTokenAmountFilled.mul(initialMarginAmount).div(currentMargin)));
+
+        // transfer the position token to the trader
+        if (! BZxVault(vaultContract).withdrawToken(
+            loanPosition.positionTokenAddressFilled,
+            msg.sender,
+            amountToWithdraw
+        )) {
+            revert("BZxLoanHealth::withdrawProfit: BZxVault.withdrawToken loan failed");
+        }
+
+        // deduct amountToWithdraw from positionToken balance
+        loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(amountToWithdraw);
+
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didWithdrawPosition(
+            loanOrder,
+            loanPosition,
+            amountToWithdraw,
+            gasUsed // initial used gas, collected in modifier
+        )) {
+            revert("BZxLoanHealth::withdrawProfit: OracleInterface.didWithdrawPosition failed");
+        }
+
+        return true;
     }
 
     /// @dev Allows the trader to withdraw their profits, if any.

@@ -145,6 +145,20 @@ contract OracleInterface {
         public
         returns (bool);
 
+    /// @dev Called by bZx after a borrower has withdrawn their some or all of their overcollateralized loan
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
+    /// @param withdrawAmount The amount of position token withdrawn
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
+    /// @return Successful execution of the function
+    function didWithdrawPosition(
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
+        uint withdrawAmount,
+        uint gasUsed)
+        public
+        returns (bool);
+
     /// @dev Called by bZx after a loan is partially closed
     /// @param loanOrder The loanOrder object
     /// @param loanPosition The loanPosition object

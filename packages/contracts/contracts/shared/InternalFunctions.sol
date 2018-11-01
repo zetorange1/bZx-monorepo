@@ -212,12 +212,14 @@ contract InternalFunctions is BZxStorage {
         internal
         returns (uint destTokenAmountReceived, uint positionTokenAmountUsed)
     {
-        // transfer the current position token to the Oracle contract
-        if (!BZxVault(vaultContract).withdrawToken(
-            loanPosition.positionTokenAddressFilled,
-            oracleAddresses[loanOrder.oracleAddress],
-            loanPosition.positionTokenAmountFilled)) {
-            revert("InternalFunctions::_tradePositionWithOracle: BZxVault.withdrawToken failed");
+        if (loanPosition.positionTokenAmountFilled > 0) {
+            // transfer the current position token to the Oracle contract
+            if (!BZxVault(vaultContract).withdrawToken(
+                loanPosition.positionTokenAddressFilled,
+                oracleAddresses[loanOrder.oracleAddress],
+                loanPosition.positionTokenAmountFilled)) {
+                revert("InternalFunctions::_tradePositionWithOracle: BZxVault.withdrawToken failed");
+            }
         }
 
         if (isLiquidation && block.timestamp < loanPosition.loanEndUnixTimestampSec) { // checks for non-expired loan

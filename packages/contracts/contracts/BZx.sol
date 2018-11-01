@@ -40,6 +40,26 @@ contract BZx is BZxStorage {
         external
         returns (uint);
 
+    /// @dev Takes the order as trader, overcollateralizes the loan, and withdraws the loan token to the trader's wallet
+    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress.
+    /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), and salt.
+    /// @param oracleData An arbitrary length bytes stream to pass to the oracle.
+    /// @param collateralTokenFilled Desired address of the collateralTokenAddress the trader wants to use.
+    /// @param loanTokenAmountFilled Desired amount of loanToken the trader wants to borrow.
+    /// @param signature ECDSA signature in raw bytes (rsv).
+    /// @return Total amount of loanToken borrowed (uint).
+    /// @dev Traders can take a portion of the total coin being lended (loanTokenAmountFilled).
+    /// @dev Traders also specify the token that will fill the margin requirement if they are taking the order.
+    function takeLoanOrderAsTraderAndWithdraw(
+        address[6] orderAddresses,
+        uint[10] orderValues,
+        bytes oracleData,
+        address collateralTokenFilled,
+        uint loanTokenAmountFilled,
+        bytes signature)
+        external
+        returns (uint);
+
     /// @dev Takes the order as lender
     /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), and salt.
@@ -76,6 +96,18 @@ contract BZx is BZxStorage {
     /// @dev Traders can take a portion of the total coin being lended (loanTokenAmountFilled).
     /// @dev Traders also specify the token that will fill the margin requirement if they are taking the order.
     function takeLoanOrderOnChainAsTrader(
+        bytes32 loanOrderHash,
+        address collateralTokenFilled,
+        uint loanTokenAmountFilled)
+        external
+        returns (uint);
+
+    /// @dev Takes the order as trader that's already pushed on chain, overcollateralizes the loan, and withdraws the loan token to the trader's wallet
+    /// @param loanOrderHash A unique hash representing the loan order.
+    /// @return Total amount of loanToken borrowed (uint).
+    /// @dev Traders can take a portion of the total coin being lended (loanTokenAmountFilled).
+    /// @dev Traders also specify the token that will fill the margin requirement if they are taking the order.
+    function takeLoanOrderOnChainAsTraderAndWithdraw(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
         uint loanTokenAmountFilled)
@@ -364,6 +396,17 @@ contract BZx is BZxStorage {
         address collateralTokenFilled)
         external
         returns (uint collateralTokenAmountFilled);
+
+    /// @dev Allows the trader to withdraw some or all of the position token for overcollateralized loans
+    /// @dev The trader will only be able to withdraw an amount the keeps the loan at or above initial margin
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param withdrawAmount The amount of position token withdrawn
+    /// @return True on success
+    function withdrawPosition(
+        bytes32 loanOrderHash,
+        uint withdrawAmount)
+        external
+        returns (bool);
 
     /// @dev Allows the trader to withdraw their profits, if any.
     /// @dev Profits are paid out from the current positionToken.

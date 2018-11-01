@@ -30,6 +30,7 @@ contract BZxOrderTakingOnChain is BZxStorage, BZxProxiable, OrderTakingFunctions
     {
         targets[bytes4(keccak256("pushLoanOrderOnChain(address[6],uint256[10],bytes,bytes)"))] = _target;
         targets[bytes4(keccak256("takeLoanOrderOnChainAsTrader(bytes32,address,uint256)"))] = _target;
+        targets[bytes4(keccak256("takeLoanOrderOnChainAsTraderAndWithdraw(bytes32,address,uint256)"))] = _target;
         targets[bytes4(keccak256("takeLoanOrderOnChainAsLender(bytes32)"))] = _target;
         targets[bytes4(keccak256("preSign(address,address[6],uint256[10],bytes,bytes)"))] = _target;
         targets[bytes4(keccak256("preSignWithHash(address,bytes32,bytes)"))] = _target;
@@ -90,7 +91,31 @@ contract BZxOrderTakingOnChain is BZxStorage, BZxProxiable, OrderTakingFunctions
             loanOrderHash,
             collateralTokenFilled,
             loanTokenAmountFilled,
-            1 // takerRole
+            1, // takerRole
+            false // withdraw loan token
+        );
+    }
+
+    /// @dev Takes the order as trader that's already pushed on chain, overcollateralizes the loan, and withdraws the loan token to the trader's wallet
+    /// @param loanOrderHash A unique hash representing the loan order.
+    /// @return Total amount of loanToken borrowed (uint).
+    /// @dev Traders can take a portion of the total coin being lended (loanTokenAmountFilled).
+    /// @dev Traders also specify the token that will fill the margin requirement if they are taking the order.
+    function takeLoanOrderOnChainAsTraderAndWithdraw(
+        bytes32 loanOrderHash,
+        address collateralTokenFilled,
+        uint loanTokenAmountFilled)
+        external
+        nonReentrant
+        tracksGas
+        returns (uint)
+    {
+        return _takeLoanOrder(
+            loanOrderHash,
+            collateralTokenFilled,
+            loanTokenAmountFilled,
+            1, // takerRole
+            true // withdraw loan token
         );
     }
 
@@ -111,7 +136,8 @@ contract BZxOrderTakingOnChain is BZxStorage, BZxProxiable, OrderTakingFunctions
             loanOrderHash,
             orders[loanOrderHash].collateralTokenAddress,
             orders[loanOrderHash].loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrderHash)),
-            0 // takerRole
+            0, // takerRole
+            false // withdraw loan token
         );
     }
 

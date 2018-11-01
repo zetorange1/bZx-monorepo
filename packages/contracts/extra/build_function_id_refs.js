@@ -4,6 +4,9 @@ console.log("\nBZxOrderTaking functions");
 getFuncId(
   "takeLoanOrderAsTrader(address[6],uint256[10],bytes,address,uint256,bytes)"
 );
+getFuncId(
+  "takeLoanOrderAsTraderAndWithdraw(address[6],uint256[10],bytes,address,uint256,bytes)"
+);
 getFuncId("takeLoanOrderAsLender(address[6],uint256[10],bytes,bytes)");
 getFuncId("cancelLoanOrder(address[6],uint256[10],bytes,uint256)");
 getFuncId("cancelLoanOrder(bytes32,uint256)");
@@ -11,6 +14,7 @@ getFuncId("cancelLoanOrder(bytes32,uint256)");
 console.log("\nBZxOrderTakingOnChain functions");
 getFuncId("pushLoanOrderOnChain(address[6],uint256[10],bytes,bytes)");
 getFuncId("takeLoanOrderOnChainAsTrader(bytes32,address,uint256)");
+getFuncId("takeLoanOrderOnChainAsTraderAndWithdraw(bytes32,address,uint256)");
 getFuncId("takeLoanOrderOnChainAsLender(bytes32)");
 getFuncId("preSign(address,address[6],uint256[10],bytes,bytes)");
 getFuncId("preSignWithHash(address,bytes32,bytes)");
@@ -42,6 +46,7 @@ console.log("\nBZxLoanMaintenance functions");
 getFuncId("depositCollateral(bytes32,address,uint256)");
 getFuncId("withdrawExcessCollateral(bytes32,address,uint256)");
 getFuncId("changeCollateral(bytes32,address)");
+getFuncId("withdrawPosition(bytes32)");
 getFuncId("withdrawProfit(bytes32)");
 getFuncId("changeTraderOwnership(bytes32,address)");
 getFuncId("changeLenderOwnership(bytes32,address)");
