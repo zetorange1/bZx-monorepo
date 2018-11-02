@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.4.25;
 
 import "./MultiSigWallet.sol";
 
