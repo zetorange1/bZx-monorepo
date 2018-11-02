@@ -9,15 +9,15 @@ var OracleRegistry = artifacts.require("OracleRegistry");
 var WETH = artifacts.require("WETHInterface");
 var EIP20 = artifacts.require("EIP20");
 
-
-var config = require("../protocol-config.js");
+const path = require("path");
+const config = require("../protocol-config.js");
 
 const OLD_ORACLE_ADDRESS = "";
 
-module.exports = function(deployer, network, accounts) {
-  network = network.replace("-fork", "");
-  if (network == "develop" || network == "testnet" || network == "coverage")
+module.exports = (deployer, network, accounts) => {
+  if (network == "develop" || network == "testnet" || network == "coverage") {
     network = "development";
+  }
 
   if (network == "mainnet" || network == "ropsten") {
     BZxOracle = artifacts.require("BZxOracle");
@@ -26,12 +26,7 @@ module.exports = function(deployer, network, accounts) {
   }
 
   var bzrx_token_address;
-  if (
-    network == "mainnet" ||
-    network == "ropsten" ||
-    network == "kovan" ||
-    network == "rinkeby"
-  ) {
+  if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {
     //bzrx_token_address = config["addresses"][network]["BZRXToken"];
     bzrx_token_address = BZRxToken.address;
   } else {
@@ -40,10 +35,10 @@ module.exports = function(deployer, network, accounts) {
 
   if (bzrx_token_address) {
     // ensure deployed protocol token
-    
+
     let valueAmount = "0";
     if (!OLD_ORACLE_ADDRESS) {
-      valueAmount = web3.toWei(1, "ether");
+      valueAmount = web3.utils.toWei("1", "ether");
     }
 
     deployer
@@ -79,21 +74,23 @@ module.exports = function(deployer, network, accounts) {
         if (OLD_ORACLE_ADDRESS) {
           var CURRENT_OLD_ORACLE_ADDRESS = await oracleRegistry.oracleAddresses(0);
           var bZxOracleOld = await BZxOracle.at(CURRENT_OLD_ORACLE_ADDRESS);
-          
+
           /*await bZxOracleOld.transferEther(
             oracleAddress,
-            web3.toWei(10000000, "ether")
+            web3.utils.toWei(10000000, "ether")
           );*/
           var oldWETHBalance = await wethT.balanceOf(bZxOracleOld.address);
           if (oldWETHBalance.toNumber() !== 0) {
             await bZxOracleOld.transferToken(wethT.address, oracleAddress, oldWETHBalance);
           }
-          
+
           await oracleRegistry.removeOracle(CURRENT_OLD_ORACLE_ADDRESS, 0);
           await bZxProxy.setOracleReference(OLD_ORACLE_ADDRESS, oracleAddress);
         }
 
         await oracleRegistry.addOracle(oracleAddress, "bZxOracle");
+
+        console.log(`   > [${parseInt(path.basename(__filename))}] BZxOracle deploy: #done`);
       });
   }
 };

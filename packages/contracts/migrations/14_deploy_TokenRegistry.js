@@ -1,17 +1,11 @@
 var TokenRegistry = artifacts.require("TokenRegistry");
-
 var BZRxToken = artifacts.require("BZRxToken");
 
-var config = require("../protocol-config.js");
+const path = require("path");
+const config = require("../protocol-config.js");
 
-module.exports = function(deployer, network, accounts) {
-  network = network.replace("-fork", "");
-  if (
-    network == "develop" ||
-    network == "development" ||
-    network == "testnet" ||
-    network == "coverage"
-  )
+module.exports = (deployer, network, accounts) => {
+  if (network == "develop" || network == "development" || network == "testnet" || network == "coverage")
     network = "development";
   else {
     // comment out if we need to deploy to other networks
@@ -23,18 +17,12 @@ module.exports = function(deployer, network, accounts) {
 
   deployer.deploy(TokenRegistry).then(async function(registry) {
     var bzrx_token;
-    if (
-      network == "mainnet" ||
-      network == "ropsten" ||
-      network == "kovan" ||
-      network == "rinkeby"
-    ) {
-      bzrx_token = await BZRxToken.at(
-        config["addresses"][network]["BZRXToken"]
-      );
+    if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {
+      bzrx_token = await BZRxToken.at(config["addresses"][network]["BZRXToken"]);
     } else {
       bzrx_token = await BZRxToken.deployed();
     }
+
     var bzrx_token_name = await bzrx_token.name.call();
     var bzrx_token_symbol = await bzrx_token.symbol.call();
 
@@ -66,8 +54,6 @@ module.exports = function(deployer, network, accounts) {
       "data:image/jpeg;base64,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"
     );
 
-    web3.eth.getBalance(accounts[0], function(error, balance) {
-      console.log("migrations :: final balance: " + balance);
-    });
+    console.log(`   > [${parseInt(path.basename(__filename))}] TokenRegistry deploy: #done`);
   });
 };

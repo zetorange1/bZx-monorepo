@@ -1,30 +1,28 @@
-//const DEPOSIT_BZRX = false;
-
 var TestNetFaucet = artifacts.require("TestNetFaucet");
 var TestNetOracle = artifacts.require("TestNetOracle");
 
-/*var BZRxToken = artifacts.require("BZRxToken");
-var TestNetBZRxToken = artifacts.require("TestNetBZRxToken");*/
+//const DEPOSIT_BZRX = false;
+//var BZRxToken = artifacts.require("BZRxToken");
+//var TestNetBZRxToken = artifacts.require("TestNetBZRxToken");
 
-var config = require("../protocol-config.js");
+const path = require("path");
+const config = require("../protocol-config.js");
 
-module.exports = function(deployer, network, accounts) {
-  network = network.replace("-fork", "");
-  if (network == "mainnet") return;
+module.exports = (deployer, network, accounts) => {
+  if (network == "mainnet") {
+    return;
+  }
 
-  if (
-    network == "develop" ||
-    network == "development" ||
-    network == "testnet" ||
-    network == "coverage"
-  )
+  if (network == "develop" || network == "development" || network == "testnet" || network == "coverage") {
     network = "development";
-  else {
+  } else {
     // comment out if we need to deploy to other networks
     return;
   }
 
-  deployer.deploy(TestNetFaucet).then(async function(testNetFaucet) {
+  deployer.then(async () => {
+    let testNetFaucet = await deployer.deploy(TestNetFaucet);
+
     if (network != "ropsten" && network != "mainnet") {
       var oracle = await TestNetOracle.deployed();
       await oracle.setFaucetContractAddress(testNetFaucet.address);
@@ -43,8 +41,10 @@ module.exports = function(deployer, network, accounts) {
 
       await bzrx_token.transfer(
         testNetFaucet.address,
-        web3.toWei(100000000000000000, "ether")
+        web3.utils.toWei(100000000000000000, "ether")
       );
     }*/
+
+    console.log(`   > [${parseInt(path.basename(__filename))}] TestNetFaucet deploy: #done`);
   });
 };

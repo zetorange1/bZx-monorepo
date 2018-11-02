@@ -1,32 +1,30 @@
 var BZxProxy = artifacts.require("BZxProxy");
 var BZxProxySettings = artifacts.require("BZxProxySettings");
-
 var BZRxToken = artifacts.require("BZRxToken");
 var BZxVault = artifacts.require("BZxVault");
 var OracleRegistry = artifacts.require("OracleRegistry");
 var BZxTo0x = artifacts.require("BZxTo0x");
 var BZxTo0xV2 = artifacts.require("BZxTo0xV2");
 
-var config = require("../protocol-config.js");
+const config = require("../protocol-config.js");
+const path = require("path");
 
-module.exports = function(deployer, network, accounts) {
-  network = network.replace("-fork", "");
-  if (network == "develop" || network == "testnet" || network == "coverage")
+module.exports = (deployer, network, accounts) => {
+  if (network == "develop" || network == "testnet" || network == "coverage") {
     network = "development";
+  }
 
-  deployer.deploy(BZxProxySettings).then(async function() {
+  deployer.then(async () => {
+    await deployer.deploy(BZxProxySettings);
 
     await deployer.deploy(BZxProxy, BZxProxySettings.address);
+
     var bZxProxy = await BZxProxySettings.at(BZxProxy.address);
-     
+
     var bZRxToken;
     var bzrx_token_address;
-    if (
-      network == "mainnet" ||
-      network == "ropsten" ||
-      network == "kovan" ||
-      network == "rinkeby"
-    ) {
+
+    if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {
       bzrx_token_address = config["addresses"][network]["BZRXToken"];
     } else {
       bZRxToken = await BZRxToken.deployed();
@@ -51,5 +49,7 @@ module.exports = function(deployer, network, accounts) {
 
     var bZxTo0xV2 = await BZxTo0xV2.deployed();
     await bZxTo0xV2.transferBZxOwnership(bZxProxy.address);
+
+    console.log(`   > [${parseInt(path.basename(__filename))}] BZx deploy/setup: #done`);
   });
 };

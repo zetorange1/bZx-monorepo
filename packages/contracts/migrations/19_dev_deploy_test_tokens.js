@@ -12,16 +12,11 @@ var TestToken7 = artifacts.require("TestToken7");
 var TestToken8 = artifacts.require("TestToken8");
 var TestToken9 = artifacts.require("TestToken9");
 
-module.exports = function(deployer, network, accounts) {
-  network = network.replace("-fork", "");
+const path = require("path");
 
+module.exports = (deployer, network, accounts) => {
   //if (true) return;
-  if (
-    network == "develop" ||
-    network == "development" ||
-    network == "testnet" ||
-    network == "coverage"
-  )
+  if (network == "develop" || network == "development" || network == "testnet" || network == "coverage")
     network = "development";
   else {
     // comment out if we need to deploy to other networks
@@ -64,11 +59,10 @@ module.exports = function(deployer, network, accounts) {
         await registry.addToken(token.address, name, symbol, 18, "");
 
         // transfer a large amount to faucet
-        await token.transfer(
-          faucet.address,
-          web3.toWei(100000000000000000, "ether")
-        );
+        await token.transfer(faucet.address, web3.utils.toWei("100000000000000000", "ether"));
       }
+
+      console.log(`   > [${parseInt(path.basename(__filename))}] Test Tokens deploy: #done`);
     });
   }
 };
