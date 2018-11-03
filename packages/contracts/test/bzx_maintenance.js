@@ -8,11 +8,8 @@ const BZxTo0xV2 = artifacts.require("BZxTo0xV2");
 const Exchange0xV2 = artifacts.require("ExchangeV2InterfaceWithEvents");
 const ZeroExV2Helper = artifacts.require("ZeroExV2Helper");
 
-const BigNumber = require("bignumber.js");
 const BN = require("bn.js");
-const { Interface, providers, Contract } = require("ethers");
 
-import Web3Utils from "web3-utils";
 import {
     assetDataUtils,
     signatureUtils,
@@ -25,7 +22,7 @@ var config = require("../protocol-config.js");
 const Reverter = require("./utils/reverter");
 const utils = require("./utils/utils.js");
 
-const MAX_UINT = new BigNumber(2).pow(256).minus(1).toString();
+const MAX_UINT = (new BN(2)).pow(new BN(256)).sub(new BN(1));
 
 const SignatureType = Object.freeze({
     Illegal: 0,
@@ -37,7 +34,7 @@ const SignatureType = Object.freeze({
     PreSigned: 6
 });
 
-contract("BZxTest: ownership transfer", function(accounts) {
+contract("BZxLoanMaintenance", function(accounts) {
     let reverter = new Reverter(web3);
     var bZx;
     var vault;
@@ -94,48 +91,48 @@ contract("BZxTest: ownership transfer", function(accounts) {
         interestToken2 = test_tokens[5];
         maker0xV2Token1 = test_tokens[7];
 
-        await loanToken1.transfer(lender1, web3.toWei(1000000, "ether"));
-        await loanToken2.transfer(lender2, web3.toWei(1000000, "ether"));
+        await loanToken1.transfer(lender1, utils.toWei(1000000, "ether"));
+        await loanToken2.transfer(lender2, utils.toWei(1000000, "ether"));
         await loanToken1.approve(vault.address, MAX_UINT, { from: lender1 });
         await loanToken2.approve(vault.address, MAX_UINT, { from: lender2 });
-        await collateralToken1.transfer(trader1, web3.toWei(1000000, "ether"));
-        await collateralToken1.transfer(trader2, web3.toWei(1000000, "ether"));
-        await collateralToken2.transfer(trader1, web3.toWei(1000000, "ether"));
-        await collateralToken2.transfer(trader2, web3.toWei(1000000, "ether"));
+        await collateralToken1.transfer(trader1, utils.toWei(1000000, "ether"));
+        await collateralToken1.transfer(trader2, utils.toWei(1000000, "ether"));
+        await collateralToken2.transfer(trader1, utils.toWei(1000000, "ether"));
+        await collateralToken2.transfer(trader2, utils.toWei(1000000, "ether"));
         await collateralToken1.approve(vault.address, MAX_UINT, {from: trader1});
         await collateralToken1.approve(vault.address, MAX_UINT, {from: trader2});
         await collateralToken2.approve(vault.address, MAX_UINT, {from: trader1});
         await collateralToken2.approve(vault.address, MAX_UINT, {from: trader2});
-        await interestToken1.transfer(trader1, web3.toWei(1000000, "ether"));
-        await interestToken1.transfer(trader2, web3.toWei(1000000, "ether"));
-        await interestToken2.transfer(trader1, web3.toWei(1000000, "ether"));
-        await interestToken2.transfer(trader2, web3.toWei(1000000, "ether"));
-        await interestToken1.transfer(strangerTrader, web3.toWei(1000000, "ether"));
-        await interestToken1.transfer(strangerLender, web3.toWei(1000000, "ether"));
+        await interestToken1.transfer(trader1, utils.toWei(1000000, "ether"));
+        await interestToken1.transfer(trader2, utils.toWei(1000000, "ether"));
+        await interestToken2.transfer(trader1, utils.toWei(1000000, "ether"));
+        await interestToken2.transfer(trader2, utils.toWei(1000000, "ether"));
+        await interestToken1.transfer(strangerTrader, utils.toWei(1000000, "ether"));
+        await interestToken1.transfer(strangerLender, utils.toWei(1000000, "ether"));
         await interestToken1.approve(vault.address, MAX_UINT, { from: trader1 });
         await interestToken1.approve(vault.address, MAX_UINT, { from: trader2 });
         await interestToken1.approve(vault.address, MAX_UINT, { from: strangerTrader });
         await interestToken1.approve(vault.address, MAX_UINT, { from: strangerLender});
         await interestToken2.approve(vault.address, MAX_UINT, { from: trader1 });
         await interestToken2.approve(vault.address, MAX_UINT, { from: trader2 });
-        await maker0xV2Token1.transfer(maker1, web3.toWei(10000, "ether"));
-        await maker0xV2Token1.transfer(maker2, web3.toWei(10000, "ether"));
+        await maker0xV2Token1.transfer(maker1, utils.toWei(10000, "ether"));
+        await maker0xV2Token1.transfer(maker2, utils.toWei(10000, "ether"));
         await maker0xV2Token1.approve(config["addresses"]["development"]["ZeroEx"]["ERC20Proxy"],MAX_UINT,{ from: maker1 });
         await maker0xV2Token1.approve(config["addresses"]["development"]["ZeroEx"]["ERC20Proxy"],MAX_UINT,{ from: maker2 });
-        await zrx_token.transfer(trader1, web3.toWei(10000, "ether"));
-        await zrx_token.transfer(trader2, web3.toWei(10000, "ether"));
+        await zrx_token.transfer(trader1, utils.toWei(10000, "ether"));
+        await zrx_token.transfer(trader2, utils.toWei(10000, "ether"));
         await zrx_token.approve(bZxTo0xV2.address, MAX_UINT, { from: trader1 });
         await zrx_token.approve(bZxTo0xV2.address, MAX_UINT, { from: trader2 });
-        await zrx_token.transfer(maker1, web3.toWei(10000, "ether"));
-        await zrx_token.transfer(maker2, web3.toWei(10000, "ether"));
+        await zrx_token.transfer(maker1, utils.toWei(10000, "ether"));
+        await zrx_token.transfer(maker2, utils.toWei(10000, "ether"));
         await zrx_token.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"],MAX_UINT,{ from: maker1 });
         await zrx_token.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"],MAX_UINT,{ from: maker2 });
         await zrx_token.approve(config["addresses"]["development"]["ZeroEx"]["ERC20Proxy"],MAX_UINT,{ from: maker1 });
         await zrx_token.approve(config["addresses"]["development"]["ZeroEx"]["ERC20Proxy"],MAX_UINT,{ from: maker2 });
 
-        assert.isTrue((await loanToken1.balanceOf.call(lender1)).eq(web3.toWei(1000000, "ether")));
-        assert.isTrue((await collateralToken1.balanceOf.call(trader1)).eq(web3.toWei(1000000, "ether")));
-        assert.isTrue((await interestToken1.balanceOf.call(trader1)).eq(web3.toWei(1000000, "ether")));
+        assert.isTrue((await loanToken1.balanceOf.call(lender1)).eq(utils.toWei(1000000, "ether")));
+        assert.isTrue((await collateralToken1.balanceOf.call(trader1)).eq(utils.toWei(1000000, "ether")));
+        assert.isTrue((await interestToken1.balanceOf.call(trader1)).eq(utils.toWei(1000000, "ether")));
 
         assert.isTrue((await loanToken1.allowance.call(lender1, vault.address)).eq(MAX_UINT));
         assert.isTrue((await collateralToken1.allowance.call(trader1, vault.address)).eq(MAX_UINT));
@@ -151,12 +148,12 @@ contract("BZxTest: ownership transfer", function(accounts) {
         });
 
         before("init off-chain `trader` loan", async () => {
-            order = generateTraderOrder();
+            order = await generateTraderOrder();
 
             orderHash = await bZx.getLoanOrderHash.call(
                 orderAddresses(order),
                 orderValues(order),
-        		"" // oracleData
+        		"0x00" // oracleData
             );
 
             let signature = await sign(lender1, orderHash);
@@ -164,9 +161,9 @@ contract("BZxTest: ownership transfer", function(accounts) {
             await bZx.takeLoanOrderAsTrader(
                 orderAddresses(order),
                 orderValues(order),
-                "", // oracleData
+                "0x00", // oracleData
                 collateralToken1.address,
-                web3.toWei(12.3, "ether"),
+                utils.toWei(12.3, "ether"),
                 signature,
                 {from: trader1}
             );
@@ -217,12 +214,12 @@ contract("BZxTest: ownership transfer", function(accounts) {
         });
 
         before("init off-chain `lender` loan", async () => {
-            order = generateLenderOrder();
+            order = await generateLenderOrder();
 
             orderHash = await bZx.getLoanOrderHash.call(
                 orderAddresses(order),
                 orderValues(order),
-        		"" // oracleData
+        		"0x00" // oracleData
             );
 
             let signature = await sign(trader2, orderHash);
@@ -230,7 +227,7 @@ contract("BZxTest: ownership transfer", function(accounts) {
             await bZx.takeLoanOrderAsLender(
                 orderAddresses(order),
                 orderValues(order),
-                "", // oracleData
+                "0x00", // oracleData
                 signature,
                 {from: lender2}
             );
@@ -277,12 +274,12 @@ contract("BZxTest: ownership transfer", function(accounts) {
         });
 
         before("init 'trader' on-chain loan", async () => {
-            order = generateTraderOrder();
+            order = await generateTraderOrder();
 
             orderHash = await bZx.getLoanOrderHash.call(
                 orderAddresses(order),
                 orderValues(order),
-        		"" // oracleData
+        		"0x00" // oracleData
             );
 
             let signature = await sign(lender1, orderHash);
@@ -290,7 +287,7 @@ contract("BZxTest: ownership transfer", function(accounts) {
             await bZx.pushLoanOrderOnChain(
                 orderAddresses(order),
                 orderValues(order),
-                "", // oracleData
+                "0x00", // oracleData
                 signature,
                 {from: maker2}
             );
@@ -298,7 +295,7 @@ contract("BZxTest: ownership transfer", function(accounts) {
             await bZx.takeLoanOrderOnChainAsTrader(
                 orderHash,
                 collateralToken1.address,
-                web3.toWei(20, "ether"),
+                utils.toWei(20, "ether"),
                 {from: trader2}
             );
         });
@@ -342,12 +339,12 @@ contract("BZxTest: ownership transfer", function(accounts) {
         });
 
         before("init `lender` on-chain loan", async () => {
-            order = generateLenderOrder();
+            order = await generateLenderOrder();
 
             orderHash = await bZx.getLoanOrderHash.call(
                 orderAddresses(order),
                 orderValues(order),
-        		"" // oracleData
+        		"0x00" // oracleData
             );
 
             let signature = await sign(trader2, orderHash);
@@ -355,7 +352,7 @@ contract("BZxTest: ownership transfer", function(accounts) {
             await bZx.pushLoanOrderOnChain(
                 orderAddresses(order),
                 orderValues(order),
-                "", // oracleData
+                "0x00", // oracleData
                 signature,
                 {from: maker1}
             );
@@ -402,12 +399,12 @@ contract("BZxTest: ownership transfer", function(accounts) {
         });
 
         before("init on-chain `trader` loan with presign", async () => {
-            order = generateTraderOrder();
+            order = await generateTraderOrder();
 
             orderHash = await bZx.getLoanOrderHash.call(
                 orderAddresses(order),
                 orderValues(order),
-        		"" // oracleData
+        		"0x00" // oracleData
             );
 
             let signature = "0x"+"00".repeat(65)+"06"; // SignatureType == PreSigned (null-padded to 66 bytes)
@@ -416,7 +413,7 @@ contract("BZxTest: ownership transfer", function(accounts) {
                 order["makerAddress"],
                 orderAddresses(order),
                 orderValues(order),
-                "", // oracleData
+                "0x00", // oracleData
                 signature,
                 {from: order["makerAddress"]}
             );
@@ -424,7 +421,7 @@ contract("BZxTest: ownership transfer", function(accounts) {
             await bZx.pushLoanOrderOnChain(
                 orderAddresses(order),
                 orderValues(order),
-                "", // oracleData
+                "0x00", // oracleData
                 signature,
                 {from: maker2}
             );
@@ -432,7 +429,7 @@ contract("BZxTest: ownership transfer", function(accounts) {
             await bZx.takeLoanOrderOnChainAsTrader(
                 orderHash,
                 collateralToken1.address,
-                web3.toWei(20, "ether"),
+                utils.toWei(20, "ether"),
                 {from: trader2}
             );
         });
@@ -476,12 +473,12 @@ contract("BZxTest: ownership transfer", function(accounts) {
         });
 
         before("init on-chain `lender` loan with presign", async () => {
-            order = generateLenderOrder();
+            order = await generateLenderOrder();
 
             orderHash = await bZx.getLoanOrderHash.call(
                 orderAddresses(order),
                 orderValues(order),
-        		"" // oracleData
+        		"0x00" // oracleData
             );
 
             let signature = "0x"+"00".repeat(65)+"06"; // SignatureType == PreSigned (null-padded to 66 bytes)
@@ -496,7 +493,7 @@ contract("BZxTest: ownership transfer", function(accounts) {
             await bZx.pushLoanOrderOnChain(
                 orderAddresses(order),
                 orderValues(order),
-                "", // oracleData
+                "0x00", // oracleData
                 signature,
                 { from: maker1 }
             );
@@ -597,7 +594,7 @@ contract("BZxTest: ownership transfer", function(accounts) {
     }
 
     let sign = async (signer, data) => {
-        let signature = web3.eth.sign(signer, data) + toHex(SignatureType.EthSign);
+        let signature = await web3.eth.sign(data, signer) + toHex(SignatureType.EthSign);
         assert.isOk(await bZx.isValidSignature.call(signer, data, signature));
         return signature;
     };
@@ -628,7 +625,7 @@ contract("BZxTest: ownership transfer", function(accounts) {
         ]
     }
 
-    let generateLenderOrder = () => {
+    let generateLenderOrder = async () => {
         let lenderOrder = {
             bZxAddress: bZx.address,
             makerAddress: trader2, // lender
@@ -637,14 +634,14 @@ contract("BZxTest: ownership transfer", function(accounts) {
             collateralTokenAddress: collateralToken2.address,
             feeRecipientAddress: utils.zeroAddress,
             oracleAddress: oracle.address,
-            loanTokenAmount: web3.toWei(100000, "ether").toString(),
-            interestAmount: web3.toWei(2, "ether").toString(), // 2 token units per day
+            loanTokenAmount: utils.toWei(100000, "ether").toString(),
+            interestAmount: utils.toWei(2, "ether").toString(), // 2 token units per day
             initialMarginAmount: "50", // 50%
             maintenanceMarginAmount: "25", // 25%
-            lenderRelayFee: web3.toWei(0.001, "ether").toString(),
-            traderRelayFee: web3.toWei(0.0015, "ether").toString(),
+            lenderRelayFee: utils.toWei(0.001, "ether").toString(),
+            traderRelayFee: utils.toWei(0.0015, "ether").toString(),
             maxDurationUnixTimestampSec: "2419200", // 28 days
-            expirationUnixTimestampSec: (web3.eth.getBlock("latest").timestamp + 86400).toString(),
+            expirationUnixTimestampSec: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
             makerRole: "1", // 0=lender, 1=trader
             salt: generatePseudoRandomSalt().toString()
         }
@@ -652,7 +649,7 @@ contract("BZxTest: ownership transfer", function(accounts) {
         return lenderOrder;
     }
 
-    let generateTraderOrder = () => {
+    let generateTraderOrder = async () => {
         let traderOrder = {
             bZxAddress: bZx.address,
             makerAddress: lender1, // lender
@@ -661,14 +658,14 @@ contract("BZxTest: ownership transfer", function(accounts) {
             collateralTokenAddress: utils.zeroAddress,
             feeRecipientAddress: utils.zeroAddress,
             oracleAddress: oracle.address,
-            loanTokenAmount: web3.toWei(100000, "ether").toString(),
-            interestAmount: web3.toWei(2, "ether").toString(), // 2 token units per day
+            loanTokenAmount: utils.toWei(100000, "ether").toString(),
+            interestAmount: utils.toWei(2, "ether").toString(), // 2 token units per day
             initialMarginAmount: "50", // 50%
             maintenanceMarginAmount: "5", // 25%
-            lenderRelayFee: web3.toWei(0.001, "ether").toString(),
-            traderRelayFee: web3.toWei(0.0015, "ether").toString(),
+            lenderRelayFee: utils.toWei(0.001, "ether").toString(),
+            traderRelayFee: utils.toWei(0.0015, "ether").toString(),
             maxDurationUnixTimestampSec: "2419200", // 28 days
-            expirationUnixTimestampSec: (web3.eth.getBlock("latest").timestamp + 86400).toString(),
+            expirationUnixTimestampSec: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
             makerRole: "0", // 0=lender, 1=trader
             salt: generatePseudoRandomSalt().toString()
         }

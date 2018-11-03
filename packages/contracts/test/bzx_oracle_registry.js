@@ -154,13 +154,15 @@ contract("OracleRegistry", function(accounts) {
     });
 
     it("should fail if oracle does not exist", async () => {
-      try {
-        await oracleRegistry.setOracleName("0x1", "name_upd1");
+      let unregisteredOracle = accounts[9];
+      
+      try {        
+        await oracleRegistry.setOracleName(unregisteredOracle, "name_upd1");
         assert.isTrue(false);
       } catch (e) {
         utils.ensureException(e);
       }
-      await ensureOracleDoesNotExist("0x1", "name_upd1");
+      await ensureOracleDoesNotExist(unregisteredOracle, "name_upd1");
     });
 
     it("should fail if oracle's name is not unique", async () => {
