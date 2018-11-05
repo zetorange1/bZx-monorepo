@@ -1203,9 +1203,9 @@ contract("BZxTest", function(accounts) {
 
       let sendTokens = vaultInitialBalance.sub(vaultBalance);
 
-      assert.equal(amountPaid.toString(), receivedTokens.toString());
-      assert.equal(amountPaid.toString(), sendTokens.toString());
-      assert.equal(amountPaid.toString(), interest[2].toString());
+      assert.isTrue(amountPaid.gte(receivedTokens));
+      assert.isTrue(amountPaid.gte(sendTokens));
+      assert.isTrue(amountPaid.gte(interest[2]));
 
       assert.equal(interestToken1.address, interest[1]);
     });
