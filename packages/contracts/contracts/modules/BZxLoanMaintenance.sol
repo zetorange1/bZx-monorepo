@@ -14,9 +14,6 @@ import "../shared/InternalFunctions.sol";
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 
-import "../tokens/EIP20.sol";
-
-// TODO: Function for borrowed token deposit for overcollateralized loans
 
 contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
     using SafeMath for uint256;
@@ -38,17 +35,16 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
         targets[bytes4(keccak256("withdrawExcessCollateral(bytes32,address,uint256)"))] = _target;
         targets[bytes4(keccak256("changeCollateral(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("withdrawPosition(bytes32)"))] = _target;
+        targets[bytes4(keccak256("depositPosition(bytes32,address,uint256)"))] = _target;
         targets[bytes4(keccak256("withdrawProfit(bytes32)"))] = _target;
-        targets[bytes4(keccak256("changeTraderOwnership(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("changeLenderOwnership(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("increaseLoanableAmount(bytes32,uint256)"))] = _target;
         targets[bytes4(keccak256("getProfitOrLoss(bytes32,address)"))] = _target;
     }
 
     /// @dev Allows the trader to increase the collateral for a loan.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param collateralTokenFilled The address of the collateral token used.
-    /// @return depositAmount The amount of additional collateral token to deposit.
+    /// @param depositAmount The amount of additional collateral token to deposit.
+    /// @return True on success
     function depositCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
@@ -58,6 +54,8 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
         tracksGas
         returns (bool)
     {
+        require(depositAmount > 0, "BZxLoanHealth::depositCollateral: depositAmount too low");
+        
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
             revert("BZxLoanHealth::depositCollateral: loanOrder.loanTokenAddress == address(0)");
@@ -89,6 +87,7 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didDepositCollateral(
             loanOrder,
             loanPosition,
+            depositAmount,
             gasUsed // initial used gas, collected in modifier
         )) {
             revert("BZxLoanHealth::depositCollateral: OracleInterface.didDepositCollateral failed");
@@ -166,6 +165,7 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didWithdrawCollateral(
             loanOrder,
             loanPosition,
+            excessCollateral,
             gasUsed // initial used gas, collected in modifier
         )) {
             revert("BZxLoanHealth::withdrawExcessCollateral: OracleInterface.didWithdrawCollateral failed");
@@ -316,6 +316,93 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
         return true;
     }
 
+    /// @dev Allows the trader to return the position/loan token to increase their escrowed balance
+    /// @dev This should be used by the trader if they've withdraw an overcollateralized loan
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param depositTokenAddress The address of the position token being returned
+    /// @param depositAmount The amount of position token to deposit.
+    /// @return True on success
+    function depositPosition(
+        bytes32 loanOrderHash,
+        address depositTokenAddress,
+        uint depositAmount)
+        external
+        nonReentrant
+        tracksGas
+        returns (bool)
+    {
+        require(depositAmount > 0, "BZxLoanHealth::depositPosition: depositAmount too low");
+        
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        if (loanOrder.loanTokenAddress == address(0)) {
+            revert("BZxLoanHealth::depositPosition: loanOrder.loanTokenAddress == address(0)");
+        }
+
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
+        if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
+            revert("BZxLoanHealth::depositPosition: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+        }
+
+        uint positionTokenAmountReceived;
+        if (depositTokenAddress != loanPosition.positionTokenAddressFilled) {
+            // send deposit token directly to the oracle to trade it
+            if (!BZxVault(vaultContract).transferTokenFrom(
+                depositTokenAddress,
+                msg.sender,
+                oracleAddresses[loanOrder.oracleAddress],
+                depositAmount)) {
+                revert("BZxLoanHealth::depositPosition: BZxVault.transferTokenFrom failed");
+            }
+            
+            uint depositTokenAmountUsed;
+            (positionTokenAmountReceived, depositTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doTrade(
+                depositTokenAddress,
+                loanPosition.positionTokenAddressFilled,
+                depositAmount,
+                MAX_UINT);
+
+            if (positionTokenAmountReceived == 0) {
+                revert("BZxLoanHealth::depositPosition: positionTokenAmountReceived == 0");
+            }
+
+            if (depositTokenAmountUsed < depositAmount) {
+                // left over depositToken needs to be refunded to trader
+                if (! BZxVault(vaultContract).withdrawToken(
+                    depositTokenAddress,
+                    msg.sender,
+                    depositAmount.sub(depositTokenAmountUsed)
+                )) {
+                    revert("BZxLoanHealth::depositPosition: BZxVault.withdrawToken deposit failed");
+                }
+            }
+
+            loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.add(positionTokenAmountReceived);
+        } else {
+            // send deposit token to the value
+            if (! BZxVault(vaultContract).depositToken(
+                depositTokenAddress,
+                msg.sender,
+                depositAmount
+            )) {
+                revert("BZxLoanHealth::depositPosition: BZxVault.depositToken position failed");
+            }
+
+            loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.add(depositAmount);
+            positionTokenAmountReceived = depositAmount;
+        }
+
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didDepositPosition(
+            loanOrder,
+            loanPosition,
+            positionTokenAmountReceived,
+            gasUsed // initial used gas, collected in modifier
+        )) {
+            revert("BZxLoanHealth::depositPosition: OracleInterface.didDepositPosition failed");
+        }
+
+        return true;
+    }
+
     /// @dev Allows the trader to withdraw their profits, if any.
     /// @dev Profits are paid out from the current positionToken.
     /// @param loanOrderHash A unique hash representing the loan order
@@ -368,189 +455,6 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
         );
 
         return profitAmount;
-    }
-
-    /// @dev Allows the trader to transfer ownership of the underlying assets in a position to another user.
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param newOwner The address receiving the transfer
-    /// @return True on success
-    function changeTraderOwnership(
-        bytes32 loanOrderHash,
-        address newOwner)
-        external
-        nonReentrant
-        tracksGas
-        returns (bool)
-    {
-        if (orderListIndex[loanOrderHash][newOwner].isSet) {
-            // user can't transfer ownership to another trader or lender already in this order
-            revert("BZxLoanMaintenance::changeTraderOwnership: new owner is invalid");
-        }
-        
-        LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.loanTokenAddress == address(0)) {
-            revert("BZxLoanMaintenance::changeTraderOwnership: loanOrder.loanTokenAddress == address(0)");
-        }
-
-        uint positionid = loanPositionsIds[loanOrderHash][msg.sender];
-        LoanPosition storage loanPosition = loanPositions[positionid];
-        if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            revert("BZxLoanMaintenance::changeTraderOwnership: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
-        }
-
-        if (loanPosition.trader != msg.sender) {
-            revert("BZxLoanMaintenance::changeTraderOwnership: msg.sender is not the trader in this position");
-        }
-
-        // remove old owner references to loanOrder and loanPosition
-        delete loanPositionsIds[loanOrderHash][msg.sender];
-        _removeLoanOrder(
-            loanOrderHash,
-            msg.sender
-        );
-
-        // add new owner references to loanOrder and loanPosition
-        loanPosition.trader = newOwner;
-        loanPositionsIds[loanOrderHash][newOwner] = positionid;
-        orderList[newOwner].push(loanOrderHash);
-        orderListIndex[loanOrderHash][newOwner] = ListIndex({
-            index: orderList[newOwner].length-1,
-            isSet: true
-        });
-
-        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didChangeTraderOwnership(
-            loanOrder,
-            loanPosition,
-            msg.sender, // old owner
-            gasUsed // initial used gas, collected in modifier
-        )) {
-            revert("BZxLoanMaintenance::changeTraderOwnership: OracleInterface.didChangeTraderOwnership failed");
-        }
-
-        emit LogChangeTraderOwnership(
-            loanOrder.loanOrderHash,
-            msg.sender, // old owner
-            newOwner
-        );
-
-        return true;
-    }
-
-    /// @dev Allows the lender to transfer ownership of the underlying assets in a position to another user.
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param newOwner The address receiving the transfer
-    /// @return True on success
-    function changeLenderOwnership(
-        bytes32 loanOrderHash,
-        address newOwner)
-        external
-        nonReentrant
-        tracksGas
-        returns (bool)
-    {
-        if (orderLender[loanOrderHash] != msg.sender) {
-            revert("BZxLoanMaintenance::changeLenderOwnership: msg.sender is not the lender in this position");
-        }
-        
-        if (orderListIndex[loanOrderHash][newOwner].isSet) {
-            // user can't transfer ownership to another trader or lender already in this order
-            revert("BZxLoanMaintenance::changeLenderOwnership: new owner is invalid");
-        }
-
-        LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.loanTokenAddress == address(0)) {
-            revert("BZxLoanMaintenance::changeLenderOwnership: loanOrder.loanTokenAddress == address(0)");
-        }
-
-        // remove old owner references to loanOrder
-        _removeLoanOrder(
-            loanOrderHash,
-            msg.sender
-        );
-
-        // add new owner references to loanOrder
-        orderLender[loanOrderHash] = newOwner;
-        orderList[newOwner].push(loanOrderHash);
-        orderListIndex[loanOrderHash][newOwner] = ListIndex({
-            index: orderList[newOwner].length-1,
-            isSet: true
-        });
-
-        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didChangeLenderOwnership(
-            loanOrder,
-            msg.sender, // old owner
-            newOwner,
-            gasUsed // initial used gas, collected in modifier
-        )) {
-            revert("BZxLoanMaintenance::changeLenderOwnership: OracleInterface.didChangeLenderOwnership failed");
-        }
-
-        emit LogChangeLenderOwnership(
-            loanOrder.loanOrderHash,
-            msg.sender, // old owner
-            newOwner
-        );
-
-        return true;
-    }
-
-    /// @dev Allows a lender to increase the amount of token they will loan out for an order
-    /// @dev The order must already be on chain and have been partially filled
-    /// @dev Ensures the lender has enough balance and allowance
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param loanTokenAmountToAdd The amount to increase the loan token
-    /// @return True on success
-    function increaseLoanableAmount(
-        bytes32 loanOrderHash,
-        uint loanTokenAmountToAdd)      
-        external
-        nonReentrant
-        tracksGas
-        returns (bool)
-    {
-        if (orderLender[loanOrderHash] != msg.sender) {
-            revert("BZxOrderTaking::increaseLoanableAmount: msg.sender is not the lender");
-        }
-
-        LoanOrder storage loanOrder = orders[loanOrderHash];
-        if (loanOrder.loanTokenAddress == address(0)) {
-            revert("BZxOrderTaking::increaseLoanableAmount: loanOrder.loanTokenAddress == address(0)");
-        }
-
-        uint totalNewFillableAmount = loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrderHash)).add(loanTokenAmountToAdd);
-        
-        // ensure adequate token balance
-        require (EIP20(loanOrder.loanTokenAddress).balanceOf.gas(4999)(msg.sender) >= totalNewFillableAmount, "BZxOrderTaking::increaseLoanableAmount: lender balance is insufficient");
-
-        // ensure adequate token allowance
-        require (EIP20(loanOrder.loanTokenAddress).allowance.gas(4999)(msg.sender, vaultContract) >= totalNewFillableAmount, "BZxOrderTaking::increaseLoanableAmount: lender allowance is insufficient");
-        
-        uint newLoanTokenAmount = loanOrder.loanTokenAmount.add(loanTokenAmountToAdd);
-
-        // Interest amount per day is calculated based on the fraction of loan token filled over total loanTokenAmount.
-        // Since total loanTokenAmount is increasing, we increase interest proportionally.
-        loanOrder.interestAmount = loanOrder.interestAmount.mul(newLoanTokenAmount).div(loanOrder.loanTokenAmount);
-
-        loanOrder.loanTokenAmount = newLoanTokenAmount;
-
-        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didIncreaseLoanableAmount(
-            loanOrder,
-            msg.sender,
-            loanTokenAmountToAdd,
-            totalNewFillableAmount,
-            gasUsed // initial used gas, collected in modifier
-        )) {
-            revert("BZxOrderTaking::increaseLoanableAmount: OracleInterface.didIncreaseLoanableAmount failed");
-        }
-
-        emit LogIncreasedLoanableAmount(
-            loanOrderHash,
-            msg.sender,
-            loanTokenAmountToAdd,
-            totalNewFillableAmount
-        );
-
-        return true;
     }
 
     /*

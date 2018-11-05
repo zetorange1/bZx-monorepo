@@ -228,6 +228,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function didDepositCollateral(
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanPosition memory /* loanPosition */,
+        uint /* depositAmount */,
         uint /* gasUsed */)
         public
         onlyBZx
@@ -240,6 +241,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function didWithdrawCollateral(
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanPosition memory /* loanPosition */,
+        uint /* withdrawAmount */,
         uint /* gasUsed */)
         public
         onlyBZx
@@ -265,6 +267,19 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanPosition memory /* loanPosition */,
         uint /* profitAmount */,
+        uint /* gasUsed */)
+        public
+        onlyBZx
+        updatesEMA(tx.gasprice)
+        returns (bool)
+    {
+        return true;
+    }
+
+    function didDepositPosition(
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanPosition memory /* loanPosition */,
+        uint /* depositAmount */,
         uint /* gasUsed */)
         public
         onlyBZx

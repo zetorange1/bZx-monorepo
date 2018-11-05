@@ -96,11 +96,13 @@ contract OracleInterface {
     /// @dev token for an open loan
     /// @param loanOrder The loanOrder object
     /// @param loanPosition The loanPosition object
+    /// @param depositAmount The amount deposited
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didDepositCollateral(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
+        uint depositAmount,
         uint gasUsed)
         public
         returns (bool);
@@ -109,11 +111,13 @@ contract OracleInterface {
     /// @dev token for an open loan
     /// @param loanOrder The loanOrder object
     /// @param loanPosition The loanPosition object
+    /// @param withdrawAmount The amount of collateral withdrawn
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didWithdrawCollateral(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
+        uint withdrawAmount,
         uint gasUsed)
         public
         returns (bool);
@@ -141,6 +145,20 @@ contract OracleInterface {
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
         uint profitAmount,
+        uint gasUsed)
+        public
+        returns (bool);
+
+    /// @dev Called by bZx after a borrower has deposited position token
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
+    /// @param depositAmount The amount deposited
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
+    /// @return Successful execution of the function
+    function didDepositPosition(
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
+        uint depositAmount,
         uint gasUsed)
         public
         returns (bool);

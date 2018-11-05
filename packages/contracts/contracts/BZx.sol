@@ -365,8 +365,9 @@ contract BZx is BZxStorage {
 
     /// @dev Allows the trader to increase the collateral for a loan.
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param collateralTokenFilled The address of the collateral token used.
-    /// @return depositAmount The amount of additional collateral token to deposit.
+    /// @param collateralTokenFilled The address of the collateral token used
+    /// @param depositAmount The amount of additional collateral token to deposit
+    /// @return True on success
     function depositCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
@@ -377,7 +378,7 @@ contract BZx is BZxStorage {
     /// @dev Allows the trader to withdraw excess collateral for a loan.
     /// @dev Excess collateral is any amount above the initial margin.
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param collateralTokenFilled The address of the collateral token used.
+    /// @param collateralTokenFilled The address of the collateral token used
     /// @return excessCollateral The amount of excess collateral token to withdraw. The actual amount withdrawn will be less if there's less excess.
     function withdrawExcessCollateral(
         bytes32 loanOrderHash,
@@ -405,6 +406,19 @@ contract BZx is BZxStorage {
     function withdrawPosition(
         bytes32 loanOrderHash,
         uint withdrawAmount)
+        external
+        returns (bool);
+
+    /// @dev Allows the trader to return the position/loan token to increase their escrowed balance.
+    /// @dev This should be used by the trader if they've withdraw an overcollateralized loan.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param depositTokenAddress The address of the position token being returned
+    /// @param depositAmount The amount of position token to deposit
+    /// @return True on success
+    function depositPosition(
+        bytes32 loanOrderHash,
+        address depositTokenAddress,
+        uint depositAmount)
         external
         returns (bool);
 
