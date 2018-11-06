@@ -1,6 +1,7 @@
 const BZxVault = artifacts.require("BZxVault");
 const TestToken0 = artifacts.require("TestToken0");
 
+const BN = require("bn.js");
 const utils = require("./utils/utils.js");
 const Reverter = require("./utils/reverter");
 
@@ -26,13 +27,13 @@ contract("BZxVault", function(accounts) {
   after("after", async () => {});
 
   it("should accept ETH only from bzx", async () => {
-    const VALUE = 1;
+    const VALUE = new BN(1);
 
-    const initialBalance = web3.eth.getBalance(vault.address);
+    const initialBalance = await (await utils.getBalance(vault.address));
     let balance;
 
     await vault.sendTransaction({ value: VALUE, from: bzx });
-    balance = web3.eth.getBalance(vault.address);
+    balance = await (await utils.getBalance(vault.address));
 
     assert.isTrue(balance.eq(initialBalance.add(VALUE)));
 
@@ -51,16 +52,16 @@ contract("BZxVault", function(accounts) {
     }
 
     assert.isTrue(
-      web3.eth.getBalance(vault.address).eq(initialBalance.add(VALUE))
+      (await utils.getBalance(vault.address)).eq(initialBalance.add(VALUE))
     );
   });
 
   it("should allow bzx to withdraw deposited ETH", async () => {
-    const VALUE = 1;
-    assert.isTrue(web3.eth.getBalance(vault.address).isZero());
+    const VALUE = new BN(1);
+    assert.isTrue((await utils.getBalance(vault.address)).isZero());
 
     await vault.sendTransaction({ from: bzx, value: VALUE });
-    assert.isTrue(web3.eth.getBalance(vault.address).eq(VALUE));
+    assert.isTrue((await utils.getBalance(vault.address)).eq(VALUE));
 
     try {
       await vault.withdrawEther(owner, VALUE, { from: stranger });
@@ -70,17 +71,17 @@ contract("BZxVault", function(accounts) {
     }
 
     await vault.withdrawEther(owner, VALUE, { from: bzx });
-    assert.isTrue(web3.eth.getBalance(vault.address).isZero());
+    assert.isTrue((await utils.getBalance(vault.address)).isZero());
   });
 
   it("should allow partial withdraw deposited ETH", async () => {
-    const DEPOSITED_VALUE = 2;
-    const VALUE = 1;
+    const DEPOSITED_VALUE = new BN(2);
+    const VALUE = new BN(1);
 
-    assert.isTrue(web3.eth.getBalance(vault.address).isZero());
+    assert.isTrue((await utils.getBalance(vault.address)).isZero());
 
     await vault.sendTransaction({ from: bzx, value: DEPOSITED_VALUE });
-    assert.isTrue(web3.eth.getBalance(vault.address).eq(DEPOSITED_VALUE));
+    assert.isTrue((await utils.getBalance(vault.address)).eq(DEPOSITED_VALUE));
 
     try {
       await vault.withdrawEther(owner, VALUE, { from: stranger });
@@ -90,16 +91,14 @@ contract("BZxVault", function(accounts) {
     }
 
     await vault.withdrawEther(owner, VALUE, { from: bzx });
-    assert.isTrue(
-      web3.eth.getBalance(vault.address).eq(DEPOSITED_VALUE - VALUE)
-    );
+    assert.isTrue((await utils.getBalance(vault.address)).eq(DEPOSITED_VALUE.sub(VALUE)));
 
     await vault.withdrawEther(owner, DEPOSITED_VALUE, { from: bzx });
-    assert.isTrue(web3.eth.getBalance(vault.address).isZero());
+    assert.isTrue((await utils.getBalance(vault.address)).isZero());
   });
 
   it("should allow bzx to deposit tokens", async () => {
-    const VALUE = 100;
+    const VALUE = new BN(100);
 
     assert.isTrue((await token.balanceOf(vault.address)).isZero());
     assert.isTrue((await token.balanceOf(bzx)).isZero());
@@ -119,7 +118,7 @@ contract("BZxVault", function(accounts) {
   });
 
   it("should allow bzx do multiple token deposits", async () => {
-    const VALUE = 100;
+    const VALUE = new BN(100);
 
     assert.isTrue((await token.balanceOf(vault.address)).isZero());
     assert.isTrue((await token.balanceOf(bzx)).isZero());
@@ -130,9 +129,7 @@ contract("BZxVault", function(accounts) {
       await vault.depositToken.call(token.address, owner, 0, { from: bzx })
     );
     assert.isTrue(
-      await vault.depositToken.call(token.address, owner, VALUE / 4, {
-        from: bzx
-      })
+      await vault.depositToken.call(token.address, owner, VALUE.div(new BN(4)), {from: bzx})
     );
 
     await vault.depositToken(token.address, owner, VALUE / 4, { from: bzx });
@@ -144,7 +141,7 @@ contract("BZxVault", function(accounts) {
   });
 
   it("should allow bzx to withdraw tokens", async () => {
-    const VALUE = 100;
+    const VALUE = new BN(100);
 
     assert.isTrue((await token.balanceOf(vault.address)).isZero());
     assert.isTrue((await token.balanceOf(bzx)).isZero());
@@ -168,7 +165,7 @@ contract("BZxVault", function(accounts) {
   });
 
   it("should allow bzx to partial withdraw tokens", async () => {
-    const VALUE = 100;
+    const VALUE = new BN(100);
 
     assert.isTrue((await token.balanceOf(vault.address)).isZero());
     assert.isTrue((await token.balanceOf(bzx)).isZero());
@@ -195,7 +192,7 @@ contract("BZxVault", function(accounts) {
   });
 
   it("should allow transfer tokens", async () => {
-    const VALUE = 100;
+    const VALUE = new BN(100);
 
     assert.isTrue((await token.balanceOf(vault.address)).isZero());
     assert.isTrue((await token.balanceOf(bzx)).isZero());

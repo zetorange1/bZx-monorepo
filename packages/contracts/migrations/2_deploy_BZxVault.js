@@ -1,9 +1,10 @@
 var BZxVault = artifacts.require("BZxVault");
+const path = require("path");
 
-module.exports = function(deployer, network, accounts) {
-  web3.eth.getBalance(accounts[0], function(error, balance) {
-    console.log("migrations :: initial balance: " + balance);
+module.exports = (deployer, network, accounts) => {
+  deployer.then(async () => {
+		await deployer.deploy(BZxVault);
+		
+    console.log(`   > [${parseInt(path.basename(__filename))}] BZxVault deploy: #done`);
   });
-
-  deployer.deploy(BZxVault);
 };

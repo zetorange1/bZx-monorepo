@@ -1,4 +1,3 @@
-
 var BZRxTokenSale = artifacts.require("BZRxTokenSale");
 var BZRxToken = artifacts.require("BZRxToken");
 //var TestNetPriceFeed = artifacts.require("TestNetPriceFeed");
@@ -8,18 +7,18 @@ var BZxProxySettings = artifacts.require("BZxProxySettings");
 var BZxVault = artifacts.require("BZxVault");
 
 var config = require("../protocol-config.js");
+const path = require("path");
 
-module.exports = function(deployer, network, accounts) {
-  network = network.replace("-fork", "");
-  if (network == "develop" || network == "testnet" || network == "coverage")
+module.exports = (deployer, network, accounts) => {
+  if (network == "develop" || network == "testnet" || network == "coverage") {
     network = "development";
-  
+  }
+
   const currentBonus = 110; // 10% bonus
 
-  let priceContractAddress;
+  // let priceContractAddress;
 
-  deployer.then(async function() {
-
+  deployer.then(async () => {
     /*if (network == "mainnet") {
       priceContractAddress = "0x729D19f657BD0614b4985Cf1D82531c67569197B";
     }
@@ -35,10 +34,10 @@ module.exports = function(deployer, network, accounts) {
     }*/
 
     var tokensale = await deployer.deploy(
-      BZRxTokenSale, 
-      BZRxToken.address, 
-      BZxVault.address, 
-      config["addresses"][network]["ZeroEx"]["WETH9"], 
+      BZRxTokenSale,
+      BZRxToken.address,
+      BZxVault.address,
+      config["addresses"][network]["ZeroEx"]["WETH9"],
       currentBonus,
       "19474000000000000000"
     );
@@ -54,5 +53,7 @@ module.exports = function(deployer, network, accounts) {
     // bZx Proxy uses BZRxTokenSale contract as BZRX token until the tokensale ends
     var bZxProxy = await BZxProxySettings.at(BZxProxy.address);
     await bZxProxy.setBZRxToken(BZRxTokenSale.address);
+
+    console.log(`   > [${parseInt(path.basename(__filename))}] BZx deploy/setup: #done`);
   });
 };

@@ -17,9 +17,9 @@ const ethABI = require("ethereumjs-abi");
 const ethUtil = require("ethereumjs-util");
 const _ = require("lodash");
 
-const Web3Utils = require('web3-utils');
-const BZxJS = require('bzx.js').default;
-const { ZeroEx } = require('0x.js');
+const Web3Utils = require("web3-utils");
+const BZxJS = require("bzx.js").default;
+const { ZeroEx } = require("0x.js");
 
 const config = require("../protocol-config.js");
 
@@ -38,9 +38,7 @@ const SignatureType = Object.freeze({
 
 // this migration will complete when the embedded testnet is being setup (network: testnet)
 
-module.exports = function(deployer, network, accounts) {
-  network = network.replace("-fork", "");
-
+module.exports = (deployer, network, accounts) => {
   if (network == "testnet") {
     network = "development";
 
@@ -85,16 +83,10 @@ module.exports = function(deployer, network, accounts) {
 
       var bZxTo0x = await BZxTo0x.deployed();
       //var zrx_token;
-      var zrx_token = await ERC20.at(
-        config["addresses"]["development"]["ZeroEx"]["ZRXToken"]
-      );
+      var zrx_token = await ERC20.at(config["addresses"]["development"]["ZeroEx"]["ZRXToken"]);
 
-      var weth = await WETHInterface.at(
-        config["addresses"][network]["ZeroEx"]["WETH9"]
-      );
-      var weth_token = await ERC20.at(
-        config["addresses"][network]["ZeroEx"]["WETH9"]
-      );
+      var weth = await WETHInterface.at(config["addresses"][network]["ZeroEx"]["WETH9"]);
+      var weth_token = await ERC20.at(config["addresses"][network]["ZeroEx"]["WETH9"]);
 
       for (var i = 0; i < 10; i++) {
         test_tokens[i] = await artifacts.require("TestToken" + i).deployed();
@@ -110,20 +102,10 @@ module.exports = function(deployer, network, accounts) {
       maker0xToken1 = test_tokens[5];
 
       await Promise.all([
-        await bzrx_token.mint(
-          lender1_account,
-          web3.toWei(100, "ether"),
-          { from: owner_account }
-        ),
-        await weth.deposit(
-          { from: lender2_account, value: web3.toWei(10, "ether") }
-        ),
-        await weth.deposit(
-          { from: trader1_account, value: web3.toWei(10, "ether") }
-        ),
-        await weth.deposit(
-          { from: trader2_account, value: web3.toWei(0.00001, "ether") }
-        ),
+        await bzrx_token.mint(lender1_account, web3.utils.toWei(100, "ether"), { from: owner_account }),
+        await weth.deposit({ from: lender2_account, value: web3.utils.toWei(10, "ether") }),
+        await weth.deposit({ from: trader1_account, value: web3.utils.toWei(10, "ether") }),
+        await weth.deposit({ from: trader2_account, value: web3.utils.toWei(0.00001, "ether") }),
         await bzrx_token.approve(vault.address, MAX_UINT, {
           from: lender1_account
         }),
@@ -136,53 +118,25 @@ module.exports = function(deployer, network, accounts) {
         await weth_token.approve(bzrx_tokensale.address, MAX_UINT, {
           from: trader2_account
         }),
-        await loanToken1.transfer(
-          lender1_account,
-          web3.toWei(1000000, "ether"),
-          { from: owner_account }
-        ),
-        await loanToken2.transfer(
-          lender2_account,
-          web3.toWei(1000000, "ether"),
-          { from: owner_account }
-        ),
+        await loanToken1.transfer(lender1_account, web3.utils.toWei(1000000, "ether"), { from: owner_account }),
+        await loanToken2.transfer(lender2_account, web3.utils.toWei(1000000, "ether"), { from: owner_account }),
         await loanToken1.approve(vault.address, MAX_UINT, {
           from: lender1_account
         }),
         await loanToken2.approve(vault.address, MAX_UINT, {
           from: lender2_account
         }),
-        await collateralToken1.transfer(
-          trader1_account,
-          web3.toWei(1000000, "ether"),
-          { from: owner_account }
-        ),
-        await collateralToken2.transfer(
-          trader2_account,
-          web3.toWei(1000000, "ether"),
-          { from: owner_account }
-        ),
+        await collateralToken1.transfer(trader1_account, web3.utils.toWei(1000000, "ether"), { from: owner_account }),
+        await collateralToken2.transfer(trader2_account, web3.utils.toWei(1000000, "ether"), { from: owner_account }),
         await collateralToken1.approve(vault.address, MAX_UINT, {
           from: trader1_account
         }),
         await collateralToken2.approve(vault.address, MAX_UINT, {
           from: trader2_account
         }),
-        await interestToken1.transfer(
-          trader1_account,
-          web3.toWei(1000000, "ether"),
-          { from: owner_account }
-        ),
-        await interestToken1.transfer(
-          trader2_account,
-          web3.toWei(1000000, "ether"),
-          { from: owner_account }
-        ),
-        await interestToken2.transfer(
-          trader2_account,
-          web3.toWei(1000000, "ether"),
-          { from: owner_account }
-        ),
+        await interestToken1.transfer(trader1_account, web3.utils.toWei(1000000, "ether"), { from: owner_account }),
+        await interestToken1.transfer(trader2_account, web3.utils.toWei(1000000, "ether"), { from: owner_account }),
+        await interestToken2.transfer(trader2_account, web3.utils.toWei(1000000, "ether"), { from: owner_account }),
         await interestToken1.approve(vault.address, MAX_UINT, {
           from: trader1_account
         }),
@@ -192,10 +146,10 @@ module.exports = function(deployer, network, accounts) {
         await interestToken2.approve(vault.address, MAX_UINT, {
           from: trader2_account
         }),
-        await zrx_token.transfer(trader1_account, web3.toWei(10000, "ether"), {
+        await zrx_token.transfer(trader1_account, web3.utils.toWei(10000, "ether"), {
           from: owner_account
         }),
-        await zrx_token.transfer(trader2_account, web3.toWei(10000, "ether"), {
+        await zrx_token.transfer(trader2_account, web3.utils.toWei(10000, "ether"), {
           from: owner_account
         }),
         await zrx_token.approve(bZxTo0x.address, MAX_UINT, {
@@ -204,16 +158,10 @@ module.exports = function(deployer, network, accounts) {
         await zrx_token.approve(bZxTo0x.address, MAX_UINT, {
           from: trader2_account
         }),
-        await maker0xToken1.transfer(
-          makerOf0xOrder_account,
-          web3.toWei(10000, "ether"),
-          { from: owner_account }
-        ),
-        await maker0xToken1.approve(
-          config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"],
-          MAX_UINT,
-          { from: makerOf0xOrder_account }
-        )
+        await maker0xToken1.transfer(makerOf0xOrder_account, web3.utils.toWei(10000, "ether"), { from: owner_account }),
+        await maker0xToken1.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {
+          from: makerOf0xOrder_account
+        })
       ]);
 
       /// should take sample loan order (as trader1)
@@ -225,17 +173,14 @@ module.exports = function(deployer, network, accounts) {
         collateralTokenAddress: NULL_ADDRESS,
         feeRecipientAddress: relay1_account,
         oracleAddress: oracle.address,
-        loanTokenAmount: web3.toWei(10000, "ether").toString(),
-        interestAmount: web3.toWei(2.5, "ether").toString(), // 2 token units per day
+        loanTokenAmount: web3.utils.toWei(10000, "ether").toString(),
+        interestAmount: web3.utils.toWei(2.5, "ether").toString(), // 2 token units per day
         initialMarginAmount: "50", // 50%
         maintenanceMarginAmount: "25", // 25%
-        lenderRelayFee: web3.toWei(0.001, "ether").toString(),
-        traderRelayFee: web3.toWei(0.0013, "ether").toString(),
+        lenderRelayFee: web3.utils.toWei(0.001, "ether").toString(),
+        traderRelayFee: web3.utils.toWei(0.0013, "ether").toString(),
         maxDurationUnixTimestampSec: "2419200", // 28 days
-        expirationUnixTimestampSec: (
-          web3.eth.getBlock("latest").timestamp +
-          86400 * 365
-        ).toString(),
+        expirationUnixTimestampSec: (web3.eth.getBlock("latest").timestamp + 86400 * 365).toString(),
         makerRole: "0", // 0=lender, 1=trader
         salt: ZeroEx.generatePseudoRandomSalt().toString()
       };
@@ -262,7 +207,7 @@ module.exports = function(deployer, network, accounts) {
           new BN(OrderParams_bZx_1["makerRole"]),
           new BN(OrderParams_bZx_1["salt"])
         ],
-        "0x12a1232124", // oracleData
+        "0x12a1232124" // oracleData
       );
 
       /// should sign and verify orderHash (as lender1)
@@ -309,12 +254,12 @@ module.exports = function(deployer, network, accounts) {
           ],
           "0x12a1232124", // oracleData
           collateralToken1.address,
-          web3.toWei(12.3, "ether"),
+          web3.utils.toWei(12.3, "ether"),
           ECSignature_raw_1,
           {
             from: trader1_account,
             gas: 2000000,
-            gasPrice: web3.toWei(30, "gwei")
+            gasPrice: web3.utils.toWei(30, "gwei")
           }
         )
       );
@@ -344,32 +289,29 @@ module.exports = function(deployer, network, accounts) {
           ],
           "0x12a1232124", // oracleData
           collateralToken2.address,
-          web3.toWei(20, "ether"),
+          web3.utils.toWei(20, "ether"),
           ECSignature_raw_1,
           {
             from: trader2_account,
             gas: 2000000,
-            gasPrice: web3.toWei(20, "gwei")
+            gasPrice: web3.utils.toWei(20, "gwei")
           }
         )
       );
 
       OrderParams_0x = {
-        exchangeContractAddress:
-          config["addresses"]["development"]["ZeroEx"]["ExchangeV1"],
-        expirationUnixTimestampSec: (
-          web3.eth.getBlock("latest").timestamp + 86400
-        ).toString(),
+        exchangeContractAddress: config["addresses"]["development"]["ZeroEx"]["ExchangeV1"],
+        expirationUnixTimestampSec: (web3.eth.getBlock("latest").timestamp + 86400).toString(),
         feeRecipient: NULL_ADDRESS, //"0x1230000000000000000000000000000000000000",
         maker: makerOf0xOrder_account,
-        makerFee: web3.toWei(0.002, "ether").toString(),
+        makerFee: web3.utils.toWei(0.002, "ether").toString(),
         makerTokenAddress: maker0xToken1.address,
-        makerTokenAmount: web3.toWei(75.1, "ether").toString(),
+        makerTokenAmount: web3.utils.toWei(75.1, "ether").toString(),
         salt: ZeroEx.generatePseudoRandomSalt().toString(),
         taker: NULL_ADDRESS,
-        takerFee: web3.toWei(0.0013, "ether").toString(),
+        takerFee: web3.utils.toWei(0.0013, "ether").toString(),
         takerTokenAddress: loanToken1.address,
-        takerTokenAmount: web3.toWei(100, "ether").toString()
+        takerTokenAmount: web3.utils.toWei(100, "ether").toString()
       };
       console.log(OrderParams_0x);
 
@@ -377,10 +319,7 @@ module.exports = function(deployer, network, accounts) {
 
       if (isParityNode || isTestRpc) {
         // Parity and TestRpc nodes add the personalMessage prefix itself
-        ECSignature_0x_raw = web3.eth.sign(
-          makerOf0xOrder_account,
-          OrderHash_0x
-        );
+        ECSignature_0x_raw = web3.eth.sign(makerOf0xOrder_account, OrderHash_0x);
       } else {
         var orderHashBuff = ethUtil.toBuffer(OrderHash_0x);
         var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
@@ -413,17 +352,11 @@ module.exports = function(deployer, network, accounts) {
         Web3Utils.padLeft(OrderParams_0x["makerTokenAddress"], 64),
         Web3Utils.padLeft(OrderParams_0x["takerTokenAddress"], 64),
         Web3Utils.padLeft(OrderParams_0x["feeRecipient"], 64),
-        "0x" +
-          Web3Utils.padLeft(new BN(OrderParams_0x["makerTokenAmount"]), 64),
-        "0x" +
-          Web3Utils.padLeft(new BN(OrderParams_0x["takerTokenAmount"]), 64),
+        "0x" + Web3Utils.padLeft(new BN(OrderParams_0x["makerTokenAmount"]), 64),
+        "0x" + Web3Utils.padLeft(new BN(OrderParams_0x["takerTokenAmount"]), 64),
         "0x" + Web3Utils.padLeft(new BN(OrderParams_0x["makerFee"]), 64),
         "0x" + Web3Utils.padLeft(new BN(OrderParams_0x["takerFee"]), 64),
-        "0x" +
-          Web3Utils.padLeft(
-            new BN(OrderParams_0x["expirationUnixTimestampSec"]),
-            64
-          ),
+        "0x" + Web3Utils.padLeft(new BN(OrderParams_0x["expirationUnixTimestampSec"]), 64),
         "0x" + Web3Utils.padLeft(new BN(OrderParams_0x["salt"]), 64)
       ];
 
@@ -443,12 +376,9 @@ module.exports = function(deployer, network, accounts) {
 
       console.log(
         txPrettyPrint(
-          await bZx.tradePositionWith0x(
-            OrderHash_bZx_1,
-            sample_order_tightlypacked,
-            ECSignature_0x_raw,
-            { from: trader1_account }
-          )
+          await bZx.tradePositionWith0x(OrderHash_bZx_1, sample_order_tightlypacked, ECSignature_0x_raw, {
+            from: trader1_account
+          })
         ),
         ""
       );
@@ -475,18 +405,13 @@ module.exports = function(deployer, network, accounts) {
     }
     if (logs.length > 0) {
       logs = logs.sort(function(a, b) {
-        return a.blockNumber > b.blockNumber
-          ? 1
-          : b.blockNumber > a.blockNumber
-            ? -1
-            : 0;
+        return a.blockNumber > b.blockNumber ? 1 : b.blockNumber > a.blockNumber ? -1 : 0;
       });
       ret = ret + "\n  LOGS --> " + "\n";
       for (var i = 0; i < logs.length; i++) {
         var log = logs[i];
         //console.log(log);
-        ret =
-          ret + "  " + i + ": " + log.event + " " + JSON.stringify(log.args);
+        ret = ret + "  " + i + ": " + log.event + " " + JSON.stringify(log.args);
         if (log.event == "GasRefund") {
           ret =
             ret +
@@ -519,10 +444,7 @@ module.exports = function(deployer, network, accounts) {
           " = " +
           tx.receipt.gasUsed * currentGasPrice +
           " (" +
-          (
-            ((tx.receipt.gasUsed * currentGasPrice) / 1e18) *
-            currentEthPrice
-          ).toFixed(2) +
+          (((tx.receipt.gasUsed * currentGasPrice) / 1e18) * currentEthPrice).toFixed(2) +
           "USD @ " +
           currentEthPrice +
           "USD/ETH)\n";
@@ -535,10 +457,7 @@ module.exports = function(deployer, network, accounts) {
           " = " +
           tx.receipt.cumulativeGasUsed * currentGasPrice +
           " (" +
-          (
-            ((tx.receipt.cumulativeGasUsed * currentGasPrice) / 1e18) *
-            currentEthPrice
-          ).toFixed(2) +
+          (((tx.receipt.cumulativeGasUsed * currentGasPrice) / 1e18) * currentEthPrice).toFixed(2) +
           "USD @ " +
           currentEthPrice +
           "USD/ETH)\n";
@@ -558,4 +477,3 @@ module.exports = function(deployer, network, accounts) {
     return ("0" + Number(d).toString(16)).slice(-2).toUpperCase();
   }
 };
-

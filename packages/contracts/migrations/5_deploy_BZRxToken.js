@@ -1,22 +1,13 @@
 var BZRxToken = artifacts.require("BZRxToken");
+const path = require("path");
 
-var config = require("../protocol-config.js");
-
-module.exports = function(deployer, network, accounts) {
-  network = network.replace("-fork", "");
-
-  if (
-    network == "develop" ||
-    network == "development" ||
-    network == "testnet" ||
-    network == "coverage" || 
-    network == "kovan" || 
-    network == "ropsten" || 
-    network == "rinkeby"
-  ) {
-    if (network != "kovan")
-      network = "development";
-
-    deployer.deploy(BZRxToken);
-  }
+module.exports = (deployer, network, accounts) => {
+  deployer.then(async () => {
+    if (network != "mainnet") {
+      await deployer.deploy(BZRxToken);
+      console.log(`   > [${parseInt(path.basename(__filename))}] OracleRegistry deploy: #done`);
+    } else {
+      console.log(`   > [${parseInt(path.basename(__filename))}] OracleRegistry deploy: #skiped`);
+    }
+  });
 };

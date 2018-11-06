@@ -1,3 +1,5 @@
+const BN = require("bn.js");
+
 function isException(error) {
   let strError = error.toString();
   return (
@@ -58,11 +60,11 @@ function increaseTimestamp(web3, increase) {
   });
 }
 
-function balanceOf(web3, account) {
+function getBalance(account) {
   return new Promise((resolve, reject) =>
     web3.eth.getBalance(
       account,
-      (e, balance) => (e ? reject(e) : resolve(balance))
+      (e, balance) => (e ? reject(e) : resolve(new BN(balance)))
     )
   );
 }
@@ -76,12 +78,21 @@ async function assertThrowsAsynchronously(test, error) {
   throw new Error("Missing rejection" + (error ? " with " + error.name : ""));
 }
 
+function toWei(number, unit) {
+  if (web3.utils.isBN(number)) {
+    return web3.utils.toWei(number, unit);
+  } else {
+    return web3.utils.toBN(web3.utils.toWei(number.toString(), unit));
+  }
+}
+
 module.exports = {
   zeroAddress: "0x0000000000000000000000000000000000000000",
   isException: isException,
   ensureException: ensureException,
   getParamFromTxEvent: getParamFromTxEvent,
   increaseTimestamp: increaseTimestamp,
-  balanceOf: balanceOf,
-  assertThrowsAsynchronously: assertThrowsAsynchronously
+  getBalance: getBalance,
+  assertThrowsAsynchronously: assertThrowsAsynchronously,
+  toWei: toWei
 };
