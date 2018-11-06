@@ -80,11 +80,11 @@ export default class QuickPositionForm extends Component {
     this.setState({ ...this.state, ratio: value });
   };
 
-  _handlePushOrderOnChain = value => {
-    this.setState({ ...this.state, pushOnChain: value });
+  _handlePushOrderOnChain = event => {
+    this.setState({ ...this.state, pushOnChain: event.target.checked });
   };
 
   _handleApproveClicked = () => {
-    this.props.onApprove(this.state);
+    this.props.onApprove({...this.state});
   };
 }
