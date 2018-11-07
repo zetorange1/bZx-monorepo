@@ -47,7 +47,7 @@ module.exports = {
       gasPrice: 20000000000
     },
     ropsten: {
-      provider: new HDWalletProvider(
+      provider: () => new HDWalletProvider(
         ropstenMnemonic,
         "https://ropsten.infura.io/" + infuraApikey
       ),
@@ -56,7 +56,7 @@ module.exports = {
       gasPrice: 50000000000
     },
     kovan: {
-      provider: new HDWalletProvider(
+      provider: () => new HDWalletProvider(
         kovanMnemonic,
         "https://kovan.infura.io/" + infuraApikey
       ),
@@ -65,7 +65,7 @@ module.exports = {
       gasPrice: 20000000000
     },
     rinkeby: {
-      provider: new HDWalletProvider(
+      provider: () => new HDWalletProvider(
         rinkebyMnemonic,
         "https://rinkeby.infura.io/" + infuraApikey
       ),
@@ -74,7 +74,7 @@ module.exports = {
       gasPrice: 20000000000
     },
     mainnet: {
-      provider: new HDWalletProvider(
+      provider: () => new HDWalletProvider(
         mainnetMnemonic,
         "https://mainnet.infura.io/" + infuraApikey
       ),
@@ -86,9 +86,11 @@ module.exports = {
   compilers: {
     solc: {
       version: "0.4.24",
-      optimizer: {
-        enabled: true,
-        runs: 200
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 200
+        },
       }
     }
   },

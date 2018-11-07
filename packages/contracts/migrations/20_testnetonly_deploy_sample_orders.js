@@ -42,22 +42,19 @@ module.exports = (deployer, network, accounts) => {
   if (network == "testnet") {
     network = "development";
 
-    const MAX_UINT = new BigNumber(2)
-      .pow(256)
-      .minus(1)
-      .toString();
+    const MAX_UINT = (new BN(2)).pow(new BN(256)).sub(new BN(1));
 
     const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
     //const NONNULL_ADDRESS = "0x0000000000000000000000000000000000000001";
 
     // account roles
-    var owner_account = accounts[0]; // owner/contract creator, holder of all tokens
-    var lender1_account = accounts[4]; // lender 1
-    var trader1_account = accounts[3]; // trader 1
-    var lender2_account = accounts[2]; // lender 2
-    var trader2_account = accounts[1]; // trader 2
-    var makerOf0xOrder_account = accounts[6]; // maker of 0x order
-    var relay1_account = accounts[9]; // relay 1
+    var owner_account = accounts[0].toLowerCase(); // owner/contract creator, holder of all tokens
+    var lender1_account = accounts[4].toLowerCase(); // lender 1
+    var trader1_account = accounts[3].toLowerCase(); // trader 1
+    var lender2_account = accounts[2].toLowerCase(); // lender 2
+    var trader2_account = accounts[1].toLowerCase(); // trader 2
+    var makerOf0xOrder_account = accounts[6].toLowerCase(); // maker of 0x order
+    var relay1_account = accounts[9].toLowerCase(); // relay 1
 
     var test_tokens = [];
     var loanToken1;
@@ -72,6 +69,7 @@ module.exports = (deployer, network, accounts) => {
     var ECSignature_raw_1;
 
     deployer.then(async function() {
+     
       var bZxProxy = await BZxProxySettings.at(BZxProxy.address);
       var bZx = await BZx.at(bZxProxy.address);
       var vault = await BZxVault.deployed();
@@ -102,10 +100,10 @@ module.exports = (deployer, network, accounts) => {
       maker0xToken1 = test_tokens[5];
 
       await Promise.all([
-        await bzrx_token.mint(lender1_account, web3.utils.toWei(100, "ether"), { from: owner_account }),
-        await weth.deposit({ from: lender2_account, value: web3.utils.toWei(10, "ether") }),
-        await weth.deposit({ from: trader1_account, value: web3.utils.toWei(10, "ether") }),
-        await weth.deposit({ from: trader2_account, value: web3.utils.toWei(0.00001, "ether") }),
+        await bzrx_token.mint(lender1_account, toWei(100, "ether"), { from: owner_account }),
+        await weth.deposit({ from: lender2_account, value: toWei(10, "ether") }),
+        await weth.deposit({ from: trader1_account, value: toWei(10, "ether") }),
+        await weth.deposit({ from: trader2_account, value: toWei(0.00001, "ether") }),
         await bzrx_token.approve(vault.address, MAX_UINT, {
           from: lender1_account
         }),
@@ -118,25 +116,25 @@ module.exports = (deployer, network, accounts) => {
         await weth_token.approve(bzrx_tokensale.address, MAX_UINT, {
           from: trader2_account
         }),
-        await loanToken1.transfer(lender1_account, web3.utils.toWei(1000000, "ether"), { from: owner_account }),
-        await loanToken2.transfer(lender2_account, web3.utils.toWei(1000000, "ether"), { from: owner_account }),
+        await loanToken1.transfer(lender1_account, toWei(1000000, "ether"), { from: owner_account }),
+        await loanToken2.transfer(lender2_account, toWei(1000000, "ether"), { from: owner_account }),
         await loanToken1.approve(vault.address, MAX_UINT, {
           from: lender1_account
         }),
         await loanToken2.approve(vault.address, MAX_UINT, {
           from: lender2_account
         }),
-        await collateralToken1.transfer(trader1_account, web3.utils.toWei(1000000, "ether"), { from: owner_account }),
-        await collateralToken2.transfer(trader2_account, web3.utils.toWei(1000000, "ether"), { from: owner_account }),
+        await collateralToken1.transfer(trader1_account, toWei(1000000, "ether"), { from: owner_account }),
+        await collateralToken2.transfer(trader2_account, toWei(1000000, "ether"), { from: owner_account }),
         await collateralToken1.approve(vault.address, MAX_UINT, {
           from: trader1_account
         }),
         await collateralToken2.approve(vault.address, MAX_UINT, {
           from: trader2_account
         }),
-        await interestToken1.transfer(trader1_account, web3.utils.toWei(1000000, "ether"), { from: owner_account }),
-        await interestToken1.transfer(trader2_account, web3.utils.toWei(1000000, "ether"), { from: owner_account }),
-        await interestToken2.transfer(trader2_account, web3.utils.toWei(1000000, "ether"), { from: owner_account }),
+        await interestToken1.transfer(trader1_account, toWei(1000000, "ether"), { from: owner_account }),
+        await interestToken1.transfer(trader2_account, toWei(1000000, "ether"), { from: owner_account }),
+        await interestToken2.transfer(trader2_account, toWei(1000000, "ether"), { from: owner_account }),
         await interestToken1.approve(vault.address, MAX_UINT, {
           from: trader1_account
         }),
@@ -146,10 +144,10 @@ module.exports = (deployer, network, accounts) => {
         await interestToken2.approve(vault.address, MAX_UINT, {
           from: trader2_account
         }),
-        await zrx_token.transfer(trader1_account, web3.utils.toWei(10000, "ether"), {
+        await zrx_token.transfer(trader1_account, toWei(10000, "ether"), {
           from: owner_account
         }),
-        await zrx_token.transfer(trader2_account, web3.utils.toWei(10000, "ether"), {
+        await zrx_token.transfer(trader2_account, toWei(10000, "ether"), {
           from: owner_account
         }),
         await zrx_token.approve(bZxTo0x.address, MAX_UINT, {
@@ -158,7 +156,7 @@ module.exports = (deployer, network, accounts) => {
         await zrx_token.approve(bZxTo0x.address, MAX_UINT, {
           from: trader2_account
         }),
-        await maker0xToken1.transfer(makerOf0xOrder_account, web3.utils.toWei(10000, "ether"), { from: owner_account }),
+        await maker0xToken1.transfer(makerOf0xOrder_account, toWei(10000, "ether"), { from: owner_account }),
         await maker0xToken1.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {
           from: makerOf0xOrder_account
         })
@@ -173,14 +171,14 @@ module.exports = (deployer, network, accounts) => {
         collateralTokenAddress: NULL_ADDRESS,
         feeRecipientAddress: relay1_account,
         oracleAddress: oracle.address,
-        loanTokenAmount: web3.utils.toWei(10000, "ether").toString(),
-        interestAmount: web3.utils.toWei(2.5, "ether").toString(), // 2 token units per day
+        loanTokenAmount: toWei(10000, "ether").toString(),
+        interestAmount: toWei(2.5, "ether").toString(), // 2 token units per day
         initialMarginAmount: "50", // 50%
         maintenanceMarginAmount: "25", // 25%
-        lenderRelayFee: web3.utils.toWei(0.001, "ether").toString(),
-        traderRelayFee: web3.utils.toWei(0.0013, "ether").toString(),
+        lenderRelayFee: toWei(0.001, "ether").toString(),
+        traderRelayFee: toWei(0.0013, "ether").toString(),
         maxDurationUnixTimestampSec: "2419200", // 28 days
-        expirationUnixTimestampSec: (web3.eth.getBlock("latest").timestamp + 86400 * 365).toString(),
+        expirationUnixTimestampSec: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
         makerRole: "0", // 0=lender, 1=trader
         salt: ZeroEx.generatePseudoRandomSalt().toString()
       };
@@ -210,22 +208,8 @@ module.exports = (deployer, network, accounts) => {
         "0x12a1232124" // oracleData
       );
 
-      /// should sign and verify orderHash (as lender1)
-      const nodeVersion = web3.version.node;
-      //console.log(nodeVersion);
-      const isParityNode = _.includes(nodeVersion, "Parity");
-      const isTestRpc = _.includes(nodeVersion, "TestRPC");
-
-      if (isParityNode || isTestRpc) {
-        // Parity and TestRpc nodes add the personalMessage prefix itself
-        ECSignature_raw_1 = web3.eth.sign(lender1_account, OrderHash_bZx_1);
-      } else {
-        var orderHashBuff = ethUtil.toBuffer(OrderHash_bZx_1);
-        var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
-        var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
-        ECSignature_raw_1 = web3.eth.sign(lender1_account, msgHashHex);
-      }
-
+      ECSignature_raw_1 = await web3.eth.sign(OrderHash_bZx_1, lender1_account);
+    
       // add signature type to end
       ECSignature_raw_1 = ECSignature_raw_1 + toHex(SignatureType.EthSign);
 
@@ -254,12 +238,12 @@ module.exports = (deployer, network, accounts) => {
           ],
           "0x12a1232124", // oracleData
           collateralToken1.address,
-          web3.utils.toWei(12.3, "ether"),
+          toWei(12.3, "ether"),
           ECSignature_raw_1,
           {
             from: trader1_account,
             gas: 2000000,
-            gasPrice: web3.utils.toWei(30, "gwei")
+            gasPrice: toWei(30, "gwei")
           }
         )
       );
@@ -289,43 +273,35 @@ module.exports = (deployer, network, accounts) => {
           ],
           "0x12a1232124", // oracleData
           collateralToken2.address,
-          web3.utils.toWei(20, "ether"),
+          toWei(20, "ether"),
           ECSignature_raw_1,
           {
             from: trader2_account,
             gas: 2000000,
-            gasPrice: web3.utils.toWei(20, "gwei")
+            gasPrice: toWei(20, "gwei")
           }
         )
       );
 
       OrderParams_0x = {
         exchangeContractAddress: config["addresses"]["development"]["ZeroEx"]["ExchangeV1"],
-        expirationUnixTimestampSec: (web3.eth.getBlock("latest").timestamp + 86400).toString(),
+        expirationUnixTimestampSec: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
         feeRecipient: NULL_ADDRESS, //"0x1230000000000000000000000000000000000000",
         maker: makerOf0xOrder_account,
-        makerFee: web3.utils.toWei(0.002, "ether").toString(),
-        makerTokenAddress: maker0xToken1.address,
-        makerTokenAmount: web3.utils.toWei(75.1, "ether").toString(),
+        makerFee: toWei(0.002, "ether").toString(),
+        makerTokenAddress: maker0xToken1.address.toLowerCase(),
+        makerTokenAmount: toWei(75.1, "ether").toString(),
         salt: ZeroEx.generatePseudoRandomSalt().toString(),
         taker: NULL_ADDRESS,
-        takerFee: web3.utils.toWei(0.0013, "ether").toString(),
-        takerTokenAddress: loanToken1.address,
-        takerTokenAmount: web3.utils.toWei(100, "ether").toString()
+        takerFee: toWei(0.0013, "ether").toString(),
+        takerTokenAddress: loanToken1.address.toLowerCase(),
+        takerTokenAmount: toWei(100, "ether").toString()
       };
       console.log(OrderParams_0x);
 
       OrderHash_0x = ZeroEx.getOrderHashHex(OrderParams_0x);
-
-      if (isParityNode || isTestRpc) {
-        // Parity and TestRpc nodes add the personalMessage prefix itself
-        ECSignature_0x_raw = web3.eth.sign(makerOf0xOrder_account, OrderHash_0x);
-      } else {
-        var orderHashBuff = ethUtil.toBuffer(OrderHash_0x);
-        var msgHashBuff = ethUtil.hashPersonalMessage(orderHashBuff);
-        var msgHashHex = ethUtil.bufferToHex(msgHashBuff);
-        ECSignature_0x_raw = web3.eth.sign(makerOf0xOrder_account, msgHashHex);
-      }
+        
+      ECSignature_0x_raw = await web3.eth.sign(OrderHash_0x, makerOf0xOrder_account);
 
       ECSignature_0x = {
         v: parseInt(ECSignature_0x_raw.substring(130, 132)) + 27,
@@ -475,5 +451,13 @@ module.exports = (deployer, network, accounts) => {
 
   function toHex(d) {
     return ("0" + Number(d).toString(16)).slice(-2).toUpperCase();
+  }
+
+  function toWei(number, unit) {
+    if (web3.utils.isBN(number)) {
+      return web3.utils.toWei(number, unit);
+    } else {
+      return web3.utils.toBN(web3.utils.toWei(number.toString(), unit));
+    }
   }
 };
