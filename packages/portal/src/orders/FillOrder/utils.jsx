@@ -170,10 +170,11 @@ export const validateFillOrder = async (
         t => t.address === collateralTokenAddress
       )[0];
       const notAllowed = {
-        1: [`BZRXFAKE`],
-        3: [`ZRX`, `BZRXFAKE`],
-        4: [],
-        42: [`ZRX`, `WETH`]
+        1: [`BZRX`, `BZRXFAKE`],
+        3: [`BZRX`, `BZRXFAKE`],
+        4: [`BZRX`],
+        42: [`BZRX`],
+        50: [`BZRX`]
       };
 
       // early return if there is no restricted list for this network
@@ -375,6 +376,7 @@ export const submitFillOrder = (
   order,
   loanTokenAmountFilled,
   collateralTokenAddress,
+  overCollateralize,
   tokens,
   web3,
   bZx,
@@ -398,15 +400,27 @@ export const submitFillOrder = (
 
   let txObj;
   if (makerIsLender) {
-    txObj = bZx.takeLoanOrderAsTrader({
-      order,
-      collateralTokenAddress,
-      loanTokenAmountFilled: toBigNumber(
-        loanTokenAmountFilled,
-        10 ** getDecimals(tokens, order.loanTokenAddress)
-      ),
-      getObject: true
-    });
+    if (overCollateralize) {
+      txObj = bZx.takeLoanOrderAsTraderAndWithdraw({
+        order,
+        collateralTokenAddress,
+        loanTokenAmountFilled: toBigNumber(
+          loanTokenAmountFilled,
+          10 ** getDecimals(tokens, order.loanTokenAddress)
+        ),
+        getObject: true
+      });
+    } else {
+      txObj = bZx.takeLoanOrderAsTrader({
+        order,
+        collateralTokenAddress,
+        loanTokenAmountFilled: toBigNumber(
+          loanTokenAmountFilled,
+          10 ** getDecimals(tokens, order.loanTokenAddress)
+        ),
+        getObject: true
+      });
+    }
   } else {
     txObj = bZx.takeLoanOrderAsLender({
       order,
@@ -470,6 +484,7 @@ export const submitFillOrderWithHash = (
   loanTokenAddress,
   loanTokenAmountFilled,
   collateralTokenAddress,
+  overCollateralize,
   tokens,
   web3,
   bZx,
@@ -492,15 +507,27 @@ export const submitFillOrderWithHash = (
 
   let txObj;
   if (makerIsLender) {
-    txObj = bZx.takeLoanOrderOnChainAsTrader({
-      loanOrderHash,
-      collateralTokenAddress,
-      loanTokenAmountFilled: toBigNumber(
-        loanTokenAmountFilled,
-        10 ** getDecimals(tokens, loanTokenAddress)
-      ),
-      getObject: true
-    });
+    if (overCollateralize) {
+      txObj = bZx.takeLoanOrderOnChainAsTraderAndWithdraw({
+        loanOrderHash,
+        collateralTokenAddress,
+        loanTokenAmountFilled: toBigNumber(
+          loanTokenAmountFilled,
+          10 ** getDecimals(tokens, loanTokenAddress)
+        ),
+        getObject: true
+      });
+    } else {
+      txObj = bZx.takeLoanOrderOnChainAsTrader({
+        loanOrderHash,
+        collateralTokenAddress,
+        loanTokenAmountFilled: toBigNumber(
+          loanTokenAmountFilled,
+          10 ** getDecimals(tokens, loanTokenAddress)
+        ),
+        getObject: true
+      });
+    }
   } else {
     txObj = bZx.takeLoanOrderOnChainAsLender({
       loanOrderHash,

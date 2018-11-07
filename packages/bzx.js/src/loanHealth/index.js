@@ -1,27 +1,6 @@
 import * as CoreUtils from "../core/utils";
 import { getContracts } from "../contracts";
 
-export const changeCollateral = (
-  { web3, networkId, addresses },
-  { loanOrderHash, collateralTokenFilled, getObject, txOpts }
-) => {
-  const bZxContract = CoreUtils.getContractInstance(
-    web3,
-    getContracts(networkId).BZx.abi,
-    addresses.BZx
-  );
-
-  const txObj = bZxContract.methods.changeCollateral(
-    loanOrderHash,
-    collateralTokenFilled
-  );
-
-  if (getObject) {
-    return txObj;
-  }
-  return txObj.send(txOpts);
-};
-
 export const depositCollateral = (
   { web3, networkId, addresses },
   { loanOrderHash, collateralTokenFilled, depositAmount, getObject, txOpts }
@@ -64,6 +43,109 @@ export const withdrawExcessCollateral = (
     return txObj;
   }
   return txObj.send(txOpts);
+};
+
+export const changeCollateral = (
+  { web3, networkId, addresses },
+  { loanOrderHash, collateralTokenFilled, getObject, txOpts }
+) => {
+  const bZxContract = CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
+  );
+
+  const txObj = bZxContract.methods.changeCollateral(
+    loanOrderHash,
+    collateralTokenFilled
+  );
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
+};
+
+export const withdrawPosition = (
+  { web3, networkId, addresses },
+  { loanOrderHash, withdrawAmount, getObject, txOpts }
+) => {
+  const bZxContract = CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
+  );
+
+  const txObj = bZxContract.methods.withdrawPosition(
+    loanOrderHash,
+    web3.utils.toBN(withdrawAmount).toString(10)
+  );
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
+};
+
+export const depositPosition = (
+  { web3, networkId, addresses },
+  { loanOrderHash, depositTokenAddress, depositAmount, getObject, txOpts }
+) => {
+  const bZxContract = CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
+  );
+
+  const txObj = bZxContract.methods.depositPosition(
+    loanOrderHash,
+    depositTokenAddress,
+    web3.utils.toBN(depositAmount).toString(10)
+  );
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
+};
+
+export const withdrawProfit = (
+  { web3, networkId, addresses },
+  { loanOrderHash, getObject, txOpts }
+) => {
+  const bZxContract = CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
+  );
+
+  const txObj = bZxContract.methods.withdrawProfit(loanOrderHash);
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
+};
+
+export const getProfitOrLoss = async (
+  { web3, networkId, addresses },
+  { loanOrderHash, trader }
+) => {
+  const bZxContract = await CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
+  );
+
+  const data = await bZxContract.methods
+    .getProfitOrLoss(loanOrderHash, trader)
+    .call();
+
+  return {
+    isProfit: data.isProfit,
+    profitOrLoss: data.profitOrLoss,
+    positionTokenAddress: data.positionTokenAddress
+  };
 };
 
 export const payInterest = (
@@ -141,43 +223,4 @@ export const closeLoan = (
     return txObj;
   }
   return txObj.send(txOpts);
-};
-
-export const withdrawProfit = (
-  { web3, networkId, addresses },
-  { loanOrderHash, getObject, txOpts }
-) => {
-  const bZxContract = CoreUtils.getContractInstance(
-    web3,
-    getContracts(networkId).BZx.abi,
-    addresses.BZx
-  );
-
-  const txObj = bZxContract.methods.withdrawProfit(loanOrderHash);
-
-  if (getObject) {
-    return txObj;
-  }
-  return txObj.send(txOpts);
-};
-
-export const getProfitOrLoss = async (
-  { web3, networkId, addresses },
-  { loanOrderHash, trader }
-) => {
-  const bZxContract = await CoreUtils.getContractInstance(
-    web3,
-    getContracts(networkId).BZx.abi,
-    addresses.BZx
-  );
-
-  const data = await bZxContract.methods
-    .getProfitOrLoss(loanOrderHash, trader)
-    .call();
-
-  return {
-    isProfit: data.isProfit,
-    profitOrLoss: data.profitOrLoss,
-    positionTokenAddress: data.positionTokenAddress
-  };
 };

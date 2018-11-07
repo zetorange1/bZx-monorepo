@@ -67,10 +67,11 @@ export default class TradeOracleDialog extends React.Component {
     const { tradeToken } = this.state;
 
     const notAllowed = {
-      1: [`BZRXFAKE`],
-      3: [`ZRX`, `BZRXFAKE`],
-      4: [],
-      42: [`ZRX`, `WETH`]
+      1: [`BZRX`, `BZRXFAKE`],
+      3: [`BZRX`, `BZRXFAKE`],
+      4: [`BZRX`],
+      42: [`BZRX`],
+      50: [`BZRX`]
     };
     if (
       notAllowed[bZx.networkId] &&

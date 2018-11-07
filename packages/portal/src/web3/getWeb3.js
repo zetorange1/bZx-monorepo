@@ -32,9 +32,9 @@ const resolveWeb3 = async (resolve, providerName) => {
         console.log(`Injected web3 detected.`);
         web3 = new Web3(web3.currentProvider);
         try {
-          let enabledAccounts = await web3.currentProvider.enable();
+          const enabledAccounts = await web3.currentProvider.enable();
           console.log(`enabledAccounts`, enabledAccounts);
-        } catch(e) {}
+        } catch (e) {} // eslint-disable-line
         resolve(web3);
       } else {
         resolve(false);

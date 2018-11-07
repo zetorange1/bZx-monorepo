@@ -112,13 +112,19 @@ export class BZxJS {
     fill.takeLoanOrderAsLender(this, ...props);
 
   takeLoanOrderAsTrader = (...props) =>
-    fill.takeLoanOrderAsTrader(this, ...props);
+    fill.takeLoanOrderAsTrader(this, ...props, false);
+
+  takeLoanOrderAsTraderAndWithdraw = (...props) =>
+    fill.takeLoanOrderAsTrader(this, ...props, true);
 
   pushLoanOrderOnChain = (...props) =>
     fill.pushLoanOrderOnChain(this, ...props);
 
   takeLoanOrderOnChainAsTrader = (...props) =>
-    fill.takeLoanOrderOnChainAsTrader(this, ...props);
+    fill.takeLoanOrderOnChainAsTrader(this, ...props, false);
+
+  takeLoanOrderOnChainAsTraderAndWithdraw = (...props) =>
+    fill.takeLoanOrderOnChainAsTrader(this, ...props, true);
 
   takeLoanOrderOnChainAsLender = (...props) =>
     fill.takeLoanOrderOnChainAsLender(this, ...props);
@@ -156,13 +162,13 @@ export class BZxJS {
   tradePositionWithOracle = (...props) =>
     trade.tradePositionWithOracle(this, ...props);
 
+  depositCollateral = (...props) => loanHealth.depositCollateral(this, ...props);
+  withdrawExcessCollateral = (...props) => loanHealth.withdrawExcessCollateral(this, ...props);
   changeCollateral = (...props) => loanHealth.changeCollateral(this, ...props);
-  depositCollateral = (...props) =>
-    loanHealth.depositCollateral(this, ...props);
-  withdrawExcessCollateral = (...props) =>
-    loanHealth.withdrawExcessCollateral(this, ...props);
-  getProfitOrLoss = (...props) => loanHealth.getProfitOrLoss(this, ...props);
+  withdrawPosition = (...props) => loanHealth.withdrawPosition(this, ...props);
+  depositPosition = (...props) => loanHealth.depositPosition(this, ...props);
   withdrawProfit = (...props) => loanHealth.withdrawProfit(this, ...props);
+  getProfitOrLoss = (...props) => loanHealth.getProfitOrLoss(this, ...props);
 
   closeLoanPartially = (...props) => loanHealth.closeLoanPartially(this, ...props);
   closeLoan = (...props) => loanHealth.closeLoan(this, ...props);

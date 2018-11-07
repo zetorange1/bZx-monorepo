@@ -42,10 +42,11 @@ const checkCoinsApproved = async (bZx, accounts, state) => {
 const checkCoinsAllowed = (state, tokens, networkId) => {
   const { loanTokenAddress, collateralTokenAddress, role } = state;
   const notAllowed = {
-    1: [`BZRXFAKE`],
-    3: [`ZRX`, `BZRXFAKE`],
-    4: [],
-    42: [`ZRX`, `WETH`]
+    1: [`BZRX`, `BZRXFAKE`],
+    3: [`BZRX`, `BZRXFAKE`],
+    4: [`BZRX`],
+    42: [`BZRX`],
+    50: [`BZRX`]
   };
 
   // early return if there is no restricted list for this network
@@ -67,7 +68,7 @@ const checkCoinsAllowed = (state, tokens, networkId) => {
   return !invalid;
 };
 
-export default async (bZx, accounts, state, tokens) => {
+export default async (bZx, accounts, state, tokens, web3) => {
   const {
     role,
     loanTokenAddress,
@@ -78,10 +79,16 @@ export default async (bZx, accounts, state, tokens) => {
     collateralTokenAmount,
     interestAmount,
     initialMarginAmount,
-    maintenanceMarginAmount
+    maintenanceMarginAmount,
+    feeRecipientAddress
   } = state;
   if (loanTokenAmount === `` || interestAmount === ``) {
     alert(`Please enter a valid token amount.`);
+    return false;
+  }
+
+  if (!web3.utils.isAddress(feeRecipientAddress)) {
+    alert(`Please enter a valid Relay/Exchange Address.`);
     return false;
   }
 

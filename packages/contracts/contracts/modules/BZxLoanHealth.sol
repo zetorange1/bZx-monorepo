@@ -505,7 +505,7 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
 
             uint remainingInterestRequired = _getTotalInterestRequired(
                 loanOrder.loanTokenAmount,
-                loanPosition.loanTokenAmountFilled-closeAmount,
+                loanPosition.loanTokenAmountFilled.sub(closeAmount),
                 loanOrder.interestAmount,
                 loanPosition.loanEndUnixTimestampSec.sub(block.timestamp)
             );
@@ -527,7 +527,6 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
             // reset interest values
             interestTotal[loanOrderHash][positionId] = remainingInterestRequired;
             interestPaid[loanOrderHash][positionId] = 0;
-            interestPaidDate[loanOrderHash][positionId] = 0;
         }
 
         if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
@@ -544,8 +543,14 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
                 revert("BZxLoanHealth::_closeLoanPartially: loanTokenAmountClosed < closeAmount");
             }
 
+            if (loanPosition.positionTokenAmountFilled < positionTokenAmountUsed) {
+                revert("BZxLoanHealth::_closeLoanPartially: positionTokenAmountFilled < positionTokenAmountUsed");
+            }
             loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(positionTokenAmountUsed);
         } else {
+            if (loanPosition.positionTokenAmountFilled < closeAmount) {
+                revert("BZxLoanHealth::_closeLoanPartially: positionTokenAmountFilled < closeAmount");
+            }
             loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(closeAmount);
         }
 

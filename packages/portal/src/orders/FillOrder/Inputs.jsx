@@ -4,8 +4,8 @@ import Tooltip from "@material-ui/core/Tooltip";
 import Input from "@material-ui/core/Input";
 import InputLabel from "@material-ui/core/InputLabel";
 import InputAdornment from "@material-ui/core/InputAdornment";
-import FormControl from "@material-ui/core/FormControl";
-import FormHelperText from "@material-ui/core/FormHelperText";
+import { FormControl, FormControlLabel, FormHelperText }  from "@material-ui/core";
+import Checkbox from "@material-ui/core/Checkbox";
 import { getSymbol } from "../../common/tokens";
 
 import TokenPicker from "../../common/TokenPicker";
@@ -77,8 +77,10 @@ export default ({
   loanTokenAddress,
   collateralTokenAmount,
   collateralRefresh,
+  overCollateralize,
   setFillOrderAmount,
-  setCollateralTokenAddress
+  setCollateralTokenAddress,
+  setOverCollateralize
 }) => {
   const symbol = getSymbol(tokens, loanTokenAddress);
   return (
@@ -171,6 +173,30 @@ export default ({
                   Refresh
                 </AddressLink>
               </RightJustified>
+            </FormHelperTextWithDetail>
+            <FormHelperTextWithDetail component="div">
+              <Tooltip
+                title={
+                  <div style={{ maxWidth: `300px` }}>
+                    Set this option if you wish to withdraw the loan to your wallet. 
+                    An amount of collateral equal to the Initial Margin Amount + 
+                    the total value of your loan, will be escrowed. Please ensure you 
+                    have enough collateral token balance and that you know what you are 
+                    doing. After filling the order, the loan token will immediately be 
+                    withdrawn to your wallet. If you don't return the full amount of loan
+                    token before the loan term ends or the loan gets liquidated, you will 
+                    lose a large portion of the collateral in order to compensate the lender 
+                    for the full value of the loan.
+                  </div>
+                }
+              >
+                <FormControlLabel
+                  control={
+                    <Checkbox checked={overCollateralize} onChange={setOverCollateralize} />
+                  }
+                  label="Withdraw Loan"
+                />
+              </Tooltip>
             </FormHelperTextWithDetail>
           </FormControl>
         </DataContainer>

@@ -192,18 +192,18 @@ export default class OpenedLoan extends BZxComponent {
     const loanToken = tokens.filter(
       t => t.address === loanTokenAddress
     )[0];
+    const positionToken = tokens.filter(
+      t => t.address === positionTokenAddressFilled
+    )[0];
     const collateralTokenSymbol = collateralToken.symbol;
     const loanTokenSymbol = loanToken.symbol;
     const interestTokenSymbol = getSymbol(tokens, interestTokenAddress);
-    const positionTokenSymbol = getSymbol(tokens, positionTokenAddressFilled);
+    const positionTokenSymbol = positionToken.symbol;
 
     const collateralTokenDecimals = collateralToken.decimals;
-    const loanTokenDecimals = getDecimals(tokens, loanTokenAddress);
+    const loanTokenDecimals = loanToken.decimals;
     const interestTokenDecimals = getDecimals(tokens, interestTokenAddress);
-    const positionTokenDecimals = getDecimals(
-      tokens,
-      positionTokenAddressFilled
-    );
+    const positionTokenDecimals = positionToken.decimals;
 
     const tradeOpened = positionTokenAddressFilled !== loanTokenAddress;
     const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
@@ -378,6 +378,7 @@ export default class OpenedLoan extends BZxComponent {
               loanOrderHash={loanOrderHash}
               collateralToken={collateralToken}
               excessCollateral={excessCollateral}
+              positionToken={positionToken}
             />
           </LowerUpperRight>
         </CardContent>

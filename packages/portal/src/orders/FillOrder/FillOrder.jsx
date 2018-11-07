@@ -53,7 +53,8 @@ export default class FillOrder extends BZxComponent {
     fillOrderAmount: 0,
     collateralTokenAddress: defaultToken(this.props.tokens).address,
     collateralTokenAmount: `(finish form then refresh)`,
-    loanTokenAvailable: 0
+    loanTokenAvailable: 0,
+    overCollateralize: false
   };
 
   async componentDidMount() {
@@ -104,15 +105,21 @@ export default class FillOrder extends BZxComponent {
     ) {
       if (collateralTokenAddress && collateralTokenAddress !== `0x0000000000000000000000000000000000000000`) {
         this.setState({ [`collateralTokenAmount`]: `loading...` });
+        collateralRequired = toBigNumber(await getInitialCollateralRequired(
+          loanTokenAddress,
+          collateralTokenAddress,
+          oracleAddress,
+          loanTokenAmount,
+          initialMarginAmount,
+          this.props.bZx
+        ));
+        
+        if (this.state.overCollateralize) {
+          collateralRequired = collateralRequired.plus(collateralRequired.times(100).div(initialMarginAmount));
+        }
+        
         collateralRequired = fromBigNumber(
-          await getInitialCollateralRequired(
-            loanTokenAddress,
-            collateralTokenAddress,
-            oracleAddress,
-            loanTokenAmount,
-            initialMarginAmount,
-            this.props.bZx
-          ),
+          collateralRequired,
           10 ** getDecimals(this.props.tokens, collateralTokenAddress)
         );
       } else {
@@ -130,6 +137,11 @@ export default class FillOrder extends BZxComponent {
 
   setCollateralTokenAddress = async value => {
     await this.setState({ [`collateralTokenAddress`]: value });
+    await this.refreshCollateralAmountNoEvent();
+  };
+
+  setOverCollateralize = async (e, value) => {
+    await this.setState({ [`overCollateralize`]: value });
     await this.refreshCollateralAmountNoEvent();
   };
 
@@ -185,7 +197,8 @@ export default class FillOrder extends BZxComponent {
       fillOrderAmount,
       loanTokenAvailable,
       collateralTokenAddress,
-      collateralTokenAmount
+      collateralTokenAmount,
+      overCollateralize
     } = this.state;
     const isFillOrderValid = await validateFillOrder(
       order,
@@ -204,6 +217,7 @@ export default class FillOrder extends BZxComponent {
           order,
           fillOrderAmount,
           collateralTokenAddress,
+          overCollateralize,
           tokens,
           web3,
           bZx,
@@ -217,6 +231,7 @@ export default class FillOrder extends BZxComponent {
           order.loanTokenAddress,
           fillOrderAmount,
           collateralTokenAddress,
+          overCollateralize,
           tokens,
           web3,
           bZx,
@@ -381,6 +396,8 @@ export default class FillOrder extends BZxComponent {
                       setCollateralTokenAddress={this.setCollateralTokenAddress}
                       collateralTokenAmount={this.state.collateralTokenAmount}
                       collateralRefresh={this.refreshCollateralAmount}
+                      setOverCollateralize={this.setOverCollateralize}
+                      overCollateralize={this.state.overCollateralize}
                     />
                   )}
                   <SubmitBtn

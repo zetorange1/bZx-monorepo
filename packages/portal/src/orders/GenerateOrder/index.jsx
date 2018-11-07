@@ -180,8 +180,11 @@ export default class GenerateOrder extends React.Component {
     this.setState({ role: value });
   };
 
-  setRelayCheckbox = (e, value) =>
+  setRelayCheckbox = (e, value) => {
+    if (!value || !this.props.web3.utils.isAddress(this.state.feeRecipientAddress))
+      this.setState({ feeRecipientAddress: `0x0000000000000000000000000000000000000000` });
     this.setState(p => ({ sendToRelayExchange: value, pushOnChain: value ? !value : p.pushOnChain }));
+  }
 
   pushOnChainCheckbox = (e, value) => this.setState(p => ({ pushOnChain: value, sendToRelayExchange: value ? !value : p.sendToRelayExchange }));
 
@@ -256,7 +259,8 @@ export default class GenerateOrder extends React.Component {
       this.props.bZx,
       this.props.accounts,
       this.state,
-      this.props.tokens
+      this.props.tokens,
+      this.props.web3
     );
     this.setState({ orderHash: null, finalOrder: null });
     if (isValid) {

@@ -60,7 +60,8 @@ export const takeLoanOrderAsLender = (
 
 export const takeLoanOrderAsTrader = (
   { web3, networkId },
-  { order, oracleData, collateralTokenAddress, loanTokenAmountFilled, getObject, txOpts }
+  { order, oracleData, collateralTokenAddress, loanTokenAmountFilled, getObject, txOpts },
+  withdraw
 ) => {
   checkForValidSignature(order);
   console.log(order, oracleData, collateralTokenAddress, loanTokenAmountFilled, getObject, txOpts);
@@ -92,14 +93,26 @@ export const takeLoanOrderAsTrader = (
     order.salt
   ];
 
-  const txObj = bZxContract.methods.takeLoanOrderAsTrader(
-    orderAddresses,
-    orderValues,
-    oracleData || "0x",
-    collateralTokenAddress,
-    web3.utils.toBN(loanTokenAmountFilled).toString(10),
-    order.signature
-  );
+  let txObj;
+  if (withdraw) {
+    txObj = bZxContract.methods.takeLoanOrderAsTraderAndWithdraw(
+      orderAddresses,
+      orderValues,
+      oracleData || "0x",
+      collateralTokenAddress,
+      web3.utils.toBN(loanTokenAmountFilled).toString(10),
+      order.signature
+    );
+  } else {
+    txObj = bZxContract.methods.takeLoanOrderAsTrader(
+      orderAddresses,
+      orderValues,
+      oracleData || "0x",
+      collateralTokenAddress,
+      web3.utils.toBN(loanTokenAmountFilled).toString(10),
+      order.signature
+    );
+  }
 
   if (getObject) {
     return txObj;
@@ -162,7 +175,8 @@ export const takeLoanOrderOnChainAsTrader = (
     loanTokenAmountFilled,
     getObject,
     txOpts
-  }
+  },
+  withdraw
 ) => {
   const bZxContract = CoreUtils.getContractInstance(
     web3,
@@ -170,11 +184,20 @@ export const takeLoanOrderOnChainAsTrader = (
     Addresses.getAddresses(networkId).BZx
   );
 
-  const txObj = bZxContract.methods.takeLoanOrderOnChainAsTrader(
-    loanOrderHash,
-    collateralTokenAddress,
-    web3.utils.toBN(loanTokenAmountFilled).toString(10)
-  );
+  let txObj;
+  if (withdraw) {
+    txObj = bZxContract.methods.takeLoanOrderOnChainAsTraderAndWithdraw(
+      loanOrderHash,
+      collateralTokenAddress,
+      web3.utils.toBN(loanTokenAmountFilled).toString(10)
+    );
+  } else {
+    txObj = bZxContract.methods.takeLoanOrderOnChainAsTrader(
+      loanOrderHash,
+      collateralTokenAddress,
+      web3.utils.toBN(loanTokenAmountFilled).toString(10)
+    );
+  }
 
   if (getObject) {
     return txObj;

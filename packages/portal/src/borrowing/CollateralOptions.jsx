@@ -5,13 +5,15 @@ import { Menu, MenuItem } from "@material-ui/core";
 import ChangeCollateralDialog from "./ChangeCollateralDialog";
 import DepositCollateralDialog from "./DepositCollateralDialog";
 import WithdrawCollateralDialog from "./WithdrawCollateralDialog";
+import DepositPositionDialog from "./DepositPositionDialog";
 
 export default class CollateralOptions extends React.Component {
   state = {
     anchorEl: null,
     showChangeCollateralDialog: false,
     showDepositCollateralDialog: false,
-    showWithdrawCollateralDialog: false
+    showWithdrawCollateralDialog: false,
+    showDepositPositionDialog: false,
   };
 
   handleClick = event => {
@@ -37,6 +39,11 @@ export default class CollateralOptions extends React.Component {
     this.setState({ showWithdrawCollateralDialog: true });
   };
 
+  handleDepositPositionClick = () => {
+    this.handleClose();
+    this.setState({ showDepositPositionDialog: true });
+  };
+
   closeDialog = stateProp => () => this.setState({ [stateProp]: false });
 
   render() {
@@ -48,12 +55,13 @@ export default class CollateralOptions extends React.Component {
       web3,
       loanOrderHash,
       collateralToken,
-      excessCollateral
+      excessCollateral,
+      positionToken
     } = this.props;
     return (
       <Fragment>
         <Button variant="raised" onClick={this.handleClick}>
-          Collateral Options
+          Loan Maintenance
         </Button>
         <Menu
           anchorEl={anchorEl}
@@ -68,6 +76,9 @@ export default class CollateralOptions extends React.Component {
           </MenuItem>
           <MenuItem onClick={this.handleWithdrawCollateralClick}>
             Withdraw collateral
+          </MenuItem>
+          <MenuItem onClick={this.handleDepositPositionClick}>
+            Deposit loan token
           </MenuItem>
         </Menu>
         <ChangeCollateralDialog
@@ -99,6 +110,16 @@ export default class CollateralOptions extends React.Component {
           collateralToken={collateralToken}
           excessCollateral={excessCollateral}
           loanOrderHash={loanOrderHash}
+        />
+        <DepositPositionDialog
+          open={this.state.showDepositPositionDialog}
+          onClose={this.closeDialog(`showDepositPositionDialog`)}
+          bZx={bZx}
+          web3={web3}
+          tokens={tokens}
+          accounts={accounts}
+          loanOrderHash={loanOrderHash}
+          positionToken={positionToken}
         />
       </Fragment>
     );
