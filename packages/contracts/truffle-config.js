@@ -71,7 +71,10 @@ module.exports = {
       ),
       network_id: 4,
       gas: 6721975,
-      gasPrice: 20000000000
+      gasPrice: 20000000000,
+      confirmations: 0,
+      timeoutBlocks: 200,
+      skipDryRun: true
     },
     mainnet: {
       provider: () => new HDWalletProvider(
