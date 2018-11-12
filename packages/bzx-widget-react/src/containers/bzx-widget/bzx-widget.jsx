@@ -2,21 +2,16 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 
 import Tabs from "antd/es/tabs";
-import "antd/es/tabs/style/index.css";
+import "./../../styles/components/tabs/index.less";
 
 import BorrowForm from "../borrow-form/borrow-form";
 import LendForm from "../lend-form/lend-form";
 import QuickPositionForm from "../quick-position-form/quick-position-form";
 import InputAsset from "../../components/input-asset/input-asset";
-import DummyProvider from "../../providers/dummy_provider";
 
 export default class BZXWidget extends Component {
   static propTypes = {
     provider: PropTypes.object
-  };
-
-  static defaultProps = {
-    provider: new DummyProvider()
   };
 
   widgetStyles = {

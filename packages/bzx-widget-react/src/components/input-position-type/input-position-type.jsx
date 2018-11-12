@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 
 import Select from "antd/lib/select";
-import "antd/lib/select/style/index.css";
+import "./../../styles/components/select/index.less";
 
 export default class InputPositionType extends Component {
   static propTypes = {

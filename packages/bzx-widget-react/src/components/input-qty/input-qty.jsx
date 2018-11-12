@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 
 import Input from "antd/lib/input";
-import "antd/lib/input/style/index.css";
+import "./../../styles/components/input/index.less";
 
 export default class InputQty extends Component {
   static propTypes = {

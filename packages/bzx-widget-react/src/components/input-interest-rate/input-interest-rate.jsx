@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 
 import InputNumber from "antd/lib/input-number";
-import "antd/lib/input-number/style/index.css";
+import "./../../styles/components/input-number/index.less";
 
 export default class InputInterestRate extends Component {
   static propTypes = {

@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 
 import Checkbox from "antd/lib/checkbox";
-import "antd/lib/checkbox/style/index.css";
+import "./../../styles/components/checkbox/index.less";
 
 export default class InputRelay extends Component {
   static propTypes = {

@@ -1,4 +1,4 @@
-export default class DummyProvider {
+export default class BZXWidgetProviderDummy {
   transactionId = "0x";
 
   onLendOrderApprove = (value, callback) => {

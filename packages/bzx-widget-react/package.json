@@ -2,30 +2,58 @@
   "name": "bzx-widget-react",
   "version": "0.1.0",
   "private": true,
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/bZxNetwork/bZx-monorepo/tree/master/packages/bzx-widget-provider-dummy#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bZxNetwork/bZx-monorepo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bZxNetwork/bZx-monorepo/issues"
+  },
+  "main": "dist/bzx-widget-react.js",
   "dependencies": {
     "antd": "^3.10.4",
     "prop-types": "^15.6.2",
     "react": "^16.3.2",
-    "react-dom": "^16.3.2",
-    "react-scripts": "2.1.1"
+    "react-dom": "^16.3.2"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.2.1",
+    "babel-jest": "^22.4.1",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.0",
+    "babel-plugin-transform-es3-member-expression-literals": "^6.22.0",
+    "babel-plugin-transform-es3-property-literals": "^6.22.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-3": "^6.24.1",
+    "css-loader": "^1.0.1",
+    "eslint": "^4.15.0",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-import": "^2.11.0",
+    "eslint-plugin-jest": "^21.15.1",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-prettier": "^2.6.0",
+    "eslint-plugin-react": "^7.7.0",
+    "less": "^3.8.1",
+    "less-loader": "^4.1.0",
+    "prettier": "^1.10.2",
+    "style-loader": "^0.23.1",
+    "webpack": "^4.17.1",
+    "webpack-bundle-analyzer": "^2.13.1",
+    "webpack-node-externals": "^1.7.2"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "build:prod": "cross-env PUBLIC_URL=/widget npm run build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ],
-  "devDependencies": {
-    "cross-env": "^5.2.0"
+    "dev": "webpack --config webpack.config.dev.js --watch",
+    "build": "webpack --config webpack.config.prod.js",
+    "build-analyze": "rimraf ./dist/compilation-stats.json && webpack --config webpack.config.prod.js --json > ./dist/compilation-stats.json && webpack-bundle-analyzer ./dist/compilation-stats.json"
   }
 }

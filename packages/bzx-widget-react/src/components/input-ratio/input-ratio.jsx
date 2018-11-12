@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 
 import Radio from "antd/lib/radio";
-import "antd/lib/radio/style/index.css";
+import "./../../styles/components/radio/index.less";
 
 export default class InputRatio extends Component {
   static propTypes = {

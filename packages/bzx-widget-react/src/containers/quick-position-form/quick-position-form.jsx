@@ -2,9 +2,9 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 
 import Button from "antd/lib/button";
-import "antd/lib/button/style/index.css";
+import "./../../styles/components/button/index.less";
 import Checkbox from "antd/lib/checkbox/Checkbox";
-import "antd/lib/checkbox/style/index.css";
+import "./../../styles/components/checkbox/index.less";
 
 import InputQty from "../../components/input-qty/input-qty";
 import InputRatio from "../../components/input-ratio/input-ratio";

@@ -2,8 +2,8 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 
 import Slider from "antd/lib/slider";
-import "antd/lib/slider/style/index.css";
-import "antd/lib/tooltip/style/index.css";
+import "./../../styles/components/slider/index.less";
+import "./../../styles/components/tooltip/index.less";
 
 export default class InputDuration extends Component {
   static propTypes = {

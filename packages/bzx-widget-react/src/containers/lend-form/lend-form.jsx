@@ -2,9 +2,9 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 
 import Button from "antd/lib/button";
-import "antd/lib/button/style/index.css";
+import "./../../styles/components/button/index.less";
 import Checkbox from "antd/lib/checkbox/Checkbox";
-import "antd/lib/checkbox/style/index.css";
+import "./../../styles/components/checkbox/index.less";
 
 import InputQty from "../../components/input-qty/input-qty";
 import InputInterestRate from "../../components/input-interest-rate/input-interest-rate";
@@ -55,7 +55,9 @@ export default class LendForm extends Component {
 
         <div>
           <label>Duration:</label>
-          <InputDuration value={this.state.duration} onChanged={this._handleDurationChanged} min={1} max={100} />
+          <div style={ { paddingLeft: "8px", paddingRight: "12px" } }>
+            <InputDuration value={this.state.duration} onChanged={this._handleDurationChanged} min={1} max={100} />
+          </div>
         </div>
 
         <br />
