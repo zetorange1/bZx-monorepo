@@ -83,6 +83,9 @@ class NavContent extends React.Component {
         {this.props.web3IsReceived && !this.props.noHeaderBar? (
           <Fragment>
             <HorizontalNav>
+              <NavLink id="tokensale" onClick={this.changeCardClick} style={{ fontWeight: `900`, color: `rgb(25,197,194)` }}>
+                Buy BZRX
+              </NavLink>
               <NavLink id="balances" onClick={this.changeCardClick}>
                 Balances
               </NavLink>
@@ -98,15 +101,6 @@ class NavContent extends React.Component {
               <NavLink id="bounties" onClick={this.changeCardClick}>
                 Bounties
               </NavLink>
-              <NavLink
-                style={{ textDecoration: `none` }}
-                href="https://portal.bZx.network/mew/#contracts"
-              >
-                Contracts
-              </NavLink>
-              <NavLink id="tokensale" onClick={this.changeCardClick} style={{ fontWeight: `900`, color: `rgb(25,197,194)` }}>
-                Buy Token
-              </NavLink>
             </HorizontalNav>
             <HamburgerBtn onClick={this.toggleSideNav}>menu</HamburgerBtn>
             <Overlay
@@ -115,6 +109,9 @@ class NavContent extends React.Component {
             />
             <Drawer show={this.state.showSideNav}>
               <VerticalNav>
+                <NavLink id="tokensale" onClick={this.changeCardClick} style={{ fontWeight: `900`, color: `rgb(25,197,194)` }}>
+                  Buy BZRX
+                </NavLink>
                 <NavLink id="balances" onClick={this.changeCardClick}>
                   Balances
                 </NavLink>
@@ -129,15 +126,6 @@ class NavContent extends React.Component {
                 </NavLink>
                 <NavLink id="bounties" onClick={this.changeCardClick}>
                   Bounties
-                </NavLink>
-                <NavLink
-                  style={{ textDecoration: `none` }}
-                  href="https://portal.bZx.network/mew/#contracts"
-                >
-                  Contracts
-                </NavLink>
-                <NavLink id="tokensale" onClick={this.changeCardClick} style={{ fontWeight: `900`, color: `rgb(25,197,194)` }}>
-                  Buy token
                 </NavLink>
               </VerticalNav>
               <CloseDrawerBtn onClick={this.toggleSideNav}>
