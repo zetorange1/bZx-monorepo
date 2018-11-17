@@ -1,6 +1,7 @@
 var BZRxTokenSale = artifacts.require("BZRxTokenSale");
 var BZRxToken = artifacts.require("BZRxToken");
 //var TestNetPriceFeed = artifacts.require("TestNetPriceFeed");
+var BZRxTransferProxy = artifacts.require("BZRxTransferProxy");
 
 var BZxProxy = artifacts.require("BZxProxy");
 var BZxProxySettings = artifacts.require("BZxProxySettings");
@@ -44,6 +45,13 @@ module.exports = (deployer, network, accounts) => {
 
     if (network == "development") {
       await tokensale.closeSale(false);
+
+      await deployer.deploy(
+        BZRxTransferProxy,
+        BZRxToken.address
+      );
+
+      await bZRxToken.addMinter(BZRxTransferProxy.address);
     }
 
     var bZRxToken = await BZRxToken.deployed();

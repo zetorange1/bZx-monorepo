@@ -2,20 +2,23 @@ require("babel-register");
 require("babel-polyfill");
 
 var HDWalletProvider = require("truffle-hdwallet-provider");
+var PrivateKeyProvider = require("truffle-privatekey-provider");
 
 var secrets = "",
   ropstenMnemonic = "",
   kovanMnemonic = "",
   rinkebyMnemonic = "",
   mainnetMnemonic = "",
-  infuraApikey = "";
+  infuraApikey = "",
+  mainnetPrivKey = "";
 try {
   secrets = require("../../config/secrets.js");
   (ropstenMnemonic = secrets["mnemonic"]["ropsten"]),
     (kovanMnemonic = secrets["mnemonic"]["kovan"]),
     (rinkebyMnemonic = secrets["mnemonic"]["rinkeby"]),
     (mainnetMnemonic = secrets["mnemonic"]["mainnet"]),
-    (infuraApikey = secrets["infura_apikey"]);
+    (infuraApikey = secrets["infura_apikey"])
+    (mainnetPrivKey = secrets["private_key"]["mainnet"]);
 } catch (e) {}
 
 module.exports = {
@@ -77,10 +80,14 @@ module.exports = {
       skipDryRun: true
     },
     mainnet: {
-      provider: () => new HDWalletProvider(
-        mainnetMnemonic,
+      provider: () => new PrivateKeyProvider(
+        mainnetPrivKey,
         "https://mainnet.infura.io/" + infuraApikey
       ),
+      /*provider: () => new HDWalletProvider(
+        mainnetMnemonic,
+        "https://mainnet.infura.io/" + infuraApikey
+      ),*/
       network_id: 1,
       gas: 6721975,
       gasPrice: 10000000000
