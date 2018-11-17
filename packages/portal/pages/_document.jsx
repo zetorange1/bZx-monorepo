@@ -51,6 +51,20 @@ export default class MyDocument extends Document {
     return (
       <html lang="en">
         <Head>
+          {/* Global Site Tag (gtag.js) - Google Analytics */}
+          <script
+            async
+            src={`https://www.googletagmanager.com/gtag/js?id=UA-112248873-3`}
+          />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-112248873-3');
+          `}}
+          />
           <title>bZx Portal</title>
           <link href="/static/favicon.ico" rel="icon" />
           <link
