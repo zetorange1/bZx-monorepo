@@ -4,9 +4,10 @@
   "private": true,
   "dependencies": {
     "antd": "^3.10.4",
+    "bzx-widget-provider-augur": "^0.1.0",
     "bzx-widget-provider-dummy": "^0.1.0",
     "bzx-widget-react": "^0.1.0",
-    "prop-types": "^15.6.2",
+    "prop-types": "^15.6.0",
     "react": "^16.3.2",
     "react-dom": "^16.3.2",
     "react-scripts": "2.1.1"

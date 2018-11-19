@@ -14,26 +14,20 @@ import InputRelay from "../../components/input-relay/input-relay";
 
 export default class LendForm extends Component {
   static propTypes = {
+    stateDefaults: PropTypes.object,
+    formOptions: PropTypes.object,
     onApprove: PropTypes.func
   };
 
   static defaultProps = {
+    relaysList: [],
     onApprove: () => {}
   };
-
-  relays = ["Shark", "Veil"];
 
   constructor(props) {
     super(props);
 
-    this.state = {
-      qty: "1",
-      interestRate: 30,
-      duration: 10,
-      ratio: 2,
-      relays: [],
-      pushOnChain: false
-    };
+    this.state = { ...props.stateDefaults };
   }
 
   render() {
@@ -48,14 +42,19 @@ export default class LendForm extends Component {
 
         <div>
           <label>Interest Rate:</label>
-          <InputInterestRate value={this.state.interestRate} onChanged={this._handleInterestRageChanged} min={1} max={100} />
+          <InputInterestRate
+            value={this.state.interestRate}
+            onChanged={this._handleInterestRateChanged}
+            min={this.props.formOptions.interestRateMin}
+            max={this.props.formOptions.interestRateMax}
+          />
         </div>
 
         <br />
 
         <div>
           <label>Duration:</label>
-          <div style={ { paddingLeft: "8px", paddingRight: "12px" } }>
+          <div style={{ paddingLeft: "8px", paddingRight: "12px" }}>
             <InputDuration value={this.state.duration} onChanged={this._handleDurationChanged} min={1} max={100} />
           </div>
         </div>
@@ -63,20 +62,28 @@ export default class LendForm extends Component {
         <br />
 
         <div>
-          <InputRatio options={[1, 2, 3]} value={this.state.ratio} onChanged={this._handleRatioChanged} />
+          <InputRatio
+            options={[...this.props.formOptions.ratios]}
+            value={this.state.ratio}
+            onChanged={this._handleRatioChanged}
+          />
         </div>
 
         <br />
 
         <div>
           <label>Augur relays:</label>
-          <InputRelay options={this.relays} value={this.state.relays} onChanged={this._handleRelaysChanged} />
+          <InputRelay
+            options={[...this.props.formOptions.relays]}
+            value={this.state.relays}
+            onChanged={this._handleRelaysChanged}
+          />
         </div>
 
         <br />
 
         <div>
-          <Checkbox value={this.state.pushOnChain} onChange={this._handlePushOrderOnChain}>
+          <Checkbox checked={this.state.pushOnChain} onChange={this._handlePushOrderOnChain}>
             Push order on-chain
           </Checkbox>
         </div>
@@ -84,7 +91,9 @@ export default class LendForm extends Component {
         <br />
 
         <div>
-          <Button type="primary" block onClick={this._handleApproveClicked}>Approve</Button>
+          <Button type="primary" block onClick={this._handleApproveClicked}>
+            Approve
+          </Button>
         </div>
       </div>
     );
@@ -94,7 +103,7 @@ export default class LendForm extends Component {
     this.setState({ ...this.state, qty: value });
   };
 
-  _handleInterestRageChanged = value => {
+  _handleInterestRateChanged = value => {
     this.setState({ ...this.state, interestRate: value });
   };
 
@@ -115,6 +124,6 @@ export default class LendForm extends Component {
   };
 
   _handleApproveClicked = () => {
-    this.props.onApprove({...this.state});
+    this.props.onApprove({ ...this.state });
   };
 }

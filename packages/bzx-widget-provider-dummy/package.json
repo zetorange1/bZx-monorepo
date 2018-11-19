@@ -16,6 +16,8 @@
   },
   "main": "dist/bzx-widget-provider-dummy.js",
   "dependencies": {
+    "augur.js": "^6.0.0",
+    "bignumber.js": "^7.0.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -30,7 +32,7 @@
     "babel-preset-env": "^1.6.1",
     "babel-preset-stage-3": "^6.24.1",
     "eslint": "^4.15.0",
-    "eslint-config-airbnb": "^16.1.0",
+    "eslint-config-airbnb-base": "^13.1.0",
     "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-import": "^2.11.0",
     "eslint-plugin-jest": "^21.15.1",
@@ -38,7 +40,9 @@
     "eslint-plugin-prettier": "^2.6.0",
     "prettier": "^1.10.2",
     "webpack": "^4.17.1",
+    "webpack-cli": "3.1.2",
     "webpack-bundle-analyzer": "^2.13.1",
+    "webpack-merge": "^4.1.4",
     "webpack-node-externals": "^1.7.2"
   },
   "scripts": {

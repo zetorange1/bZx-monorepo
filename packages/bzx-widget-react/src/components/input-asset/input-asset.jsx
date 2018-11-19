@@ -12,12 +12,10 @@ export default class InputAsset extends Component {
   };
 
   static defaultProps = {
-    options: [{ id: "eth", text: "ETH" }],
-    value: "eth",
+    options: [],
+    value: "",
     onChanged: () => {}
   };
-
-  options = [{ id: null, text: "" }];
 
   constructor(props) {
     super(props);
@@ -35,12 +33,7 @@ export default class InputAsset extends Component {
 
   render() {
     return (
-      <Select name="assets" value={this.state.value} onChange={this._handleOnChange}>
-        {this.options.map(item => (
-          <Select.Option key={item.id} value={item.id}>
-            {item.text}
-          </Select.Option>
-        ))}
+      <Select name="assets" value={this.state.value} onChange={this._handleOnChange} style={{ width: "100%" }}>
         {this.props.options.map(item => (
           <Select.Option key={item.id} value={item.id}>
             {item.text}

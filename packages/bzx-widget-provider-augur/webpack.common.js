@@ -5,12 +5,11 @@ const nodeExternals = require("webpack-node-externals");
 
 module.exports = {
   entry: {
-    bzx: "./src/core/index.js"
+    index: "./src/index.js"
   },
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "[name].js",
-    library: "bzx.js",
+    filename: "bzx-widget-provider-augur.js",
     libraryTarget: "umd",
     umdNamedDefine: true,
     globalObject: `typeof self !== 'undefined' ? self : this`
@@ -18,18 +17,22 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: [/\.js$/, /\.jsx$/],
         exclude: path.resolve(__dirname, "node_modules/"),
-        use: {
-          loader: "babel-loader"
+        loader: "babel-loader",
+        query: {
+          presets: ["react"]
         }
       }
     ]
   },
+  resolve: {
+    extensions: [".js", ".jsx"]
+  },
   // in order to ignore all modules in node_modules folder from bundling
   externals: [
-  nodeExternals(),
-  nodeExternals({
-    modulesDir: path.resolve(__dirname, '../../node_modules')
-  })]
+    nodeExternals(),
+    nodeExternals({
+      modulesDir: path.resolve(__dirname, '../../node_modules')
+    })]
 };

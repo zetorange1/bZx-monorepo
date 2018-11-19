@@ -12,6 +12,8 @@ import InputPositionType from "../../components/input-position-type/input-positi
 
 export default class QuickPositionForm extends Component {
   static propTypes = {
+    stateDefaults: PropTypes.object,
+    formOptions: PropTypes.object,
     onApprove: PropTypes.func
   };
 
@@ -22,12 +24,7 @@ export default class QuickPositionForm extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      qty: "1",
-      positionType: "long",
-      ratio: 2,
-      pushOnChain: false
-    };
+    this.state = { ...props.stateDefaults };
   }
 
   render() {
@@ -48,13 +45,17 @@ export default class QuickPositionForm extends Component {
         <br />
 
         <div>
-          <InputRatio options={[1, 2, 3]} value={this.state.ratio} onChanged={this._handleRatioChanged} />
+          <InputRatio
+            options={[...this.props.formOptions.ratios]}
+            value={this.state.ratio}
+            onChanged={this._handleRatioChanged}
+          />
         </div>
 
         <br />
 
         <div>
-          <Checkbox value={this.state.pushOnChain} onChange={this._handlePushOrderOnChain}>
+          <Checkbox checked={this.state.pushOnChain} onChange={this._handlePushOrderOnChain}>
             Push order on-chain
           </Checkbox>
         </div>
@@ -62,7 +63,9 @@ export default class QuickPositionForm extends Component {
         <br />
 
         <div>
-          <Button type="primary" block onClick={this._handleApproveClicked}>Approve</Button>
+          <Button type="primary" block onClick={this._handleApproveClicked}>
+            Approve
+          </Button>
         </div>
       </div>
     );
@@ -85,6 +88,6 @@ export default class QuickPositionForm extends Component {
   };
 
   _handleApproveClicked = () => {
-    this.props.onApprove({...this.state});
+    this.props.onApprove({ ...this.state });
   };
 }
