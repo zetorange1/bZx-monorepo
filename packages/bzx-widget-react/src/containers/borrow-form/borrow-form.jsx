@@ -5,10 +5,6 @@ import Button from "antd/lib/button";
 import "./../../styles/components/button/index.less";
 import Checkbox from "antd/lib/checkbox/Checkbox";
 import "./../../styles/components/checkbox/index.less";
-import Popconfirm from "antd/lib/popconfirm";
-import "./../../styles/components/popover/index.less";
-import message from "antd/lib/message";
-import "./../../styles/components/message/index.less";
 
 import InputQty from "../../components/input-qty/input-qty";
 import InputInterestRate from "../../components/input-interest-rate/input-interest-rate";
@@ -31,7 +27,7 @@ export default class BorrowForm extends Component {
   constructor(props) {
     super(props);
 
-    this.state = { ...props.stateDefaults, isInProgress: false };
+    this.state = { ...props.stateDefaults };
   }
 
   render() {
@@ -57,9 +53,9 @@ export default class BorrowForm extends Component {
         <br />
 
         <div>
-          <label>Duration (days):</label>
+          <label>Duration:</label>
           <div style={{ paddingLeft: "8px", paddingRight: "12px" }}>
-            <InputDuration value={this.state.duration} onChanged={this._handleDurationChanged} min={this.props.formOptions.durationMin} max={this.props.formOptions.durationMax} />
+            <InputDuration value={this.state.duration} onChanged={this._handleDurationChanged} min={1} max={100} />
           </div>
         </div>
 
@@ -95,11 +91,9 @@ export default class BorrowForm extends Component {
         <br />
 
         <div>
-          <Popconfirm placement="topRight" title="This will start operations that will affect your balance!" onConfirm={this._handleApproveClicked} okText="Yes, I agree" cancelText="No, I don't agree">
-            <Button type="primary" block loading={this.state.isInProgress}>
-              Approve
-            </Button>
-          </Popconfirm>
+          <Button type="primary" block onClick={this._handleApproveClicked}>
+            Approve
+          </Button>
         </div>
       </div>
     );
@@ -130,19 +124,6 @@ export default class BorrowForm extends Component {
   };
 
   _handleApproveClicked = () => {
-    this.setState({ ...this.state, isInProgress: true });
-
-    let resultPromise = this.props.onApprove({ ...this.state });
-    resultPromise
-      .then(
-        value => message.success(`Borrow order placement was successful! TX: ${value}`),
-        value => message.error(`Borrow order placement failed: ${value}!`)
-      );
-
-    resultPromise
-      .then(
-        () => this.setState({ ...this.state, isInProgress: false }),
-        () => this.setState({ ...this.state, isInProgress: false })
-      );
+    this.props.onApprove({ ...this.state });
   };
 }

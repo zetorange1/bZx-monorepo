@@ -1,16 +1,13 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 
-import Tabs from "antd/lib/tabs";
+import Tabs from "antd/es/tabs";
 import "./../../styles/components/tabs/index.less";
-import message from "antd/lib/message";
-import "./../../styles/components/message/index.less";
 
 import BorrowForm from "../borrow-form/borrow-form";
 import LendForm from "../lend-form/lend-form";
 import QuickPositionForm from "../quick-position-form/quick-position-form";
 import InputAsset from "../../components/input-asset/input-asset";
-import { EVENT_ASSET_UPDATE, EVENT_INIT_FAILED } from "bzx-widget-common";
 
 export default class BZXWidget extends Component {
   static propTypes = {
@@ -27,8 +24,7 @@ export default class BZXWidget extends Component {
     super(props);
 
     this.state = { assets: this.props.provider.assets, asset: this.props.provider.defaultAsset };
-    this.props.provider.eventEmitter.on(EVENT_ASSET_UPDATE, this._handleAssetsUpdate.bind(this));
-    this.props.provider.eventEmitter.on(EVENT_INIT_FAILED, this._handleProviderInitFailed.bind(this));
+    this.props.provider.onAssetsUpdate = this._handleAssetsUpdate.bind(this);
   }
 
   assetChanged = value => {
@@ -43,14 +39,14 @@ export default class BZXWidget extends Component {
         </div>
         <div>
           <Tabs defaultActiveKey="1">
-            <Tabs.TabPane tab="Loan request" key="1">
+            <Tabs.TabPane tab="Lend" key="1">
               <LendForm
                 onApprove={this._handleLendApprove}
                 stateDefaults={this.props.provider.getLendFormDefaults()}
                 formOptions={this.props.provider.getLendFormOptions()}
               />
             </Tabs.TabPane>
-            <Tabs.TabPane tab="Borrow request" key="2">
+            <Tabs.TabPane tab="Borrow" key="2">
               <BorrowForm
                 onApprove={this._handleBorrowApprove}
                 stateDefaults={this.props.provider.getBorrowFormDefaults()}
@@ -64,9 +60,6 @@ export default class BZXWidget extends Component {
                 formOptions={this.props.provider.getQuickPositionFormOptions()}
               />
             </Tabs.TabPane>
-            <Tabs.TabPane tab="My orders" key="4">
-
-            </Tabs.TabPane>
           </Tabs>
         </div>
       </div>
@@ -75,28 +68,27 @@ export default class BZXWidget extends Component {
 
   _handleLendApprove = value => {
     const request = { ...value, asset: this.state.asset };
-    return this.props.provider.doLendOrderApprove(request);
+    this.props.provider.doLendOrderApprove(request, value => console.log(`Widget LendApprove callback TX: ${value}`));
   };
 
   _handleBorrowApprove = value => {
     const request = { ...value, asset: this.state.asset };
-    return this.props.provider.doBorrowOrderApprove(request);
+    this.props.provider.doBorrowOrderApprove(request, value =>
+      console.log(`Widget BorrowApprove callback TX: ${value}`)
+    );
   };
 
   _handleQuickPositionApprove = value => {
     const request = { ...value, asset: this.state.asset };
-    return this.props.provider.doQuickPositionApprove(request);
+    this.props.provider.doQuickPositionApprove(request, value =>
+      console.log(`Widget LendApprove callback TX: ${value}`)
+    );
   };
 
   _handleAssetsUpdate = (assets, defaultAsset) => {
     this.setState({
-      ...this.state,
       assets: assets,
       asset: defaultAsset
     });
   };
-
-  _handleProviderInitFailed = (msg) => {
-    message.error(`Widget initialisation failed: ${msg}!`)
-  }
 }
