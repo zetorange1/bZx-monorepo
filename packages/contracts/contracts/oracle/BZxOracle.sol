@@ -906,7 +906,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     {
         if (sourceTokenAddress == destTokenAddress) {
             expectedRate = 10**18;
-            slippageRate = 0;
+            slippageRate = 10**18;
         } else {
             (expectedRate, slippageRate) = KyberNetwork_Interface(kyberContract).getExpectedRate(
                 sourceTokenAddress,

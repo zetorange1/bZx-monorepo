@@ -9,7 +9,7 @@ module.exports = {
     })
     return pathMap;
   },
-  assetPrefix: process.env.IS_STAGING ? "/new" : ""
+  assetPrefix: process.env.IS_STAGING ? "/staging" : ""
 };
 
 /*
@@ -19,6 +19,6 @@ module.exports = {
       "/": { page: `/` }
     };
   },
-  assetPrefix: process.env.IS_STAGING ? "/new" : ""
+  assetPrefix: process.env.IS_STAGING ? "/staging" : ""
 };
 */
