@@ -16,6 +16,10 @@ contract BZRxTransferProxy is Ownable {
     address public bZRxTokenContractAddress;
     mapping (address => uint) public transferAllowance;
 
+    string public name = "bZx Protocol Token";
+    string public symbol = "BZRX";
+    uint8 public decimals = 18;
+
     constructor(
         address _bZRxTokenContractAddress)
         public
