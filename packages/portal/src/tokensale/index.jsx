@@ -138,7 +138,7 @@ export default class Tokensale extends BZxComponent {
     console.log(`Token contract:`, tokenContract._address);
 
     try {
-      const tokenBalance = await tokenContract.methods.balanceOf(accounts[0]).call(); //await this.wrapAndRun(tokenContract.methods.balanceOf(accounts[0]).call());
+      //const tokenBalance = await tokenContract.methods.balanceOf(accounts[0]).call(); //await this.wrapAndRun(tokenContract.methods.balanceOf(accounts[0]).call());
       
       //const tokenData = await this.wrapAndRun(tokensaleContract.methods.purchases(accounts[0]).call());
       //console.log(tokenData);
@@ -150,7 +150,7 @@ export default class Tokensale extends BZxComponent {
       //console.log(ethRaised);
 
       this.setState({ 
-        tokenBalance: tokenBalance,
+        //tokenBalance: tokenBalance,
         ethRaised: ethRaised,
         loading: false, 
         error: false 
@@ -321,7 +321,7 @@ export default class Tokensale extends BZxComponent {
 
             <br/>
 
-            <DataPointContainer>
+            {/*<DataPointContainer>
               <Label>Your Token Balance</Label>
               <DataPoint>
                 {fromBigNumber(
@@ -333,7 +333,7 @@ export default class Tokensale extends BZxComponent {
               </DataPoint>
             </DataPointContainer>
 
-            <br/>
+            <br/>*/}
 
             <DataPointContainer>
               <Button
