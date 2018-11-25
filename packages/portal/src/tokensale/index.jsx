@@ -90,7 +90,8 @@ export default class Tokensale extends BZxComponent {
     bzrxTokenAddress: null,
     showBuyDialog: false,
     buyAmount: 0,
-    affiliateHex: stringToHex(this.props.affiliate)
+    affiliateHex: stringToHex(this.props.affiliate),
+    ethRaised: 0
   };
 
   async componentDidMount() {
@@ -131,13 +132,13 @@ export default class Tokensale extends BZxComponent {
 
   refreshTokenData = async () => {
     const { accounts } = this.props;
-    const { tokenContract } = this.state;
+    const { tokenContract, tokensaleContract } = this.state;
     await this.setState({ loading: true });
     
     console.log(`Token contract:`, tokenContract._address);
 
     try {
-      const tokenBalance = await this.wrapAndRun(tokenContract.methods.balanceOf(accounts[0]).call());
+      const tokenBalance = await tokenContract.methods.balanceOf(accounts[0]).call(); //await this.wrapAndRun(tokenContract.methods.balanceOf(accounts[0]).call());
       
       //const tokenData = await this.wrapAndRun(tokensaleContract.methods.purchases(accounts[0]).call());
       //console.log(tokenData);
@@ -145,8 +146,12 @@ export default class Tokensale extends BZxComponent {
       //const ethRate = await this.wrapAndRun(tokensaleContract.methods.getEthRate().call());
       //console.log(ethRate);
 
+      const ethRaised = await tokensaleContract.methods.ethRaised().call(); //await this.wrapAndRun(tokensaleContract.methods.ethRaised().call());
+      //console.log(ethRaised);
+
       this.setState({ 
         tokenBalance: tokenBalance,
+        ethRaised: ethRaised,
         loading: false, 
         error: false 
       });
@@ -231,7 +236,8 @@ export default class Tokensale extends BZxComponent {
       tokenBalance,
       tokensaleContract,
       tokenContract,
-      currentTokenBonus
+      currentTokenBonus,
+      ethRaised
     } = this.state;
     if (error) {
       return (
@@ -295,7 +301,28 @@ export default class Tokensale extends BZxComponent {
             <br/>
 
             <DataPointContainer>
-              <Label>Token Balance</Label>
+              <Label>Current Token Price (locked)</Label>
+              <DataPoint>
+                0.000073 ETH
+              </DataPoint>
+            </DataPointContainer>
+
+            <DataPointContainer>
+              <Label>ETH Raised in Current Sale</Label>
+              <DataPoint>
+                {fromBigNumber(
+                  ethRaised,
+                  10 ** 18
+                )}
+                {` `}
+                {`ETH`}
+              </DataPoint>
+            </DataPointContainer>
+
+            <br/>
+
+            <DataPointContainer>
+              <Label>Your Token Balance</Label>
               <DataPoint>
                 {fromBigNumber(
                   tokenBalance,
@@ -303,15 +330,6 @@ export default class Tokensale extends BZxComponent {
                 )}
                 {` `}
                 {`BZRX`}
-              </DataPoint>
-            </DataPointContainer>
-
-            <br/>
-
-            <DataPointContainer>
-              <Label>Token Price (locked)</Label>
-              <DataPoint>
-                0.000073 ETH
               </DataPoint>
             </DataPointContainer>
 
