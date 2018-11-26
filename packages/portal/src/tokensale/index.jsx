@@ -81,7 +81,7 @@ export default class Tokensale extends BZxComponent {
   state = { 
     loading: false, 
     error: false,
-    tokenBalance: 0,
+    tokenBalance: null,
     //totalTokens: 0,
     //totalTokenBonus: 0,
     //ethRate: 0,
@@ -91,7 +91,7 @@ export default class Tokensale extends BZxComponent {
     showBuyDialog: false,
     buyAmount: 0,
     affiliateHex: stringToHex(this.props.affiliate),
-    ethRaised: 0
+    ethRaised: null
   };
 
   async componentDidMount() {
@@ -133,7 +133,7 @@ export default class Tokensale extends BZxComponent {
   refreshTokenData = async () => {
     const { accounts } = this.props;
     const { tokenContract, tokensaleContract } = this.state;
-    await this.setState({ loading: true });
+    await this.setState({ loading: true, tokenBalance: null, ethRaised: null });
     
     console.log(`Token contract:`, tokenContract._address);
 
@@ -310,12 +310,13 @@ export default class Tokensale extends BZxComponent {
             <DataPointContainer>
               <Label>ETH Raised in Current Sale</Label>
               <DataPoint>
-                {fromBigNumber(
+                {loading || ethRaised == null ? 
+                `Loading...` : 
+                fromBigNumber(
                   ethRaised,
                   10 ** 18
-                )}
-                {` `}
-                {`ETH`}
+                )+` ETH`
+                }
               </DataPoint>
             </DataPointContainer>
 
@@ -324,12 +325,13 @@ export default class Tokensale extends BZxComponent {
             <DataPointContainer>
               <Label>Your Token Balance</Label>
               <DataPoint>
-                {fromBigNumber(
+                {loading || tokenBalance == null ? 
+                `Loading...` : 
+                  fromBigNumber(
                   tokenBalance,
                   10 ** 18
-                )}
-                {` `}
-                {`BZRX`}
+                )+` BZRX`
+                }
               </DataPoint>
             </DataPointContainer>
 
