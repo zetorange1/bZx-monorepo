@@ -25,6 +25,7 @@
     "material-ui-pickers": "^1.0.0-rc.13",
     "moment": "^2.22.1",
     "next": "^6.1.1",
+    "p-queue": "^3.0.0",
     "react": "^16.3.2",
     "react-dom": "^16.3.2",
     "react-jss": "^8.4.0",

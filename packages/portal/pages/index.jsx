@@ -123,18 +123,20 @@ switch (domainData.subdomain) {
       };
     
       updateTrackedTokens = tokens => hardRefresh => {
-        if (hardRefresh) {
-          this.setState({ trackedTokens: [] }, () =>
+        if (window.pqueueTokens.size == 0) {
+          if (hardRefresh) {
+            this.setState({ trackedTokens: [] }, () =>
+              this.setState({
+                trackedTokens: getTrackedTokens(tokens),
+                lastTokenRefresh: new Date().getTime()
+              })
+            );
+          } else {
             this.setState({
               trackedTokens: getTrackedTokens(tokens),
               lastTokenRefresh: new Date().getTime()
-            })
-          );
-        } else {
-          this.setState({
-            trackedTokens: getTrackedTokens(tokens),
-            lastTokenRefresh: new Date().getTime()
-          });
+            });
+          }
         }
       };
     

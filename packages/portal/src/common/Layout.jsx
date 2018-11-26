@@ -1,3 +1,4 @@
+import PQueue from "p-queue";
 import styled from "styled-components";
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
@@ -60,6 +61,18 @@ export default class Layout extends React.Component {
     window.tokenSymbols = {};
     window.tokenDecimals = {};
     window.defaultGasPrice = toBigNumber(12, 1E9);
+    window.pqueueGeneral = new PQueue({
+      concurrency: 1,
+      intervalCap: 1,
+      interval: 1000,
+      carryoverConcurrencyCount: true
+    });
+    window.pqueueTokens = new PQueue({
+      concurrency: 1,
+      intervalCap: 1,
+      interval: 300,
+      carryoverConcurrencyCount: true
+    });
   };
 
   showAlert = (text, alertComponent = null) => {
