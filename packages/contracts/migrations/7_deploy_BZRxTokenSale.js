@@ -43,6 +43,7 @@ module.exports = (deployer, network, accounts) => {
       "19474000000000000000"
     );
 
+    var bZRxToken = await BZRxToken.deployed();
     if (network == "development") {
       await tokensale.closeSale(false);
 
@@ -54,7 +55,6 @@ module.exports = (deployer, network, accounts) => {
       await bZRxToken.addMinter(BZRxTransferProxy.address);
     }
 
-    var bZRxToken = await BZRxToken.deployed();
     await bZRxToken.addMinter(BZRxTokenSale.address);
     //await bZRxToken.addMinter(BZxVault.address);
 

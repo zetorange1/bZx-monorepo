@@ -1,17 +1,6 @@
 var TokenRegistry = artifacts.require("TokenRegistry");
 var TestNetFaucet = artifacts.require("TestNetFaucet");
 
-var TestToken0 = artifacts.require("TestToken0");
-var TestToken1 = artifacts.require("TestToken1");
-var TestToken2 = artifacts.require("TestToken2");
-var TestToken3 = artifacts.require("TestToken3");
-var TestToken4 = artifacts.require("TestToken4");
-var TestToken5 = artifacts.require("TestToken5");
-var TestToken6 = artifacts.require("TestToken6");
-var TestToken7 = artifacts.require("TestToken7");
-var TestToken8 = artifacts.require("TestToken8");
-var TestToken9 = artifacts.require("TestToken9");
-
 const path = require("path");
 
 module.exports = (deployer, network, accounts) => {
@@ -24,27 +13,13 @@ module.exports = (deployer, network, accounts) => {
   }
 
   if (network != "mainnet" && network != "ropsten") {
-    tokens = [];
-    deployer.deploy(TestToken0).then(async function() {
-      tokens.push(TestToken0);
-      await deployer.deploy(TestToken1);
-      tokens.push(TestToken1);
-      await deployer.deploy(TestToken2);
-      tokens.push(TestToken2);
-      await deployer.deploy(TestToken3);
-      tokens.push(TestToken3);
-      await deployer.deploy(TestToken4);
-      tokens.push(TestToken4);
-      await deployer.deploy(TestToken5);
-      tokens.push(TestToken5);
-      await deployer.deploy(TestToken6);
-      tokens.push(TestToken6);
-      await deployer.deploy(TestToken7);
-      tokens.push(TestToken7);
-      await deployer.deploy(TestToken8);
-      tokens.push(TestToken8);
-      await deployer.deploy(TestToken9);
-      tokens.push(TestToken9);
+    let tokens = [];
+    deployer.then(async () => {
+      for(let i=0; i <= 9; i++) {
+        let t = await artifacts.require("TestToken"+i);
+        await deployer.deploy(t);
+        await tokens.push(t);
+      }
 
       var registry = await TokenRegistry.deployed();
 

@@ -5,8 +5,8 @@ var ZeroExV2Helper = artifacts.require("ZeroExV2Helper");
 const path = require("path");
 const config = require("../protocol-config.js");
 
-const BigNumber = require("bignumber.js");
-const MAX_UINT = new BigNumber(2).pow(256).minus(1);
+const BN = require("bn.js");
+const MAX_UINT = (new BN(2)).pow(new BN(256)).sub(new BN(1));
 
 module.exports = (deployer, network, accounts) => {
   if (network == "develop" || network == "testnet" || network == "coverage") {
