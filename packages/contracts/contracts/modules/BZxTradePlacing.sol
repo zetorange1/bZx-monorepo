@@ -182,7 +182,14 @@ contract BZxTradePlacing is BZxStorage, BZxProxiable, InternalFunctions {
         );
 
         if (positionTokenAmountUsed < loanPosition.positionTokenAmountFilled) {
-            revert("BZxTradePlacing::tradePositionWithOracle: positionTokenAmountUsed < positionTokenAmountFilled");
+            // untradeable position token is withdrawn to the trader for manual handling
+            if (! BZxVault(vaultContract).withdrawToken(
+                loanPosition.positionTokenAddressFilled,
+                loanPosition.trader,
+                loanPosition.positionTokenAmountFilled.sub(positionTokenAmountUsed)
+            )) {
+                revert("BZxTradePlacing::tradePositionWithOracle: BZxVault.withdrawToken untradeable token failed");
+            }
         }
 
         if (tradeTokenAmount == 0) {

@@ -284,8 +284,9 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
                 true // emitEvent
             );
         
-            uint totalInterestToRefund = interestTotal[loanOrder.loanOrderHash][loanPosition.positionId]
-                .sub(interestPaid[loanOrder.loanOrderHash][loanPosition.positionId]);
+            uint totalInterestToRefund = interestTotal[loanPosition.positionId]
+                .sub(interestRefunded[loanPosition.positionId])
+                .sub(interestPaid[loanPosition.positionId]);
 
             if (totalInterestToRefund > 0) {
                 require(BZxVault(vaultContract).withdrawToken(
@@ -293,9 +294,9 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
                 loanPosition.trader,
                 totalInterestToRefund
                 ));
-            }
 
-            interestTotal[loanOrder.loanOrderHash][loanPosition.positionId] = 0;
+                interestRefunded[loanPosition.positionId] = interestRefunded[loanPosition.positionId].add(totalInterestToRefund);
+            }
         }
 
         if (loanPosition.collateralTokenAmountFilled > 0) {
@@ -500,8 +501,9 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
                 false // emitEvent
             );
 
-            uint remainingInterest = interestTotal[loanOrderHash][positionId]
-                .sub(interestPaid[loanOrderHash][positionId]);
+            uint remainingInterest = interestTotal[positionId]
+                .sub(interestRefunded[positionId])
+                .sub(interestPaid[positionId]);
 
             uint remainingInterestRequired = _getTotalInterestRequired(
                 loanOrder.loanTokenAmount,
@@ -519,14 +521,12 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
                 )) {
                     revert("BZxLoanHealth::_closeLoanPartially: BZxVault.withdrawToken interest failed");
                 }
+
+                interestRefunded[positionId] = interestRefunded[positionId].add(remainingInterest-remainingInterestRequired);
             } else if (remainingInterestRequired > remainingInterest) {
                 // this state should never be hit, be we are being safe
                 revert("BZxLoanHealth::_closeLoanPartially: remainingInterestRequired > remainingInterest");
             }
-
-            // reset interest values
-            interestTotal[loanOrderHash][positionId] = remainingInterestRequired;
-            interestPaid[loanOrderHash][positionId] = 0;
         }
 
         if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
@@ -652,8 +652,9 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
                 true // emitEvent
             );
 
-            uint totalInterestToRefund = interestTotal[loanOrder.loanOrderHash][loanPosition.positionId]
-                .sub(interestPaid[loanOrder.loanOrderHash][loanPosition.positionId]);
+            uint totalInterestToRefund = interestTotal[loanPosition.positionId]
+                .sub(interestRefunded[loanPosition.positionId])
+                .sub(interestPaid[loanPosition.positionId]);
             
             // refund any unused interest to the trader
             if (totalInterestToRefund > 0) {
@@ -664,9 +665,9 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
                 )) {
                     revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken interest failed");
                 }
-            }
 
-            interestTotal[loanOrder.loanOrderHash][loanPosition.positionId] = 0;
+                interestRefunded[loanPosition.positionId] = interestRefunded[loanPosition.positionId].add(totalInterestToRefund);
+            }
         }
 
         if (isLiquidation || loanPosition.positionTokenAmountFilled < loanPosition.loanTokenAmountFilled) {

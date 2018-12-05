@@ -603,8 +603,8 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
             );
 
             if (totalInterestRequired > 0) {
-                interestTotal[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]] = 
-                    interestTotal[loanOrder.loanOrderHash][loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]].add(totalInterestRequired);
+                interestTotal[loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]] = 
+                    interestTotal[loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]].add(totalInterestRequired);
 
                 // deposit interest token
                 if (! BZxVault(vaultContract).depositToken(

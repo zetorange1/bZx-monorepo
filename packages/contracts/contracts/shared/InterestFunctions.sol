@@ -30,8 +30,8 @@ contract InterestFunctions is BZxStorage, InternalFunctions {
             amountPaid = 0;
         } else {
             amountPaid = interestTotalAccrued.sub(interestData.interestPaidSoFar);
-            interestPaid[loanOrder.loanOrderHash][loanPosition.positionId] = interestTotalAccrued; // since this function will pay all remaining accured interest
-            interestPaidDate[loanOrder.loanOrderHash][loanPosition.positionId] = block.timestamp;
+            interestPaid[loanPosition.positionId] = interestTotalAccrued; // since this function will pay all remaining accured interest
+            interestPaidDate[loanPosition.positionId] = block.timestamp;
         }
     }
 
