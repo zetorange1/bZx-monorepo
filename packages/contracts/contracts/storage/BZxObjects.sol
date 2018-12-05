@@ -33,6 +33,7 @@ contract BZxObjects {
         uint traderRelayFee;
         uint makerRole;
         uint expirationUnixTimestampSec;
+        string description;
     }
 
     struct LoanPosition {

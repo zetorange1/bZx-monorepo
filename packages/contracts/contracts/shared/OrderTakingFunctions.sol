@@ -157,7 +157,8 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
                 lenderRelayFee: orderValues[4],
                 traderRelayFee: orderValues[5],
                 makerRole: orderValues[8],
-                expirationUnixTimestampSec: orderValues[7]
+                expirationUnixTimestampSec: orderValues[7],
+                description: ""
             });
             
             if (!_verifyNewLoanOrder(

@@ -463,6 +463,16 @@ contract BZx is BZxStorage {
         external
         returns (bool);
 
+    /// @dev Allows the maker of an order to set a description
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param desc Descriptive text to attach to the loan order
+    /// @return True on success
+    function setLoanOrderDesc(
+        bytes32 loanOrderHash,
+        string desc)
+        external
+        returns (bool);
+
     /// @dev Get the current profit/loss data of a position
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position

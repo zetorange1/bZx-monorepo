@@ -35,6 +35,7 @@ contract BZxLoanMaintenance2 is BZxStorage, BZxProxiable, InternalFunctions {
         targets[bytes4(keccak256("changeTraderOwnership(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("changeLenderOwnership(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("increaseLoanableAmount(bytes32,uint256)"))] = _target;
+        targets[bytes4(keccak256("setLoanOrderDesc(bytes32,string)"))] = _target;
     }
 
     /// @dev Allows the trader to transfer ownership of the underlying assets in a position to another user.
@@ -216,6 +217,25 @@ contract BZxLoanMaintenance2 is BZxStorage, BZxProxiable, InternalFunctions {
             loanTokenAmountToAdd,
             totalNewFillableAmount
         );
+
+        return true;
+    }
+
+    /// @dev Allows the maker of an order to set a description
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param desc Descriptive text to attach to the loan order
+    /// @return True on success
+    function setLoanOrderDesc(
+        bytes32 loanOrderHash,
+        string desc)
+        external
+        nonReentrant
+        tracksGas
+        returns (bool)
+    {
+        LoanOrderAux storage loanOrderAux = orderAux[loanOrderHash];
+        require(loanOrderAux.maker == msg.sender, "BZxLoanMaintenance::setLoanOrderDesc: loanOrderAux.maker != msg.sender");
+        loanOrderAux.description = desc;
 
         return true;
     }
