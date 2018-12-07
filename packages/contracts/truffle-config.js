@@ -55,8 +55,11 @@ module.exports = {
         "https://ropsten.infura.io/" + infuraApikey
       ),
       network_id: 3,
-      gas: 6721975,
-      gasPrice: 50000000000
+      gas: 8000000,
+      gasPrice: 50000000000,
+      confirmations: 0,
+      timeoutBlocks: 200,
+      skipDryRun: true
     },
     kovan: {
       provider: () => new HDWalletProvider(
@@ -65,7 +68,10 @@ module.exports = {
       ),
       network_id: 42,
       gas: 8000000,
-      gasPrice: 20000000000
+      gasPrice: 20000000000,
+      confirmations: 0,
+      timeoutBlocks: 200,
+      skipDryRun: true
     },
     rinkeby: {
       provider: () => new HDWalletProvider(
