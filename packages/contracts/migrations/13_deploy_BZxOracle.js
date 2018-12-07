@@ -27,8 +27,8 @@ module.exports = (deployer, network, accounts) => {
 
   var bzrx_token_address;
   if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {
-    //bzrx_token_address = config["addresses"][network]["BZRXToken"];
-    bzrx_token_address = BZRxToken.address;
+    bzrx_token_address = config["addresses"][network]["BZRXToken"];
+    //bzrx_token_address = BZRxToken.address;
   } else {
     bzrx_token_address = BZRxToken.address;
   }

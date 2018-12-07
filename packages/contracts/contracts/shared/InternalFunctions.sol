@@ -167,7 +167,6 @@ contract InternalFunctions is BZxStorage {
     {
         uint interestTotalAccrued = 0;
         uint interestPaidSoFar = 0;
-        uint interestRefunded = 0;
         if (loanOrder.interestAmount > 0) {
             uint interestTime = block.timestamp;
             uint interestLastPaidDate = interestPaidDate[loanPosition.positionId];
