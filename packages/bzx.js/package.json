@@ -1,8 +1,7 @@
 {
-  "name": "bzx.js",
+  "name": "@bzxnetwork/bzx.js",
   "version": "0.3.6",
-  "private": true,
-  "description": "",
+  "description": "JavaScript library for interacting with the bZx protocol smart contracts",
   "keywords": [],
   "author": "",
   "license": "Apache-2.0",

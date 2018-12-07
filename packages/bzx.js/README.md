@@ -2,6 +2,22 @@
 
 Javascript library for bZx. Allows for interaction with bZx smart contracts on the Ethereum blockchain.
 
+# Install
+
+```
+npm install --save @bzxnetwork/bzx.js
+```
+
+# Initialize
+
+```javascript
+const Web3 = require("web3");
+const { BZxJS } = require("@bzxproject/bzx.js");
+
+const networkId = await web3.eth.net.getId();
+const bzx = await new BZxJS(web3, { networkId });
+```
+
 # Development
 
 1. Install yarn if needed: `npm install -g yarn`.

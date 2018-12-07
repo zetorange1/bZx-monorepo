@@ -10,22 +10,22 @@ Since version 1.x of this package, we stick with Semantic Versioning 2.0.0, so w
 
 Using NPM:
 
-`npm install bzx.js@^0.3.0 --save`
+`npm install @bzxnetwork/bzx.js --save`
 
 Using Yarn:
 
-`yarn add bzx.js@^0.3.0`
+`yarn add @bzxnetwork/bzx.js`
 
 ### Import
 
 Using `import`:
 
 ```javascript
-import { BZxJS } from "bzx.js";
+import { BZxJS } from "@bzxnetwork/bzx.js";
 ```
 
 Using `require`:
 
 ```javascript
-const { BZxJS } = require("bzx.js");
+const { BZxJS } = require("@bzxnetwork/bzx.js");
 ```

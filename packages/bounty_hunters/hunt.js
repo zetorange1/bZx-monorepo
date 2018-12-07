@@ -2,7 +2,7 @@
 
 // importing classes
 const Web3 = require("web3");
-const { BZxJS } = require("bzx.js");
+const { BZxJS } = require("@bzxnetwork/bzx.js");
 const BigNumber = require("bignumber.js");
 const moment = require("moment");
 const minimist = require("minimist");
