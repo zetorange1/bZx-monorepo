@@ -16,16 +16,12 @@ Using Yarn:
 
 `yarn add @bzxnetwork/bzx.js`
 
-### Import
-
-Using `import`:
+### Initialize
 
 ```javascript
-import { BZxJS } from "@bzxnetwork/bzx.js";
-```
-
-Using `require`:
-
-```javascript
+const Web3 = require("web3");
 const { BZxJS } = require("@bzxnetwork/bzx.js");
+
+const networkId = await web3.eth.net.getId();
+const bzx = await new BZxJS(web3, { networkId });
 ```
