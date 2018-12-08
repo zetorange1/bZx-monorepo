@@ -1,6 +1,6 @@
 export const OracleList = [
   {
-    "address": "0xb02238550aed79898fb51e8804a1ae2088d12704",
+    "address": "0x9c6037f409c1fa6f382d33fb46fbaa966e293eb3",
     "name": "bZxOracle"
   },
   {
