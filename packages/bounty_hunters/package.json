@@ -1,8 +1,7 @@
 {
-  "name": "bzx-bounty_hunters",
+  "name": "@bzxnetwork/bounty_hunters",
   "version": "0.1.0",
-  "private": true,
-  "description": "",
+  "description": "Scripts to monitor position health and liquidate",
   "keywords": [],
   "license": "Apache-2.0",
   "homepage": "https://github.com/bZxNetwork/bZx-monorepo/tree/master/packages/bounty_hunters#readme",

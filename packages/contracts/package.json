@@ -1,8 +1,7 @@
 {
-  "name": "bzx-contracts",
+  "name": "@bzxnetwork/contracts",
   "version": "0.3.4",
-  "private": true,
-  "description": "bZx Smart Contracts",
+  "description": "Smart contracts for the bZx protocol and external integrations",
   "keywords": [],
   "author": "bZeroX LLC 2018",
   "license": "Apache-2.0",

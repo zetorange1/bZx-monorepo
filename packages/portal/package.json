@@ -1,7 +1,7 @@
 {
-  "name": "bzx-portal",
+  "name": "@bzxnetwork/portal",
   "version": "0.3.6",
-  "description": "Frontend portal for bZx",
+  "description": "Frontend demo portal for bZx",
   "keywords": [],
   "author": "",
   "license": "Apache-2.0",
