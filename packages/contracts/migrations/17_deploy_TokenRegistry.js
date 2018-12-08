@@ -9,9 +9,9 @@ module.exports = (deployer, network, accounts) => {
     network = "development";
   else {
     // comment out if we need to deploy to other networks
-    web3.eth.getBalance(accounts[0], function(error, balance) {
+    /*web3.eth.getBalance(accounts[0], function(error, balance) {
       console.log("migrations :: final balance: " + balance);
-    });
+    });*/
     return;
   }
 
