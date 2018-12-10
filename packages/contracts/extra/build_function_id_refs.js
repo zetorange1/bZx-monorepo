@@ -23,6 +23,7 @@ getFuncId("isValidSignature(address,bytes32,bytes)");
 getFuncId(
   "getInitialCollateralRequired(address,address,address,uint256,uint256)"
 );
+getFuncId("getUnavailableLoanTokenAmount(bytes32)");
 
 console.log("\nBZxOrderHistory functions");
 getFuncId("getSingleOrder(bytes32)");
