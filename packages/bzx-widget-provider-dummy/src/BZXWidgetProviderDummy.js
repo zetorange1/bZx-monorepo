@@ -1,3 +1,7 @@
+import EventEmitter from "events";
+
+import { EVENT_ASSET_UPDATE } from "../../bzx-widget-common/src";
+
 export default class BZXWidgetProviderDummy {
   transactionId = "0x";
 
@@ -6,7 +10,7 @@ export default class BZXWidgetProviderDummy {
   // asset to select by default in the input on top
   defaultAsset = "weth";
   // event we emitting when we expect widget to update list of assets
-  onAssetsUpdate = () => {};
+  eventEmitter = new EventEmitter();
 
   getLendFormDefaults = () => {
     return {
@@ -67,25 +71,34 @@ export default class BZXWidgetProviderDummy {
     };
   };
 
-  doLendOrderApprove = (value, callback) => {
-    console.log("DummyProvider `onLendOrderApprove`:");
+  doLendOrderApprove = (value) => {
+    console.log("DummyProvider `doLendOrderApprove`:");
     console.dir(value);
-    callback(this.transactionId);
+
+    return new Promise((resolve, reject) => {
+      resolve(this.transactionId);
+    });
   };
 
-  doBorrowOrderApprove = (value, callback) => {
-    console.log("DummyProvider `onBorrowOrderApprove`:");
+  doBorrowOrderApprove = (value) => {
+    console.log("DummyProvider `doBorrowOrderApprove`:");
     console.dir(value);
-    callback(this.transactionId);
+
+    return new Promise((resolve, reject) => {
+      resolve(this.transactionId);
+    });
   };
 
-  doQuickPositionApprove = (value, callback) => {
-    console.log("DummyProvider `onQuickPositionApprove`:");
+  doQuickPositionApprove = (value) => {
+    console.log("DummyProvider `doQuickPositionApprove`:");
     console.dir(value);
-    callback(this.transactionId);
+
+    return new Promise((resolve, reject) => {
+      resolve(this.transactionId);
+    });
   };
 
   _handleAssetsUpdate() {
-    this.onAssetsUpdate(this.assets, this.defaultAsset);
+    this.eventEmitter.emit(EVENT_ASSET_UPDATE, this.assets, this.defaultAsset);
   }
 }

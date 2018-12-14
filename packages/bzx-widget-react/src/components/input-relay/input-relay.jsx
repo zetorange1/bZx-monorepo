@@ -40,7 +40,7 @@ export default class InputRelay extends Component {
   render() {
     return (
       <div>
-        <div style={{ borderBottom: "1px solid #E9E9E9" }}>
+        <div>
           <Checkbox
             indeterminate={this.state.indeterminate}
             onChange={this._handlerOnCheckAll}
@@ -49,7 +49,9 @@ export default class InputRelay extends Component {
             Check all
           </Checkbox>
         </div>
-        <br />
+
+        <hr style={{ borderTop: "#E9E9E9" }} />
+
         <Checkbox.Group options={this.props.options} value={this.state.value} onChange={this._handlerOnChange} />
       </div>
     );
