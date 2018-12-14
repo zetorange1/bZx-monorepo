@@ -14,7 +14,7 @@ export default class BZXWidgetProviderAugur {
   wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab";
   bzxAddress = "0x8ec550d3f5908a007c36f220455fee5be4f841a1";
   bzxVaultAddress = "0x4B367e65fb4C4e7a82988ab90761A9BB510369D7";
-  bzxAugurOracleAddress = "0x3F72ee0DC010138927bEDffBf65ec5Abe5B106F1";
+  bzxAugurOracleAddress = "0x995864C1e5A80E0e80850100B3C27a5e2124a2aE";
   defaultGasPrice = new BigNumber(12).times(10 ** 9);
   batchSize = 50;
 
@@ -276,6 +276,7 @@ export default class BZXWidgetProviderAugur {
         collateralTokenAddress: zeroAddress.toLowerCase(),
         feeRecipientAddress: zeroAddress.toLowerCase(),
         oracleAddress: this.bzxAugurOracleAddress.toLowerCase(),
+        oracleData: this._getAugurMarkedId().toLowerCase(),
         // FOR SHARES THIS QTY SHOULD BE W/O DENOMINATION, BUT FOR WETH IT SHOULD BE IN WEI
         loanTokenAmount: amountInBaseUnits.toString(),
         // CALCULATING INTEREST AS % FROM LOAN
@@ -377,6 +378,7 @@ export default class BZXWidgetProviderAugur {
         collateralTokenAddress: value.asset.toLowerCase(),
         feeRecipientAddress: zeroAddress.toLowerCase(),
         oracleAddress: this.bzxAugurOracleAddress.toLowerCase(),
+        oracleData: this._getAugurMarkedId().toLowerCase(),
         loanTokenAmount: amountInBaseUnits.toString(),
         // CALCULATING INTEREST AS % FROM LOAN
         interestAmount: new BigNumber().multipliedBy(new BigNumber(value.interestRate)).dividedBy(100),
