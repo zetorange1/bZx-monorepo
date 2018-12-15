@@ -30,9 +30,6 @@ export default class BZXWidgetProviderAugur {
   constructor() {
     this._subscribeToUrlChanges();
 
-    // creating augur instance
-    this.augur = new Augur();
-
     // reading web3 instance from window
     let { web3 } = window;
     const alreadyInjected = typeof web3 !== `undefined`;
@@ -51,6 +48,8 @@ export default class BZXWidgetProviderAugur {
                 this.bzxAugurOracleAddress = augurV2Oracle.address;
                 console.log(this.bzxAugurOracleAddress);
 
+                // creating augur instance
+                this.augur = new Augur();
                 // connecting to augur instance
                 this.augur.connect(
                   // at the current time _getAugurConnectivity returns only rinkeby data
@@ -68,6 +67,9 @@ export default class BZXWidgetProviderAugur {
         },
         () => this.eventEmitter.emit(EVENT_INIT_FAILED, "unable to enable web3 provider")
       );
+    } else {
+      // widget is not listening eventEmitter at this place, so let's write to console at least
+      console.log("web3 provider is not available");
     }
   }
 
