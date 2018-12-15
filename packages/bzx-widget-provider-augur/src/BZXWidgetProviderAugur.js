@@ -9,14 +9,15 @@ import { parseUrlGetParams, zeroAddress } from "./utils";
 import { EVENT_ASSET_UPDATE } from "../../bzx-widget-common/src";
 
 export default class BZXWidgetProviderAugur {
-  // network related consts
   networkId = 4;
+  defaultGasPrice = new BigNumber(12).times(10 ** 9).toString();
+  batchSize = 50;
+
+  // https://hackmd.io/xAwX4xmIQk-K2w6Ecs8U_w?view#AugurOracle-Implementation-AugurOraclesol
   wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab";
   bzxAddress = "0x8ec550d3f5908a007c36f220455fee5be4f841a1";
   bzxVaultAddress = "0x4B367e65fb4C4e7a82988ab90761A9BB510369D7";
-  bzxAugurOracleAddress = "0x995864C1e5A80E0e80850100B3C27a5e2124a2aE";
-  defaultGasPrice = new BigNumber(12).times(10 ** 9);
-  batchSize = 50;
+  bzxAugurOracleAddress = "0x37eF094364d3Bdfdd1C22f83a26a7F5A2f3195a0";
 
   // assets available for selection in the input on top
   assets = [];
@@ -241,6 +242,8 @@ export default class BZXWidgetProviderAugur {
   _handleLendOrderApprove = async (value, resolve, reject) => {
     // The user creates bzx order to lend current market tokens he already owns.
 
+    console.dir(value);
+
     try {
 
       let validationResult = this._preValidateLendOrderApprove(value);
@@ -253,14 +256,19 @@ export default class BZXWidgetProviderAugur {
 
       let transactionReceipt;
 
-      const amountInBaseUnits = value.asset === this.wethAddress ? this.web3.utils.toWei(value.qty, "ether") : value.qty;
+      // FOR SHARES THIS QTY SHOULD BE W/O DENOMINATION, BUT FOR WETH IT SHOULD BE IN WEI
+      const loanAmountInBaseUnits = value.asset === this.wethAddress ? this.web3.utils.toWei(value.qty, "ether") : value.qty;
+      // CALCULATING INTEREST AS % FROM LOAN
+      const interestAmount = new BigNumber(loanAmountInBaseUnits).multipliedBy(new BigNumber(value.interestRate)).dividedBy(100);
+      // CALCULATING MARGIN AMOUNT FROM "RATIO" (100 / RATIO)
+      const initialMarginAmount = new BigNumber(100).dividedBy(value.ratio);
 
       console.log("setting allowance for share's token");
       transactionReceipt = await this.bzxjs.setAllowance({
         tokenAddress: value.asset.toLowerCase(),
         ownerAddress: lenderAddress,
         spenderAddress: this.bzxVaultAddress.toLowerCase(),
-        amountInBaseUnits: amountInBaseUnits.toString(),
+        amountInBaseUnits: loanAmountInBaseUnits.toString(),
         getObject: false,
         txOpts: { from: lenderAddress, gasPrice: this.defaultGasPrice }
       });
@@ -277,12 +285,9 @@ export default class BZXWidgetProviderAugur {
         feeRecipientAddress: zeroAddress.toLowerCase(),
         oracleAddress: this.bzxAugurOracleAddress.toLowerCase(),
         oracleData: this._getAugurMarkedId().toLowerCase(),
-        // FOR SHARES THIS QTY SHOULD BE W/O DENOMINATION, BUT FOR WETH IT SHOULD BE IN WEI
-        loanTokenAmount: amountInBaseUnits.toString(),
-        // CALCULATING INTEREST AS % FROM LOAN
-        interestAmount: new BigNumber(amountInBaseUnits).multipliedBy(new BigNumber(value.interestRate)).dividedBy(100),
-        // CALCULATING MARGIN AMOUNT FROM "RATIO" (100 / RATIO)
-        initialMarginAmount: new BigNumber(100).dividedBy(value.ratio).toFixed(0),
+        loanTokenAmount: loanAmountInBaseUnits.toString(),
+        interestAmount: interestAmount.toString(),
+        initialMarginAmount: initialMarginAmount.toString(),
         // USING CONSTANTS BELOW
         maintenanceMarginAmount: "15",
         lenderRelayFee: this.web3.utils.toWei("0.001", "ether"),
@@ -296,6 +301,7 @@ export default class BZXWidgetProviderAugur {
         makerRole: "0", // 0=LENDER, 1=TRADER
         salt: BZxJS.generatePseudoRandomSalt().toString()
       };
+      console.dir(lendOrder);
 
       console.log("signing lend order");
       const lendOrderHash = BZxJS.getLoanOrderHashHex(lendOrder);
@@ -353,21 +359,27 @@ export default class BZXWidgetProviderAugur {
 
       let transactionReceipt;
 
-      const amountInBaseUnits = value.asset === this.wethAddress ? this.web3.utils.toWei(value.qty, "ether") : value.qty;
+      // FOR SHARES THIS QTY SHOULD BE W/O DENOMINATION, BUT FOR WETH IT SHOULD BE IN WEI
+      const borrowAmountInBaseUnits = value.asset === this.wethAddress ? this.web3.utils.toWei(value.qty, "ether") : value.qty;
+      // CALCULATING COLLATERAL ALLOWANCE ACCORDING "RATIO" + 1 BU
+      const collateralAmount = new BigNumber(borrowAmountInBaseUnits).dividedBy(value.ratio);
+      // CALCULATING INTEREST AS % FROM LOAN
+      const interestAmount = new BigNumber(borrowAmountInBaseUnits).multipliedBy(new BigNumber(value.interestRate)).dividedBy(100);
+      // CALCULATING MARGIN AMOUNT FROM "RATIO" (100 / RATIO)
+      const initialMarginAmount = new BigNumber(100).dividedBy(value.ratio);
 
       console.log("setting allowance for share's token");
       transactionReceipt = await this.bzxjs.setAllowance({
         tokenAddress: value.asset.toLowerCase(),
         ownerAddress: borrowerAddress,
         spenderAddress: this.bzxVaultAddress.toLowerCase(),
-        // CALCULATING ALLOWANCE ACCORDING "RATIO" + 1 BU
-        amountInBaseUnits: (new BigNumber(amountInBaseUnits).dividedBy(value.ratio).toFixed(0) + 1).toString(),
+        amountInBaseUnits: collateralAmount.toString(),
         getObject: false,
         txOpts: { from: borrowerAddress, gasPrice: this.defaultGasPrice }
       });
       console.dir(transactionReceipt);
 
-      console.log("creating lend order");
+      console.log("creating borrow order");
       const borrowOrder = {
         bZxAddress: this.bzxAddress.toLowerCase(),
         makerAddress: borrowerAddress.toLowerCase(),
@@ -379,11 +391,9 @@ export default class BZXWidgetProviderAugur {
         feeRecipientAddress: zeroAddress.toLowerCase(),
         oracleAddress: this.bzxAugurOracleAddress.toLowerCase(),
         oracleData: this._getAugurMarkedId().toLowerCase(),
-        loanTokenAmount: amountInBaseUnits.toString(),
-        // CALCULATING INTEREST AS % FROM LOAN
-        interestAmount: new BigNumber().multipliedBy(new BigNumber(value.interestRate)).dividedBy(100),
-        // CALCULATING MARGIN AMOUNT FROM "RATIO" (100 / RATIO)
-        initialMarginAmount: new BigNumber(100).dividedBy(value.ratio).toFixed(0),
+        loanTokenAmount: borrowAmountInBaseUnits.toString(),
+        interestAmount: interestAmount.toString(),
+        initialMarginAmount: initialMarginAmount.toString(),
         // USING CONSTANTS BELOW
         maintenanceMarginAmount: "15",
         lenderRelayFee: this.web3.utils.toWei("0.001", "ether"),
@@ -397,8 +407,9 @@ export default class BZXWidgetProviderAugur {
         makerRole: "1", // 0=LENDER, 1=TRADER
         salt: BZxJS.generatePseudoRandomSalt().toString()
       };
+      console.dir(borrowOrder);
 
-      console.log("signing lend order");
+      console.log("signing borrow order");
       const borrowOrderHash = BZxJS.getLoanOrderHashHex(borrowOrder);
       const borrowOrderSignature = await this.bzxjs.signOrderHashAsync(borrowOrderHash, borrowerAddress, true);
       const signedLendOrder = { ...borrowOrder, signature: borrowOrderSignature };
