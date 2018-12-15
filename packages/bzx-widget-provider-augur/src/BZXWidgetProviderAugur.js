@@ -18,7 +18,7 @@ export default class BZXWidgetProviderAugur {
   wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab";
   bzxAddress = "0x8ec550d3f5908a007c36f220455fee5be4f841a1";
   bzxVaultAddress = "0x4B367e65fb4C4e7a82988ab90761A9BB510369D7";
-  bzxAugurOracleAddress = "0x37eF094364d3Bdfdd1C22f83a26a7F5A2f3195a0";
+  bzxAugurOracleAddress = "0x995864C1e5A80E0e80850100B3C27a5e2124a2aE";
 
   // assets available for selection in the input on top
   assets = [];
