@@ -318,7 +318,7 @@ export default class BZXWidgetProviderAugur {
         });
         console.dir(transactionReceipt);
 
-        resolve(transactionReceipt);
+        resolve(transactionReceipt.transactionHash);
         return;
       } else {
         reject("pushing to relay is not yet supported");
@@ -424,7 +424,7 @@ export default class BZXWidgetProviderAugur {
         });
         console.dir(transactionReceipt);
 
-        resolve(transactionReceipt);
+        resolve(transactionReceipt.transactionHash);
         return;
       } else {
         reject("pushing to relay is not yet supported");
