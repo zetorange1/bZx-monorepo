@@ -7,13 +7,14 @@ import Checkbox from "antd/lib/checkbox/Checkbox";
 import "./../../styles/components/checkbox/index.less";
 import Popconfirm from "antd/lib/popconfirm";
 import "./../../styles/components/popover/index.less";
+import message from "antd/lib/message";
+import "./../../styles/components/message/index.less";
 
 import InputQty from "../../components/input-qty/input-qty";
 import InputInterestRate from "../../components/input-interest-rate/input-interest-rate";
 import InputDuration from "../../components/input-duration/input-duration";
 import InputRatio from "../../components/input-ratio/input-ratio";
 import InputRelay from "../../components/input-relay/input-relay";
-import message from "antd/lib/message";
 
 export default class LendForm extends Component {
   static propTypes = {

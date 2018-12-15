@@ -7,11 +7,12 @@ import Checkbox from "antd/lib/checkbox/Checkbox";
 import "./../../styles/components/checkbox/index.less";
 import Popconfirm from "antd/lib/popconfirm";
 import "./../../styles/components/popover/index.less";
+import message from "antd/lib/message";
+import "./../../styles/components/message/index.less";
 
 import InputQty from "../../components/input-qty/input-qty";
 import InputRatio from "../../components/input-ratio/input-ratio";
 import InputPositionType from "../../components/input-position-type/input-position-type";
-import message from "antd/lib/message";
 
 export default class QuickPositionForm extends Component {
   static propTypes = {

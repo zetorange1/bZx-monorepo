@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 
-import "./../../styles/components/message/index.less";
 import Tabs from "antd/lib/tabs";
 import "./../../styles/components/tabs/index.less";
 import message from "antd/lib/message";
+import "./../../styles/components/message/index.less";
 
 import BorrowForm from "../borrow-form/borrow-form";
 import LendForm from "../lend-form/lend-form";
