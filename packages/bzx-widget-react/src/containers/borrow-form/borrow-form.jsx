@@ -134,8 +134,8 @@ export default class BorrowForm extends Component {
     let resultPromise = this.props.onApprove({ ...this.state });
     resultPromise
       .then(
-        value => message.success(`Quick position placement was successful! TX: ${value}`),
-        value => message.error(`Quick position placement failed: ${value}!`)
+        value => message.success(`Borrow order placement was successful! TX: ${value}`),
+        value => message.error(`Borrow order placement failed: ${value}!`)
       );
 
     resultPromise

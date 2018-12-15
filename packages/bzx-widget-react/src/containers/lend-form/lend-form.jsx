@@ -134,8 +134,8 @@ export default class LendForm extends Component {
     let resultPromise = this.props.onApprove({ ...this.state });
     resultPromise
       .then(
-        value => message.success(`Quick position placement was successful! TX: ${value}`),
-        value => message.error(`Quick position placement failed: ${value}!`)
+        value => message.success(`Lend order placement was successful! TX: ${value}`),
+        value => message.error(`Lend order placement failed: ${value}!`)
       );
     resultPromise
       .then(
