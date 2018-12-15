@@ -1,8 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import BZXWidget from "bzx-widget-react";
-import BZXWidgetProviderAugur from "bzx-widget-provider-augur";
-import BZXWidgetProviderDummy from "bzx-widget-provider-dummy";
+import BZXWidget from "@bzxnetwork/bzx-widget-react";
+import BZXWidgetProviderAugur from "@bzxnetwork/bzx-widget-provider-augur";
+import BZXWidgetProviderDummy from "@bzxnetwork/bzx-widget-provider-dummy";
 
 import * as serviceWorker from "./serviceWorker";
 

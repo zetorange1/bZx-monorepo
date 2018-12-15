@@ -16,8 +16,8 @@
   },
   "main": "dist/bzx-widget-provider-dummy.js",
   "dependencies": {
-    "augur.js": "^6.0.0",
-    "bignumber.js": "^7.0.1"
+    "@bzxnetwork/bzx-widget-common": "^0.1.0",
+    "events": "^3.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -40,8 +40,8 @@
     "eslint-plugin-prettier": "^2.6.0",
     "prettier": "^1.10.2",
     "webpack": "^4.17.1",
-    "webpack-cli": "3.1.2",
     "webpack-bundle-analyzer": "^2.13.1",
+    "webpack-cli": "3.1.2",
     "webpack-merge": "^4.1.4",
     "webpack-node-externals": "^1.7.2"
   },

@@ -16,9 +16,11 @@
   },
   "main": "dist/bzx-widget-provider-augur.js",
   "dependencies": {
+    "@bzxnetwork/bzx.js": "^0.3.0",
+    "@bzxnetwork/bzx-widget-common": "^0.1.0",
     "augur.js": "^6.0.0",
     "bignumber.js": "^7.0.1",
-    "bzx.js": "^0.3.0",
+    "events": "^3.0.0",
     "moment": "^2.22.1",
     "web3": "1.0.0-beta.36"
   },
@@ -43,8 +45,8 @@
     "eslint-plugin-prettier": "^2.6.0",
     "prettier": "^1.10.2",
     "webpack": "^4.17.1",
-    "webpack-cli": "3.1.2",
     "webpack-bundle-analyzer": "^2.13.1",
+    "webpack-cli": "3.1.2",
     "webpack-merge": "^4.1.4",
     "webpack-node-externals": "^1.7.2"
   },

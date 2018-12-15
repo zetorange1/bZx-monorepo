@@ -1,5 +1,5 @@
 {
-  "name": "bzx-widget-common",
+  "name": "@bzxnetwork/bzx-widget-common",
   "version": "0.1.0",
   "private": true,
   "description": "",

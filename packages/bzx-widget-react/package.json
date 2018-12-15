@@ -16,8 +16,8 @@
   },
   "main": "dist/bzx-widget-react.js",
   "dependencies": {
+    "@bzxnetwork/bzx-widget-common": "^0.1.0",
     "antd": "^3.10.4",
-    "bzx-widget-common": "^0.1.0",
     "prop-types": "^15.6.2",
     "react": "^16.3.2",
     "react-dom": "^16.3.2"
