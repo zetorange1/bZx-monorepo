@@ -1,12 +1,12 @@
 import Augur from "augur.js";
 import BigNumber from "bignumber.js";
-import { BZxJS } from "bzx.js";
+import { BZxJS } from "@bzxnetwork/bzx.js";
 import EventEmitter from "events";
 import moment from "moment";
 import Web3 from "web3";
 
 import { parseUrlGetParams, zeroAddress } from "./utils";
-import { EVENT_ASSET_UPDATE, EVENT_INIT_FAILED } from "../../bzx-widget-common/src";
+import { EVENT_ASSET_UPDATE, EVENT_INIT_FAILED } from "@bzxnetwork/bzx-widget-common";
 
 export default class BZXWidgetProviderAugur {
   networkId = 4;
