@@ -18,6 +18,7 @@ export default class BZXWidgetProviderAugur {
   wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab";
   bzxAddress = "0x8ec550d3f5908a007c36f220455fee5be4f841a1";
   bzxVaultAddress = "0x4B367e65fb4C4e7a82988ab90761A9BB510369D7";
+  bZxOracleAddress = "";
   bzxAugurOracleAddress = "";
 
   // assets available for selection in the input on top
@@ -43,9 +44,13 @@ export default class BZXWidgetProviderAugur {
           this.bzxjs = new BZxJS(this.web3, { networkId: this.networkId });
           this.bzxjs.getOracleList().then(
             oracles => {
-              const augurV2Oracle = oracles.filter(oracle => oracle.name === "AugurOracle")[0];
-              if (augurV2Oracle) {
-                this.bzxAugurOracleAddress = augurV2Oracle.address;
+              console.dir(oracles);
+
+              const bZxOracle = oracles.filter(oracle => oracle.name === "bZxOracle")[0];
+              const augurOracle = oracles.filter(oracle => oracle.name === "AugurOracle")[0];
+              if (augurOracle && bZxOracle) {
+                this.bZxOracleAddress = bZxOracle.address;
+                this.bzxAugurOracleAddress = augurOracle.address;
                 console.log(this.bzxAugurOracleAddress);
 
                 // creating augur instance
@@ -59,7 +64,13 @@ export default class BZXWidgetProviderAugur {
                   }
                 );
               } else {
-                this.eventEmitter.emit(EVENT_INIT_FAILED, "no AugurOracle oracle available");
+                if (!bZxOracle) {
+                  this.eventEmitter.emit(EVENT_INIT_FAILED, "no bZxOracle oracle available");
+                }
+
+                if (!augurOracle) {
+                  this.eventEmitter.emit(EVENT_INIT_FAILED, "no AugurOracle oracle available");
+                }
               }
             },
             () => this.eventEmitter.emit(EVENT_INIT_FAILED, "unable to get list of oracles available")
@@ -280,6 +291,8 @@ export default class BZXWidgetProviderAugur {
       const interestAmount = new BigNumber(loanAmountInBaseUnits).multipliedBy(new BigNumber(value.interestRate)).dividedBy(100);
       // CALCULATING MARGIN AMOUNT FROM "RATIO" (100 / RATIO)
       const initialMarginAmount = new BigNumber(100).dividedBy(value.ratio);
+      const orderOracleAddress = value.asset === this.wethAddress ? this.bZxOracleAddress : this.bzxAugurOracleAddress;
+      const orderOracleData = value.asset === this.wethAddress ? "" : this._getAugurMarkedId();
 
       console.log("setting allowance for share's token");
       transactionReceipt = await this.bzxjs.setAllowance({
@@ -301,8 +314,8 @@ export default class BZXWidgetProviderAugur {
         interestTokenAddress: value.asset.toLowerCase(),
         collateralTokenAddress: zeroAddress.toLowerCase(),
         feeRecipientAddress: zeroAddress.toLowerCase(),
-        oracleAddress: this.bzxAugurOracleAddress.toLowerCase(),
-        oracleData: this._getAugurMarkedId().toLowerCase(),
+        oracleAddress: orderOracleAddress.toLowerCase(),
+        oracleData: orderOracleData.toLowerCase(),
         loanTokenAmount: loanAmountInBaseUnits.toString(),
         interestAmount: interestAmount.toString(),
         initialMarginAmount: initialMarginAmount.toString(),
@@ -385,6 +398,8 @@ export default class BZXWidgetProviderAugur {
       const interestAmount = new BigNumber(borrowAmountInBaseUnits).multipliedBy(new BigNumber(value.interestRate)).dividedBy(100);
       // CALCULATING MARGIN AMOUNT FROM "RATIO" (100 / RATIO)
       const initialMarginAmount = new BigNumber(100).dividedBy(value.ratio);
+      const orderOracleAddress = value.asset === this.wethAddress ? this.bZxOracleAddress : this.bzxAugurOracleAddress;
+      const orderOracleData = value.asset === this.wethAddress ? "" : this._getAugurMarkedId();
 
       console.log("setting allowance for share's token");
       transactionReceipt = await this.bzxjs.setAllowance({
@@ -407,8 +422,8 @@ export default class BZXWidgetProviderAugur {
         // WE DON'T KNOW WHAT COLLATERAL WE CAN USE INSTEAD
         collateralTokenAddress: value.asset.toLowerCase(),
         feeRecipientAddress: zeroAddress.toLowerCase(),
-        oracleAddress: this.bzxAugurOracleAddress.toLowerCase(),
-        oracleData: this._getAugurMarkedId().toLowerCase(),
+        oracleAddress: orderOracleAddress.toLowerCase(),
+        oracleData: orderOracleData.toLowerCase(),
         loanTokenAmount: borrowAmountInBaseUnits.toString(),
         interestAmount: interestAmount.toString(),
         initialMarginAmount: initialMarginAmount.toString(),
