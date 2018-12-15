@@ -90,6 +90,7 @@ export default class BZXWidget extends Component {
 
   _handleAssetsUpdate = (assets, defaultAsset) => {
     this.setState({
+      ...this.state,
       assets: assets,
       asset: defaultAsset
     });
