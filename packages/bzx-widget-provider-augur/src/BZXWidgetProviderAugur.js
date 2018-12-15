@@ -10,6 +10,7 @@ import { EVENT_ASSET_UPDATE } from "../../bzx-widget-common/src";
 
 export default class BZXWidgetProviderAugur {
   networkId = 4;
+  defaultGasAmount = 1000000;
   defaultGasPrice = new BigNumber(12).times(10 ** 9).toString();
   batchSize = 50;
 
@@ -313,7 +314,7 @@ export default class BZXWidgetProviderAugur {
         transactionReceipt = await this.bzxjs.pushLoanOrderOnChain({
           order: signedLendOrder,
           getObject: false,
-          txOpts: { from: lenderAddress, gasPrice: this.defaultGasPrice }
+          txOpts: { from: lenderAddress, gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
         });
         console.dir(transactionReceipt);
 
@@ -419,7 +420,7 @@ export default class BZXWidgetProviderAugur {
         transactionReceipt = await this.bzxjs.pushLoanOrderOnChain({
           order: signedLendOrder,
           getObject: false,
-          txOpts: { from: borrowerAddress, gasPrice: this.defaultGasPrice }
+          txOpts: { from: borrowerAddress, gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
         });
         console.dir(transactionReceipt);
 
