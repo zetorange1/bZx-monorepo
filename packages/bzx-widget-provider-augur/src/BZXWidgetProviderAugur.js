@@ -223,9 +223,9 @@ export default class BZXWidgetProviderAugur {
     }
   };
 
-  _handleAssetsUpdate() {
+  _handleAssetsUpdate = () => {
     this.eventEmitter.emit(EVENT_ASSET_UPDATE, this.assets, this.defaultAsset);
-  }
+  };
 
   _preValidateLendOrderApprove = value => {
     if (!value.asset) {
