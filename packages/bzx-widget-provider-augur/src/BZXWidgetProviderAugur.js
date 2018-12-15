@@ -66,7 +66,7 @@ export default class BZXWidgetProviderAugur {
             () => this.eventEmitter.emit(EVENT_INIT_FAILED, "unable to get list of oracles available")
           );
         },
-        () => () => this.eventEmitter.emit(EVENT_INIT_FAILED, "unable to enable web3 provider")
+        () => this.eventEmitter.emit(EVENT_INIT_FAILED, "unable to enable web3 provider")
       );
     }
   }
