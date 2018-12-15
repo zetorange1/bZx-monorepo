@@ -294,11 +294,10 @@ export default class BZXWidgetProviderAugur {
       const orderOracleData = value.asset === this.wethAddress ? "" : this._getAugurMarkedId();
 
       console.log("setting allowance for share's token");
-      transactionReceipt = await this.bzxjs.setAllowance({
+      transactionReceipt = await this.bzxjs.setAllowanceUnlimited({
         tokenAddress: value.asset.toLowerCase(),
         ownerAddress: lenderAddress,
         spenderAddress: this.bzxVaultAddress.toLowerCase(),
-        amountInBaseUnits: loanAmountInBaseUnits.toString(),
         getObject: false,
         txOpts: { from: lenderAddress, gasPrice: this.defaultGasPrice }
       });
@@ -310,8 +309,8 @@ export default class BZXWidgetProviderAugur {
         makerAddress: lenderAddress.toLowerCase(),
         loanTokenAddress: value.asset.toLowerCase(),
         // IF WE ARE USING INTEREST IN % W/O SETTING CURRENCY LET'S USE LOAN CURRENCY
-        interestTokenAddress: value.asset.toLowerCase(),
-        collateralTokenAddress: zeroAddress.toLowerCase(),
+        interestTokenAddress: this.wethAddress.toLowerCase(),
+        collateralTokenAddress: this.wethAddress.toLowerCase(),
         feeRecipientAddress: zeroAddress.toLowerCase(),
         oracleAddress: orderOracleAddress.toLowerCase(),
         oracleData: orderOracleData.toLowerCase(),
@@ -320,8 +319,8 @@ export default class BZXWidgetProviderAugur {
         initialMarginAmount: initialMarginAmount.toString(),
         // USING CONSTANTS BELOW
         maintenanceMarginAmount: "15",
-        lenderRelayFee: this.web3.utils.toWei("0.001", "ether"),
-        traderRelayFee: this.web3.utils.toWei("0.001", "ether"),
+        lenderRelayFee: "0",
+        traderRelayFee: "0",
         maxDurationUnixTimestampSec: "2419200", // 28 days
         // EXPECTING DURATION IN DAYS
         expirationUnixTimestampSec: moment()
@@ -337,6 +336,7 @@ export default class BZXWidgetProviderAugur {
       const lendOrderHash = BZxJS.getLoanOrderHashHex(lendOrder);
       const lendOrderSignature = await this.bzxjs.signOrderHashAsync(lendOrderHash, lenderAddress, true);
       const signedLendOrder = { ...lendOrder, signature: lendOrderSignature };
+      console.log(lendOrderSignature);
 
       if (value.pushOnChain) {
         console.log("pushing order on-chain");
@@ -391,8 +391,6 @@ export default class BZXWidgetProviderAugur {
 
       // FOR SHARES THIS QTY SHOULD BE W/O DENOMINATION, BUT FOR WETH IT SHOULD BE IN WEI
       const borrowAmountInBaseUnits = value.asset === this.wethAddress ? this.web3.utils.toWei(value.qty, "ether") : value.qty;
-      // CALCULATING COLLATERAL ALLOWANCE ACCORDING "RATIO" + 1 BU
-      const collateralAmount = new BigNumber(borrowAmountInBaseUnits).dividedBy(value.ratio);
       // CALCULATING INTEREST AS % FROM LOAN
       const interestAmount = new BigNumber(borrowAmountInBaseUnits).multipliedBy(new BigNumber(value.interestRate)).dividedBy(100);
       // CALCULATING MARGIN AMOUNT FROM "RATIO" (100 / RATIO)
@@ -400,12 +398,11 @@ export default class BZXWidgetProviderAugur {
       const orderOracleAddress = value.asset === this.wethAddress ? this.bZxOracleAddress : this.bzxAugurOracleAddress;
       const orderOracleData = value.asset === this.wethAddress ? "" : this._getAugurMarkedId();
 
-      console.log("setting allowance for share's token");
-      transactionReceipt = await this.bzxjs.setAllowance({
-        tokenAddress: value.asset.toLowerCase(),
+      console.log("setting allowance for collateral token (weth)");
+      transactionReceipt = await this.bzxjs.setAllowanceUnlimited({
+        tokenAddress: this.wethAddress.toLowerCase(),
         ownerAddress: borrowerAddress,
         spenderAddress: this.bzxVaultAddress.toLowerCase(),
-        amountInBaseUnits: collateralAmount.toString(),
         getObject: false,
         txOpts: { from: borrowerAddress, gasPrice: this.defaultGasPrice }
       });
@@ -417,9 +414,9 @@ export default class BZXWidgetProviderAugur {
         makerAddress: borrowerAddress.toLowerCase(),
         loanTokenAddress: value.asset.toLowerCase(),
         // IF WE ARE USING INTEREST IN % W/O SETTING CURRENCY LET'S USE LOAN CURRENCY
-        interestTokenAddress: value.asset.toLowerCase(),
+        interestTokenAddress: this.wethAddress.toLowerCase(),
         // WE DON'T KNOW WHAT COLLATERAL WE CAN USE INSTEAD
-        collateralTokenAddress: value.asset.toLowerCase(),
+        collateralTokenAddress: this.wethAddress.toLowerCase(),
         feeRecipientAddress: zeroAddress.toLowerCase(),
         oracleAddress: orderOracleAddress.toLowerCase(),
         oracleData: orderOracleData.toLowerCase(),
@@ -428,8 +425,8 @@ export default class BZXWidgetProviderAugur {
         initialMarginAmount: initialMarginAmount.toString(),
         // USING CONSTANTS BELOW
         maintenanceMarginAmount: "15",
-        lenderRelayFee: this.web3.utils.toWei("0.001", "ether"),
-        traderRelayFee: this.web3.utils.toWei("0.001", "ether"),
+        lenderRelayFee: "0",
+        traderRelayFee: "0",
         maxDurationUnixTimestampSec: "2419200", // 28 days
         // EXPECTING DURATION IN DAYS
         expirationUnixTimestampSec: moment()
@@ -445,6 +442,7 @@ export default class BZXWidgetProviderAugur {
       const borrowOrderHash = BZxJS.getLoanOrderHashHex(borrowOrder);
       const borrowOrderSignature = await this.bzxjs.signOrderHashAsync(borrowOrderHash, borrowerAddress, true);
       const signedLendOrder = { ...borrowOrder, signature: borrowOrderSignature };
+      console.log(borrowOrderSignature);
 
       if (value.pushOnChain) {
         console.log("pushing order on-chain");
