@@ -1,2 +1,3 @@
 // event we emitting when we expect widget to update list of assets
+export const EVENT_INIT_FAILED = "EV_INIT_FAILED";
 export const EVENT_ASSET_UPDATE = "EV_ASSET_UPDATE";

@@ -4,12 +4,13 @@ import PropTypes from "prop-types";
 import "./../../styles/components/message/index.less";
 import Tabs from "antd/lib/tabs";
 import "./../../styles/components/tabs/index.less";
+import message from "antd/lib/message";
 
 import BorrowForm from "../borrow-form/borrow-form";
 import LendForm from "../lend-form/lend-form";
 import QuickPositionForm from "../quick-position-form/quick-position-form";
 import InputAsset from "../../components/input-asset/input-asset";
-import { EVENT_ASSET_UPDATE } from "bzx-widget-common/src";
+import { EVENT_ASSET_UPDATE, EVENT_INIT_FAILED } from "bzx-widget-common/src";
 
 export default class BZXWidget extends Component {
   static propTypes = {
@@ -27,6 +28,7 @@ export default class BZXWidget extends Component {
 
     this.state = { assets: this.props.provider.assets, asset: this.props.provider.defaultAsset };
     this.props.provider.eventEmitter.on(EVENT_ASSET_UPDATE, this._handleAssetsUpdate.bind(this));
+    this.props.provider.eventEmitter.on(EVENT_INIT_FAILED, this._handleProviderInitFailed.bind(this));
   }
 
   assetChanged = value => {
@@ -92,4 +94,8 @@ export default class BZXWidget extends Component {
       asset: defaultAsset
     });
   };
+
+  _handleProviderInitFailed = (msg) => {
+    message.error(`Widget initialisation failed: ${msg}!`)
+  }
 }

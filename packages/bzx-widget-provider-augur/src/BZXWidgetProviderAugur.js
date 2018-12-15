@@ -6,7 +6,7 @@ import moment from "moment";
 import Web3 from "web3";
 
 import { parseUrlGetParams, zeroAddress } from "./utils";
-import { EVENT_ASSET_UPDATE } from "../../bzx-widget-common/src";
+import { EVENT_ASSET_UPDATE, EVENT_INIT_FAILED } from "../../bzx-widget-common/src";
 
 export default class BZXWidgetProviderAugur {
   networkId = 4;
@@ -18,7 +18,7 @@ export default class BZXWidgetProviderAugur {
   wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab";
   bzxAddress = "0x8ec550d3f5908a007c36f220455fee5be4f841a1";
   bzxVaultAddress = "0x4B367e65fb4C4e7a82988ab90761A9BB510369D7";
-  bzxAugurOracleAddress = "0x995864C1e5A80E0e80850100B3C27a5e2124a2aE";
+  bzxAugurOracleAddress = "";
 
   // assets available for selection in the input on top
   assets = [];
@@ -38,21 +38,36 @@ export default class BZXWidgetProviderAugur {
     const alreadyInjected = typeof web3 !== `undefined`;
     if (alreadyInjected) {
       this.web3 = new Web3(web3.currentProvider);
-      this.web3.currentProvider.enable().then(result => {
-        this.account = result[0];
+      this.web3.currentProvider.enable().then(
+        result => {
+          this.account = result[0];
 
-        // init bzxjs
-        this.bzxjs = new BZxJS(this.web3, { networkId: this.networkId });
+          // init bzxjs
+          this.bzxjs = new BZxJS(this.web3, { networkId: this.networkId });
+          this.bzxjs.getOracleList().then(
+            oracles => {
+              const augurV2Oracle = oracles.filter(oracle => oracle.name === "AugurOracleV2")[0];
+              if (augurV2Oracle) {
+                this.bzxAugurOracleAddress = augurV2Oracle.address;
+                console.log(this.bzxAugurOracleAddress);
 
-        // connecting to augur instance
-        this.augur.connect(
-          // at the current time _getAugurConnectivity returns only rinkeby data
-          this._getAugurConnectivity(),
-          (err, connectionInfo) => {
-            this._refreshAssets();
-          }
-        );
-      });
+                // connecting to augur instance
+                this.augur.connect(
+                  // at the current time _getAugurConnectivity returns only rinkeby data
+                  this._getAugurConnectivity(),
+                  (err, connectionInfo) => {
+                    this._refreshAssets();
+                  }
+                );
+              } else {
+                this.eventEmitter.emit(EVENT_INIT_FAILED, "no AugurOracleV2 oracle available");
+              }
+            },
+            () => this.eventEmitter.emit(EVENT_INIT_FAILED, "unable to get list of oracles available")
+          );
+        },
+        () => () => this.eventEmitter.emit(EVENT_INIT_FAILED, "unable to enable web3 provider")
+      );
     }
   }
 
