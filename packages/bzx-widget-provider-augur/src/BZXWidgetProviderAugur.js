@@ -51,7 +51,6 @@ export default class BZXWidgetProviderAugur {
               if (augurOracle && bZxOracle) {
                 this.bZxOracleAddress = bZxOracle.address;
                 this.bzxAugurOracleAddress = augurOracle.address;
-                console.log(this.bzxAugurOracleAddress);
 
                 // creating augur instance
                 this.augur = new Augur();
@@ -65,11 +64,11 @@ export default class BZXWidgetProviderAugur {
                 );
               } else {
                 if (!bZxOracle) {
-                  this.eventEmitter.emit(EVENT_INIT_FAILED, "no bZxOracle oracle available");
+                  this.eventEmitter.emit(EVENT_INIT_FAILED, "no `bZxOracle` oracle available");
                 }
 
                 if (!augurOracle) {
-                  this.eventEmitter.emit(EVENT_INIT_FAILED, "no AugurOracle oracle available");
+                  this.eventEmitter.emit(EVENT_INIT_FAILED, "no `AugurOracle` oracle available");
                 }
               }
             },
