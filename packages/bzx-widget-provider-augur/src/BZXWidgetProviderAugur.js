@@ -46,7 +46,7 @@ export default class BZXWidgetProviderAugur {
           this.bzxjs = new BZxJS(this.web3, { networkId: this.networkId });
           this.bzxjs.getOracleList().then(
             oracles => {
-              const augurV2Oracle = oracles.filter(oracle => oracle.name === "AugurOracleV2")[0];
+              const augurV2Oracle = oracles.filter(oracle => oracle.name === "AugurOracle")[0];
               if (augurV2Oracle) {
                 this.bzxAugurOracleAddress = augurV2Oracle.address;
                 console.log(this.bzxAugurOracleAddress);
@@ -60,7 +60,7 @@ export default class BZXWidgetProviderAugur {
                   }
                 );
               } else {
-                this.eventEmitter.emit(EVENT_INIT_FAILED, "no AugurOracleV2 oracle available");
+                this.eventEmitter.emit(EVENT_INIT_FAILED, "no AugurOracle oracle available");
               }
             },
             () => this.eventEmitter.emit(EVENT_INIT_FAILED, "unable to get list of oracles available")
