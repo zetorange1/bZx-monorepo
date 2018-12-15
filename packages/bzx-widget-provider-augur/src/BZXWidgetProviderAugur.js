@@ -1,6 +1,6 @@
 import Augur from "augur.js";
 import BigNumber from "bignumber.js";
-import { BZxJS } from "@bzxnetwork/bzx.js";
+import { BZxJS } from "bzx.js";
 import EventEmitter from "events";
 import moment from "moment";
 import Web3 from "web3";

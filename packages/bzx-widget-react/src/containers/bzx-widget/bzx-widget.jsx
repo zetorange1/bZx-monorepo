@@ -10,7 +10,6 @@ import BorrowForm from "../borrow-form/borrow-form";
 import LendForm from "../lend-form/lend-form";
 import QuickPositionForm from "../quick-position-form/quick-position-form";
 import InputAsset from "../../components/input-asset/input-asset";
-import { EVENT_ASSET_UPDATE, EVENT_INIT_FAILED } from "@bzxnetwork/bzx-widget-common";
 
 export default class BZXWidget extends Component {
   static propTypes = {
