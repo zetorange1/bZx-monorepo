@@ -163,12 +163,11 @@ export class BZxJS {
     trade.tradePositionWithOracle(this, ...props);
 
   depositCollateral = (...props) => loanHealth.depositCollateral(this, ...props);
-  withdrawExcessCollateral = (...props) => loanHealth.withdrawExcessCollateral(this, ...props);
+  withdrawCollateral = (...props) => loanHealth.withdrawCollateral(this, ...props);
   changeCollateral = (...props) => loanHealth.changeCollateral(this, ...props);
   withdrawPosition = (...props) => loanHealth.withdrawPosition(this, ...props);
   depositPosition = (...props) => loanHealth.depositPosition(this, ...props);
-  withdrawProfit = (...props) => loanHealth.withdrawProfit(this, ...props);
-  getProfitOrLoss = (...props) => loanHealth.getProfitOrLoss(this, ...props);
+  getPositionOffset = (...props) => loanHealth.getPositionOffset(this, ...props);
 
   closeLoanPartially = (...props) => loanHealth.closeLoanPartially(this, ...props);
   closeLoan = (...props) => loanHealth.closeLoan(this, ...props);

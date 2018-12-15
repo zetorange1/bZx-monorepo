@@ -186,7 +186,7 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
                     loanTokenAmount >= loanPosition.loanTokenAmountFilled ? loanPosition.trader : orderLender[loanOrderHash],
                     loanPosition.positionTokenAmountFilled.sub(positionTokenAmountUsed)
                 )) {
-                    revert("BZxLoanHealth::liquidatePosition: BZxVault.withdrawToken profit failed");
+                    revert("BZxLoanHealth::liquidatePosition: BZxVault.withdrawToken excess failed");
                 }
             }
 
@@ -616,7 +616,7 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
                     loanTokenAmount >= loanPosition.loanTokenAmountFilled ? loanPosition.trader : orderLender[loanOrderHash],
                     loanPosition.positionTokenAmountFilled.sub(positionTokenAmountUsed)
                 )) {
-                    revert("BZxLoanHealth::liquidatePosition: BZxVault.withdrawToken profit failed");
+                    revert("BZxLoanHealth::liquidatePosition: BZxVault.withdrawToken excess failed");
                 }
             }
 

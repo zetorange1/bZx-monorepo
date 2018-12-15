@@ -380,7 +380,7 @@ contract BZx is BZxStorage {
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param collateralTokenFilled The address of the collateral token used
     /// @return excessCollateral The amount of excess collateral token to withdraw. The actual amount withdrawn will be less if there's less excess.
-    function withdrawExcessCollateral(
+    function withdrawCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
         uint withdrawAmount)
@@ -398,16 +398,16 @@ contract BZx is BZxStorage {
         external
         returns (uint collateralTokenAmountFilled);
 
-    /// @dev Allows the trader to withdraw some or all of the position token for overcollateralized loans
+    /// @dev Allows the trader to withdraw any amount in excess of their loan principal
     /// @dev The trader will only be able to withdraw an amount the keeps the loan at or above initial margin
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param withdrawAmount The amount of position token withdrawn
-    /// @return True on success
+    /// @param withdrawAmount The amount to withdraw
+    /// @return amountWithdrawn The amount withdrawn denominated in positionToken. Can be less than withdrawAmount.
     function withdrawPosition(
         bytes32 loanOrderHash,
         uint withdrawAmount)
         external
-        returns (bool);
+        returns (uint amountWithdrawn);
 
     /// @dev Allows the trader to return the position/loan token to increase their escrowed balance.
     /// @dev This should be used by the trader if they've withdraw an overcollateralized loan.
@@ -421,15 +421,6 @@ contract BZx is BZxStorage {
         uint depositAmount)
         external
         returns (bool);
-
-    /// @dev Allows the trader to withdraw their profits, if any.
-    /// @dev Profits are paid out from the current positionToken.
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @return profitAmount The amount of profit withdrawn denominated in positionToken
-    function withdrawProfit(
-        bytes32 loanOrderHash)
-        external
-        returns (uint profitAmount);
 
     /// @dev Allows the trader to transfer ownership of the underlying assets in a position to another user.
     /// @param loanOrderHash A unique hash representing the loan order
@@ -473,18 +464,18 @@ contract BZx is BZxStorage {
         external
         returns (bool);
 
-    /// @dev Get the current profit/loss data of a position
+    /// @dev Get the current excess or deficit position amount from the loan principal
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position
-    /// @return isProfit False it there's a loss, True otherwise
-    /// @return profitOrLoss The amount of profit or amount of loss (denominated in positionToken)
+    /// @return isPositive False it there's a deficit, True otherwise
+    /// @return offsetAmount The amount of excess or deficit
     /// @return positionTokenAddress The position token current filled, which could be the same as the loanToken
-    function getProfitOrLoss(
+    function getPositionOffset(
         bytes32 loanOrderHash,
         address trader)
         public
         view
-        returns (bool isProfit, uint profitOrLoss, address positionTokenAddress);
+        returns (bool isPositive, uint offsetAmount, address positionTokenAddress);
 
     /*
     * BZxLoanHealth functions

@@ -103,7 +103,7 @@ export default class DepositPositionDialog extends React.Component {
         <DialogTitle>Deposit Position</DialogTitle>
         <DialogContent>
           <p>
-            Despoit position token that was previous withdrawn when the loan was overcollaterized.
+            Despoit position token that was previously withdrawn when the loan was overcollaterized.
           </p>
           <FormControl margin="normal" fullWidth>
             <InputLabel>Amount to deposit</InputLabel>

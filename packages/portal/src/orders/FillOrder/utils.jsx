@@ -201,7 +201,7 @@ export const validateFillOrder = async (
         !trackedTokens.includes(collateralTokenAddress)
       ) {
         alert(
-          `Your interest token or collateral token is not tracked. Please go to the Balances page and add these tokens.`
+          `Your interest token or collateral token is not tracked. Please go to the Balances page to make sure these tokens are added and approved.`
         );
         return false;
       }
@@ -257,7 +257,7 @@ export const validateFillOrder = async (
       const { loanTokenAddress, loanTokenAmount } = order;
       if (!trackedTokens.includes(loanTokenAddress)) {
         alert(
-          `Your loan token is not tracked. Please go to the Balances page and add this token.`
+          `Your loan token is not tracked. Please go to the Balances page to make sure this token is added and approved.`
         );
         return false;
       }

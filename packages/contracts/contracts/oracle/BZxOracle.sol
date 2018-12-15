@@ -6,6 +6,7 @@
 pragma solidity 0.4.24;
 pragma experimental ABIEncoderV2;
 
+import "openzeppelin-solidity/contracts/math/Math.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 import "../modifiers/BZxOwnable.sol";
@@ -263,10 +264,10 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         return true;
     }
 
-    function didWithdrawProfit(
+    function didWithdrawPosition(
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanPosition memory /* loanPosition */,
-        uint /* profitAmount */,
+        uint /* withdrawAmount */,
         uint /* gasUsed */)
         public
         onlyBZx
@@ -280,19 +281,6 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanPosition memory /* loanPosition */,
         uint /* depositAmount */,
-        uint /* gasUsed */)
-        public
-        onlyBZx
-        updatesEMA(tx.gasprice)
-        returns (bool)
-    {
-        return true;
-    }
-
-    function didWithdrawPosition(
-        BZxObjects.LoanOrder memory /* loanOrder */,
-        BZxObjects.LoanPosition memory /* loanPosition */,
-        uint /* withdrawAmount */,
         uint /* gasUsed */)
         public
         onlyBZx
@@ -595,37 +583,51 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                             .div(_getDecimalPrecision(sourceTokenAddress, destTokenAddress));
     }
 
-    // returns bool isProfit, uint profitOrLoss
-    // the position's profit/loss denominated in positionToken
-    function getProfitOrLoss(
-        address positionTokenAddress,
-        address loanTokenAddress,
-        uint positionTokenAmount,
-        uint loanTokenAmount)
+    // returns bool isPositive, uint offsetAmount
+    // the position's offset from loan principal denominated in positionToken
+    function getPositionOffset(
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition)
         public
         view
-        returns (bool isProfit, uint profitOrLoss)
+        returns (bool isPositive, uint offsetAmount)
     {
-        uint loanToPositionAmount;
-        if (positionTokenAddress == loanTokenAddress) {
-            loanToPositionAmount = loanTokenAmount;
+        uint collateralToPositionAmount;
+        if (loanPosition.collateralTokenAddressFilled == loanPosition.positionTokenAddressFilled) {
+            collateralToPositionAmount = loanPosition.collateralTokenAmountFilled;
         } else {
-            (uint positionToLoanRate,) = _getExpectedRate(
-                positionTokenAddress,
-                loanTokenAddress,
+            (uint collateralToPositionRate,) = _getExpectedRate(
+                loanPosition.collateralTokenAddressFilled,
+                loanPosition.positionTokenAddressFilled,
                 0);
-            if (positionToLoanRate == 0) {
+            if (collateralToPositionRate == 0) {
                 return;
             }
-            loanToPositionAmount = loanTokenAmount.mul(_getDecimalPrecision(positionTokenAddress, loanTokenAddress)).div(positionToLoanRate);
+            collateralToPositionAmount = loanPosition.collateralTokenAmountFilled.mul(collateralToPositionRate).div(_getDecimalPrecision(loanPosition.collateralTokenAddressFilled, loanPosition.positionTokenAddressFilled));
         }
 
-        if (positionTokenAmount > loanToPositionAmount) {
-            isProfit = true;
-            profitOrLoss = positionTokenAmount - loanToPositionAmount;
+        uint loanToPositionAmount;
+        if (loanOrder.loanTokenAddress == loanPosition.positionTokenAddressFilled) {
+            loanToPositionAmount = loanPosition.loanTokenAmountFilled;
         } else {
-            isProfit = false;
-            profitOrLoss = loanToPositionAmount - positionTokenAmount;
+            (uint loanToPositionRate,) = _getExpectedRate(
+                loanOrder.loanTokenAddress,
+                loanPosition.positionTokenAddressFilled,
+                0);
+            if (loanToPositionRate == 0) {
+                return;
+            }
+            loanToPositionAmount = loanPosition.loanTokenAmountFilled.mul(loanToPositionRate).div(_getDecimalPrecision(loanOrder.loanTokenAddress, loanPosition.positionTokenAddressFilled));
+        }
+
+        uint initialPosition = loanToPositionAmount.add(loanToPositionAmount.mul(loanOrder.initialMarginAmount).div(100));
+        uint currentPosition = loanPosition.positionTokenAmountFilled.add(collateralToPositionAmount);
+        if (currentPosition > initialPosition) {
+            isPositive = true;
+            offsetAmount = Math.min256(loanPosition.positionTokenAmountFilled, currentPosition - initialPosition);
+        } else {
+            isPositive = false;
+            offsetAmount = initialPosition - currentPosition;
         }
     }
 

@@ -69,7 +69,7 @@ module.exports = (deployer, network, accounts) => {
     var ECSignature_raw_1;
 
     deployer.then(async function() {
-     
+
       var bZxProxy = await BZxProxySettings.at(BZxProxy.address);
       var bZx = await BZx.at(bZxProxy.address);
       var vault = await BZxVault.deployed();
@@ -209,7 +209,7 @@ module.exports = (deployer, network, accounts) => {
       );
 
       ECSignature_raw_1 = await web3.eth.sign(OrderHash_bZx_1, lender1_account);
-    
+
       // add signature type to end
       ECSignature_raw_1 = ECSignature_raw_1 + toHex(SignatureType.EthSign);
 
@@ -300,7 +300,7 @@ module.exports = (deployer, network, accounts) => {
       console.log(OrderParams_0x);
 
       OrderHash_0x = ZeroEx.getOrderHashHex(OrderParams_0x);
-        
+
       ECSignature_0x_raw = await web3.eth.sign(OrderHash_0x, makerOf0xOrder_account);
 
       ECSignature_0x = {
@@ -343,9 +343,9 @@ module.exports = (deployer, network, accounts) => {
       //console.log(sample_order_tightlypacked);
       //console.log(ECSignature_0x_raw);
 
-      console.log("Before profit:");
+      console.log("Before excess:");
       console.log(
-        (await bZx.getProfitOrLoss.call(OrderHash_bZx_1, trader1_account, {
+        (await bZx.getPositionOffset.call(OrderHash_bZx_1, trader1_account, {
           from: lender2_account
         })).toString()
       );
@@ -358,9 +358,9 @@ module.exports = (deployer, network, accounts) => {
         ),
         ""
       );
-      console.log("After profit:");
+      console.log("After excess:");
       console.log(
-        (await bZx.getProfitOrLoss.call(OrderHash_bZx_1, trader1_account, {
+        (await bZx.getPositionOffset.call(OrderHash_bZx_1, trader1_account, {
           from: lender2_account
         })).toString()
       );

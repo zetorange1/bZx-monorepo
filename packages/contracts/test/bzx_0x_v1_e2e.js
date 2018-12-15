@@ -39,7 +39,7 @@ var run = {
 
   "should trade position with oracle": true,
   "should change collateral (for trader1)": true,
-  "should withdraw profits": true,
+  "should withdraw position excess": true,
   "should pay lender interest": true,
 
   // note: only one of the tests below can be true at a time
@@ -572,19 +572,19 @@ contract("BZxTest", function(accounts) {
         ],
         "0x00" // oracleData
       );
-      
+
       console.log("sol hash: " + OrderHash_bZx_1);
   });
 
   (run["should sign and verify orderHash (as lender1)"]
     ? it
     : it.skip)("should sign and verify orderHash (as lender1)", async () => {
-    
+
     console.log("OrderHash_bZx_1", OrderHash_bZx_1)
     console.log("lender1_account", lender1_account)
-    
+
     ECSignature_raw_1 = await web3.eth.sign(OrderHash_bZx_1, lender1_account);
-    
+
 
     // add signature type to end
     ECSignature_raw_1 = ECSignature_raw_1 + toHex(SignatureType.EthSign);
@@ -784,14 +784,14 @@ contract("BZxTest", function(accounts) {
           new BN(OrderParams_bZx_2["salt"])
         ],
         "0x00" // oracleData
-      )      
+      )
       console.log("sol hash: " + OrderHash_bZx_2);
   });
 
   (run["should sign and verify orderHash (as trader2)"]
     ? it
     : it.skip)("should sign and verify orderHash (as trader2)", async () => {
-    
+
     ECSignature_raw_2 = await web3.eth.sign(OrderHash_bZx_2, trader2_account);
 
     // add signature type to end
@@ -1615,12 +1615,12 @@ contract("BZxTest", function(accounts) {
   (run["should sign and verify 0x orders"]
     ? it
     : it.skip)("should sign and verify 0x orders", async function() {
-    
+
     ECSignature_0x_raw_1 = await web3.eth.sign(
         OrderHash_0x_1,
-        makerOf0xOrder1_account        
+        makerOf0xOrder1_account
     );
-    ECSignature_0x_raw_2 = await web3.eth.sign(        
+    ECSignature_0x_raw_2 = await web3.eth.sign(
         OrderHash_0x_2,
         makerOf0xOrder2_account
     );
@@ -1980,19 +1980,19 @@ contract("BZxTest", function(accounts) {
     : it.skip)("should trade position with 0x V2 orders", async function() {
     //const provider = await (new providers.Web3Provider(web3.currentProvider));
 
-    var iface = new ethers.utils.Interface(BZx.abi);      
+    var iface = new ethers.utils.Interface(BZx.abi);
     var tradeTxData = await iface.functions.tradePositionWith0xV2.encode(
         [OrderHash_bZx_1,
         [OrderParams_0xV2_1_prepped, OrderParams_0xV2_2_prepped],
         [ECSignature_0xV2_raw_1, ECSignature_0xV2_raw_2]]
       );
 
-      
+
 
     try {
-      let tx = await web3.eth.sendTransaction({ 
-        data: tradeTxData, 
-        from: trader1_account, 
+      let tx = await web3.eth.sendTransaction({
+        data: tradeTxData,
+        from: trader1_account,
         to: bZx.address,
         gas: 6721975,
         gasPrice: 20000000000
@@ -2060,34 +2060,36 @@ contract("BZxTest", function(accounts) {
       };
   });
 
-  (run["should withdraw profits"]
+  (run["should withdraw position excess"]
     ? it
-    : it.skip)("should withdraw profits", async function() {
-    console.log("Before profit:");
+    : it.skip)("should withdraw position excess", async function() {
+    console.log("Before withdraw:");
     console.log(
-      await bZx.getProfitOrLoss.call(OrderHash_bZx_1, trader1_account, {
+      await bZx.getPositionOffset.call(OrderHash_bZx_1, trader1_account, {
         from: lender2_account
       })
     );
 
     try {
-      var tx = await bZx.withdrawProfit(OrderHash_bZx_1, {
-        from: trader1_account
-      });
+      var tx = await bZx.withdrawPosition(
+        OrderHash_bZx_1,
+        MAX_UINT,
+        { from: trader1_account }
+      );
 
-      console.log(txPrettyPrint(tx, "should withdraw profits"));
+      console.log(txPrettyPrint(tx, "should withdraw position excess"));
 
-      console.log("After profit:");
+      console.log("After withdraw:");
       console.log(
-        await bZx.getProfitOrLoss.call(OrderHash_bZx_1, trader1_account, {
+        await bZx.getPositionOffset.call(OrderHash_bZx_1, trader1_account, {
           from: lender2_account
         })
       );
 
-      assert.isOk(tx);
-    } catch (error) {
-      console.error(error);
-      assert.isOk(false);
+      assert.isTrue(false);
+    } catch (e) {
+      console.error(e);
+      utils.ensureException(e);
     }
   });
 

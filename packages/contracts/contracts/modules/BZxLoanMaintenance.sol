@@ -32,12 +32,11 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
         onlyOwner
     {
         targets[bytes4(keccak256("depositCollateral(bytes32,address,uint256)"))] = _target;
-        targets[bytes4(keccak256("withdrawExcessCollateral(bytes32,address,uint256)"))] = _target;
+        targets[bytes4(keccak256("withdrawCollateral(bytes32,address,uint256)"))] = _target;
         targets[bytes4(keccak256("changeCollateral(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("withdrawPosition(bytes32)"))] = _target;
+        targets[bytes4(keccak256("withdrawPosition(bytes32,uint256)"))] = _target;
         targets[bytes4(keccak256("depositPosition(bytes32,address,uint256)"))] = _target;
-        targets[bytes4(keccak256("withdrawProfit(bytes32)"))] = _target;
-        targets[bytes4(keccak256("getProfitOrLoss(bytes32,address)"))] = _target;
+        targets[bytes4(keccak256("getPositionOffset(bytes32,address)"))] = _target;
     }
 
     /// @dev Allows the trader to increase the collateral for a loan.
@@ -101,7 +100,7 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param collateralTokenFilled The address of the collateral token used.
     /// @return excessCollateral The amount of excess collateral token to withdraw. The actual amount withdrawn will be less if there's less excess.
-    function withdrawExcessCollateral(
+    function withdrawCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
         uint withdrawAmount)
@@ -112,16 +111,16 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
-            revert("BZxLoanHealth::withdrawExcessCollateral: loanOrder.loanTokenAddress == address(0)");
+            revert("BZxLoanHealth::withdrawCollateral: loanOrder.loanTokenAddress == address(0)");
         }
 
         LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            revert("BZxLoanHealth::withdrawExcessCollateral: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+            revert("BZxLoanHealth::withdrawCollateral: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
 
         if (collateralTokenFilled != loanPosition.collateralTokenAddressFilled) {
-            revert("BZxLoanHealth::withdrawExcessCollateral: collateralTokenFilled != loanPosition.collateralTokenAddressFilled");
+            revert("BZxLoanHealth::withdrawCollateral: collateralTokenFilled != loanPosition.collateralTokenAddressFilled");
         }
 
         uint positionToLoanTokenAmount;
@@ -145,7 +144,7 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
         );
 
         if (initialCollateralTokenAmount == 0 || initialCollateralTokenAmount >= loanPosition.collateralTokenAmountFilled) {
-            revert("BZxLoanHealth::withdrawExcessCollateral: initialCollateralTokenAmount == 0 || initialCollateralTokenAmount >= loanPosition.collateralTokenAmountFilled");
+            revert("BZxLoanHealth::withdrawCollateral: initialCollateralTokenAmount == 0 || initialCollateralTokenAmount >= loanPosition.collateralTokenAmountFilled");
         }
         
         excessCollateral = Math.min256(withdrawAmount, loanPosition.collateralTokenAmountFilled-initialCollateralTokenAmount);
@@ -156,7 +155,7 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
             msg.sender,
             excessCollateral
         )) {
-            revert("BZxLoanHealth::withdrawExcessCollateral: BZxVault.withdrawToken collateral failed");
+            revert("BZxLoanHealth::withdrawCollateral: BZxVault.withdrawToken collateral failed");
         }
 
         // update stored collateral amount
@@ -168,7 +167,7 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
             excessCollateral,
             gasUsed // initial used gas, collected in modifier
         )) {
-            revert("BZxLoanHealth::withdrawExcessCollateral: OracleInterface.didWithdrawCollateral failed");
+            revert("BZxLoanHealth::withdrawCollateral: OracleInterface.didWithdrawCollateral failed");
         }
 
         return excessCollateral;
@@ -261,61 +260,6 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
         return collateralTokenAmountFilled;
     }
 
-    /// @dev Allows the trader to withdraw some or all of the position token for overcollateralized loans
-    /// @dev The trader will only be able to withdraw an amount the keeps the loan at or above initial margin
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param withdrawAmount The amount of position token withdrawn
-    /// @return True on success
-    function withdrawPosition(
-        bytes32 loanOrderHash,
-        uint withdrawAmount)
-        external
-        nonReentrant
-        tracksGas
-        returns (bool)
-    {
-        LoanOrder memory loanOrder = orders[loanOrderHash];
-        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
-
-        require(withdrawAmount <= loanPosition.positionTokenAmountFilled, "BZxLoanHealth::withdrawPosition: withdrawAmount amount too high");
-
-        uint currentMargin = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getCurrentMarginAmount(
-            loanOrder.loanTokenAddress,
-            loanPosition.positionTokenAddressFilled,
-            loanPosition.collateralTokenAddressFilled,
-            loanPosition.loanTokenAmountFilled,
-            loanPosition.positionTokenAmountFilled,
-            loanPosition.collateralTokenAmountFilled);
-
-        uint initialMarginAmount = loanOrder.initialMarginAmount.mul(10**18);
-        require(currentMargin > initialMarginAmount, "BZxLoanHealth::withdrawPosition: current margin too low");
-
-        uint amountToWithdraw = Math.min256(withdrawAmount, loanPosition.positionTokenAmountFilled.sub(loanPosition.positionTokenAmountFilled.mul(initialMarginAmount).div(currentMargin)));
-
-        // transfer the position token to the trader
-        if (! BZxVault(vaultContract).withdrawToken(
-            loanPosition.positionTokenAddressFilled,
-            msg.sender,
-            amountToWithdraw
-        )) {
-            revert("BZxLoanHealth::withdrawProfit: BZxVault.withdrawToken loan failed");
-        }
-
-        // deduct amountToWithdraw from positionToken balance
-        loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(amountToWithdraw);
-
-        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didWithdrawPosition(
-            loanOrder,
-            loanPosition,
-            amountToWithdraw,
-            gasUsed // initial used gas, collected in modifier
-        )) {
-            revert("BZxLoanHealth::withdrawProfit: OracleInterface.didWithdrawPosition failed");
-        }
-
-        return true;
-    }
-
     /// @dev Allows the trader to return the position/loan token to increase their escrowed balance
     /// @dev This should be used by the trader if they've withdraw an overcollateralized loan
     /// @param loanOrderHash A unique hash representing the loan order
@@ -403,80 +347,85 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
         return true;
     }
 
-    /// @dev Allows the trader to withdraw their profits, if any.
-    /// @dev Profits are paid out from the current positionToken.
+    /// @dev Allows the trader to withdraw any amount in excess of their loan principal
+    /// @dev The trader will only be able to withdraw an amount the keeps the loan at or above initial margin
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @return profitAmount The amount of profit withdrawn denominated in positionToken
-    function withdrawProfit(
-        bytes32 loanOrderHash)
+    /// @param withdrawAmount The amount to withdraw
+    /// @return amountWithdrawn The amount withdrawn denominated in positionToken. Can be less than withdrawAmount.
+    function withdrawPosition(
+        bytes32 loanOrderHash,
+        uint withdrawAmount)
         external
         nonReentrant
         tracksGas
-        returns (uint profitAmount)
+        returns (uint amountWithdrawn)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
 
-        bool isProfit;
-        (isProfit, profitAmount,) = _getProfitOrLoss(
+        bool isPositive;
+        (isPositive, amountWithdrawn,) = _getPositionOffset(
             loanOrder,
             loanPosition);
-        if (profitAmount == 0 || !isProfit) {
-            revert("BZxLoanHealth::withdrawProfit: profitAmount == 0 || !isProfit");
+        if (amountWithdrawn == 0 || !isPositive) {
+            revert("BZxLoanHealth::withdrawPosition: amountWithdrawn == 0 || !isPositive");
         }
 
-        // transfer profit to the trader
+        // Withdraw withdrawAmount or amountWithdrawn, whichever is lessor
+        amountWithdrawn = Math.min256(withdrawAmount, amountWithdrawn);
+
+        // transfer position excess to the trader
         if (! BZxVault(vaultContract).withdrawToken(
             loanPosition.positionTokenAddressFilled,
             msg.sender,
-            profitAmount
+            amountWithdrawn
         )) {
-            revert("BZxLoanHealth::withdrawProfit: BZxVault.withdrawToken loan failed");
+            revert("BZxLoanHealth::withdrawPosition: BZxVault.withdrawToken loan failed");
         }
 
-        // deduct profit from positionToken balance
-        loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(profitAmount);
+        // deduct position excess from positionToken balance
+        loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(amountWithdrawn);
 
-        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didWithdrawProfit(
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didWithdrawPosition(
             loanOrder,
             loanPosition,
-            profitAmount,
+            amountWithdrawn,
             gasUsed // initial used gas, collected in modifier
         )) {
-            revert("BZxLoanHealth::withdrawProfit: OracleInterface.didWithdrawProfit failed");
+            revert("BZxLoanHealth::withdrawPosition: OracleInterface.didWithdrawPosition failed");
         }
 
-        emit LogWithdrawProfit(
+        emit LogWithdrawPosition(
             loanOrder.loanOrderHash,
             msg.sender,
-            profitAmount,
+            amountWithdrawn,
             loanPosition.positionTokenAmountFilled,
             loanPosition.positionId
         );
 
-        return profitAmount;
+        return amountWithdrawn;
     }
 
     /*
     * Constant public functions
     */
-    /// @dev Get the current profit/loss data of a position
+    /// @dev Get the current excess or deficit position amount from the loan principal
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position
-    /// @return isProfit False it there's a loss, True otherwise
-    /// @return profitOrLoss The amount of profit or amount of loss (denominated in positionToken)
+    /// @return isPositive False it there's a deficit, True otherwise
+    /// @return offsetAmount The amount of excess or deficit
     /// @return positionTokenAddress The position token current filled, which could be the same as the loanToken
-    function getProfitOrLoss(
+    function getPositionOffset(
         bytes32 loanOrderHash,
         address trader)
         public
         view
-        returns (bool isProfit, uint profitOrLoss, address positionTokenAddress)
+        returns (bool isPositive, uint offsetAmount, address positionTokenAddress)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
 
-        return _getProfitOrLoss(
+        return _getPositionOffset(
             loanOrder,
             loanPosition);
     }
@@ -484,12 +433,12 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
     /*
     * Constant Internal functions
     */
-    function _getProfitOrLoss(
+    function _getPositionOffset(
         LoanOrder loanOrder,
         LoanPosition loanPosition)
         internal
         view
-        returns (bool isProfit, uint profitOrLoss, address positionTokenAddress)
+        returns (bool isPositive, uint offsetAmount, address positionTokenAddress)
     {
         if (loanOrder.loanTokenAddress == address(0)) {
             return;
@@ -499,11 +448,7 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
             return;
         }
 
-        (isProfit, profitOrLoss) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getProfitOrLoss(
-            loanPosition.positionTokenAddressFilled,
-            loanOrder.loanTokenAddress,
-            loanPosition.positionTokenAmountFilled,
-            loanPosition.loanTokenAmountFilled);
+        (isPositive, offsetAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getPositionOffset(loanOrder, loanPosition);
 
         positionTokenAddress = loanPosition.positionTokenAddressFilled;
     }

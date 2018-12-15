@@ -429,7 +429,7 @@ contract("BZxTest", function(accounts) {
 
       let orders = decodeOrders(data);
       assert.equal(orders.length, 1);
-    
+
       ensureOrder(orders[0], OrderParams_bZx_2, OrderHash_bZx_2);
     });
 
@@ -1015,7 +1015,7 @@ contract("BZxTest", function(accounts) {
       OrderHash_0xV2_1 = orderHashUtils.getOrderHashHex(OrderParams_0xV2_1);
       OrderHash_0xV2_2 = orderHashUtils.getOrderHashHex(OrderParams_0xV2_2);
 
-      assert.isOk(orderHashUtils.isValidOrderHash(OrderHash_0xV2_1) 
+      assert.isOk(orderHashUtils.isValidOrderHash(OrderHash_0xV2_1)
           && orderHashUtils.isValidOrderHash(OrderHash_0xV2_2));
 
       OrderParams_0xV2_1_prepped = [
@@ -1114,7 +1114,7 @@ contract("BZxTest", function(accounts) {
 
     it("should trade position with 0x V2 orders", async () => {
       // using ethers.js for ABI v2 encoding
-      var iface = new ethers.utils.Interface(BZx.abi);      
+      var iface = new ethers.utils.Interface(BZx.abi);
       var tradePositionWith0xV2 = await iface.functions.tradePositionWith0xV2.encode(
         [OrderHash_bZx_1,
         [OrderParams_0xV2_1_prepped, OrderParams_0xV2_2_prepped],
@@ -1122,9 +1122,9 @@ contract("BZxTest", function(accounts) {
       );
 
       await web3.eth.sendTransaction(
-        { 
-          data: tradePositionWith0xV2, 
-          from: trader1, 
+        {
+          data: tradePositionWith0xV2,
+          from: trader1,
           to: bZx.address,
           gas: 6721975,
           gasPrice: 20000000000
@@ -1140,29 +1140,37 @@ contract("BZxTest", function(accounts) {
     });
   });
 
-  context("Profits and Interests", async () => {
-    it("should withdraw profits (for trader1)", async () => {
-      let initialProfit = await bZx.getProfitOrLoss.call(OrderHash_bZx_1, trader1);
+  context("Position Excess and Interests", async () => {
+    it("should withdraw position exccess (for trader1)", async () => {
+      let initialExcess = await bZx.getPositionOffset.call(OrderHash_bZx_1, trader1);
 
-      assert.isTrue(initialProfit[0]);
-      let positionToken = await ERC20.at(initialProfit[2]);
+      assert.isTrue(initialExcess[0]);
+      let positionToken = await ERC20.at(initialExcess[2]);
       let traderInitialBalance = await positionToken.balanceOf.call(trader1);
       let vaultInitialBalance = await positionToken.balanceOf.call(vault.address);
 
       try {
-        await bZx.withdrawProfit(OrderHash_bZx_1, { from: stranger });
+        await bZx.withdrawPosition(
+          OrderHash_bZx_1,
+          MAX_UINT,
+          { from: stranger }
+        );
         assert.isTrue(false);
       } catch (e) {
         utils.ensureException(e);
       }
 
-      await bZx.withdrawProfit(OrderHash_bZx_1, { from: trader1 });
+      await bZx.withdrawPosition(
+        OrderHash_bZx_1,
+        MAX_UINT,
+        { from: trader1 }
+      );
 
-      let finalProfit = await bZx.getProfitOrLoss.call(
+      let finalExcess = await bZx.getPositionOffset.call(
         OrderHash_bZx_1,
         trader1
       );
-      assert.isFalse(finalProfit[0]);
+      assert.isFalse(finalExcess[0]);
 
       let traderFinalBalance = await positionToken.balanceOf.call(
         trader1
@@ -1172,10 +1180,10 @@ contract("BZxTest", function(accounts) {
       );
 
       assert.isTrue(
-        traderFinalBalance.eq(traderInitialBalance.add(initialProfit[1]))
+        traderFinalBalance.eq(traderInitialBalance.add(initialExcess[1]))
       );
       assert.isTrue(
-        vaultFinalBalance.eq(vaultInitialBalance.sub(initialProfit[1]))
+        vaultFinalBalance.eq(vaultInitialBalance.sub(initialExcess[1]))
       );
     });
 
@@ -1331,7 +1339,7 @@ contract("BZxTest", function(accounts) {
         interestToken1.address
       );
 
-      await bZx.withdrawExcessCollateral(
+      await bZx.withdrawCollateral(
         OrderHash_bZx_1,
         interestToken1.address,
         VALUE,

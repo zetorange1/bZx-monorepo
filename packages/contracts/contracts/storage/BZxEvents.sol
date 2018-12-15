@@ -67,10 +67,10 @@ contract BZxEvents {
         uint positionId
     );
 
-    event LogWithdrawProfit(
+    event LogWithdrawPosition(
         bytes32 indexed loanOrderHash,
         address indexed trader,
-        uint profitWithdrawn,
+        uint positionAmount,
         uint remainingPosition,
         uint positionId
     );
