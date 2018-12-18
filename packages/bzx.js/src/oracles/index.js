@@ -62,13 +62,13 @@ export const formatOracleList = ({ oracleAddresses, oracleNames }) =>
   );
 
 export const getOracleList = async ({ web3, networkId }) => {
-
-  const oracles = await oracleList(networkId);
-  if (oracles)
-    return oracles;
-
-  // Fallback to on chain OracleRegistry if local list not found
-  // Note: The local list is a stopgap to address MetaMask/Infura instability
+  //
+  // const oracles = await oracleList(networkId);
+  // if (oracles)
+  //   return oracles;
+  //
+  // // Fallback to on chain OracleRegistry if local list not found
+  // // Note: The local list is a stopgap to address MetaMask/Infura instability
   
   const {
     oracleAddresses,
@@ -120,6 +120,7 @@ export const getConversionData = async (
   sourceTokenAmount,
   oracleAddress
 ) => {
+  console.dir(sourceTokenAddress);
   assert.isETHAddressHex("sourceTokenAddress", sourceTokenAddress);
   assert.isETHAddressHex("destTokenAddress", destTokenAddress);
   assert.isETHAddressHex("oracleAddress", oracleAddress);
