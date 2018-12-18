@@ -223,12 +223,12 @@ export declare class BZxJS {
     oracleAddress: string;
   }): Promise<boolean>;
 
-  getConversionData(params: {
-    sourceTokenAddress: string;
-    destTokenAddress: string;
-    sourceTokenAmount: BigNumber;
-    oracleAddress: string;
-  }): Promise<IConversionData>;
+  getConversionData(
+    sourceTokenAddress: string,
+    destTokenAddress: string,
+    sourceTokenAmount: BigNumber,
+    oracleAddress: string
+  ): Promise<IConversionData>;
 
   takeLoanOrderAsTrader(params: {
     order: ILoanOrderFillRequest;
