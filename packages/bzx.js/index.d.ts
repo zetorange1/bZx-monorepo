@@ -232,6 +232,7 @@ export declare class BZxJS {
 
   takeLoanOrderAsTrader(params: {
     order: ILoanOrderFillRequest;
+    oracleData: any;
     collateralTokenAddress: string;
     loanTokenAmountFilled: BigNumber;
     getObject: boolean;
@@ -240,12 +241,14 @@ export declare class BZxJS {
 
   takeLoanOrderAsLender(params: {
     order: ILoanOrderFillRequest;
+    oracleData: any;
     getObject: boolean;
     txOpts: Tx;
   }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   pushLoanOrderOnChain(params: {
     order: ILoanOrderFillRequest;
+    oracleData: any;
     getObject: boolean;
     txOpts: Tx;
   }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
@@ -266,6 +269,7 @@ export declare class BZxJS {
 
   cancelLoanOrder(params: {
     order: ILoanOrderFillRequest;
+    oracleData: any;
     cancelLoanTokenAmount: string;
     getObject: boolean;
     txOpts: Tx;
