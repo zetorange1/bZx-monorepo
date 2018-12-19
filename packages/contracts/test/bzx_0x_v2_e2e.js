@@ -233,8 +233,8 @@ contract("BZxTest", function(accounts) {
       oracleAddress: oracle.address,
       loanTokenAmount: utils.toWei(100000, "ether"),
       interestAmount: utils.toWei(2, "ether"), // 2 token units per day
-      initialMarginAmount: "50", // 50%
-      maintenanceMarginAmount: "5", // 25%
+      initialMarginAmount: utils.toWei(50, "ether").toString(), // 50%
+      maintenanceMarginAmount: utils.toWei(5, "ether").toString(), // 25%
       lenderRelayFee: utils.toWei(0.001, "ether").toString(),
       traderRelayFee: utils.toWei(0.0015, "ether").toString(),
       maxDurationUnixTimestampSec: "2419200", // 28 days
@@ -253,8 +253,8 @@ contract("BZxTest", function(accounts) {
       oracleAddress: oracle.address,
       loanTokenAmount: utils.toWei(100000, "ether"),
       interestAmount: utils.toWei(2, "ether"), // 2 token units per day
-      initialMarginAmount: "50", // 50%
-      maintenanceMarginAmount: "25", // 25%
+      initialMarginAmount: utils.toWei(50, "ether").toString(), // 50%
+      maintenanceMarginAmount: utils.toWei(25, "ether").toString(), // 25%
       lenderRelayFee: utils.toWei(0.001, "ether").toString(),
       traderRelayFee: utils.toWei(0.0015, "ether").toString(),
       maxDurationUnixTimestampSec: "2419200", // 28 days
@@ -525,8 +525,8 @@ contract("BZxTest", function(accounts) {
         oracleAddress: oracle.address,
         loanTokenAmount: utils.toWei(100000, "ether"),
         interestAmount: utils.toWei(2, "ether"), // 2 token units per day
-        initialMarginAmount: "50", // 50%
-        maintenanceMarginAmount: "5", // 25%
+        initialMarginAmount: utils.toWei(50, "ether").toString(), // 50%
+        maintenanceMarginAmount: utils.toWei(5, "ether").toString(), // 25%
         lenderRelayFee: utils.toWei(0.001, "ether").toString(),
         traderRelayFee: utils.toWei(0.0015, "ether").toString(),
         maxDurationUnixTimestampSec: "2419200", // 28 days
@@ -545,8 +545,8 @@ contract("BZxTest", function(accounts) {
         oracleAddress: oracle.address,
         loanTokenAmount: utils.toWei(100000, "ether"),
         interestAmount: utils.toWei(2, "ether"), // 2 token units per day
-        initialMarginAmount: "50", // 50%
-        maintenanceMarginAmount: "25", // 25%
+        initialMarginAmount: utils.toWei(50, "ether").toString(), // 50%
+        maintenanceMarginAmount: utils.toWei(25, "ether").toString(), // 25%
         lenderRelayFee: utils.toWei(0.001, "ether").toString(),
         traderRelayFee: utils.toWei(0.0015, "ether").toString(),
         maxDurationUnixTimestampSec: "2419200", // 28 days
@@ -726,8 +726,8 @@ contract("BZxTest", function(accounts) {
         oracleAddress: oracle.address,
         loanTokenAmount: utils.toWei(100000, "ether"),
         interestAmount: utils.toWei(2, "ether"), // 2 token units per day
-        initialMarginAmount: "50", // 50%
-        maintenanceMarginAmount: "5", // 25%
+        initialMarginAmount: utils.toWei(50, "ether").toString(), // 50%
+        maintenanceMarginAmount: utils.toWei(5, "ether").toString(), // 25%
         lenderRelayFee: utils.toWei(0.001, "ether").toString(),
         traderRelayFee: utils.toWei(0.0015, "ether").toString(),
         maxDurationUnixTimestampSec: "2419200", // 28 days
@@ -746,8 +746,8 @@ contract("BZxTest", function(accounts) {
         oracleAddress: oracle.address,
         loanTokenAmount: utils.toWei(100000, "ether"),
         interestAmount: utils.toWei(2, "ether"), // 2 token units per day
-        initialMarginAmount: "50", // 50%
-        maintenanceMarginAmount: "25", // 25%
+        initialMarginAmount: utils.toWei(50, "ether").toString(), // 50%
+        maintenanceMarginAmount: utils.toWei(25, "ether").toString(), // 25%
         lenderRelayFee: utils.toWei(0.001, "ether").toString(),
         traderRelayFee: utils.toWei(0.0015, "ether").toString(),
         maxDurationUnixTimestampSec: "2419200", // 28 days
@@ -1474,7 +1474,7 @@ contract("BZxTest", function(accounts) {
     }
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 20;
+    const itemCount = 22;
     const objCount = data.length / 64 / itemCount;
 
     assert.isTrue(objCount % 1 == 0);
@@ -1492,7 +1492,7 @@ contract("BZxTest", function(accounts) {
       var params = orderObjArray[i].match(new RegExp(".{1," + 64 + "}", "g"));
 
       result.push({
-        maker: "0x" + params[0].substr(24),
+        makerAddress: "0x" + params[0].substr(24),
         loanTokenAddress: "0x" + params[1].substr(24),
         interestTokenAddress: "0x" + params[2].substr(24),
         collateralTokenAddress: "0x" + params[3].substr(24),
@@ -1511,7 +1511,9 @@ contract("BZxTest", function(accounts) {
         orderFilledAmount: web3.utils.toBN("0x" + params[16]),
         orderCancelledAmount: web3.utils.toBN("0x" + params[17]),
         orderTraderCount: web3.utils.toBN("0x" + params[18]),
-        addedUnixTimestampSec: web3.utils.toBN("0x" + params[19])
+        addedUnixTimestampSec: web3.utils.toBN("0x" + params[19]),
+        takerAddress: "0x" + params[20].substr(24),
+        withdrawOnLoanOpen: parseInt("0x" + params[21]) ? true : false
       });
     }
 

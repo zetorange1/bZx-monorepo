@@ -106,7 +106,7 @@ export default class WithdrawPositionDialog extends React.Component {
             { positionTokenAmountFilled && initialMarginAmount && currentMarginAmount ? (
               <Fragment>
                 <br/><br/>
-                Available for Withdrawl: {positionTokenAmountFilled.minus(positionTokenAmountFilled.times(initialMarginAmount).times(10 ** 18).div(currentMarginAmount)).div(10 ** positionToken.decimals).toString()} {positionToken.symbol}
+                Available for Withdrawl: {positionTokenAmountFilled.minus(positionTokenAmountFilled.times(initialMarginAmount).div(currentMarginAmount)).div(10 ** positionToken.decimals).toString()} {positionToken.symbol}
               </Fragment>
             ) : `` }
           </p>

@@ -28,19 +28,19 @@ contract BZxOrderTaking2 is BZxStorage, BZxProxiable, OrderTakingFunctions {
         public
         onlyOwner
     {
-        targets[bytes4(keccak256("cancelLoanOrder(address[6],uint256[10],bytes,uint256)"))] = _target;
+        targets[bytes4(keccak256("cancelLoanOrder(address[8],uint256[11],bytes,uint256)"))] = _target;
         targets[bytes4(keccak256("cancelLoanOrderWithHash(bytes32,uint256)"))] = _target;
     }
 
     /// @dev Cancels remaining (untaken) loan
-    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress.
-    /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), and salt.
+    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFill.
+    /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), withdrawOnOpen, and salt.
     /// @param oracleData An arbitrary length bytes stream to pass to the oracle.
     /// @param cancelLoanTokenAmount The amount of remaining unloaned token to cancel.
     /// @return The amount of loan token canceled.
     function cancelLoanOrder(
-        address[6] orderAddresses,
-        uint[10] orderValues,
+        address[8] orderAddresses,
+        uint[11] orderValues,
         bytes oracleData,
         uint cancelLoanTokenAmount)
         external
@@ -100,7 +100,7 @@ contract BZxOrderTaking2 is BZxStorage, BZxProxiable, OrderTakingFunctions {
         
         LoanOrderAux memory loanOrderAux = orderAux[loanOrderHash];
 
-        require(loanOrderAux.maker == msg.sender, "BZxOrderTaking::cancelLoanOrderWithHash: loanOrderAux.maker != msg.sender");
+        require(loanOrderAux.makerAddress == msg.sender, "BZxOrderTaking::cancelLoanOrderWithHash: loanOrderAux.makerAddress != msg.sender");
         require(loanOrder.loanTokenAmount > 0 && cancelLoanTokenAmount > 0, "BZxOrderTaking::cancelLoanOrderWithHash: invalid params");
 
         if (loanOrderAux.expirationUnixTimestampSec > 0 && block.timestamp >= loanOrderAux.expirationUnixTimestampSec) {

@@ -148,12 +148,12 @@ export default class PositionExcess extends BZxComponent {
       <Fragment>
         <br />
         <DataPointContainer>
-          <Label>Position Offset</Label>
+          <Label>Position Excess/Deficit</Label>
           {loading && !error ? (
-            <DataPointContainer><DataPoint>Loading position offset...</DataPoint></DataPointContainer>
+            <DataPointContainer><DataPoint>Loading position excess or deficit...</DataPoint></DataPointContainer>
           ) : 
           error ? (
-            <DataPointContainer><DataPoint>Web3 error loading position offset. Please refresh in a few minutes.</DataPoint></DataPointContainer>
+            <DataPointContainer><DataPoint>Web3 error loading excess or deficit. Please refresh in a few minutes.</DataPoint></DataPointContainer>
           ) : (
             <Fragment>
               <DataPoint>
@@ -162,7 +162,7 @@ export default class PositionExcess extends BZxComponent {
                 {` ${symbol}`}
               </DataPoint>
               {isPositive &&
-                positionOffset !== 0 && (
+                positionOffset.toString() !== `0` && (
                   <a
                     href="#"
                     style={{ marginLeft: `12px` }}

@@ -63,7 +63,7 @@ contract BZRxTokenSale is Ownable {
         uint _previousAmountRaised)
         public
     {
-        require(_bonusMultiplier > 100);
+        require(_bonusMultiplier > 100 * 10**18);
         
         bZRxTokenContractAddress = _bZRxTokenContractAddress;
         bZxVaultAddress = _bZxVaultAddress;
@@ -95,7 +95,7 @@ contract BZRxTokenSale is Ownable {
                             .mul(10**18).div(tokenPrice);   // fixed ETH price per token (0.000073 ETH)
 
         uint tokenAmountAndBonus = tokenAmount
-                                        .mul(bonusMultiplier).div(100);
+                                        .mul(bonusMultiplier).div(10**20);
 
         TokenPurchases storage purchase = purchases[msg.sender];
         
@@ -219,7 +219,7 @@ contract BZRxTokenSale is Ownable {
         onlyOwner 
         returns (bool)
     {
-        require(bonusMultiplier != _newBonusMultiplier && _newBonusMultiplier > 100);
+        require(bonusMultiplier != _newBonusMultiplier && _newBonusMultiplier > 100 * 10**18);
         emit BonusChanged(bonusMultiplier, _newBonusMultiplier);
         bonusMultiplier = _newBonusMultiplier;
         return true;

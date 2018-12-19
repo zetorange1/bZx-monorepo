@@ -75,11 +75,11 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     bool public enforceMinimum = false;
 
     // Percentage of interest retained as fee
-    // This will always be between 0 and 100
-    uint public interestFeePercent = 10;
+    // This will always be between 0 and 100%
+    uint public interestFeePercent = 10 * 10**18;
 
     // Percentage of EMA-based gas refund paid to bounty hunters after successfully liquidating a position
-    uint public bountyRewardPercent = 110;
+    uint public bountyRewardPercent = 110 * 10**18;
 
     // An upper bound estimation on the liquidation gas cost
     uint public gasUpperBound = 600000;
@@ -90,7 +90,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
     // A threshold of minimum maintenance margin for loan to be insured by the guarantee fund
     // A value of 0 indicates that no threshold exists for this parameter.
-    uint public minMaintenanceMarginAmount = 25;
+    uint public minMaintenanceMarginAmount = 25 * 10**18;
 
     bool public isManualTradingAllowed = true;
 /* solhint-disable var-name-mixedcase */
@@ -183,7 +183,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 loanPosition.collateralTokenAddressFilled,
                 loanPosition.loanTokenAmountFilled,
                 loanPosition.positionTokenAmountFilled,
-                loanPosition.collateralTokenAmountFilled) > loanOrder.maintenanceMarginAmount.mul(10**18),
+                loanPosition.collateralTokenAmountFilled) > loanOrder.maintenanceMarginAmount,
             "BZxOracle::didTradePosition: trade triggers liquidation"
         );
 
@@ -202,7 +202,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         returns (bool)
     {
         // interestFeePercent is only editable by owner
-        uint interestFee = amountOwed.mul(interestFeePercent).div(100);
+        uint interestFee = amountOwed.mul(interestFeePercent).div(10**20);
 
         // Transfers the interest to the lender, less the interest fee.
         // The fee is retained by the oracle.
@@ -542,7 +542,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 collateralTokenAddress,
                 loanTokenAmount,
                 positionTokenAmount,
-                collateralTokenAmount) <= maintenanceMarginAmount.mul(10**18)
+                collateralTokenAmount) <= maintenanceMarginAmount
             );
     }
 
@@ -620,7 +620,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             loanToPositionAmount = loanPosition.loanTokenAmountFilled.mul(loanToPositionRate).div(_getDecimalPrecision(loanOrder.loanTokenAddress, loanPosition.positionTokenAddressFilled));
         }
 
-        uint initialPosition = loanToPositionAmount.add(loanToPositionAmount.mul(loanOrder.initialMarginAmount).div(100));
+        uint initialPosition = loanToPositionAmount.add(loanToPositionAmount.mul(loanOrder.initialMarginAmount).div(10**20));
         uint currentPosition = loanPosition.positionTokenAmountFilled.add(collateralToPositionAmount);
         if (currentPosition > initialPosition) {
             isPositive = true;
@@ -717,7 +717,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         public
         onlyOwner
     {
-        require(newRate != interestFeePercent && newRate <= 100);
+        require(newRate != interestFeePercent && newRate <= 100 * 10**18);
         interestFeePercent = newRate;
     }
 
@@ -872,7 +872,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             collateralTokenAddress,
             collateralTokenAmountUsable,
             this, // BZxOracle receives the WETH proceeds
-            !isLiquidation ? wethAmountNeeded : wethAmountNeeded.add(gasUpperBound.mul(emaValue).mul(bountyRewardPercent).div(100))
+            !isLiquidation ? wethAmountNeeded : wethAmountNeeded.add(gasUpperBound.mul(emaValue).mul(bountyRewardPercent).div(10**20))
         );
     }
 

@@ -136,6 +136,7 @@ export default class OpenedLoan extends BZxComponent {
         getObject: true,
         txOpts
       });
+      console.log(txOpts);
 
       let collateralExcess;
       try {
@@ -337,12 +338,12 @@ export default class OpenedLoan extends BZxComponent {
             <Fragment>
               <DataPointContainer>
                 <Label>Initial margin</Label>
-                <DataPoint>{initialMarginAmount}%</DataPoint>
+                <DataPoint>{fromBigNumber(initialMarginAmount, 1e18)}%</DataPoint>
               </DataPointContainer>
 
               <DataPointContainer>
                 <Label>Maintenance margin</Label>
-                <DataPoint>{maintenanceMarginAmount}%</DataPoint>
+                <DataPoint>{fromBigNumber(maintenanceMarginAmount, 1e18)}%</DataPoint>
               </DataPointContainer>
 
               <DataPointContainer>
@@ -398,7 +399,7 @@ export default class OpenedLoan extends BZxComponent {
           </DataPointContainer>
 
           <DataPointContainer style={{ marginLeft: `12px` }}>
-            <Label>Trade Amount</Label>
+            <Label>Position Amount</Label>
             <DataPoint>
               {fromBigNumber(
                 positionTokenAmountFilled,

@@ -51,7 +51,7 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
     }
 
     function setTarget(
-        string _funcId,  // example: "takeLoanOrderAsTrader(address[6],uint256[10],address,uint256,bytes)"
+        string _funcId,  // example: "takeLoanOrderAsTrader(address[8],uint256[11],bytes,address,uint256,bytes)"
         address _target) // logic contract address
         public
         onlyOwner
@@ -63,7 +63,7 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
     }
 
     function toggleTargetPause(
-        string _funcId,  // example: "takeLoanOrderAsTrader(address[6],uint256[10],address,uint256,bytes)"
+        string _funcId,  // example: "takeLoanOrderAsTrader(address[8],uint256[11],bytes,address,uint256,bytes)"
         bool _isPaused)
         public
         onlyOwner
@@ -159,7 +159,7 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
      */
 
     function getTarget(
-        string _funcId) // example: "takeLoanOrderAsTrader(address[6],uint256[10],address,uint256,bytes)"
+        string _funcId) // example: "takeLoanOrderAsTrader(address[8],uint256[11],bytes,address,uint256,bytes)"
         public
         view
         returns (address)
@@ -168,7 +168,7 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
     }
 
     function getTargetPause(
-        string _funcId) // example: "takeLoanOrderAsTrader(address[6],uint256[10],address,uint256,bytes)"
+        string _funcId) // example: "takeLoanOrderAsTrader(address[8],uint256[11],bytes,address,uint256,bytes)"
         public
         view
         returns (bool)

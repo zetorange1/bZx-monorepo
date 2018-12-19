@@ -15,8 +15,8 @@ export default ({
   loanTokenAmount = "40000",
   interestAmount = "2",
 
-  initialMarginAmount = "50",
-  maintenanceMarginAmount = "25",
+  initialMarginAmount = "50000000000000000000",
+  maintenanceMarginAmount = "25000000000000000000",
 
   lenderRelayFee = "10000",
   traderRelayFee = "10000",
@@ -26,6 +26,7 @@ export default ({
   expirationUnixTimestampSec = "2519061340",
 
   makerRole = orderConstants.MAKER_ROLE.LENDER,
+  withdrawOnOpen = "0"
   salt = "2019429563929979"
 } = {}) => ({
   bZxAddress: Contracts.BZx.address,
@@ -56,5 +57,6 @@ export default ({
   expirationUnixTimestampSec,
 
   makerRole,
+  withdrawOnOpen,
   salt
 });

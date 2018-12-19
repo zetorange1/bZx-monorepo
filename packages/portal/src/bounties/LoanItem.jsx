@@ -190,7 +190,6 @@ export default class LoanItem extends BZxComponent {
       currentMarginAmount
     } = this.state;
     const isUnSafe = currentMarginAmount ? !BigNumber(currentMarginAmount)
-      .dividedBy(1e18)
       .gt(maintenanceMarginAmount) : false;
     const date = moment(data.loanEndUnixTimestampSec * 1000).utc();
     const dateStr = date.format(`MMMM Do YYYY, h:mm a UTC`);
@@ -257,12 +256,12 @@ export default class LoanItem extends BZxComponent {
             <Fragment>
               <DataPointContainer>
                 <Label>Initial margin</Label>
-                <DataPoint>{initialMarginAmount}%</DataPoint>
+                <DataPoint>{fromBigNumber(initialMarginAmount, 1e18)}%</DataPoint>
               </DataPointContainer>
 
               <DataPointContainer>
                 <Label>Maintenance margin</Label>
-                <DataPoint>{maintenanceMarginAmount}%</DataPoint>
+                <DataPoint>{fromBigNumber(maintenanceMarginAmount, 1e18)}%</DataPoint>
               </DataPointContainer>
 
               <DataPointContainer>

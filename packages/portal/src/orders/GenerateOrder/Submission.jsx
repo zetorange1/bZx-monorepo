@@ -9,12 +9,12 @@ const Button = styled(MuiButton)`
   max-width: 480px;
 `;
 
-const Submission = ({ onSubmit, pushOnChainCheckbox, pushOnChain, sendToRelayExchange }) => (
+const Submission = ({ onSubmit, setPushOnChainCheckbox, pushOnChain, sendToRelayExchange }) => (
   <Section>
     <div>
       <FormControlLabel
         control={
-          <Checkbox checked={pushOnChain} onChange={pushOnChainCheckbox} disabled={sendToRelayExchange} />
+          <Checkbox checked={pushOnChain} onChange={setPushOnChainCheckbox} disabled={sendToRelayExchange} />
         }
         label="Push order on chain"
       />

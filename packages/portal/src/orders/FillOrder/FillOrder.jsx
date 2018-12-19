@@ -109,13 +109,13 @@ export default class FillOrder extends BZxComponent {
           loanTokenAddress,
           collateralTokenAddress,
           oracleAddress,
-          loanTokenAmount,
-          initialMarginAmount,
+          toBigNumber(loanTokenAmount).toFixed(0),
+          toBigNumber(initialMarginAmount).toFixed(0),
           this.props.bZx
         ));
         
         if (this.state.overCollateralize) {
-          collateralRequired = collateralRequired.plus(collateralRequired.times(100).div(initialMarginAmount));
+          collateralRequired = collateralRequired.plus(collateralRequired.times(10 ** 20).div(initialMarginAmount));
         }
         
         collateralRequired = fromBigNumber(

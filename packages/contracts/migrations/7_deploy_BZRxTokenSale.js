@@ -17,7 +17,7 @@ module.exports = (deployer, network, accounts) => {
     return;
   }
 
-  const currentBonus = 110; // 10% bonus
+  const currentBonus = web3.utils.toWei("110", "ether"); // 10% bonus
 
   // let priceContractAddress;
 

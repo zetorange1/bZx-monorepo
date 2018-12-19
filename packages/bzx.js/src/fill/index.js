@@ -29,7 +29,8 @@ export const takeLoanOrderAsLender = (
     order.interestTokenAddress,
     order.collateralTokenAddress,
     order.feeRecipientAddress,
-    order.oracleAddress
+    order.oracleAddress,
+    order.takerAddress
   ];
 
   const orderValues = [
@@ -42,6 +43,7 @@ export const takeLoanOrderAsLender = (
     order.maxDurationUnixTimestampSec,
     order.expirationUnixTimestampSec,
     order.makerRole,
+    order.withdrawOnOpen,
     order.salt
   ];
 
@@ -77,7 +79,8 @@ export const takeLoanOrderAsTrader = (
     order.interestTokenAddress,
     order.collateralTokenAddress,
     order.feeRecipientAddress,
-    order.oracleAddress
+    order.oracleAddress,
+    order.takerAddress
   ];
 
   const orderValues = [
@@ -90,6 +93,7 @@ export const takeLoanOrderAsTrader = (
     order.maxDurationUnixTimestampSec,
     order.expirationUnixTimestampSec,
     order.makerRole,
+    order.withdrawOnOpen,
     order.salt
   ];
 
@@ -138,7 +142,8 @@ export const pushLoanOrderOnChain = (
     order.interestTokenAddress,
     order.collateralTokenAddress,
     order.feeRecipientAddress,
-    order.oracleAddress
+    order.oracleAddress,
+    order.takerAddress
   ];
 
   const orderValues = [
@@ -151,6 +156,7 @@ export const pushLoanOrderOnChain = (
     web3.utils.toBN(order.maxDurationUnixTimestampSec).toString(10),
     web3.utils.toBN(order.expirationUnixTimestampSec).toString(10),
     web3.utils.toBN(order.makerRole).toString(10),
+    web3.utils.toBN(order.withdrawOnOpen).toString(10),
     web3.utils.toBN(order.salt).toString(10)
   ];
 
@@ -241,7 +247,8 @@ export const cancelLoanOrder = (
     order.interestTokenAddress,
     order.collateralTokenAddress,
     order.feeRecipientAddress,
-    order.oracleAddress
+    order.oracleAddress,
+    order.takerAddress
   ];
 
   const orderValues = [
@@ -254,6 +261,7 @@ export const cancelLoanOrder = (
     order.maxDurationUnixTimestampSec,
     order.expirationUnixTimestampSec,
     order.makerRole,
+    order.withdrawOnOpen,
     order.salt
   ];
 

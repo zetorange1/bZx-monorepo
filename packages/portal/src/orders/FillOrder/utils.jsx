@@ -116,6 +116,11 @@ export const validateFillOrder = async (
       alert(`This is an order you created, so you can't fill it.`);
       return false;
     }
+    
+    if (order.takerAddress !== `0x0000000000000000000000000000000000000000` && order.takerAddress.toLowerCase() !== accounts[0].toLowerCase()) {
+      alert(`You are not the designated taker of this order, so you can't fill it.`);
+      return false;
+    }
 
     if (order.expirationUnixTimestampSec > 0 && order.expirationUnixTimestampSec <= moment().unix()) {
       alert(`This order has expired. It can no longer be filled.`);

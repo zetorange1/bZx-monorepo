@@ -75,8 +75,8 @@ export default class GenerateOrder extends React.Component {
     interestRate: 0.0006,
 
     // margin amounts
-    initialMarginAmount: 50,
-    maintenanceMarginAmount: 25,
+    initialMarginAmount: toBigNumber(50, 10 ** 18).toString(),
+    maintenanceMarginAmount: toBigNumber(25, 10 ** 18).toString(),
 
     maxDuration: 2419200, // 28 days
 
@@ -93,9 +93,12 @@ export default class GenerateOrder extends React.Component {
     lenderRelayFee: 0,
     traderRelayFee: 0,
 
+    takerAddress: `0x0000000000000000000000000000000000000000`,
+
     oracleData: `0x`,
 
     pushOnChain: false,
+    withdrawOnOpen: false,
 
     orderHash: `0x_temp_order_hash`,
     finalOrder: null
@@ -124,8 +127,8 @@ export default class GenerateOrder extends React.Component {
           loanTokenAddress,
           collateralTokenAddress,
           oracleAddress,
-          loanTokenAmount,
-          initialMarginAmount,
+          toBigNumber(loanTokenAmount).toFixed(0),
+          toBigNumber(initialMarginAmount).toFixed(0),
           this.props.bZx
         ),
         10 ** getDecimals(this.props.tokens, collateralTokenAddress)
@@ -152,6 +155,11 @@ export default class GenerateOrder extends React.Component {
 
   setStateForInput = key => event =>
     this.setState({ [key]: event.target.value });
+
+  setStateForMarginAmounts = key => event => {
+    const { value } = event.target;
+    this.setState({ [key]: toBigNumber(value, 10 ** 18) });
+  };
 
   setStateForTotalInterest = (interestAmount, maxDuration) => {
     let totalInterest = 0;
@@ -186,7 +194,9 @@ export default class GenerateOrder extends React.Component {
     this.setState(p => ({ sendToRelayExchange: value, pushOnChain: value ? !value : p.pushOnChain }));
   }
 
-  pushOnChainCheckbox = (e, value) => this.setState(p => ({ pushOnChain: value, sendToRelayExchange: value ? !value : p.sendToRelayExchange }));
+  setwithdrawOnOpenCheckbox = (e, value) => this.setState(p => ({ withdrawOnOpen: value }));
+
+  setPushOnChainCheckbox = (e, value) => this.setState(p => ({ pushOnChain: value, sendToRelayExchange: value ? !value : p.sendToRelayExchange }));
 
   refreshCollateralAmount = async () => {
     if (this.state.role === `trader`) {
@@ -354,9 +364,12 @@ export default class GenerateOrder extends React.Component {
         <Divider />
 
         <MarginAmountsSection
-          setStateForInput={this.setStateForInput}
+          setStateForInput={this.setStateForMarginAmounts}
           initialMarginAmount={this.state.initialMarginAmount}
           maintenanceMarginAmount={this.state.maintenanceMarginAmount}
+          role={this.state.role}
+          setwithdrawOnOpenCheckbox={this.setwithdrawOnOpenCheckbox}
+          withdrawOnOpen={this.state.withdrawOnOpen}
         />
 
         <Divider />
@@ -385,7 +398,7 @@ export default class GenerateOrder extends React.Component {
         <Divider />
 
         <Submission
-          pushOnChainCheckbox={this.pushOnChainCheckbox}
+          setPushOnChainCheckbox={this.setPushOnChainCheckbox}
           pushOnChain={this.state.pushOnChain}
           sendToRelayExchange={this.state.sendToRelayExchange}
           onSubmit={this.handleSubmit}

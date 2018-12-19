@@ -85,11 +85,11 @@ contract GasRefunder {
             return;
 
         if (percentMultiplier == 0) // 0 percentMultiplier not allowed
-            percentMultiplier = 100;
+            percentMultiplier = 100 * 10**18;
 
         finalGasUsed = gasUsed - gasleft();
 
-        refundAmount = finalGasUsed.mul(gasPrice).mul(percentMultiplier).div(100);
+        refundAmount = finalGasUsed.mul(gasPrice).mul(percentMultiplier).div(10**20);
     }
 
     function sendGasRefund(

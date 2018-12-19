@@ -3,6 +3,7 @@ exports.loanOrderSchema = {
   properties: {
     bZxAddress: { $ref: "/Address" },
     makerAddress: { $ref: "/Address" },
+    takerAddress: { $ref: "/Address" },
     loanTokenAddress: { $ref: "/Address" },
     interestTokenAddress: { $ref: "/Address" },
     collateralTokenAddress: { $ref: "/Address" },
@@ -17,11 +18,13 @@ exports.loanOrderSchema = {
     maxDurationUnixTimestampSec: { $ref: "/Number" },
     expirationUnixTimestampSec: { $ref: "/Number" },
     makerRole: { $ref: "/Number" },
+    withdrawOnOpen: { $ref: "/Number" },
     salt: { $ref: "/Number" }
   },
   required: [
     "bZxAddress",
     "makerAddress",
+    "takerAddress",
     "loanTokenAddress",
     "interestTokenAddress",
     "collateralTokenAddress",
@@ -36,6 +39,7 @@ exports.loanOrderSchema = {
     "maxDurationUnixTimestampSec",
     "expirationUnixTimestampSec",
     "makerRole",
+    "withdrawOnOpen",
     "salt"
   ],
   type: "object"

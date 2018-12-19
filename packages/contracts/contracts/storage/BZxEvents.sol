@@ -10,8 +10,8 @@ contract BZxEvents {
 
     event LogLoanAdded (
         bytes32 indexed loanOrderHash,
-        address adder,
-        address indexed maker,
+        address adderAddress,
+        address indexed makerAddress,
         address indexed feeRecipientAddress,
         uint lenderRelayFee,
         uint traderRelayFee,
@@ -33,7 +33,7 @@ contract BZxEvents {
     );
 
     event LogLoanCancelled(
-        address indexed maker,
+        address indexed makerAddress,
         uint cancelLoanTokenAmount,
         uint remainingLoanTokenAmount,
         bytes32 indexed loanOrderHash

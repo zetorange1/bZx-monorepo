@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import styled from "styled-components";
+import { fromBigNumber } from "../../common/utils";
 
 const Container = styled.div`
   display: flex;
@@ -52,11 +53,11 @@ export default ({
       <Container>
         <DataContainer>
           <Title>Initial Margin Amount</Title>
-          <div>{initialMarginAmount}%</div>
+          <div>{fromBigNumber(initialMarginAmount, 1e18)}%</div>
         </DataContainer>
         <DataContainer>
           <Title>Maintenance Margin Amount</Title>
-          <div>{maintenanceMarginAmount}%</div>
+          <div>{fromBigNumber(maintenanceMarginAmount, 1e18)}%</div>
         </DataContainer>
         <DataContainer>
           <Title>Oracle</Title>

@@ -29,8 +29,8 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
         onlyOwner
     {
         targets[bytes4(keccak256("getSingleOrder(bytes32)"))] = _target;
-        targets[bytes4(keccak256("getOrdersFillable(uint256,uint256)"))] = _target;
-        targets[bytes4(keccak256("getOrdersForUser(address,uint256,uint256)"))] = _target;
+        targets[bytes4(keccak256("getOrdersFillable(uint256,uint256,address)"))] = _target;
+        targets[bytes4(keccak256("getOrdersForUser(address,uint256,uint256,address)"))] = _target;
         targets[bytes4(keccak256("getSingleLoan(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("getLoansForLender(address,uint256,bool)"))] = _target;
         targets[bytes4(keccak256("getLoansForTrader(address,uint256,bool)"))] = _target;
@@ -57,7 +57,7 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
 
         // all encoded params will be zero-padded to 32 bytes
         bytes memory data = abi.encode(
-            loanOrderAux.maker,
+            loanOrderAux.makerAddress,
             loanOrder.loanTokenAddress,
             loanOrder.interestTokenAddress,
             loanOrder.collateralTokenAddress,
@@ -76,10 +76,12 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
     /// @dev Returns a bytestream of data from orders that are available for taking.
     /// @param start The starting order in the order list to return.
     /// @param count The total amount of orders to return if they exist. Amount returned can be less.
+    /// @param oracleFilter Only return orders for a given oracle address.
     /// @return A concatenated stream of bytes.
     function getOrdersFillable(
         uint start,
-        uint count)
+        uint count,
+        address oracleFilter)
         public
         view
         returns (bytes)
@@ -88,7 +90,8 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
             address(0),
             start,
             count,
-            true // skipExpired
+            true, // skipExpired
+            oracleFilter
         );
     }
 
@@ -96,11 +99,13 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
     /// @param loanParty The address of the maker or taker of the order.
     /// @param start The starting order in the order list to return.
     /// @param count The total amount of orders to return if they exist. Amount returned can be less.
+    /// @param oracleFilter Only return orders for a given oracle address.
     /// @return A concatenated stream of bytes.
     function getOrdersForUser(
         address loanParty,
         uint start,
-        uint count)
+        uint count,
+        address oracleFilter)
         public
         view
         returns (bytes)
@@ -109,7 +114,8 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
             loanParty,
             start,
             count,
-            false // skipExpired
+            false, // skipExpired
+            oracleFilter
         );
     }
 
@@ -269,7 +275,8 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
         address addr,
         uint start,
         uint count,
-        bool skipExpired)
+        bool skipExpired,
+        address oracleFilter)
         internal
         view
         returns (bytes)
@@ -295,8 +302,15 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
                 continue;
             }
 
+            if (oracleFilter != address(0) && oracleFilter != oracleAddresses[loanOrder.oracleAddress]) {
+                if (end < orderList[addr].length)
+                    end++;
+
+                continue;
+            }
+
             bytes memory tmpBytes = abi.encode(
-                loanOrderAux.maker,
+                loanOrderAux.makerAddress,
                 loanOrder.loanTokenAddress,
                 loanOrder.interestTokenAddress,
                 loanOrder.collateralTokenAddress,
@@ -336,7 +350,10 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
             orderFilledAmounts[loanOrder.loanOrderHash],
             orderCancelledAmounts[loanOrder.loanOrderHash],
             orderPositionList[loanOrder.loanOrderHash].length, // trader count
-            orderPositionList[loanOrder.loanOrderHash].length > 0 ? loanPositions[orderPositionList[loanOrder.loanOrderHash][0]].loanStartUnixTimestampSec : 0
+            orderPositionList[loanOrder.loanOrderHash].length > 0 ? loanPositions[orderPositionList[loanOrder.loanOrderHash][0]].loanStartUnixTimestampSec : 0,
+            loanOrderAux.takerAddress,
+            loanOrderAux.tradeTokenToFill,
+            loanOrderAux.withdrawOnOpen
         );
         return abi.encodePacked(data, tmpBytes);
     }

@@ -8,9 +8,9 @@ Object {
   "3": "25",
   "4": "50000000000000000000",
   "currentMarginAmount": "50000000000000000000",
-  "initialMarginAmount": "50",
+  "initialMarginAmount": "50000000000000000000",
   "loanOrderHash": "this is a random field",
-  "maintenanceMarginAmount": "25",
+  "maintenanceMarginAmount": "25000000000000000000",
   "trader": "0xE36Ea790bc9d7AB70C55260C66D52b1eca985f84",
 }
 `;

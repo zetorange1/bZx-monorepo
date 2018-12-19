@@ -96,7 +96,7 @@ export default class LoanItem extends BZxComponent {
   };
 
   render() {
-    const { tokens, bZx, accounts, web3 } = this.props;
+    const { tokens, bZx, accounts, web3, currentFee } = this.props;
     const {
       collateralTokenAmountFilled,
       collateralTokenAddressFilled,
@@ -290,6 +290,7 @@ export default class LoanItem extends BZxComponent {
                   accounts={accounts}
                   web3={web3}
                   loanOrderHash={loanOrderHash}
+                  currentFee={currentFee}
                 />
               </div>
             </Fragment>

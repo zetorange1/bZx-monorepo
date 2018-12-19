@@ -27,12 +27,15 @@ contract BZxObjects {
     }
 
     struct LoanOrderAux {
-        address maker;
+        address makerAddress;
+        address takerAddress;
         address feeRecipientAddress;
+        address tradeTokenToFill;
         uint lenderRelayFee;
         uint traderRelayFee;
         uint makerRole;
         uint expirationUnixTimestampSec;
+        bool withdrawOnOpen;
         string description;
     }
 

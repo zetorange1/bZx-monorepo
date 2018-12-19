@@ -43,12 +43,12 @@ contract InternalFunctions is BZxStorage {
             loanTokenAmountFilled
         );
         if (collateralTokenAmount == 0) {
-            return 0;
+            revert("_getCollateralRequired: collateralTokenAmount == 0");
         }
         
         collateralTokenAmount = collateralTokenAmount
                                     .mul(marginAmount)
-                                    .div(100);
+                                    .div(10**20);
     }
     
     function _getTotalInterestRequired(

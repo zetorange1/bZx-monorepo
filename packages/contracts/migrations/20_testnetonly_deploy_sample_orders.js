@@ -166,6 +166,7 @@ module.exports = (deployer, network, accounts) => {
       OrderParams_bZx_1 = {
         bZxAddress: bZx.address,
         makerAddress: lender1_account, // lender
+        takerAddress: NULL_ADDRESS,
         loanTokenAddress: loanToken1.address,
         interestTokenAddress: interestToken1.address,
         collateralTokenAddress: NULL_ADDRESS,
@@ -173,13 +174,14 @@ module.exports = (deployer, network, accounts) => {
         oracleAddress: oracle.address,
         loanTokenAmount: toWei(10000, "ether").toString(),
         interestAmount: toWei(2.5, "ether").toString(), // 2 token units per day
-        initialMarginAmount: "50", // 50%
-        maintenanceMarginAmount: "25", // 25%
+        initialMarginAmount: toWei(50, "ether").toString(), // 50%
+        maintenanceMarginAmount: toWei(25, "ether").toString(), // 25%
         lenderRelayFee: toWei(0.001, "ether").toString(),
         traderRelayFee: toWei(0.0013, "ether").toString(),
         maxDurationUnixTimestampSec: "2419200", // 28 days
         expirationUnixTimestampSec: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
         makerRole: "0", // 0=lender, 1=trader
+        withdrawOnLoanOpen: "0",
         salt: ZeroEx.generatePseudoRandomSalt().toString()
       };
       //console.log(OrderParams_bZx_1);
@@ -191,7 +193,8 @@ module.exports = (deployer, network, accounts) => {
           OrderParams_bZx_1["interestTokenAddress"],
           OrderParams_bZx_1["collateralTokenAddress"],
           OrderParams_bZx_1["feeRecipientAddress"],
-          OrderParams_bZx_1["oracleAddress"]
+          OrderParams_bZx_1["oracleAddress"],
+          OrderParams_bZx_1["takerAddress"]
         ],
         [
           new BN(OrderParams_bZx_1["loanTokenAmount"]),
@@ -203,6 +206,7 @@ module.exports = (deployer, network, accounts) => {
           new BN(OrderParams_bZx_1["maxDurationUnixTimestampSec"]),
           new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
           new BN(OrderParams_bZx_1["makerRole"]),
+          new BN(OrderParams_bZx_1["withdrawOnLoanOpen"]),
           new BN(OrderParams_bZx_1["salt"])
         ],
         "0x12a1232124" // oracleData
@@ -222,7 +226,8 @@ module.exports = (deployer, network, accounts) => {
             OrderParams_bZx_1["interestTokenAddress"],
             OrderParams_bZx_1["collateralTokenAddress"],
             OrderParams_bZx_1["feeRecipientAddress"],
-            OrderParams_bZx_1["oracleAddress"]
+            OrderParams_bZx_1["oracleAddress"],
+            OrderParams_bZx_1["takerAddress"]
           ],
           [
             new BN(OrderParams_bZx_1["loanTokenAmount"]),
@@ -234,6 +239,7 @@ module.exports = (deployer, network, accounts) => {
             new BN(OrderParams_bZx_1["maxDurationUnixTimestampSec"]),
             new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
             new BN(OrderParams_bZx_1["makerRole"]),
+            new BN(OrderParams_bZx_1["withdrawOnLoanOpen"]),
             new BN(OrderParams_bZx_1["salt"])
           ],
           "0x12a1232124", // oracleData
@@ -257,7 +263,8 @@ module.exports = (deployer, network, accounts) => {
             OrderParams_bZx_1["interestTokenAddress"],
             OrderParams_bZx_1["collateralTokenAddress"],
             OrderParams_bZx_1["feeRecipientAddress"],
-            OrderParams_bZx_1["oracleAddress"]
+            OrderParams_bZx_1["oracleAddress"],
+            OrderParams_bZx_1["takerAddress"]
           ],
           [
             new BN(OrderParams_bZx_1["loanTokenAmount"]),
@@ -269,6 +276,7 @@ module.exports = (deployer, network, accounts) => {
             new BN(OrderParams_bZx_1["maxDurationUnixTimestampSec"]),
             new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
             new BN(OrderParams_bZx_1["makerRole"]),
+            new BN(OrderParams_bZx_1["withdrawOnLoanOpen"]),
             new BN(OrderParams_bZx_1["salt"])
           ],
           "0x12a1232124", // oracleData

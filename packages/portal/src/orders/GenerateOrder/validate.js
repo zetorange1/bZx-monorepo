@@ -80,7 +80,8 @@ export default async (bZx, accounts, state, tokens, web3) => {
     interestAmount,
     initialMarginAmount,
     maintenanceMarginAmount,
-    feeRecipientAddress
+    feeRecipientAddress,
+    takerAddress
   } = state;
   if (loanTokenAmount === `` || interestAmount === ``) {
     alert(`Please enter a valid token amount.`);
@@ -92,9 +93,14 @@ export default async (bZx, accounts, state, tokens, web3) => {
     return false;
   }
 
+  if (!web3.utils.isAddress(takerAddress)) {
+    alert(`Please enter a valid taker address.`);
+    return false;
+  }
+
   try {
-    validRange(40, 100, initialMarginAmount);
-    validRange(20, 90, maintenanceMarginAmount);
+    validRange(40000000000000000000, 100000000000000000000, initialMarginAmount);
+    validRange(20000000000000000000, 90000000000000000000, maintenanceMarginAmount);
     if (maintenanceMarginAmount > initialMarginAmount) {
       throw Error(`The maintenance margin amount cannot be larger than initial margin amount.`);
     }

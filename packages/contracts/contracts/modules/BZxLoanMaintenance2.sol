@@ -234,7 +234,7 @@ contract BZxLoanMaintenance2 is BZxStorage, BZxProxiable, InternalFunctions {
         returns (bool)
     {
         LoanOrderAux storage loanOrderAux = orderAux[loanOrderHash];
-        require(loanOrderAux.maker == msg.sender, "BZxLoanMaintenance::setLoanOrderDesc: loanOrderAux.maker != msg.sender");
+        require(loanOrderAux.makerAddress == msg.sender, "BZxLoanMaintenance::setLoanOrderDesc: loanOrderAux.makerAddress != msg.sender");
         loanOrderAux.description = desc;
 
         return true;
