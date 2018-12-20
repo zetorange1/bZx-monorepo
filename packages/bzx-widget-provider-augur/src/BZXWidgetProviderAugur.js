@@ -8,6 +8,8 @@ import Web3 from "web3";
 import { parseUrlGetParams, zeroAddress } from "./utils";
 import { EVENT_ASSET_UPDATE, EVENT_INIT_FAILED } from "@bzxnetwork/bzx-widget-common";
 
+BigNumber.config({ EXPONENTIAL_AT: 20 });
+
 export default class BZXWidgetProviderAugur {
   networkId = 4;
   defaultGasAmount = 1000000;
@@ -202,6 +204,36 @@ export default class BZXWidgetProviderAugur {
     return params.id;
   };
 
+  _getAugurMarketShareOutcomeNumber = async (currentMarketId, shareTokenAddress) => {
+    const getMarketsPromise = new Promise((resolve, reject) => {
+      this.augur.markets.getMarketsInfo({ marketIds: [currentMarketId] }, (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      });
+    });
+    const result = await getMarketsPromise;
+
+    const outcomesMap = result[0].outcomes.map(async e => {
+      const shareTokenAddress = await this.augur.api.Market.getShareToken({
+        _outcome: this.augur.utils.convertBigNumberToHexString(new BigNumber(e.id)),
+        tx: { to: currentMarketId }
+      });
+      const shareTokenText = `${e.description} / volume: ${e.volume} / address: ${shareTokenAddress}`;
+
+      return { num: e.id, id: shareTokenAddress, text: shareTokenText };
+    });
+
+    const outcomes = await Promise.all(outcomesMap);
+    const filteredOutcomes = outcomes.filter(e => e.id.toLowerCase() === shareTokenAddress.toLowerCase()).map(e => e.num);
+
+    return (filteredOutcomes.length > 0)
+      ? filteredOutcomes[0]
+      : null;
+  };
+
   _subscribeToUrlChanges = () => {
     let that = this;
 
@@ -295,7 +327,7 @@ export default class BZXWidgetProviderAugur {
       // const orderOracleAddress = this.bZxOracleAddress.toLowerCase();
       const orderOracleData = this._getAugurMarkedId();
       // const orderOracleData = "0x";
-      let conversionRate =
+      const conversionRate =
         value.asset === this.wethAddress
           ? new BigNumber(1)
           : new BigNumber(
@@ -431,7 +463,7 @@ export default class BZXWidgetProviderAugur {
       // const orderOracleAddress = this.bZxOracleAddress.toLowerCase();
       const orderOracleData = this._getAugurMarkedId();
       // const orderOracleData = "0x";
-      let conversionRate =
+      const conversionRate =
         value.asset === this.wethAddress
           ? new BigNumber(1)
           : new BigNumber(
@@ -531,6 +563,10 @@ export default class BZXWidgetProviderAugur {
       return { isValid: false, message: "asset is not selected" };
     }
 
+    if (value.asset.toLowerCase() === this.wethAddress) {
+      return { isValid: false, message: "unable open quick position with ETH" };
+    }
+
     if (!value.pushOnChain) {
       return { isValid: false, message: "pushing to relay is not yet supported" };
     }
@@ -564,19 +600,235 @@ export default class BZXWidgetProviderAugur {
 
   _handleLeverageLong = async (value, resolve, reject) => {
     // Leverage long:
+    // - find order lowest ask (seller's price) at augur
+    // - calculate required ETH amount (using augur orders)
     // - find in bzx ETH lend orders with approved current market
     // - take ETH lend order
-    // - find order lowest ask (seller's price)
     // - buy tokens at augur market using bzx
+
+    const marketId = this._getAugurMarkedId();
+
+    const sellOrders = await this._findAugurLowestAskSellOrders(marketId, value.asset.toLowerCase(), value.qty);
+
+    const ethAmountToBorrow = await this._getEthAmountToBorrow(sellOrders, value.qty);
+    const weiAmountToBorrow =
+      this.web3.utils.toWei(
+        ethAmountToBorrow.toString(),
+        "ether"
+      ).toString();
+    console.log(`weiAmountToBorrow: ${weiAmountToBorrow}`);
+
+    const ethLendOrders = await this._findLendOrdersForCurrentMarket(marketId, this.wethAddress, weiAmountToBorrow);
+    console.log(`ethLendOrders: ${ethLendOrders}`);
+
+    await this._takeLendOrders(ethLendOrders, weiAmountToBorrow);
+    await this._takeAugurOrdersWithBzx(sellOrders, value.asset, value.qty);
+
     resolve();
   };
 
   _handleLeverageShort = async (value, resolve, reject) => {
     // Leverage short:
+    // - find order highest bid (buyer's price) at augur
+    // - calculate required 'market token' amount (using augur orders)
     // - find in bzx 'market token' lend orders with current market
     // - take 'market token' lend order
-    // - find order highest bid (buyer's price)
-    // - buy tokens at augur market using bzx
+    // - sell tokens at augur market using bzx
+
+    const marketId = this._getAugurMarkedId();
+
+    const buyOrders = await this._findAugurHighestBidBuyOrders(marketId, value.asset.toLowerCase(), value.qty);
+    const sharesAmountToBorrow = value.qty;
+    console.log(`sharesAmountToBorrow: ${sharesAmountToBorrow}`);
+    const sharesLendOrders = await this._findLendOrdersForCurrentMarket(marketId, value.asset.toLowerCase(), sharesAmountToBorrow);
+
+    await this._takeLendOrders(sharesLendOrders, sharesAmountToBorrow);
+    await this._takeAugurOrdersWithBzx(buyOrders, value.asset, value.qty);
+
     resolve();
+  };
+
+  _findAugurHighestBidBuyOrders = async(marketId, marketShareTokenAddress, amount) => {
+    const outcomeNumber = await this._getAugurMarketShareOutcomeNumber(marketId, marketShareTokenAddress);
+    const augurOrdersPromise =
+      new Promise((resolve, reject) => {
+        this.augur.trading.getOrders({
+          marketId: marketId,
+          outcome: outcomeNumber,
+          orderType: "buy",
+          orderState: "OPEN",
+          orphaned: false,
+          sortBy: "price",
+          isSortDescending: true
+        }, (error, result) => {
+          console.dir(error);
+          console.dir(result);
+          if (error) {
+            reject(error);
+          } else {
+            resolve(result);
+          }
+        })
+    });
+
+    const singleSideOrderBook = await augurOrdersPromise;
+    const orders = singleSideOrderBook[marketId.toString().toLowerCase()];
+
+    let amountToTake = new BigNumber(amount);
+    const ordersArray = [];
+    for (let num in orders) {
+      const orderKeyValueObject = orders[num]["sell"];
+      for (let id in orderKeyValueObject) {
+        let amountShouldBeTaken = BigNumber.minimum(new BigNumber(orderKeyValueObject[id].amount), amountToTake);
+        if (amountShouldBeTaken.eq(0)) {
+          break;
+        }
+
+        amountToTake = amountToTake.minus(amountShouldBeTaken);
+        ordersArray.push(orderKeyValueObject[id]);
+      }
+    }
+
+    console.dir(ordersArray);
+
+    return ordersArray;
+  };
+
+  _findAugurLowestAskSellOrders = async(marketId, marketShareTokenAddress, amount) => {
+    const outcomeNumber = await this._getAugurMarketShareOutcomeNumber(marketId, marketShareTokenAddress);
+    const augurOrdersPromise =
+      new Promise((resolve, reject) => {
+        this.augur.trading.getOrders({
+          marketId: marketId,
+          outcome: outcomeNumber,
+          orderType: "sell",
+          orderState: "OPEN",
+          orphaned: false,
+          sortBy: "price",
+          isSortDescending: false
+        }, (error, result) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(result);
+          }
+        })
+      });
+
+    const singleSideOrderBook = await augurOrdersPromise;
+    const orders = singleSideOrderBook[marketId.toString().toLowerCase()];
+
+    let amountToTake = new BigNumber(amount);
+    const ordersArray = [];
+    for (let num in orders) {
+      const orderKeyValueObject = orders[num]["sell"];
+      for (let id in orderKeyValueObject) {
+        let amountShouldBeTaken = BigNumber.minimum(new BigNumber(orderKeyValueObject[id].amount), amountToTake);
+        if (amountShouldBeTaken.eq(0)) {
+          break;
+        }
+
+        amountToTake = amountToTake.minus(amountShouldBeTaken);
+        ordersArray.push(orderKeyValueObject[id]);
+      }
+    }
+
+    console.dir(ordersArray);
+
+    return ordersArray;
+  };
+
+  _getEthAmountToBorrow = async (sellOrders, amount) => {
+    let amountToTake = new BigNumber(amount);
+    let amountToBorrow = new BigNumber(0);
+    for (let e of sellOrders) {
+      let amountShouldBeTaken = BigNumber.minimum(new BigNumber(e.amount), amountToTake);
+      if (amountShouldBeTaken.eq(0)) {
+        break;
+      }
+
+      amountToTake = amountToTake.minus(amountShouldBeTaken);
+      amountToBorrow = amountToBorrow.plus(amountShouldBeTaken.multipliedBy(new BigNumber(e.price)));
+    }
+
+    return amountToBorrow;
+  };
+
+  _findLendOrdersForCurrentMarket = async (market, tokenAddress, amount) => {
+    let fullLendOrdersList = [];
+    const pageSize = 100;
+    let readCount = 0;
+
+    let pageContent;
+    do {
+      pageContent = await this.bzxjs.getOrdersFillable({ start: readCount, count: pageSize });
+      fullLendOrdersList.push(
+        ...pageContent
+        .filter(e =>
+          e.oracleAddress.toLowerCase() === this.bzxAugurOracleAddress.toLowerCase()
+          // enabled market filter
+          // check expiration date. order should be valid for next `default duration days` - for. ex. 3
+          && e.loanTokenAddress.toLowerCase() === tokenAddress.toLowerCase()
+          // && e.lender.toLowerCase() !== this.account.toLowerCase()
+        )
+      );
+
+      readCount += pageContent.length;
+    } while(pageContent.length >= pageSize);
+    fullLendOrdersList = fullLendOrdersList.sort(
+      (a, b) => {
+        const criteriaAmount = ((a.interestAmount/a.loanTokenAmount) - (b.interestAmount/b.loanTokenAmount));
+        if (criteriaAmount !== 0)
+          return criteriaAmount;
+
+        return b.loanTokenAmount - a.loanTokenAmount;
+      }
+    );
+    console.dir(fullLendOrdersList);
+
+
+    return fullLendOrdersList;
+  };
+
+  _takeLendOrders = async (orders, amount) => {
+    let amountToTake = new BigNumber(amount);
+    for (let e of orders) {
+      let amountShouldBeTaken = BigNumber.minimum(new BigNumber(e.loanTokenAmount), amountToTake);
+      if (amountShouldBeTaken.eq(0)) {
+        break;
+      }
+
+      console.log(`Taking order ${e.loanOrderHash}, ${amountShouldBeTaken}`);
+      let transactionReceipt = await this.bzxjs.takeLoanOrderAsTrader({
+        order: e,
+        collateralTokenAddress: this.wethAddress.address,
+        loanTokenAmountFilled: amountShouldBeTaken,
+        getObject: false,
+        txOpts: { from: this.account, gasLimit: utils.gasLimit }
+      });
+      console.log(transactionReceipt);
+
+      amountToTake = amountToTake.minus(amountShouldBeTaken);
+    }
+  };
+
+  _takeAugurOrdersWithBzx = async (orders, tokenAddress, amount) => {
+    let amountToTake = new BigNumber(amount);
+    for (let e of orders) {
+      let amountShouldBeTaken = BigNumber.minimum(new BigNumber(e.amount), amountToTake);
+      if (amountShouldBeTaken.eq(0)) {
+        break;
+      }
+
+      console.log(`Taking augur order with bzx ${e.orderId}, ${amountShouldBeTaken}`);
+      await this.bzxjs.tradePositionWithOracle({
+        orderHash: e.orderId.toLowerCase(),
+        tradeTokenAddress: tokenAddress.toLowerCase(),
+        getObject: false,
+        txOpts: { from: this.account, gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
+      });
+
+      amountToTake = amountToTake.minus(amountShouldBeTaken);
+    }
   };
 }
