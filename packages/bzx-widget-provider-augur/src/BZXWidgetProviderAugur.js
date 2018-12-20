@@ -356,7 +356,12 @@ export default class BZXWidgetProviderAugur {
       console.dir(lendOrder);
 
       console.log("signing lend order");
-      const lendOrderHash = BZxJS.getLoanOrderHashHex(lendOrder);
+      const lendOrderHash = BZxJS.getLoanOrderHashHex({
+        ...lendOrder,
+        oracleData: orderOracleData.toLowerCase()
+      });
+      console.log(`lendOrderHash: ${lendOrderHash}`);
+
       const lendOrderSignature = await this.bzxjs.signOrderHashAsync(lendOrderHash, lenderAddress, true);
       console.log(lendOrderSignature);
       const signedLendOrder = { ...lendOrder, signature: lendOrderSignature };
@@ -486,7 +491,12 @@ export default class BZXWidgetProviderAugur {
       console.dir(borrowOrder);
 
       console.log("signing borrow order");
-      const borrowOrderHash = BZxJS.getLoanOrderHashHex(borrowOrder);
+      const borrowOrderHash = BZxJS.getLoanOrderHashHex({
+        ...borrowOrder,
+        oracleData: orderOracleData.toLowerCase()
+      });
+      console.log(`borrowOrderHash: ${borrowOrderHash}`);
+
       const borrowOrderSignature = await this.bzxjs.signOrderHashAsync(borrowOrderHash, borrowerAddress, true);
       console.log(borrowOrderSignature);
       const signedBorrowOrder = { ...borrowOrder, signature: borrowOrderSignature };
