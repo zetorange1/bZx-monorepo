@@ -351,7 +351,7 @@ export default class BZXWidgetProviderAugur {
         maxDurationUnixTimestampSec: (value.duration * 86400).toString(),
         expirationUnixTimestampSec: moment().add(7, "day").unix().toString(), // 7 days
         makerRole: "0", // 0=LENDER, 1=TRADER
-        salt: BZxJS.generatePseudoRandomSalt().toString()
+        salt: BZxJS.generatePseudoRandomSalt()
       };
       console.dir(lendOrder);
 
@@ -486,7 +486,7 @@ export default class BZXWidgetProviderAugur {
         maxDurationUnixTimestampSec: (value.duration * 86400).toString(),
         expirationUnixTimestampSec: moment().add(7, "day").unix().toString(), // 7 days
         makerRole: "1", // 0=LENDER, 1=TRADER
-        salt: BZxJS.generatePseudoRandomSalt().toString()
+        salt: BZxJS.generatePseudoRandomSalt()
       };
       console.dir(borrowOrder);
 
