@@ -270,8 +270,6 @@ export default class BZXWidgetProviderAugur {
   _handleLendOrderApprove = async (value, resolve, reject) => {
     // The user creates bzx order to lend current market tokens he already owns.
 
-    console.dir(value);
-
     try {
 
       let validationResult = this._preValidateLendOrderApprove(value);
@@ -281,6 +279,7 @@ export default class BZXWidgetProviderAugur {
       }
 
       const lenderAddress = this.account.toLowerCase();
+      console.log(`lenderAddress: ${lenderAddress}`);
 
       let transactionReceipt;
 
@@ -363,9 +362,9 @@ export default class BZXWidgetProviderAugur {
       console.log(`lendOrderHash: ${lendOrderHash}`);
 
       const lendOrderSignature = await this.bzxjs.signOrderHashAsync(lendOrderHash, lenderAddress, true);
-      console.log(lendOrderSignature);
+      console.log(`lendOrderSignature: ${lendOrderSignature}`);
+
       const signedLendOrder = { ...lendOrder, signature: lendOrderSignature };
-      console.dir(signedLendOrder);
 
       if (value.pushOnChain) {
         console.log("pushing order on-chain");
@@ -416,6 +415,7 @@ export default class BZXWidgetProviderAugur {
       }
 
       const borrowerAddress = this.account.toLowerCase();
+      console.log(`borrowerAddress: ${borrowerAddress}`);
 
       let transactionReceipt;
 
@@ -498,9 +498,9 @@ export default class BZXWidgetProviderAugur {
       console.log(`borrowOrderHash: ${borrowOrderHash}`);
 
       const borrowOrderSignature = await this.bzxjs.signOrderHashAsync(borrowOrderHash, borrowerAddress, true);
-      console.log(borrowOrderSignature);
+      console.log(`borrowOrderSignature: ${borrowOrderSignature}`);
+
       const signedBorrowOrder = { ...borrowOrder, signature: borrowOrderSignature };
-      console.dir(signedBorrowOrder);
 
       if (value.pushOnChain) {
         console.log("pushing order on-chain");
