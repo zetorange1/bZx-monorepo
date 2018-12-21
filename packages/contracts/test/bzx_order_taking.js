@@ -25,6 +25,8 @@ const utils = require("./utils/utils.js");
 
 const MAX_UINT = (new BN(2)).pow(new BN(256)).sub(new BN(1));
 
+const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 const SignatureType = Object.freeze({
     Illegal: 0,
     Invalid: 1,
@@ -166,6 +168,8 @@ contract("BZxTest: order taking", function(accounts) {
                 "0x00", // oracleData
                 collateralToken1.address,
                 loanTokenFilled,
+                NULL_ADDRESS,
+                false,
                 signature,
                 {from: trader1}
             );
@@ -269,6 +273,8 @@ contract("BZxTest: order taking", function(accounts) {
                 orderHash,
                 collateralToken1.address,
                 loanTokenFilled,
+                NULL_ADDRESS,
+                false,
                 {from: trader2}
             );
         });
@@ -382,6 +388,8 @@ contract("BZxTest: order taking", function(accounts) {
                 orderHash,
                 collateralToken1.address,
                 loanTokenFilled,
+                NULL_ADDRESS,
+                false,
                 {from: trader2}
             );
         });
@@ -466,7 +474,7 @@ contract("BZxTest: order taking", function(accounts) {
     }
 
     let ordersForUser = async (user) => {
-        return decodeOrders(await bZx.getOrdersForUser.call(user, 0, 10));
+        return decodeOrders(await bZx.getOrdersForUser.call(user, 0, 10, NULL_ADDRESS));
     }
 
     let countOrdersForUser = async (user) => {
@@ -480,7 +488,7 @@ contract("BZxTest: order taking", function(accounts) {
         }
 
         data = data.substr(2); // remove 0x from front
-        const itemCount = 22;
+        const itemCount = 23;
         const objCount = data.length / 64 / itemCount;
 
         assert.isTrue(objCount % 1 == 0);
@@ -518,7 +526,8 @@ contract("BZxTest: order taking", function(accounts) {
                 orderTraderCount: parseInt("0x" + params[18]),
                 addedUnixTimestampSec: parseInt("0x" + params[19]),
                 takerAddress: "0x" + params[20].substr(24),
-                withdrawOnLoanOpen: parseInt("0x" + params[21]) ? true : false
+                tradeTokenToFillAddress: "0x" + params[21].substr(24),
+                withdrawOnOpen: parseInt("0x" + params[22]) ? true : false
             });
         }
 
@@ -539,7 +548,9 @@ contract("BZxTest: order taking", function(accounts) {
             order["interestTokenAddress"],
             order["collateralTokenAddress"],
             order["feeRecipientAddress"],
-            order["oracleAddress"]
+            order["oracleAddress"],
+            order["takerAddress"],
+            order["tradeTokenToFillAddress"]
         ]
     }
 
@@ -554,6 +565,7 @@ contract("BZxTest: order taking", function(accounts) {
             new BN(order["maxDurationUnixTimestampSec"]),
             new BN(order["expirationUnixTimestampSec"]),
             new BN(order["makerRole"]),
+            new BN(order["withdrawOnOpen"]),
             new BN(order["salt"])
         ]
     }
@@ -578,7 +590,10 @@ contract("BZxTest: order taking", function(accounts) {
             maxDurationUnixTimestampSec: "2419200", // 28 days
             expirationUnixTimestampSec: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
             makerRole: "1", // 0=lender, 1=trader
-            salt: generatePseudoRandomSalt().toString()
+            salt: generatePseudoRandomSalt().toString(),
+            takerAddress: NULL_ADDRESS,
+	        tradeTokenToFillAddress: NULL_ADDRESS,
+            withdrawOnOpen: "0"
         }
 
         return lenderOrder;
@@ -602,7 +617,10 @@ contract("BZxTest: order taking", function(accounts) {
             maxDurationUnixTimestampSec: "2419200", // 28 days
             expirationUnixTimestampSec: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
             makerRole: "0", // 0=lender, 1=trader
-            salt: generatePseudoRandomSalt().toString()
+            salt: generatePseudoRandomSalt().toString(),
+            takerAddress: NULL_ADDRESS,
+		    tradeTokenToFillAddress: NULL_ADDRESS,
+            withdrawOnOpen: "0"
         }
 
         return traderOrder;

@@ -3,10 +3,10 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../openzeppelin-solidity/SafeMath.sol";
 
 import "../storage/BZxStorage.sol";
 import "./InternalFunctions.sol";
@@ -16,8 +16,8 @@ contract InterestFunctions is BZxStorage, InternalFunctions {
     using SafeMath for uint256;
 
     function _setInterestPaidForPosition(
-        LoanOrder loanOrder,
-        LoanPosition loanPosition)
+        LoanOrder memory loanOrder,
+        LoanPosition memory loanPosition)
         internal
         returns (uint amountPaid, uint interestTotalAccrued)
     {
@@ -36,7 +36,7 @@ contract InterestFunctions is BZxStorage, InternalFunctions {
     }
 
     function _sendInterest(
-        LoanOrder loanOrder,
+        LoanOrder memory loanOrder,
         uint amountPaid,
         bool convert)
         internal
@@ -66,8 +66,8 @@ contract InterestFunctions is BZxStorage, InternalFunctions {
     }
 
     function _payInterestForPosition(
-        LoanOrder loanOrder,
-        LoanPosition loanPosition,
+        LoanOrder memory loanOrder,
+        LoanPosition memory loanPosition,
         bool convert,
         bool emitEvent)
         internal

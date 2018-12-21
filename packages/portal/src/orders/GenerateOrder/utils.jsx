@@ -27,6 +27,8 @@ export const compileObject = async (web3, state, account, bZx, tokens) => {
     
     withdrawOnOpen: (state.role === `trader` && state.withdrawOnOpen ? 1 : 0).toString(),
 
+    tradeTokenToFillAddress: state.tradeTokenToFillAddress,
+
     // addresses
     loanTokenAddress: state.loanTokenAddress,
     interestTokenAddress: state.interestTokenAddress,

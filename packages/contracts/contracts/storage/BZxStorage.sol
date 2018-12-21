@@ -3,10 +3,10 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
-import "openzeppelin-solidity/contracts/ReentrancyGuard.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../openzeppelin-solidity/ReentrancyGuard.sol";
+import "../openzeppelin-solidity/Ownable.sol";
 import "../modifiers/GasTracker.sol";
 
 import "./BZxObjects.sol";
@@ -19,7 +19,7 @@ contract BZxStorage is BZxObjects, BZxEvents, ReentrancyGuard, Ownable, GasTrack
 
 /* solhint-disable var-name-mixedcase */
     address public bZRxTokenContract;
-    address public vaultContract;
+    address payable public vaultContract;
     address public oracleRegistryContract;
     address public bZxTo0xContract;
     address public bZxTo0xV2Contract;

@@ -3,10 +3,10 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "openzeppelin-solidity/contracts/math/Math.sol";
+import "../openzeppelin-solidity/Math.sol";
 
 import "../proxy/BZxProxiable.sol";
 import "../shared/InternalFunctions.sol";
@@ -15,13 +15,13 @@ import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 
 
-contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
+contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, InternalFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
 
-    function()  
-        public
+    function()
+        external
     {
         revert("fallback not allowed");
     }
@@ -450,18 +450,18 @@ contract BZxLoanMaintenance is BZxStorage, BZxProxiable, InternalFunctions {
     * Constant Internal functions
     */
     function _getPositionOffset(
-        LoanOrder loanOrder,
-        LoanPosition loanPosition)
+        LoanOrder memory loanOrder,
+        LoanPosition memory loanPosition)
         internal
         view
         returns (bool isPositive, uint offsetAmount, address positionTokenAddress)
     {
         if (loanOrder.loanTokenAddress == address(0)) {
-            return;
+            return (false,0,address(0));
         }
 
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return;
+            return (false,0,address(0));
         }
 
         (isPositive, offsetAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getPositionOffset(loanOrder, loanPosition);

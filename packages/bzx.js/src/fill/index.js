@@ -1,5 +1,6 @@
 import * as Signature from "../signature";
 import * as CoreUtils from "../core/utils";
+import * as Constants from "../core/constants";
 import { getContracts } from "../contracts";
 import * as Addresses from "../addresses";
 
@@ -30,7 +31,8 @@ export const takeLoanOrderAsLender = (
     order.collateralTokenAddress,
     order.feeRecipientAddress,
     order.oracleAddress,
-    order.takerAddress
+    order.takerAddress,
+    order.tradeTokenToFillAddress
   ];
 
   const orderValues = [
@@ -62,11 +64,10 @@ export const takeLoanOrderAsLender = (
 
 export const takeLoanOrderAsTrader = (
   { web3, networkId },
-  { order, oracleData, collateralTokenAddress, loanTokenAmountFilled, getObject, txOpts },
-  withdraw
+  { order, oracleData, collateralTokenAddress, loanTokenAmountFilled, tradeTokenToFillAddress, withdrawOnOpen, getObject, txOpts }
 ) => {
   checkForValidSignature(order);
-  console.log(order, oracleData, collateralTokenAddress, loanTokenAmountFilled, getObject, txOpts);
+  console.log(order, oracleData, collateralTokenAddress, loanTokenAmountFilled, tradeTokenToFillAddress, withdrawOnOpen, getObject, txOpts);
   const bZxContract = CoreUtils.getContractInstance(
     web3,
     getContracts(networkId).BZx.abi,
@@ -80,7 +81,8 @@ export const takeLoanOrderAsTrader = (
     order.collateralTokenAddress,
     order.feeRecipientAddress,
     order.oracleAddress,
-    order.takerAddress
+    order.takerAddress,
+    order.tradeTokenToFillAddress
   ];
 
   const orderValues = [
@@ -97,26 +99,16 @@ export const takeLoanOrderAsTrader = (
     order.salt
   ];
 
-  let txObj;
-  if (withdraw) {
-    txObj = bZxContract.methods.takeLoanOrderAsTraderAndWithdraw(
-      orderAddresses,
-      orderValues,
-      oracleData || "0x",
-      collateralTokenAddress,
-      web3.utils.toBN(loanTokenAmountFilled).toString(10),
-      order.signature
-    );
-  } else {
-    txObj = bZxContract.methods.takeLoanOrderAsTrader(
-      orderAddresses,
-      orderValues,
-      oracleData || "0x",
-      collateralTokenAddress,
-      web3.utils.toBN(loanTokenAmountFilled).toString(10),
-      order.signature
-    );
-  }
+  let txObj = bZxContract.methods.takeLoanOrderAsTrader(
+     orderAddresses,
+     orderValues,
+     oracleData || "0x",
+     collateralTokenAddress,
+     web3.utils.toBN(loanTokenAmountFilled).toString(10),
+     tradeTokenToFillAddress || Constants.NULL_ADDRESS,
+     withdrawOnOpen || false,
+     order.signature
+  );
 
   if (getObject) {
     return txObj;
@@ -143,7 +135,8 @@ export const pushLoanOrderOnChain = (
     order.collateralTokenAddress,
     order.feeRecipientAddress,
     order.oracleAddress,
-    order.takerAddress
+    order.takerAddress,
+    order.tradeTokenToFillAddress
   ];
 
   const orderValues = [
@@ -179,10 +172,11 @@ export const takeLoanOrderOnChainAsTrader = (
     loanOrderHash,
     collateralTokenAddress,
     loanTokenAmountFilled,
+    tradeTokenToFillAddress,
+    withdrawOnOpen,
     getObject,
     txOpts
-  },
-  withdraw
+  }
 ) => {
   const bZxContract = CoreUtils.getContractInstance(
     web3,
@@ -190,20 +184,13 @@ export const takeLoanOrderOnChainAsTrader = (
     Addresses.getAddresses(networkId).BZx
   );
 
-  let txObj;
-  if (withdraw) {
-    txObj = bZxContract.methods.takeLoanOrderOnChainAsTraderAndWithdraw(
-      loanOrderHash,
-      collateralTokenAddress,
-      web3.utils.toBN(loanTokenAmountFilled).toString(10)
-    );
-  } else {
-    txObj = bZxContract.methods.takeLoanOrderOnChainAsTrader(
-      loanOrderHash,
-      collateralTokenAddress,
-      web3.utils.toBN(loanTokenAmountFilled).toString(10)
-    );
-  }
+  let txObj = bZxContract.methods.takeLoanOrderOnChainAsTrader(
+    loanOrderHash,
+    collateralTokenAddress,
+    web3.utils.toBN(loanTokenAmountFilled).toString(10),
+    tradeTokenToFillAddress || Constants.NULL_ADDRESS,
+    withdrawOnOpen || false
+  );
 
   if (getObject) {
     return txObj;
@@ -248,7 +235,8 @@ export const cancelLoanOrder = (
     order.collateralTokenAddress,
     order.feeRecipientAddress,
     order.oracleAddress,
-    order.takerAddress
+    order.takerAddress,
+    order.tradeTokenToFillAddress
   ];
 
   const orderValues = [

@@ -3,10 +3,10 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../openzeppelin-solidity/SafeMath.sol";
 
 import "../storage/BZxStorage.sol";
 import "../BZxVault.sol";
@@ -40,7 +40,7 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
     function _isValidSignature(
         address signer,
         bytes32 hash,
-        bytes signature)
+        bytes memory signature)
         internal
         view
         returns (bool)
@@ -85,7 +85,7 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
     /// @param signature ECDSA signature in raw bytes (rsv).
     /// @dev This supports 0x V2 SignatureType
     function _getSignatureParts(
-        bytes signature)
+        bytes memory signature)
         internal
         pure
         returns (
@@ -113,9 +113,9 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
     }
 
     function _getLoanOrderHash(
-        address[8] orderAddresses,
-        uint[11] orderValues,
-        bytes oracleData)
+        address[8] memory orderAddresses,
+        uint[11] memory orderValues,
+        bytes memory oracleData)
         internal
         view
         returns (bytes32)
@@ -129,10 +129,10 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
     }
 
     function _addLoanOrder(
-        address[8] orderAddresses,
-        uint[11] orderValues,
-        bytes oracleData,
-        bytes signature)
+        address[8] memory orderAddresses,
+        uint[11] memory orderValues,
+        bytes memory oracleData,
+        bytes memory signature)
         internal
         returns (bytes32 loanOrderHash)
     {
@@ -152,13 +152,13 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
             });
 
             bool withdrawOnOpen = orderValues[8] == 1 ? (orderValues[9] % 2) != 0 : false;
-            address tradeTokenToFill = orderValues[8] == 1 && !withdrawOnOpen ? orderAddresses[7] : address(0);
+            address tradeTokenToFillAddress = orderValues[8] == 1 && !withdrawOnOpen ? orderAddresses[7] : address(0);
 
             LoanOrderAux memory loanOrderAux = LoanOrderAux({
                 makerAddress: orderAddresses[0],
                 takerAddress: orderAddresses[6],
                 feeRecipientAddress: orderAddresses[4],
-                tradeTokenToFill: tradeTokenToFill,
+                tradeTokenToFillAddress: tradeTokenToFillAddress,
                 lenderRelayFee: orderValues[4],
                 traderRelayFee: orderValues[5],
                 makerRole: orderValues[8], // (0=lender, 1=trader)
@@ -204,9 +204,9 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
     }
 
     function _verifyNewLoanOrder(
-        LoanOrder loanOrder,
-        LoanOrderAux loanOrderAux,
-        bytes signature)
+        LoanOrder memory loanOrder,
+        LoanOrderAux memory loanOrderAux,
+        bytes memory signature)
         internal
         view
         returns (bool)
@@ -217,8 +217,8 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
             revert("BZxOrderTaking::_verifyNewLoanOrder: loanOrderAux.loanTokenAddress == address(0) || loanOrder.loanTokenAddress == address(0)");
         }
 
-        if (loanOrderAux.tradeTokenToFill == loanOrder.loanTokenAddress) {
-            revert("BZxOrderTaking::_verifyNewLoanOrder: loanOrderAux.tradeTokenToFill == loanOrder.loanTokenAddress");
+        if (loanOrderAux.tradeTokenToFillAddress == loanOrder.loanTokenAddress) {
+            revert("BZxOrderTaking::_verifyNewLoanOrder: loanOrderAux.tradeTokenToFillAddress == loanOrder.loanTokenAddress");
         }
 
         if (loanOrderAux.expirationUnixTimestampSec > 0 && block.timestamp >= loanOrderAux.expirationUnixTimestampSec) {
@@ -249,8 +249,8 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
     }
 
     function _verifyExistingLoanOrder(
-        LoanOrder loanOrder,
-        LoanOrderAux loanOrderAux,
+        LoanOrder memory loanOrder,
+        LoanOrderAux memory loanOrderAux,
         address collateralTokenFilled,
         uint loanTokenAmountFilled)
         internal
@@ -579,7 +579,7 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
 
     function _fillTradeToken(
         LoanOrder memory loanOrder,
-        address tradeTokenToFill)
+        address tradeTokenToFillAddress)
         internal
         returns (uint)
     {
@@ -588,7 +588,7 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
         (uint tradeTokenAmount, uint positionTokenAmountUsed) = _tradePositionWithOracle(
             loanOrder,
             loanPosition,
-            tradeTokenToFill,
+            tradeTokenToFillAddress,
             MAX_UINT,
             false, // isLiquidation
             true // isManual
@@ -601,12 +601,12 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
                 loanPosition.trader,
                 loanPosition.positionTokenAmountFilled.sub(positionTokenAmountUsed)
             )) {
-                revert("BZxTradePlacing::tradePositionWithOracle: BZxVault.withdrawToken untradeable token failed");
+                revert("OrderTakingFunctions::_fillTradeToken: BZxVault.withdrawToken untradeable token failed");
             }
         }
 
         if (tradeTokenAmount == 0) {
-            revert("BZxTradePlacing::tradePositionWithOracle: tradeTokenAmount == 0");
+            revert("OrderTakingFunctions::_fillTradeToken: tradeTokenAmount == 0");
         }
 
         // trade can't trigger liquidation
@@ -614,36 +614,18 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
                 loanOrder.loanOrderHash,
                 loanPosition.trader,
                 loanOrder.loanTokenAddress,
-                tradeTokenToFill,
+                tradeTokenToFillAddress,
                 loanPosition.collateralTokenAddressFilled,
                 loanPosition.loanTokenAmountFilled,
                 tradeTokenAmount,
                 loanPosition.collateralTokenAmountFilled,
                 loanOrder.maintenanceMarginAmount)) {
-            revert("BZxTradePlacing::tradePositionWithOracle: trade triggers liquidation");
+            revert("OrderTakingFunctions::_fillTradeToken: trade triggers liquidation");
         }
-
-        emit LogPositionTraded(
-            loanOrder.loanOrderHash,
-            loanPosition.trader,
-            loanPosition.positionTokenAddressFilled,
-            tradeTokenToFill,
-            loanPosition.positionTokenAmountFilled,
-            tradeTokenAmount,
-            loanPosition.positionId
-        );
 
         // the trade token becomes the new position token
-        loanPosition.positionTokenAddressFilled = tradeTokenToFill;
+        loanPosition.positionTokenAddressFilled = tradeTokenToFillAddress;
         loanPosition.positionTokenAmountFilled = tradeTokenAmount;
-
-        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
-            loanOrder,
-            loanPosition,
-            0
-        )) {
-            revert("BZxTradePlacing::tradePositionWithOracle: OracleInterface.didTradePosition");
-        }
 
         return tradeTokenAmount;
     }

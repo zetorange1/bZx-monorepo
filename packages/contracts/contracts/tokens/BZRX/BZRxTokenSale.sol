@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../../openzeppelin-solidity/Ownable.sol";
 
 import "./BZRxToken.sol";
 import "../../shared/WETHInterface.sol";
@@ -72,8 +72,8 @@ contract BZRxTokenSale is Ownable {
         ethRaised = _previousAmountRaised;
     }
 
-    function()  
-        public
+    function()
+        external
         payable 
     {
         if (msg.sender != wethContractAddress && msg.sender != owner)
@@ -141,7 +141,7 @@ contract BZRxTokenSale is Ownable {
 
             require(StandardToken(wethContractAddress).transferFrom(
                 _from,
-                this,
+                address(this),
                 wethValue
             ), "weth transfer failed");
 
@@ -230,7 +230,7 @@ contract BZRxTokenSale is Ownable {
         onlyOwner 
         returns (bool)
     {
-        uint balance = StandardToken(wethContractAddress).balanceOf.gas(4999)(this);
+        uint balance = StandardToken(wethContractAddress).balanceOf.gas(4999)(address(this));
         if (balance == 0)
             return false;
 
@@ -239,7 +239,7 @@ contract BZRxTokenSale is Ownable {
     }
 
     function transferEther(
-        address _to,
+        address payable _to,
         uint _value)
         public
         onlyOwner
@@ -261,7 +261,7 @@ contract BZRxTokenSale is Ownable {
         onlyOwner
         returns (bool)
     {
-        uint balance = StandardToken(_tokenAddress).balanceOf.gas(4999)(this);
+        uint balance = StandardToken(_tokenAddress).balanceOf.gas(4999)(address(this));
         if (_value > balance) {
             return StandardToken(_tokenAddress).transfer(
                 _to,
@@ -287,8 +287,8 @@ contract BZRxTokenSale is Ownable {
     }
 
     function setWhitelist(
-        address[] _users,
-        uint[] _values) 
+        address[] memory _users,
+        uint[] memory _values) 
         public 
         onlyOwner 
         returns (bool)

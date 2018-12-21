@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../../openzeppelin-solidity/Ownable.sol";
 import "../EIP20Wrapper.sol";
 
 
@@ -17,7 +17,7 @@ contract TestNetFaucet is EIP20Wrapper, Ownable {
 
     mapping (address => mapping (address => uint)) public faucetUsers; // mapping of users to mapping of tokens to last request times
 
-    function() public payable {}
+    function() external payable {}
 
     // Function fully trusts BZxOracle and expects oracle has already deposited a token for exchange
     function oracleExchange(
@@ -58,7 +58,7 @@ contract TestNetFaucet is EIP20Wrapper, Ownable {
     }
 
     function withdrawEther(
-        address to,
+        address payable to,
         uint value)
         public
         onlyOwner
@@ -107,7 +107,7 @@ contract TestNetFaucet is EIP20Wrapper, Ownable {
         eip20TransferFrom(
             token,
             from,
-            this,
+            address(this),
             tokenAmount);
 
         return true;

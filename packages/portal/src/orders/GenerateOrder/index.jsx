@@ -99,6 +99,7 @@ export default class GenerateOrder extends React.Component {
 
     pushOnChain: false,
     withdrawOnOpen: false,
+    tradeTokenToFillAddress: `0x0000000000000000000000000000000000000000`,
 
     orderHash: `0x_temp_order_hash`,
     finalOrder: null

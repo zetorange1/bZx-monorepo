@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 pragma experimental ABIEncoderV2;
 
 
@@ -76,7 +76,7 @@ contract ExchangeV2Interface {
     function isValidSignature(
         bytes32 hash,
         address signerAddress,
-        bytes signature)
+        bytes calldata signature)
         external
         view
         returns (bool isValid);

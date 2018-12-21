@@ -52,11 +52,11 @@ export const getOrdersForUser = async (
 
   const data = await bZxContract.methods
     .getOrdersForUser(
-		loanPartyAddress,
-		web3.utils.toBN(start).toString(10),
-		web3.utils.toBN(count).toString(10),
-	  web3.utils.isAddress(oracleFilter) ? oracleFilter : NULL_ADDRESS
-	).call();
+        loanPartyAddress,
+        web3.utils.toBN(start).toString(10),
+        web3.utils.toBN(count).toString(10),
+        web3.utils.isAddress(oracleFilter) ? oracleFilter : NULL_ADDRESS
+    ).call();
 
   return OrderUtils.cleanData(data);
 };

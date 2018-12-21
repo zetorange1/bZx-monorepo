@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
 import "./MultiSigWallet.sol";
 
@@ -51,7 +51,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     /// @param _owners List of initial owners.
     /// @param _required Number of required confirmations.
     /// @param _secondsTimeLockedDefault Default duration needed after a transaction is confirmed and before it becomes executable, in seconds.
-    constructor(address[] _owners, uint _required, uint _secondsTimeLockedDefault)
+    constructor(address[] memory _owners, uint _required, uint _secondsTimeLockedDefault)
         public
         MultiSigWallet(_owners, _required)
     {
@@ -115,7 +115,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     /// @dev Changes the custom duration of the time lock for transactions to a specific function.
     /// @param _funcId example: "functionName(address[8],uint256[11],bytes,address,uint256,bytes)"
     /// @param _secondsTimeLockedCustom Custom duration needed after a transaction is confirmed and before it becomes executable, in seconds.
-    function changeCustomTimeLock(string _funcId, uint _secondsTimeLockedCustom)
+    function changeCustomTimeLock(string memory _funcId, uint _secondsTimeLockedCustom)
         public
         onlyWallet
     {
@@ -130,7 +130,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
 
     /// @dev Removes the custom duration of the time lock for transactions to a specific function.
     /// @param _funcId example: "functionName(address[8],uint256[11],bytes,address,uint256,bytes)"
-    function removeCustomTimeLock(string _funcId)
+    function removeCustomTimeLock(string memory _funcId)
         public
         onlyWallet
     {
@@ -218,7 +218,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     /// @dev Returns the custom timelock for a function, or the default timelock if a custom value isn't set
     /// @param _funcId Function signature (complete string)
     /// @return Timelock value
-    function getSecondsTimeLockedByString(string _funcId)
+    function getSecondsTimeLockedByString(string memory _funcId)
         public
         view
         returns (uint)

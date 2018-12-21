@@ -3,10 +3,10 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../openzeppelin-solidity/SafeMath.sol";
 import "../storage/BZxStorage.sol";
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
@@ -159,17 +159,18 @@ contract InternalFunctions is BZxStorage {
     }
 
     function _getInterestData(
-        LoanOrder loanOrder,
-        LoanPosition loanPosition)
+        LoanOrder memory loanOrder,
+        LoanPosition memory loanPosition)
         internal
         view
-        returns (InterestData interestData)
+        returns (InterestData memory interestData)
     {
         uint interestTotalAccrued = 0;
         uint interestPaidSoFar = 0;
+        uint interestLastPaidDate = 0;
         if (loanOrder.interestAmount > 0) {
             uint interestTime = block.timestamp;
-            uint interestLastPaidDate = interestPaidDate[loanPosition.positionId];
+            interestLastPaidDate = interestPaidDate[loanPosition.positionId];
             if (interestTime > loanPosition.loanEndUnixTimestampSec) {
                 interestTime = loanPosition.loanEndUnixTimestampSec;
             }
@@ -203,7 +204,7 @@ contract InternalFunctions is BZxStorage {
     }
 
     function _tradePositionWithOracle(
-        LoanOrder loanOrder,
+        LoanOrder memory loanOrder,
         LoanPosition memory loanPosition,
         address destTokenAddress,
         uint maxDestTokenAmount,
@@ -243,8 +244,8 @@ contract InternalFunctions is BZxStorage {
     }
 
     function _emitMarginLog(
-        LoanOrder loanOrder,
-        LoanPosition loanPosition)
+        LoanOrder memory loanOrder,
+        LoanPosition memory loanPosition)
         internal
     {
         uint initialMarginAmount;
@@ -268,8 +269,8 @@ contract InternalFunctions is BZxStorage {
     // returns initialMarginAmount, maintenanceMarginAmount, currentMarginAmount
     // currentMarginAmount is a percentage -> i.e. 54350000000000000000 == 54.35%
     function _getMarginLevels(
-        LoanOrder loanOrder,
-        LoanPosition loanPosition)
+        LoanOrder memory loanOrder,
+        LoanPosition memory loanPosition)
         internal
         view
         returns (uint, uint, uint)

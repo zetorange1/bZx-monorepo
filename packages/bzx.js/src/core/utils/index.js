@@ -65,7 +65,8 @@ const getLoanOrderHashArgs = (order, shouldFormatAsStrings) => {
     order.collateralTokenAddress,
     order.feeRecipientAddress,
     order.oracleAddress,
-    order.takerAddress
+    order.takerAddress,
+    order.tradeTokenToFillAddress
   ];
   const orderValues = getOrderValues(order, shouldFormatAsStrings);
   const oracleData = order.oracleData || "0x";

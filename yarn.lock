@@ -1221,6 +1221,30 @@
     lodash "^4.17.10"
     to-fast-properties "^2.0.0"
 
+"@bzxnetwork/bzx.js@^0.3.6":
+  version "0.3.7"
+  resolved "https://registry.yarnpkg.com/@bzxnetwork/bzx.js/-/bzx.js-0.3.7.tgz#8625101635f919a05bc11ce72bb42f1a5e51d2fc"
+  dependencies:
+    "@0xproject/assert" "0.2.14"
+    "@0xproject/json-schemas" "0.8.3"
+    "@0xproject/order-utils" "0.0.9"
+    "@0xproject/utils" "0.3.4"
+    "@types/web3" "^1.0.6"
+    bignumber.js "^7.0.1"
+    bn.js "4.11.6"
+    debug "^3.1.0"
+    eth-sig-util "^1.4.2"
+    ethereumjs-abi "^0.6.5"
+    ethereumjs-util "^5.1.4"
+    fs-extra "^5.0.0"
+    hoek "^5.0.3"
+    jsonschema "^1.2.2"
+    lodash "^4.17.4"
+    moment "^2.22.1"
+    ramda "^0.25.0"
+    web3 "1.0.0-beta.36"
+    web3-utils "1.0.0-beta.36"
+
 "@digix/doxity@git://github.com/DigixGlobal/doxity.git#doxity-latest":
   version "0.6.0"
   resolved "git://github.com/DigixGlobal/doxity.git#9acb8ad106b5420af87d4cc01c25f74e700ef0aa"
@@ -2358,6 +2382,10 @@ anymatch@^2.0.0:
   dependencies:
     micromatch "^3.1.4"
     normalize-path "^2.1.1"
+
+app-module-path@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/app-module-path/-/app-module-path-2.2.0.tgz#641aa55dfb7d6a6f0a8141c4b9c0aa50b6c24dd5"
 
 append-transform@^1.0.0:
   version "1.0.0"
@@ -3771,7 +3799,7 @@ bn.js@4.11.7:
   version "4.11.7"
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-4.11.7.tgz#ddb048e50d9482790094c13eb3fcfc833ce7ab46"
 
-bn.js@=4.11.8, bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.1.1, bn.js@^4.10.0, bn.js@^4.11.0, bn.js@^4.11.3, bn.js@^4.11.6, bn.js@^4.11.8, bn.js@^4.4.0, bn.js@^4.8.0:
+bn.js@4.11.8, bn.js@=4.11.8, bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.1.1, bn.js@^4.10.0, bn.js@^4.11.0, bn.js@^4.11.3, bn.js@^4.11.6, bn.js@^4.11.8, bn.js@^4.4.0, bn.js@^4.8.0:
   version "4.11.8"
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-4.11.8.tgz#2cde09eb5ee341f484746bb0309b3253b1b1442f"
 
@@ -7632,11 +7660,13 @@ ganache-cli@6.1.0:
     source-map-support "^0.5.3"
     webpack-cli "^2.0.9"
 
-ganache-cli@6.1.8:
-  version "6.1.8"
-  resolved "https://registry.yarnpkg.com/ganache-cli/-/ganache-cli-6.1.8.tgz#49a8a331683a9652183f82ef1378d17e1814fcd3"
+ganache-cli@^6.2.5:
+  version "6.2.5"
+  resolved "https://registry.yarnpkg.com/ganache-cli/-/ganache-cli-6.2.5.tgz#efda5115fa3a0c62d7f5729fdd78da70ca55b1ad"
   dependencies:
-    source-map-support "^0.5.3"
+    bn.js "4.11.8"
+    source-map-support "0.5.9"
+    yargs "11.1.0"
 
 ganache-core@0xProject/ganache-core#monorepo-dep:
   version "2.1.2"
@@ -14558,7 +14588,7 @@ solc@0.4.23:
     semver "^5.3.0"
     yargs "^4.7.1"
 
-solc@0.4.24, solc@^0.4.2, "solc_0.4.24@npm:solc@v0.4.24":
+solc@0.4.24, solc@^0.4.2:
   name solc_0.4.24
   version "0.4.24"
   resolved "https://registry.yarnpkg.com/solc/-/solc-0.4.24.tgz#354f14b269b38cbaa82a47d1ff151723502b954e"
@@ -14569,19 +14599,20 @@ solc@0.4.24, solc@^0.4.2, "solc_0.4.24@npm:solc@v0.4.24":
     semver "^5.3.0"
     yargs "^4.7.1"
 
-solc@0.4.25:
-  version "0.4.25"
-  resolved "https://registry.yarnpkg.com/solc/-/solc-0.4.25.tgz#06b8321f7112d95b4b903639b1138a4d292f5faa"
+solc@0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/solc/-/solc-0.5.0.tgz#2deb2ae992acac3afb909f85c38d00f01dcb335e"
   dependencies:
     fs-extra "^0.30.0"
+    keccak "^1.0.2"
     memorystream "^0.3.1"
-    require-from-string "^1.1.0"
-    semver "^5.3.0"
-    yargs "^4.7.1"
+    require-from-string "^2.0.0"
+    semver "^5.5.0"
+    yargs "^11.0.0"
 
-"solc_latest@npm:solc":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/solc/-/solc-0.5.1.tgz#2867cb886b9475f0e8ee90566c1fad3e2d6ed90a"
+solc@0.5.2:
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/solc/-/solc-0.5.2.tgz#45d5d11569e41c2b2535f3a50fe0616ca771a347"
   dependencies:
     command-exists "^1.2.8"
     fs-extra "^0.30.0"
@@ -14682,18 +14713,18 @@ source-map-support@0.5.6:
     buffer-from "^1.0.0"
     source-map "^0.6.0"
 
-source-map-support@^0.4.15:
-  version "0.4.18"
-  resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.4.18.tgz#0286a6de8be42641338594e97ccea75f0a2c585f"
-  dependencies:
-    source-map "^0.5.6"
-
-source-map-support@^0.5.3, source-map-support@^0.5.6:
+source-map-support@0.5.9, source-map-support@^0.5.3, source-map-support@^0.5.6:
   version "0.5.9"
   resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.9.tgz#41bc953b2534267ea2d605bccfa7bfa3111ced5f"
   dependencies:
     buffer-from "^1.0.0"
     source-map "^0.6.0"
+
+source-map-support@^0.4.15:
+  version "0.4.18"
+  resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.4.18.tgz#0286a6de8be42641338594e97ccea75f0a2c585f"
+  dependencies:
+    source-map "^0.5.6"
 
 source-map-url@^0.4.0:
   version "0.4.0"
@@ -15696,13 +15727,14 @@ truffle-resolver@^3.0.0:
     truffle-expect "0.0.3"
     truffle-provisioner "^0.1.0"
 
-truffle@5.0.0-beta.1:
-  version "5.0.0-beta.1"
-  resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.0.0-beta.1.tgz#2ac40eb6128c1fa66b76c63567185e8fca17950b"
+truffle@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.0.0.tgz#2e4e2eedc5583ae38c7227585e5177d6360fbc6d"
   dependencies:
+    app-module-path "^2.2.0"
     mocha "^4.1.0"
     original-require "1.0.1"
-    solc "0.4.25"
+    solc "0.5.0"
 
 tryer@^1.0.0:
   version "1.0.1"

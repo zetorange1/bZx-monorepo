@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../openzeppelin-solidity/SafeMath.sol";
 
 
 contract GasRefunder {
@@ -24,7 +24,7 @@ contract GasRefunder {
         bool refundSuccess
     );
 
-    modifier refundsGas(address payer, uint gasPrice, uint gasUsed, uint percentMultiplier)
+    modifier refundsGas(address payable payer, uint gasPrice, uint gasUsed, uint percentMultiplier)
     {
         _; // modified function body inserted here
 
@@ -36,7 +36,7 @@ contract GasRefunder {
         );
     }
 
-    modifier refundsGasAfterCollection(address payer, uint gasPrice, uint percentMultiplier)
+    modifier refundsGasAfterCollection(address payable payer, uint gasPrice, uint percentMultiplier)
     {
         uint startingGas = gasleft();
 
@@ -51,7 +51,7 @@ contract GasRefunder {
     }
 
     function calculateAndSendGasRefund(
-        address payer,
+        address payable payer,
         uint gasUsed,
         uint gasPrice,
         uint percentMultiplier)
@@ -82,7 +82,7 @@ contract GasRefunder {
         returns (uint refundAmount, uint finalGasUsed)
     {
         if (gasUsed == 0 || gasPrice == 0)
-            return;
+            return (0,0);
 
         if (percentMultiplier == 0) // 0 percentMultiplier not allowed
             percentMultiplier = 100 * 10**18;
@@ -93,7 +93,7 @@ contract GasRefunder {
     }
 
     function sendGasRefund(
-        address payer,
+        address payable payer,
         uint refundAmount,
         uint finalGasUsed,
         uint gasPrice)

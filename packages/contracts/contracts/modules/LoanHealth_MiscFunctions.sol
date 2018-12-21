@@ -3,10 +3,10 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "openzeppelin-solidity/contracts/math/Math.sol";
+import "../openzeppelin-solidity/Math.sol";
 
 import "../proxy/BZxProxiable.sol";
 import "../shared/InternalFunctions.sol";
@@ -16,13 +16,13 @@ import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 
 
-contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestFunctions {
+contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InternalFunctions, InterestFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
 
-    function()  
-        public
+    function()
+        external
     {
         revert("fallback not allowed");
     }
@@ -400,12 +400,12 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
-            return;
+            return (0,0,0);
         }
 
         LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return;
+            return (0,0,0);
         }
 
         return (_getMarginLevels(
@@ -436,13 +436,13 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
-            return;
+            return (address(0),address(0),0,0,0);
         }
 
         // can still get interest for closed loans
         LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
         if (loanPosition.loanTokenAmountFilled == 0) {
-            return;
+            return (address(0),address(0),0,0,0);
         }
 
         InterestData memory interestData = _getInterestData(
@@ -634,7 +634,7 @@ contract BZxLoanHealth is BZxStorage, BZxProxiable, InternalFunctions, InterestF
     }
 
     function _finalizeLoan(
-        LoanOrder loanOrder,
+        LoanOrder memory loanOrder,
         LoanPosition storage loanPosition,
         bool isLiquidation,
         uint gasUsed)

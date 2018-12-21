@@ -406,13 +406,14 @@ export const submitFillOrder = (
   let txObj;
   if (makerIsLender) {
     if (overCollateralize) {
-      txObj = bZx.takeLoanOrderAsTraderAndWithdraw({
+      txObj = bZx.takeLoanOrderAsTrader({
         order,
         collateralTokenAddress,
         loanTokenAmountFilled: toBigNumber(
           loanTokenAmountFilled,
           10 ** getDecimals(tokens, order.loanTokenAddress)
         ),
+        withdrawOnOpen: true,
         getObject: true
       });
     } else {
@@ -423,6 +424,7 @@ export const submitFillOrder = (
           loanTokenAmountFilled,
           10 ** getDecimals(tokens, order.loanTokenAddress)
         ),
+        withdrawOnOpen: false,
         getObject: true
       });
     }
@@ -513,13 +515,14 @@ export const submitFillOrderWithHash = (
   let txObj;
   if (makerIsLender) {
     if (overCollateralize) {
-      txObj = bZx.takeLoanOrderOnChainAsTraderAndWithdraw({
+      txObj = bZx.takeLoanOrderOnChainAsTrader({
         loanOrderHash,
         collateralTokenAddress,
         loanTokenAmountFilled: toBigNumber(
           loanTokenAmountFilled,
           10 ** getDecimals(tokens, loanTokenAddress)
         ),
+        withdrawOnOpen: true,
         getObject: true
       });
     } else {
@@ -530,6 +533,7 @@ export const submitFillOrderWithHash = (
           loanTokenAmountFilled,
           10 ** getDecimals(tokens, loanTokenAddress)
         ),
+        withdrawOnOpen: false,
         getObject: true
       });
     }

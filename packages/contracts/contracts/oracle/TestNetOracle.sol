@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 pragma experimental ABIEncoderV2;
 
 import "./BZxOracle.sol";
@@ -38,7 +38,7 @@ contract TestNetOracle is BZxOracle {
         payable
     {}
 
-    function() public payable {} // solhint-disable-line no-empty-blocks
+    function() external payable {} // solhint-disable-line no-empty-blocks
 
     /*
     * Owner functions

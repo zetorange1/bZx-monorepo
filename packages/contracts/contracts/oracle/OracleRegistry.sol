@@ -17,9 +17,9 @@
 
 */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../openzeppelin-solidity/Ownable.sol";
 
 
 /// @title Oracle Registry - Oracles added to the bZx network by decentralized governance
@@ -57,7 +57,7 @@ contract OracleRegistry is Ownable {
         _;
     }
 
-    modifier nameDoesNotExist(string _name) {
+    modifier nameDoesNotExist(string memory _name) {
         require(oracleByName[_name] == address(0), "OracleRegistry::name exists");
         _;
     }
@@ -72,7 +72,7 @@ contract OracleRegistry is Ownable {
     /// @param _name Name of new oracle.
     function addOracle(
         address _oracle,
-        string _name)
+        string memory _name)
         public
         onlyOwner
         oracleDoesNotExist(_oracle)
@@ -115,7 +115,7 @@ contract OracleRegistry is Ownable {
     /// @dev Allows owner to modify an existing oracle's name.
     /// @param _oracle Address of existing oracle.
     /// @param _name New name.
-    function setOracleName(address _oracle, string _name)
+    function setOracleName(address _oracle, string memory _name)
         public
         onlyOwner
         oracleExists(_oracle)
@@ -141,7 +141,7 @@ contract OracleRegistry is Ownable {
     /// @dev Provides a registered oracle's address when given the oracle name.
     /// @param _name Name of registered oracle.
     /// @return Oracle's address.
-    function getOracleAddressByName(string _name)
+    function getOracleAddressByName(string memory _name)
         public
         view
         returns (address) {
@@ -156,7 +156,7 @@ contract OracleRegistry is Ownable {
         view
         returns (
             address,  //oracleAddress
-            string   //name
+            string memory   //name
         )
     {
         OracleMetadata memory oracle = oracles[_oracle];
@@ -169,12 +169,12 @@ contract OracleRegistry is Ownable {
     /// @dev Provides a registered oracle's metadata, looked up by name.
     /// @param _name Name of registered oracle.
     /// @return Oracle metadata.
-    function getOracleByName(string _name)
+    function getOracleByName(string memory _name)
         public
         view
         returns (
             address,  //oracleAddress
-            string    //name
+            string memory    //name
         )
     {
         address _oracle = oracleByName[_name];
@@ -186,7 +186,7 @@ contract OracleRegistry is Ownable {
     function getOracleAddresses()
         public
         view
-        returns (address[])
+        returns (address[] memory)
     {
         return oracleAddresses;
     }
@@ -196,14 +196,14 @@ contract OracleRegistry is Ownable {
     function getOracleList()
         public
         view
-        returns (address[], uint[], string)
+        returns (address[] memory, uint[] memory, string memory)
     {
-        if (oracleAddresses.length == 0)
-            return;
-
         address[] memory addresses = oracleAddresses;
         uint[] memory nameLengths = new uint[](oracleAddresses.length);
         string memory allStrings;
+
+        if (oracleAddresses.length == 0)
+            return (addresses,nameLengths,allStrings);
         
         for (uint i = 0; i < oracleAddresses.length; i++) {
             string memory tmp = oracles[oracleAddresses[i]].name;
@@ -217,18 +217,19 @@ contract OracleRegistry is Ownable {
     /// @dev Concatenates two strings
     /// @return concatenated string
     function strConcat(
-        string _a,
-        string _b)
+        string  memory _a,
+        string  memory _b)
         internal
         pure
-        returns (string)
+        returns (string memory)
     {
         bytes memory _ba = bytes(_a);
         bytes memory _bb = bytes(_b);
         string memory ab = new string(_ba.length + _bb.length);
         bytes memory bab = bytes(ab);
         uint k = 0;
-        for (uint i = 0; i < _ba.length; i++)
+        uint i;
+        for (i = 0; i < _ba.length; i++)
             bab[k++] = _ba[i];
         for (i = 0; i < _bb.length; i++)
             bab[k++] = _bb[i];

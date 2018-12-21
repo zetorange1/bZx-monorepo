@@ -5,11 +5,11 @@
  
 /* solhint-disable func-order, separate-by-one-line-in-contract */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 pragma experimental ABIEncoderV2;
 
 import "./storage/BZxStorage.sol";
-import "./ZeroEx/ExchangeV2Interface.sol";
+import "./zeroex/ExchangeV2Interface.sol";
 
 // This interface is meant to used with the deployed BZxProxy contract (proxy/BZxProxy.sol) address.
 // js example: var bZx = await BZx.at((await BZxProxy.deployed()).address);
@@ -21,47 +21,31 @@ contract BZx is BZxStorage {
     */
 
     /// @dev Takes the order as trader
-    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFill.
+    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFillAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), withdrawOnOpen, and salt.
     /// @param oracleData An arbitrary length bytes stream to pass to the oracle.
     /// @param collateralTokenFilled Desired address of the collateralTokenAddress the trader wants to use.
     /// @param loanTokenAmountFilled Desired amount of loanToken the trader wants to borrow.
+    /// @param tradeTokenToFillAddress If non-zero address, will swap the loanToken for this asset using the oracle.
+    /// @param withdrawOnOpen If true, will overcollateralize the loan and withdraw the position token to the trader's wallet. If set, tradeTokenToFillAddress is ignored.
     /// @param signature ECDSA signature in raw bytes (rsv).
     /// @return Total amount of loanToken borrowed (uint).
     /// @dev Traders can take a portion of the total coin being lended (loanTokenAmountFilled).
     /// @dev Traders also specify the token that will fill the margin requirement if they are taking the order.
     function takeLoanOrderAsTrader(
-        address[8] orderAddresses,
-        uint[11] orderValues,
-        bytes oracleData,
+        address[8] calldata orderAddresses,
+        uint[11] calldata orderValues,
+        bytes calldata oracleData,
         address collateralTokenFilled,
         uint loanTokenAmountFilled,
-        bytes signature)
-        external
-        returns (uint);
-
-    /// @dev Takes the order as trader, overcollateralizes the loan, and withdraws the loan token to the trader's wallet
-    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFill.
-    /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), withdrawOnOpen, and salt.
-    /// @param oracleData An arbitrary length bytes stream to pass to the oracle.
-    /// @param collateralTokenFilled Desired address of the collateralTokenAddress the trader wants to use.
-    /// @param loanTokenAmountFilled Desired amount of loanToken the trader wants to borrow.
-    /// @param signature ECDSA signature in raw bytes (rsv).
-    /// @return Total amount of loanToken borrowed (uint).
-    /// @dev Traders can take a portion of the total coin being lended (loanTokenAmountFilled).
-    /// @dev Traders also specify the token that will fill the margin requirement if they are taking the order.
-    function takeLoanOrderAsTraderAndWithdraw(
-        address[8] orderAddresses,
-        uint[11] orderValues,
-        bytes oracleData,
-        address collateralTokenFilled,
-        uint loanTokenAmountFilled,
-        bytes signature)
+        address tradeTokenToFillAddress,
+        bool withdrawOnOpen,
+        bytes calldata signature)
         external
         returns (uint);
 
     /// @dev Takes the order as lender
-    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFill.
+    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFillAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), withdrawOnOpen, and salt.
     /// @param oracleData An arbitrary length bytes stream to pass to the oracle.
     /// @param signature ECDSA signature in raw bytes (rsv).
@@ -69,48 +53,42 @@ contract BZx is BZxStorage {
     /// @dev Lenders have to fill the entire desired amount the trader wants to borrow.
     /// @dev This makes loanTokenAmountFilled = loanOrder.loanTokenAmount.
     function takeLoanOrderAsLender(
-        address[8] orderAddresses,
-        uint[11] orderValues,
-        bytes oracleData,
-        bytes signature)
+        address[8] calldata orderAddresses,
+        uint[11] calldata orderValues,
+        bytes calldata oracleData,
+        bytes calldata signature)
         external
         returns (uint);
 
     /// @dev Pushes an order on chain
-    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFill.
+    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFillAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), withdrawOnOpen, and salt.
     /// @param oracleData An arbitrary length bytes stream to pass to the oracle.
     /// @param signature ECDSA signature in raw bytes (rsv).
     /// @return A unique hash representing the loan order.
     function pushLoanOrderOnChain(
-        address[8] orderAddresses,
-        uint[11] orderValues,
-        bytes oracleData,
-        bytes signature)
+        address[8] calldata orderAddresses,
+        uint[11] calldata orderValues,
+        bytes calldata oracleData,
+        bytes calldata signature)
         external
         returns (bytes32);
 
     /// @dev Takes the order as trader that's already pushed on chain
     /// @param loanOrderHash A unique hash representing the loan order.
+    /// @param collateralTokenFilled Desired address of the collateralTokenAddress the trader wants to use.
+    /// @param loanTokenAmountFilled Desired amount of loanToken the trader wants to borrow.
+    /// @param tradeTokenToFillAddress If non-zero address, will swap the loanToken for this asset using the oracle.
+    /// @param withdrawOnOpen If true, will overcollateralize the loan and withdraw the position token to the trader's wallet. If set, tradeTokenToFillAddress is ignored.
     /// @return Total amount of loanToken borrowed (uint).
     /// @dev Traders can take a portion of the total coin being lended (loanTokenAmountFilled).
     /// @dev Traders also specify the token that will fill the margin requirement if they are taking the order.
     function takeLoanOrderOnChainAsTrader(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
-        uint loanTokenAmountFilled)
-        external
-        returns (uint);
-
-    /// @dev Takes the order as trader that's already pushed on chain, overcollateralizes the loan, and withdraws the loan token to the trader's wallet
-    /// @param loanOrderHash A unique hash representing the loan order.
-    /// @return Total amount of loanToken borrowed (uint).
-    /// @dev Traders can take a portion of the total coin being lended (loanTokenAmountFilled).
-    /// @dev Traders also specify the token that will fill the margin requirement if they are taking the order.
-    function takeLoanOrderOnChainAsTraderAndWithdraw(
-        bytes32 loanOrderHash,
-        address collateralTokenFilled,
-        uint loanTokenAmountFilled)
+        uint loanTokenAmountFilled,
+        address tradeTokenToFillAddress,
+        bool withdrawOnOpen)
         external
         returns (uint);
 
@@ -127,16 +105,16 @@ contract BZx is BZxStorage {
     /// @dev Approves a hash on-chain using any valid signature type.
     ///      After presigning a hash, the preSign signature type will become valid for that hash and signer.
     /// @param signer Address that should have signed the hash generated by the loanOrder parameters given.
-    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFill.
+    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFillAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), withdrawOnOpen, and salt.
     /// @param oracleData An arbitrary length bytes stream to pass to the oracle.
     /// @param signature Proof that the hash has been signed by signer.
     function preSign(
         address signer,
-        address[8] orderAddresses,
-        uint[11] orderValues,
-        bytes oracleData,
-        bytes signature)
+        address[8] calldata orderAddresses,
+        uint[11] calldata orderValues,
+        bytes calldata oracleData,
+        bytes calldata signature)
         external;
 
     /// @dev Approves a hash on-chain using any valid signature type.
@@ -147,19 +125,19 @@ contract BZx is BZxStorage {
     function preSignWithHash(
         address signer,
         bytes32 hash,
-        bytes signature)
+        bytes calldata signature)
         external;
 
     /// @dev Cancels remaining (untaken) loan
-    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFill.
+    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFillAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), withdrawOnOpen, and salt.
     /// @param oracleData An arbitrary length bytes stream to pass to the oracle.
     /// @param cancelLoanTokenAmount The amount of remaining unloaned token to cancel.
     /// @return The amount of loan token canceled.
     function cancelLoanOrder(
-        address[8] orderAddresses,
-        uint[11] orderValues,
-        bytes oracleData,
+        address[8] calldata orderAddresses,
+        uint[11] calldata orderValues,
+        bytes calldata oracleData,
         uint cancelLoanTokenAmount)
         external
         returns (uint);
@@ -175,14 +153,14 @@ contract BZx is BZxStorage {
         returns (uint);
 
     /// @dev Calculates Keccak-256 hash of order with specified parameters.
-    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFill.
+    /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFillAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), withdrawOnOpen, and salt.
     /// @param oracleData An arbitrary length bytes stream to pass to the oracle.
     /// @return Keccak-256 hash of loanOrder.
     function getLoanOrderHash(
-        address[8] orderAddresses,
-        uint[11] orderValues,
-        bytes oracleData)
+        address[8] memory orderAddresses,
+        uint[11] memory orderValues,
+        bytes memory oracleData)
         public
         view
         returns (bytes32);
@@ -195,7 +173,7 @@ contract BZx is BZxStorage {
     function isValidSignature(
         address signer,
         bytes32 hash,
-        bytes signature)
+        bytes memory signature)
         public
         pure
         returns (bool);
@@ -223,7 +201,7 @@ contract BZx is BZxStorage {
         bytes32 loanOrderHash)
         public
         view
-        returns (bytes);
+        returns (bytes memory);
 
     /// @dev Returns a bytestream of data from orders that are available for taking.
     /// @param start The starting order in the order list to return.
@@ -236,7 +214,7 @@ contract BZx is BZxStorage {
         address oracleFilter)
         public
         view
-        returns (bytes);
+        returns (bytes memory);
 
     /// @dev Returns a bytestream of order data for a user.
     /// @param loanParty The address of the maker or taker of the order.
@@ -251,7 +229,7 @@ contract BZx is BZxStorage {
         address oracleFilter)
         public
         view
-        returns (bytes);
+        returns (bytes memory);
 
     /// @dev Returns a bytestream of loan data for a trader.
     /// @param loanOrderHash A unique hash representing the loan order.
@@ -262,7 +240,7 @@ contract BZx is BZxStorage {
         address trader)
         public
         view
-        returns (bytes);
+        returns (bytes memory);
 
     /// @dev Returns a bytestream of loan data for a lender.
     /// @param loanParty The address of the lender in the loan.
@@ -275,7 +253,7 @@ contract BZx is BZxStorage {
         bool activeOnly)
         public
         view
-        returns (bytes);
+        returns (bytes memory);
 
     /// @dev Returns a bytestream of loan data for a trader.
     /// @param loanParty The address of the trader in the loan.
@@ -288,7 +266,7 @@ contract BZx is BZxStorage {
         bool activeOnly)
         public
         view
-        returns (bytes);
+        returns (bytes memory);
 
     /// @dev Returns a bytestream of active loans.
     /// @param start The starting loan in the loan list to return.
@@ -299,7 +277,7 @@ contract BZx is BZxStorage {
         uint count)
         public
         view
-        returns (bytes);
+        returns (bytes memory);
 
     /// @dev Returns a LoanOrder object.
     /// @param loanOrderHash A unique hash representing the loan order.
@@ -307,7 +285,7 @@ contract BZx is BZxStorage {
         bytes32 loanOrderHash)
         public
         view
-        returns (LoanOrder);
+        returns (LoanOrder memory);
 
     /// @dev Returns a LoanOrderAux object.
     /// @param loanOrderHash A unique hash representing the loan order.
@@ -315,7 +293,7 @@ contract BZx is BZxStorage {
         bytes32 loanOrderHash)
         public
         view
-        returns (LoanOrderAux);
+        returns (LoanOrderAux memory);
 
     /// @dev Returns a LoanPosition object.
     /// @param positionId A unqiue id representing the loan position.
@@ -323,7 +301,7 @@ contract BZx is BZxStorage {
         uint positionId)
         public
         view
-        returns (LoanPosition);
+        returns (LoanPosition memory);
 
     /*
     * BZxTradePlacing functions
@@ -336,8 +314,8 @@ contract BZx is BZxStorage {
     /// @return The amount of token received in the trade.
     function tradePositionWith0x(
         bytes32 loanOrderHash,
-        bytes orderData0x,
-        bytes signature0x)
+        bytes calldata orderData0x,
+        bytes calldata signature0x)
         external
         returns (uint);
 
@@ -464,7 +442,7 @@ contract BZx is BZxStorage {
     /// @return True on success
     function setLoanOrderDesc(
         bytes32 loanOrderHash,
-        string desc)
+        string calldata desc)
         external
         returns (bool);
 

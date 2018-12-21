@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../../openzeppelin-solidity/Ownable.sol";
 
 import "./BZRxToken.sol";
 
@@ -22,8 +22,8 @@ contract BZRxAirDrop is Ownable {
     }
 
     function batchMint(
-        address[] receivers,
-        uint256[] tokenAmounts)
+        address[] memory receivers,
+        uint256[] memory tokenAmounts)
         public
         onlyOwner
         returns (uint tokensMinted)
@@ -40,7 +40,7 @@ contract BZRxAirDrop is Ownable {
     }
 
     function batchMintAmount(
-        address[] receivers,
+        address[] memory receivers,
         uint256 tokenAmount)
         public
         onlyOwner
@@ -58,8 +58,8 @@ contract BZRxAirDrop is Ownable {
     }
 
     function batchSend(
-        address[] receivers,
-        uint256[] tokenAmounts)
+        address[] memory receivers,
+        uint256[] memory tokenAmounts)
         public
         onlyOwner
         returns (uint tokensSent)
@@ -76,7 +76,7 @@ contract BZRxAirDrop is Ownable {
     }
 
     function batchSendAmount(
-        address[] receivers,
+        address[] memory receivers,
         uint256 tokenAmount)
         public
         onlyOwner
@@ -111,7 +111,7 @@ contract BZRxAirDrop is Ownable {
         onlyOwner
         returns (bool)
     {
-        uint balance = StandardToken(_tokenAddress).balanceOf.gas(4999)(this);
+        uint balance = StandardToken(_tokenAddress).balanceOf.gas(4999)(address(this));
         if (_value > balance) {
             return StandardToken(_tokenAddress).transfer(
                 _to,

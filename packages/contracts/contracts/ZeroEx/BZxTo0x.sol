@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
 import "../tokens/EIP20.sol";
 import "../tokens/EIP20Wrapper.sol";
@@ -32,7 +32,7 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
     }
 
     function()
-        public {
+        external {
         revert();
     }
 
@@ -40,8 +40,8 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
         address trader,
         address vaultAddress,
         uint sourceTokenAmountToUse,
-        bytes orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated
-        bytes signature0x) // ECDSA of the 0x order
+        bytes memory orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated
+        bytes memory signature0x) // ECDSA of the 0x order
         public
         onlyBZx
         returns (
@@ -73,12 +73,12 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
     }
 
     function getOrderValuesFromData(
-        bytes orderData0x)
+        bytes memory orderData0x)
         public
         pure
         returns (
-            address[5][] orderAddresses,
-            uint[6][] orderValues)
+            address[5][] memory orderAddresses,
+            uint[6][] memory orderValues)
     {
         address maker;
         address taker;
@@ -127,13 +127,13 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
 
     /// @param signatures ECDSA signatures in raw bytes (rsv).
     function getSignatureParts(
-        bytes signatures)
+        bytes memory signatures)
         public
         pure
         returns (
-            uint8[] vs,
-            bytes32[] rs,
-            bytes32[] ss)
+            uint8[] memory vs,
+            bytes32[] memory rs,
+            bytes32[] memory ss)
     {
         vs = new uint8[](signatures.length/65);
         rs = new bytes32[](signatures.length/65);
@@ -199,9 +199,9 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
     function _take0xTrade(
         address trader,
         uint sourceTokenAmountToUse,
-        address[5][] orderAddresses0x,
-        uint[6][] orderValues0x,
-        bytes signature)
+        address[5][] memory orderAddresses0x,
+        uint[6][] memory orderValues0x,
+        bytes memory signature)
         internal
         returns (uint sourceTokenUsedAmount, uint destTokenAmount)
     {
@@ -238,7 +238,7 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
             eip20TransferFrom(
                 zrxTokenContract,
                 trader,
-                this,
+                address(this),
                 summations[2]);
         }
 
@@ -246,7 +246,7 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
 
         // Make sure there is enough allowance for 0x Exchange Proxy to transfer the sourceToken needed for the 0x trade
         // orderAddresses0x[0][3] -> takerToken/sourceToken
-        uint tempAllowance = EIP20(orderAddresses0x[0][3]).allowance.gas(4999)(this, tokenTransferProxyContract);
+        uint tempAllowance = EIP20(orderAddresses0x[0][3]).allowance.gas(4999)(address(this), tokenTransferProxyContract);
         if (tempAllowance < sourceTokenAmountToUse) {
             if (tempAllowance > 0) {
                 // reset approval to 0

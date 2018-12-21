@@ -63,6 +63,7 @@ module.exports = (deployer, network, accounts) => {
     var collateralToken2;
     var interestToken1;
     var interestToken2;
+    var tradeToken1;
     var maker0xToken1;
 
     var OrderParams_bZx_1;
@@ -97,6 +98,7 @@ module.exports = (deployer, network, accounts) => {
       collateralToken2 = test_tokens[3];
       interestToken1 = test_tokens[1];
       interestToken2 = test_tokens[0];
+      tradeToken1 = test_tokens[7];
       maker0xToken1 = test_tokens[5];
 
       await Promise.all([
@@ -165,12 +167,13 @@ module.exports = (deployer, network, accounts) => {
       /// should take sample loan order (as trader1)
       OrderParams_bZx_1 = {
         bZxAddress: bZx.address,
-        makerAddress: lender1_account, // lender
-        takerAddress: NULL_ADDRESS,
+        makerAddress: lender1_account,
+        takerAddress: NULL_ADDRESS, // trader1_account
         loanTokenAddress: loanToken1.address,
         interestTokenAddress: interestToken1.address,
         collateralTokenAddress: NULL_ADDRESS,
         feeRecipientAddress: relay1_account,
+        tradeTokenToFillAddress: NULL_ADDRESS,
         oracleAddress: oracle.address,
         loanTokenAmount: toWei(10000, "ether").toString(),
         interestAmount: toWei(2.5, "ether").toString(), // 2 token units per day
@@ -194,7 +197,8 @@ module.exports = (deployer, network, accounts) => {
           OrderParams_bZx_1["collateralTokenAddress"],
           OrderParams_bZx_1["feeRecipientAddress"],
           OrderParams_bZx_1["oracleAddress"],
-          OrderParams_bZx_1["takerAddress"]
+          OrderParams_bZx_1["takerAddress"],
+          OrderParams_bZx_1["tradeTokenToFillAddress"]
         ],
         [
           new BN(OrderParams_bZx_1["loanTokenAmount"]),
@@ -227,7 +231,8 @@ module.exports = (deployer, network, accounts) => {
             OrderParams_bZx_1["collateralTokenAddress"],
             OrderParams_bZx_1["feeRecipientAddress"],
             OrderParams_bZx_1["oracleAddress"],
-            OrderParams_bZx_1["takerAddress"]
+            OrderParams_bZx_1["takerAddress"],
+            OrderParams_bZx_1["tradeTokenToFillAddress"],
           ],
           [
             new BN(OrderParams_bZx_1["loanTokenAmount"]),
@@ -245,6 +250,8 @@ module.exports = (deployer, network, accounts) => {
           "0x12a1232124", // oracleData
           collateralToken1.address,
           toWei(12.3, "ether"),
+          NULL_ADDRESS,
+          false,
           ECSignature_raw_1,
           {
             from: trader1_account,
@@ -264,7 +271,8 @@ module.exports = (deployer, network, accounts) => {
             OrderParams_bZx_1["collateralTokenAddress"],
             OrderParams_bZx_1["feeRecipientAddress"],
             OrderParams_bZx_1["oracleAddress"],
-            OrderParams_bZx_1["takerAddress"]
+            OrderParams_bZx_1["takerAddress"],
+            OrderParams_bZx_1["tradeTokenToFillAddress"]
           ],
           [
             new BN(OrderParams_bZx_1["loanTokenAmount"]),
@@ -282,6 +290,8 @@ module.exports = (deployer, network, accounts) => {
           "0x12a1232124", // oracleData
           collateralToken2.address,
           toWei(20, "ether"),
+          tradeToken1.address, // NULL_ADDRESS
+          false,
           ECSignature_raw_1,
           {
             from: trader2_account,
@@ -355,7 +365,7 @@ module.exports = (deployer, network, accounts) => {
       console.log(
         (await bZx.getPositionOffset.call(OrderHash_bZx_1, trader1_account, {
           from: lender2_account
-        })).toString()
+        }))
       );
 
       console.log(
@@ -370,14 +380,14 @@ module.exports = (deployer, network, accounts) => {
       console.log(
         (await bZx.getPositionOffset.call(OrderHash_bZx_1, trader1_account, {
           from: lender2_account
-        })).toString()
+        }))
       );
 
       console.log("Margin Levels:");
       console.log(
         (await bZx.getMarginLevels.call(OrderHash_bZx_1, trader1_account, {
           from: lender2_account
-        })).toString()
+        }))
       );
     });
   }

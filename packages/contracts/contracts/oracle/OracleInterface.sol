@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 pragma experimental ABIEncoderV2;
 
 import "../storage/BZxObjects.sol";
@@ -39,8 +39,8 @@ contract OracleInterface {
     /// @return Successful execution of the function
     function didAddOrder(
         BZxObjects.LoanOrder memory loanOrder,
-        BZxObjects.LoanOrderAux loanOrderAux,
-        bytes oracleData,
+        BZxObjects.LoanOrderAux memory loanOrderAux,
+        bytes memory oracleData,
         address taker,
         uint gasUsed)
         public
@@ -173,7 +173,7 @@ contract OracleInterface {
     function didCloseLoanPartially(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        address loanCloser,
+        address payable loanCloser,
         uint closeAmount,
         uint gasUsed)
         public
@@ -189,7 +189,7 @@ contract OracleInterface {
     function didCloseLoan(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        address loanCloser,
+        address payable loanCloser,
         bool isLiquidation,
         uint gasUsed)
         public

@@ -1,7 +1,7 @@
 import { pipe, map } from "ramda";
 import * as Utils from "./index";
 
-const NUM_ORDER_FIELDS = 22;
+const NUM_ORDER_FIELDS = 23;
 
 const getOrder = params => ({
   ...map(
@@ -17,7 +17,8 @@ const getOrder = params => ({
       collateralTokenAddress: params[3],
       feeRecipientAddress: params[4],
       oracleAddress: params[5],
-      lender: params[15]
+      lender: params[15],
+      tradeTokenToFillAddress: params[21]
     }
   ),
   ...map(
@@ -38,7 +39,7 @@ const getOrder = params => ({
       orderCancelledAmount: params[17],
       orderTraderCount: params[18],
       addedUnixTimestampSec: params[19],
-      withdrawOnOpen: params[21]
+      withdrawOnOpen: params[22]
     }
   ),
   loanOrderHash: Utils.prepend0x(params[14])

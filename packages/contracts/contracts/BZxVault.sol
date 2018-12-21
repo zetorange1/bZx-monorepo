@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
 import "./tokens/EIP20Wrapper.sol";
 import "./modifiers/BZxOwnable.sol";
@@ -12,10 +12,10 @@ import "./modifiers/BZxOwnable.sol";
 contract BZxVault is EIP20Wrapper, BZxOwnable {
 
     // Only the bZx contract can directly deposit ether
-    function() public payable onlyBZx {}
+    function() external payable onlyBZx {}
 
     function withdrawEther(
-        address to,
+        address payable to,
         uint value)
         public
         onlyBZx
@@ -44,7 +44,7 @@ contract BZxVault is EIP20Wrapper, BZxOwnable {
         eip20TransferFrom(
             token,
             from,
-            this,
+            address(this),
             tokenAmount);
 
         return true;

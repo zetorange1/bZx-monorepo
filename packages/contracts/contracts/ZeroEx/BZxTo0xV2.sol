@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 pragma experimental ABIEncoderV2;
 
 import "../tokens/EIP20.sol";
@@ -42,7 +42,7 @@ contract BZxTo0xV2 is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
     }
 
     function()
-        public {
+        external {
         revert();
     }
 
@@ -178,7 +178,7 @@ contract BZxTo0xV2 is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
         address trader,
         address sourceTokenAddress,
         uint sourceTokenAmountToUse,
-        ExchangeV2Interface.OrderV2[] orders0x, // Array of 0x V2 order structs
+        ExchangeV2Interface.OrderV2[] memory orders0x, // Array of 0x V2 order structs
         bytes[] memory signatures0x)
         internal
         returns (uint sourceTokenUsedAmount, uint destTokenAmount)
@@ -214,12 +214,12 @@ contract BZxTo0xV2 is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
             eip20TransferFrom(
                 zrxTokenContract,
                 trader,
-                this,
+                address(this),
                 zrxTokenAmount);
         }
 
         // Make sure there is enough allowance for 0x Exchange Proxy to transfer the sourceToken needed for the 0x trade
-        uint tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(this, erc20ProxyContract);
+        uint tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(address(this), erc20ProxyContract);
         if (tempAllowance < sourceTokenAmountToUse) {
             if (tempAllowance > 0) {
                 // reset approval to 0

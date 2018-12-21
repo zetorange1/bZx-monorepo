@@ -112,19 +112,13 @@ export class BZxJS {
     fill.takeLoanOrderAsLender(this, ...props);
 
   takeLoanOrderAsTrader = (...props) =>
-    fill.takeLoanOrderAsTrader(this, ...props, false);
-
-  takeLoanOrderAsTraderAndWithdraw = (...props) =>
-    fill.takeLoanOrderAsTrader(this, ...props, true);
+    fill.takeLoanOrderAsTrader(this, ...props);
 
   pushLoanOrderOnChain = (...props) =>
     fill.pushLoanOrderOnChain(this, ...props);
 
   takeLoanOrderOnChainAsTrader = (...props) =>
-    fill.takeLoanOrderOnChainAsTrader(this, ...props, false);
-
-  takeLoanOrderOnChainAsTraderAndWithdraw = (...props) =>
-    fill.takeLoanOrderOnChainAsTrader(this, ...props, true);
+    fill.takeLoanOrderOnChainAsTrader(this, ...props);
 
   takeLoanOrderOnChainAsLender = (...props) =>
     fill.takeLoanOrderOnChainAsLender(this, ...props);
