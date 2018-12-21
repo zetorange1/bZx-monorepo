@@ -89,9 +89,15 @@ export default ({
               id="tooltip-icon"
               title={
                 <div style={{ maxWidth: `300px` }}>
-                  The margin level that will trigger a loan liquidation if the
-                  trader&apos;s margin balance falls to this level or lower. This
-                  cannot be greater than the initial margin amount.
+                  Set this option if you wish to withdraw the loan to your wallet. 
+                  An amount of collateral equal to the Initial Margin Amount + 
+                  the total value of your loan, will be escrowed. Please ensure you 
+                  have enough collateral token balance and that you know what you are 
+                  doing. After filling the order, the loan token will immediately be 
+                  withdrawn to your wallet. If you don't return the full amount of loan
+                  token before the loan term ends or the loan gets liquidated, you will 
+                  lose a large portion of the collateral in order to compensate the lender 
+                  for the full value of the loan.
                 </div>
               }
             >
