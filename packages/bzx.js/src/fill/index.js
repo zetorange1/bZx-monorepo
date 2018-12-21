@@ -99,7 +99,7 @@ export const takeLoanOrderAsTrader = (
     order.salt
   ];
 
-  let txObj = bZxContract.methods.takeLoanOrderAsTrader(
+  const txObj = bZxContract.methods.takeLoanOrderAsTrader(
      orderAddresses,
      orderValues,
      oracleData || "0x",
@@ -184,7 +184,7 @@ export const takeLoanOrderOnChainAsTrader = (
     Addresses.getAddresses(networkId).BZx
   );
 
-  let txObj = bZxContract.methods.takeLoanOrderOnChainAsTrader(
+  const txObj = bZxContract.methods.takeLoanOrderOnChainAsTrader(
     loanOrderHash,
     collateralTokenAddress,
     web3.utils.toBN(loanTokenAmountFilled).toString(10),

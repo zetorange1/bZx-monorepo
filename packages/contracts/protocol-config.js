@@ -49,12 +49,16 @@ module.exports = {
     },
     rinkeby: {
       ZeroEx: {
-        ZRXToken: "0x00f58d6d585f84b2d7267940cede30ce2fe6eae8",
+        ZRXToken: "0x2727e688b8fd40b198cd5fe6e408e00494a06f07",
         EtherToken: "0xc778417e063141139fce010982780140aa0cd5ab",
-        Exchange: "0x1d16ef40fac01cec8adac2ac49427b9384192c05",
+        ExchangeV1: "0x1d16ef40fac01cec8adac2ac49427b9384192c05",
         TokenRegistry: "0x4e9aad8184de8833365fea970cd9149372fdf1e6",
         TokenTransferProxy: "0xa8e9fa8f91e5ae138c74648c9c304f1c75003a8d",
-        WETH9: "0xc778417e063141139fce010982780140aa0cd5ab"
+        WETH9: "0xc778417e063141139fce010982780140aa0cd5ab",
+        ExchangeV2: "0x22ebc052f43a88efa06379426120718170f2204e",
+        ERC20Proxy: "0x3e809c563c15a295e832e37053798ddc8d6c8dab",
+        ERC721Proxy: "0x8e1ff02637cb5e39f2fa36c14706aa348b065b09",
+        AssetProxyOwner: "0x1da52d1d3a3acfa0a1836b737393b4e9931268fc"
       },
       KyberContractAddress: "", // Rinkeby
       BZRXToken: "0xb70ce29af9de22e28509cdcf3e0368b5a550548a",

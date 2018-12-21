@@ -12,6 +12,8 @@ var EIP20 = artifacts.require("EIP20");
 const path = require("path");
 const config = require("../protocol-config.js");
 
+const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 const OLD_ORACLE_ADDRESS = "";
 
 module.exports = (deployer, network, accounts) => {
@@ -45,7 +47,7 @@ module.exports = (deployer, network, accounts) => {
       .deploy(
         BZxOracle,
         BZxVault.address,
-        config["addresses"][network]["KyberContractAddress"],
+        config["addresses"][network]["KyberContractAddress"] || NULL_ADDRESS,
         config["addresses"][network]["ZeroEx"]["WETH9"],
         bzrx_token_address,
         { from: accounts[0] }

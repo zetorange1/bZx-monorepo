@@ -26,7 +26,7 @@ export default ({
   expirationUnixTimestampSec = "2519061340",
 
   makerRole = orderConstants.MAKER_ROLE.LENDER,
-  withdrawOnOpen = "0"
+  withdrawOnOpen = "0",
   salt = "2019429563929979"
 } = {}) => ({
   bZxAddress: Contracts.BZx.address,

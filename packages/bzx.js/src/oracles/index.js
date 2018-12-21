@@ -2,7 +2,7 @@ import { BigNumber } from "bignumber.js";
 import { map, mapAccum, pipe, zipWith } from "ramda";
 import { assert } from "@0xproject/assert";
 import * as utils from "../core/utils";
-import { getContracts, oracleList } from "../contracts";
+import { getContracts/* , oracleList */ } from "../contracts";
 import * as Addresses from "../addresses";
 
 export const getOracleListRaw = async ({ web3, networkId }) => {
@@ -63,9 +63,9 @@ export const formatOracleList = ({ oracleAddresses, oracleNames }) =>
 
 export const getOracleList = async ({ web3, networkId }) => {
 
-  const oracles = await oracleList(networkId);
+  /* const oracles = await oracleList(networkId);
   if (oracles)
-    return oracles;
+    return oracles; */
 
   // Fallback to on chain OracleRegistry if local list not found
   // Note: The local list is a stopgap to address MetaMask/Infura instability
