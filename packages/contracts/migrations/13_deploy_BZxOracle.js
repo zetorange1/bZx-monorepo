@@ -82,7 +82,7 @@ module.exports = (deployer, network, accounts) => {
             web3.utils.toWei(10000000, "ether")
           );*/
           var oldWETHBalance = await wethT.balanceOf(bZxOracleOld.address);
-          if (oldWETHBalance.toNumber() !== 0) {
+          if (oldWETHBalance.toString() !== "0") {
             await bZxOracleOld.transferToken(wethT.address, oracleAddress, oldWETHBalance);
           }
 

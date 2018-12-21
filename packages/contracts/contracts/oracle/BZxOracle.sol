@@ -149,12 +149,12 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     {
         uint collateralInWethAmount;
         if (loanPosition.collateralTokenAddressFilled != wethContract) {
-            (uint ethToCollateralRate,) = _getExpectedRate(
-                wethContract,
+            (uint collateralToWethRate,) = _getExpectedRate(
                 loanPosition.collateralTokenAddressFilled,
-                0
+                wethContract,
+                loanPosition.collateralTokenAmountFilled
             );
-            collateralInWethAmount = loanPosition.collateralTokenAmountFilled.mul(_getDecimalPrecision(wethContract, loanPosition.collateralTokenAddressFilled)).div(ethToCollateralRate);
+            collateralInWethAmount = loanPosition.collateralTokenAmountFilled.mul(collateralToWethRate).div(_getDecimalPrecision(loanPosition.collateralTokenAddressFilled, wethContract));
         } else {
             collateralInWethAmount = loanPosition.collateralTokenAmountFilled;
         }
@@ -600,7 +600,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             (uint collateralToPositionRate,) = _getExpectedRate(
                 loanPosition.collateralTokenAddressFilled,
                 loanPosition.positionTokenAddressFilled,
-                0);
+                loanPosition.collateralTokenAmountFilled);
             if (collateralToPositionRate == 0) {
                 return (false,0);
             }
@@ -614,7 +614,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             (uint loanToPositionRate,) = _getExpectedRate(
                 loanOrder.loanTokenAddress,
                 loanPosition.positionTokenAddressFilled,
-                0);
+                loanPosition.loanTokenAmountFilled);
             if (loanToPositionRate == 0) {
                 return (false,0);
             }
@@ -651,7 +651,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             (uint collateralToLoanRate,) = _getExpectedRate(
                 collateralTokenAddress,
                 loanTokenAddress,
-                0);
+                collateralTokenAmount);
             if (collateralToLoanRate == 0) {
                 return 0;
             }
@@ -665,7 +665,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             (uint positionToLoanRate,) = _getExpectedRate(
                 positionTokenAddress,
                 loanTokenAddress,
-                0);
+                positionTokenAmount);
             if (positionToLoanRate == 0) {
                 return 0;
             }
@@ -859,12 +859,12 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             if (loanTokenAddress == wethContract) {
                 wethAmountNeeded = loanTokenAmountNeeded;
             } else {
-                (uint wethToLoan,) = _getExpectedRate(
-                    wethContract,
+                (uint loanToWethRate,) = _getExpectedRate(
                     loanTokenAddress,
-                    0
+                    wethContract,
+                    loanTokenAmountNeeded
                 );
-                wethAmountNeeded = loanTokenAmountNeeded.mul(_getDecimalPrecision(wethContract, loanTokenAddress)).div(wethToLoan);
+                wethAmountNeeded = loanTokenAmountNeeded.mul(loanToWethRate).div(_getDecimalPrecision(loanTokenAddress, wethContract));
             }
         }
 
@@ -1040,7 +1040,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
             /* the following code is to allow the Kyber trade to fail silently and not revert if it does, preventing a "bubble up" */
 
-            (bool result, bytes memory data) = kyberContract.call(
+            (bool result, bytes memory data) = kyberContract.call.gas(gasleft())(
                 abi.encodeWithSignature(
                     "trade(address,uint256,address,address,uint256,uint256,address)",
                     sourceTokenAddress,
@@ -1125,7 +1125,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
             /* the following code is to allow the Kyber trade to fail silently and not revert if it does, preventing a "bubble up" */
 
-            (bool result, bytes memory data) = kyberContract.call(
+            (bool result, bytes memory data) = kyberContract.call.gas(gasleft())(
                 abi.encodeWithSignature(
                     "trade(address,uint256,address,address,uint256,uint256,address)",
                     wethContract,

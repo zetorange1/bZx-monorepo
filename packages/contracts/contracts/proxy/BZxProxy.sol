@@ -14,7 +14,7 @@ contract BZxProxy is BZxStorage, BZxProxiable {
         address _settings) 
         public
     {
-        (bool result,) = _settings.delegatecall(abi.encodeWithSignature("initialize(address)", _settings));
+        (bool result,) = _settings.delegatecall.gas(gasleft())(abi.encodeWithSignature("initialize(address)", _settings));
         require(result, "BZxProxy::constructor: failed");
     }
     

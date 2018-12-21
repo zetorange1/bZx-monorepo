@@ -47,7 +47,7 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
         public
         onlyOwner
     {
-        (bool result,) = _target.delegatecall(abi.encodeWithSignature("initialize(address)", _target));
+        (bool result,) = _target.delegatecall.gas(gasleft())(abi.encodeWithSignature("initialize(address)", _target));
         require(result, "Proxiable::_replaceContract: failed");
     }
 
