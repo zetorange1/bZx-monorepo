@@ -123,17 +123,25 @@ export default class GenerateOrder extends React.Component {
       initialMarginAmount
     ) {
       this.setState({ [`collateralTokenAmount`]: `loading...` });
+      collateralRequired = toBigNumber(await getInitialCollateralRequired(
+        loanTokenAddress,
+        collateralTokenAddress,
+        oracleAddress,
+        toBigNumber(loanTokenAmount).toFixed(0),
+        toBigNumber(initialMarginAmount).toFixed(0),
+        this.props.bZx
+      ));
+      console.log(`collateralRequired`,collateralRequired);
+
+      if (this.state.withdrawOnOpen) {
+        collateralRequired = collateralRequired.plus(collateralRequired.times(10 ** 20).div(initialMarginAmount));
+      }
+
       collateralRequired = fromBigNumber(
-        await getInitialCollateralRequired(
-          loanTokenAddress,
-          collateralTokenAddress,
-          oracleAddress,
-          toBigNumber(loanTokenAmount).toFixed(0),
-          toBigNumber(initialMarginAmount).toFixed(0),
-          this.props.bZx
-        ),
+        collateralRequired,
         10 ** getDecimals(this.props.tokens, collateralTokenAddress)
       );
+
       console.log(`collateralRequired: ${collateralRequired}`);
       if (collateralRequired === 0) {
         collateralRequired = `(unsupported)`;
@@ -195,12 +203,15 @@ export default class GenerateOrder extends React.Component {
     this.setState(p => ({ sendToRelayExchange: value, pushOnChain: value ? !value : p.pushOnChain }));
   }
 
-  setwithdrawOnOpenCheckbox = (e, value) => this.setState(p => ({ withdrawOnOpen: value }));
+  setwithdrawOnOpenCheckbox = async (e, value) => {
+    await this.setState(p => ({ withdrawOnOpen: value }));
+    await this.refreshCollateralAmount();
+  }
 
   setPushOnChainCheckbox = (e, value) => this.setState(p => ({ pushOnChain: value, sendToRelayExchange: value ? !value : p.sendToRelayExchange }));
 
   refreshCollateralAmount = async () => {
-    if (this.state.role === `trader`) {
+    if (this.state.role === `trader` && this.state.loanTokenAmount) {
       await this.setStateForCollateralAmount(
         this.state.loanTokenAddress,
         this.state.collateralTokenAddress,

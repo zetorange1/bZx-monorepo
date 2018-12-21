@@ -113,8 +113,11 @@ export default class FillOrder extends BZxComponent {
           toBigNumber(initialMarginAmount).toFixed(0),
           this.props.bZx
         ));
-        
-        if (this.state.overCollateralize) {
+
+        let overCollateralize = this.props.order.makerRole === `0`
+          ? this.state.overCollateralize
+          : !!+this.props.order.withdrawOnOpen;
+        if (overCollateralize) {
           collateralRequired = collateralRequired.plus(collateralRequired.times(10 ** 20).div(initialMarginAmount));
         }
         
@@ -166,11 +169,7 @@ export default class FillOrder extends BZxComponent {
             10 **
               getDecimals(this.props.tokens, this.props.order.loanTokenAddress)
           )
-        : toBigNumber(
-            this.props.order.loanTokenAmount,
-            10 **
-              getDecimals(this.props.tokens, this.props.order.loanTokenAddress)
-          ),
+        : this.props.order.loanTokenAmount,
       this.props.order.initialMarginAmount
     );
   };
