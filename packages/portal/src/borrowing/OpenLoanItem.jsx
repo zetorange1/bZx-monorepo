@@ -338,18 +338,18 @@ export default class OpenedLoan extends BZxComponent {
             <Fragment>
               <DataPointContainer>
                 <Label>Initial margin</Label>
-                <DataPoint>{fromBigNumber(initialMarginAmount, 1e18)}%</DataPoint>
+                <DataPoint>{Math.round(100*fromBigNumber(initialMarginAmount, 1e18))/100}%</DataPoint>
               </DataPointContainer>
 
               <DataPointContainer>
                 <Label>Maintenance margin</Label>
-                <DataPoint>{fromBigNumber(maintenanceMarginAmount, 1e18)}%</DataPoint>
+                <DataPoint>{Math.round(100*fromBigNumber(maintenanceMarginAmount, 1e18))/100}%</DataPoint>
               </DataPointContainer>
 
               <DataPointContainer>
                 <Label>Current margin level</Label>
                 <DataPoint>
-                  {fromBigNumber(currentMarginAmount, 1e18)}%
+                  {Math.round(100*fromBigNumber(currentMarginAmount, 1e18))/100}%
                 </DataPoint>
               </DataPointContainer>
 

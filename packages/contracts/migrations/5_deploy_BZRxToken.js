@@ -5,7 +5,7 @@ const config = require("../protocol-config.js");
 
 module.exports = (deployer, network, accounts) => {
   deployer.then(async () => {
-    if (network == "develop" || network == "testnet" || network == "coverage") {
+    if (network == "development" || network == "develop" || network == "testnet" || network == "coverage") {
       network = "development";
     } else {
       console.log(`   > [${parseInt(path.basename(__filename))}] BZRxToken deploy: #skiped`);
