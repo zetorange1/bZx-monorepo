@@ -237,12 +237,14 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
             revert("BZxOrderTaking::_verifyNewLoanOrder: loanOrder.maintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= loanOrder.initialMarginAmount");
         }
 
-        if (!_isValidSignature(
-            loanOrderAux.makerAddress,
-            loanOrder.loanOrderHash,
-            signature
-        )) {
-            revert("BZxOrderTaking::_verifyNewLoanOrder: signature invalid");
+        if (msg.sender != loanOrderAux.makerAddress) {
+            if (!_isValidSignature(
+                loanOrderAux.makerAddress,
+                loanOrder.loanOrderHash,
+                signature
+            )) {
+                revert("BZxOrderTaking::_verifyNewLoanOrder: signature invalid");
+            }
         }
 
         return true;
@@ -564,14 +566,18 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
             loanPositionsIds[loanOrder.loanOrderHash][trader] = positionId;
         }
         
-        if (!orderListIndex[loanOrder.loanOrderHash][lender].isSet) {
-            // set only once per order per lender
+        if (orderLender[loanOrder.loanOrderHash] == address(0)) {
+            // set only once per order
             orderLender[loanOrder.loanOrderHash] = lender;
             orderList[lender].push(loanOrder.loanOrderHash);
             orderListIndex[loanOrder.loanOrderHash][lender] = ListIndex({
                 index: orderList[lender].length-1,
                 isSet: true
             });
+        } else {
+            if (orderLender[loanOrder.loanOrderHash] != lender) {
+                revert("BZxTradePlacing::_setOrderAndPositionState: this order has another lender");
+            }
         }
 
         orderFilledAmounts[loanOrder.loanOrderHash] = orderFilledAmounts[loanOrder.loanOrderHash].add(loanTokenAmountFilled);
@@ -579,11 +585,16 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
 
     function _fillTradeToken(
         LoanOrder memory loanOrder,
+        address trader,
         address tradeTokenToFillAddress)
         internal
         returns (uint)
     {
-        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrder.loanOrderHash][msg.sender]];
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrder.loanOrderHash][trader]];
+        if (tradeTokenToFillAddress == loanPosition.positionTokenAddressFilled) {
+            // This trade has been filled previously.
+            return 0;
+        }
         
         (uint tradeTokenAmount, uint positionTokenAmountUsed) = _tradePositionWithOracle(
             loanOrder,

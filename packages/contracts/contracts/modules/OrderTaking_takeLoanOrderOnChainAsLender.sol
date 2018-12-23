@@ -56,6 +56,7 @@ contract OrderTaking_takeLoanOrderOnChainAsLender is BZxStorage, BZxProxiable, O
         if (!orderAux[loanOrderHash].withdrawOnOpen && orderAux[loanOrderHash].tradeTokenToFillAddress != address(0)) {
             _fillTradeToken(
                 loanOrder,
+                orderAux[loanOrderHash].makerAddress, // trader
                 orderAux[loanOrderHash].tradeTokenToFillAddress
             );
         }
