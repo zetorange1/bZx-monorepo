@@ -9,14 +9,14 @@ pragma experimental ABIEncoderV2;
 import "../openzeppelin-solidity/Math.sol";
 
 import "../proxy/BZxProxiable.sol";
-import "../shared/InternalFunctions.sol";
+import "../shared/MiscFunctions.sol";
 
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 
 import "../tokens/EIP20.sol";
 
-contract TradePlacing_Oracle is BZxStorage, BZxProxiable, InternalFunctions {
+contract TradePlacing_Oracle is BZxStorage, BZxProxiable, MiscFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -72,7 +72,7 @@ contract TradePlacing_Oracle is BZxStorage, BZxProxiable, InternalFunctions {
             tradeTokenAddress,
             MAX_UINT,
             false, // isLiquidation
-            true // isManual
+            true // ensureHealthy
         );
 
         if (positionTokenAmountUsed < loanPosition.positionTokenAmountFilled) {
@@ -88,20 +88,6 @@ contract TradePlacing_Oracle is BZxStorage, BZxProxiable, InternalFunctions {
 
         if (tradeTokenAmount == 0) {
             revert("BZxTradePlacing::tradePositionWithOracle: tradeTokenAmount == 0");
-        }
-
-        // trade can't trigger liquidation
-        if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
-                loanOrderHash,
-                loanPosition.trader,
-                loanOrder.loanTokenAddress,
-                tradeTokenAddress,
-                loanPosition.collateralTokenAddressFilled,
-                loanPosition.loanTokenAmountFilled,
-                tradeTokenAmount,
-                loanPosition.collateralTokenAmountFilled,
-                loanOrder.maintenanceMarginAmount)) {
-            revert("BZxTradePlacing::tradePositionWithOracle: trade triggers liquidation");
         }
 
         emit LogPositionTraded(

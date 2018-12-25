@@ -239,13 +239,13 @@ contract OracleInterface {
         public
         returns (bool);
 
-    /// @dev Places a manual on-chain trade with a liquidity provider
+    /// @dev Places an automatic on-chain trade with a liquidity provider
     /// @param sourceTokenAddress The token being sold
     /// @param destTokenAddress The token being bought
     /// @param sourceTokenAmount The amount of token being sold
     /// @param maxDestTokenAmount The desired amount of token to buy
     /// @return The amount of destToken bought and the amount of source token used
-    function doManualTrade(
+    function trade(
         address sourceTokenAddress,
         address destTokenAddress,
         uint sourceTokenAmount,
@@ -254,16 +254,18 @@ contract OracleInterface {
         returns (uint, uint);
 
     /// @dev Places an automatic on-chain trade with a liquidity provider
-    /// @param sourceTokenAddress The token being sold
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
     /// @param destTokenAddress The token being bought
-    /// @param sourceTokenAmount The amount of token being sold
     /// @param maxDestTokenAmount The desired amount of token to buy
+    /// @param ensureHealthy If True, prevents a trade that brings the margin level below maintenanceMarginAmount
     /// @return The amount of destToken bought and the amount of source token used
-    function doTrade(
-        address sourceTokenAddress,
+    function tradePosition(
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
         address destTokenAddress,
-        uint sourceTokenAmount,
-        uint maxDestTokenAmount)
+        uint maxDestTokenAmount,
+        bool ensureHealthy)
         public
         returns (uint, uint);
 
@@ -294,26 +296,12 @@ contract OracleInterface {
 
     /// @dev Checks if a position has fallen below margin
     /// @dev maintenance and should be liquidated
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param trader The address of the trader
-    /// @param loanTokenAddress The token that was loaned
-    /// @param positionTokenAddress The token in the current position (could also be the loanToken)
-    /// @param collateralTokenAddress The token used for collateral
-    /// @param loanTokenAmount The amount of loan token
-    /// @param positionTokenAmount The amount of position token
-    /// @param collateralTokenAmount The amount of collateral token
-    /// @param maintenanceMarginAmount The maintenance margin amount from the loan
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
     /// @return Returns True if the trade should be liquidated immediately
     function shouldLiquidate(
-        bytes32 loanOrderHash,
-        address trader,
-        address loanTokenAddress,
-        address positionTokenAddress,
-        address collateralTokenAddress,
-        uint loanTokenAmount,
-        uint positionTokenAmount,
-        uint collateralTokenAmount,
-        uint maintenanceMarginAmount)
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition)
         public
         view
         returns (bool);

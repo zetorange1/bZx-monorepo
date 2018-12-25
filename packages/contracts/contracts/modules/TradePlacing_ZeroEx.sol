@@ -133,15 +133,8 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
 
         // trade can't trigger liquidation
         if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
-                loanOrderHash,
-                loanPosition.trader,
-                loanOrder.loanTokenAddress,
-                tradeTokenAddress,
-                loanPosition.collateralTokenAddressFilled,
-                loanPosition.loanTokenAmountFilled,
-                tradeTokenAmount,
-                loanPosition.collateralTokenAmountFilled,
-                loanOrder.maintenanceMarginAmount)) {
+                loanOrder,
+                loanPosition)) {
             revert("BZxTradePlacing::tradePositionWith0x: trade triggers liquidation");
         }
 
@@ -222,15 +215,8 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
 
         // trade can't trigger liquidation
         if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
-                loanOrderHash,
-                loanPosition.trader,
-                loanOrder.loanTokenAddress,
-                tradeTokenAddress,
-                loanPosition.collateralTokenAddressFilled,
-                loanPosition.loanTokenAmountFilled,
-                tradeTokenAmount,
-                loanPosition.collateralTokenAmountFilled,
-                loanOrder.maintenanceMarginAmount)) {
+                loanOrder,
+                loanPosition)) {
             revert("BZxTradePlacing::tradePositionWith0x: trade triggers liquidation");
         }
 

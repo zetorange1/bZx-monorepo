@@ -12,12 +12,11 @@ import "../storage/BZxStorage.sol";
 import "../BZxVault.sol";
 import "../oracle/OracleRegistry.sol";
 import "../oracle/OracleInterface.sol";
-import "./InternalFunctions.sol";
 import "./InterestFunctions.sol";
 
 import "../tokens/EIP20.sol";
 
-contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunctions {
+contract OrderTakingFunctions is BZxStorage, InterestFunctions {
     using SafeMath for uint256;
 
     // 0x signature types.
@@ -493,10 +492,10 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
                         loanOrder.loanTokenAddress,
                         oracleAddresses[loanOrder.oracleAddress],
                         loanTokenAmountFilled)) {
-                        revert("InternalFunctions::_setOrderAndPositionState: BZxVault.withdrawToken failed");
+                        revert("MiscFunctions::_setOrderAndPositionState: BZxVault.withdrawToken failed");
                     }
                     
-                    (uint amountFilled,) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doTrade(
+                    (uint amountFilled,) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).trade(
                         loanOrder.loanTokenAddress,
                         loanPosition.positionTokenAddressFilled,
                         loanTokenAmountFilled,
@@ -602,7 +601,7 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
             tradeTokenToFillAddress,
             MAX_UINT,
             false, // isLiquidation
-            true // isManual
+            true // ensureHealthy
         );
 
         if (positionTokenAmountUsed < loanPosition.positionTokenAmountFilled) {
@@ -618,20 +617,6 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
 
         if (tradeTokenAmount == 0) {
             revert("OrderTakingFunctions::_fillTradeToken: tradeTokenAmount == 0");
-        }
-
-        // trade can't trigger liquidation
-        if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
-                loanOrder.loanOrderHash,
-                loanPosition.trader,
-                loanOrder.loanTokenAddress,
-                tradeTokenToFillAddress,
-                loanPosition.collateralTokenAddressFilled,
-                loanPosition.loanTokenAmountFilled,
-                tradeTokenAmount,
-                loanPosition.collateralTokenAmountFilled,
-                loanOrder.maintenanceMarginAmount)) {
-            revert("OrderTakingFunctions::_fillTradeToken: trade triggers liquidation");
         }
 
         // the trade token becomes the new position token
@@ -662,11 +647,10 @@ contract OrderTakingFunctions is BZxStorage, InternalFunctions, InterestFunction
             
             // Total interest required if loan is kept open for the full duration.
             // Unused interest at the end of a loan is refunded to the trader.
-            uint totalInterestRequired = _getTotalInterestRequired(
-                loanOrder.loanTokenAmount,
+            uint totalInterestRequired = _safeGetPartialAmountFloor(
                 loanTokenAmountFilled,
-                loanOrder.interestAmount,
-                loanPosition.loanEndUnixTimestampSec.sub(block.timestamp)
+                loanOrder.loanTokenAmount,
+                loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(loanOrder.interestAmount).div(86400)
             );
 
             if (totalInterestRequired > 0) {

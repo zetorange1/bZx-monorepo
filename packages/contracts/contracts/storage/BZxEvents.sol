@@ -58,15 +58,6 @@ contract BZxEvents {
         uint positionId
     );
 
-    event LogMarginLevels(
-        bytes32 indexed loanOrderHash,
-        address indexed trader,
-        uint initialMarginAmount,
-        uint maintenanceMarginAmount,
-        uint currentMarginAmount,
-        uint positionId
-    );
-
     event LogWithdrawPosition(
         bytes32 indexed loanOrderHash,
         address indexed trader,

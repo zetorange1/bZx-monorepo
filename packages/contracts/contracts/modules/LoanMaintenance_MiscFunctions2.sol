@@ -9,14 +9,14 @@ pragma experimental ABIEncoderV2;
 import "../openzeppelin-solidity/Math.sol";
 
 import "../proxy/BZxProxiable.sol";
-import "../shared/InternalFunctions.sol";
+import "../shared/MiscFunctions.sol";
 
 import "../oracle/OracleInterface.sol";
 
 import "../tokens/EIP20.sol";
 
 
-contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, InternalFunctions {
+contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
     using SafeMath for uint256;
 
     constructor() public {}

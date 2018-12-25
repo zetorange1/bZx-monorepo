@@ -9,10 +9,10 @@ pragma experimental ABIEncoderV2;
 import "../openzeppelin-solidity/Math.sol";
 
 import "../proxy/BZxProxiable.sol";
-import "../shared/InternalFunctions.sol";
+import "../shared/InterestFunctions.sol";
 
 
-contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InternalFunctions {
+contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions {
     using SafeMath for uint256;
 
     constructor() public {}

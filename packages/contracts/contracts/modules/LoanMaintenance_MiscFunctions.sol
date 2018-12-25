@@ -9,13 +9,13 @@ pragma experimental ABIEncoderV2;
 import "../openzeppelin-solidity/Math.sol";
 
 import "../proxy/BZxProxiable.sol";
-import "../shared/InternalFunctions.sol";
+import "../shared/MiscFunctions.sol";
 
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 
 
-contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, InternalFunctions {
+contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -315,7 +315,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, InternalFunc
             }
             
             uint depositTokenAmountUsed;
-            (positionTokenAmountReceived, depositTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).doTrade(
+            (positionTokenAmountReceived, depositTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).trade(
                 depositTokenAddress,
                 loanPosition.positionTokenAddressFilled,
                 depositAmount,

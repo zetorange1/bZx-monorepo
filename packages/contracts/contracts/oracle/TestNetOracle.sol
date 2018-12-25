@@ -100,7 +100,7 @@ contract TestNetOracle is BZxOracle {
         }
     }
 
-    function _doTrade(
+    function _trade(
         address sourceTokenAddress,
         address destTokenAddress,
         uint sourceTokenAmount,
@@ -124,7 +124,7 @@ contract TestNetOracle is BZxOracle {
                 destTokenAddress,
                 vaultContract,
                 destTokenAmountReceived)) {
-                revert("TestNetOracle::_doTrade: _transferToken failed");
+                revert("TestNetOracle::_trade: _transferToken failed");
             }
 
             if (sourceTokenAmountUsed < sourceTokenAmount) {
@@ -133,7 +133,7 @@ contract TestNetOracle is BZxOracle {
                     sourceTokenAddress,
                     vaultContract,
                     sourceTokenAmount-sourceTokenAmountUsed)) {
-                    revert("TestNetOracle::_doTrade: _transferToken failed");
+                    revert("TestNetOracle::_trade: _transferToken failed");
                 }
             }
         } else {
@@ -155,7 +155,7 @@ contract TestNetOracle is BZxOracle {
             require(Faucet(faucetContract).oracleExchange(
                 destTokenAddress,
                 vaultContract,
-                destTokenAmountReceived), "TestNetOracle::_doTrade: trade failed");
+                destTokenAmountReceived), "TestNetOracle::_trade: trade failed");
 
             if (sourceTokenAmountUsed < sourceTokenAmount) {
                 // send unused source token back
@@ -163,13 +163,13 @@ contract TestNetOracle is BZxOracle {
                     sourceTokenAddress,
                     vaultContract,
                     sourceTokenAmount-sourceTokenAmountUsed)) {
-                    revert("TestNetOracle::_doTrade: _transferToken failed");
+                    revert("TestNetOracle::_trade: _transferToken failed");
                 }
             }
         }
     }
 
-    function _doTradeForWeth(
+    function _tradeForWeth(
         address /*sourceTokenAddress*/,
         uint /* sourceTokenAmount */,
         address /*receiver*/,
@@ -180,7 +180,7 @@ contract TestNetOracle is BZxOracle {
         destTokenAmountReceived = 0;//destEthAmountNeeded < sourceTokenAmount ? destEthAmountNeeded : sourceTokenAmount;
     }
 
-    function _doTradeWithWeth(
+    function _tradeWithWeth(
         address destTokenAddress,
         uint sourceEthAmount,
         address receiver,
@@ -192,6 +192,6 @@ contract TestNetOracle is BZxOracle {
         require(Faucet(faucetContract).oracleExchange(
             destTokenAddress,
             receiver,
-            destTokenAmountReceived), "TestNetOracle::_doTrade: trade failed");
+            destTokenAmountReceived), "TestNetOracle::_trade: trade failed");
     }
 }

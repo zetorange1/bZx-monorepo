@@ -9,14 +9,13 @@ pragma experimental ABIEncoderV2;
 import "../openzeppelin-solidity/Math.sol";
 
 import "../proxy/BZxProxiable.sol";
-import "../shared/InternalFunctions.sol";
 import "../shared/InterestFunctions.sol";
 
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 
 
-contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InternalFunctions, InterestFunctions {
+contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -159,10 +158,6 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InternalFunctions
             revert("BZxLoanHealth::liquidatePosition: loanOrder.loanTokenAddress == address(0)");
         }
 
-        if (DEBUG_MODE) {
-            _emitMarginLog(loanOrder, loanPosition);
-        }
-
         // If the position token is not the loan token, then we need to buy back the loan token 
         // prior to closing the loan. Liquidation checks will be run in _tradePositionWithOracle.
         if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
@@ -172,7 +167,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InternalFunctions
                 loanOrder.loanTokenAddress, // tradeTokenAddress
                 MAX_UINT,
                 !DEBUG_MODE, // isLiquidation
-                false // isManual
+                false // ensureHealthy
             );
 
             if (loanTokenAmount == 0) {
@@ -197,15 +192,8 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InternalFunctions
             // verify liquidation checks before proceeding to close the loan
             if (!DEBUG_MODE && block.timestamp < loanPosition.loanEndUnixTimestampSec) { // checks for non-expired loan
                 if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
-                        loanOrderHash,
-                        trader,
-                        loanOrder.loanTokenAddress,
-                        loanPosition.positionTokenAddressFilled,
-                        loanPosition.collateralTokenAddressFilled,
-                        loanPosition.loanTokenAmountFilled,
-                        loanPosition.positionTokenAmountFilled,
-                        loanPosition.collateralTokenAmountFilled,
-                        loanOrder.maintenanceMarginAmount)) {
+                        loanOrder,
+                        loanPosition)) {
                     revert("BZxLoanHealth::liquidatePosition: liquidation not allowed");
                 }
             }
@@ -369,20 +357,9 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InternalFunctions
             return true; // expired loan
         }
 
-        /*if (DEBUG_MODE) {
-            _emitMarginLog(loanOrder, loanPosition);
-        }*/
-
         return OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
-            loanOrderHash,
-            trader,
-            loanOrder.loanTokenAddress,
-            loanPosition.positionTokenAddressFilled,
-            loanPosition.collateralTokenAddressFilled,
-            loanPosition.loanTokenAmountFilled,
-            loanPosition.positionTokenAmountFilled,
-            loanPosition.collateralTokenAmountFilled,
-            loanOrder.maintenanceMarginAmount);
+            loanOrder,
+            loanPosition);
     }
 
     /// @dev Gets current margin data for the loan
@@ -505,11 +482,10 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InternalFunctions
                 .sub(interestRefunded[positionId])
                 .sub(interestPaid[positionId]);
 
-            uint remainingInterestRequired = _getTotalInterestRequired(
-                loanOrder.loanTokenAmount,
+            uint remainingInterestRequired = _safeGetPartialAmountFloor(
                 loanPosition.loanTokenAmountFilled.sub(closeAmount),
-                loanOrder.interestAmount,
-                loanPosition.loanEndUnixTimestampSec.sub(block.timestamp)
+                loanOrder.loanTokenAmount,
+                loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(loanOrder.interestAmount).div(86400)
             );
 
             if (remainingInterestRequired < remainingInterest) {
@@ -536,7 +512,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InternalFunctions
                 loanOrder.loanTokenAddress, // tradeTokenAddress
                 closeAmount,
                 false, // isLiquidation
-                false // isManual
+                false // ensureHealthy
             );
 
             if (loanTokenAmountClosed < closeAmount) {
@@ -602,7 +578,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InternalFunctions
                 loanOrder.loanTokenAddress, // tradeTokenAddress
                 MAX_UINT, // close the entire position
                 false, // isLiquidation
-                false // isManual
+                false // ensureHealthy
             );
 
             if (loanTokenAmount == 0) {
@@ -776,5 +752,27 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InternalFunctions
             // trim array
             positionList.length--;
         }
+    }
+
+    // returns initialMarginAmount, maintenanceMarginAmount, currentMarginAmount
+    // currentMarginAmount is a percentage -> i.e. 54350000000000000000 == 54.35%
+    function _getMarginLevels(
+        LoanOrder memory loanOrder,
+        LoanPosition memory loanPosition)
+        internal
+        view
+        returns (uint, uint, uint)
+    {
+        return (
+            loanOrder.initialMarginAmount,
+            loanOrder.maintenanceMarginAmount,
+            OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getCurrentMarginAmount(
+                loanOrder.loanTokenAddress,
+                loanPosition.positionTokenAddressFilled,
+                loanPosition.collateralTokenAddressFilled,
+                loanPosition.loanTokenAmountFilled,
+                loanPosition.positionTokenAmountFilled,
+                loanPosition.collateralTokenAmountFilled)
+        );
     }
 }

@@ -55,6 +55,8 @@ contract OrderTaking_takeLoanOrderAsLender is BZxStorage, BZxProxiable, OrderTak
             oracleData,
             signature);
 
+        LoanOrderAux memory loanOrderAux = orderAux[loanOrderHash];
+        
         // lenders have to fill the entire uncanceled loanTokenAmount
         uint loanTokenAmountFilled = orderValues[0].sub(_getUnavailableLoanTokenAmount(loanOrderHash));
         LoanOrder memory loanOrder = _takeLoanOrder(
@@ -62,14 +64,14 @@ contract OrderTaking_takeLoanOrderAsLender is BZxStorage, BZxProxiable, OrderTak
             orderAddresses[3], // collateralTokenFilled
             loanTokenAmountFilled,
             0, // takerRole
-            orderAux[loanOrderHash].withdrawOnOpen
+            loanOrderAux.withdrawOnOpen
         );
 
-        if (!orderAux[loanOrderHash].withdrawOnOpen && orderAux[loanOrderHash].tradeTokenToFillAddress != address(0)) {
+        if (!loanOrderAux.withdrawOnOpen && loanOrderAux.tradeTokenToFillAddress != address(0)) {
             _fillTradeToken(
                 loanOrder,
                 orderAddresses[0], // trader
-                orderAux[loanOrderHash].tradeTokenToFillAddress
+                loanOrderAux.tradeTokenToFillAddress
             );
         }
 

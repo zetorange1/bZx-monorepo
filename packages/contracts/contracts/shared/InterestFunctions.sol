@@ -4,15 +4,17 @@
  */
 
 pragma solidity 0.5.2;
-pragma experimental ABIEncoderV2;
+//pragma experimental ABIEncoderV2;
 
 import "../openzeppelin-solidity/SafeMath.sol";
-
 import "../storage/BZxStorage.sol";
-import "./InternalFunctions.sol";
+import "../BZxVault.sol";
+import "../oracle/OracleInterface.sol";
+import "./MathFunctions.sol";
+import "./MiscFunctions.sol";
 
 
-contract InterestFunctions is BZxStorage, InternalFunctions {
+contract InterestFunctions is BZxStorage, MathFunctions, MiscFunctions {
     using SafeMath for uint256;
 
     function _setInterestPaidForPosition(
@@ -97,5 +99,50 @@ contract InterestFunctions is BZxStorage, InternalFunctions {
         }
         
         return amountPaid;
+    }
+
+    function _getInterestData(
+        LoanOrder memory loanOrder,
+        LoanPosition memory loanPosition)
+        internal
+        view
+        returns (InterestData memory interestData)
+    {
+        uint interestTotalAccrued = 0;
+        uint interestPaidSoFar = 0;
+        uint interestLastPaidDate = 0;
+        if (loanOrder.interestAmount > 0) {
+            uint interestTime = block.timestamp;
+            interestLastPaidDate = interestPaidDate[loanPosition.positionId];
+            if (interestTime > loanPosition.loanEndUnixTimestampSec) {
+                interestTime = loanPosition.loanEndUnixTimestampSec;
+            }
+            if (interestLastPaidDate == 0) {
+                interestLastPaidDate = loanPosition.loanStartUnixTimestampSec;
+            }
+
+            interestPaidSoFar = interestPaid[loanPosition.positionId];
+            if (loanPosition.active) {
+                interestTotalAccrued = _safeGetPartialAmountFloor(
+                    loanPosition.loanTokenAmountFilled, 
+                    loanOrder.loanTokenAmount, 
+                    interestTime
+                        .sub(interestLastPaidDate)
+                        .mul(loanOrder.interestAmount)
+                        .div(86400)
+                ).add(interestPaidSoFar);
+            } else {
+                // this is so, because remaining interest is paid out when the loan is closed
+                interestTotalAccrued = interestPaidSoFar;
+            }
+        }
+
+        interestData = InterestData({
+            lender: orderLender[loanOrder.loanOrderHash],
+            interestTokenAddress: loanOrder.interestTokenAddress,
+            interestTotalAccrued: interestTotalAccrued,
+            interestPaidSoFar: interestPaidSoFar,
+            interestLastPaidDate: interestLastPaidDate > loanPosition.loanStartUnixTimestampSec ? interestLastPaidDate : 0
+        });
     }
 }

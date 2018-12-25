@@ -90,7 +90,6 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     // A value of 0 indicates that no threshold exists for this parameter.
     uint public minMaintenanceMarginAmount = 25 * 10**18;
 
-    bool public isManualTradingAllowed = true;
 /* solhint-disable var-name-mixedcase */
     address public vaultContract;
     address public kyberContract;
@@ -216,7 +215,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
         if (convert && loanOrder.interestTokenAddress != wethContract && loanOrder.interestTokenAddress != bZRxTokenContract) {
             // interest paid in WETH or BZRX is retained as is, other tokens are sold for WETH
-            _doTradeForWeth(
+            _tradeForWeth(
                 loanOrder.interestTokenAddress,
                 interestFee,
                 address(this), // BZxOracle receives the WETH proceeds
@@ -384,8 +383,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         return true;
     }
 
-
-    function doManualTrade(
+    function trade(
         address sourceTokenAddress,
         address destTokenAddress,
         uint sourceTokenAmount,
@@ -394,32 +392,40 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         onlyBZx
         returns (uint destTokenAmountReceived, uint sourceTokenAmountUsed)
     {
-        if (isManualTradingAllowed) {
-            (destTokenAmountReceived, sourceTokenAmountUsed) = _doTrade(
-                sourceTokenAddress,
-                destTokenAddress,
-                sourceTokenAmount,
-                maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER);
-        }
-        else {
-            revert("Manual trading is disabled.");
-        }
-    }
-
-    function doTrade(
-        address sourceTokenAddress,
-        address destTokenAddress,
-        uint sourceTokenAmount,
-        uint maxDestTokenAmount)
-        public
-        onlyBZx
-        returns (uint destTokenAmountReceived, uint sourceTokenAmountUsed)
-    {
-        (destTokenAmountReceived, sourceTokenAmountUsed) = _doTrade(
+        (destTokenAmountReceived, sourceTokenAmountUsed) = _trade(
             sourceTokenAddress,
             destTokenAddress,
             sourceTokenAmount,
             maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER);
+    }
+
+    function tradePosition(
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
+        address destTokenAddress,
+        uint maxDestTokenAmount,
+        bool ensureHealthy)
+        public
+        onlyBZx
+        returns (uint destTokenAmountReceived, uint sourceTokenAmountUsed)
+    {
+        (destTokenAmountReceived, sourceTokenAmountUsed) = _trade(
+            loanPosition.positionTokenAddressFilled,
+            destTokenAddress,
+            loanPosition.positionTokenAmountFilled,
+            maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER);
+
+        if (ensureHealthy) {
+            loanPosition.positionTokenAddressFilled = destTokenAddress;
+            loanPosition.positionTokenAmountFilled = destTokenAmountReceived;
+
+            // trade can't trigger liquidation
+            if (shouldLiquidate(
+                loanOrder,
+                loanPosition)) {
+                revert("BZxOracle::tradePosition: trade triggers liquidation");
+            }
+        }
     }
 
     function verifyAndLiquidate(
@@ -430,15 +436,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         returns (uint destTokenAmountReceived, uint sourceTokenAmountUsed)
     {
         if (!shouldLiquidate(
-            0,
-            address(0),
-            loanOrder.loanTokenAddress,
-            loanPosition.positionTokenAddressFilled,
-            loanPosition.collateralTokenAddressFilled,
-            loanPosition.loanTokenAmountFilled,
-            loanPosition.positionTokenAmountFilled,
-            loanPosition.collateralTokenAmountFilled,
-            loanOrder.maintenanceMarginAmount)) {
+            loanOrder,
+            loanPosition)) {
 
             // send unused source token back
             if (!_transferToken(
@@ -451,7 +450,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             return (0,0);
         }
 
-        (destTokenAmountReceived, sourceTokenAmountUsed) = _doTrade(
+        (destTokenAmountReceived, sourceTokenAmountUsed) = _trade(
             loanPosition.positionTokenAddressFilled,
             loanOrder.loanTokenAddress,
             loanPosition.positionTokenAmountFilled,
@@ -488,7 +487,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 (minInitialMarginAmount == 0 || loanOrder.initialMarginAmount >= minInitialMarginAmount) &&
                 (minMaintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= minMaintenanceMarginAmount)) {
                 // cover losses with collateral proceeds + oracle insurance
-                loanTokenAmountCovered = _doTradeWithWeth(
+                loanTokenAmountCovered = _tradeWithWeth(
                     loanOrder.loanTokenAddress,
                     MAX_FOR_KYBER, // maximum usable amount
                     vaultContract,
@@ -496,7 +495,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 );
             } else {
                 // cover losses with just collateral proceeds
-                loanTokenAmountCovered = _doTradeWithWeth(
+                loanTokenAmountCovered = _tradeWithWeth(
                     loanOrder.loanTokenAddress,
                     wethAmountReceived, // maximum usable amount
                     vaultContract,
@@ -523,27 +522,20 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     */
 
     function shouldLiquidate(
-        bytes32 /* loanOrderHash */,
-        address /* trader */,
-        address loanTokenAddress,
-        address positionTokenAddress,
-        address collateralTokenAddress,
-        uint loanTokenAmount,
-        uint positionTokenAmount,
-        uint collateralTokenAmount,
-        uint maintenanceMarginAmount)
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition)
         public
         view
         returns (bool)
     {
         return (
             getCurrentMarginAmount(
-                loanTokenAddress,
-                positionTokenAddress,
-                collateralTokenAddress,
-                loanTokenAmount,
-                positionTokenAmount,
-                collateralTokenAmount) <= maintenanceMarginAmount
+                loanOrder.loanTokenAddress,
+                loanPosition.positionTokenAddressFilled,
+                loanPosition.collateralTokenAddressFilled,
+                loanPosition.loanTokenAmountFilled,
+                loanPosition.positionTokenAmountFilled,
+                loanPosition.collateralTokenAmountFilled) <= loanOrder.maintenanceMarginAmount
             );
     }
 
@@ -751,15 +743,6 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         minMaintenanceMarginAmount = newMaintenanceMargin;
     }
 
-    function setManualTradingAllowed (
-        bool _isManualTradingAllowed)
-        public
-        onlyOwner
-    {
-        if (isManualTradingAllowed != _isManualTradingAllowed)
-            isManualTradingAllowed = _isManualTradingAllowed;
-    }
-
     function setVaultContractAddress(
         address newAddress)
         public
@@ -869,7 +852,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         }
 
         // trade collateral token for WETH
-        wethAmountReceived = _doTradeForWeth(
+        wethAmountReceived = _tradeForWeth(
             collateralTokenAddress,
             collateralTokenAmountUsable,
             address(this), // BZxOracle receives the WETH proceeds
@@ -919,7 +902,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         }
     }
 
-    function _doTrade(
+    function _trade(
         address sourceTokenAddress,
         address destTokenAddress,
         uint sourceTokenAmount,
@@ -943,7 +926,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 destTokenAddress,
                 vaultContract,
                 destTokenAmountReceived)) {
-                revert("BZxOracle::_doTrade: _transferToken failed");
+                revert("BZxOracle::_trade: _transferToken failed");
             }
 
             if (sourceTokenAmountUsed < sourceTokenAmount) {
@@ -952,7 +935,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                     sourceTokenAddress,
                     vaultContract,
                     sourceTokenAmount-sourceTokenAmountUsed)) {
-                    revert("BZxOracle::_doTrade: _transferToken failed");
+                    revert("BZxOracle::_trade: _transferToken failed");
                 }
             }
         } else {
@@ -992,13 +975,13 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                     sourceTokenAddress,
                     vaultContract,
                     sourceTokenAmount-sourceTokenAmountUsed)) {
-                    revert("BZxOracle::_doTrade: _transferToken failed");
+                    revert("BZxOracle::_trade: _transferToken failed");
                 }
             }
         }
     }
 
-    function _doTradeForWeth(
+    function _tradeForWeth(
         address sourceTokenAddress,
         uint sourceTokenAmount,
         address receiver,
@@ -1015,7 +998,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                     wethContract,
                     receiver,
                     destWethAmountNeeded)) {
-                    revert("BZxOracle::_doTradeForWeth: _transferToken failed");
+                    revert("BZxOracle::_tradeForWeth: _transferToken failed");
                 }
             }
 
@@ -1076,7 +1059,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         }
     }
 
-    function _doTradeWithWeth(
+    function _tradeWithWeth(
         address destTokenAddress,
         uint sourceWethAmount,
         address receiver,
@@ -1096,7 +1079,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                     wethContract,
                     receiver,
                     destTokenAmountNeeded)) {
-                    revert("BZxOracle::_doTradeWithWeth: _transferToken failed");
+                    revert("BZxOracle::_tradeWithWeth: _transferToken failed");
                 }
             }
 
