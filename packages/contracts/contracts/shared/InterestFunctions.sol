@@ -85,19 +85,19 @@ contract InterestFunctions is BZxStorage, MathFunctions, MiscFunctions {
                 amountPaid,
                 convert
             );
+
+            if (emitEvent) {
+                emit LogPayInterestForPosition(
+                    loanOrder.loanOrderHash,
+                    orderLender[loanOrder.loanOrderHash],
+                    loanPosition.trader,
+                    amountPaid,
+                    interestTotalAccrued,
+                    loanPosition.positionId
+                );
+            }
         }
 
-        if (emitEvent) {
-            emit LogPayInterestForPosition(
-                loanOrder.loanOrderHash,
-                orderLender[loanOrder.loanOrderHash],
-                loanPosition.trader,
-                amountPaid,
-                interestTotalAccrued,
-                loanPosition.positionId
-            );
-        }
-        
         return amountPaid;
     }
 

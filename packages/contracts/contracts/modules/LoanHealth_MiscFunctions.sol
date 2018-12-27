@@ -97,7 +97,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
         uint totalAmountPaid = 0;
         uint totalAmountAccrued = 0;
         for (uint i=0; i < orderPositionList[loanOrderHash].length; i++) {
-            // can still pay any unpaid accured interest after a loan has closed
+            // can still pay any unpaid accrued interest after a loan has closed
             LoanPosition memory loanPosition = loanPositions[orderPositionList[loanOrderHash][i]];
             if (loanPosition.loanTokenAmountFilled == 0) {
                 revert("BZxLoanHealth::payInterest: loanPosition.loanTokenAmountFilled == 0");
@@ -116,15 +116,15 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
                 totalAmountPaid,
                 true // convert
             );
-        }
 
-        emit LogPayInterestForOrder(
-            loanOrder.loanOrderHash,
-            orderLender[loanOrder.loanOrderHash],
-            totalAmountPaid,
-            totalAmountAccrued,
-            orderPositionList[loanOrderHash].length
-        );
+            emit LogPayInterestForOrder(
+                loanOrder.loanOrderHash,
+                orderLender[loanOrder.loanOrderHash],
+                totalAmountPaid,
+                totalAmountAccrued,
+                orderPositionList[loanOrderHash].length
+            );
+        }
 
         return totalAmountPaid;
     }
