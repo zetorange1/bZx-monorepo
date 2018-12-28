@@ -373,7 +373,7 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
         uint256 itemCount = 0;
         for (uint256 j=orderList[loanParty].length; j > 0; j--) {
             bytes32 loanOrderHash = orderList[loanParty][j-1];
-            uint[] memory positionIds = orderPositionList[loanOrderHash];
+            uint256[] memory positionIds = orderPositionList[loanOrderHash];
 
             if (forLender && loanParty != orderLender[loanOrderHash]) {
                 continue;

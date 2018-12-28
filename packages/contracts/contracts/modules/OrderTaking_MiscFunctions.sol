@@ -46,7 +46,7 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
     /// @return The amount of loan token canceled.
     function cancelLoanOrder(
         address[8] calldata orderAddresses,
-        uint[11] calldata orderValues,
+        uint256[11] calldata orderValues,
         bytes calldata oracleData,
         uint256 cancelLoanTokenAmount)
         external
@@ -145,7 +145,7 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
     /// @return A unique hash representing the loan order.
     function pushLoanOrderOnChain(
         address[8] calldata orderAddresses,
-        uint[11] calldata orderValues,
+        uint256[11] calldata orderValues,
         bytes calldata oracleData,
         bytes calldata signature)        
         external
@@ -181,7 +181,7 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
     function preSign(
         address signer,
         address[8] calldata orderAddresses,
-        uint[11] calldata orderValues,
+        uint256[11] calldata orderValues,
         bytes calldata oracleData,
         bytes calldata signature)
         external
@@ -220,7 +220,7 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
     /// @return Keccak-256 hash of loanOrder.
     function getLoanOrderHash(
         address[8] memory orderAddresses,
-        uint[11] memory orderValues,
+        uint256[11] memory orderValues,
         bytes memory oracleData)
         public
         view

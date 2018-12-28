@@ -34,7 +34,7 @@ contract BZx is BZxStorage {
     /// @dev Traders also specify the token that will fill the margin requirement if they are taking the order.
     function takeLoanOrderAsTrader(
         address[8] calldata orderAddresses,
-        uint[11] calldata orderValues,
+        uint256[11] calldata orderValues,
         bytes calldata oracleData,
         address collateralTokenFilled,
         uint256 loanTokenAmountFilled,
@@ -54,7 +54,7 @@ contract BZx is BZxStorage {
     /// @dev This makes loanTokenAmountFilled = loanOrder.loanTokenAmount.
     function takeLoanOrderAsLender(
         address[8] calldata orderAddresses,
-        uint[11] calldata orderValues,
+        uint256[11] calldata orderValues,
         bytes calldata oracleData,
         bytes calldata signature)
         external
@@ -68,7 +68,7 @@ contract BZx is BZxStorage {
     /// @return A unique hash representing the loan order.
     function pushLoanOrderOnChain(
         address[8] calldata orderAddresses,
-        uint[11] calldata orderValues,
+        uint256[11] calldata orderValues,
         bytes calldata oracleData,
         bytes calldata signature)
         external
@@ -112,7 +112,7 @@ contract BZx is BZxStorage {
     function preSign(
         address signer,
         address[8] calldata orderAddresses,
-        uint[11] calldata orderValues,
+        uint256[11] calldata orderValues,
         bytes calldata oracleData,
         bytes calldata signature)
         external;
@@ -136,7 +136,7 @@ contract BZx is BZxStorage {
     /// @return The amount of loan token canceled.
     function cancelLoanOrder(
         address[8] calldata orderAddresses,
-        uint[11] calldata orderValues,
+        uint256[11] calldata orderValues,
         bytes calldata oracleData,
         uint256 cancelLoanTokenAmount)
         external
@@ -159,7 +159,7 @@ contract BZx is BZxStorage {
     /// @return Keccak-256 hash of loanOrder.
     function getLoanOrderHash(
         address[8] memory orderAddresses,
-        uint[11] memory orderValues,
+        uint256[11] memory orderValues,
         bytes memory oracleData)
         public
         view

@@ -41,7 +41,7 @@ contract BZxStorage is BZxObjects, BZxEvents, ReentrancyGuard, Ownable, GasTrack
     mapping (address => bytes32[]) public orderList; // mapping of lenders and trader addresses to array of loanOrderHashes
     mapping (bytes32 => mapping (address => ListIndex)) public orderListIndex; // mapping of loanOrderHash to mapping of lenders and trader addresses to ListIndex objects
 
-    mapping (bytes32 => uint[]) public orderPositionList; // mapping of loanOrderHash to array of order position ids
+    mapping (bytes32 => uint256[]) public orderPositionList; // mapping of loanOrderHash to array of order position ids
 
     PositionRef[] public positionList; // array of loans that need to be checked for liquidation or expiration
     mapping (uint256 => ListIndex) public positionListIndex; // mapping of position ids to ListIndex objects

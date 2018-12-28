@@ -45,7 +45,7 @@ contract OrderTaking_takeLoanOrderAsTrader is BZxStorage, BZxProxiable, OrderTak
     /// @dev Traders also specify the token that will fill the margin requirement if they are taking the order.
     function takeLoanOrderAsTrader(
         address[8] calldata orderAddresses,
-        uint[11] calldata orderValues,
+        uint256[11] calldata orderValues,
         bytes calldata oracleData,
         address collateralTokenFilled,
         uint256 loanTokenAmountFilled,

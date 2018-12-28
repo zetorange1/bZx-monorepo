@@ -41,7 +41,7 @@ contract OrderTaking_takeLoanOrderAsLender is BZxStorage, BZxProxiable, OrderTak
     /// @dev This makes loanTokenAmountFilled = loanOrder.loanTokenAmount.
     function takeLoanOrderAsLender(
         address[8] calldata orderAddresses,
-        uint[11] calldata orderValues,
+        uint256[11] calldata orderValues,
         bytes calldata oracleData,
         bytes calldata signature)
         external

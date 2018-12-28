@@ -11,7 +11,7 @@ interface ExchangeInterface {
 
     function fillOrder(
           address[5] calldata orderAddresses,
-          uint[6] calldata orderValues,
+          uint256[6] calldata orderValues,
           uint256 fillTakerTokenAmount,
           bool shouldThrowOnInsufficientBalanceOrAllowance,
           uint8 v,
@@ -22,7 +22,7 @@ interface ExchangeInterface {
 
     function fillOrdersUpTo(
         address[5][] calldata orderAddresses,
-        uint[6][] calldata orderValues,
+        uint256[6][] calldata orderValues,
         uint256 fillTakerTokenAmount,
         bool shouldThrowOnInsufficientBalanceOrAllowance,
         uint8[] calldata v,

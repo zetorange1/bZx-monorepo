@@ -196,10 +196,10 @@ contract OracleRegistry is Ownable {
     function getOracleList()
         public
         view
-        returns (address[] memory, uint[] memory, string memory)
+        returns (address[] memory, uint256[] memory, string memory)
     {
         address[] memory addresses = oracleAddresses;
-        uint[] memory nameLengths = new uint[](oracleAddresses.length);
+        uint256[] memory nameLengths = new uint256[](oracleAddresses.length);
         string memory allStrings;
 
         if (oracleAddresses.length == 0)

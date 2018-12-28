@@ -49,7 +49,7 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
             uint256 destTokenAmount,
             uint256 sourceTokenUsedAmount)
     {
-        (address[5][] memory orderAddresses0x, uint[6][] memory orderValues0x) = getOrderValuesFromData(orderData0x);
+        (address[5][] memory orderAddresses0x, uint256[6][] memory orderValues0x) = getOrderValuesFromData(orderData0x);
 
         (sourceTokenUsedAmount, destTokenAmount) = _take0xTrade(
             trader,
@@ -78,7 +78,7 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
         pure
         returns (
             address[5][] memory orderAddresses,
-            uint[6][] memory orderValues)
+            uint256[6][] memory orderValues)
     {
         address maker;
         address taker;
@@ -92,7 +92,7 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
         uint256 expirationTimestampInSec;
         uint256 salt;
         orderAddresses = new address[5][](orderData0x.length/352);
-        orderValues = new uint[6][](orderData0x.length/352);
+        orderValues = new uint256[6][](orderData0x.length/352);
         for (uint256 i = 0; i < orderData0x.length/352; i++) {
             assembly {
                 maker := mload(add(orderData0x, add(mul(i, 352), 32)))
@@ -200,12 +200,12 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
         address trader,
         uint256 sourceTokenAmountToUse,
         address[5][] memory orderAddresses0x,
-        uint[6][] memory orderValues0x,
+        uint256[6][] memory orderValues0x,
         bytes memory signature)
         internal
         returns (uint256 sourceTokenUsedAmount, uint256 destTokenAmount)
     {
-        uint[4] memory summations; // takerTokenAmountTotal, makerTokenAmountTotal, zrxTokenAmount, takerTokenRemaining
+        uint256[4] memory summations; // takerTokenAmountTotal, makerTokenAmountTotal, zrxTokenAmount, takerTokenRemaining
         summations[3] = sourceTokenAmountToUse; // takerTokenRemaining
 
         for (uint256 i = 0; i < orderAddresses0x.length; i++) {

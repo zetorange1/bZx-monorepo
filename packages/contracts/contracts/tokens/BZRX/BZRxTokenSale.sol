@@ -288,7 +288,7 @@ contract BZRxTokenSale is Ownable {
 
     function setWhitelist(
         address[] memory _users,
-        uint[] memory _values) 
+        uint256[] memory _values) 
         public 
         onlyOwner 
         returns (bool)

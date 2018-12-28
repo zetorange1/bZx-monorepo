@@ -113,7 +113,7 @@ contract OrderTakingFunctions is BZxStorage, InterestFunctions {
 
     function _getLoanOrderHash(
         address[8] memory orderAddresses,
-        uint[11] memory orderValues,
+        uint256[11] memory orderValues,
         bytes memory oracleData)
         internal
         view
@@ -129,7 +129,7 @@ contract OrderTakingFunctions is BZxStorage, InterestFunctions {
 
     function _addLoanOrder(
         address[8] memory orderAddresses,
-        uint[11] memory orderValues,
+        uint256[11] memory orderValues,
         bytes memory oracleData,
         bytes memory signature)
         internal
