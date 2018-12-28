@@ -39,15 +39,15 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
    function take0xTrade(
         address trader,
         address vaultAddress,
-        uint sourceTokenAmountToUse,
+        uint256 sourceTokenAmountToUse,
         bytes memory orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated
         bytes memory signature0x) // ECDSA of the 0x order
         public
         onlyBZx
         returns (
             address destTokenAddress,
-            uint destTokenAmount,
-            uint sourceTokenUsedAmount)
+            uint256 destTokenAmount,
+            uint256 sourceTokenUsedAmount)
     {
         (address[5][] memory orderAddresses0x, uint[6][] memory orderValues0x) = getOrderValuesFromData(orderData0x);
 
@@ -85,15 +85,15 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
         address makerToken;
         address takerToken;
         address feeRecipient;
-        uint makerTokenAmount;
-        uint takerTokenAmount;
-        uint makerFee;
-        uint takerFee;
-        uint expirationTimestampInSec;
-        uint salt;
+        uint256 makerTokenAmount;
+        uint256 takerTokenAmount;
+        uint256 makerFee;
+        uint256 takerFee;
+        uint256 expirationTimestampInSec;
+        uint256 salt;
         orderAddresses = new address[5][](orderData0x.length/352);
         orderValues = new uint[6][](orderData0x.length/352);
-        for (uint i = 0; i < orderData0x.length/352; i++) {
+        for (uint256 i = 0; i < orderData0x.length/352; i++) {
             assembly {
                 maker := mload(add(orderData0x, add(mul(i, 352), 32)))
                 taker := mload(add(orderData0x, add(mul(i, 352), 64)))
@@ -138,7 +138,7 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
         vs = new uint8[](signatures.length/65);
         rs = new bytes32[](signatures.length/65);
         ss = new bytes32[](signatures.length/65);
-        for (uint i = 0; i < signatures.length/65; i++) {
+        for (uint256 i = 0; i < signatures.length/65; i++) {
             uint8 v;
             bytes32 r;
             bytes32 s;
@@ -183,7 +183,7 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
     function approveFor (
         address token,
         address spender,
-        uint value)
+        uint256 value)
         public
         onlyOwner
         returns (bool)
@@ -198,17 +198,17 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
 
     function _take0xTrade(
         address trader,
-        uint sourceTokenAmountToUse,
+        uint256 sourceTokenAmountToUse,
         address[5][] memory orderAddresses0x,
         uint[6][] memory orderValues0x,
         bytes memory signature)
         internal
-        returns (uint sourceTokenUsedAmount, uint destTokenAmount)
+        returns (uint256 sourceTokenUsedAmount, uint256 destTokenAmount)
     {
         uint[4] memory summations; // takerTokenAmountTotal, makerTokenAmountTotal, zrxTokenAmount, takerTokenRemaining
         summations[3] = sourceTokenAmountToUse; // takerTokenRemaining
 
-        for (uint i = 0; i < orderAddresses0x.length; i++) {
+        for (uint256 i = 0; i < orderAddresses0x.length; i++) {
             // Note: takerToken is confirmed to be the same in 0x for batch orders
             require(orderAddresses0x[i][2] == orderAddresses0x[0][2], "makerToken must be the same for each order"); // // makerToken (aka destTokenAddress) must be the same for each order
 
@@ -246,7 +246,7 @@ contract BZxTo0x is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
 
         // Make sure there is enough allowance for 0x Exchange Proxy to transfer the sourceToken needed for the 0x trade
         // orderAddresses0x[0][3] -> takerToken/sourceToken
-        uint tempAllowance = EIP20(orderAddresses0x[0][3]).allowance.gas(4999)(address(this), tokenTransferProxyContract);
+        uint256 tempAllowance = EIP20(orderAddresses0x[0][3]).allowance.gas(4999)(address(this), tokenTransferProxyContract);
         if (tempAllowance < sourceTokenAmountToUse) {
             if (tempAllowance > 0) {
                 // reset approval to 0

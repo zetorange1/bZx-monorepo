@@ -34,11 +34,11 @@ interface KyberNetwork_Interface {
     /// @return amount of actual dest tokens
     function trade(
         address src,
-        uint srcAmount,
+        uint256 srcAmount,
         address dest,
         address destAddress,
-        uint maxDestAmount,
-        uint minConversionRate,
+        uint256 maxDestAmount,
+        uint256 minConversionRate,
         address walletId
     )
         external
@@ -49,10 +49,10 @@ interface KyberNetwork_Interface {
     function getExpectedRate(
         address src,
         address dest,
-        uint srcQty)
+        uint256 srcQty)
         external
         view
-        returns (uint expectedRate, uint slippageRate);
+        returns (uint256 expectedRate, uint256 slippageRate);
 }
 
 
@@ -60,13 +60,13 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     using SafeMath for uint256;
 
     // this is the value the Kyber portal uses when setting a very high maximum number
-    uint internal constant MAX_FOR_KYBER = 57896044618658097711785492504343953926634992332820282019728792003956564819968;
+    uint256 internal constant MAX_FOR_KYBER = 57896044618658097711785492504343953926634992332820282019728792003956564819968;
 
     mapping (address => uint) internal decimals;
 
     // Bounty hunters are remembursed from collateral
     // The oracle requires a minimum amount
-    uint public minimumCollateralInWethAmount = 0.5 ether;
+    uint256 public minimumCollateralInWethAmount = 0.5 ether;
 
     // If true, the collateral must not be below minimumCollateralInWethAmount for the loan to be opened
     // If false, the loan can be opened, but it won't be insured by the insurance fund if collateral is below minimumCollateralInWethAmount
@@ -74,21 +74,21 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
     // Percentage of interest retained as fee
     // This will always be between 0 and 100%
-    uint public interestFeePercent = 10 * 10**18;
+    uint256 public interestFeePercent = 10 * 10**18;
 
     // Percentage of EMA-based gas refund paid to bounty hunters after successfully liquidating a position
-    uint public bountyRewardPercent = 110 * 10**18;
+    uint256 public bountyRewardPercent = 110 * 10**18;
 
     // An upper bound estimation on the liquidation gas cost
-    uint public gasUpperBound = 600000;
+    uint256 public gasUpperBound = 600000;
 
     // A threshold of minimum initial margin for loan to be insured by the guarantee fund
     // A value of 0 indicates that no threshold exists for this parameter.
-    uint public minInitialMarginAmount = 0;
+    uint256 public minInitialMarginAmount = 0;
 
     // A threshold of minimum maintenance margin for loan to be insured by the guarantee fund
     // A value of 0 indicates that no threshold exists for this parameter.
-    uint public minMaintenanceMarginAmount = 25 * 10**18;
+    uint256 public minMaintenanceMarginAmount = 25 * 10**18;
 
 /* solhint-disable var-name-mixedcase */
     address public vaultContract;
@@ -97,7 +97,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     address public bZRxTokenContract;
 /* solhint-enable var-name-mixedcase */
 
-    mapping (uint => uint) public collateralInWethAmounts; // mapping of position ids to initial collateralInWethAmounts
+    mapping (uint256 => uint) public collateralInWethAmounts; // mapping of position ids to initial collateralInWethAmounts
 
     constructor(
         address _vaultContract,
@@ -126,7 +126,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         BZxObjects.LoanOrderAux memory /* loanOrderAux */,
         bytes memory /* oracleData */,
         address /* taker */,
-        uint /* gasUsed */)
+        uint256 /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
@@ -140,15 +140,15 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         BZxObjects.LoanOrderAux memory /* loanOrderAux */,
         BZxObjects.LoanPosition memory loanPosition,
         address /* taker */,
-        uint /* gasUsed */)
+        uint256 /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
         returns (bool)
     {
-        uint collateralInWethAmount;
+        uint256 collateralInWethAmount;
         if (loanPosition.collateralTokenAddressFilled != wethContract) {
-            (uint collateralToWethRate,) = _getExpectedRate(
+            (uint256 collateralToWethRate,) = _getExpectedRate(
                 loanPosition.collateralTokenAddressFilled,
                 wethContract,
                 loanPosition.collateralTokenAmountFilled
@@ -167,7 +167,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function didTradePosition(
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanPosition memory /* loanPosition */,
-        uint /* gasUsed */)
+        uint256 /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
@@ -193,16 +193,16 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function didPayInterest(
         BZxObjects.LoanOrder memory loanOrder,
         address lender,
-        uint amountOwed,
+        uint256 amountOwed,
         bool convert,
-        uint /* gasUsed */)
+        uint256 /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
         returns (bool)
     {
         // interestFeePercent is only editable by owner
-        uint interestFee = amountOwed.mul(interestFeePercent).div(10**20);
+        uint256 interestFee = amountOwed.mul(interestFeePercent).div(10**20);
 
         // Transfers the interest to the lender, less the interest fee.
         // The fee is retained by the oracle.
@@ -229,8 +229,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function didDepositCollateral(
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanPosition memory /* loanPosition */,
-        uint /* depositAmount */,
-        uint /* gasUsed */)
+        uint256 /* depositAmount */,
+        uint256 /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
@@ -242,8 +242,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function didWithdrawCollateral(
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanPosition memory /* loanPosition */,
-        uint /* withdrawAmount */,
-        uint /* gasUsed */)
+        uint256 /* withdrawAmount */,
+        uint256 /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
@@ -255,7 +255,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function didChangeCollateral(
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanPosition memory /* loanPosition */,
-        uint /* gasUsed */)
+        uint256 /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
@@ -267,8 +267,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function didWithdrawPosition(
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanPosition memory /* loanPosition */,
-        uint /* withdrawAmount */,
-        uint /* gasUsed */)
+        uint256 /* withdrawAmount */,
+        uint256 /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
@@ -280,8 +280,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function didDepositPosition(
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanPosition memory /* loanPosition */,
-        uint /* depositAmount */,
-        uint /* gasUsed */)
+        uint256 /* depositAmount */,
+        uint256 /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
@@ -294,8 +294,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanPosition memory /* loanPosition */,
         address payable /* loanCloser */,
-        uint /* closeAmount */,
-        uint /* gasUsed */)
+        uint256 /* closeAmount */,
+        uint256 /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
@@ -309,7 +309,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         BZxObjects.LoanPosition memory /* loanPosition */,
         address payable loanCloser,
         bool isLiquidation,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
@@ -317,7 +317,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     {
         // sends gas and bounty reward to bounty hunter
         if (isLiquidation) {
-            (uint refundAmount, uint finalGasUsed) = getGasRefund(
+            (uint256 refundAmount, uint256 finalGasUsed) = getGasRefund(
                 gasUsed,
                 emaValue,
                 bountyRewardPercent
@@ -325,7 +325,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
             if (refundAmount > 0) {
                 // refunds are paid in ETH
-                uint wethBalance = EIP20(wethContract).balanceOf.gas(4999)(address(this));
+                uint256 wethBalance = EIP20(wethContract).balanceOf.gas(4999)(address(this));
                 if (refundAmount > wethBalance)
                     refundAmount = wethBalance;
 
@@ -347,7 +347,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanPosition memory /* loanPosition */,
         address /* oldTrader */,
-        uint /* gasUsed */)
+        uint256 /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
@@ -360,7 +360,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         BZxObjects.LoanOrder memory /* loanOrder */,
         address /* oldLender */,
         address /* newLender */,
-        uint /* gasUsed */)
+        uint256 /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
@@ -372,9 +372,9 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function didIncreaseLoanableAmount(
         BZxObjects.LoanOrder memory /* loanOrder */,
         address /* lender */,
-        uint /* loanTokenAmountAdded */,
-        uint /* totalNewFillableAmount */,
-        uint /* gasUsed */)
+        uint256 /* loanTokenAmountAdded */,
+        uint256 /* totalNewFillableAmount */,
+        uint256 /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
@@ -386,11 +386,11 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function trade(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount,
-        uint maxDestTokenAmount)
+        uint256 sourceTokenAmount,
+        uint256 maxDestTokenAmount)
         public
         onlyBZx
-        returns (uint destTokenAmountReceived, uint sourceTokenAmountUsed)
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
         (destTokenAmountReceived, sourceTokenAmountUsed) = _trade(
             sourceTokenAddress,
@@ -403,11 +403,11 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
         address destTokenAddress,
-        uint maxDestTokenAmount,
+        uint256 maxDestTokenAmount,
         bool ensureHealthy)
         public
         onlyBZx
-        returns (uint destTokenAmountReceived, uint sourceTokenAmountUsed)
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
         (destTokenAmountReceived, sourceTokenAmountUsed) = _trade(
             loanPosition.positionTokenAddressFilled,
@@ -433,7 +433,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         BZxObjects.LoanPosition memory loanPosition)
         public
         onlyBZx
-        returns (uint destTokenAmountReceived, uint sourceTokenAmountUsed)
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
         if (!shouldLiquidate(
             loanOrder,
@@ -461,20 +461,20 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function processCollateral(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint loanTokenAmountNeeded,
+        uint256 loanTokenAmountNeeded,
         bool isLiquidation) 
         public
         onlyBZx
-        returns (uint loanTokenAmountCovered, uint collateralTokenAmountUsed)
+        returns (uint256 loanTokenAmountCovered, uint256 collateralTokenAmountUsed)
     {
         require(isLiquidation || loanTokenAmountNeeded > 0, "!isLiquidation && loanTokenAmountNeeded == 0");
 
-        uint collateralTokenBalance = EIP20(loanPosition.collateralTokenAddressFilled).balanceOf.gas(4999)(address(this)); // Changes to state require at least 5000 gas
+        uint256 collateralTokenBalance = EIP20(loanPosition.collateralTokenAddressFilled).balanceOf.gas(4999)(address(this)); // Changes to state require at least 5000 gas
         if (collateralTokenBalance < loanPosition.collateralTokenAmountFilled) { // sanity check
             revert("BZxOracle::processCollateral: collateralTokenBalance < loanPosition.collateralTokenAmountFilled");
         }
 
-        uint wethAmountReceived = _getWethFromCollateral(
+        uint256 wethAmountReceived = _getWethFromCollateral(
             loanPosition.collateralTokenAddressFilled,
             loanOrder.loanTokenAddress,
             loanPosition.collateralTokenAmountFilled,
@@ -542,12 +542,12 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function isTradeSupported(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount)
+        uint256 sourceTokenAmount)
         public
         view
         returns (bool)
     {
-        (uint rate, uint slippage) = _getExpectedRate(
+        (uint256 rate, uint256 slippage) = _getExpectedRate(
             sourceTokenAddress,
             destTokenAddress,
             sourceTokenAmount);
@@ -561,10 +561,10 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function getTradeData(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount)
+        uint256 sourceTokenAmount)
         public
         view
-        returns (uint sourceToDestRate, uint destTokenAmount)
+        returns (uint256 sourceToDestRate, uint256 destTokenAmount)
     {
         (sourceToDestRate,) = _getExpectedRate(
             sourceTokenAddress,
@@ -576,20 +576,20 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                             .div(_getDecimalPrecision(sourceTokenAddress, destTokenAddress));
     }
 
-    // returns bool isPositive, uint offsetAmount
+    // returns bool isPositive, uint256 offsetAmount
     // the position's offset from loan principal denominated in positionToken
     function getPositionOffset(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition)
         public
         view
-        returns (bool isPositive, uint offsetAmount)
+        returns (bool isPositive, uint256 offsetAmount)
     {
-        uint collateralToPositionAmount;
+        uint256 collateralToPositionAmount;
         if (loanPosition.collateralTokenAddressFilled == loanPosition.positionTokenAddressFilled) {
             collateralToPositionAmount = loanPosition.collateralTokenAmountFilled;
         } else {
-            (uint collateralToPositionRate,) = _getExpectedRate(
+            (uint256 collateralToPositionRate,) = _getExpectedRate(
                 loanPosition.collateralTokenAddressFilled,
                 loanPosition.positionTokenAddressFilled,
                 loanPosition.collateralTokenAmountFilled);
@@ -599,11 +599,11 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             collateralToPositionAmount = loanPosition.collateralTokenAmountFilled.mul(collateralToPositionRate).div(_getDecimalPrecision(loanPosition.collateralTokenAddressFilled, loanPosition.positionTokenAddressFilled));
         }
 
-        uint loanToPositionAmount;
+        uint256 loanToPositionAmount;
         if (loanOrder.loanTokenAddress == loanPosition.positionTokenAddressFilled) {
             loanToPositionAmount = loanPosition.loanTokenAmountFilled;
         } else {
-            (uint loanToPositionRate,) = _getExpectedRate(
+            (uint256 loanToPositionRate,) = _getExpectedRate(
                 loanOrder.loanTokenAddress,
                 loanPosition.positionTokenAddressFilled,
                 loanPosition.loanTokenAmountFilled);
@@ -613,8 +613,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             loanToPositionAmount = loanPosition.loanTokenAmountFilled.mul(loanToPositionRate).div(_getDecimalPrecision(loanOrder.loanTokenAddress, loanPosition.positionTokenAddressFilled));
         }
 
-        uint initialPosition = loanToPositionAmount.add(loanToPositionAmount.mul(loanOrder.initialMarginAmount).div(10**20));
-        uint currentPosition = loanPosition.positionTokenAmountFilled.add(collateralToPositionAmount);
+        uint256 initialPosition = loanToPositionAmount.add(loanToPositionAmount.mul(loanOrder.initialMarginAmount).div(10**20));
+        uint256 currentPosition = loanPosition.positionTokenAmountFilled.add(collateralToPositionAmount);
         if (currentPosition > initialPosition) {
             isPositive = true;
             offsetAmount = Math.min256(loanPosition.positionTokenAmountFilled, currentPosition - initialPosition);
@@ -629,18 +629,18 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         address loanTokenAddress,
         address positionTokenAddress,
         address collateralTokenAddress,
-        uint loanTokenAmount,
-        uint positionTokenAmount,
-        uint collateralTokenAmount)
+        uint256 loanTokenAmount,
+        uint256 positionTokenAmount,
+        uint256 collateralTokenAmount)
         public
         view
         returns (uint)
     {
-        uint collateralToLoanAmount;
+        uint256 collateralToLoanAmount;
         if (collateralTokenAddress == loanTokenAddress) {
             collateralToLoanAmount = collateralTokenAmount;
         } else {
-            (uint collateralToLoanRate,) = _getExpectedRate(
+            (uint256 collateralToLoanRate,) = _getExpectedRate(
                 collateralTokenAddress,
                 loanTokenAddress,
                 collateralTokenAmount);
@@ -650,11 +650,11 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             collateralToLoanAmount = collateralTokenAmount.mul(collateralToLoanRate).div(_getDecimalPrecision(collateralTokenAddress, loanTokenAddress));
         }
 
-        uint positionToLoanAmount;
+        uint256 positionToLoanAmount;
         if (positionTokenAddress == loanTokenAddress) {
             positionToLoanAmount = positionTokenAmount;
         } else {
-            (uint positionToLoanRate,) = _getExpectedRate(
+            (uint256 positionToLoanRate,) = _getExpectedRate(
                 positionTokenAddress,
                 loanTokenAddress,
                 positionTokenAmount);
@@ -664,7 +664,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             positionToLoanAmount = positionTokenAmount.mul(positionToLoanRate).div(_getDecimalPrecision(positionTokenAddress, loanTokenAddress));
         }
 
-        uint totalCollateral = collateralToLoanAmount.add(positionToLoanAmount);
+        uint256 totalCollateral = collateralToLoanAmount.add(positionToLoanAmount);
         if (totalCollateral > loanTokenAmount) {
             return totalCollateral.sub(loanTokenAmount).mul(10**20).div(loanTokenAmount);
         } else {
@@ -683,7 +683,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         EIP20[] memory tokens)
         public
     {
-        for (uint i=0; i < tokens.length; i++) {
+        for (uint256 i=0; i < tokens.length; i++) {
             decimals[address(tokens[i])] = tokens[i].decimals();
         }
     }
@@ -693,7 +693,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     */
 
     function setMinimumCollateralInWethAmount(
-        uint newValue,
+        uint256 newValue,
         bool enforce)
         public
         onlyOwner
@@ -706,7 +706,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
 
     function setInterestFeePercent(
-        uint newRate)
+        uint256 newRate)
         public
         onlyOwner
     {
@@ -715,7 +715,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
 
     function setBountyRewardPercent(
-        uint newValue)
+        uint256 newValue)
         public
         onlyOwner
     {
@@ -724,7 +724,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
 
     function setGasUpperBound(
-        uint newValue)
+        uint256 newValue)
         public
         onlyOwner
     {
@@ -733,8 +733,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
 
     function setMarginThresholds(
-        uint newInitialMargin,
-        uint newMaintenanceMargin)
+        uint256 newInitialMargin,
+        uint256 newMaintenanceMargin)
         public
         onlyOwner
     {
@@ -780,7 +780,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
 
     function setEMAValue (
-        uint _newEMAValue)
+        uint256 _newEMAValue)
         public
         onlyOwner {
         require(_newEMAValue != emaValue);
@@ -788,7 +788,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     }
 
     function setEMAPeriods (
-        uint _newEMAPeriods)
+        uint256 _newEMAPeriods)
         public
         onlyOwner {
         require(_newEMAPeriods > 1 && _newEMAPeriods != emaPeriods);
@@ -797,7 +797,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
     function transferEther(
         address payable to,
-        uint value)
+        uint256 value)
         public
         onlyOwner
         returns (bool)
@@ -811,7 +811,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function transferToken(
         address tokenAddress,
         address payable to,
-        uint value)
+        uint256 value)
         public
         onlyOwner
         returns (bool)
@@ -830,19 +830,19 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function _getWethFromCollateral(
         address collateralTokenAddress,
         address loanTokenAddress,
-        uint collateralTokenAmountUsable,
-        uint loanTokenAmountNeeded,
+        uint256 collateralTokenAmountUsable,
+        uint256 loanTokenAmountNeeded,
         bool isLiquidation)
         internal
-        returns (uint wethAmountReceived)
+        returns (uint256 wethAmountReceived)
     {
-        uint wethAmountNeeded = 0;
+        uint256 wethAmountNeeded = 0;
 
         if (loanTokenAmountNeeded > 0) {
             if (loanTokenAddress == wethContract) {
                 wethAmountNeeded = loanTokenAmountNeeded;
             } else {
-                (uint loanToWethRate,) = _getExpectedRate(
+                (uint256 loanToWethRate,) = _getExpectedRate(
                     loanTokenAddress,
                     wethContract,
                     loanTokenAmountNeeded
@@ -867,11 +867,11 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         view
         returns(uint)
     {
-        uint sourceTokenDecimals = decimals[sourceToken];
+        uint256 sourceTokenDecimals = decimals[sourceToken];
         if (sourceTokenDecimals == 0)
             sourceTokenDecimals = EIP20(sourceToken).decimals();
 
-        uint destTokenDecimals = decimals[destToken];
+        uint256 destTokenDecimals = decimals[destToken];
         if (destTokenDecimals == 0)
             destTokenDecimals = EIP20(destToken).decimals();
 
@@ -885,10 +885,10 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function _getExpectedRate(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount)
+        uint256 sourceTokenAmount)
         internal
         view
-        returns (uint expectedRate, uint slippageRate)
+        returns (uint256 expectedRate, uint256 slippageRate)
     {
         if (sourceTokenAddress == destTokenAddress) {
             expectedRate = 10**18;
@@ -905,10 +905,10 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function _trade(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount,
-        uint maxDestTokenAmount)
+        uint256 sourceTokenAmount,
+        uint256 maxDestTokenAmount)
         internal
-        returns (uint destTokenAmountReceived, uint sourceTokenAmountUsed)
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
         if (maxDestTokenAmount > MAX_FOR_KYBER)
             maxDestTokenAmount = MAX_FOR_KYBER;
@@ -940,7 +940,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             }
         } else {
             // re-up the Kyber spend approval if needed
-            uint tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(address(this), kyberContract);
+            uint256 tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(address(this), kyberContract);
             if (tempAllowance < sourceTokenAmount) {
                 if (tempAllowance > 0) {
                     // reset approval to 0
@@ -956,7 +956,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                     MAX_FOR_KYBER);
             }
 
-            uint sourceBalanceBefore = EIP20(sourceTokenAddress).balanceOf.gas(4999)(address(this));
+            uint256 sourceBalanceBefore = EIP20(sourceTokenAddress).balanceOf.gas(4999)(address(this));
 
             destTokenAmountReceived = KyberNetwork_Interface(kyberContract).trade(
                 sourceTokenAddress,
@@ -983,11 +983,11 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
     function _tradeForWeth(
         address sourceTokenAddress,
-        uint sourceTokenAmount,
+        uint256 sourceTokenAmount,
         address receiver,
-        uint destWethAmountNeeded)
+        uint256 destWethAmountNeeded)
         internal
-        returns (uint destWethAmountReceived)
+        returns (uint256 destWethAmountReceived)
     {
         if (sourceTokenAddress == wethContract) {
             if (destWethAmountNeeded > sourceTokenAmount)
@@ -1005,7 +1005,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             destWethAmountReceived = destWethAmountNeeded;
         } else {
             // re-up the Kyber spend approval if needed
-            uint tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(address(this), kyberContract);
+            uint256 tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(address(this), kyberContract);
             if (tempAllowance < sourceTokenAmount) {
                 if (tempAllowance > 0) {
                     // reset approval to 0
@@ -1061,13 +1061,13 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
     function _tradeWithWeth(
         address destTokenAddress,
-        uint sourceWethAmount,
+        uint256 sourceWethAmount,
         address receiver,
-        uint destTokenAmountNeeded)
+        uint256 destTokenAmountNeeded)
         internal
-        returns (uint destTokenAmountReceived)
+        returns (uint256 destTokenAmountReceived)
     {
-        uint wethBalance = EIP20(wethContract).balanceOf.gas(4999)(address(this));
+        uint256 wethBalance = EIP20(wethContract).balanceOf.gas(4999)(address(this));
         if (destTokenAddress == wethContract) {
             if (destTokenAmountNeeded > sourceWethAmount)
                 destTokenAmountNeeded = sourceWethAmount;
@@ -1090,7 +1090,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             }
 
             // re-up the Kyber spend approval if needed
-            uint tempAllowance = EIP20(wethContract).allowance.gas(4999)(address(this), kyberContract);
+            uint256 tempAllowance = EIP20(wethContract).allowance.gas(4999)(address(this), kyberContract);
             if (tempAllowance < sourceWethAmount) {
                 if (tempAllowance > 0) {
                     // reset approval to 0
@@ -1146,11 +1146,11 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
     function _transferEther(
         address payable to,
-        uint value)
+        uint256 value)
         internal
         returns (bool)
     {
-        uint amount = value;
+        uint256 amount = value;
         if (amount > address(this).balance) {
             amount = address(this).balance;
         }
@@ -1161,7 +1161,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function _transferToken(
         address tokenAddress,
         address to,
-        uint value)
+        uint256 value)
         internal
         returns (bool)
     {

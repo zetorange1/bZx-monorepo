@@ -8,5 +8,5 @@ pragma solidity 0.5.2;
 
 interface WETHInterface {
     function deposit() external payable;
-    function withdraw(uint wad) external;
+    function withdraw(uint256 wad) external;
 }

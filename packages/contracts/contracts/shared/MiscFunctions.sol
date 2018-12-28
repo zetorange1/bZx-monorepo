@@ -32,11 +32,11 @@ contract MiscFunctions is BZxStorage, MathFunctions {
         address loanTokenAddress,
         address collateralTokenAddress,
         address oracleAddress,
-        uint loanTokenAmountFilled,
-        uint marginAmount)
+        uint256 loanTokenAmountFilled,
+        uint256 marginAmount)
         internal
         view
-        returns (uint collateralTokenAmount)
+        returns (uint256 collateralTokenAmount)
     {
         (,collateralTokenAmount) = OracleInterface(oracleAddresses[oracleAddress]).getTradeData(
             loanTokenAddress,
@@ -56,11 +56,11 @@ contract MiscFunctions is BZxStorage, MathFunctions {
         LoanOrder memory loanOrder,
         LoanPosition memory loanPosition,
         address destTokenAddress,
-        uint maxDestTokenAmount,
+        uint256 maxDestTokenAmount,
         bool isLiquidation,
         bool ensureHealthy)
         internal
-        returns (uint destTokenAmountReceived, uint positionTokenAmountUsed)
+        returns (uint256 destTokenAmountReceived, uint256 positionTokenAmountUsed)
     {
         if (loanPosition.positionTokenAmountFilled > 0) {
             // transfer the current position token to the Oracle contract
@@ -94,7 +94,7 @@ contract MiscFunctions is BZxStorage, MathFunctions {
         if (orderListIndex[loanOrderHash][addr].isSet) {
             assert(orderList[addr].length > 0);
 
-            uint index = orderListIndex[loanOrderHash][addr].index;
+            uint256 index = orderListIndex[loanOrderHash][addr].index;
             if (orderList[addr].length > 1) {
                 // replace order in list with last order in array
                 orderList[addr][index] = orderList[addr][orderList[addr].length - 1];

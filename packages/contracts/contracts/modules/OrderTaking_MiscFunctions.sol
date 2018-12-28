@@ -48,7 +48,7 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
         address[8] calldata orderAddresses,
         uint[11] calldata orderValues,
         bytes calldata oracleData,
-        uint cancelLoanTokenAmount)
+        uint256 cancelLoanTokenAmount)
         external
         nonReentrant
         tracksGas
@@ -64,8 +64,8 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
             return 0;
         }
 
-        uint remainingLoanTokenAmount = orderValues[0].sub(_getUnavailableLoanTokenAmount(loanOrderHash));
-        uint cancelledLoanTokenAmount = Math.min256(cancelLoanTokenAmount, remainingLoanTokenAmount);
+        uint256 remainingLoanTokenAmount = orderValues[0].sub(_getUnavailableLoanTokenAmount(loanOrderHash));
+        uint256 cancelledLoanTokenAmount = Math.min256(cancelLoanTokenAmount, remainingLoanTokenAmount);
         if (cancelledLoanTokenAmount == 0) {
             // none left to cancel
             return 0;
@@ -93,7 +93,7 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
     /// @return The amount of loan token canceled.
     function cancelLoanOrderWithHash(
         bytes32 loanOrderHash,
-        uint cancelLoanTokenAmount)
+        uint256 cancelLoanTokenAmount)
         external
         nonReentrant
         tracksGas
@@ -114,8 +114,8 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
             return 0;
         }
 
-        uint remainingLoanTokenAmount = loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrder.loanOrderHash));
-        uint cancelledLoanTokenAmount = Math.min256(cancelLoanTokenAmount, remainingLoanTokenAmount);
+        uint256 remainingLoanTokenAmount = loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrder.loanOrderHash));
+        uint256 cancelledLoanTokenAmount = Math.min256(cancelLoanTokenAmount, remainingLoanTokenAmount);
         if (cancelledLoanTokenAmount == 0) {
             // none left to cancel
             return 0;
@@ -258,11 +258,11 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
         address loanTokenAddress,
         address collateralTokenAddress,
         address oracleAddress,
-        uint loanTokenAmountFilled,
-        uint initialMarginAmount)
+        uint256 loanTokenAmountFilled,
+        uint256 initialMarginAmount)
         public
         view
-        returns (uint collateralTokenAmount)
+        returns (uint256 collateralTokenAmount)
     {
         collateralTokenAmount = _getCollateralRequired(
             loanTokenAddress,

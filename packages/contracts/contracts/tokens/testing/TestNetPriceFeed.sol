@@ -10,7 +10,7 @@ import "../../openzeppelin-solidity/Ownable.sol";
 
 contract TestNetPriceFeed is Ownable {
 
-    uint public ethPrice = 210 ether;
+    uint256 public ethPrice = 210 ether;
 
     function read() 
         public 
@@ -21,7 +21,7 @@ contract TestNetPriceFeed is Ownable {
     }
     
     function changeEthPrice(
-        uint _newPrice) 
+        uint256 _newPrice) 
         public 
         onlyOwner
         returns (bool)

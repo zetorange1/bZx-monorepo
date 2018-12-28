@@ -93,7 +93,7 @@ contract OracleRegistry is Ownable {
 
     /// @dev Allows owner to remove an existing oracle from the registry.
     /// @param _oracle Address of existing oracle.
-    function removeOracle(address _oracle, uint _index)
+    function removeOracle(address _oracle, uint256 _index)
         public
         onlyOwner
         oracleExists(_oracle)
@@ -205,7 +205,7 @@ contract OracleRegistry is Ownable {
         if (oracleAddresses.length == 0)
             return (addresses,nameLengths,allStrings);
         
-        for (uint i = 0; i < oracleAddresses.length; i++) {
+        for (uint256 i = 0; i < oracleAddresses.length; i++) {
             string memory tmp = oracles[oracleAddresses[i]].name;
             nameLengths[i] = bytes(tmp).length;
             allStrings = strConcat(allStrings, tmp);
@@ -227,8 +227,8 @@ contract OracleRegistry is Ownable {
         bytes memory _bb = bytes(_b);
         string memory ab = new string(_ba.length + _bb.length);
         bytes memory bab = bytes(ab);
-        uint k = 0;
-        uint i;
+        uint256 k = 0;
+        uint256 i;
         for (i = 0; i < _ba.length; i++)
             bab[k++] = _ba[i];
         for (i = 0; i < _bb.length; i++)

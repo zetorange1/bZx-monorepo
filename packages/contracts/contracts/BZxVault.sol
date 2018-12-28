@@ -16,12 +16,12 @@ contract BZxVault is EIP20Wrapper, BZxOwnable {
 
     function withdrawEther(
         address payable to,
-        uint value)
+        uint256 value)
         public
         onlyBZx
         returns (bool)
     {
-        uint amount = value;
+        uint256 amount = value;
         if (amount > address(this).balance) {
             amount = address(this).balance;
         }
@@ -32,7 +32,7 @@ contract BZxVault is EIP20Wrapper, BZxOwnable {
     function depositToken(
         address token,
         address from,
-        uint tokenAmount)
+        uint256 tokenAmount)
         public
         onlyBZx
         returns (bool)
@@ -53,7 +53,7 @@ contract BZxVault is EIP20Wrapper, BZxOwnable {
     function withdrawToken(
         address token,
         address to,
-        uint tokenAmount)
+        uint256 tokenAmount)
         public
         onlyBZx
         returns (bool)
@@ -74,7 +74,7 @@ contract BZxVault is EIP20Wrapper, BZxOwnable {
         address token,
         address from,
         address to,
-        uint tokenAmount)
+        uint256 tokenAmount)
         public
         onlyBZx
         returns (bool)

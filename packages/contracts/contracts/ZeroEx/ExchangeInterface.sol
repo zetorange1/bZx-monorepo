@@ -12,18 +12,18 @@ interface ExchangeInterface {
     function fillOrder(
           address[5] calldata orderAddresses,
           uint[6] calldata orderValues,
-          uint fillTakerTokenAmount,
+          uint256 fillTakerTokenAmount,
           bool shouldThrowOnInsufficientBalanceOrAllowance,
           uint8 v,
           bytes32 r,
           bytes32 s)
           external
-          returns (uint filledTakerTokenAmount);
+          returns (uint256 filledTakerTokenAmount);
 
     function fillOrdersUpTo(
         address[5][] calldata orderAddresses,
         uint[6][] calldata orderValues,
-        uint fillTakerTokenAmount,
+        uint256 fillTakerTokenAmount,
         bool shouldThrowOnInsufficientBalanceOrAllowance,
         uint8[] calldata v,
         bytes32[] calldata r,

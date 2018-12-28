@@ -85,7 +85,7 @@ contract BZRxTransferProxy is Ownable {
 
     function setTransferAllowance(
         address _who,
-        uint _amount) 
+        uint256 _amount) 
         public 
         onlyOwner 
     {
@@ -103,12 +103,12 @@ contract BZRxTransferProxy is Ownable {
     function transferToken(
         address _tokenAddress,
         address _to,
-        uint _value)
+        uint256 _value)
         public
         onlyOwner
         returns (bool)
     {
-        uint balance = StandardToken(_tokenAddress).balanceOf.gas(4999)(address(this));
+        uint256 balance = StandardToken(_tokenAddress).balanceOf.gas(4999)(address(this));
         if (_value > balance) {
             return StandardToken(_tokenAddress).transfer(
                 _to,

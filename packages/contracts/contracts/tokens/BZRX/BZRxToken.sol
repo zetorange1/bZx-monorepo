@@ -114,7 +114,7 @@ contract BZRxToken is UnlimitedAllowanceToken, DetailedERC20, Ownable {
 
         require(_to != address(0), "token burn not allowed");
 
-        uint allowance = allowed[_from][_spender];
+        uint256 allowance = allowed[_from][_spender];
         balances[_from] = balances[_from].sub(_value);
         balances[_to] = balances[_to].add(_value);
         if (allowance < MAX_UINT) {

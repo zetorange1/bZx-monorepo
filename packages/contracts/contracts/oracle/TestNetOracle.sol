@@ -13,7 +13,7 @@ contract Faucet {
     function oracleExchange(
         address getToken,
         address receiver,
-        uint getTokenAmount)
+        uint256 getTokenAmount)
         public
         returns (bool);
 }
@@ -49,7 +49,7 @@ contract TestNetOracle is BZxOracle {
     function setRates(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint rate)
+        uint256 rate)
         public
         onlyOwner
     {
@@ -75,10 +75,10 @@ contract TestNetOracle is BZxOracle {
     function _getExpectedRate(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint /* sourceTokenAmount */)
+        uint256 /* sourceTokenAmount */)
         internal
         view 
-        returns (uint expectedRate, uint slippageRate)
+        returns (uint256 expectedRate, uint256 slippageRate)
     {
         if (sourceTokenAddress == destTokenAddress) {
             expectedRate = 10**18;
@@ -87,10 +87,10 @@ contract TestNetOracle is BZxOracle {
             if (rates[sourceTokenAddress][destTokenAddress] != 0) {
                 expectedRate = rates[sourceTokenAddress][destTokenAddress];
             } else {
-                uint sourceToEther = rates[sourceTokenAddress][wethContract] != 0 ?
+                uint256 sourceToEther = rates[sourceTokenAddress][wethContract] != 0 ?
                     rates[sourceTokenAddress][wethContract] :
                     10**18;
-                uint etherToDest = rates[wethContract][destTokenAddress] != 0 ?
+                uint256 etherToDest = rates[wethContract][destTokenAddress] != 0 ?
                     rates[wethContract][destTokenAddress] :
                     10**18;
 
@@ -103,10 +103,10 @@ contract TestNetOracle is BZxOracle {
     function _trade(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount,
-        uint maxDestTokenAmount)
+        uint256 sourceTokenAmount,
+        uint256 maxDestTokenAmount)
         internal
-        returns (uint destTokenAmountReceived, uint sourceTokenAmountUsed)
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
         if (maxDestTokenAmount > MAX_FOR_KYBER)
             maxDestTokenAmount = MAX_FOR_KYBER;
@@ -137,8 +137,8 @@ contract TestNetOracle is BZxOracle {
                 }
             }
         } else {
-            (uint tradeRate,) = getTradeData(sourceTokenAddress, destTokenAddress, 0);
-            uint precision = _getDecimalPrecision(sourceTokenAddress, destTokenAddress);
+            (uint256 tradeRate,) = getTradeData(sourceTokenAddress, destTokenAddress, 0);
+            uint256 precision = _getDecimalPrecision(sourceTokenAddress, destTokenAddress);
             destTokenAmountReceived = sourceTokenAmount.mul(tradeRate).div(precision);
 
             if (destTokenAmountReceived > maxDestTokenAmount) {
@@ -171,22 +171,22 @@ contract TestNetOracle is BZxOracle {
 
     function _tradeForWeth(
         address /*sourceTokenAddress*/,
-        uint /* sourceTokenAmount */,
+        uint256 /* sourceTokenAmount */,
         address /*receiver*/,
-        uint /* destEthAmountNeeded */)
+        uint256 /* destEthAmountNeeded */)
         internal
-        returns (uint destTokenAmountReceived)
+        returns (uint256 destTokenAmountReceived)
     {
         destTokenAmountReceived = 0;//destEthAmountNeeded < sourceTokenAmount ? destEthAmountNeeded : sourceTokenAmount;
     }
 
     function _tradeWithWeth(
         address destTokenAddress,
-        uint sourceEthAmount,
+        uint256 sourceEthAmount,
         address receiver,
-        uint destTokenAmountNeeded)
+        uint256 destTokenAmountNeeded)
         internal
-        returns (uint destTokenAmountReceived)
+        returns (uint256 destTokenAmountReceived)
     {
         destTokenAmountReceived = destTokenAmountNeeded < sourceEthAmount ? destTokenAmountNeeded : sourceEthAmount;
         require(Faucet(faucetContract).oracleExchange(

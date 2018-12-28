@@ -58,7 +58,7 @@ contract OrderTaking_takeLoanOrderAsLender is BZxStorage, BZxProxiable, OrderTak
         LoanOrderAux memory loanOrderAux = orderAux[loanOrderHash];
         
         // lenders have to fill the entire uncanceled loanTokenAmount
-        uint loanTokenAmountFilled = orderValues[0].sub(_getUnavailableLoanTokenAmount(loanOrderHash));
+        uint256 loanTokenAmountFilled = orderValues[0].sub(_getUnavailableLoanTokenAmount(loanOrderHash));
         LoanOrder memory loanOrder = _takeLoanOrder(
             loanOrderHash,
             orderAddresses[3], // collateralTokenFilled

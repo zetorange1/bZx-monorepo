@@ -23,7 +23,7 @@ import "../openzeppelin-solidity/StandardToken.sol";
 
 contract UnlimitedAllowanceToken is StandardToken {
 
-    uint internal constant MAX_UINT = 2**256 - 1;
+    uint256 internal constant MAX_UINT = 2**256 - 1;
     
     /// @dev ERC20 transferFrom, modified such that an allowance of MAX_UINT represents an unlimited allowance, and to add revert reasons.
     /// @param _from Address to transfer from.
@@ -37,7 +37,7 @@ contract UnlimitedAllowanceToken is StandardToken {
         public
         returns (bool)
     {
-        uint allowance = allowed[_from][msg.sender];
+        uint256 allowance = allowed[_from][msg.sender];
         require(_value <= balances[_from], "insufficient balance");
         require(_value <= allowance, "insufficient allowance");
         require(_to != address(0), "token burn not allowed");

@@ -14,19 +14,19 @@ import "../../shared/WETHInterface.sol";
 contract BZRxTokenSale is Ownable {
     using SafeMath for uint256;
 
-    uint public constant tokenPrice = 73 * 10**12; // 0.000073 ETH
+    uint256 public constant tokenPrice = 73 * 10**12; // 0.000073 ETH
 
     struct TokenPurchases {
-        uint totalETH;
-        uint totalTokens;
-        uint totalTokenBonus;
+        uint256 totalETH;
+        uint256 totalTokens;
+        uint256 totalTokenBonus;
     }
 
-    event BonusChanged(uint oldBonus, uint newBonus);
-    event TokenPurchase(address indexed buyer, uint ethAmount, uint tokensReceived);
+    event BonusChanged(uint256 oldBonus, uint256 newBonus);
+    event TokenPurchase(address indexed buyer, uint256 ethAmount, uint256 tokensReceived);
     
-    event SaleOpened(uint bonusMultiplier);
-    event SaleClosed(uint bonusMultiplier);
+    event SaleOpened(uint256 bonusMultiplier);
+    event SaleClosed(uint256 bonusMultiplier);
     
     bool public saleClosed = true;
 
@@ -35,9 +35,9 @@ contract BZRxTokenSale is Ownable {
     address public wethContractAddress;         // WETH Token
 
     // The current token bonus offered to purchasers (example: 110 == 10% bonus)
-    uint public bonusMultiplier;
+    uint256 public bonusMultiplier;
 
-    uint public ethRaised;
+    uint256 public ethRaised;
 
     address[] public purchasers;
     mapping (address => TokenPurchases) public purchases;
@@ -50,7 +50,7 @@ contract BZRxTokenSale is Ownable {
         _;
     }
 
-    modifier whitelisted(address user, uint value) {
+    modifier whitelisted(address user, uint256 value) {
         require(canPurchaseAmount(user, value), "not whitelisted");
         _;
     }
@@ -59,8 +59,8 @@ contract BZRxTokenSale is Ownable {
         address _bZRxTokenContractAddress,
         address _bZxVaultAddress,
         address _wethContractAddress,
-        uint _bonusMultiplier,
-        uint _previousAmountRaised)
+        uint256 _bonusMultiplier,
+        uint256 _previousAmountRaised)
         public
     {
         require(_bonusMultiplier > 100 * 10**18);
@@ -91,10 +91,10 @@ contract BZRxTokenSale is Ownable {
         
         ethRaised += msg.value;
 
-        uint tokenAmount = msg.value                        // amount of ETH sent
+        uint256 tokenAmount = msg.value                        // amount of ETH sent
                             .mul(10**18).div(tokenPrice);   // fixed ETH price per token (0.000073 ETH)
 
-        uint tokenAmountAndBonus = tokenAmount
+        uint256 tokenAmountAndBonus = tokenAmount
                                         .mul(bonusMultiplier).div(10**20);
 
         TokenPurchases storage purchase = purchases[msg.sender];
@@ -134,7 +134,7 @@ contract BZRxTokenSale is Ownable {
                 _value
             );
         } else {
-            uint wethValue = _value                             // amount of BZRX
+            uint256 wethValue = _value                             // amount of BZRX
                                 .mul(tokenPrice).div(10**18);   // fixed ETH price per token (0.000073 ETH)
 
             require(canPurchaseAmount(_from, wethValue), "not whitelisted");
@@ -214,7 +214,7 @@ contract BZRxTokenSale is Ownable {
     }
 
     function changeBonusMultiplier(
-        uint _newBonusMultiplier) 
+        uint256 _newBonusMultiplier) 
         public 
         onlyOwner 
         returns (bool)
@@ -230,7 +230,7 @@ contract BZRxTokenSale is Ownable {
         onlyOwner 
         returns (bool)
     {
-        uint balance = StandardToken(wethContractAddress).balanceOf.gas(4999)(address(this));
+        uint256 balance = StandardToken(wethContractAddress).balanceOf.gas(4999)(address(this));
         if (balance == 0)
             return false;
 
@@ -240,12 +240,12 @@ contract BZRxTokenSale is Ownable {
 
     function transferEther(
         address payable _to,
-        uint _value)
+        uint256 _value)
         public
         onlyOwner
         returns (bool)
     {
-        uint amount = _value;
+        uint256 amount = _value;
         if (amount > address(this).balance) {
             amount = address(this).balance;
         }
@@ -256,12 +256,12 @@ contract BZRxTokenSale is Ownable {
     function transferToken(
         address _tokenAddress,
         address _to,
-        uint _value)
+        uint256 _value)
         public
         onlyOwner
         returns (bool)
     {
-        uint balance = StandardToken(_tokenAddress).balanceOf.gas(4999)(address(this));
+        uint256 balance = StandardToken(_tokenAddress).balanceOf.gas(4999)(address(this));
         if (_value > balance) {
             return StandardToken(_tokenAddress).transfer(
                 _to,
@@ -295,7 +295,7 @@ contract BZRxTokenSale is Ownable {
     {
         require(_users.length == _values.length, "users and values count mismatch");
         
-        for (uint i=0; i < _users.length; i++) {
+        for (uint256 i=0; i < _users.length; i++) {
             whitelist[_users[i]] = _values[i];
         }
 
@@ -305,7 +305,7 @@ contract BZRxTokenSale is Ownable {
 
     function canPurchaseAmount(
         address _user,
-        uint _value)
+        uint256 _value)
         public
         view
         returns (bool)

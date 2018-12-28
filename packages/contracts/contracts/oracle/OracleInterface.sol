@@ -42,7 +42,7 @@ contract OracleInterface {
         BZxObjects.LoanOrderAux memory loanOrderAux,
         bytes memory oracleData,
         address taker,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -58,7 +58,7 @@ contract OracleInterface {
         BZxObjects.LoanOrderAux memory loanOrderAux,
         BZxObjects.LoanPosition memory loanPosition,
         address taker,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -70,7 +70,7 @@ contract OracleInterface {
     function didTradePosition(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -86,9 +86,9 @@ contract OracleInterface {
     function didPayInterest(
         BZxObjects.LoanOrder memory loanOrder,
         address lender,
-        uint amountOwed,
+        uint256 amountOwed,
         bool convert,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -102,8 +102,8 @@ contract OracleInterface {
     function didDepositCollateral(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint depositAmount,
-        uint gasUsed)
+        uint256 depositAmount,
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -117,8 +117,8 @@ contract OracleInterface {
     function didWithdrawCollateral(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint withdrawAmount,
-        uint gasUsed)
+        uint256 withdrawAmount,
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -131,7 +131,7 @@ contract OracleInterface {
     function didChangeCollateral(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -144,8 +144,8 @@ contract OracleInterface {
     function didWithdrawPosition(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint withdrawAmount,
-        uint gasUsed)
+        uint256 withdrawAmount,
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -158,8 +158,8 @@ contract OracleInterface {
     function didDepositPosition(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint depositAmount,
-        uint gasUsed)
+        uint256 depositAmount,
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -174,8 +174,8 @@ contract OracleInterface {
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
         address payable loanCloser,
-        uint closeAmount,
-        uint gasUsed)
+        uint256 closeAmount,
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -191,7 +191,7 @@ contract OracleInterface {
         BZxObjects.LoanPosition memory loanPosition,
         address payable loanCloser,
         bool isLiquidation,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -205,7 +205,7 @@ contract OracleInterface {
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
         address oldTrader,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -219,7 +219,7 @@ contract OracleInterface {
         BZxObjects.LoanOrder memory loanOrder,
         address oldLender,
         address newLender,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -233,9 +233,9 @@ contract OracleInterface {
     function didIncreaseLoanableAmount(
         BZxObjects.LoanOrder memory loanOrder,
         address lender,
-        uint loanTokenAmountAdded,
-        uint totalNewFillableAmount,
-        uint gasUsed)
+        uint256 loanTokenAmountAdded,
+        uint256 totalNewFillableAmount,
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -248,8 +248,8 @@ contract OracleInterface {
     function trade(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount,
-        uint maxDestTokenAmount)
+        uint256 sourceTokenAmount,
+        uint256 maxDestTokenAmount)
         public
         returns (uint, uint);
 
@@ -264,7 +264,7 @@ contract OracleInterface {
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
         address destTokenAddress,
-        uint maxDestTokenAmount,
+        uint256 maxDestTokenAmount,
         bool ensureHealthy)
         public
         returns (uint, uint);
@@ -289,10 +289,10 @@ contract OracleInterface {
     function processCollateral(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint loanTokenAmountNeeded,
+        uint256 loanTokenAmountNeeded,
         bool isLiquidation)
         public
-        returns (uint loanTokenAmountCovered, uint collateralTokenAmountUsed);
+        returns (uint256 loanTokenAmountCovered, uint256 collateralTokenAmountUsed);
 
     /// @dev Checks if a position has fallen below margin
     /// @dev maintenance and should be liquidated
@@ -314,10 +314,10 @@ contract OracleInterface {
     function getTradeData(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount)
+        uint256 sourceTokenAmount)
         public
         view
-        returns (uint sourceToDestRate, uint destTokenAmount);
+        returns (uint256 sourceToDestRate, uint256 destTokenAmount);
 
     /// @dev Returns the current excess or deficit position amount from the loan principal
     /// @param loanOrder The loanOrder object
@@ -328,7 +328,7 @@ contract OracleInterface {
         BZxObjects.LoanPosition memory loanPosition)
         public
         view
-        returns (bool isPositive, uint offsetAmount);
+        returns (bool isPositive, uint256 offsetAmount);
 
     /// @dev Returns the current margin level for this particular loan/position
     /// @param loanTokenAddress The token that was loaned
@@ -342,9 +342,9 @@ contract OracleInterface {
         address loanTokenAddress,
         address positionTokenAddress,
         address collateralTokenAddress,
-        uint loanTokenAmount,
-        uint positionTokenAmount,
-        uint collateralTokenAmount)
+        uint256 loanTokenAmount,
+        uint256 positionTokenAmount,
+        uint256 collateralTokenAmount)
         public
         view
         returns (uint);
@@ -357,7 +357,7 @@ contract OracleInterface {
     function isTradeSupported(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount)
+        uint256 sourceTokenAmount)
         public
         view
         returns (bool);

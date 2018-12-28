@@ -79,8 +79,8 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
     /// @param oracleFilter Only return orders for a given oracle address.
     /// @return A concatenated stream of bytes.
     function getOrdersFillable(
-        uint start,
-        uint count,
+        uint256 start,
+        uint256 count,
         address oracleFilter)
         public
         view
@@ -103,8 +103,8 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
     /// @return A concatenated stream of bytes.
     function getOrdersForUser(
         address loanParty,
-        uint start,
-        uint count,
+        uint256 start,
+        uint256 count,
         address oracleFilter)
         public
         view
@@ -161,7 +161,7 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
     /// @return A concatenated stream of bytes.
     function getLoansForLender(
         address loanParty,
-        uint count,
+        uint256 count,
         bool activeOnly)
         public
         view
@@ -182,7 +182,7 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
     /// @return A concatenated stream of bytes.
     function getLoansForTrader(
         address loanParty,
-        uint count,
+        uint256 count,
         bool activeOnly)
         public
         view
@@ -201,13 +201,13 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
     /// @param count The total amount of loans to return if they exist. Amount returned can be less.
     /// @return A concatenated stream of PositionRef(loanOrderHash, trader) bytes.
     function getActiveLoans(
-        uint start,
-        uint count)
+        uint256 start,
+        uint256 count)
         public
         view
         returns (bytes memory)
     {
-        uint end = Math.min256(positionList.length, start.add(count));
+        uint256 end = Math.min256(positionList.length, start.add(count));
         if (end == 0 || start >= end) {
             return "";
         }
@@ -215,7 +215,7 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
         // all encoded params will be zero-padded to 32 bytes
         bytes memory data;
 
-        for (uint j=0; j < end-start; j++) {
+        for (uint256 j=0; j < end-start; j++) {
             PositionRef memory positionRef = positionList[j+start];
             LoanPosition memory loanPosition = loanPositions[positionRef.positionId];
 
@@ -259,7 +259,7 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
     /// @dev Returns a LoanPosition object.
     /// @param positionId A unqiue id representing the loan position.
     function getLoanPosition(
-        uint positionId)
+        uint256 positionId)
         public
         view
         returns (LoanPosition memory)
@@ -273,15 +273,15 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
 
     function _getOrdersForAddress(
         address addr,
-        uint start,
-        uint count,
+        uint256 start,
+        uint256 count,
         bool skipExpired,
         address oracleFilter)
         internal
         view
         returns (bytes memory)
     {
-        uint end = Math.min256(orderList[addr].length, start.add(count));
+        uint256 end = Math.min256(orderList[addr].length, start.add(count));
         if (end == 0 || start >= end) {
             return "";
         }
@@ -290,7 +290,7 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
         bytes memory data;
 
         end = end-start;
-        for (uint j=0; j < end; j++) {
+        for (uint256 j=0; j < end; j++) {
             LoanOrder memory loanOrder = orders[orderList[addr][j+start]];
 
             LoanOrderAux memory loanOrderAux = orderAux[orderList[addr][j+start]];
@@ -360,7 +360,7 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
 
     function _getLoanPositions(
         address loanParty,
-        uint count,
+        uint256 count,
         bool activeOnly,
         bool forLender)
         internal
@@ -370,8 +370,8 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
         // all encoded params will be zero-padded to 32 bytes
         bytes memory data;
 
-        uint itemCount = 0;
-        for (uint j=orderList[loanParty].length; j > 0; j--) {
+        uint256 itemCount = 0;
+        for (uint256 j=orderList[loanParty].length; j > 0; j--) {
             bytes32 loanOrderHash = orderList[loanParty][j-1];
             uint[] memory positionIds = orderPositionList[loanOrderHash];
 
@@ -379,7 +379,7 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
                 continue;
             }
 
-            for (uint i=positionIds.length; i > 0; i--) {
+            for (uint256 i=positionIds.length; i > 0; i--) {
                 LoanPosition memory loanPosition = loanPositions[positionIds[i-1]];
 
                 if (activeOnly && (!loanPosition.active || (loanPosition.loanEndUnixTimestampSec > 0 && block.timestamp >= loanPosition.loanEndUnixTimestampSec))) {

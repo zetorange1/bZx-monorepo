@@ -66,7 +66,7 @@ contract TradePlacing_Oracle is BZxStorage, BZxProxiable, MiscFunctions {
             revert("BZxTradePlacing::tradePositionWithOracle: tradeTokenAddress == loanPosition.positionTokenAddressFilled");
         }
 
-        (uint tradeTokenAmount, uint positionTokenAmountUsed) = _tradePositionWithOracle(
+        (uint256 tradeTokenAmount, uint256 positionTokenAmountUsed) = _tradePositionWithOracle(
             loanOrder,
             loanPosition,
             tradeTokenAddress,

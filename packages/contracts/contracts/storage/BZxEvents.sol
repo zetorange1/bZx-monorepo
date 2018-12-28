@@ -13,10 +13,10 @@ contract BZxEvents {
         address adderAddress,
         address indexed makerAddress,
         address indexed feeRecipientAddress,
-        uint lenderRelayFee,
-        uint traderRelayFee,
-        uint maxDuration,
-        uint makerRole
+        uint256 lenderRelayFee,
+        uint256 traderRelayFee,
+        uint256 maxDuration,
+        uint256 makerRole
     );
 
     event LogLoanTaken (
@@ -24,18 +24,18 @@ contract BZxEvents {
         address indexed trader,
         address loanTokenAddress,
         address collateralTokenAddress,
-        uint loanTokenAmount,
-        uint collateralTokenAmount,
-        uint loanEndUnixTimestampSec,
+        uint256 loanTokenAmount,
+        uint256 collateralTokenAmount,
+        uint256 loanEndUnixTimestampSec,
         bool firstFill,
         bytes32 indexed loanOrderHash,
-        uint positionId
+        uint256 positionId
     );
 
     event LogLoanCancelled(
         address indexed makerAddress,
-        uint cancelLoanTokenAmount,
-        uint remainingLoanTokenAmount,
+        uint256 cancelLoanTokenAmount,
+        uint256 remainingLoanTokenAmount,
         bytes32 indexed loanOrderHash
     );
 
@@ -45,7 +45,7 @@ contract BZxEvents {
         address loanCloser,
         bool isLiquidation,
         bytes32 indexed loanOrderHash,
-        uint positionId
+        uint256 positionId
     );
 
     event LogPositionTraded(
@@ -53,34 +53,34 @@ contract BZxEvents {
         address indexed trader,
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount,
-        uint destTokenAmount,
-        uint positionId
+        uint256 sourceTokenAmount,
+        uint256 destTokenAmount,
+        uint256 positionId
     );
 
     event LogWithdrawPosition(
         bytes32 indexed loanOrderHash,
         address indexed trader,
-        uint positionAmount,
-        uint remainingPosition,
-        uint positionId
+        uint256 positionAmount,
+        uint256 remainingPosition,
+        uint256 positionId
     );
 
     event LogPayInterestForOrder(
         bytes32 indexed loanOrderHash,
         address indexed lender,
-        uint amountPaid,
-        uint totalAccrued,
-        uint loanCount
+        uint256 amountPaid,
+        uint256 totalAccrued,
+        uint256 loanCount
     );
 
     event LogPayInterestForPosition(
         bytes32 indexed loanOrderHash,
         address indexed lender,
         address indexed trader,
-        uint amountPaid,
-        uint totalAccrued,
-        uint positionId
+        uint256 amountPaid,
+        uint256 totalAccrued,
+        uint256 positionId
     );
 
     event LogChangeTraderOwnership(
@@ -98,7 +98,7 @@ contract BZxEvents {
     event LogIncreasedLoanableAmount(
         bytes32 indexed loanOrderHash,
         address indexed lender,
-        uint loanTokenAmountAdded,
-        uint loanTokenAmountFillable
+        uint256 loanTokenAmountAdded,
+        uint256 loanTokenAmountFillable
     );
 }

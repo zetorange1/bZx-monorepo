@@ -47,7 +47,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
     function depositCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
-        uint depositAmount)
+        uint256 depositAmount)
         external
         nonReentrant
         tracksGas
@@ -103,11 +103,11 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
     function withdrawCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
-        uint withdrawAmount)
+        uint256 withdrawAmount)
         external
         nonReentrant
         tracksGas
-        returns (uint excessCollateral)
+        returns (uint256 excessCollateral)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
@@ -123,7 +123,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             revert("BZxLoanHealth::withdrawCollateral: collateralTokenFilled != loanPosition.collateralTokenAddressFilled");
         }
 
-        uint positionToLoanTokenAmount;
+        uint256 positionToLoanTokenAmount;
         if (loanPosition.positionTokenAddressFilled == loanOrder.loanTokenAddress) {
             positionToLoanTokenAmount = loanPosition.positionTokenAmountFilled;
         } else {
@@ -133,11 +133,11 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
                 loanPosition.positionTokenAmountFilled);
         }
 
-        uint positionOffsetForCollateral = positionToLoanTokenAmount < loanPosition.loanTokenAmountFilled ?
+        uint256 positionOffsetForCollateral = positionToLoanTokenAmount < loanPosition.loanTokenAmountFilled ?
             (loanPosition.loanTokenAmountFilled - positionToLoanTokenAmount).mul(10**20).div(loanOrder.initialMarginAmount) :
             (positionToLoanTokenAmount - loanPosition.loanTokenAmountFilled).mul(10**20).div(loanOrder.initialMarginAmount);
 
-        uint initialCollateralTokenAmount;
+        uint256 initialCollateralTokenAmount;
         if (positionToLoanTokenAmount >= loanPosition.loanTokenAmountFilled && positionOffsetForCollateral >= loanPosition.loanTokenAmountFilled) {
             initialCollateralTokenAmount = 0;
         } else {
@@ -193,7 +193,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         external
         nonReentrant
         tracksGas
-        returns (uint collateralTokenAmountFilled)
+        returns (uint256 collateralTokenAmountFilled)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
@@ -213,7 +213,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             revert("BZxLoanHealth::changeCollateral: block.timestamp >= loanPosition.loanEndUnixTimestampSec");
         }
 
-        uint positionToLoanTokenAmount;
+        uint256 positionToLoanTokenAmount;
         if (loanPosition.positionTokenAddressFilled == loanOrder.loanTokenAddress) {
             positionToLoanTokenAmount = loanPosition.positionTokenAmountFilled;
         } else {
@@ -223,7 +223,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
                 loanPosition.positionTokenAmountFilled);
         }
 
-        uint positionOffsetForCollateral = positionToLoanTokenAmount < loanPosition.loanTokenAmountFilled ?
+        uint256 positionOffsetForCollateral = positionToLoanTokenAmount < loanPosition.loanTokenAmountFilled ?
             (loanPosition.loanTokenAmountFilled - positionToLoanTokenAmount).mul(10**20).div(loanOrder.initialMarginAmount) :
             (positionToLoanTokenAmount - loanPosition.loanTokenAmountFilled).mul(10**20).div(loanOrder.initialMarginAmount);
 
@@ -285,7 +285,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
     function depositPosition(
         bytes32 loanOrderHash,
         address depositTokenAddress,
-        uint depositAmount)
+        uint256 depositAmount)
         external
         nonReentrant
         tracksGas
@@ -303,7 +303,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             revert("BZxLoanHealth::depositPosition: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
 
-        uint positionTokenAmountReceived;
+        uint256 positionTokenAmountReceived;
         if (depositTokenAddress != loanPosition.positionTokenAddressFilled) {
             // send deposit token directly to the oracle to trade it
             if (!BZxVault(vaultContract).transferTokenFrom(
@@ -314,7 +314,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
                 revert("BZxLoanHealth::depositPosition: BZxVault.transferTokenFrom failed");
             }
             
-            uint depositTokenAmountUsed;
+            uint256 depositTokenAmountUsed;
             (positionTokenAmountReceived, depositTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).trade(
                 depositTokenAddress,
                 loanPosition.positionTokenAddressFilled,
@@ -370,11 +370,11 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
     /// @return amountWithdrawn The amount withdrawn denominated in positionToken. Can be less than withdrawAmount.
     function withdrawPosition(
         bytes32 loanOrderHash,
-        uint withdrawAmount)
+        uint256 withdrawAmount)
         external
         nonReentrant
         tracksGas
-        returns (uint amountWithdrawn)
+        returns (uint256 amountWithdrawn)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
@@ -436,7 +436,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         address trader)
         public
         view
-        returns (bool isPositive, uint offsetAmount, address positionTokenAddress)
+        returns (bool isPositive, uint256 offsetAmount, address positionTokenAddress)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
@@ -454,7 +454,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         LoanPosition memory loanPosition)
         internal
         view
-        returns (bool isPositive, uint offsetAmount, address positionTokenAddress)
+        returns (bool isPositive, uint256 offsetAmount, address positionTokenAddress)
     {
         if (loanOrder.loanTokenAddress == address(0)) {
             return (false,0,address(0));

@@ -19,14 +19,14 @@ interface BZxTo0x_Interface {
    function take0xTrade(
         address trader,
         address vaultAddress,
-        uint sourceTokenAmountToUse,
+        uint256 sourceTokenAmountToUse,
         bytes calldata orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated (multi-order batching allowed)
         bytes calldata signature0x) // ECDSA of the 0x order (multi-order batching allowed)
         external
         returns (
             address destTokenAddress,
-            uint destTokenAmount,
-            uint sourceTokenUsedAmount);
+            uint256 destTokenAmount,
+            uint256 sourceTokenUsedAmount);
 }
 
 // solhint-disable-next-line contract-name-camelcase
@@ -52,14 +52,14 @@ contract BZxTo0xV2_Interface {
    function take0xV2Trade(
         address trader,
         address vaultAddress,
-        uint sourceTokenAmountToUse,
+        uint256 sourceTokenAmountToUse,
         OrderV2[] memory orders0x, // Array of 0x V2 order structs
         bytes[] memory signatures0x) // Array of signatures for each of the V2 orders
         public
         returns (
             address destTokenAddress,
-            uint destTokenAmount,
-            uint sourceTokenUsedAmount);
+            uint256 destTokenAmount,
+            uint256 sourceTokenUsedAmount);
 }
 
 contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
@@ -118,8 +118,8 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
         }
 
         address tradeTokenAddress;
-        uint tradeTokenAmount;
-        uint positionTokenUsedAmount;
+        uint256 tradeTokenAmount;
+        uint256 positionTokenUsedAmount;
         (tradeTokenAddress, tradeTokenAmount, positionTokenUsedAmount) = BZxTo0x_Interface(bZxTo0xContract).take0xTrade(
             loanPosition.trader,
             vaultContract,
@@ -200,8 +200,8 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
         }
 
         address tradeTokenAddress;
-        uint tradeTokenAmount;
-        uint positionTokenUsedAmount;
+        uint256 tradeTokenAmount;
+        uint256 positionTokenUsedAmount;
         (tradeTokenAddress, tradeTokenAmount, positionTokenUsedAmount) = BZxTo0xV2_Interface(bZxTo0xV2Contract).take0xV2Trade(
             loanPosition.trader,
             vaultContract,

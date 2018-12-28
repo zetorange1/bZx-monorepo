@@ -18,13 +18,13 @@ contract GasRefunder {
 
     event GasRefund(
         address indexed payer, 
-        uint gasUsed, 
-        uint currentGasPrice, 
-        uint refundAmount, 
+        uint256 gasUsed, 
+        uint256 currentGasPrice, 
+        uint256 refundAmount, 
         bool refundSuccess
     );
 
-    modifier refundsGas(address payable payer, uint gasPrice, uint gasUsed, uint percentMultiplier)
+    modifier refundsGas(address payable payer, uint256 gasPrice, uint256 gasUsed, uint256 percentMultiplier)
     {
         _; // modified function body inserted here
 
@@ -36,9 +36,9 @@ contract GasRefunder {
         );
     }
 
-    modifier refundsGasAfterCollection(address payable payer, uint gasPrice, uint percentMultiplier)
+    modifier refundsGasAfterCollection(address payable payer, uint256 gasPrice, uint256 percentMultiplier)
     {
-        uint startingGas = gasleft();
+        uint256 startingGas = gasleft();
 
         _; // modified function body inserted here
 
@@ -52,12 +52,12 @@ contract GasRefunder {
 
     function calculateAndSendGasRefund(
         address payable payer,
-        uint gasUsed,
-        uint gasPrice,
-        uint percentMultiplier)
+        uint256 gasUsed,
+        uint256 gasPrice,
+        uint256 percentMultiplier)
         internal
     {
-        (uint refundAmount, uint finalGasUsed) = getGasRefund(
+        (uint256 refundAmount, uint256 finalGasUsed) = getGasRefund(
             gasUsed,
             gasPrice,
             percentMultiplier
@@ -74,12 +74,12 @@ contract GasRefunder {
     }
 
     function getGasRefund(
-        uint gasUsed,
-        uint gasPrice,
-        uint percentMultiplier)
+        uint256 gasUsed,
+        uint256 gasPrice,
+        uint256 percentMultiplier)
         internal
         view
-        returns (uint refundAmount, uint finalGasUsed)
+        returns (uint256 refundAmount, uint256 finalGasUsed)
     {
         if (gasUsed == 0 || gasPrice == 0)
             return (0,0);
@@ -94,9 +94,9 @@ contract GasRefunder {
 
     function sendGasRefund(
         address payable payer,
-        uint refundAmount,
-        uint finalGasUsed,
-        uint gasPrice)
+        uint256 refundAmount,
+        uint256 finalGasUsed,
+        uint256 gasPrice)
         internal
         returns (bool)
     {

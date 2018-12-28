@@ -43,7 +43,7 @@ contract OrderTaking_takeLoanOrderOnChainAsTrader is BZxStorage, BZxProxiable, O
     function takeLoanOrderOnChainAsTrader(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
-        uint loanTokenAmountFilled,
+        uint256 loanTokenAmountFilled,
         address tradeTokenToFillAddress,
         bool withdrawOnOpen)
         external

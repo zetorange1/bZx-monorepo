@@ -37,7 +37,7 @@ contract BZx is BZxStorage {
         uint[11] calldata orderValues,
         bytes calldata oracleData,
         address collateralTokenFilled,
-        uint loanTokenAmountFilled,
+        uint256 loanTokenAmountFilled,
         address tradeTokenToFillAddress,
         bool withdrawOnOpen,
         bytes calldata signature)
@@ -86,7 +86,7 @@ contract BZx is BZxStorage {
     function takeLoanOrderOnChainAsTrader(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
-        uint loanTokenAmountFilled,
+        uint256 loanTokenAmountFilled,
         address tradeTokenToFillAddress,
         bool withdrawOnOpen)
         external
@@ -138,7 +138,7 @@ contract BZx is BZxStorage {
         address[8] calldata orderAddresses,
         uint[11] calldata orderValues,
         bytes calldata oracleData,
-        uint cancelLoanTokenAmount)
+        uint256 cancelLoanTokenAmount)
         external
         returns (uint);
 
@@ -148,7 +148,7 @@ contract BZx is BZxStorage {
     /// @return The amount of loan token canceled.
     function cancelLoanOrderWithHash(
         bytes32 loanOrderHash,
-        uint cancelLoanTokenAmount)
+        uint256 cancelLoanTokenAmount)
         external
         returns (uint);
 
@@ -188,11 +188,11 @@ contract BZx is BZxStorage {
         address loanTokenAddress,
         address collateralTokenAddress,
         address oracleAddress,
-        uint loanTokenAmountFilled,
-        uint initialMarginAmount)
+        uint256 loanTokenAmountFilled,
+        uint256 initialMarginAmount)
         public
         view
-        returns (uint collateralTokenAmount);
+        returns (uint256 collateralTokenAmount);
 
     /// @dev Returns a bytestream of a single order.
     /// @param loanOrderHash A unique hash representing the loan order.
@@ -209,8 +209,8 @@ contract BZx is BZxStorage {
     /// @param oracleFilter Only return orders for a given oracle address.
     /// @return A concatenated stream of bytes.
     function getOrdersFillable(
-        uint start,
-        uint count,
+        uint256 start,
+        uint256 count,
         address oracleFilter)
         public
         view
@@ -224,8 +224,8 @@ contract BZx is BZxStorage {
     /// @return A concatenated stream of bytes.
     function getOrdersForUser(
         address loanParty,
-        uint start,
-        uint count,
+        uint256 start,
+        uint256 count,
         address oracleFilter)
         public
         view
@@ -249,7 +249,7 @@ contract BZx is BZxStorage {
     /// @return A concatenated stream of bytes.
     function getLoansForLender(
         address loanParty,
-        uint count,
+        uint256 count,
         bool activeOnly)
         public
         view
@@ -262,7 +262,7 @@ contract BZx is BZxStorage {
     /// @return A concatenated stream of bytes.
     function getLoansForTrader(
         address loanParty,
-        uint count,
+        uint256 count,
         bool activeOnly)
         public
         view
@@ -273,8 +273,8 @@ contract BZx is BZxStorage {
     /// @param count The total amount of loans to return if they exist. Amount returned can be less.
     /// @return A concatenated stream of PositionRef(loanOrderHash, trader) bytes.
     function getActiveLoans(
-        uint start,
-        uint count)
+        uint256 start,
+        uint256 count)
         public
         view
         returns (bytes memory);
@@ -298,7 +298,7 @@ contract BZx is BZxStorage {
     /// @dev Returns a LoanPosition object.
     /// @param positionId A unqiue id representing the loan position.
     function getLoanPosition(
-        uint positionId)
+        uint256 positionId)
         public
         view
         returns (LoanPosition memory);
@@ -353,7 +353,7 @@ contract BZx is BZxStorage {
     function depositCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
-        uint depositAmount)
+        uint256 depositAmount)
         external
         returns (bool);
 
@@ -365,9 +365,9 @@ contract BZx is BZxStorage {
     function withdrawCollateral(
         bytes32 loanOrderHash,
         address collateralTokenFilled,
-        uint withdrawAmount)
+        uint256 withdrawAmount)
         external
-        returns (uint excessCollateral);
+        returns (uint256 excessCollateral);
 
     /// @dev Allows the trader to change the collateral token being used for a loan.
     /// @dev This function will transfer in the initial margin requirement of the new token and the old token will be refunded to the trader.
@@ -378,7 +378,7 @@ contract BZx is BZxStorage {
         bytes32 loanOrderHash,
         address collateralTokenFilled)
         external
-        returns (uint collateralTokenAmountFilled);
+        returns (uint256 collateralTokenAmountFilled);
 
     /// @dev Allows the trader to withdraw any amount in excess of their loan principal
     /// @dev The trader will only be able to withdraw an amount the keeps the loan at or above initial margin
@@ -387,9 +387,9 @@ contract BZx is BZxStorage {
     /// @return amountWithdrawn The amount withdrawn denominated in positionToken. Can be less than withdrawAmount.
     function withdrawPosition(
         bytes32 loanOrderHash,
-        uint withdrawAmount)
+        uint256 withdrawAmount)
         external
-        returns (uint amountWithdrawn);
+        returns (uint256 amountWithdrawn);
 
     /// @dev Allows the trader to return the position/loan token to increase their escrowed balance.
     /// @dev This should be used by the trader if they've withdraw an overcollateralized loan.
@@ -400,7 +400,7 @@ contract BZx is BZxStorage {
     function depositPosition(
         bytes32 loanOrderHash,
         address depositTokenAddress,
-        uint depositAmount)
+        uint256 depositAmount)
         external
         returns (bool);
 
@@ -432,7 +432,7 @@ contract BZx is BZxStorage {
     /// @return True on success
     function increaseLoanableAmount(
         bytes32 loanOrderHash,
-        uint loanTokenAmountToAdd)      
+        uint256 loanTokenAmountToAdd)      
         external
         returns (bool);
 
@@ -457,7 +457,7 @@ contract BZx is BZxStorage {
         address trader)
         public
         view
-        returns (bool isPositive, uint offsetAmount, address positionTokenAddress);
+        returns (bool isPositive, uint256 offsetAmount, address positionTokenAddress);
 
     /*
     * BZxLoanHealth functions
@@ -502,7 +502,7 @@ contract BZx is BZxStorage {
     /// @return True on success
     function closeLoanPartially(
         bytes32 loanOrderHash,
-        uint closeAmount)
+        uint256 closeAmount)
         external
         returns (bool);
 
@@ -561,5 +561,5 @@ contract BZx is BZxStorage {
         address trader)
         public
         view
-        returns (address lender, address interestTokenAddress, uint interestTotalAccrued, uint interestPaidSoFar, uint interestLastPaidDate);
+        returns (address lender, address interestTokenAddress, uint256 interestTotalAccrued, uint256 interestPaidSoFar, uint256 interestLastPaidDate);
 }

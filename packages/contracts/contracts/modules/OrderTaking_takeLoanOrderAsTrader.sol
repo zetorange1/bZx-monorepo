@@ -48,7 +48,7 @@ contract OrderTaking_takeLoanOrderAsTrader is BZxStorage, BZxProxiable, OrderTak
         uint[11] calldata orderValues,
         bytes calldata oracleData,
         address collateralTokenFilled,
-        uint loanTokenAmountFilled,
+        uint256 loanTokenAmountFilled,
         address tradeTokenToFillAddress,
         bool withdrawOnOpen,
         bytes calldata signature)

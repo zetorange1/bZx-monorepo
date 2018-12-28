@@ -60,7 +60,7 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
             revert("BZxLoanMaintenance::changeTraderOwnership: loanOrder.loanTokenAddress == address(0)");
         }
 
-        uint positionid = loanPositionsIds[loanOrderHash][msg.sender];
+        uint256 positionid = loanPositionsIds[loanOrderHash][msg.sender];
         LoanPosition storage loanPosition = loanPositions[positionid];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             revert("BZxLoanMaintenance::changeTraderOwnership: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
@@ -170,7 +170,7 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
     /// @return True on success
     function increaseLoanableAmount(
         bytes32 loanOrderHash,
-        uint loanTokenAmountToAdd)      
+        uint256 loanTokenAmountToAdd)      
         external
         nonReentrant
         tracksGas
@@ -185,7 +185,7 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
             revert("BZxOrderTaking::increaseLoanableAmount: loanOrder.loanTokenAddress == address(0)");
         }
 
-        uint totalNewFillableAmount = loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrderHash)).add(loanTokenAmountToAdd);
+        uint256 totalNewFillableAmount = loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrderHash)).add(loanTokenAmountToAdd);
         
         // ensure adequate token balance
         require (EIP20(loanOrder.loanTokenAddress).balanceOf.gas(4999)(msg.sender) >= totalNewFillableAmount, "BZxOrderTaking::increaseLoanableAmount: lender balance is insufficient");
@@ -193,7 +193,7 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
         // ensure adequate token allowance
         require (EIP20(loanOrder.loanTokenAddress).allowance.gas(4999)(msg.sender, vaultContract) >= totalNewFillableAmount, "BZxOrderTaking::increaseLoanableAmount: lender allowance is insufficient");
         
-        uint newLoanTokenAmount = loanOrder.loanTokenAmount.add(loanTokenAmountToAdd);
+        uint256 newLoanTokenAmount = loanOrder.loanTokenAmount.add(loanTokenAmountToAdd);
 
         // Interest amount per day is calculated based on the fraction of loan token filled over total loanTokenAmount.
         // Since total loanTokenAmount is increasing, we increase interest proportionally.

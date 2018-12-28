@@ -21,7 +21,7 @@ contract InterestFunctions is BZxStorage, MathFunctions, MiscFunctions {
         LoanOrder memory loanOrder,
         LoanPosition memory loanPosition)
         internal
-        returns (uint amountPaid, uint interestTotalAccrued)
+        returns (uint256 amountPaid, uint256 interestTotalAccrued)
     {
         InterestData memory interestData = _getInterestData(
             loanOrder,
@@ -39,7 +39,7 @@ contract InterestFunctions is BZxStorage, MathFunctions, MiscFunctions {
 
     function _sendInterest(
         LoanOrder memory loanOrder,
-        uint amountPaid,
+        uint256 amountPaid,
         bool convert)
         internal
     {
@@ -75,7 +75,7 @@ contract InterestFunctions is BZxStorage, MathFunctions, MiscFunctions {
         internal
         returns (uint)
     {
-        (uint amountPaid, uint interestTotalAccrued) = _setInterestPaidForPosition(
+        (uint256 amountPaid, uint256 interestTotalAccrued) = _setInterestPaidForPosition(
             loanOrder,
             loanPosition);
 
@@ -108,11 +108,11 @@ contract InterestFunctions is BZxStorage, MathFunctions, MiscFunctions {
         view
         returns (InterestData memory interestData)
     {
-        uint interestTotalAccrued = 0;
-        uint interestPaidSoFar = 0;
-        uint interestLastPaidDate = 0;
+        uint256 interestTotalAccrued = 0;
+        uint256 interestPaidSoFar = 0;
+        uint256 interestLastPaidDate = 0;
         if (loanOrder.interestAmount > 0) {
-            uint interestTime = block.timestamp;
+            uint256 interestTime = block.timestamp;
             interestLastPaidDate = interestPaidDate[loanPosition.positionId];
             if (interestTime > loanPosition.loanEndUnixTimestampSec) {
                 interestTime = loanPosition.loanEndUnixTimestampSec;

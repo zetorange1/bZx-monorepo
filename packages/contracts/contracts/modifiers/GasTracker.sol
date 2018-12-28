@@ -8,7 +8,7 @@ pragma solidity 0.5.2;
 
 contract GasTracker {
 
-    uint internal gasUsed;
+    uint256 internal gasUsed;
 
     modifier tracksGas() {
         // tx call 21k gas

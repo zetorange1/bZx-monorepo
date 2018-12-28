@@ -123,7 +123,7 @@ contract TokenRegistry is Ownable {
 
     /// @dev Allows owner to remove an existing token from the registry.
     /// @param _token Address of existing token.
-    function removeToken(address _token, uint _index)
+    function removeToken(address _token, uint256 _index)
         public
         onlyOwner
         tokenExists(_token)

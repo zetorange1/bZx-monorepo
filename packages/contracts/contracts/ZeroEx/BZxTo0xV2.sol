@@ -50,15 +50,15 @@ contract BZxTo0xV2 is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
     function take0xV2Trade(
         address trader,
         address vaultAddress,
-        uint sourceTokenAmountToUse,
+        uint256 sourceTokenAmountToUse,
         ExchangeV2Interface.OrderV2[] memory orders0x, // Array of 0x V2 order structs
         bytes[] memory signatures0x) // Array of signatures for each of the V2 orders
         public
         onlyBZx
         returns (
             address destTokenAddress,
-            uint destTokenAmount,
-            uint sourceTokenUsedAmount)
+            uint256 destTokenAmount,
+            uint256 sourceTokenUsedAmount)
     {
         address sourceTokenAddress;
 
@@ -89,7 +89,7 @@ contract BZxTo0xV2 is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
     /// @param denominator Denominator.
     /// @param target Value to calculate partial of.
     /// @return Partial value of target.
-    function getPartialAmount(uint numerator, uint denominator, uint target)
+    function getPartialAmount(uint256 numerator, uint256 denominator, uint256 target)
         public
         pure
         returns (uint)
@@ -153,7 +153,7 @@ contract BZxTo0xV2 is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
     function approveFor (
         address token,
         address spender,
-        uint value)
+        uint256 value)
         public
         onlyOwner
         returns (bool)
@@ -177,15 +177,15 @@ contract BZxTo0xV2 is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
     function _take0xV2Trade(
         address trader,
         address sourceTokenAddress,
-        uint sourceTokenAmountToUse,
+        uint256 sourceTokenAmountToUse,
         ExchangeV2Interface.OrderV2[] memory orders0x, // Array of 0x V2 order structs
         bytes[] memory signatures0x)
         internal
-        returns (uint sourceTokenUsedAmount, uint destTokenAmount)
+        returns (uint256 sourceTokenUsedAmount, uint256 destTokenAmount)
     {
-        uint zrxTokenAmount = 0;
-        uint takerAssetRemaining = sourceTokenAmountToUse;
-        for (uint i = 0; i < orders0x.length; i++) {
+        uint256 zrxTokenAmount = 0;
+        uint256 takerAssetRemaining = sourceTokenAmountToUse;
+        for (uint256 i = 0; i < orders0x.length; i++) {
             // Note: takerAssetData (sourceToken) is confirmed to be the same in 0x for batch orders
             // To confirm makerAssetData is the same for each order, rather than doing a more expensive per order bytes
             // comparison, we will simply set makerAssetData the same in each order to the first value observed. The 0x
@@ -219,7 +219,7 @@ contract BZxTo0xV2 is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
         }
 
         // Make sure there is enough allowance for 0x Exchange Proxy to transfer the sourceToken needed for the 0x trade
-        uint tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(address(this), erc20ProxyContract);
+        uint256 tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(address(this), erc20ProxyContract);
         if (tempAllowance < sourceTokenAmountToUse) {
             if (tempAllowance > 0) {
                 // reset approval to 0
