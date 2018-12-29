@@ -1,4 +1,5 @@
 var BZRxToken = artifacts.require("BZRxToken");
+var BZxEther = artifacts.require("BZxEther");
 
 const path = require("path");
 const config = require("../protocol-config.js");
@@ -11,6 +12,9 @@ module.exports = (deployer, network, accounts) => {
       console.log(`   > [${parseInt(path.basename(__filename))}] BZRxToken deploy: #skiped`);
       return;
     }
+
+    let beth = await deployer.deploy(BZxEther);
+
 
     let token = await deployer.deploy(BZRxToken);
 

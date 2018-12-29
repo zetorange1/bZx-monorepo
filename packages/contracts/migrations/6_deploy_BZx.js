@@ -5,6 +5,7 @@ var BZxVault = artifacts.require("BZxVault");
 var OracleRegistry = artifacts.require("OracleRegistry");
 var BZxTo0x = artifacts.require("BZxTo0x");
 var BZxTo0xV2 = artifacts.require("BZxTo0xV2");
+var BZxEther = artifacts.require("BZxEther");
 
 const config = require("../protocol-config.js");
 const path = require("path");
@@ -35,6 +36,8 @@ module.exports = (deployer, network, accounts) => {
 
     await bZxProxy.setBZxAddresses(
       bzrx_token_address,
+      BZxEther.address,
+      config["addresses"][network]["ZeroEx"]["WETH9"],
       BZxVault.address,
       OracleRegistry.address,
       BZxTo0x.address,

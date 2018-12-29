@@ -26,9 +26,11 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
         targets[bytes4(keccak256("replaceContract(address)"))] = _target;
         targets[bytes4(keccak256("setTarget(string,address)"))] = _target;
         targets[bytes4(keccak256("toggleTargetPause(string,bool)"))] = _target;
-        targets[bytes4(keccak256("setBZxAddresses(address,address,address,address,address)"))] = _target;
+        targets[bytes4(keccak256("setBZxAddresses(address,address,address,address,address,address,address)"))] = _target;
         targets[bytes4(keccak256("setDebugMode(bool)"))] = _target;
         targets[bytes4(keccak256("setBZRxToken(address)"))] = _target;
+        targets[bytes4(keccak256("setBZxEther(address)"))] = _target;
+        targets[bytes4(keccak256("setWeth(address)"))] = _target;
         targets[bytes4(keccak256("setVault(address)"))] = _target;
         targets[bytes4(keccak256("setOracleRegistry(address)"))] = _target;
         targets[bytes4(keccak256("setOracleReference(address,address)"))] = _target;
@@ -77,6 +79,8 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
 
     function setBZxAddresses(
         address _bZRxToken,
+        address _bZxEther,
+        address _weth,
         address payable _vault,
         address _oracleregistry,
         address _exchange0xWrapper,
@@ -85,6 +89,8 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
         onlyOwner
     {
         bZRxTokenContract = _bZRxToken;
+        bZxEtherContract = _bZxEther;
+        wethContract = _weth;
         vaultContract = _vault;
         oracleRegistryContract = _oracleregistry;
         bZxTo0xContract = _exchange0xWrapper;
@@ -107,6 +113,24 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
     {
         if (_token != address(0))
             bZRxTokenContract = _token;
+    }
+
+    function setBZxEther (
+        address _token)
+        public
+        onlyOwner
+    {
+        if (_token != address(0))
+            bZxEtherContract = _token;
+    }
+
+    function setWeth (
+        address _token)
+        public
+        onlyOwner
+    {
+        if (_token != address(0))
+            wethContract = _token;
     }
 
     function setVault (

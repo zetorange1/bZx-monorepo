@@ -19,6 +19,8 @@ contract BZxStorage is BZxObjects, BZxEvents, ReentrancyGuard, Ownable, GasTrack
 
 /* solhint-disable var-name-mixedcase */
     address public bZRxTokenContract;
+    address public bZxEtherContract;
+    address public wethContract;
     address payable public vaultContract;
     address public oracleRegistryContract;
     address public bZxTo0xContract;
@@ -56,4 +58,5 @@ contract BZxStorage is BZxObjects, BZxEvents, ReentrancyGuard, Ownable, GasTrack
     mapping (address => address) public oracleAddresses; // mapping of oracles to their current logic contract
     mapping (bytes32 => mapping (address => bool)) public preSigned; // mapping of hash => signer => signed
     mapping (address => mapping (address => bool)) public allowedValidators; // mapping of signer => validator => approved
+    mapping (bytes => bytes) internal db; // general use storage container
 }
