@@ -30,7 +30,7 @@ import Lending from "../src/lending";
 
 import Bounties from "../src/bounties";
 
-import Tokensale from "../src/tokensale";
+//import Tokensale from "../src/tokensale";
 
 import Web3Container from "../src/web3/Web3Container";
 import NetworkIndicator from "../src/common/NetworkIndicator";
@@ -63,10 +63,11 @@ let IndexExport;
 switch (domainData.subdomain) {
 
   case undefined:
-  case `portal`:
+  //case `portal`:
+  default:
     IndexExport = withRouter(withRoot(class extends React.Component {
       state = {
-        activeCard: `tokensale`,
+        activeCard: `balances`,
         activeTab: `Orders_GenOrder`,
         activeOrder: null,
         trackedTokens: [],
@@ -208,7 +209,7 @@ switch (domainData.subdomain) {
               </Fragment>
             );
             break; // eslint-disable-line no-unreachable
-          case `tokensale`:
+          /*case `tokensale`:
             return (
               <Fragment>
                 <HeaderTitle>
@@ -218,7 +219,7 @@ switch (domainData.subdomain) {
                 <HeaderData />
               </Fragment>
             );
-            break; // eslint-disable-line no-unreachable
+            break; // eslint-disable-line no-unreachable*/
           default:
             break;
         }
@@ -383,7 +384,7 @@ switch (domainData.subdomain) {
               </Fragment>
             );
             break; // eslint-disable-line no-unreachable
-          case `tokensale`:
+          /*case `tokensale`:
             return (
               <Fragment>
                 <NetworkIndicator
@@ -410,7 +411,7 @@ switch (domainData.subdomain) {
                 />
               </Fragment>
             );
-            break; // eslint-disable-line no-unreachable
+            break; // eslint-disable-line no-unreachable*/
           default:
             break;
         }
@@ -495,10 +496,10 @@ switch (domainData.subdomain) {
     }));
     break;
 
-  default:
+  /*default:
     IndexExport = withRouter(withRoot(class extends React.Component {
       state = {
-        activeCard: this.props.router.query.p ? this.props.router.query.p : `tokensale`,
+        activeCard: this.props.router.query.p ? this.props.router.query.p : `balances`,
         activeTab: ``,
         activeOrder: null,
         trackedTokens: [],
@@ -630,7 +631,7 @@ switch (domainData.subdomain) {
           </Layout>
         );
       }
-    }));
+    }));*/
 }
 
 export default IndexExport;

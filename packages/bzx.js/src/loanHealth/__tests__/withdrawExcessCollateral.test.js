@@ -8,7 +8,7 @@ import * as FillTestUtils from "../../fill/__tests__/utils";
 const { web3 } = bZxJS;
 
 describe("loanHeath", () => {
-  describe("withdrawExcessCollateral", () => {
+  describe("withdrawCollateral", () => {
     const { owner, lenders, traders } = FillTestUtils.getAccounts();
     const {
       loanTokens,
@@ -84,7 +84,7 @@ describe("loanHeath", () => {
         trader: traders[0]
       });
 
-      promiEvent = bZxJS.withdrawExcessCollateral({
+      promiEvent = bZxJS.withdrawCollateral({
         loanOrderHash,
         collateralTokenFilled,
         withdrawAmount,

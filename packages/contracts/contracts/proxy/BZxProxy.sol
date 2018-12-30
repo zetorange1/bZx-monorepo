@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
 import "./BZxProxiable.sol";
 
@@ -14,11 +14,12 @@ contract BZxProxy is BZxStorage, BZxProxiable {
         address _settings) 
         public
     {
-        require(_settings.delegatecall(bytes4(keccak256("initialize(address)")), _settings), "BZxProxy::constructor: failed");
+        (bool result,) = _settings.delegatecall.gas(gasleft())(abi.encodeWithSignature("initialize(address)", _settings));
+        require(result, "BZxProxy::constructor: failed");
     }
     
     function() 
-        public
+        external
         payable 
     {
         require(!targetIsPaused[msg.sig], "BZxProxy::Function temporarily paused");

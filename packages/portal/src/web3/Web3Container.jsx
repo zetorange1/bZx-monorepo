@@ -191,7 +191,7 @@ export default class Web3Container extends React.Component {
     // Get oracles
     let oracles;
     try {
-      oracles = await bZx.getOracleList();
+      oracles = await window.pqueueGeneral.add(() => bZx.getOracleList());
       if (oracles.length === 0) {
         displayNetworkError();
         return;
@@ -205,7 +205,7 @@ export default class Web3Container extends React.Component {
     // Get tokens from the token registry
     let tokens;
     try {
-      tokens = await bZx.getTokenList();
+      tokens = await window.pqueueGeneral.add(() => bZx.getTokenList());
       if (tokens.length === 0) {
         displayNetworkError();
         return;

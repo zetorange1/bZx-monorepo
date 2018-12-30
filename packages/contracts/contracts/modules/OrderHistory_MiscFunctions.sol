@@ -3,22 +3,22 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "openzeppelin-solidity/contracts/math/Math.sol";
+import "../openzeppelin-solidity/Math.sol";
 
 import "../proxy/BZxProxiable.sol";
-import "../shared/InternalFunctions.sol";
+import "../shared/InterestFunctions.sol";
 
 
-contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
+contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
 
-    function()  
-        public
+    function()
+        external
     {
         revert("fallback not allowed");
     }
@@ -29,8 +29,8 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
         onlyOwner
     {
         targets[bytes4(keccak256("getSingleOrder(bytes32)"))] = _target;
-        targets[bytes4(keccak256("getOrdersFillable(uint256,uint256)"))] = _target;
-        targets[bytes4(keccak256("getOrdersForUser(address,uint256,uint256)"))] = _target;
+        targets[bytes4(keccak256("getOrdersFillable(uint256,uint256,address)"))] = _target;
+        targets[bytes4(keccak256("getOrdersForUser(address,uint256,uint256,address)"))] = _target;
         targets[bytes4(keccak256("getSingleLoan(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("getLoansForLender(address,uint256,bool)"))] = _target;
         targets[bytes4(keccak256("getLoansForTrader(address,uint256,bool)"))] = _target;
@@ -47,17 +47,17 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
         bytes32 loanOrderHash)
         public
         view
-        returns (bytes)
+        returns (bytes memory)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
-            return;
+            return "";
         }
         LoanOrderAux memory loanOrderAux = orderAux[loanOrderHash];
 
         // all encoded params will be zero-padded to 32 bytes
         bytes memory data = abi.encode(
-            loanOrderAux.maker,
+            loanOrderAux.makerAddress,
             loanOrder.loanTokenAddress,
             loanOrder.interestTokenAddress,
             loanOrder.collateralTokenAddress,
@@ -76,19 +76,22 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
     /// @dev Returns a bytestream of data from orders that are available for taking.
     /// @param start The starting order in the order list to return.
     /// @param count The total amount of orders to return if they exist. Amount returned can be less.
+    /// @param oracleFilter Only return orders for a given oracle address.
     /// @return A concatenated stream of bytes.
     function getOrdersFillable(
-        uint start,
-        uint count)
+        uint256 start,
+        uint256 count,
+        address oracleFilter)
         public
         view
-        returns (bytes)
+        returns (bytes memory)
     {
         return _getOrdersForAddress(
             address(0),
             start,
             count,
-            true // skipExpired
+            true, // skipExpired
+            oracleFilter
         );
     }
 
@@ -96,20 +99,23 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
     /// @param loanParty The address of the maker or taker of the order.
     /// @param start The starting order in the order list to return.
     /// @param count The total amount of orders to return if they exist. Amount returned can be less.
+    /// @param oracleFilter Only return orders for a given oracle address.
     /// @return A concatenated stream of bytes.
     function getOrdersForUser(
         address loanParty,
-        uint start,
-        uint count)
+        uint256 start,
+        uint256 count,
+        address oracleFilter)
         public
         view
-        returns (bytes)
+        returns (bytes memory)
     {
         return _getOrdersForAddress(
             loanParty,
             start,
             count,
-            false // skipExpired
+            false, // skipExpired
+            oracleFilter
         );
     }
 
@@ -122,11 +128,11 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
         address trader)
         public
         view
-        returns (bytes)
+        returns (bytes memory)
     {
         LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
         if (loanPosition.loanTokenAmountFilled == 0) {
-            return;
+            return "";
         }
 
         // all encoded params will be zero-padded to 32 bytes
@@ -155,11 +161,11 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
     /// @return A concatenated stream of bytes.
     function getLoansForLender(
         address loanParty,
-        uint count,
+        uint256 count,
         bool activeOnly)
         public
         view
-        returns (bytes)
+        returns (bytes memory)
     {
         return _getLoanPositions(
             loanParty,
@@ -176,11 +182,11 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
     /// @return A concatenated stream of bytes.
     function getLoansForTrader(
         address loanParty,
-        uint count,
+        uint256 count,
         bool activeOnly)
         public
         view
-        returns (bytes)
+        returns (bytes memory)
     {
         return _getLoanPositions(
             loanParty,
@@ -195,21 +201,21 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
     /// @param count The total amount of loans to return if they exist. Amount returned can be less.
     /// @return A concatenated stream of PositionRef(loanOrderHash, trader) bytes.
     function getActiveLoans(
-        uint start,
-        uint count)
+        uint256 start,
+        uint256 count)
         public
         view
-        returns (bytes)
+        returns (bytes memory)
     {
-        uint end = Math.min256(positionList.length, start.add(count));
+        uint256 end = Math.min256(positionList.length, start.add(count));
         if (end == 0 || start >= end) {
-            return;
+            return "";
         }
 
         // all encoded params will be zero-padded to 32 bytes
         bytes memory data;
 
-        for (uint j=0; j < end-start; j++) {
+        for (uint256 j=0; j < end-start; j++) {
             PositionRef memory positionRef = positionList[j+start];
             LoanPosition memory loanPosition = loanPositions[positionRef.positionId];
 
@@ -234,7 +240,7 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
         bytes32 loanOrderHash)
         public
         view
-        returns (LoanOrder)
+        returns (LoanOrder memory)
     {
         return orders[loanOrderHash];
     }
@@ -245,7 +251,7 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
         bytes32 loanOrderHash)
         public
         view
-        returns (LoanOrderAux)
+        returns (LoanOrderAux memory)
     {
         return orderAux[loanOrderHash];
     }
@@ -253,10 +259,10 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
     /// @dev Returns a LoanPosition object.
     /// @param positionId A unqiue id representing the loan position.
     function getLoanPosition(
-        uint positionId)
+        uint256 positionId)
         public
         view
-        returns (LoanPosition)
+        returns (LoanPosition memory)
     {
         return loanPositions[positionId];
     }
@@ -267,23 +273,24 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
 
     function _getOrdersForAddress(
         address addr,
-        uint start,
-        uint count,
-        bool skipExpired)
+        uint256 start,
+        uint256 count,
+        bool skipExpired,
+        address oracleFilter)
         internal
         view
-        returns (bytes)
+        returns (bytes memory)
     {
-        uint end = Math.min256(orderList[addr].length, start.add(count));
+        uint256 end = Math.min256(orderList[addr].length, start.add(count));
         if (end == 0 || start >= end) {
-            return;
+            return "";
         }
 
         // all encoded params will be zero-padded to 32 bytes
         bytes memory data;
 
         end = end-start;
-        for (uint j=0; j < end; j++) {
+        for (uint256 j=0; j < end; j++) {
             LoanOrder memory loanOrder = orders[orderList[addr][j+start]];
 
             LoanOrderAux memory loanOrderAux = orderAux[orderList[addr][j+start]];
@@ -295,8 +302,15 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
                 continue;
             }
 
+            if (oracleFilter != address(0) && oracleFilter != oracleAddresses[loanOrder.oracleAddress]) {
+                if (end < orderList[addr].length)
+                    end++;
+
+                continue;
+            }
+
             bytes memory tmpBytes = abi.encode(
-                loanOrderAux.maker,
+                loanOrderAux.makerAddress,
                 loanOrder.loanTokenAddress,
                 loanOrder.interestTokenAddress,
                 loanOrder.collateralTokenAddress,
@@ -321,12 +335,12 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
     }
 
     function _addExtraOrderData(
-        LoanOrder loanOrder,
-        LoanOrderAux loanOrderAux,
-        bytes data)
+        LoanOrder memory loanOrder,
+        LoanOrderAux memory loanOrderAux,
+        bytes memory data)
         internal
         view
-        returns (bytes)
+        returns (bytes memory)
     {
         bytes memory tmpBytes = abi.encode(
             loanOrder.maxDurationUnixTimestampSec,
@@ -336,33 +350,36 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
             orderFilledAmounts[loanOrder.loanOrderHash],
             orderCancelledAmounts[loanOrder.loanOrderHash],
             orderPositionList[loanOrder.loanOrderHash].length, // trader count
-            orderPositionList[loanOrder.loanOrderHash].length > 0 ? loanPositions[orderPositionList[loanOrder.loanOrderHash][0]].loanStartUnixTimestampSec : 0
+            orderPositionList[loanOrder.loanOrderHash].length > 0 ? loanPositions[orderPositionList[loanOrder.loanOrderHash][0]].loanStartUnixTimestampSec : 0,
+            loanOrderAux.takerAddress,
+            loanOrderAux.tradeTokenToFillAddress,
+            loanOrderAux.withdrawOnOpen
         );
         return abi.encodePacked(data, tmpBytes);
     }
 
     function _getLoanPositions(
         address loanParty,
-        uint count,
+        uint256 count,
         bool activeOnly,
         bool forLender)
         internal
         view
-        returns (bytes)
+        returns (bytes memory)
     {
         // all encoded params will be zero-padded to 32 bytes
         bytes memory data;
 
-        uint itemCount = 0;
-        for (uint j=orderList[loanParty].length; j > 0; j--) {
+        uint256 itemCount = 0;
+        for (uint256 j=orderList[loanParty].length; j > 0; j--) {
             bytes32 loanOrderHash = orderList[loanParty][j-1];
-            uint[] memory positionIds = orderPositionList[loanOrderHash];
+            uint256[] memory positionIds = orderPositionList[loanOrderHash];
 
             if (forLender && loanParty != orderLender[loanOrderHash]) {
                 continue;
             }
 
-            for (uint i=positionIds.length; i > 0; i--) {
+            for (uint256 i=positionIds.length; i > 0; i--) {
                 LoanPosition memory loanPosition = loanPositions[positionIds[i-1]];
 
                 if (activeOnly && (!loanPosition.active || (loanPosition.loanEndUnixTimestampSec > 0 && block.timestamp >= loanPosition.loanEndUnixTimestampSec))) {
@@ -411,11 +428,11 @@ contract BZxOrderHistory is BZxStorage, BZxProxiable, InternalFunctions {
 
     function _addExtraLoanData(
         bytes32 loanOrderHash,
-        LoanPosition loanPosition,
-        bytes data)
+        LoanPosition memory loanPosition,
+        bytes memory data)
         internal
         view
-        returns (bytes)
+        returns (bytes memory)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
 

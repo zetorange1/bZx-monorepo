@@ -1,5 +1,6 @@
 import * as Signature from "../signature";
 import * as CoreUtils from "../core/utils";
+import * as Constants from "../core/constants";
 import { getContracts } from "../contracts";
 import * as Addresses from "../addresses";
 
@@ -29,7 +30,9 @@ export const takeLoanOrderAsLender = (
     order.interestTokenAddress,
     order.collateralTokenAddress,
     order.feeRecipientAddress,
-    order.oracleAddress
+    order.oracleAddress,
+    order.takerAddress,
+    order.tradeTokenToFillAddress
   ];
 
   const orderValues = [
@@ -42,6 +45,7 @@ export const takeLoanOrderAsLender = (
     order.maxDurationUnixTimestampSec,
     order.expirationUnixTimestampSec,
     order.makerRole,
+    order.withdrawOnOpen,
     order.salt
   ];
 
@@ -60,11 +64,10 @@ export const takeLoanOrderAsLender = (
 
 export const takeLoanOrderAsTrader = (
   { web3, networkId },
-  { order, oracleData, collateralTokenAddress, loanTokenAmountFilled, getObject, txOpts },
-  withdraw
+  { order, oracleData, collateralTokenAddress, loanTokenAmountFilled, tradeTokenToFillAddress, withdrawOnOpen, getObject, txOpts }
 ) => {
   checkForValidSignature(order);
-  console.log(order, oracleData, collateralTokenAddress, loanTokenAmountFilled, getObject, txOpts);
+  console.log(order, oracleData, collateralTokenAddress, loanTokenAmountFilled, tradeTokenToFillAddress, withdrawOnOpen, getObject, txOpts);
   const bZxContract = CoreUtils.getContractInstance(
     web3,
     getContracts(networkId).BZx.abi,
@@ -77,7 +80,9 @@ export const takeLoanOrderAsTrader = (
     order.interestTokenAddress,
     order.collateralTokenAddress,
     order.feeRecipientAddress,
-    order.oracleAddress
+    order.oracleAddress,
+    order.takerAddress,
+    order.tradeTokenToFillAddress
   ];
 
   const orderValues = [
@@ -90,29 +95,20 @@ export const takeLoanOrderAsTrader = (
     order.maxDurationUnixTimestampSec,
     order.expirationUnixTimestampSec,
     order.makerRole,
+    order.withdrawOnOpen,
     order.salt
   ];
 
-  let txObj;
-  if (withdraw) {
-    txObj = bZxContract.methods.takeLoanOrderAsTraderAndWithdraw(
-      orderAddresses,
-      orderValues,
-      oracleData || "0x",
-      collateralTokenAddress,
-      web3.utils.toBN(loanTokenAmountFilled).toString(10),
-      order.signature
-    );
-  } else {
-    txObj = bZxContract.methods.takeLoanOrderAsTrader(
-      orderAddresses,
-      orderValues,
-      oracleData || "0x",
-      collateralTokenAddress,
-      web3.utils.toBN(loanTokenAmountFilled).toString(10),
-      order.signature
-    );
-  }
+  const txObj = bZxContract.methods.takeLoanOrderAsTrader(
+     orderAddresses,
+     orderValues,
+     oracleData || "0x",
+     collateralTokenAddress,
+     web3.utils.toBN(loanTokenAmountFilled).toString(10),
+     tradeTokenToFillAddress || Constants.NULL_ADDRESS,
+     withdrawOnOpen || false,
+     order.signature
+  );
 
   if (getObject) {
     return txObj;
@@ -138,7 +134,9 @@ export const pushLoanOrderOnChain = (
     order.interestTokenAddress,
     order.collateralTokenAddress,
     order.feeRecipientAddress,
-    order.oracleAddress
+    order.oracleAddress,
+    order.takerAddress,
+    order.tradeTokenToFillAddress
   ];
 
   const orderValues = [
@@ -151,6 +149,7 @@ export const pushLoanOrderOnChain = (
     web3.utils.toBN(order.maxDurationUnixTimestampSec).toString(10),
     web3.utils.toBN(order.expirationUnixTimestampSec).toString(10),
     web3.utils.toBN(order.makerRole).toString(10),
+    web3.utils.toBN(order.withdrawOnOpen).toString(10),
     web3.utils.toBN(order.salt).toString(10)
   ];
 
@@ -173,10 +172,11 @@ export const takeLoanOrderOnChainAsTrader = (
     loanOrderHash,
     collateralTokenAddress,
     loanTokenAmountFilled,
+    tradeTokenToFillAddress,
+    withdrawOnOpen,
     getObject,
     txOpts
-  },
-  withdraw
+  }
 ) => {
   const bZxContract = CoreUtils.getContractInstance(
     web3,
@@ -184,20 +184,13 @@ export const takeLoanOrderOnChainAsTrader = (
     Addresses.getAddresses(networkId).BZx
   );
 
-  let txObj;
-  if (withdraw) {
-    txObj = bZxContract.methods.takeLoanOrderOnChainAsTraderAndWithdraw(
-      loanOrderHash,
-      collateralTokenAddress,
-      web3.utils.toBN(loanTokenAmountFilled).toString(10)
-    );
-  } else {
-    txObj = bZxContract.methods.takeLoanOrderOnChainAsTrader(
-      loanOrderHash,
-      collateralTokenAddress,
-      web3.utils.toBN(loanTokenAmountFilled).toString(10)
-    );
-  }
+  const txObj = bZxContract.methods.takeLoanOrderOnChainAsTrader(
+    loanOrderHash,
+    collateralTokenAddress,
+    web3.utils.toBN(loanTokenAmountFilled).toString(10),
+    tradeTokenToFillAddress || Constants.NULL_ADDRESS,
+    withdrawOnOpen || false
+  );
 
   if (getObject) {
     return txObj;
@@ -241,7 +234,9 @@ export const cancelLoanOrder = (
     order.interestTokenAddress,
     order.collateralTokenAddress,
     order.feeRecipientAddress,
-    order.oracleAddress
+    order.oracleAddress,
+    order.takerAddress,
+    order.tradeTokenToFillAddress
   ];
 
   const orderValues = [
@@ -254,6 +249,7 @@ export const cancelLoanOrder = (
     order.maxDurationUnixTimestampSec,
     order.expirationUnixTimestampSec,
     order.makerRole,
+    order.withdrawOnOpen,
     order.salt
   ];
 

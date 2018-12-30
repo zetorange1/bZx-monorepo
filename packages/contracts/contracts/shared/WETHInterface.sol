@@ -3,10 +3,10 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
 
 interface WETHInterface {
     function deposit() external payable;
-    function withdraw(uint wad) external;
+    function withdraw(uint256 wad) external;
 }

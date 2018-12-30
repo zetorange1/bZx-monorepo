@@ -63,13 +63,14 @@ module.exports = (deployer, network, accounts) => {
     var collateralToken2;
     var interestToken1;
     var interestToken2;
+    var tradeToken1;
     var maker0xToken1;
 
     var OrderParams_bZx_1;
     var ECSignature_raw_1;
 
     deployer.then(async function() {
-     
+
       var bZxProxy = await BZxProxySettings.at(BZxProxy.address);
       var bZx = await BZx.at(bZxProxy.address);
       var vault = await BZxVault.deployed();
@@ -97,6 +98,7 @@ module.exports = (deployer, network, accounts) => {
       collateralToken2 = test_tokens[3];
       interestToken1 = test_tokens[1];
       interestToken2 = test_tokens[0];
+      tradeToken1 = test_tokens[7];
       maker0xToken1 = test_tokens[5];
 
       await Promise.all([
@@ -165,21 +167,24 @@ module.exports = (deployer, network, accounts) => {
       /// should take sample loan order (as trader1)
       OrderParams_bZx_1 = {
         bZxAddress: bZx.address,
-        makerAddress: lender1_account, // lender
+        makerAddress: lender1_account,
+        takerAddress: NULL_ADDRESS, // trader1_account
         loanTokenAddress: loanToken1.address,
         interestTokenAddress: interestToken1.address,
         collateralTokenAddress: NULL_ADDRESS,
         feeRecipientAddress: relay1_account,
+        tradeTokenToFillAddress: NULL_ADDRESS,
         oracleAddress: oracle.address,
         loanTokenAmount: toWei(10000, "ether").toString(),
         interestAmount: toWei(2.5, "ether").toString(), // 2 token units per day
-        initialMarginAmount: "50", // 50%
-        maintenanceMarginAmount: "25", // 25%
+        initialMarginAmount: toWei(50, "ether").toString(), // 50%
+        maintenanceMarginAmount: toWei(25, "ether").toString(), // 25%
         lenderRelayFee: toWei(0.001, "ether").toString(),
         traderRelayFee: toWei(0.0013, "ether").toString(),
         maxDurationUnixTimestampSec: "2419200", // 28 days
         expirationUnixTimestampSec: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
         makerRole: "0", // 0=lender, 1=trader
+        withdrawOnLoanOpen: "0",
         salt: ZeroEx.generatePseudoRandomSalt().toString()
       };
       //console.log(OrderParams_bZx_1);
@@ -191,7 +196,9 @@ module.exports = (deployer, network, accounts) => {
           OrderParams_bZx_1["interestTokenAddress"],
           OrderParams_bZx_1["collateralTokenAddress"],
           OrderParams_bZx_1["feeRecipientAddress"],
-          OrderParams_bZx_1["oracleAddress"]
+          OrderParams_bZx_1["oracleAddress"],
+          OrderParams_bZx_1["takerAddress"],
+          OrderParams_bZx_1["tradeTokenToFillAddress"]
         ],
         [
           new BN(OrderParams_bZx_1["loanTokenAmount"]),
@@ -203,13 +210,14 @@ module.exports = (deployer, network, accounts) => {
           new BN(OrderParams_bZx_1["maxDurationUnixTimestampSec"]),
           new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
           new BN(OrderParams_bZx_1["makerRole"]),
+          new BN(OrderParams_bZx_1["withdrawOnLoanOpen"]),
           new BN(OrderParams_bZx_1["salt"])
         ],
         "0x12a1232124" // oracleData
       );
 
       ECSignature_raw_1 = await web3.eth.sign(OrderHash_bZx_1, lender1_account);
-    
+
       // add signature type to end
       ECSignature_raw_1 = ECSignature_raw_1 + toHex(SignatureType.EthSign);
 
@@ -222,7 +230,9 @@ module.exports = (deployer, network, accounts) => {
             OrderParams_bZx_1["interestTokenAddress"],
             OrderParams_bZx_1["collateralTokenAddress"],
             OrderParams_bZx_1["feeRecipientAddress"],
-            OrderParams_bZx_1["oracleAddress"]
+            OrderParams_bZx_1["oracleAddress"],
+            OrderParams_bZx_1["takerAddress"],
+            OrderParams_bZx_1["tradeTokenToFillAddress"],
           ],
           [
             new BN(OrderParams_bZx_1["loanTokenAmount"]),
@@ -234,11 +244,14 @@ module.exports = (deployer, network, accounts) => {
             new BN(OrderParams_bZx_1["maxDurationUnixTimestampSec"]),
             new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
             new BN(OrderParams_bZx_1["makerRole"]),
+            new BN(OrderParams_bZx_1["withdrawOnLoanOpen"]),
             new BN(OrderParams_bZx_1["salt"])
           ],
           "0x12a1232124", // oracleData
           collateralToken1.address,
           toWei(12.3, "ether"),
+          NULL_ADDRESS,
+          false,
           ECSignature_raw_1,
           {
             from: trader1_account,
@@ -257,7 +270,9 @@ module.exports = (deployer, network, accounts) => {
             OrderParams_bZx_1["interestTokenAddress"],
             OrderParams_bZx_1["collateralTokenAddress"],
             OrderParams_bZx_1["feeRecipientAddress"],
-            OrderParams_bZx_1["oracleAddress"]
+            OrderParams_bZx_1["oracleAddress"],
+            OrderParams_bZx_1["takerAddress"],
+            OrderParams_bZx_1["tradeTokenToFillAddress"]
           ],
           [
             new BN(OrderParams_bZx_1["loanTokenAmount"]),
@@ -269,11 +284,14 @@ module.exports = (deployer, network, accounts) => {
             new BN(OrderParams_bZx_1["maxDurationUnixTimestampSec"]),
             new BN(OrderParams_bZx_1["expirationUnixTimestampSec"]),
             new BN(OrderParams_bZx_1["makerRole"]),
+            new BN(OrderParams_bZx_1["withdrawOnLoanOpen"]),
             new BN(OrderParams_bZx_1["salt"])
           ],
           "0x12a1232124", // oracleData
           collateralToken2.address,
           toWei(20, "ether"),
+          tradeToken1.address, // NULL_ADDRESS
+          false,
           ECSignature_raw_1,
           {
             from: trader2_account,
@@ -300,7 +318,7 @@ module.exports = (deployer, network, accounts) => {
       console.log(OrderParams_0x);
 
       OrderHash_0x = ZeroEx.getOrderHashHex(OrderParams_0x);
-        
+
       ECSignature_0x_raw = await web3.eth.sign(OrderHash_0x, makerOf0xOrder_account);
 
       ECSignature_0x = {
@@ -343,11 +361,11 @@ module.exports = (deployer, network, accounts) => {
       //console.log(sample_order_tightlypacked);
       //console.log(ECSignature_0x_raw);
 
-      console.log("Before profit:");
+      console.log("Before excess:");
       console.log(
-        (await bZx.getProfitOrLoss.call(OrderHash_bZx_1, trader1_account, {
+        (await bZx.getPositionOffset.call(OrderHash_bZx_1, trader1_account, {
           from: lender2_account
-        })).toString()
+        }))
       );
 
       console.log(
@@ -358,18 +376,18 @@ module.exports = (deployer, network, accounts) => {
         ),
         ""
       );
-      console.log("After profit:");
+      console.log("After excess:");
       console.log(
-        (await bZx.getProfitOrLoss.call(OrderHash_bZx_1, trader1_account, {
+        (await bZx.getPositionOffset.call(OrderHash_bZx_1, trader1_account, {
           from: lender2_account
-        })).toString()
+        }))
       );
 
       console.log("Margin Levels:");
       console.log(
         (await bZx.getMarginLevels.call(OrderHash_bZx_1, trader1_account, {
           from: lender2_account
-        })).toString()
+        }))
       );
     });
   }

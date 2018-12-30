@@ -83,9 +83,9 @@ class NavContent extends React.Component {
         {this.props.web3IsReceived && !this.props.noHeaderBar? (
           <Fragment>
             <HorizontalNav>
-              <NavLink id="tokensale" onClick={this.changeCardClick} style={{ fontWeight: `900`, color: `rgb(25,197,194)` }}>
+              {/*<NavLink id="tokensale" onClick={this.changeCardClick} style={{ fontWeight: `900`, color: `rgb(25,197,194)` }}>
                 Buy BZRX
-              </NavLink>
+              </NavLink>*/}
               <NavLink id="balances" onClick={this.changeCardClick}>
                 Balances
               </NavLink>
@@ -109,9 +109,9 @@ class NavContent extends React.Component {
             />
             <Drawer show={this.state.showSideNav}>
               <VerticalNav>
-                <NavLink id="tokensale" onClick={this.changeCardClick} style={{ fontWeight: `900`, color: `rgb(25,197,194)` }}>
+                {/*<NavLink id="tokensale" onClick={this.changeCardClick} style={{ fontWeight: `900`, color: `rgb(25,197,194)` }}>
                   Buy BZRX
-                </NavLink>
+                </NavLink>*/}
                 <NavLink id="balances" onClick={this.changeCardClick}>
                   Balances
                 </NavLink>

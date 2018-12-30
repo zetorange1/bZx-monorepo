@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../../openzeppelin-solidity/Ownable.sol";
 
 import "./BZRxToken.sol";
 
@@ -27,8 +27,8 @@ contract BZRxTransferProxy is Ownable {
         bZRxTokenContractAddress = _bZRxTokenContractAddress;
     }
 
-    function()  
-        public
+    function()
+        external
     {
         revert();
     }
@@ -56,7 +56,7 @@ contract BZRxTransferProxy is Ownable {
     // for ERC20 conformity
     function totalSupply() 
         public 
-        view 
+        /* view */ 
         returns (uint) 
     {
         return StandardToken(bZRxTokenContractAddress).totalSupply.gas(4999)();
@@ -66,7 +66,7 @@ contract BZRxTransferProxy is Ownable {
     function balanceOf(
         address _owner) 
         public 
-        view 
+        /* view */ 
         returns (uint)
     {
         return StandardToken(bZRxTokenContractAddress).balanceOf.gas(4999)(_owner);
@@ -77,7 +77,7 @@ contract BZRxTransferProxy is Ownable {
         address _owner,
         address _spender)
         public
-        view
+        /* view */
         returns (uint)
     {
         return StandardToken(bZRxTokenContractAddress).allowance.gas(4999)(_owner, _spender);
@@ -85,7 +85,7 @@ contract BZRxTransferProxy is Ownable {
 
     function setTransferAllowance(
         address _who,
-        uint _amount) 
+        uint256 _amount) 
         public 
         onlyOwner 
     {
@@ -103,12 +103,12 @@ contract BZRxTransferProxy is Ownable {
     function transferToken(
         address _tokenAddress,
         address _to,
-        uint _value)
+        uint256 _value)
         public
         onlyOwner
         returns (bool)
     {
-        uint balance = StandardToken(_tokenAddress).balanceOf.gas(4999)(this);
+        uint256 balance = StandardToken(_tokenAddress).balanceOf.gas(4999)(address(this));
         if (_value > balance) {
             return StandardToken(_tokenAddress).transfer(
                 _to,

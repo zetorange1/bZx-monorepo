@@ -38,6 +38,7 @@ const getOrderValues = (order, shouldFormatAsStrings) => {
       order.maxDurationUnixTimestampSec.toString(),
       order.expirationUnixTimestampSec.toString(),
       order.makerRole.toString(),
+      order.withdrawOnOpen.toString(),
       order.salt.toString()
     ];
   }
@@ -51,6 +52,7 @@ const getOrderValues = (order, shouldFormatAsStrings) => {
     bigNumberToBN(order.maxDurationUnixTimestampSec),
     bigNumberToBN(order.expirationUnixTimestampSec),
     bigNumberToBN(order.makerRole),
+    bigNumberToBN(order.withdrawOnOpen),
     bigNumberToBN(order.salt)
   ];
 };
@@ -62,7 +64,9 @@ const getLoanOrderHashArgs = (order, shouldFormatAsStrings) => {
     order.interestTokenAddress,
     order.collateralTokenAddress,
     order.feeRecipientAddress,
-    order.oracleAddress
+    order.oracleAddress,
+    order.takerAddress,
+    order.tradeTokenToFillAddress
   ];
   const orderValues = getOrderValues(order, shouldFormatAsStrings);
   const oracleData = order.oracleData || "0x";
@@ -87,8 +91,8 @@ export const getLoanOrderHashHex = order => {
   const { orderAddresses, orderValues, oracleData } = getLoanOrderHashArgs(order, true);
   const orderHashHex = Web3Utils.soliditySha3(
     { t: "address", v: order.bZxAddress },
-    { t: "address[6]", v: orderAddresses },
-    { t: "uint256[10]", v: orderValues },
+    { t: "address[8]", v: orderAddresses },
+    { t: "uint256[11]", v: orderValues },
     { t: "bytes", v: oracleData }
   );
   return orderHashHex;

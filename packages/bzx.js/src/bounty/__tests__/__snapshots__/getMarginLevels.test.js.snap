@@ -3,7 +3,7 @@
 exports[`bounty getMarginLevels should return margin levels 1`] = `
 Object {
   "currentMarginAmount": "50000000000000000000",
-  "initialMarginAmount": "50",
-  "maintenanceMarginAmount": "25",
+  "initialMarginAmount": "50000000000000000000",
+  "maintenanceMarginAmount": "25000000000000000000",
 }
 `;

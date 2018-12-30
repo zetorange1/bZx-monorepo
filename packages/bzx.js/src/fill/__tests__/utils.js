@@ -187,13 +187,14 @@ export const makeOrderAsTrader = ({
     feeRecipientAddress: constants.NULL_ADDRESS,
     loanTokenAmount,
     interestAmount: web3.utils.toWei("2").toString(),
-    initialMarginAmount: "50",
-    maintenanceMarginAmount: "25",
+    initialMarginAmount: "50000000000000000000",
+    maintenanceMarginAmount: "25000000000000000000",
     lenderRelayFee: web3.utils.toWei("0.001").toString(),
     traderRelayFee: web3.utils.toWei("0.0015").toString(),
     maxDurationUnixTimestampSec: "2419200", // 28 days
     expirationUnixTimestampSec: "2519061340",
     makerRole: orderConstants.MAKER_ROLE.TRADER,
+    withdrawOnOpen: "0",
     salt: BZxJS.generatePseudoRandomSalt().toString()
   });
 
@@ -212,13 +213,14 @@ export const makeOrderAsLender = ({
     feeRecipientAddress: constants.NULL_ADDRESS,
     loanTokenAmount,
     interestAmount: web3.utils.toWei("2").toString(),
-    initialMarginAmount: "50",
-    maintenanceMarginAmount: "25",
+    initialMarginAmount: "50000000000000000000",
+    maintenanceMarginAmount: "25000000000000000000",
     lenderRelayFee: web3.utils.toWei("0.001").toString(),
     traderRelayFee: web3.utils.toWei("0.0015").toString(),
     maxDurationUnixTimestampSec: "2419200", // 28 days
     expirationUnixTimestampSec: "2519061340",
     makerRole: orderConstants.MAKER_ROLE.LENDER,
+    withdrawOnOpen: "0",
     salt: BZxJS.generatePseudoRandomSalt().toString()
   });
 

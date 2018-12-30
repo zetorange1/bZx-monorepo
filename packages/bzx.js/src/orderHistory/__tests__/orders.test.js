@@ -41,13 +41,14 @@ describe("order history", () => {
       feeRecipientAddress: constants.NULL_ADDRESS,
       loanTokenAmount: web3.utils.toWei("100000").toString(),
       interestAmount: web3.utils.toWei("2").toString(),
-      initialMarginAmount: "50",
-      maintenanceMarginAmount: "25",
+      initialMarginAmount: "50000000000000000000",
+      maintenanceMarginAmount: "25000000000000000000",
       lenderRelayFee: web3.utils.toWei("0.001").toString(),
       traderRelayFee: web3.utils.toWei("0.0015").toString(),
       maxDurationUnixTimestampSec, // 28 days
       expirationUnixTimestampSec,
       makerRole: orderConstants.MAKER_ROLE.LENDER,
+      withdrawOnOpen: "0",
       salt: BZxJS.generatePseudoRandomSalt().toString()
     });
 
@@ -91,14 +92,14 @@ describe("order history", () => {
         maxDurationUnixTimestampSec: 2419200, // 28 days
         expirationUnixTimestampSec: 1719061340,
         feeRecipientAddress: "0x0000000000000000000000000000000000000000",
-        initialMarginAmount: 50,
+        initialMarginAmount: 50000000000000000000,
         interestAmount: 2000000000000000000,
         interestTokenAddress: interestTokens[0].options.address.toLowerCase(),
         lender: makerAddress,
         lenderRelayFee: 1000000000000000,
         loanTokenAddress: loanTokens[0].options.address.toLowerCase(),
         loanTokenAmount: 1e23,
-        maintenanceMarginAmount: 25,
+        maintenanceMarginAmount: 25000000000000000000,
         maker: makerAddress,
         oracleAddress: bZxJS.addresses.BZxOracle,
         orderCancelledAmount: 0,

@@ -11,12 +11,13 @@ var config = require("../protocol-config.js");
 const path = require("path");
 
 module.exports = (deployer, network, accounts) => {
-  return;
   if (network == "develop" || network == "testnet" || network == "coverage") {
     network = "development";
+  } else {
+    return;
   }
 
-  const currentBonus = 110; // 10% bonus
+  const currentBonus = web3.utils.toWei("110", "ether"); // 10% bonus
 
   // let priceContractAddress;
 

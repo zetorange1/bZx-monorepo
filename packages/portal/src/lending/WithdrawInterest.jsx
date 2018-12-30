@@ -88,8 +88,7 @@ export default class WithdrawInterest extends React.Component {
 
   render() {
     const { showDialog } = this.state;
-    const { availableForWithdrawal, symbol, decimals } = this.props;
-    const currentFee = 0.1; // will likely change in the future
+    const { availableForWithdrawal, symbol, decimals, currentFee } = this.props;
     const actualWithdrawalAmount = BigNumber(availableForWithdrawal)
       .times(1 - currentFee)
       .integerValue(BigNumber.ROUND_HALF_DOWN);
@@ -101,7 +100,7 @@ export default class WithdrawInterest extends React.Component {
           color="primary"
           disabled={!BigNumber(availableForWithdrawal).gt(0)}
         >
-          Withdraw
+          Withdraw Interest
         </Button>
         <Dialog open={showDialog} onClose={this.closeDialog}>
           <DialogContent>
@@ -109,7 +108,7 @@ export default class WithdrawInterest extends React.Component {
             <p>
               Currently, we are taking a fee of
               {` `}
-              <strong>{currentFee * 100}%</strong>. This means that the actual
+              <strong>{currentFee * 100}%</strong> to insure the loan. This means that the actual
               withdrawal amount will be at least:
             </p>
             <p>

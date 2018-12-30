@@ -1,6 +1,7 @@
 export default {
   bZxAddress: "0x0000000000000000000000000000000000000000",
   makerAddress: "0x0000000000000000000000000000000000000000",
+  takerAddress: "0x0000000000000000000000000000000000000000",
   networkId: 1,
 
   // addresses
@@ -9,14 +10,15 @@ export default {
   collateralTokenAddress: "0x25b8fe1de9daf8ba351890744ff28cf7dfa8f5e3",
   feeRecipientAddress: "0x0000000000000000000000000000000000000000",
   oracleAddress: "0x0000000000000000000000000000000000000000",
+  tradeTokenToFillAddress: "0x0000000000000000000000000000000000000000",
 
   // token amounts
   loanTokenAmount: "40",
   interestAmount: "41",
 
   // margin amounts
-  initialMarginAmount: "40",
-  maintenanceMarginAmount: "20",
+  initialMarginAmount: "40000000000000000000",
+  maintenanceMarginAmount: "20000000000000000000",
 
   // relay fees
   lenderRelayFee: "0",
@@ -28,5 +30,6 @@ export default {
   expirationUnixTimestampSec: "1519061340",
 
   makerRole: "0",
+  withdrawOnOpen: "0",
   salt: "0.2019429563929979"
 };

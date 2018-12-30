@@ -1,6 +1,6 @@
 {
   "name": "@bzxnetwork/bzx.js",
-  "version": "0.3.7",
+  "version": "0.4.1",
   "description": "JavaScript library for interacting with the bZx protocol smart contracts",
   "keywords": [],
   "author": "",
@@ -63,7 +63,8 @@
     "prettier": "^1.10.2",
     "regenerator-runtime": "^0.11.1",
     "rimraf": "^2.6.2",
-    "webpack": "^4.17.1",
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.1.1",
     "webpack-bundle-analyzer": "^2.13.1",
     "webpack-merge": "^4.1.4",
     "webpack-node-externals": "^1.7.2",

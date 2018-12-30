@@ -17,9 +17,9 @@
 
 */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../openzeppelin-solidity/Ownable.sol";
 
 
 contract TokenRegistry is Ownable {
@@ -68,12 +68,12 @@ contract TokenRegistry is Ownable {
         _;
     }
 
-    modifier nameDoesNotExist(string _name) {
+    modifier nameDoesNotExist(string memory _name) {
         require(tokenByName[_name] == address(0), "TokenRegistry::name exists");
         _;
     }
 
-    modifier symbolDoesNotExist(string _symbol) {
+    modifier symbolDoesNotExist(string memory _symbol) {
         require(tokenBySymbol[_symbol] == address(0), "TokenRegistry::symbol exists");
         _;
     }
@@ -91,10 +91,10 @@ contract TokenRegistry is Ownable {
     /// @param _url URL of token icon.
     function addToken(
         address _token,
-        string _name,
-        string _symbol,
+        string memory _name,
+        string memory _symbol,
         uint8 _decimals,
-        string _url)
+        string memory _url)
         public
         onlyOwner
         tokenDoesNotExist(_token)
@@ -123,7 +123,7 @@ contract TokenRegistry is Ownable {
 
     /// @dev Allows owner to remove an existing token from the registry.
     /// @param _token Address of existing token.
-    function removeToken(address _token, uint _index)
+    function removeToken(address _token, uint256 _index)
         public
         onlyOwner
         tokenExists(_token)
@@ -149,7 +149,7 @@ contract TokenRegistry is Ownable {
     /// @dev Allows owner to modify an existing token's name.
     /// @param _token Address of existing token.
     /// @param _name New name.
-    function setTokenName(address _token, string _name)
+    function setTokenName(address _token, string memory _name)
         public
         onlyOwner
         tokenExists(_token)
@@ -165,7 +165,7 @@ contract TokenRegistry is Ownable {
     /// @dev Allows owner to modify an existing token's symbol.
     /// @param _token Address of existing token.
     /// @param _symbol New symbol.
-    function setTokenSymbol(address _token, string _symbol)
+    function setTokenSymbol(address _token, string memory _symbol)
         public
         onlyOwner
         tokenExists(_token)
@@ -181,7 +181,7 @@ contract TokenRegistry is Ownable {
     /// @dev Allows owner to modify an existing token's icon URL.
     /// @param _token URL of token token.
     /// @param _url New URL to token icon.
-    function setTokenURL(address _token, string _url)
+    function setTokenURL(address _token, string memory _url)
         public
         onlyOwner
         tokenExists(_token)
@@ -197,7 +197,7 @@ contract TokenRegistry is Ownable {
     /// @dev Provides a registered token's address when given the token symbol.
     /// @param _symbol Symbol of registered token.
     /// @return Token's address.
-    function getTokenAddressBySymbol(string _symbol) 
+    function getTokenAddressBySymbol(string memory _symbol) 
         public
         view 
         returns (address)
@@ -208,7 +208,7 @@ contract TokenRegistry is Ownable {
     /// @dev Provides a registered token's address when given the token name.
     /// @param _name Name of registered token.
     /// @return Token's address.
-    function getTokenAddressByName(string _name) 
+    function getTokenAddressByName(string memory _name) 
         public
         view
         returns (address)
@@ -224,10 +224,10 @@ contract TokenRegistry is Ownable {
         view
         returns (
             address,  //tokenAddress
-            string,   //name
-            string,   //symbol
+            string memory,   //name
+            string memory,   //symbol
             uint8,    //decimals
-            string    //url
+            string memory    //url
         )
     {
         TokenMetadata memory token = tokens[_token];
@@ -243,15 +243,15 @@ contract TokenRegistry is Ownable {
     /// @dev Provides a registered token's metadata, looked up by name.
     /// @param _name Name of registered token.
     /// @return Token metadata.
-    function getTokenByName(string _name)
+    function getTokenByName(string memory _name)
         public
         view
         returns (
             address,  //tokenAddress
-            string,   //name
-            string,   //symbol
+            string memory,   //name
+            string memory,   //symbol
             uint8,    //decimals
-            string    //url
+            string memory    //url
         )
     {
         address _token = tokenByName[_name];
@@ -261,15 +261,15 @@ contract TokenRegistry is Ownable {
     /// @dev Provides a registered token's metadata, looked up by symbol.
     /// @param _symbol Symbol of registered token.
     /// @return Token metadata.
-    function getTokenBySymbol(string _symbol)
+    function getTokenBySymbol(string memory _symbol)
         public
         view
         returns (
             address,  //tokenAddress
-            string,   //name
-            string,   //symbol
+            string memory,   //name
+            string memory,   //symbol
             uint8,    //decimals
-            string    //url
+            string memory    //url
         )
     {
         address _token = tokenBySymbol[_symbol];
@@ -281,7 +281,7 @@ contract TokenRegistry is Ownable {
     function getTokenAddresses()
         public
         view
-        returns (address[])
+        returns (address[] memory)
     {
         return tokenAddresses;
     }

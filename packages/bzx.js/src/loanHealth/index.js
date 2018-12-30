@@ -23,7 +23,7 @@ export const depositCollateral = (
   return txObj.send(txOpts);
 };
 
-export const withdrawExcessCollateral = (
+export const withdrawCollateral = (
   { web3, networkId, addresses },
   { loanOrderHash, collateralTokenFilled, withdrawAmount, getObject, txOpts }
 ) => {
@@ -33,7 +33,7 @@ export const withdrawExcessCollateral = (
     addresses.BZx
   );
 
-  const txObj = bZxContract.methods.withdrawExcessCollateral(
+  const txObj = bZxContract.methods.withdrawCollateral(
     loanOrderHash,
     collateralTokenFilled,
     web3.utils.toBN(withdrawAmount).toString(10)
@@ -109,25 +109,7 @@ export const depositPosition = (
   return txObj.send(txOpts);
 };
 
-export const withdrawProfit = (
-  { web3, networkId, addresses },
-  { loanOrderHash, getObject, txOpts }
-) => {
-  const bZxContract = CoreUtils.getContractInstance(
-    web3,
-    getContracts(networkId).BZx.abi,
-    addresses.BZx
-  );
-
-  const txObj = bZxContract.methods.withdrawProfit(loanOrderHash);
-
-  if (getObject) {
-    return txObj;
-  }
-  return txObj.send(txOpts);
-};
-
-export const getProfitOrLoss = async (
+export const getPositionOffset = async (
   { web3, networkId, addresses },
   { loanOrderHash, trader }
 ) => {
@@ -138,12 +120,12 @@ export const getProfitOrLoss = async (
   );
 
   const data = await bZxContract.methods
-    .getProfitOrLoss(loanOrderHash, trader)
+    .getPositionOffset(loanOrderHash, trader)
     .call();
 
   return {
-    isProfit: data.isProfit,
-    profitOrLoss: data.profitOrLoss,
+    isPositive: data.isPositive,
+    offsetAmount: data.offsetAmount,
     positionTokenAddress: data.positionTokenAddress
   };
 };
@@ -197,7 +179,7 @@ export const closeLoanPartially = (
   );
 
   const txObj = bZxContract.methods.closeLoanPartially(
-    loanOrderHash, 
+    loanOrderHash,
     web3.utils.toBN(closeAmount).toString(10)
   );
 

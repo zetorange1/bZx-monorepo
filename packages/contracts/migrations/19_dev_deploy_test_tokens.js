@@ -1,7 +1,9 @@
 var TokenRegistry = artifacts.require("TokenRegistry");
 var TestNetFaucet = artifacts.require("TestNetFaucet");
+var TestNetOracle = artifacts.require("TestNetOracle");
 
 const path = require("path");
+const config = require("../protocol-config.js");
 
 module.exports = (deployer, network, accounts) => {
   //if (true) return;
@@ -15,10 +17,18 @@ module.exports = (deployer, network, accounts) => {
   if (network != "mainnet" && network != "ropsten") {
     let tokens = [];
     deployer.then(async () => {
+
+      var oracle = await TestNetOracle.deployed();
       for(let i=0; i <= 9; i++) {
         let t = await artifacts.require("TestToken"+i);
         await deployer.deploy(t);
         await tokens.push(t);
+
+        await oracle.setRates(
+          t.address,
+          config["addresses"][network]["ZeroEx"]["WETH9"],
+          web3.utils.toWei(((Math.floor(Math.random() * 100) + 2)/1000).toString(), "ether")
+        );
       }
 
       var registry = await TokenRegistry.deployed();

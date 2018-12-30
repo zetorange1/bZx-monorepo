@@ -9,7 +9,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import moment from "moment";
 
-import CollateralOptions from "./CollateralOptions";
+import LoanMaintenance from "./LoanMaintenance";
 import TradeOptions from "./TradeOptions";
 import CloseLoan from "./CloseLoan";
 
@@ -17,9 +17,9 @@ import OrderItem from "../orders/OrderHistory/OrderItem";
 
 import { COLORS } from "../styles/constants";
 import { getSymbol, getDecimals } from "../common/tokens";
-import { toBigNumber, fromBigNumber, getInitialCollateralRequired } from "../common/utils";
+import { toBigNumber, fromBigNumber, MAX_UINT } from "../common/utils";
 
-import ProfitOrLoss from "./ProfitOrLoss";
+import PositionExcess from "./PositionExcess";
 
 import BZxComponent from "../common/BZxComponent";
 
@@ -81,7 +81,7 @@ export default class OpenedLoan extends BZxComponent {
     maintenanceMarginAmount: null,
     currentMarginAmount: null,
     order: null,
-    initialCollateralRequired: null
+    collateralExcess: null
   };
 
   componentDidMount = async () => {
@@ -111,11 +111,9 @@ export default class OpenedLoan extends BZxComponent {
   };
 
   getMarginLevels = async () => {
-    const { tokens, bZx, data } = this.props;
+    const { tokens, bZx, data, accounts } = this.props;
     
     this.setState({ loadingMargins: true, error: false });
-
-//here -> why are margin lookups failing after doing a partial loan close 
 
     try {
       await this.getSingleOrder();
@@ -126,23 +124,34 @@ export default class OpenedLoan extends BZxComponent {
       }));
       console.log(marginLevels);
 
-      let initialCollateralRequired = await getInitialCollateralRequired(
-        data.loanTokenAddress,
-        data.collateralTokenAddressFilled,
-        this.state.order.oracleAddress,
-        data.loanTokenAmountFilled,
-        marginLevels.initialMarginAmount,
-        bZx
-      );
+      const txOpts = {
+        from: accounts[0],
+        gas: 2000000,
+        gasPrice: window.defaultGasPrice.toString()
+      };
+      const txObj = await bZx.withdrawCollateral({
+        loanOrderHash: data.loanOrderHash,
+        collateralTokenFilled: data.collateralTokenAddressFilled,
+        withdrawAmount: MAX_UINT,
+        getObject: true,
+        txOpts
+      });
+      console.log(txOpts);
 
-      console.log("initialCollateralRequired: ",initialCollateralRequired.toString());
+      let collateralExcess;
+      try {
+        collateralExcess = await this.wrapAndRun(txObj.call(txOpts));
+        console.log(`collateralExcess`,collateralExcess);
+      } catch(e) {
+        collateralExcess = toBigNumber(0);
+      }
 
       await this.setState({
         loadingMargins: false,
         initialMarginAmount: marginLevels.initialMarginAmount,
         maintenanceMarginAmount: marginLevels.maintenanceMarginAmount,
         currentMarginAmount: marginLevels.currentMarginAmount,
-        initialCollateralRequired
+        collateralExcess
       });
 
     } catch(e) {
@@ -183,7 +192,7 @@ export default class OpenedLoan extends BZxComponent {
       maintenanceMarginAmount,
       currentMarginAmount,
       order,
-      initialCollateralRequired
+      collateralExcess
     } = this.state;
 
     const collateralToken = tokens.filter(
@@ -211,11 +220,7 @@ export default class OpenedLoan extends BZxComponent {
     const loanExpireDate = moment(loanEndUnixTimestampSec * 1000).utc();
     const loanExpireDateStr = loanExpireDate.format(`MMMM Do YYYY, h:mm a UTC`);
 
-    const excessCollateral = ``;
-    /*const excessCollateral = initialCollateralRequired && toBigNumber(collateralTokenAmountFilled).gt(initialCollateralRequired) ?
-      fromBigNumber(toBigNumber(collateralTokenAmountFilled).minus(initialCollateralRequired),
-        10 ** getDecimals(tokens, collateralTokenAddressFilled)
-      ) : null;*/
+    const collateralExcessConv = collateralExcess ? fromBigNumber(collateralExcess, 10 ** collateralTokenDecimals) : "0";
 
     return (
       <Card>
@@ -286,9 +291,9 @@ export default class OpenedLoan extends BZxComponent {
               )}
               {` `}
               {collateralTokenSymbol}
-              {excessCollateral ? (
+              {collateralExcess ? (
                 <Fragment>
-                  &nbsp;&nbsp;&nbsp;({excessCollateral} {collateralTokenSymbol} excess)
+                  &nbsp;&nbsp;&nbsp;({collateralExcessConv} {collateralTokenSymbol} excess)
                 </Fragment>
               ) : ``}
             </DataPoint>
@@ -333,18 +338,18 @@ export default class OpenedLoan extends BZxComponent {
             <Fragment>
               <DataPointContainer>
                 <Label>Initial margin</Label>
-                <DataPoint>{initialMarginAmount}%</DataPoint>
+                <DataPoint>{Math.round(100*fromBigNumber(initialMarginAmount, 1e18))/100}%</DataPoint>
               </DataPointContainer>
 
               <DataPointContainer>
                 <Label>Maintenance margin</Label>
-                <DataPoint>{maintenanceMarginAmount}%</DataPoint>
+                <DataPoint>{Math.round(100*fromBigNumber(maintenanceMarginAmount, 1e18))/100}%</DataPoint>
               </DataPointContainer>
 
               <DataPointContainer>
                 <Label>Current margin level</Label>
                 <DataPoint>
-                  {fromBigNumber(currentMarginAmount, 1e18)}%
+                  {Math.round(100*fromBigNumber(currentMarginAmount, 1e18))/100}%
                 </DataPoint>
               </DataPointContainer>
 
@@ -359,7 +364,7 @@ export default class OpenedLoan extends BZxComponent {
             </Fragment>
           )}
 
-          <ProfitOrLoss
+          <PositionExcess
             bZx={bZx}
             web3={web3}
             loanOrderHash={loanOrderHash}
@@ -370,15 +375,19 @@ export default class OpenedLoan extends BZxComponent {
           />
 
           <LowerUpperRight>
-            <CollateralOptions
+            <LoanMaintenance
               tokens={tokens}
               bZx={bZx}
               accounts={accounts}
               web3={web3}
               loanOrderHash={loanOrderHash}
               collateralToken={collateralToken}
-              excessCollateral={excessCollateral}
+              collateralTokenDecimals={collateralToken}
+              collateralExcess={collateralExcessConv}
               positionToken={positionToken}
+              currentMarginAmount={currentMarginAmount}
+              positionTokenAmountFilled={this.props.data.positionTokenAmountFilled}
+              initialMarginAmount={this.state.initialMarginAmount}
             />
           </LowerUpperRight>
         </CardContent>
@@ -390,7 +399,7 @@ export default class OpenedLoan extends BZxComponent {
           </DataPointContainer>
 
           <DataPointContainer style={{ marginLeft: `12px` }}>
-            <Label>Trade Amount</Label>
+            <Label>Position Amount</Label>
             <DataPoint>
               {fromBigNumber(
                 positionTokenAmountFilled,

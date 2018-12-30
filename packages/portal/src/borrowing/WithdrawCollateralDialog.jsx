@@ -37,7 +37,7 @@ export default class WithdrawCollateralDialog extends React.Component {
       alert(`Please confirm this transaction on your device.`);
     }
     console.log(this.state.amount);
-    const txObj = await bZx.withdrawExcessCollateral({
+    const txObj = await bZx.withdrawCollateral({
       loanOrderHash,
       collateralTokenFilled: collateralToken.address,
       withdrawAmount: toBigNumber(
@@ -91,7 +91,7 @@ export default class WithdrawCollateralDialog extends React.Component {
   };
 
   render() {
-    const { collateralToken, excessCollateral } = this.props;
+    const { collateralToken, collateralExcess } = this.props;
     return (
       <Dialog open={this.props.open} onClose={this.props.onClose}>
         <DialogTitle>Withdraw Collateral</DialogTitle>
@@ -101,8 +101,8 @@ export default class WithdrawCollateralDialog extends React.Component {
             you may choose to withdraw some of the excess amount. If you specify too much, 
             only the excess is withdrawn. If the transaction is failing, your current margin
             may already be at or below the initial margin amount.
-            {/*<br/><br/>
-            Current Excess: {excessCollateral ? `${excessCollateral}` : `0`} {collateralToken.symbol}*/}
+            <br/><br/>
+            Current Excess: {collateralExcess ? `${collateralExcess}` : `0`} {collateralToken.symbol}
           </p>
           <FormControl margin="normal" fullWidth>
             <InputLabel>Amount to withdraw</InputLabel>

@@ -3,16 +3,31 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../openzeppelin-solidity/SafeMath.sol";
 
 import "../proxy/BZxProxiable.sol";
 
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 
+
+// solhint-disable-next-line contract-name-camelcase
+interface BZxTo0x_Interface {
+   function take0xTrade(
+        address trader,
+        address vaultAddress,
+        uint256 sourceTokenAmountToUse,
+        bytes calldata orderData0x, // 0x order arguments, converted to hex, padded to 32 bytes and concatenated (multi-order batching allowed)
+        bytes calldata signature0x) // ECDSA of the 0x order (multi-order batching allowed)
+        external
+        returns (
+            address destTokenAddress,
+            uint256 destTokenAmount,
+            uint256 sourceTokenUsedAmount);
+}
 
 // solhint-disable-next-line contract-name-camelcase
 contract BZxTo0xV2_Interface {
@@ -37,23 +52,23 @@ contract BZxTo0xV2_Interface {
    function take0xV2Trade(
         address trader,
         address vaultAddress,
-        uint sourceTokenAmountToUse,
-        OrderV2[] orders0x, // Array of 0x V2 order structs
-        bytes[] signatures0x) // Array of signatures for each of the V2 orders
-        external
+        uint256 sourceTokenAmountToUse,
+        OrderV2[] memory orders0x, // Array of 0x V2 order structs
+        bytes[] memory signatures0x) // Array of signatures for each of the V2 orders
+        public
         returns (
             address destTokenAddress,
-            uint destTokenAmount,
-            uint sourceTokenUsedAmount);
+            uint256 destTokenAmount,
+            uint256 sourceTokenUsedAmount);
 }
 
-contract BZxTradePlacing0xV2 is BZxStorage, BZxProxiable {
+contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
     using SafeMath for uint256;
 
     constructor() public {}
 
-    function()  
-        public
+    function()
+        external
     {
         revert("fallback not allowed");
     }
@@ -62,7 +77,90 @@ contract BZxTradePlacing0xV2 is BZxStorage, BZxProxiable {
         address _target)
         public
     {
+        targets[bytes4(keccak256("tradePositionWith0x(bytes32,bytes,bytes)"))] = _target;
         targets[bytes4(keccak256("tradePositionWith0xV2(bytes32,(address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bytes,bytes)[],bytes[])"))] = _target;
+    }
+
+    /// @dev Executes a 0x trade using loaned funds.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param orderData0x 0x order arguments, converted to hex, padded to 32 bytes and concatenated (multi-order batching allowed)
+    /// @param signature0x ECDSA of the 0x order (multi-order batching allowed)
+    /// @return The amount of token received in the trade.
+    function tradePositionWith0x(
+        bytes32 loanOrderHash,
+        bytes calldata orderData0x,
+        bytes calldata signature0x)
+        external
+        nonReentrant
+        tracksGas
+        returns (uint)
+    {
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        if (loanOrder.loanTokenAddress == address(0)) {
+            revert("BZxTradePlacing::tradePositionWith0x: loanOrder.loanTokenAddress == address(0)");
+        }
+
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
+        if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
+            revert("BZxTradePlacing::tradePositionWith0x: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+        }
+
+        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
+            revert("BZxTradePlacing::tradePositionWith0x: block.timestamp >= loanPosition.loanEndUnixTimestampSec");
+        }
+
+        // transfer the current position token to the BZxTo0x contract
+        if (!BZxVault(vaultContract).withdrawToken(
+            loanPosition.positionTokenAddressFilled,
+            bZxTo0xContract,
+            loanPosition.positionTokenAmountFilled)) {
+            revert("BZxTradePlacing::tradePositionWith0x: BZxVault.withdrawToken failed");
+        }
+
+        address tradeTokenAddress;
+        uint256 tradeTokenAmount;
+        uint256 positionTokenUsedAmount;
+        (tradeTokenAddress, tradeTokenAmount, positionTokenUsedAmount) = BZxTo0x_Interface(bZxTo0xContract).take0xTrade(
+            loanPosition.trader,
+            vaultContract,
+            loanPosition.positionTokenAmountFilled,
+            orderData0x,
+            signature0x);
+
+        if (tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled) {
+            revert("BZxTradePlacing::tradePositionWith0x: tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled");
+        }
+
+        // trade can't trigger liquidation
+        if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
+                loanOrder,
+                loanPosition)) {
+            revert("BZxTradePlacing::tradePositionWith0x: trade triggers liquidation");
+        }
+
+        emit LogPositionTraded(
+            loanOrderHash,
+            loanPosition.trader,
+            loanPosition.positionTokenAddressFilled,
+            tradeTokenAddress,
+            positionTokenUsedAmount,
+            tradeTokenAmount,
+            loanPosition.positionId
+        );
+
+        // the trade token becomes the new position token
+        loanPosition.positionTokenAddressFilled = tradeTokenAddress;
+        loanPosition.positionTokenAmountFilled = tradeTokenAmount;
+
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
+            loanOrder,
+            loanPosition,
+            gasUsed // initial used gas, collected in modifier
+        )) {
+            revert("BZxTradePlacing::tradePositionWith0x: OracleInterface.didTradePosition failed");
+        }
+
+        return tradeTokenAmount;
     }
 
     /// @dev Executes a 0x trade using loaned funds.
@@ -102,8 +200,8 @@ contract BZxTradePlacing0xV2 is BZxStorage, BZxProxiable {
         }
 
         address tradeTokenAddress;
-        uint tradeTokenAmount;
-        uint positionTokenUsedAmount;
+        uint256 tradeTokenAmount;
+        uint256 positionTokenUsedAmount;
         (tradeTokenAddress, tradeTokenAmount, positionTokenUsedAmount) = BZxTo0xV2_Interface(bZxTo0xV2Contract).take0xV2Trade(
             loanPosition.trader,
             vaultContract,
@@ -117,15 +215,8 @@ contract BZxTradePlacing0xV2 is BZxStorage, BZxProxiable {
 
         // trade can't trigger liquidation
         if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
-                loanOrderHash,
-                loanPosition.trader,
-                loanOrder.loanTokenAddress,
-                tradeTokenAddress,
-                loanPosition.collateralTokenAddressFilled,
-                loanPosition.loanTokenAmountFilled,
-                tradeTokenAmount,
-                loanPosition.collateralTokenAmountFilled,
-                loanOrder.maintenanceMarginAmount)) {
+                loanOrder,
+                loanPosition)) {
             revert("BZxTradePlacing::tradePositionWith0x: trade triggers liquidation");
         }
 

@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../../openzeppelin-solidity/Ownable.sol";
 
 import "./BZRxToken.sol";
 
@@ -22,15 +22,15 @@ contract BZRxAirDrop is Ownable {
     }
 
     function batchMint(
-        address[] receivers,
-        uint256[] tokenAmounts)
+        address[] memory receivers,
+        uint256[] memory tokenAmounts)
         public
         onlyOwner
-        returns (uint tokensMinted)
+        returns (uint256 tokensMinted)
     {
         require(receivers.length > 0 && receivers.length == tokenAmounts.length, "invalid parameters");
 
-        for (uint i=0; i < receivers.length; i++) {
+        for (uint256 i=0; i < receivers.length; i++) {
             require(BZRxToken(bZRxTokenContractAddress).mint(
                 receivers[i],
                 tokenAmounts[i]
@@ -40,15 +40,15 @@ contract BZRxAirDrop is Ownable {
     }
 
     function batchMintAmount(
-        address[] receivers,
+        address[] memory receivers,
         uint256 tokenAmount)
         public
         onlyOwner
-        returns (uint tokensMinted)
+        returns (uint256 tokensMinted)
     {
         require(receivers.length > 0 && tokenAmount > 0, "invalid parameters");
 
-        for (uint i=0; i < receivers.length; i++) {
+        for (uint256 i=0; i < receivers.length; i++) {
             require(BZRxToken(bZRxTokenContractAddress).mint(
                 receivers[i],
                 tokenAmount
@@ -58,15 +58,15 @@ contract BZRxAirDrop is Ownable {
     }
 
     function batchSend(
-        address[] receivers,
-        uint256[] tokenAmounts)
+        address[] memory receivers,
+        uint256[] memory tokenAmounts)
         public
         onlyOwner
-        returns (uint tokensSent)
+        returns (uint256 tokensSent)
     {
         require(receivers.length > 0 && receivers.length == tokenAmounts.length, "invalid parameters");
 
-        for (uint i=0; i < receivers.length; i++) {
+        for (uint256 i=0; i < receivers.length; i++) {
             require(BZRxToken(bZRxTokenContractAddress).transfer(
                 receivers[i],
                 tokenAmounts[i]
@@ -76,15 +76,15 @@ contract BZRxAirDrop is Ownable {
     }
 
     function batchSendAmount(
-        address[] receivers,
+        address[] memory receivers,
         uint256 tokenAmount)
         public
         onlyOwner
-        returns (uint tokensSent)
+        returns (uint256 tokensSent)
     {
         require(receivers.length > 0 && tokenAmount > 0, "invalid parameters");
 
-        for (uint i=0; i < receivers.length; i++) {
+        for (uint256 i=0; i < receivers.length; i++) {
             require(BZRxToken(bZRxTokenContractAddress).transfer(
                 receivers[i],
                 tokenAmount
@@ -106,12 +106,12 @@ contract BZRxAirDrop is Ownable {
     function transferToken(
         address _tokenAddress,
         address _to,
-        uint _value)
+        uint256 _value)
         public
         onlyOwner
         returns (bool)
     {
-        uint balance = StandardToken(_tokenAddress).balanceOf.gas(4999)(this);
+        uint256 balance = StandardToken(_tokenAddress).balanceOf.gas(4999)(address(this));
         if (_value > balance) {
             return StandardToken(_tokenAddress).transfer(
                 _to,

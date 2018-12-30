@@ -24,6 +24,8 @@ const utils = require("./utils/utils.js");
 
 const MAX_UINT = (new BN(2)).pow(new BN(256)).sub(new BN(1));
 
+const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 const SignatureType = Object.freeze({
     Illegal: 0,
     Invalid: 1,
@@ -164,6 +166,8 @@ contract("BZxLoanMaintenance", function(accounts) {
                 "0x00", // oracleData
                 collateralToken1.address,
                 utils.toWei(12.3, "ether"),
+                NULL_ADDRESS,
+                false,
                 signature,
                 {from: trader1}
             );
@@ -197,7 +201,7 @@ contract("BZxLoanMaintenance", function(accounts) {
         it("should allow new owner to manage collateral", async () => {
             await bZx.changeCollateral(orderHash, interestToken1.address, {from: strangerTrader});
             await bZx.depositCollateral(orderHash, interestToken1.address, 10, {from: strangerTrader});
-            await bZx.withdrawExcessCollateral(orderHash, interestToken1.address, 10, {from: strangerTrader});
+            await bZx.withdrawCollateral(orderHash, interestToken1.address, 10, {from: strangerTrader});
         });
 
         after("clean up", async () => {
@@ -296,6 +300,8 @@ contract("BZxLoanMaintenance", function(accounts) {
                 orderHash,
                 collateralToken1.address,
                 utils.toWei(20, "ether"),
+                NULL_ADDRESS,
+                false,
                 {from: trader2}
             );
         });
@@ -430,6 +436,8 @@ contract("BZxLoanMaintenance", function(accounts) {
                 orderHash,
                 collateralToken1.address,
                 utils.toWei(20, "ether"),
+                NULL_ADDRESS,
+                false,
                 {from: trader2}
             );
         });
@@ -536,7 +544,7 @@ contract("BZxLoanMaintenance", function(accounts) {
     }
 
     let ordersForUser = async (user) => {
-        return decodeOrders(await bZx.getOrdersForUser.call(user, 0, 10));
+        return decodeOrders(await bZx.getOrdersForUser.call(user, 0, 10, NULL_ADDRESS));
     }
 
     let countOrdersForUser = async (user) => {
@@ -550,7 +558,7 @@ contract("BZxLoanMaintenance", function(accounts) {
         }
 
         data = data.substr(2); // remove 0x from front
-        const itemCount = 20;
+        const itemCount = 23;
         const objCount = data.length / 64 / itemCount;
 
         assert.isTrue(objCount % 1 == 0);
@@ -567,7 +575,7 @@ contract("BZxLoanMaintenance", function(accounts) {
         for (var i = 0; i < orderObjArray.length; i++) {
             var params = orderObjArray[i].match(new RegExp(".{1," + 64 + "}", "g"));
             result.push({
-                maker: "0x" + params[0].substr(24),
+                makerAddress: "0x" + params[0].substr(24),
                 loanTokenAddress: "0x" + params[1].substr(24),
                 interestTokenAddress: "0x" + params[2].substr(24),
                 collateralTokenAddress: "0x" + params[3].substr(24),
@@ -586,7 +594,10 @@ contract("BZxLoanMaintenance", function(accounts) {
                 orderFilledAmount: parseInt("0x" + params[16]),
                 orderCancelledAmount: parseInt("0x" + params[17]),
                 orderTraderCount: parseInt("0x" + params[18]),
-                addedUnixTimestampSec: parseInt("0x" + params[19])
+                addedUnixTimestampSec: parseInt("0x" + params[19]),
+                takerAddress: "0x" + params[20].substr(24),
+                tradeTokenToFillAddress: "0x" + params[21].substr(24),
+                withdrawOnOpen: parseInt("0x" + params[22]) ? true : false
             });
         }
 
@@ -606,7 +617,9 @@ contract("BZxLoanMaintenance", function(accounts) {
             order["interestTokenAddress"],
             order["collateralTokenAddress"],
             order["feeRecipientAddress"],
-            order["oracleAddress"]
+            order["oracleAddress"],
+            order["takerAddress"],
+            order["tradeTokenToFillAddress"]
         ]
     }
 
@@ -621,6 +634,7 @@ contract("BZxLoanMaintenance", function(accounts) {
             new BN(order["maxDurationUnixTimestampSec"]),
             new BN(order["expirationUnixTimestampSec"]),
             new BN(order["makerRole"]),
+            new BN(order["withdrawOnOpen"]),
             new BN(order["salt"])
         ]
     }
@@ -636,14 +650,17 @@ contract("BZxLoanMaintenance", function(accounts) {
             oracleAddress: oracle.address,
             loanTokenAmount: utils.toWei(100000, "ether").toString(),
             interestAmount: utils.toWei(2, "ether").toString(), // 2 token units per day
-            initialMarginAmount: "50", // 50%
-            maintenanceMarginAmount: "25", // 25%
+            initialMarginAmount: utils.toWei(50, "ether").toString(), // 50%
+            maintenanceMarginAmount: utils.toWei(25, "ether").toString(), // 25%
             lenderRelayFee: utils.toWei(0.001, "ether").toString(),
             traderRelayFee: utils.toWei(0.0015, "ether").toString(),
             maxDurationUnixTimestampSec: "2419200", // 28 days
             expirationUnixTimestampSec: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
             makerRole: "1", // 0=lender, 1=trader
-            salt: generatePseudoRandomSalt().toString()
+            salt: generatePseudoRandomSalt().toString(),
+            takerAddress: NULL_ADDRESS,
+	        tradeTokenToFillAddress: NULL_ADDRESS,
+            withdrawOnOpen: "0"
         }
 
         return lenderOrder;
@@ -660,14 +677,17 @@ contract("BZxLoanMaintenance", function(accounts) {
             oracleAddress: oracle.address,
             loanTokenAmount: utils.toWei(100000, "ether").toString(),
             interestAmount: utils.toWei(2, "ether").toString(), // 2 token units per day
-            initialMarginAmount: "50", // 50%
-            maintenanceMarginAmount: "5", // 25%
+            initialMarginAmount: utils.toWei(50, "ether").toString(), // 50%
+            maintenanceMarginAmount: utils.toWei(5, "ether").toString(), // 25%
             lenderRelayFee: utils.toWei(0.001, "ether").toString(),
             traderRelayFee: utils.toWei(0.0015, "ether").toString(),
             maxDurationUnixTimestampSec: "2419200", // 28 days
             expirationUnixTimestampSec: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
             makerRole: "0", // 0=lender, 1=trader
-            salt: generatePseudoRandomSalt().toString()
+            salt: generatePseudoRandomSalt().toString(),
+            takerAddress: NULL_ADDRESS,
+	        tradeTokenToFillAddress: NULL_ADDRESS,
+            withdrawOnOpen: "0"
         }
 
         return traderOrder;

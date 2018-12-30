@@ -4,41 +4,41 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
 import "./MultiSigWallet.sol";
 
 
 contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
 
-    event ConfirmationTimeSet(uint indexed transactionId, uint confirmationTime);
-    event TimeLockDefaultChange(uint secondsTimeLockedDefault);
-    event TimeLockCustomChange(string funcHeader, uint secondsTimeLockedCustom);
+    event ConfirmationTimeSet(uint256 indexed transactionId, uint256 confirmationTime);
+    event TimeLockDefaultChange(uint256 secondsTimeLockedDefault);
+    event TimeLockCustomChange(string funcHeader, uint256 secondsTimeLockedCustom);
     event TimeLockCustomRemove(string funcHeader);
 
     struct CustomTimeLock {
-        uint secondsTimeLocked;
+        uint256 secondsTimeLocked;
         bool isSet;
     }
     
-    uint public secondsTimeLockedDefault; // default timelock for functions without a custom setting
+    uint256 public secondsTimeLockedDefault; // default timelock for functions without a custom setting
     mapping (bytes4 => CustomTimeLock) public customTimeLocks; // mapping of function headers to CustomTimeLock structs
     string[] public customTimeLockFunctions; // array of functions with custom values
 
-    mapping (uint => uint) public confirmationTimes;
+    mapping (uint256 => uint) public confirmationTimes;
 
-    modifier notFullyConfirmed(uint transactionId) {
+    modifier notFullyConfirmed(uint256 transactionId) {
         require(!isConfirmed(transactionId));
         _;
     }
 
-    modifier fullyConfirmed(uint transactionId) {
+    modifier fullyConfirmed(uint256 transactionId) {
         require(isConfirmed(transactionId));
         _;
     }
 
-    modifier pastTimeLock(uint transactionId) {
-        uint timelock = getSecondsTimeLockedByTx(transactionId);
+    modifier pastTimeLock(uint256 transactionId) {
+        uint256 timelock = getSecondsTimeLockedByTx(transactionId);
         require(timelock == 0 || block.timestamp >= confirmationTimes[transactionId] + timelock);
         _;
     }
@@ -51,7 +51,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     /// @param _owners List of initial owners.
     /// @param _required Number of required confirmations.
     /// @param _secondsTimeLockedDefault Default duration needed after a transaction is confirmed and before it becomes executable, in seconds.
-    constructor(address[] _owners, uint _required, uint _secondsTimeLockedDefault)
+    constructor(address[] memory _owners, uint256 _required, uint256 _secondsTimeLockedDefault)
         public
         MultiSigWallet(_owners, _required)
     {
@@ -104,7 +104,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
 
     /// @dev Changes the default duration of the time lock for transactions.
     /// @param _secondsTimeLockedDefault Default duration needed after a transaction is confirmed and before it becomes executable, in seconds.
-    function changeDefaultTimeLock(uint _secondsTimeLockedDefault)
+    function changeDefaultTimeLock(uint256 _secondsTimeLockedDefault)
         public
         onlyWallet
     {
@@ -113,9 +113,9 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     }
 
     /// @dev Changes the custom duration of the time lock for transactions to a specific function.
-    /// @param _funcId example: "functionName(address[6],uint256[10],address,uint256,bytes)"
+    /// @param _funcId example: "functionName(address[8],uint256[11],bytes,address,uint256,bytes)"
     /// @param _secondsTimeLockedCustom Custom duration needed after a transaction is confirmed and before it becomes executable, in seconds.
-    function changeCustomTimeLock(string _funcId, uint _secondsTimeLockedCustom)
+    function changeCustomTimeLock(string memory _funcId, uint256 _secondsTimeLockedCustom)
         public
         onlyWallet
     {
@@ -129,8 +129,8 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     }
 
     /// @dev Removes the custom duration of the time lock for transactions to a specific function.
-    /// @param _funcId example: "functionName(address[6],uint256[10],address,uint256,bytes)"
-    function removeCustomTimeLock(string _funcId)
+    /// @param _funcId example: "functionName(address[8],uint256[11],bytes,address,uint256,bytes)"
+    function removeCustomTimeLock(string memory _funcId)
         public
         onlyWallet
     {
@@ -138,7 +138,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
         if (!customTimeLocks[f].isSet)
             revert();
 
-        for (uint i=0; i < customTimeLockFunctions.length; i++) {
+        for (uint256 i=0; i < customTimeLockFunctions.length; i++) {
             if (keccak256(bytes(customTimeLockFunctions[i])) == keccak256(bytes(_funcId))) {
                 if (i < customTimeLockFunctions.length - 1)
                     customTimeLockFunctions[i] = customTimeLockFunctions[customTimeLockFunctions.length - 1];
@@ -156,7 +156,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
 
     /// @dev Allows an owner to confirm a transaction.
     /// @param transactionId Transaction ID.
-    function confirmTransaction(uint transactionId)
+    function confirmTransaction(uint256 transactionId)
         public
         ownerExists(msg.sender)
         transactionExists(transactionId)
@@ -172,7 +172,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
 
     /// @dev Allows an owner to revoke a confirmation for a transaction.
     /// @param transactionId Transaction ID.
-    function revokeConfirmation(uint transactionId)
+    function revokeConfirmation(uint256 transactionId)
         public
         ownerExists(msg.sender)
         confirmed(transactionId, msg.sender)
@@ -185,7 +185,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
 
     /// @dev Allows anyone to execute a confirmed transaction.
     /// @param transactionId Transaction ID.
-    function executeTransaction(uint transactionId)
+    function executeTransaction(uint256 transactionId)
         public
         notExecuted(transactionId)
         fullyConfirmed(transactionId)
@@ -218,7 +218,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     /// @dev Returns the custom timelock for a function, or the default timelock if a custom value isn't set
     /// @param _funcId Function signature (complete string)
     /// @return Timelock value
-    function getSecondsTimeLockedByString(string _funcId)
+    function getSecondsTimeLockedByString(string memory _funcId)
         public
         view
         returns (uint)
@@ -229,7 +229,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     /// @dev Returns the custom timelock for a transaction, or the default timelock if a custom value isn't set
     /// @param transactionId Transaction ID.
     /// @return Timelock value
-    function getSecondsTimeLockedByTx(uint transactionId)
+    function getSecondsTimeLockedByTx(uint256 transactionId)
         public
         view
         returns (uint)
@@ -246,14 +246,14 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     /// @dev Returns the number of seconds until a fully confirmed transaction can be executed
     /// @param transactionId Transaction ID.
     /// @return Seconds in the timelock remaining
-    function getTimeLockSecondsRemaining(uint transactionId)
+    function getTimeLockSecondsRemaining(uint256 transactionId)
         public
         view
         returns (uint)
     {
-        uint timelock = getSecondsTimeLockedByTx(transactionId);
+        uint256 timelock = getSecondsTimeLockedByTx(transactionId);
         if (timelock > 0 && confirmationTimes[transactionId] > 0) {
-            uint timelockEnding = confirmationTimes[transactionId] + timelock;
+            uint256 timelockEnding = confirmationTimes[transactionId] + timelock;
             if (timelockEnding > block.timestamp)
                 return timelockEnding - block.timestamp;
         }
@@ -265,7 +265,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
      */
 
     /// @dev Sets the time of when a submission first passed.
-    function setConfirmationTime(uint transactionId, uint confirmationTime)
+    function setConfirmationTime(uint256 transactionId, uint256 confirmationTime)
         internal
     {
         confirmationTimes[transactionId] = confirmationTime;

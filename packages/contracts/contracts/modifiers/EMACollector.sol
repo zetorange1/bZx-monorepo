@@ -3,30 +3,30 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../openzeppelin-solidity/SafeMath.sol";
 
 
 // supports a single EMA calculated for the inheriting contract
 contract EMACollector {
     //using SafeMath for uint256;
 
-    uint public emaValue; // the last ema calculated
-    uint public emaPeriods; // averaging periods for EMA calculation
+    uint256 public emaValue; // the last ema calculated
+    uint256 public emaPeriods; // averaging periods for EMA calculation
 
-    uint public outlierMultiplier = 2;
-    uint public outlierAdder = 5**9 wei; // 5 gwei
+    uint256 public outlierMultiplier = 2;
+    uint256 public outlierAdder = 5**9 wei; // 5 gwei
 
-    //event EMAUpdated(uint newEMA);
+    //event EMAUpdated(uint256 newEMA);
 
-    modifier updatesEMA(uint value) {
+    modifier updatesEMA(uint256 value) {
         _;
 
         updateEMA(value);
     }
 
-    function updateEMA(uint value)
+    function updateEMA(uint256 value)
         internal {
         /*
             Multiplier: 2 / (emaPeriods + 1)

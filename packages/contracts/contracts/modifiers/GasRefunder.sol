@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../openzeppelin-solidity/SafeMath.sol";
 
 
 contract GasRefunder {
@@ -18,13 +18,13 @@ contract GasRefunder {
 
     event GasRefund(
         address indexed payer, 
-        uint gasUsed, 
-        uint currentGasPrice, 
-        uint refundAmount, 
+        uint256 gasUsed, 
+        uint256 currentGasPrice, 
+        uint256 refundAmount, 
         bool refundSuccess
     );
 
-    modifier refundsGas(address payer, uint gasPrice, uint gasUsed, uint percentMultiplier)
+    modifier refundsGas(address payable payer, uint256 gasPrice, uint256 gasUsed, uint256 percentMultiplier)
     {
         _; // modified function body inserted here
 
@@ -36,9 +36,9 @@ contract GasRefunder {
         );
     }
 
-    modifier refundsGasAfterCollection(address payer, uint gasPrice, uint percentMultiplier)
+    modifier refundsGasAfterCollection(address payable payer, uint256 gasPrice, uint256 percentMultiplier)
     {
-        uint startingGas = gasleft();
+        uint256 startingGas = gasleft();
 
         _; // modified function body inserted here
 
@@ -51,13 +51,13 @@ contract GasRefunder {
     }
 
     function calculateAndSendGasRefund(
-        address payer,
-        uint gasUsed,
-        uint gasPrice,
-        uint percentMultiplier)
+        address payable payer,
+        uint256 gasUsed,
+        uint256 gasPrice,
+        uint256 percentMultiplier)
         internal
     {
-        (uint refundAmount, uint finalGasUsed) = getGasRefund(
+        (uint256 refundAmount, uint256 finalGasUsed) = getGasRefund(
             gasUsed,
             gasPrice,
             percentMultiplier
@@ -74,29 +74,29 @@ contract GasRefunder {
     }
 
     function getGasRefund(
-        uint gasUsed,
-        uint gasPrice,
-        uint percentMultiplier)
+        uint256 gasUsed,
+        uint256 gasPrice,
+        uint256 percentMultiplier)
         internal
         view
-        returns (uint refundAmount, uint finalGasUsed)
+        returns (uint256 refundAmount, uint256 finalGasUsed)
     {
         if (gasUsed == 0 || gasPrice == 0)
-            return;
+            return (0,0);
 
         if (percentMultiplier == 0) // 0 percentMultiplier not allowed
-            percentMultiplier = 100;
+            percentMultiplier = 100 * 10**18;
 
         finalGasUsed = gasUsed - gasleft();
 
-        refundAmount = finalGasUsed.mul(gasPrice).mul(percentMultiplier).div(100);
+        refundAmount = finalGasUsed.mul(gasPrice).mul(percentMultiplier).div(10**20);
     }
 
     function sendGasRefund(
-        address payer,
-        uint refundAmount,
-        uint finalGasUsed,
-        uint gasPrice)
+        address payable payer,
+        uint256 refundAmount,
+        uint256 finalGasUsed,
+        uint256 gasPrice)
         internal
         returns (bool)
     {

@@ -3,26 +3,26 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "openzeppelin-solidity/contracts/math/Math.sol";
+import "../openzeppelin-solidity/Math.sol";
 
 import "../proxy/BZxProxiable.sol";
-import "../shared/InternalFunctions.sol";
+import "../shared/MiscFunctions.sol";
 
 import "../oracle/OracleInterface.sol";
 
 import "../tokens/EIP20.sol";
 
 
-contract BZxLoanMaintenance2 is BZxStorage, BZxProxiable, InternalFunctions {
+contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
 
-    function()  
-        public
+    function()
+        external
     {
         revert("fallback not allowed");
     }
@@ -60,7 +60,7 @@ contract BZxLoanMaintenance2 is BZxStorage, BZxProxiable, InternalFunctions {
             revert("BZxLoanMaintenance::changeTraderOwnership: loanOrder.loanTokenAddress == address(0)");
         }
 
-        uint positionid = loanPositionsIds[loanOrderHash][msg.sender];
+        uint256 positionid = loanPositionsIds[loanOrderHash][msg.sender];
         LoanPosition storage loanPosition = loanPositions[positionid];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             revert("BZxLoanMaintenance::changeTraderOwnership: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
@@ -170,7 +170,7 @@ contract BZxLoanMaintenance2 is BZxStorage, BZxProxiable, InternalFunctions {
     /// @return True on success
     function increaseLoanableAmount(
         bytes32 loanOrderHash,
-        uint loanTokenAmountToAdd)      
+        uint256 loanTokenAmountToAdd)      
         external
         nonReentrant
         tracksGas
@@ -185,7 +185,7 @@ contract BZxLoanMaintenance2 is BZxStorage, BZxProxiable, InternalFunctions {
             revert("BZxOrderTaking::increaseLoanableAmount: loanOrder.loanTokenAddress == address(0)");
         }
 
-        uint totalNewFillableAmount = loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrderHash)).add(loanTokenAmountToAdd);
+        uint256 totalNewFillableAmount = loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrderHash)).add(loanTokenAmountToAdd);
         
         // ensure adequate token balance
         require (EIP20(loanOrder.loanTokenAddress).balanceOf.gas(4999)(msg.sender) >= totalNewFillableAmount, "BZxOrderTaking::increaseLoanableAmount: lender balance is insufficient");
@@ -193,7 +193,7 @@ contract BZxLoanMaintenance2 is BZxStorage, BZxProxiable, InternalFunctions {
         // ensure adequate token allowance
         require (EIP20(loanOrder.loanTokenAddress).allowance.gas(4999)(msg.sender, vaultContract) >= totalNewFillableAmount, "BZxOrderTaking::increaseLoanableAmount: lender allowance is insufficient");
         
-        uint newLoanTokenAmount = loanOrder.loanTokenAmount.add(loanTokenAmountToAdd);
+        uint256 newLoanTokenAmount = loanOrder.loanTokenAmount.add(loanTokenAmountToAdd);
 
         // Interest amount per day is calculated based on the fraction of loan token filled over total loanTokenAmount.
         // Since total loanTokenAmount is increasing, we increase interest proportionally.
@@ -227,14 +227,14 @@ contract BZxLoanMaintenance2 is BZxStorage, BZxProxiable, InternalFunctions {
     /// @return True on success
     function setLoanOrderDesc(
         bytes32 loanOrderHash,
-        string desc)
+        string calldata desc)
         external
         nonReentrant
         tracksGas
         returns (bool)
     {
         LoanOrderAux storage loanOrderAux = orderAux[loanOrderHash];
-        require(loanOrderAux.maker == msg.sender, "BZxLoanMaintenance::setLoanOrderDesc: loanOrderAux.maker != msg.sender");
+        require(loanOrderAux.makerAddress == msg.sender, "BZxLoanMaintenance::setLoanOrderDesc: loanOrderAux.makerAddress != msg.sender");
         loanOrderAux.description = desc;
 
         return true;

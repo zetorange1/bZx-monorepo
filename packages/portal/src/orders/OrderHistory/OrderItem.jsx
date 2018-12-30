@@ -263,12 +263,12 @@ export default class OrderItem extends React.Component {
 
           <DataPointContainer>
             <Label>Initial Margin</Label>
-            <DataPoint>{takenOrder.initialMarginAmount}%</DataPoint>
+            <DataPoint>{fromBigNumber(takenOrder.initialMarginAmount, 1e18)}%</DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
             <Label>Maintenance Margin</Label>
-            <DataPoint>{takenOrder.maintenanceMarginAmount}%</DataPoint>
+            <DataPoint>{fromBigNumber(takenOrder.maintenanceMarginAmount, 1e18)}%</DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>

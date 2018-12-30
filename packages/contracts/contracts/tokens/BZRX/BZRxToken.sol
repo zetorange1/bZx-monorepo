@@ -3,10 +3,10 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/DetailedERC20.sol";
+import "../../openzeppelin-solidity/Ownable.sol";
+import "../../openzeppelin-solidity/DetailedERC20.sol";
 import "../UnlimitedAllowanceToken.sol";
 
 
@@ -114,7 +114,7 @@ contract BZRxToken is UnlimitedAllowanceToken, DetailedERC20, Ownable {
 
         require(_to != address(0), "token burn not allowed");
 
-        uint allowance = allowed[_from][_spender];
+        uint256 allowance = allowed[_from][_spender];
         balances[_from] = balances[_from].sub(_value);
         balances[_to] = balances[_to].add(_value);
         if (allowance < MAX_UINT) {

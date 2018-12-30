@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../../openzeppelin-solidity/Ownable.sol";
 import "../BaseToken.sol";
 
 
@@ -16,8 +16,8 @@ contract TestNetBZRxToken is Ownable, BaseToken( // solhint-disable-line no-empt
     "BZRX"
 ) {
     function renameToken(
-        string _newName,
-        string _newSymbol
+        string  memory _newName,
+        string  memory _newSymbol
         )
         public
         onlyOwner

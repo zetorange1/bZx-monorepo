@@ -1,9 +1,12 @@
 var BZxProxy = artifacts.require("BZxProxy");
 var BZxProxySettings = artifacts.require("BZxProxySettings");
-var BZxOrderTaking = artifacts.require("BZxOrderTaking");
-var BZxOrderTaking2 = artifacts.require("BZxOrderTaking2");
-var BZxOrderTakingOnChain = artifacts.require("BZxOrderTakingOnChain");
-var BZxOrderTakingOnChain2 = artifacts.require("BZxOrderTakingOnChain2");
+
+var OrderHistory_MiscFunctions = artifacts.require("OrderHistory_MiscFunctions");
+var OrderTaking_MiscFunctions = artifacts.require("OrderTaking_MiscFunctions");
+var OrderTaking_takeLoanOrderAsLender = artifacts.require("OrderTaking_takeLoanOrderAsLender");
+var OrderTaking_takeLoanOrderAsTrader = artifacts.require("OrderTaking_takeLoanOrderAsTrader");
+var OrderTaking_takeLoanOrderOnChainAsLender = artifacts.require("OrderTaking_takeLoanOrderOnChainAsLender");
+var OrderTaking_takeLoanOrderOnChainAsTrader = artifacts.require("OrderTaking_takeLoanOrderOnChainAsTrader");
 
 const path = require("path");
 
@@ -12,17 +15,20 @@ module.exports = (deployer, network, accounts) => {
 
     var bZxProxy = await BZxProxySettings.at(BZxProxy.address);
 
-    await deployer.deploy(BZxOrderTaking);
-    await bZxProxy.replaceContract(BZxOrderTaking.address);
+    await deployer.deploy(OrderTaking_MiscFunctions);
+    await bZxProxy.replaceContract(OrderTaking_MiscFunctions.address);
 
-    await deployer.deploy(BZxOrderTaking2);
-    await bZxProxy.replaceContract(BZxOrderTaking2.address);
+    await deployer.deploy(OrderTaking_takeLoanOrderAsLender);
+    await bZxProxy.replaceContract(OrderTaking_takeLoanOrderAsLender.address);
 
-    await deployer.deploy(BZxOrderTakingOnChain);
-    await bZxProxy.replaceContract(BZxOrderTakingOnChain.address);
+    await deployer.deploy(OrderTaking_takeLoanOrderAsTrader);
+    await bZxProxy.replaceContract(OrderTaking_takeLoanOrderAsTrader.address);
 
-    await deployer.deploy(BZxOrderTakingOnChain2);
-    await bZxProxy.replaceContract(BZxOrderTakingOnChain2.address);
+    await deployer.deploy(OrderTaking_takeLoanOrderOnChainAsLender);
+    await bZxProxy.replaceContract(OrderTaking_takeLoanOrderOnChainAsLender.address);
+
+    await deployer.deploy(OrderTaking_takeLoanOrderOnChainAsTrader);
+    await bZxProxy.replaceContract(OrderTaking_takeLoanOrderOnChainAsTrader.address);
 
     console.log(`   > [${parseInt(path.basename(__filename))}] BZxOrderTakingOnChain deploy: #done`);
   });

@@ -116,6 +116,11 @@ export const validateFillOrder = async (
       alert(`This is an order you created, so you can't fill it.`);
       return false;
     }
+    
+    if (order.takerAddress !== `0x0000000000000000000000000000000000000000` && order.takerAddress.toLowerCase() !== accounts[0].toLowerCase()) {
+      alert(`You are not the designated taker of this order, so you can't fill it.`);
+      return false;
+    }
 
     if (order.expirationUnixTimestampSec > 0 && order.expirationUnixTimestampSec <= moment().unix()) {
       alert(`This order has expired. It can no longer be filled.`);
@@ -201,7 +206,7 @@ export const validateFillOrder = async (
         !trackedTokens.includes(collateralTokenAddress)
       ) {
         alert(
-          `Your interest token or collateral token is not tracked. Please go to the Balances page and add these tokens.`
+          `Your interest token or collateral token is not tracked. Please go to the Balances page to make sure these tokens are added and approved.`
         );
         return false;
       }
@@ -257,7 +262,7 @@ export const validateFillOrder = async (
       const { loanTokenAddress, loanTokenAmount } = order;
       if (!trackedTokens.includes(loanTokenAddress)) {
         alert(
-          `Your loan token is not tracked. Please go to the Balances page and add this token.`
+          `Your loan token is not tracked. Please go to the Balances page to make sure this token is added and approved.`
         );
         return false;
       }
@@ -401,13 +406,14 @@ export const submitFillOrder = (
   let txObj;
   if (makerIsLender) {
     if (overCollateralize) {
-      txObj = bZx.takeLoanOrderAsTraderAndWithdraw({
+      txObj = bZx.takeLoanOrderAsTrader({
         order,
         collateralTokenAddress,
         loanTokenAmountFilled: toBigNumber(
           loanTokenAmountFilled,
           10 ** getDecimals(tokens, order.loanTokenAddress)
         ),
+        withdrawOnOpen: true,
         getObject: true
       });
     } else {
@@ -418,6 +424,7 @@ export const submitFillOrder = (
           loanTokenAmountFilled,
           10 ** getDecimals(tokens, order.loanTokenAddress)
         ),
+        withdrawOnOpen: false,
         getObject: true
       });
     }
@@ -508,13 +515,14 @@ export const submitFillOrderWithHash = (
   let txObj;
   if (makerIsLender) {
     if (overCollateralize) {
-      txObj = bZx.takeLoanOrderOnChainAsTraderAndWithdraw({
+      txObj = bZx.takeLoanOrderOnChainAsTrader({
         loanOrderHash,
         collateralTokenAddress,
         loanTokenAmountFilled: toBigNumber(
           loanTokenAmountFilled,
           10 ** getDecimals(tokens, loanTokenAddress)
         ),
+        withdrawOnOpen: true,
         getObject: true
       });
     } else {
@@ -525,6 +533,7 @@ export const submitFillOrderWithHash = (
           loanTokenAmountFilled,
           10 ** getDecimals(tokens, loanTokenAddress)
         ),
+        withdrawOnOpen: false,
         getObject: true
       });
     }

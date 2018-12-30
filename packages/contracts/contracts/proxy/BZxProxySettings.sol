@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
 import "../proxy/BZxProxiable.sol";
 
@@ -12,8 +12,8 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
 
     constructor() public {}
 
-    function()  
-        public
+    function()
+        external
     {
         revert("fallback not allowed");
     }
@@ -26,9 +26,11 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
         targets[bytes4(keccak256("replaceContract(address)"))] = _target;
         targets[bytes4(keccak256("setTarget(string,address)"))] = _target;
         targets[bytes4(keccak256("toggleTargetPause(string,bool)"))] = _target;
-        targets[bytes4(keccak256("setBZxAddresses(address,address,address,address,address)"))] = _target;
+        targets[bytes4(keccak256("setBZxAddresses(address,address,address,address,address,address,address)"))] = _target;
         targets[bytes4(keccak256("setDebugMode(bool)"))] = _target;
         targets[bytes4(keccak256("setBZRxToken(address)"))] = _target;
+        targets[bytes4(keccak256("setBZxEther(address)"))] = _target;
+        targets[bytes4(keccak256("setWeth(address)"))] = _target;
         targets[bytes4(keccak256("setVault(address)"))] = _target;
         targets[bytes4(keccak256("setOracleRegistry(address)"))] = _target;
         targets[bytes4(keccak256("setOracleReference(address,address)"))] = _target;
@@ -47,11 +49,12 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
         public
         onlyOwner
     {
-        require(_target.delegatecall(bytes4(keccak256("initialize(address)")), _target), "Proxiable::_replaceContract: failed");
+        (bool result,) = _target.delegatecall.gas(gasleft())(abi.encodeWithSignature("initialize(address)", _target));
+        require(result, "Proxiable::_replaceContract: failed");
     }
 
     function setTarget(
-        string _funcId,  // example: "takeLoanOrderAsTrader(address[6],uint256[10],address,uint256,bytes)"
+        string memory _funcId,  // example: "takeLoanOrderAsTrader(address[8],uint256[11],bytes,address,uint256,bytes)"
         address _target) // logic contract address
         public
         onlyOwner
@@ -63,7 +66,7 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
     }
 
     function toggleTargetPause(
-        string _funcId,  // example: "takeLoanOrderAsTrader(address[6],uint256[10],address,uint256,bytes)"
+        string memory _funcId,  // example: "takeLoanOrderAsTrader(address[8],uint256[11],bytes,address,uint256,bytes)"
         bool _isPaused)
         public
         onlyOwner
@@ -76,7 +79,9 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
 
     function setBZxAddresses(
         address _bZRxToken,
-        address _vault,
+        address _bZxEther,
+        address _weth,
+        address payable _vault,
         address _oracleregistry,
         address _exchange0xWrapper,
         address _exchange0xV2Wrapper)
@@ -84,6 +89,8 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
         onlyOwner
     {
         bZRxTokenContract = _bZRxToken;
+        bZxEtherContract = _bZxEther;
+        wethContract = _weth;
         vaultContract = _vault;
         oracleRegistryContract = _oracleregistry;
         bZxTo0xContract = _exchange0xWrapper;
@@ -108,8 +115,26 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
             bZRxTokenContract = _token;
     }
 
+    function setBZxEther (
+        address _token)
+        public
+        onlyOwner
+    {
+        if (_token != address(0))
+            bZxEtherContract = _token;
+    }
+
+    function setWeth (
+        address _token)
+        public
+        onlyOwner
+    {
+        if (_token != address(0))
+            wethContract = _token;
+    }
+
     function setVault (
-        address _vault)
+        address payable _vault)
         public
         onlyOwner
     {
@@ -159,7 +184,7 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
      */
 
     function getTarget(
-        string _funcId) // example: "takeLoanOrderAsTrader(address[6],uint256[10],address,uint256,bytes)"
+        string memory _funcId) // example: "takeLoanOrderAsTrader(address[8],uint256[11],bytes,address,uint256,bytes)"
         public
         view
         returns (address)
@@ -168,7 +193,7 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
     }
 
     function getTargetPause(
-        string _funcId) // example: "takeLoanOrderAsTrader(address[6],uint256[10],address,uint256,bytes)"
+        string memory _funcId) // example: "takeLoanOrderAsTrader(address[8],uint256[11],bytes,address,uint256,bytes)"
         public
         view
         returns (bool)

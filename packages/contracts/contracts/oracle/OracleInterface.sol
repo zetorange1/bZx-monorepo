@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 pragma experimental ABIEncoderV2;
 
 import "../storage/BZxObjects.sol";
@@ -39,10 +39,10 @@ contract OracleInterface {
     /// @return Successful execution of the function
     function didAddOrder(
         BZxObjects.LoanOrder memory loanOrder,
-        BZxObjects.LoanOrderAux loanOrderAux,
-        bytes oracleData,
+        BZxObjects.LoanOrderAux memory loanOrderAux,
+        bytes memory oracleData,
         address taker,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -58,7 +58,7 @@ contract OracleInterface {
         BZxObjects.LoanOrderAux memory loanOrderAux,
         BZxObjects.LoanPosition memory loanPosition,
         address taker,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -70,7 +70,7 @@ contract OracleInterface {
     function didTradePosition(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -86,9 +86,9 @@ contract OracleInterface {
     function didPayInterest(
         BZxObjects.LoanOrder memory loanOrder,
         address lender,
-        uint amountOwed,
+        uint256 amountOwed,
         bool convert,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -102,8 +102,8 @@ contract OracleInterface {
     function didDepositCollateral(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint depositAmount,
-        uint gasUsed)
+        uint256 depositAmount,
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -117,8 +117,8 @@ contract OracleInterface {
     function didWithdrawCollateral(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint withdrawAmount,
-        uint gasUsed)
+        uint256 withdrawAmount,
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -131,21 +131,21 @@ contract OracleInterface {
     function didChangeCollateral(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
-    /// @dev Called by bZx after a borrower has withdraw their profits, if any
+    /// @dev Called by bZx after a borrower has withdrawn any amount in excess of their loan principal
     /// @param loanOrder The loanOrder object
     /// @param loanPosition The loanPosition object
-    /// @param profitAmount The amount of profit withdrawn
+    /// @param withdrawAmount The amount withdrawn
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
-    function didWithdrawProfit(
+    function didWithdrawPosition(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint profitAmount,
-        uint gasUsed)
+        uint256 withdrawAmount,
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -158,22 +158,8 @@ contract OracleInterface {
     function didDepositPosition(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint depositAmount,
-        uint gasUsed)
-        public
-        returns (bool);
-
-    /// @dev Called by bZx after a borrower has withdrawn their some or all of their overcollateralized loan
-    /// @param loanOrder The loanOrder object
-    /// @param loanPosition The loanPosition object
-    /// @param withdrawAmount The amount of position token withdrawn
-    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
-    /// @return Successful execution of the function
-    function didWithdrawPosition(
-        BZxObjects.LoanOrder memory loanOrder,
-        BZxObjects.LoanPosition memory loanPosition,
-        uint withdrawAmount,
-        uint gasUsed)
+        uint256 depositAmount,
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -187,9 +173,9 @@ contract OracleInterface {
     function didCloseLoanPartially(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        address loanCloser,
-        uint closeAmount,
-        uint gasUsed)
+        address payable loanCloser,
+        uint256 closeAmount,
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -203,9 +189,9 @@ contract OracleInterface {
     function didCloseLoan(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        address loanCloser,
+        address payable loanCloser,
         bool isLiquidation,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -219,7 +205,7 @@ contract OracleInterface {
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
         address oldTrader,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -233,7 +219,7 @@ contract OracleInterface {
         BZxObjects.LoanOrder memory loanOrder,
         address oldLender,
         address newLender,
-        uint gasUsed)
+        uint256 gasUsed)
         public
         returns (bool);
 
@@ -247,25 +233,11 @@ contract OracleInterface {
     function didIncreaseLoanableAmount(
         BZxObjects.LoanOrder memory loanOrder,
         address lender,
-        uint loanTokenAmountAdded,
-        uint totalNewFillableAmount,
-        uint gasUsed)
+        uint256 loanTokenAmountAdded,
+        uint256 totalNewFillableAmount,
+        uint256 gasUsed)
         public
         returns (bool);
-
-    /// @dev Places a manual on-chain trade with a liquidity provider
-    /// @param sourceTokenAddress The token being sold
-    /// @param destTokenAddress The token being bought
-    /// @param sourceTokenAmount The amount of token being sold
-    /// @param maxDestTokenAmount The desired amount of token to buy
-    /// @return The amount of destToken bought and the amount of source token used
-    function doManualTrade(
-        address sourceTokenAddress,
-        address destTokenAddress,
-        uint sourceTokenAmount,
-        uint maxDestTokenAmount)
-        public
-        returns (uint, uint);
 
     /// @dev Places an automatic on-chain trade with a liquidity provider
     /// @param sourceTokenAddress The token being sold
@@ -273,11 +245,27 @@ contract OracleInterface {
     /// @param sourceTokenAmount The amount of token being sold
     /// @param maxDestTokenAmount The desired amount of token to buy
     /// @return The amount of destToken bought and the amount of source token used
-    function doTrade(
+    function trade(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount,
-        uint maxDestTokenAmount)
+        uint256 sourceTokenAmount,
+        uint256 maxDestTokenAmount)
+        public
+        returns (uint, uint);
+
+    /// @dev Places an automatic on-chain trade with a liquidity provider
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
+    /// @param destTokenAddress The token being bought
+    /// @param maxDestTokenAmount The desired amount of token to buy
+    /// @param ensureHealthy If True, prevents a trade that brings the margin level below maintenanceMarginAmount
+    /// @return The amount of destToken bought and the amount of source token used
+    function tradePosition(
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
+        address destTokenAddress,
+        uint256 maxDestTokenAmount,
+        bool ensureHealthy)
         public
         returns (uint, uint);
 
@@ -301,33 +289,19 @@ contract OracleInterface {
     function processCollateral(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint loanTokenAmountNeeded,
+        uint256 loanTokenAmountNeeded,
         bool isLiquidation)
         public
-        returns (uint loanTokenAmountCovered, uint collateralTokenAmountUsed);
+        returns (uint256 loanTokenAmountCovered, uint256 collateralTokenAmountUsed);
 
     /// @dev Checks if a position has fallen below margin
     /// @dev maintenance and should be liquidated
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param trader The address of the trader
-    /// @param loanTokenAddress The token that was loaned
-    /// @param positionTokenAddress The token in the current position (could also be the loanToken)
-    /// @param collateralTokenAddress The token used for collateral
-    /// @param loanTokenAmount The amount of loan token
-    /// @param positionTokenAmount The amount of position token
-    /// @param collateralTokenAmount The amount of collateral token
-    /// @param maintenanceMarginAmount The maintenance margin amount from the loan
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
     /// @return Returns True if the trade should be liquidated immediately
     function shouldLiquidate(
-        bytes32 loanOrderHash,
-        address trader,
-        address loanTokenAddress,
-        address positionTokenAddress,
-        address collateralTokenAddress,
-        uint loanTokenAmount,
-        uint positionTokenAmount,
-        uint collateralTokenAmount,
-        uint maintenanceMarginAmount)
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition)
         public
         view
         returns (bool);
@@ -336,29 +310,25 @@ contract OracleInterface {
     /// @param sourceTokenAddress Token being sold
     /// @param destTokenAddress Token being bought
     /// @param sourceTokenAmount The amount of token being sold
-    /// @return The trade rate
+    /// @return The trade rate and amount of destToken that would be received from the trade
     function getTradeData(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount)
+        uint256 sourceTokenAmount)
         public
         view
-        returns (uint sourceToDestRate, uint destTokenAmount);
+        returns (uint256 sourceToDestRate, uint256 destTokenAmount);
 
-    /// @dev Returns the profit/loss data for the current position
-    /// @param positionTokenAddress The token in the current position (could also be the loanToken)
-    /// @param loanTokenAddress The token that was loaned
-    /// @param positionTokenAmount The amount of position token
-    /// @param loanTokenAmount The amount of loan token
-    /// @return isProfit, profitOrLoss (denominated in positionToken)
-    function getProfitOrLoss(
-        address positionTokenAddress,
-        address loanTokenAddress,
-        uint positionTokenAmount,
-        uint loanTokenAmount)
+    /// @dev Returns the current excess or deficit position amount from the loan principal
+    /// @param loanOrder The loanOrder object
+    /// @param loanPosition The loanPosition object
+    /// @return isPositive, offsetAmount (denominated in positionToken)
+    function getPositionOffset(
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition)
         public
         view
-        returns (bool isProfit, uint profitOrLoss);
+        returns (bool isPositive, uint256 offsetAmount);
 
     /// @dev Returns the current margin level for this particular loan/position
     /// @param loanTokenAddress The token that was loaned
@@ -372,9 +342,9 @@ contract OracleInterface {
         address loanTokenAddress,
         address positionTokenAddress,
         address collateralTokenAddress,
-        uint loanTokenAmount,
-        uint positionTokenAmount,
-        uint collateralTokenAmount)
+        uint256 loanTokenAmount,
+        uint256 positionTokenAmount,
+        uint256 collateralTokenAmount)
         public
         view
         returns (uint);
@@ -387,7 +357,7 @@ contract OracleInterface {
     function isTradeSupported(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint sourceTokenAmount)
+        uint256 sourceTokenAmount)
         public
         view
         returns (bool);

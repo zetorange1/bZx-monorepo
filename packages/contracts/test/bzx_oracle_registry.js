@@ -6,6 +6,8 @@ const Reverter = require("./utils/reverter");
 const BigNumber = require("bignumber.js");
 const _ = require("underscore");
 
+const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 contract("OracleRegistry", function(accounts) {
   let reverter = new Reverter(web3);
 
@@ -60,7 +62,7 @@ contract("OracleRegistry", function(accounts) {
       }
 
       try {
-        await oracleRegistry.addOracle(0x0, "some_name");
+        await oracleRegistry.addOracle(NULL_ADDRESS, "some_name");
         assert.isTrue(false);
       } catch (e) {
         utils.ensureException(e);

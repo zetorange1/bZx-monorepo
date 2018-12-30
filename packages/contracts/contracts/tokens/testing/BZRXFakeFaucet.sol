@@ -3,19 +3,19 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.4.24;
+pragma solidity 0.5.2;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../../openzeppelin-solidity/Ownable.sol";
 import "../EIP20Wrapper.sol";
 
 
 contract BZRXFakeFaucet is EIP20Wrapper, Ownable {
 
-    uint public faucetThresholdSecs = 14400; // 4 hours
+    uint256 public faucetThresholdSecs = 14400; // 4 hours
 
     mapping (address => mapping (address => uint)) public faucetUsers; // mapping of users to mapping of tokens to last request times
 
-    function() public payable {}
+    function() external payable {}
 
     function faucet(
         address getToken,
@@ -38,13 +38,13 @@ contract BZRXFakeFaucet is EIP20Wrapper, Ownable {
     }
 
     function withdrawEther(
-        address to,
-        uint value)
+        address payable to,
+        uint256 value)
         public
         onlyOwner
         returns (bool)
     {
-        uint amount = value;
+        uint256 amount = value;
         if (amount > address(this).balance) {
             amount = address(this).balance;
         }
@@ -55,7 +55,7 @@ contract BZRXFakeFaucet is EIP20Wrapper, Ownable {
     function withdrawToken(
         address token,
         address to,
-        uint tokenAmount)
+        uint256 tokenAmount)
         public
         onlyOwner
         returns (bool)
@@ -75,7 +75,7 @@ contract BZRXFakeFaucet is EIP20Wrapper, Ownable {
     function depositToken(
         address token,
         address from,
-        uint tokenAmount)
+        uint256 tokenAmount)
         public
         onlyOwner
         returns (bool)
@@ -87,7 +87,7 @@ contract BZRXFakeFaucet is EIP20Wrapper, Ownable {
         eip20TransferFrom(
             token,
             from,
-            this,
+            address(this),
             tokenAmount);
 
         return true;
@@ -97,7 +97,7 @@ contract BZRXFakeFaucet is EIP20Wrapper, Ownable {
         address token,
         address from,
         address to,
-        uint tokenAmount)
+        uint256 tokenAmount)
         public
         onlyOwner
         returns (bool)
@@ -116,7 +116,7 @@ contract BZRXFakeFaucet is EIP20Wrapper, Ownable {
     }
 
     function setFaucetThresholdSecs(
-        uint newValue) 
+        uint256 newValue) 
         public
         onlyOwner
     {

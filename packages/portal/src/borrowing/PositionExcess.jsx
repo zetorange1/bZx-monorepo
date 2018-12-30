@@ -34,17 +34,18 @@ const TxHashLink = styled.a.attrs({
 }
 `;
 
-export default class ProfitOrLoss extends BZxComponent {
+export default class PositionExcess extends BZxComponent {
   state = {
     loading: true,
     error: false,
-    profit: 0,
-    isProfit: null,
+    withdrawAmount: 0,
+    positionOffset: 0,
+    isPositive: null,
     showDialog: false
   };
 
   componentDidMount = () => {
-    this.getProfitOrLoss();
+    this.getPositionOffset();
   };
 
   componentDidUpdate(prevProps) {
@@ -52,23 +53,24 @@ export default class ProfitOrLoss extends BZxComponent {
       prevProps.data &&
       JSON.stringify(prevProps.data) !== JSON.stringify(this.props.data)
     )
-      this.getProfitOrLoss();
+      this.getPositionOffset();
   }
 
-  getProfitOrLoss = async () => {
+  getPositionOffset = async () => {
     const { bZx, web3, loanOrderHash, accounts } = this.props;
     this.setState({ loading: true, error: false });
     try {
-      const data = await this.wrapAndRun(bZx.getProfitOrLoss({
+      const data = await this.wrapAndRun(bZx.getPositionOffset({
         loanOrderHash,
         trader: accounts[0]
       }));
-      console.log(`Profit ->`);
+      console.log(`Amount ->`);
       console.log(data);
       await this.setState({
         loading: false,
-        profit: data.profitOrLoss,
-        isProfit: data.isProfit
+        positionOffset: data.offsetAmount,
+        withdrawAmount: data.offsetAmount, // TEMP
+        isPositive: data.isPositive
       });
     } catch(e) {
       console.log(e);
@@ -76,8 +78,8 @@ export default class ProfitOrLoss extends BZxComponent {
     }
   };
 
-  withdrawProfit = async () => {
-    const { bZx, accounts, web3, loanOrderHash } = this.props;
+  withdrawPosition = async () => {
+    const { bZx, accounts, loanOrderHash } = this.props;
     const txOpts = {
       from: accounts[0],
       gas: 2000000,
@@ -88,8 +90,9 @@ export default class ProfitOrLoss extends BZxComponent {
       alert(`Please confirm this transaction on your device.`);
     }
 
-    const txObj = await bZx.withdrawProfit({
+    const txObj = await bZx.withdrawPosition({
       loanOrderHash,
+      withdrawAmount: this.state.withdrawAmount,
       getObject: true,
       txOpts
     });
@@ -139,27 +142,27 @@ export default class ProfitOrLoss extends BZxComponent {
   closeDialog = () => this.setState({ showDialog: false });
 
   render() {
-    const { loading, error, profit, isProfit, showDialog } = this.state;
+    const { loading, error, positionOffset, withdrawAmount, isPositive, showDialog } = this.state;
     const { symbol, decimals } = this.props;
     return (
       <Fragment>
         <br />
         <DataPointContainer>
-          <Label>Profit/Loss</Label>
+          <Label>Position Excess/Deficit</Label>
           {loading && !error ? (
-            <DataPointContainer><DataPoint>Loading profit...</DataPoint></DataPointContainer>
+            <DataPointContainer><DataPoint>Loading position excess or deficit...</DataPoint></DataPointContainer>
           ) : 
           error ? (
-            <DataPointContainer><DataPoint>Web3 error loading profit. Please refresh in a few minutes.</DataPoint></DataPointContainer>
+            <DataPointContainer><DataPoint>Web3 error loading excess or deficit. Please refresh in a few minutes.</DataPoint></DataPointContainer>
           ) : (
             <Fragment>
               <DataPoint>
-                {!isProfit && profit.toString() !== `0` && `-`}
-                {fromBigNumber(profit, 10 ** decimals)}
+                {!isPositive && positionOffset.toString() !== `0` && `-`}
+                {fromBigNumber(positionOffset, 10 ** decimals)}
                 {` ${symbol}`}
               </DataPoint>
-              {isProfit &&
-                profit !== 0 && (
+              {isPositive &&
+                positionOffset.toString() !== `0` && (
                   <a
                     href="#"
                     style={{ marginLeft: `12px` }}
@@ -176,18 +179,18 @@ export default class ProfitOrLoss extends BZxComponent {
         </DataPointContainer>
         <Dialog open={showDialog} onClose={this.closeDialog}>
           <DialogContent>
-            <SectionLabel>Withdraw Profit</SectionLabel>
+            <SectionLabel>Withdraw Position</SectionLabel>
             <p>
-              This will withdraw {fromBigNumber(profit, 10 ** decimals)}
+              This will withdraw {fromBigNumber(positionOffset, 10 ** decimals)}
               {` `}
               {symbol} from your loan.
             </p>
             <Button
-              onClick={this.withdrawProfit}
+              onClick={this.withdrawPosition}
               variant="raised"
               color="primary"
             >
-              I understand, withdraw profit.
+              I understand, please proceed.
             </Button>
           </DialogContent>
         </Dialog>

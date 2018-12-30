@@ -7,7 +7,7 @@ import DepositCollateralDialog from "./DepositCollateralDialog";
 import WithdrawCollateralDialog from "./WithdrawCollateralDialog";
 import DepositPositionDialog from "./DepositPositionDialog";
 
-export default class CollateralOptions extends React.Component {
+export default class LoanMaintenance extends React.Component {
   state = {
     anchorEl: null,
     showChangeCollateralDialog: false,
@@ -55,8 +55,11 @@ export default class CollateralOptions extends React.Component {
       web3,
       loanOrderHash,
       collateralToken,
-      excessCollateral,
-      positionToken
+      collateralExcess,
+      positionToken,
+      currentMarginAmount,
+      positionTokenAmountFilled,
+      initialMarginAmount
     } = this.props;
     return (
       <Fragment>
@@ -77,6 +80,7 @@ export default class CollateralOptions extends React.Component {
           <MenuItem onClick={this.handleWithdrawCollateralClick}>
             Withdraw collateral
           </MenuItem>
+          <hr style={{width: `90%`}} />
           <MenuItem onClick={this.handleDepositPositionClick}>
             Deposit loan token
           </MenuItem>
@@ -108,7 +112,7 @@ export default class CollateralOptions extends React.Component {
           tokens={tokens}
           accounts={accounts}
           collateralToken={collateralToken}
-          excessCollateral={excessCollateral}
+          collateralExcess={collateralExcess}
           loanOrderHash={loanOrderHash}
         />
         <DepositPositionDialog

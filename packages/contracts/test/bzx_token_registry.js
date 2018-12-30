@@ -8,6 +8,8 @@ const Reverter = require("./utils/reverter");
 const BigNumber = require("bignumber.js");
 const _ = require("underscore");
 
+const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 contract("TokenRegistry", function(accounts) {
   let reverter = new Reverter(web3);
 
@@ -135,7 +137,7 @@ contract("TokenRegistry", function(accounts) {
       let decimals3 = await token3.decimals.call();
 
       try {
-        await tokenRegistry.addToken(0x0, name3, symbol3, decimals3, "uri3");
+        await tokenRegistry.addToken(NULL_ADDRESS, name3, symbol3, decimals3, "uri3");
         assert.isTrue(false);
       } catch (e) {
         utils.ensureException(e);
