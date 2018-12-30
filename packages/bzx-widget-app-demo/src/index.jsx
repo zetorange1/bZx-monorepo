@@ -9,7 +9,7 @@ import * as serviceWorker from "./serviceWorker";
 const widgetStyles = {
   padding: "20px",
   margin: "20px",
-  width: "480px"
+  width: "600px"
 };
 const currentProvider = new BZXWidgetProviderAugur();
 ReactDOM.render(<BZXWidget widgetStyles={widgetStyles} provider={currentProvider} />, document.getElementById("root"));

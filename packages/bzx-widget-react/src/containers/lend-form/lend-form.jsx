@@ -75,7 +75,7 @@ export default class LendForm extends Component {
 
         <br />
 
-        <div>
+        <div hidden={this.state.pushOnChain}>
           <label>Augur relays:</label>
           <InputRelay
             options={[...this.props.formOptions.relays]}

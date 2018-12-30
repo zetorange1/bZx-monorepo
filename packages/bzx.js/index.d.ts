@@ -45,7 +45,7 @@ export declare interface ILoanOrderActive {
 }
 
 export declare interface ILoanPositionState {
-  lender: string;
+  // lender: string;
   trader: string;
 
   loanOrderHash: string;

@@ -5295,6 +5295,11 @@ boom@5.x.x:
   dependencies:
     hoek "4.x.x"
 
+bowser@^2.0.0-beta.3:
+  version "2.0.0-beta.3"
+  resolved "https://registry.yarnpkg.com/bowser/-/bowser-2.0.0-beta.3.tgz#1b74d4fd69199aa237bc0f1f4c5e80df711635d8"
+  integrity sha512-eHZmZrwbWb8pZn7XtIrtpni/EjHgU6DZEcvJUrLRrTtnhBY8Kbj379JY+GGKeJ7CctidvWP2ueBAAzGDenydCg==
+
 boxen@^0.8.1:
   version "0.8.1"
   resolved "https://registry.yarnpkg.com/boxen/-/boxen-0.8.1.tgz#aa68457f4643b820a9358c670d8a32f1c0956870"
@@ -18053,6 +18058,13 @@ react-scripts@2.1.1:
     workbox-webpack-plugin "3.6.3"
   optionalDependencies:
     fsevents "1.2.4"
+
+react-scrollbars-custom@^3.1.5:
+  version "3.1.5"
+  resolved "https://registry.yarnpkg.com/react-scrollbars-custom/-/react-scrollbars-custom-3.1.5.tgz#4bc9f3f66110e8adc55b99863dd7fb021454ba5b"
+  integrity sha512-4/TUh2aHx8jANsdA2NLxUfsuvmxhO3u02B3j/sYjOxAX6/Ptyl9ZvEwwqvi7KEVTCwOKPSOzqKj5eogC7Shzlw==
+  dependencies:
+    bowser "^2.0.0-beta.3"
 
 react-slick@~0.23.2:
   version "0.23.2"
