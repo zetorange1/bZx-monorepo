@@ -19,8 +19,8 @@ export default class BZXWidgetProviderAugur {
   // https://hackmd.io/xAwX4xmIQk-K2w6Ecs8U_w?view#AugurOracle-Implementation-AugurOraclesol
   zeroAddress = "0x0000000000000000000000000000000000000000";
   wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab";
-  bzxAddress = "0x01de670be497b88b10d9b59e748a701992a0c532";
-  bzxVaultAddress = "0x81558e6edf0f7ae1222fd56ad63cffad09dadf64";
+  bzxAddress = "0x4db8a61f9cd0cf4998aa4612dd612ab4f4f5a730";
+  bzxVaultAddress = "0x8f254255592e6e210cc9a464cfa2464da2467df6";
   bZxOracleAddress = "";
   bzxAugurOracleAddress = "";
 
