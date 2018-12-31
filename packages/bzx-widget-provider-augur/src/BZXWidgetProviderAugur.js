@@ -369,7 +369,7 @@ export default class BZXWidgetProviderAugur {
     window.addEventListener("onpopstate", that._refreshAssets, false);
   };
 
-  _getAAugurMarketOutcomes = async (augurMarketId) => {
+  _getAAugurMarketOutcomes = async augurMarketId => {
     const getMarketsPromise = new Promise((resolve, reject) => {
       this.augur.markets.getMarketsInfo({ marketIds: [augurMarketId] }, (error, result) => {
         if (error) {
