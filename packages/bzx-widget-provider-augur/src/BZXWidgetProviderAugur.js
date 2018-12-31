@@ -157,7 +157,7 @@ export default class BZXWidgetProviderAugur {
       activeOnly: true
     });
 
-    // TODO: filtering with market, tokens (weth + shares)
+    // TODO: filtering with target market and assets (weth + shares)
     return loansForLender
       .concat(loansForTrader)
       .sort((e1, e2) => e2.loanStartUnixTimestampSec - e1.loanStartUnixTimestampSec)
