@@ -176,10 +176,11 @@ export default class BZXWidgetProviderAugur {
         count: maxCount * (currentPage + 1)
       });
       pageResults = pageResults.filter(filter);
-      // TODO: filtering with maker role (0, lender), market, tokens (weth + shares), maker is not current account
-      // pageResults = pageResults.filter(
-      //   e => e.lender !== this.zeroAddress && e.makerAddress.toLowerCase() !== this.account.toLowerCase()
-      // );
+      // TODO: filtering with target market and assets (weth + shares)
+      pageResults = pageResults.filter(
+        e => e.collateralTokenAddress == this.zeroAddress && e.makerAddress.toLowerCase() !== this.account.toLowerCase()
+      );
+
       results = results.concat(pageResults);
       currentPage++;
     } while (pageResults.length < 0);
@@ -202,10 +203,11 @@ export default class BZXWidgetProviderAugur {
         count: maxCount * (currentPage + 1)
       });
       pageResults = pageResults.filter(filter);
-      // TODO: filtering with maker role (1, borrower), market, tokens (weth + shares), maker is not current account
-      // pageResults = pageResults.filter(
-      //   e => e.lender === this.zeroAddress && e.makerAddress.toLowerCase() !== this.account.toLowerCase()
-      // );
+      // TODO: filtering with target market and assets (weth + shares)
+      pageResults = pageResults.filter(
+        e => e.collateralTokenAddress !== this.zeroAddress && e.makerAddress.toLowerCase() !== this.account.toLowerCase()
+      );
+
       results = results.concat(pageResults);
       currentPage++;
     } while (pageResults.length < 0);
@@ -581,7 +583,7 @@ export default class BZXWidgetProviderAugur {
         makerAddress: lenderAddress.toLowerCase(),
         loanTokenAddress: value.asset.toLowerCase(),
         interestTokenAddress: this.wethAddress.toLowerCase(),
-        collateralTokenAddress: this.wethAddress.toLowerCase(),
+        collateralTokenAddress: this.zeroAddress.toLowerCase(),
         feeRecipientAddress: zeroAddress.toLowerCase(),
         oracleAddress: orderOracleAddress.toLowerCase(),
         loanTokenAmount: loanAmountInBaseUnits.toString(),
