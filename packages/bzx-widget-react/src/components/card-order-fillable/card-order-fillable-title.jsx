@@ -1,16 +1,6 @@
 import React, { Component } from "react";
-import PropTypes from "prop-types";
 
 export default class CardOrderFillableTitle extends Component {
-  static propTypes = {
-    isAsk: PropTypes.bool,
-    data: PropTypes.object,
-    doLoanOrderTake: PropTypes.func,
-    getTokenNameFromAddress: PropTypes.func,
-    getMarginLevels: PropTypes.func,
-    getProfitOrLoss: PropTypes.func
-  };
-
   styleColumnRowType = {
     width: 24,
     height: 24,
