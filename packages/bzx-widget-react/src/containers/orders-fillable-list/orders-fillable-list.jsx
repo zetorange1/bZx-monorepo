@@ -81,8 +81,7 @@ export default class OrdersFillableList extends Component {
       <List
         size="small"
         dataSource={ordersList}
-        locale={{ emptyText: "" }}
-        bordered={true}
+        locale={{ emptyText: isAsk ? "No asks" : "No bids" }}
         renderItem={item => (
           <Item key={item.loanOrderHash}>
             <CardOrderFillable
