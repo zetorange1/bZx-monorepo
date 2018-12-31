@@ -354,29 +354,7 @@ export default class BZXWidgetProviderAugur {
   };
 
   _getAugurMarketShareOutcomeNumber = async (currentMarketId, shareTokenAddress) => {
-    const getMarketsPromise = new Promise((resolve, reject) => {
-      this.augur.markets.getMarketsInfo({ marketIds: [currentMarketId] }, (error, result) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(result);
-        }
-      });
-    });
-    const result = await getMarketsPromise;
-
-    const outcomesMap = result[0].outcomes.map(async e => {
-      const shareTokenAddress = await this.augur.api.Market.getShareToken({
-        _outcome: this.augur.utils.convertBigNumberToHexString(new BigNumber(e.id)),
-        tx: { to: currentMarketId }
-      });
-      const shareTokenText = `${e.description} / volume: ${e.volume} / address: ${shareTokenAddress}`;
-
-      return { num: e.id, id: shareTokenAddress, text: shareTokenText };
-    });
-
-    const outcomes = await Promise.all(outcomesMap);
-    const filteredOutcomes = outcomes
+    const filteredOutcomes = this.assets
       .filter(e => e.id.toLowerCase() === shareTokenAddress.toLowerCase())
       .map(e => e.num);
 
@@ -390,38 +368,45 @@ export default class BZXWidgetProviderAugur {
     window.addEventListener("onpopstate", that._refreshAssets, false);
   };
 
+  _getAAugurMarketOutcomes = async (augurMarketId) => {
+    const getMarketsPromise = new Promise((resolve, reject) => {
+      this.augur.markets.getMarketsInfo({ marketIds: [augurMarketId] }, (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      });
+    });
+    const result = await getMarketsPromise;
+
+    // getting shares tokens list
+    const outcomesMap = result[0].outcomes.map(async e => {
+      const shareTokenAddress = await this.augur.api.Market.getShareToken({
+        _outcome: this.augur.utils.convertBigNumberToHexString(new BigNumber(e.id)),
+        tx: { to: augurMarketId }
+      });
+      const shareTokenText = `${e.description} / volume: ${e.volume} / address: ${shareTokenAddress}`;
+
+      return { num: e.id, id: shareTokenAddress, text: shareTokenText };
+    });
+
+    return await Promise.all(outcomesMap);
+  };
+
   _refreshAssets = async () => {
     // getting marketId from url "id" param
     const currentMarketId = this._getAugurMarkedId();
     if (currentMarketId) {
-      // reading info about current market assets
-      this.augur.markets.getMarketsInfo({ marketIds: [currentMarketId] }, (error, result) => {
-        // good place to check if market is scalar (if we'll ever need it)
+      const wethTokenContractAddress = this.wethAddress.toLowerCase();
 
-        // here we are using rinkeby WETH asset address, but showing to user as ETH
-        const wethTokenContractAddress = this.wethAddress.toLowerCase();
+      const outcomes = await this._getAAugurMarketOutcomes(currentMarketId);
+      outcomes.unshift({ num: null, id: wethTokenContractAddress, text: "WETH" });
 
-        // getting shares tokens list
-        const outcomesMap = result[0].outcomes.map(async e => {
-          const shareTokenAddress = await this.augur.api.Market.getShareToken({
-            _outcome: this.augur.utils.convertBigNumberToHexString(new BigNumber(e.id)),
-            tx: { to: currentMarketId }
-          });
-          const shareTokenText = `${e.description} / volume: ${e.volume} / address: ${shareTokenAddress}`;
+      this.assets = outcomes;
+      this.defaultAsset = wethTokenContractAddress;
 
-          return { id: shareTokenAddress, text: shareTokenText };
-        });
-
-        outcomesMap.unshift({ id: wethTokenContractAddress, text: "ETH" });
-
-        // resolving asyncs with Promise.all
-        Promise.all(outcomesMap).then(result => {
-          this.assets = result;
-          this.defaultAsset = wethTokenContractAddress;
-
-          this._handleAssetsUpdate();
-        });
-      });
+      this._handleAssetsUpdate();
     } else {
       // if we are not on the market page we must clean available assets
       this.assets = [];
