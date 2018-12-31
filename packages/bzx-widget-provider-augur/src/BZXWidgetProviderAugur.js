@@ -278,10 +278,10 @@ export default class BZXWidgetProviderAugur {
     });
   };
 
-  doLoanOrderTake = async ({ loanOrderHash, amount, isAsk }) => {
+  doLoanOrderTake = async ({ loanOrderHash, loanTokenAddress, collateralTokenAddress, amount, isAsk }) => {
     return new Promise((resolve, reject) => {
       try {
-        this._hanldeLoanOrderTake(loanOrderHash, amount, isAsk, resolve, reject);
+        this._hanldeLoanOrderTake(loanOrderHash, loanTokenAddress, collateralTokenAddress, amount, isAsk, resolve, reject);
       } catch (e) {
         console.dir(e);
         reject("error happened while processing your request");
@@ -481,7 +481,7 @@ export default class BZXWidgetProviderAugur {
     }
   };
 
-  _hanldeLoanOrderTake = async (loanOrderHash, amount, isAsk, resolve, reject) => {
+  _hanldeLoanOrderTake = async (loanOrderHash, loanTokenAddress, collateralTokenAddress, amount, isAsk, resolve, reject) => {
     try {
       let transactionReceipt = await this.bzxjs.setAllowanceUnlimited({
         tokenAddress: this.wethAddress.toLowerCase(),
@@ -493,12 +493,30 @@ export default class BZXWidgetProviderAugur {
       console.dir(transactionReceipt);
 
       if (isAsk) {
+        transactionReceipt = await this.bzxjs.setAllowanceUnlimited({
+          tokenAddress: loanTokenAddress.toLowerCase(),
+          ownerAddress: this.account.toLowerCase(),
+          spenderAddress: this.bzxVaultAddress.toLowerCase(),
+          getObject: false,
+          txOpts: { from: this.account.toLowerCase(), gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
+        });
+        console.dir(transactionReceipt);
+
         transactionReceipt = await this.bzxjs.takeLoanOrderOnChainAsLender({
           loanOrderHash: loanOrderHash.toLowerCase(),
           getObject: false,
-          txOpts: { from: this.account, gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
+          txOpts: { from: this.account.toLowerCase(), gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
         });
       } else {
+        transactionReceipt = await this.bzxjs.setAllowanceUnlimited({
+          tokenAddress: collateralTokenAddress.toLowerCase(),
+          ownerAddress: this.account.toLowerCase(),
+          spenderAddress: this.bzxVaultAddress.toLowerCase(),
+          getObject: false,
+          txOpts: { from: this.account.toLowerCase(), gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
+        });
+        console.dir(transactionReceipt);
+
         transactionReceipt = await this.bzxjs.takeLoanOrderOnChainAsTrader({
           loanOrderHash: loanOrderHash.toLowerCase(),
           collateralTokenAddress: this.wethAddress.toLowerCase(),
@@ -506,7 +524,7 @@ export default class BZXWidgetProviderAugur {
           tradeTokenToFillAddress: zeroAddress.toLowerCase(),
           withdrawOnOpen: "0",
           getObject: false,
-          txOpts: { from: this.account, gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
+          txOpts: { from: this.account.toLowerCase(), gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
         });
       }
       console.dir(transactionReceipt);

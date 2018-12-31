@@ -99,6 +99,8 @@ export default class CardOrderFillable extends Component {
   _handleLoanOrderTakeClicked = () => {
     let resultPromise = this.props.doLoanOrderTake({
       loanOrderHash: this.props.data.loanOrderHash,
+      loanTokenAddress: this.props.data.loanTokenAddress,
+      collateralTokenAddress: this.props.data.collateralTokenAddress,
       isAsk: this.props.isAsk,
       amount: new BigNumber(
         this.props.data.loanTokenAmount - this.props.data.orderFilledAmount - this.props.data.orderCancelledAmount
