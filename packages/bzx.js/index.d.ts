@@ -5,6 +5,9 @@ import Web3 = require("web3");
 
 export declare interface ILoanOrderValuesBase {
   makerAddress: string;
+  takerAddress: string;
+  tradeTokenToFillAddress: string;
+  withdrawOnOpen: boolean;
   loanTokenAddress: string;
   interestTokenAddress: string;
   collateralTokenAddress: string;
@@ -152,8 +155,8 @@ export declare interface IInterestStatus {
 }
 
 export declare interface IProfitStatus {
-  isProfit: boolean;
-  profitOrLoss: string;
+  isPositive: boolean;
+  offsetAmount: string;
   positionTokenAddress: string;
 }
 
@@ -235,6 +238,8 @@ export declare class BZxJS {
     oracleData: any;
     collateralTokenAddress: string;
     loanTokenAmountFilled: BigNumber;
+    tradeTokenToFillAddress: string;
+    withdrawOnOpen: string;
     getObject: boolean;
     txOpts: Tx;
   }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
@@ -257,6 +262,8 @@ export declare class BZxJS {
     loanOrderHash: string;
     collateralTokenAddress: string;
     loanTokenAmountFilled: BigNumber;
+    tradeTokenToFillAddress: string;
+    withdrawOnOpen: string;
     getObject: boolean;
     txOpts: Tx;
   }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
@@ -296,9 +303,9 @@ export declare class BZxJS {
 
   getSingleOrder(params: { loanOrderHash: string }): Promise<ILoanOrderFillable>;
 
-  getOrdersFillable(params: { start: number; count: number }): Promise<ILoanOrderFillable[]>;
+  getOrdersFillable(params: { start: number; count: number, oracleFilter?: string }): Promise<ILoanOrderFillable[]>;
 
-  getOrdersForUser(params: { loanPartyAddress: string; start: number; count: number }): Promise<ILoanOrderFillable[]>;
+  getOrdersForUser(params: { loanPartyAddress: string; start: number; count: number, oracleFilter?: string }): Promise<ILoanOrderFillable[]>;
 
   tradePositionWith0x(params: {
     order0x: IZeroExTradeRequest;
@@ -352,7 +359,7 @@ export declare class BZxJS {
     txOpts: Tx;
   }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
-  getProfitOrLoss(params: { loanOrderHash: string; trader: string }): Promise<IProfitStatus>;
+  getPositionOffset(params: { loanOrderHash: string; trader: string }): Promise<IProfitStatus>;
 
   withdrawProfit(params: {
     loanOrderHash: string;

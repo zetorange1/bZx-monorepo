@@ -19,7 +19,7 @@ export default class PositionsList extends Component {
     onLoanTradeWithCurrentAsset: PropTypes.func,
     getTokenNameFromAddress: PropTypes.func,
     getMarginLevels: PropTypes.func,
-    getProfitOrLoss: PropTypes.func,
+    getPositionOffset: PropTypes.func,
     getAccount: PropTypes.func,
     widgetEventEmitter: PropTypes.object,
     getCurrentAsset: PropTypes.func,
@@ -93,7 +93,7 @@ export default class PositionsList extends Component {
           onLoanTradeWithCurrentAsset={this.props.onLoanTradeWithCurrentAsset}
           getTokenNameFromAddress={this.props.getTokenNameFromAddress}
           getMarginLevels={this.props.getMarginLevels}
-          getProfitOrLoss={this.props.getProfitOrLoss}
+          getPositionOffset={this.props.getPositionOffset}
           getAccount={this.props.getAccount}
           currentAsset={this.state.currentAsset}
           isWethToken={this.props.isWethToken}

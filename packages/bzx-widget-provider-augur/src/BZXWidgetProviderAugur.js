@@ -173,7 +173,8 @@ export default class BZXWidgetProviderAugur {
     do {
       pageResults = await this.bzxjs.getOrdersFillable({
         start: maxCount * currentPage,
-        count: maxCount * (currentPage + 1)
+        count: maxCount * (currentPage + 1),
+        oracleFilter: this.bzxAugurOracleAddress.toLowerCase()
       });
       pageResults = pageResults.filter(filter);
       // TODO: filtering with target market and assets (weth + shares)
@@ -201,7 +202,8 @@ export default class BZXWidgetProviderAugur {
     do {
       pageResults = await this.bzxjs.getOrdersFillable({
         start: maxCount * currentPage,
-        count: maxCount * (currentPage + 1)
+        count: maxCount * (currentPage + 1),
+        oracleFilter: this.bzxAugurOracleAddress.toLowerCase()
       });
       pageResults = pageResults.filter(filter);
       // TODO: filtering with target market and assets (weth + shares)
@@ -224,8 +226,8 @@ export default class BZXWidgetProviderAugur {
     return await this.bzxjs.getMarginLevels({ loanOrderHash, trader: this.account.toString() });
   };
 
-  getProfitOrLoss = async loanOrderHash => {
-    return await this.bzxjs.getProfitOrLoss({ loanOrderHash, trader: this.account.toString() });
+  getPositionOffset = async loanOrderHash => {
+    return await this.bzxjs.getPositionOffset({ loanOrderHash, trader: this.account.toString() });
   };
 
   getTokenNameFromAddress = tokenAddress => {
@@ -506,6 +508,8 @@ export default class BZXWidgetProviderAugur {
         loanOrderHash: loanOrderHash.toLowerCase(),
         collateralTokenAddress: this.wethAddress.toLowerCase(),
         loanTokenAmountFilled: amount.toString(),
+        tradeTokenToFillAddress: this.zeroAddress.toLowerCase(),
+        withdrawOnOpen: "0",
         getObject: false,
         txOpts: { from: this.account, gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
       });
@@ -583,6 +587,9 @@ export default class BZXWidgetProviderAugur {
       const lendOrder = {
         bZxAddress: this.bzxAddress.toLowerCase(),
         makerAddress: lenderAddress.toLowerCase(),
+        takerAddress: this.zeroAddress.toLowerCase(),
+        tradeTokenToFillAddress: this.zeroAddress.toLowerCase(),
+        withdrawOnOpen: "0",
         loanTokenAddress: value.asset.toLowerCase(),
         interestTokenAddress: this.wethAddress.toLowerCase(),
         collateralTokenAddress: this.zeroAddress.toLowerCase(),
@@ -717,6 +724,9 @@ export default class BZXWidgetProviderAugur {
       const borrowOrder = {
         bZxAddress: this.bzxAddress.toLowerCase(),
         makerAddress: borrowerAddress.toLowerCase(),
+        takerAddress: this.zeroAddress.toLowerCase(),
+        tradeTokenToFillAddress: this.zeroAddress.toLowerCase(),
+        withdrawOnOpen: "0",
         loanTokenAddress: value.asset.toLowerCase(),
         interestTokenAddress: this.wethAddress.toLowerCase(),
         collateralTokenAddress: this.wethAddress.toLowerCase(),
@@ -930,7 +940,11 @@ export default class BZXWidgetProviderAugur {
 
     let pageContent;
     do {
-      pageContent = await this.bzxjs.getOrdersFillable({ start: readCount, count: pageSize });
+      pageContent = await this.bzxjs.getOrdersFillable({
+        start: readCount,
+        count: pageSize,
+        oracleFilter: this.bzxAugurOracleAddress.toLowerCase()
+      });
       fullLendOrdersList.push(
         ...pageContent.filter(
           e =>
@@ -968,6 +982,8 @@ export default class BZXWidgetProviderAugur {
         loanOrderHash: e.loanOrderHash.toLowerCase(),
         collateralTokenAddress: this.wethAddress.toLowerCase(),
         loanTokenAmountFilled: amountShouldBeTaken.toString(),
+        tradeTokenToFillAddress: this.zeroAddress.toLowerCase(),
+        withdrawOnOpen: "0",
         getObject: false,
         txOpts: { from: this.account, gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
       });

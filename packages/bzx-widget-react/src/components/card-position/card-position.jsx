@@ -18,7 +18,7 @@ export default class CardPosition extends Component {
     onLoanTradeWithCurrentAsset: PropTypes.func,
     getTokenNameFromAddress: PropTypes.func,
     getMarginLevels: PropTypes.func,
-    getProfitOrLoss: PropTypes.func,
+    getPositionOffset: PropTypes.func,
     getSingleOrder: PropTypes.func,
     getAccount: PropTypes.func,
     currentAsset: PropTypes.string,
@@ -43,7 +43,7 @@ export default class CardPosition extends Component {
 
   componentDidMount() {
     if (this.props.data.trader.toLowerCase() === this.state.account.toLowerCase()) {
-      this.props.getProfitOrLoss(this.props.data.loanOrderHash).then(result => {
+      this.props.getPositionOffset(this.props.data.loanOrderHash).then(result => {
         this.setState({ ...this.state, profitStatus: result });
       });
     } else {
@@ -125,15 +125,15 @@ export default class CardPosition extends Component {
 
   renderProfitOrLoss() {
     return this.state.profitStatus ? (
-      this.state.profitStatus.isProfit ? (
+      this.state.profitStatus.isPositive ? (
         <span>
           <span style={this.paramHeaderStyle}>Profit: </span>
-          <Icon type="up-circle" theme="twoTone" twoToneColor="#52c41a" /> {this.state.profitStatus.profitOrLoss} WETH
+          <Icon type="up-circle" theme="twoTone" twoToneColor="#52c41a" /> {this.state.profitStatus.offsetAmount} WETH
         </span>
       ) : (
         <span>
           <span style={this.paramHeaderStyle}>Loss: </span>
-          <Icon type="down-circle" theme="twoTone" twoToneColor="#eb2f96" /> {this.state.profitStatus.profitOrLoss} WETH
+          <Icon type="down-circle" theme="twoTone" twoToneColor="#eb2f96" /> {this.state.profitStatus.offsetAmount} WETH
         </span>
       )
     ) : (
