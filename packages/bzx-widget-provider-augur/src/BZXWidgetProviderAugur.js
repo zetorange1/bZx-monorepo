@@ -156,9 +156,11 @@ export default class BZXWidgetProviderAugur {
       activeOnly: true
     });
 
-    // TODO: filtering with target market and assets (weth + shares)
+    // TODO: filtering with target market
+    const assetsAddresses = this.assets.map(e => e.id.toLowerCase());
     return loansForLender
       .concat(loansForTrader)
+      .filter(e => assetsAddresses.includes(e.loanTokenAddress.toLowerCase()))
       .sort((e1, e2) => e2.loanStartUnixTimestampSec - e1.loanStartUnixTimestampSec)
       .slice(0, maxCount);
   };
@@ -169,6 +171,7 @@ export default class BZXWidgetProviderAugur {
     let currentPage = 0;
     let results = [];
     let pageResults = [];
+    const assetsAddresses = this.assets.map(e => e.id.toLowerCase());
     do {
       pageResults = await this.bzxjs.getOrdersFillable({
         start: maxCount * currentPage,
@@ -176,18 +179,17 @@ export default class BZXWidgetProviderAugur {
         oracleFilter: this.bzxAugurOracleAddress.toLowerCase()
       });
       pageResults = pageResults.filter(filter);
-      // TODO: filtering with target market and assets (weth + shares)
+      // TODO: filtering with target market
       pageResults = pageResults.filter(
         e =>
           e.collateralTokenAddress.toLowerCase() === zeroAddress.toLowerCase() &&
-          e.makerAddress.toLowerCase() !== this.account.toLowerCase()
+          e.makerAddress.toLowerCase() !== this.account.toLowerCase() &&
+          assetsAddresses.includes(e.loanTokenAddress.toLowerCase())
       );
 
       results = results.concat(pageResults);
       currentPage++;
     } while (pageResults.length < 0);
-
-    console.dir(results);
 
     return results.slice(0, maxCount);
   };
@@ -198,6 +200,7 @@ export default class BZXWidgetProviderAugur {
     let currentPage = 0;
     let results = [];
     let pageResults = [];
+    const assetsAddresses = this.assets.map(e => e.id.toLowerCase());
     do {
       pageResults = await this.bzxjs.getOrdersFillable({
         start: maxCount * currentPage,
@@ -205,18 +208,17 @@ export default class BZXWidgetProviderAugur {
         oracleFilter: this.bzxAugurOracleAddress.toLowerCase()
       });
       pageResults = pageResults.filter(filter);
-      // TODO: filtering with target market and assets (weth + shares)
+      // TODO: filtering with target market
       pageResults = pageResults.filter(
         e =>
           e.collateralTokenAddress.toLowerCase() !== zeroAddress.toLowerCase() &&
-          e.makerAddress.toLowerCase() !== this.account.toLowerCase()
+          e.makerAddress.toLowerCase() !== this.account.toLowerCase() &&
+          assetsAddresses.includes(e.loanTokenAddress.toLowerCase())
       );
 
       results = results.concat(pageResults);
       currentPage++;
     } while (pageResults.length < 0);
-
-    console.dir(results);
 
     return results.sort(sortComparator).slice(0, maxCount);
   };
