@@ -11,16 +11,16 @@ export default class CardOrderFillableTitle extends Component {
     getProfitOrLoss: PropTypes.func
   };
 
-  styleRowType = {
-    width: "24px",
-    height: "24px",
+  styleColumnRowType = {
+    width: 24,
+    height: 24,
     float: "left",
     verticalAlign: "middle"
   };
 
   styleColumnAmount = {
-    width: "15%",
-    height: "24px",
+    width: 72,
+    height: 24,
     float: "left",
     whiteSpace: "nowrap",
     overflow: "hidden",
@@ -29,8 +29,8 @@ export default class CardOrderFillableTitle extends Component {
   };
 
   styleColumnDate = {
-    width: "35%",
-    height: "24px",
+    width: 140,
+    height: 24,
     float: "left",
     whiteSpace: "nowrap",
     overflow: "hidden",
@@ -39,7 +39,7 @@ export default class CardOrderFillableTitle extends Component {
   };
 
   styleColumnButton = {
-    width: "20%",
+    width: 80,
     float: "left"
   };
 
@@ -51,8 +51,8 @@ export default class CardOrderFillableTitle extends Component {
 
   render() {
     return (
-      <div style={{ height: "32px" }}>
-        <div style={this.styleRowType}>&nbsp;</div>
+      <div style={{ height: "24px", width: "400px" }}>
+        <div style={this.styleColumnRowType}>&nbsp;</div>
         <div style={this.styleColumnAmount}>Interest:</div>
         <div style={this.styleColumnAmount}>Amount:</div>
         <div style={this.styleColumnDate}>Expires:</div>

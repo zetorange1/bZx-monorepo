@@ -19,15 +19,15 @@ export default class CardOrderFillable extends Component {
   };
 
   styleColumnRowType = {
-    width: "24px",
-    height: "24px",
+    width: 24,
+    height: 24,
     float: "left",
     verticalAlign: "middle"
   };
 
   styleColumnAmount = {
-    width: "15%",
-    height: "24px",
+    width: 72,
+    height: 24,
     float: "left",
     whiteSpace: "nowrap",
     overflow: "hidden",
@@ -36,8 +36,8 @@ export default class CardOrderFillable extends Component {
   };
 
   styleColumnDate = {
-    width: "35%",
-    height: "24px",
+    width: 140,
+    height: 24,
     float: "left",
     whiteSpace: "nowrap",
     overflow: "hidden",
@@ -46,7 +46,7 @@ export default class CardOrderFillable extends Component {
   };
 
   styleColumnButton = {
-    width: "20%",
+    width: 80,
     float: "left"
   };
 
@@ -60,7 +60,7 @@ export default class CardOrderFillable extends Component {
 
   render() {
     return (
-      <div style={{ height: "32px" }}>
+      <div style={{ height: "24px", width: "400px" }}>
         <div style={this.styleColumnRowType}>{this.renderColumnRowType()}</div>
         <div style={this.styleColumnAmount}>{this.renderColumnInterest()}</div>
         <div style={this.styleColumnAmount}>{this.renderColumnAmount()}</div>
