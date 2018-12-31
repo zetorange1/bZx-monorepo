@@ -16,9 +16,11 @@ export default class BZXWidgetProviderAugur {
   defaultGasPrice = new BigNumber(12).times(10 ** 9).toString();
   batchSize = 50;
 
-  // https://hackmd.io/xAwX4xmIQk-K2w6Ecs8U_w?view#AugurOracle-Implementation-AugurOraclesol
+  // from packages/bzx.js/src/contracts/rinkeby/WETH.json
   wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab";
+  // from packages/bzx.js/src/contracts/rinkeby/BZx.json
   bzxAddress = "0x4db8a61f9cd0cf4998aa4612dd612ab4f4f5a730";
+  // from packages/bzx.js/src/contracts/rinkeby/BZxVault.json
   bzxVaultAddress = "0x8f254255592e6e210cc9a464cfa2464da2467df6";
   bZxOracleAddress = "";
   bzxAugurOracleAddress = "";
