@@ -14,8 +14,7 @@ export default class CardOrderFillable extends Component {
     data: PropTypes.object,
     doLoanOrderTake: PropTypes.func,
     getTokenNameFromAddress: PropTypes.func,
-    getMarginLevels: PropTypes.func,
-    getProfitOrLoss: PropTypes.func
+    getMarginLevels: PropTypes.func
   };
 
   styleColumnRowType = {

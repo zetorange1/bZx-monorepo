@@ -82,7 +82,6 @@ export default class BZXWidget extends Component {
                 listLoanOrdersAsksAvailable={this.props.provider.listLoanOrdersAsksAvailable}
                 getTokenNameFromAddress={this.props.provider.getTokenNameFromAddress}
                 getMarginLevels={this.props.provider.getMarginLevels}
-                getProfitOrLoss={this.props.provider.getProfitOrLoss}
                 getAccount={this.props.provider.getAccount}
                 widgetEventEmitter={this.widgetEventEmitter}
                 getCurrentAsset={this.getCurrentAsset}

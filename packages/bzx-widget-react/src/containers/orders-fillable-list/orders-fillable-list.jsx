@@ -21,7 +21,6 @@ export default class OrdersFillableList extends Component {
     doLoanOrderTake: PropTypes.func,
     getTokenNameFromAddress: PropTypes.func,
     getMarginLevels: PropTypes.func,
-    getProfitOrLoss: PropTypes.func,
     getAccount: PropTypes.func,
     widgetEventEmitter: PropTypes.object,
     getCurrentAsset: PropTypes.func,
@@ -90,7 +89,6 @@ export default class OrdersFillableList extends Component {
               doLoanOrderTake={onTakeAction}
               getTokenNameFromAddress={this.props.getTokenNameFromAddress}
               getMarginLevels={this.props.getMarginLevels}
-              getProfitOrLoss={this.props.getProfitOrLoss}
               getAccount={this.props.getAccount}
             />
           </Item>
