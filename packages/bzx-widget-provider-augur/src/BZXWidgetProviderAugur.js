@@ -225,7 +225,7 @@ export default class BZXWidgetProviderAugur {
   };
 
   getTokenNameFromAddress = tokenAddress => {
-    return tokenAddress.toLowerCase() === "0xc778417e063141139fce010982780140aa0cd5ab" ? "WETH" : "Augur token";
+    return tokenAddress.toLowerCase() === this.wethAddress.toLowerCase() ? "WETH" : "Augur token";
   };
 
   getAccount = () => {
