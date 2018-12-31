@@ -178,14 +178,15 @@ export default class BZXWidgetProviderAugur {
       pageResults = pageResults.filter(filter);
       // TODO: filtering with target market and assets (weth + shares)
       pageResults = pageResults.filter(
-        e => e.collateralTokenAddress == this.zeroAddress && e.makerAddress.toLowerCase() !== this.account.toLowerCase()
+        e =>
+          e.collateralTokenAddress.toLowerCase() === this.zeroAddress.toLowerCase() &&
+          e.makerAddress.toLowerCase() !== this.account.toLowerCase()
       );
 
       results = results.concat(pageResults);
       currentPage++;
     } while (pageResults.length < 0);
 
-    console.log('listLoanOrdersBidsAvailable');
     console.dir(results);
 
     return results.slice(0, maxCount);
@@ -205,14 +206,15 @@ export default class BZXWidgetProviderAugur {
       pageResults = pageResults.filter(filter);
       // TODO: filtering with target market and assets (weth + shares)
       pageResults = pageResults.filter(
-        e => e.collateralTokenAddress !== this.zeroAddress && e.makerAddress.toLowerCase() !== this.account.toLowerCase()
+        e =>
+          e.collateralTokenAddress.toLowerCase() !== this.zeroAddress.toLowerCase() &&
+          e.makerAddress.toLowerCase() !== this.account.toLowerCase()
       );
 
       results = results.concat(pageResults);
       currentPage++;
     } while (pageResults.length < 0);
 
-    console.log('listLoanOrdersAsksAvailable');
     console.dir(results);
 
     return results.sort(sortComparator).slice(0, maxCount);
