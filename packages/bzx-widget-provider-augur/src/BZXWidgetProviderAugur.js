@@ -438,7 +438,7 @@ export default class BZXWidgetProviderAugur {
 
   _getSingleOrder = async (loanOrderHash, resolve, reject) => {
     try {
-      const result = await this.bzxjs.getSingleOrder(loanOrderHash.toLowerCase());
+      const result = await this.bzxjs.getSingleOrder({ loanOrderHash: loanOrderHash.toLowerCase() });
       resolve(result);
     } catch (e) {
       console.dir(e);
