@@ -59,4 +59,5 @@ contract BZxStorage is BZxObjects, BZxEvents, ReentrancyGuard, Ownable, GasTrack
     mapping (bytes32 => mapping (address => bool)) public preSigned; // mapping of hash => signer => signed
     mapping (address => mapping (address => bool)) public allowedValidators; // mapping of signer => validator => approved
     mapping (bytes => bytes) internal db; // general use storage container
+    mapping (bytes => bytes[]) internal dbArray; // general use storage array container
 }
