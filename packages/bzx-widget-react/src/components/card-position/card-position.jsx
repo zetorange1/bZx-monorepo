@@ -38,7 +38,13 @@ export default class CardPosition extends Component {
   constructor(props) {
     super(props);
 
-    this.state = { account: this.props.getAccount() };
+    this.state = {
+      account: this.props.getAccount(),
+      actionTradeWithCurrentAssetEnabled: false,
+      profitStatus: null,
+      fullOrder: null,
+      marginLevel: null
+    };
   }
 
   componentDidMount() {
@@ -55,6 +61,17 @@ export default class CardPosition extends Component {
     this.props.getMarginLevels(this.props.data.loanOrderHash).then(result => {
       this.setState({ ...this.state, marginLevel: result });
     });
+  }
+
+  componentWillReceiveProps(nextProps, nextContext) {
+    if (this.props.currentAsset.toLowerCase() !== nextProps.currentAsset.toLowerCase()) {
+      this.setState({
+        ...this.state,
+        actionTradeWithCurrentAssetEnabled:
+          this.props.isWethToken(nextProps.currentAsset.toLowerCase()) !==
+          this.props.isWethToken(nextProps.data.loanTokenAddress.toLowerCase())
+      });
+    }
   }
 
   render() {
@@ -165,9 +182,7 @@ export default class CardPosition extends Component {
         <Button
           block
           onClick={this._handleLoanTradeWithCurrentAssetClicked}
-          disabled={
-            this.props.isWethToken(this.props.currentAsset) === this.props.isWethToken(this.props.data.loanTokenAddress)
-          }
+          disabled={!this.state.actionTradeWithCurrentAssetEnabled}
         >
           Open position against active asset
         </Button>
