@@ -336,7 +336,7 @@ export default class BZXWidgetProviderAugur {
       orderHash: value.loanOrderHash.toLowerCase(),
       tradeTokenAddress: value.asset.toLowerCase(),
       getObject: false,
-      txOpts: { from: this.account, gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
+      txOpts: { from: this.account.toLowerCase(), gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
     });
   };
 
@@ -461,7 +461,7 @@ export default class BZXWidgetProviderAugur {
         loanOrderHash: loanOrderHash.toLowerCase(),
         cancelLoanTokenAmount: amount.toString(),
         getObject: false,
-        txOpts: { from: this.account, gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
+        txOpts: { from: this.account.toLowerCase(), gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
       });
       console.dir(transactionReceipt);
 
@@ -478,7 +478,7 @@ export default class BZXWidgetProviderAugur {
       let transactionReceipt = await this.bzxjs.closeLoan({
         loanOrderHash: loanOrderHash.toLowerCase(),
         getObject: false,
-        txOpts: { from: this.account, gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
+        txOpts: { from: this.account.toLowerCase(), gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
       });
 
       resolve(transactionReceipt.transactionHash);
@@ -504,7 +504,7 @@ export default class BZXWidgetProviderAugur {
         ownerAddress: this.account,
         spenderAddress: this.bzxVaultAddress.toLowerCase(),
         getObject: false,
-        txOpts: { from: this.account, gasPrice: this.defaultGasPrice }
+        txOpts: { from: this.account.toLowerCase(), gasPrice: this.defaultGasPrice }
       });
       console.dir(transactionReceipt);
 
@@ -1021,7 +1021,7 @@ export default class BZXWidgetProviderAugur {
         tradeTokenToFillAddress: zeroAddress.toLowerCase(),
         withdrawOnOpen: "0",
         getObject: false,
-        txOpts: { from: this.account, gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
+        txOpts: { from: this.account.toLowerCase(), gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
       });
       console.log(transactionReceipt);
 
@@ -1036,7 +1036,7 @@ export default class BZXWidgetProviderAugur {
         orderHash: e.loanOrderHash.toLowerCase(),
         tradeTokenAddress: tokenAddress.toLowerCase(),
         getObject: false,
-        txOpts: { from: this.account, gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
+        txOpts: { from: this.account.toLowerCase(), gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
       });
     }
   };
