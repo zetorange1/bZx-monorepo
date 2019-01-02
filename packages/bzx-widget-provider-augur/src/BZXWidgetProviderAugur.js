@@ -281,7 +281,15 @@ export default class BZXWidgetProviderAugur {
   doLoanOrderTake = async ({ loanOrderHash, loanTokenAddress, collateralTokenAddress, amount, isAsk }) => {
     return new Promise((resolve, reject) => {
       try {
-        this._hanldeLoanOrderTake(loanOrderHash, loanTokenAddress, collateralTokenAddress, amount, isAsk, resolve, reject);
+        this._hanldeLoanOrderTake(
+          loanOrderHash,
+          loanTokenAddress,
+          collateralTokenAddress,
+          amount,
+          isAsk,
+          resolve,
+          reject
+        );
       } catch (e) {
         console.dir(e);
         reject("error happened while processing your request");
@@ -481,7 +489,15 @@ export default class BZXWidgetProviderAugur {
     }
   };
 
-  _hanldeLoanOrderTake = async (loanOrderHash, loanTokenAddress, collateralTokenAddress, amount, isAsk, resolve, reject) => {
+  _hanldeLoanOrderTake = async (
+    loanOrderHash,
+    loanTokenAddress,
+    collateralTokenAddress,
+    amount,
+    isAsk,
+    resolve,
+    reject
+  ) => {
     try {
       let transactionReceipt = await this.bzxjs.setAllowanceUnlimited({
         tokenAddress: this.wethAddress.toLowerCase(),
