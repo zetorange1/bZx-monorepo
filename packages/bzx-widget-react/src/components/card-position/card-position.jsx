@@ -69,7 +69,8 @@ export default class CardPosition extends Component {
         ...this.state,
         actionTradeWithCurrentAssetEnabled:
           this.props.isWethToken(nextProps.currentAsset.toLowerCase()) !==
-          this.props.isWethToken(nextProps.data.loanTokenAddress.toLowerCase())
+            this.props.isWethToken(nextProps.data.loanTokenAddress.toLowerCase()) &&
+          nextProps.data.trader.toLowerCase() === this.state.account.toLowerCase()
       });
     }
   }
