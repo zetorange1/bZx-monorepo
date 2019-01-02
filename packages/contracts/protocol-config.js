@@ -69,7 +69,7 @@ module.exports = {
       ZeroEx: {
         ZRXToken: "0xe41d2489571d322189246dafa5ebde1f4699f498",
         EtherToken: "0x2956356cd2a2bf3202f771f50d3d14a367b48070",
-        Exchange: "0x12459c951127e0c374ff9105dda097662a027093",
+        ExchangeV1: "0x12459c951127e0c374ff9105dda097662a027093",
         TokenRegistry: "0x926a74c5c36adf004c87399e65f75628b0f98d2c",
         TokenTransferProxy: "0x8da0d80f5007ef1e431dd2127178d224e32c2ef4",
         WETH9: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
@@ -81,7 +81,7 @@ module.exports = {
       KyberContractAddress: "0x818e6fecd516ecc3849daf6845e3ec868087b755", // Mainnet (https://kyber.network/swap)
       BZRXToken: "0x1c74cff0376fb4031cd7492cd6db2d66c3f2c6b9", //"0xe23d55af1646a65c1504f69e3d485c1d6da68e94", //"0x13939ac9F1e0F99872fA873B6E00DE9248ac95A0",
       BZRXTokenSale: "0x0b12cf7964731f7190b74600fcdad9ba4cac870c",
-	  MultiSig: ""
+	    MultiSig: ""
     }
   }
 };
