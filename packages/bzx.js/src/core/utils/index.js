@@ -152,8 +152,8 @@ export const requestFaucetToken = (
   return txObj.send(txOpts);
 };
 
-export const getWeb3Contract = ({ web3, networkId }, contractName) => getContractInstance(
+export const getWeb3Contract = ({ web3, networkId }, contractName, contractAddress) => getContractInstance(
     web3,
     getContracts(networkId)[contractName].abi,
-    Addresses.getAddresses(networkId)[contractName]
+    contractAddress ? contractAddress : Addresses.getAddresses(networkId)[contractName]
   );

@@ -80,7 +80,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     uint256 public bountyRewardPercent = 110 * 10**18;
 
     // An upper bound estimation on the liquidation gas cost
-    uint256 public gasUpperBound = 600000;
+    uint256 public gasUpperBound = 1000000;
 
     // A threshold of minimum initial margin for loan to be insured by the guarantee fund
     // A value of 0 indicates that no threshold exists for this parameter.

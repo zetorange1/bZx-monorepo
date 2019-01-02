@@ -1,5 +1,7 @@
 var TestNetFaucet = artifacts.require("TestNetFaucet");
 var TestNetOracle = artifacts.require("TestNetOracle");
+var WETHInterface = artifacts.require("WETHInterface");
+var ERC20 = artifacts.require("ERC20");
 
 //const DEPOSIT_BZRX = false;
 //var BZRxToken = artifacts.require("BZRxToken");
@@ -9,7 +11,7 @@ const path = require("path");
 const config = require("../protocol-config.js");
 
 module.exports = (deployer, network, accounts) => {
-  if (network == "mainnet") {
+  if (network == "ropsten" || network == "mainnet") {
     return;
   }
 
@@ -23,11 +25,14 @@ module.exports = (deployer, network, accounts) => {
   deployer.then(async () => {
     let testNetFaucet = await deployer.deploy(TestNetFaucet);
 
-    if (network != "ropsten" && network != "mainnet") {
-      var oracle = await TestNetOracle.deployed();
-      await oracle.setFaucetContractAddress(testNetFaucet.address);
-      await testNetFaucet.setOracleContractAddress(oracle.address);
-    }
+    var oracle = await TestNetOracle.deployed();
+    await oracle.setFaucetContractAddress(testNetFaucet.address);
+    await testNetFaucet.setOracleContractAddress(oracle.address);
+
+    var weth = await WETHInterface.at(config["addresses"][network]["ZeroEx"]["WETH9"]);
+    var weth_token = await ERC20.at(config["addresses"][network]["ZeroEx"]["WETH9"]);
+    await weth.deposit({ from: accounts[9], value: web3.utils.toWei("90", "ether") }),
+    await weth_token.transfer(testNetFaucet.address, web3.utils.toWei("90", "ether"), { from: accounts[9] });
 
     /*if (DEPOSIT_BZRX) {
       var bzrx_token;
