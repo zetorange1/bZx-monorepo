@@ -128,12 +128,14 @@ export default class CardPosition extends Component {
       this.state.profitStatus.isPositive ? (
         <span>
           <span style={this.paramHeaderStyle}>Profit: </span>
-          <Icon type="up-circle" theme="twoTone" twoToneColor="#52c41a" /> {this.state.profitStatus.offsetAmount} WETH
+          <Icon type="up-circle" theme="twoTone" twoToneColor="#52c41a" />{" "}
+          {new BigNumber(this.state.profitStatus.offsetAmount).dividedBy(1000000000000000000).toFixed(4)} WETH
         </span>
       ) : (
         <span>
           <span style={this.paramHeaderStyle}>Loss: </span>
-          <Icon type="down-circle" theme="twoTone" twoToneColor="#eb2f96" /> {this.state.profitStatus.offsetAmount} WETH
+          <Icon type="down-circle" theme="twoTone" twoToneColor="#eb2f96" />{" "}
+          {new BigNumber(this.state.profitStatus.offsetAmount).dividedBy(1000000000000000000).toFixed(4)} WETH
         </span>
       )
     ) : (
