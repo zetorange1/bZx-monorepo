@@ -168,9 +168,11 @@ export default class CardPosition extends Component {
       <span>
         <span style={this.paramHeaderStyle}>Margin Levels (init / maint. / current): </span>
         {this.state.marginLevel
-          ? `${this.state.marginLevel.initialMarginAmount} / ${this.state.marginLevel.maintenanceMarginAmount} / ${
-              this.state.marginLevel.currentMarginAmount
-            }`
+          ? `${new BigNumber(this.state.marginLevel.initialMarginAmount).dividedBy(
+              1000000000000000000
+            )} / ${new BigNumber(this.state.marginLevel.maintenanceMarginAmount).dividedBy(
+              1000000000000000000
+            )} / ${new BigNumber(this.state.marginLevel.currentMarginAmount).dividedBy(1000000000000000000)}`
           : ""}
       </span>
     );
