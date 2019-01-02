@@ -573,7 +573,10 @@ export default class BZXWidgetProviderAugur {
         value.asset === this.wethAddress ? this.web3.utils.toWei(value.qty, "ether") : value.qty;
       // CALCULATING MARGIN AMOUNT FROM "RATIO" (100 / RATIO)
       // .integerValue(BigNumber.ROUND_CEIL); required for future conversion with bn.js (fractional part is not supported)
-      const initialMarginAmount = new BigNumber(100).dividedBy(value.ratio).integerValue(BigNumber.ROUND_CEIL);
+      const initialMarginAmount = new BigNumber(100)
+        .dividedBy(value.ratio)
+        .integerValue(BigNumber.ROUND_CEIL)
+        .multipliedBy(1000000000000000000);
       const maintenanceMarginAmount = initialMarginAmount.dividedBy(2).integerValue(BigNumber.ROUND_CEIL);
       const orderOracleAddress = this.bzxAugurOracleAddress.toLowerCase();
       // const orderOracleAddress = this.bZxOracleAddress.toLowerCase();
@@ -710,7 +713,10 @@ export default class BZXWidgetProviderAugur {
         value.asset === this.wethAddress ? this.web3.utils.toWei(value.qty, "ether") : value.qty;
       // CALCULATING MARGIN AMOUNT FROM "RATIO" (100 / RATIO)
       // .integerValue(BigNumber.ROUND_CEIL); required for future conversion with bn.js (fractional part is not supported)
-      const initialMarginAmount = new BigNumber(100).dividedBy(value.ratio).integerValue(BigNumber.ROUND_CEIL);
+      const initialMarginAmount = new BigNumber(100)
+        .dividedBy(value.ratio)
+        .integerValue(BigNumber.ROUND_CEIL)
+        .multipliedBy(1000000000000000000);
       const maintenanceMarginAmount = initialMarginAmount.dividedBy(2).integerValue(BigNumber.ROUND_CEIL);
       const orderOracleAddress = this.bzxAugurOracleAddress.toLowerCase();
       // const orderOracleAddress = this.bZxOracleAddress.toLowerCase();
