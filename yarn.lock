@@ -2090,30 +2090,6 @@
     lodash "^4.17.10"
     to-fast-properties "^2.0.0"
 
-"@bzxnetwork/bzx.js@^0.3.0", "@bzxnetwork/bzx.js@^0.3.6":
-  version "0.3.7"
-  resolved "https://registry.yarnpkg.com/@bzxnetwork/bzx.js/-/bzx.js-0.3.7.tgz#8625101635f919a05bc11ce72bb42f1a5e51d2fc"
-  dependencies:
-    "@0xproject/assert" "0.2.14"
-    "@0xproject/json-schemas" "0.8.3"
-    "@0xproject/order-utils" "0.0.9"
-    "@0xproject/utils" "0.3.4"
-    "@types/web3" "^1.0.6"
-    bignumber.js "^7.0.1"
-    bn.js "4.11.6"
-    debug "^3.1.0"
-    eth-sig-util "^1.4.2"
-    ethereumjs-abi "^0.6.5"
-    ethereumjs-util "^5.1.4"
-    fs-extra "^5.0.0"
-    hoek "^5.0.3"
-    jsonschema "^1.2.2"
-    lodash "^4.17.4"
-    moment "^2.22.1"
-    ramda "^0.25.0"
-    web3 "1.0.0-beta.36"
-    web3-utils "1.0.0-beta.36"
-
 "@csstools/convert-colors@^1.4.0":
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/@csstools/convert-colors/-/convert-colors-1.4.0.tgz#ad495dc41b12e75d588c6db8b9834f08fa131eb7"

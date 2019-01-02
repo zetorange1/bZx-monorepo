@@ -17,7 +17,7 @@
     "0x.js": "0.38.6",
     "@0xproject/order-utils": "1.0.1-rc.6",
     "@0xproject/types": "^0.2.3",
-    "@bzxnetwork/bzx.js": "^0.3.6",
+    "@bzxnetwork/bzx.js": "^0.4.1",
     "abi-decoder": "^1.2.0",
     "bignumber.js": "^7.0.1",
     "cpy-cli": "^2.0.0",
@@ -31,7 +31,7 @@
     "web3-utils": "1.0.0-beta.34"
   },
   "devDependencies": {
-    "@bzxnetwork/bzx.js": "^0.3.6",
+    "@bzxnetwork/bzx.js": "^0.4.1",
     "@digix/doxity": "git://github.com/DigixGlobal/doxity.git#doxity-latest",
     "babel": "^6.23.0",
     "babel-cli": "^6.26.0",
