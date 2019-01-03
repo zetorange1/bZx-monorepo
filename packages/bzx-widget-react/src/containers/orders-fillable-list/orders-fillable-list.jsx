@@ -44,6 +44,10 @@ export default class OrdersFillableList extends Component {
     this._handleReload();
   }
 
+  componentWillReceiveProps(nextProps, nextContext) {
+    this._handleReload();
+  }
+
   render() {
     return (
       <div>
@@ -111,7 +115,7 @@ export default class OrdersFillableList extends Component {
 
   _handleReload = () => {
     const listLoanOrdersBidsAvailablePromise = this.props.listLoanOrdersBidsAvailable(
-      e => true,
+      e => e.loanTokenAddress.toLowerCase() === this.props.currentAsset.toLowerCase(),
       this._sortLoanOrdersComparatorFunction,
       this.props.listSize
     );
@@ -120,7 +124,7 @@ export default class OrdersFillableList extends Component {
     });
 
     const listLoanOrdersAsksAvailablePromise = this.props.listLoanOrdersAsksAvailable(
-      e => true,
+      e => e.loanTokenAddress.toLowerCase() === this.props.currentAsset.toLowerCase(),
       this._sortLoanOrdersComparatorFunction,
       this.props.listSize
     );
