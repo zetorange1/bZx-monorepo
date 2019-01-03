@@ -132,7 +132,7 @@ export default class LendForm extends Component {
   _handleApproveClicked = () => {
     this.setState({ ...this.state, isInProgress: true });
 
-    let resultPromise = this.props.onApprove({ ...this.state });
+    let resultPromise = this.props.onApprove({ ...this.state, asset: this.props.currentAsset });
     resultPromise
       .then(
         value => message.success(`Lend order placement was successful! TX: ${value}`),

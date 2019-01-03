@@ -61,21 +61,27 @@ export default class BZXWidget extends Component {
           <Tabs defaultActiveKey="1" tabPosition="left">
             <Tabs.TabPane tab="Loan request" key="1">
               <LendForm
-                onApprove={this._handleLendApprove}
+                currentAccount={this.state.currentAccount}
+                currentAsset={this.state.currentAsset}
+                onApprove={this.props.provider.doLendOrderApprove}
                 stateDefaults={this.props.provider.getLendFormDefaults()}
                 formOptions={this.props.provider.getLendFormOptions()}
               />
             </Tabs.TabPane>
             <Tabs.TabPane tab="Borrow request" key="2">
               <BorrowForm
-                onApprove={this._handleBorrowApprove}
+                currentAccount={this.state.currentAccount}
+                currentAsset={this.state.currentAsset}
+                onApprove={this.props.provider.doBorrowOrderApprove}
                 stateDefaults={this.props.provider.getBorrowFormDefaults()}
                 formOptions={this.props.provider.getBorrowFormOptions()}
               />
             </Tabs.TabPane>
             <Tabs.TabPane tab="Quick position" key="3">
               <QuickPositionForm
-                onApprove={this._handleQuickPositionApprove}
+                currentAccount={this.state.currentAccount}
+                currentAsset={this.state.currentAsset}
+                onApprove={this.props.provider.doQuickPositionApprove}
                 stateDefaults={this.props.provider.getQuickPositionFormDefaults()}
                 formOptions={this.props.provider.getQuickPositionFormOptions()}
               />
@@ -98,7 +104,7 @@ export default class BZXWidget extends Component {
                 onLoanOrderWithdrawProfit={this.props.provider.doLoanOrderWithdrawProfit}
                 onLoanOrderCancel={this.props.provider.doLoanOrderCancel}
                 onLoanClose={this.props.provider.doLoanClose}
-                onLoanTradeWithCurrentAsset={this._handleLoanTradeWithCurrentAsset}
+                onLoanTradeWithCurrentAsset={this.props.provider.doLoanTradeWithCurrentAsset}
                 listLoansActive={this.props.provider.listLoansActive}
                 getTokenNameFromAddress={this.props.provider.getTokenNameFromAddress}
                 getMarginLevels={this.props.provider.getMarginLevels}
@@ -112,26 +118,6 @@ export default class BZXWidget extends Component {
       </div>
     );
   }
-
-  _handleLoanTradeWithCurrentAsset = value => {
-    const request = { ...value, asset: this.state.currentAsset };
-    return this.props.provider.doLoanTradeWithCurrentAsset(request);
-  };
-
-  _handleLendApprove = value => {
-    const request = { ...value, asset: this.state.currentAsset };
-    return this.props.provider.doLendOrderApprove(request);
-  };
-
-  _handleBorrowApprove = value => {
-    const request = { ...value, asset: this.state.currentAsset };
-    return this.props.provider.doBorrowOrderApprove(request);
-  };
-
-  _handleQuickPositionApprove = value => {
-    const request = { ...value, asset: this.state.currentAsset };
-    return this.props.provider.doQuickPositionApprove(request);
-  };
 
   _handleAccountUpdate = currentAccount => {
     this.setState({

@@ -294,7 +294,10 @@ export default class CardPosition extends Component {
   };
 
   _handleLoanTradeWithCurrentAssetClicked = () => {
-    let resultPromise = this.props.onLoanTradeWithCurrentAsset({ loanOrderHash: this.props.data.loanOrderHash });
+    let resultPromise = this.props.onLoanTradeWithCurrentAsset({
+      loanOrderHash: this.props.data.loanOrderHash,
+      asset: this.props.currentAsset
+    });
     resultPromise.then(
       value => message.success(`Trade with current asset operation was successful! TX: ${value}`),
       value => message.error(`Trade with current asset operation failed: ${value}!`)

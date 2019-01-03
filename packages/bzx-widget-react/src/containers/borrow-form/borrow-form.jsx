@@ -132,7 +132,7 @@ export default class BorrowForm extends Component {
   _handleApproveClicked = () => {
     this.setState({ ...this.state, isInProgress: true });
 
-    let resultPromise = this.props.onApprove({ ...this.state });
+    let resultPromise = this.props.onApprove({ ...this.state, asset: this.props.currentAsset });
     resultPromise
       .then(
         value => message.success(`Borrow order placement was successful! TX: ${value}`),

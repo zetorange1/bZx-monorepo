@@ -96,7 +96,7 @@ export default class QuickPositionForm extends Component {
   _handleApproveClicked = () => {
     this.setState({ ...this.state, isInProgress: true });
 
-    let resultPromise = this.props.onApprove({ ...this.state });
+    let resultPromise = this.props.onApprove({ ...this.state, asset: this.props.currentAsset });
     resultPromise
       .then(
         value => message.success(`Quick position placement was successful! TX: ${value}`),
