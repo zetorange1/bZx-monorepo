@@ -15,6 +15,7 @@ export default class CardPosition extends Component {
     data: PropTypes.object,
     currentAccount: PropTypes.string,
     currentAsset: PropTypes.string,
+    onLoanOrderWithdrawProfit: PropTypes.func,
     onLoanOrderCancel: PropTypes.func,
     onLoanClose: PropTypes.func,
     onLoanTradeWithCurrentAsset: PropTypes.func,
@@ -41,6 +42,7 @@ export default class CardPosition extends Component {
     this.state = {
       actionTradeWithCurrentAssetEnabled: false,
       actionLoanOrderCancelEnabled: false,
+      actionLoanOrderWithdrawProfitEnabled: false,
       profitStatus: null,
       fullOrder: null,
       marginLevel: null
@@ -50,7 +52,7 @@ export default class CardPosition extends Component {
   componentDidMount() {
     if (this.props.data.trader.toLowerCase() === this.props.currentAccount.toLowerCase()) {
       this.props.getPositionOffset(this.props.data.loanOrderHash).then(result => {
-        this.setState({ ...this.state, profitStatus: result });
+        this.setState({ ...this.state, profitStatus: result, actionLoanOrderWithdrawProfitEnabled: result.isPositive });
       });
     }
 
@@ -129,6 +131,7 @@ export default class CardPosition extends Component {
           {moment.unix(this.props.data.loanEndUnixTimestampSec).format("dddd, MMMM Do YYYY, h:mm:ss a")}
         </div>
         <br />
+        {this.renderLoanOrderWithdrawProfitButton()}
         {this.renderLoanOrderCancelButton()}
       </Card>
     );
@@ -224,6 +227,20 @@ export default class CardPosition extends Component {
     );
   }
 
+  renderLoanOrderWithdrawProfitButton() {
+    return (
+      <div>
+        <Button
+          block
+          onClick={this._handleLoanOrderWithdrawProfitClicked}
+          disabled={!this.state.actionLoanOrderWithdrawProfitEnabled}
+        >
+          Cancel loan order
+        </Button>
+      </div>
+    );
+  }
+
   renderLoanOrderCancelButton() {
     return (
       <div>
@@ -243,6 +260,16 @@ export default class CardPosition extends Component {
       </div>
     );
   }
+
+  _handleLoanOrderWithdrawProfitClicked = () => {
+    let resultPromise = this.props.onLoanOrderWithdrawProfit({
+      loanOrderHash: this.props.data.loanOrderHash.toLowerCase()
+    });
+    resultPromise.then(
+      value => message.success(`Cancel loan order operation was successful! TX: ${value}`),
+      value => message.error(`Cancel loan order operation failed: ${value}!`)
+    );
+  };
 
   _handleLoanOrderCancelClicked = () => {
     let resultPromise = this.props.onLoanOrderCancel({

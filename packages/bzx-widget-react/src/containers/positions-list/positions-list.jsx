@@ -17,6 +17,7 @@ export default class PositionsList extends Component {
 
     currentAccount: PropTypes.string,
     currentAsset: PropTypes.string,
+    onLoanOrderWithdrawProfit: PropTypes.func,
     onLoanOrderCancel: PropTypes.func,
     onLoanClose: PropTypes.func,
     onLoanTradeWithCurrentAsset: PropTypes.func,
@@ -79,6 +80,7 @@ export default class PositionsList extends Component {
         <CardPosition
           key={e.loanOrderHash}
           data={e}
+          onLoanOrderWithdrawProfit={this.props.onLoanOrderWithdrawProfit}
           onLoanOrderCancel={this.props.onLoanOrderCancel}
           onLoanClose={this.props.onLoanClose}
           onLoanTradeWithCurrentAsset={this.props.onLoanTradeWithCurrentAsset}

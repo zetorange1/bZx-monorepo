@@ -96,6 +96,7 @@ export default class BZXWidget extends Component {
               <PositionsList
                 currentAccount={this.state.currentAccount}
                 currentAsset={this.state.currentAsset}
+                onLoanOrderWithdrawProfit={this.props.provider.doLoanOrderWithdrawProfit}
                 onLoanOrderCancel={this.props.provider.doLoanOrderCancel}
                 onLoanClose={this.props.provider.doLoanClose}
                 onLoanTradeWithCurrentAsset={this._handleLoanTradeWithCurrentAsset}

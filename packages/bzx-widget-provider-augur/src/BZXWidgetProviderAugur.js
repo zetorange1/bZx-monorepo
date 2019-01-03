@@ -256,6 +256,17 @@ export default class BZXWidgetProviderAugur {
     return tokenAddress.toLowerCase() === this.wethAddress.toLowerCase();
   };
 
+  doLoanOrderWithdrawProfit = async ({ loanOrderHash }) => {
+    return new Promise((resolve, reject) => {
+      try {
+        this._hanldeLoanOrderWithdrawProfit(loanOrderHash, resolve, reject);
+      } catch (e) {
+        console.dir(e);
+        reject("error happened while processing your request");
+      }
+    });
+  };
+
   doLoanOrderCancel = async ({ loanOrderHash, amount }) => {
     return new Promise((resolve, reject) => {
       try {
@@ -448,6 +459,23 @@ export default class BZXWidgetProviderAugur {
     try {
       const result = await this.bzxjs.getSingleOrder({ loanOrderHash: loanOrderHash.toLowerCase() });
       resolve(result);
+    } catch (e) {
+      console.dir(e);
+      reject("error happened while processing your request");
+      return;
+    }
+  };
+
+  _hanldeLoanOrderWithdrawProfit = async (loanOrderHash, resolve, reject) => {
+    try {
+      let transactionReceipt = await this.bzxjs.withdrawProfit({
+        loanOrderHash: loanOrderHash.toLowerCase(),
+        getObject: false,
+        txOpts: { from: this.account.toLowerCase(), gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
+      });
+      console.dir(transactionReceipt);
+
+      resolve(transactionReceipt.transactionHash);
     } catch (e) {
       console.dir(e);
       reject("error happened while processing your request");
