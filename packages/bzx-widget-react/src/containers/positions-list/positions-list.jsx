@@ -40,9 +40,13 @@ export default class PositionsList extends Component {
   }
 
   componentDidMount() {
-    this.props.listLoansActive(this.props.listSize).then(result => {
-      this.setState({ ...this.state, positions: result });
-    });
+    this._handleReload();
+  }
+
+  componentWillReceiveProps(nextProps, nextContext) {
+    if (nextProps.currentAsset !== this.props.currentAsset || nextProps.currentAccount !== this.props.currentAccount) {
+      this._handleReload();
+    }
   }
 
   render() {

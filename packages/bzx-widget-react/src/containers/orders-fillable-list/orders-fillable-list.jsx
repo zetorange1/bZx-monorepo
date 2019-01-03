@@ -19,9 +19,9 @@ export default class OrdersFillableList extends Component {
     currentAsset: PropTypes.string,
     listLoanOrdersBidsAvailable: PropTypes.func,
     listLoanOrdersAsksAvailable: PropTypes.func,
+    listSize: PropTypes.number,
     doLoanOrderTake: PropTypes.func,
-    doLoanOrderCancel: PropTypes.func,
-    listSize: PropTypes.number
+    doLoanOrderCancel: PropTypes.func
   };
 
   static defaultProps = {
@@ -45,7 +45,13 @@ export default class OrdersFillableList extends Component {
   }
 
   componentWillReceiveProps(nextProps, nextContext) {
-    this._handleReload();
+    if (
+      nextProps.currentAsset !== this.props.currentAsset ||
+      nextProps.currentAccount !== this.props.currentAccount ||
+      nextProps.listSize !== this.props.listSize
+    ) {
+      this._handleReload();
+    }
   }
 
   render() {
