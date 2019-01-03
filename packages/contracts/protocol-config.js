@@ -29,6 +29,7 @@ module.exports = {
       KyberContractAddress: "0x818E6FECD516Ecc3849DAf6845e3EC868087B755", // "0x2a21728dF01992cCEE34ad8f9c32A0a2AE1e181b", // old: "0xD19559B3121c1b071481d8813d5dBcDC5869e2e8", // old: "0x0a56d8a49E71da8d7F9C65F95063dB48A3C9560B", // Ropsten (https://ropsten.kyber.network)
       BZRXToken: "0xf8b0b6ee32a617beca665b6c5b241ac15b1acdd5", //"0x6f47868CCa96DFfFb6dE50Be22ee11aAADd96EF9", //"0xa890bbffea779fd4ff9d28469cfc8f2d35bc620d", //"0x14823Db576c11e4a54Ca9E01Ca0b28b18D3d1187",
       BZRXTokenSale: "0x450e617b88366fde63c18880acbdeb35a5812eee",
+      BZxEther: "",
 	    MultiSig: "0x35b94649Bd03D13eF08e999127351Cc52286473C"
     },
     kovan: {
@@ -46,6 +47,7 @@ module.exports = {
       },
       KyberContractAddress: "0x11542D7807DFb2B44937F756b9092c76e814F8eD", // Kovan
       BZRXToken: "0xe8b6a7FA1976bA6C2D3DD81F063Eb25d521186bb", // old: "0xd0c640eEd54c3877ABb958fa9753F50900325fC5",
+      BZxEther: "",
       MultiSig: ""
     },
     rinkeby: {
@@ -63,6 +65,7 @@ module.exports = {
       },
       KyberContractAddress: "", // Rinkeby
       BZRXToken: "0xb70ce29af9de22e28509cdcf3e0368b5a550548a",
+      BZxEther: "",
       MultiSig: ""
     },
     mainnet: {
@@ -82,6 +85,7 @@ module.exports = {
       KyberRegisterWallet: "0xECa04bB23612857650D727B8ed008f80952654ee",
       BZRXToken: "0x1c74cff0376fb4031cd7492cd6db2d66c3f2c6b9", //"0xe23d55af1646a65c1504f69e3d485c1d6da68e94", //"0x13939ac9F1e0F99872fA873B6E00DE9248ac95A0",
       BZRXTokenSale: "0x0b12cf7964731f7190b74600fcdad9ba4cac870c",
+      BZxEther: "0x96CCe310096755f69594212d5D5fB5485577E7d1",
 	    MultiSig: ""
     }
   }

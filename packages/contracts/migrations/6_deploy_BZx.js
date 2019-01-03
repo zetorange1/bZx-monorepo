@@ -22,21 +22,24 @@ module.exports = (deployer, network, accounts) => {
 
     var bZxProxy = await BZxProxySettings.at(BZxProxy.address);
 
-    var bZRxToken;
-    var bzrx_token_address;
+    var bZRxToken, bZxEther, bzrx_token_address, bzrx_ether_address;
 
     if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {
       bzrx_token_address = config["addresses"][network]["BZRXToken"];
+      bzrx_ether_address = config["addresses"][network]["BZxEther"];
     } else {
       bZRxToken = await BZRxToken.deployed();
       bzrx_token_address = bZRxToken.address;
+
+      bZxEther = await BZxEther.deployed();
+      bzrx_ether_address = bZxEther.address;
 
       await bZxProxy.setDebugMode(true);
     }
 
     await bZxProxy.setBZxAddresses(
       bzrx_token_address,
-      BZxEther.address,
+      bzrx_ether_address,
       config["addresses"][network]["ZeroEx"]["WETH9"],
       BZxVault.address,
       OracleRegistry.address,

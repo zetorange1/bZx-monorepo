@@ -59,7 +59,12 @@ module.exports = (deployer, network, accounts) => {
           let txData = web3.eth.abi.encodeFunctionSignature('registerWallet(address)') +
             web3.eth.abi.encodeParameters(['address'], [oracle.address]).substr(2);
 
-          await web3.eth.sendTransaction({to: config["addresses"][network]["KyberRegisterWallet"], data: txData});
+          await web3.eth.sendTransaction({
+            from: accounts[0],
+            to: config["addresses"][network]["KyberRegisterWallet"],
+            data: txData,
+            gasPrice: 10000000000
+          });
         }    
 
         var wethT = await EIP20.at(config["addresses"][network]["ZeroEx"]["WETH9"]);
