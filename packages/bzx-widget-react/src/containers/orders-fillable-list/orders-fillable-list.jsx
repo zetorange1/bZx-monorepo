@@ -79,7 +79,13 @@ export default class OrdersFillableList extends Component {
         locale={{ emptyText: isAsk ? "No asks" : "No bids" }}
         renderItem={item => (
           <Item key={item.loanOrderHash}>
-            <CardOrderFillable data={item} isAsk={isAsk} doLoanOrderTake={onTakeAction} />
+            <CardOrderFillable
+              currentAccount={this.props.currentAccount}
+              currentAsset={this.props.currentAsset}
+              data={item}
+              isAsk={isAsk}
+              doLoanOrderTake={onTakeAction}
+            />
           </Item>
         )}
       />
