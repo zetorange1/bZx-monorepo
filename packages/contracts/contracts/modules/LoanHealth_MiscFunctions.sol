@@ -540,6 +540,20 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
         )) {
             revert("BZxLoanHealth::_closeLoanPartially: BZxVault.withdrawToken loan failed");
         }
+
+        if (orderAux[loanOrderHash].expirationUnixTimestampSec == 0 || block.timestamp < orderAux[loanOrderHash].expirationUnixTimestampSec) {
+            // since order is not expired, we make the closeAmount available for borrowing again
+            orderFilledAmounts[loanOrderHash] = orderFilledAmounts[loanOrderHash].sub(closeAmount);
+
+            if (!orderListIndex[loanOrderHash][address(0)].isSet) {
+                // record of fillable (non-expired, unfilled) orders
+                orderList[address(0)].push(loanOrderHash);
+                orderListIndex[loanOrderHash][address(0)] = ListIndex({
+                    index: orderList[address(0)].length-1,
+                    isSet: true
+                });
+            }
+        }
         
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didCloseLoanPartially(
             loanOrder,
@@ -698,6 +712,20 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
                 loanPosition.positionTokenAmountFilled
             )) {
                 revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken loan failed");
+            }
+
+            if (orderAux[loanOrder.loanOrderHash].expirationUnixTimestampSec == 0 || block.timestamp < orderAux[loanOrder.loanOrderHash].expirationUnixTimestampSec) {
+                // since order is not expired, we make the positionTokenAmountFilled available for borrowing again
+                orderFilledAmounts[loanOrder.loanOrderHash] = orderFilledAmounts[loanOrder.loanOrderHash].sub(loanPosition.positionTokenAmountFilled);
+
+                if (!orderListIndex[loanOrder.loanOrderHash][address(0)].isSet) {
+                    // record of fillable (non-expired, unfilled) orders
+                    orderList[address(0)].push(loanOrder.loanOrderHash);
+                    orderListIndex[loanOrder.loanOrderHash][address(0)] = ListIndex({
+                        index: orderList[address(0)].length-1,
+                        isSet: true
+                    });
+                }
             }
         }
 
