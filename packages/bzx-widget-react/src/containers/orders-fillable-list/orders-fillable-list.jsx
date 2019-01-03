@@ -22,6 +22,7 @@ export default class OrdersFillableList extends Component {
     listLoanOrdersBidsAvailable: PropTypes.func,
     listLoanOrdersAsksAvailable: PropTypes.func,
     doLoanOrderTake: PropTypes.func,
+    doLoanOrderCancel: PropTypes.func,
     listSize: PropTypes.number
   };
 
@@ -31,6 +32,7 @@ export default class OrdersFillableList extends Component {
     listLoanOrdersBidsAvailable: () => [],
     listLoanOrdersAsksAvailable: () => [],
     doLoanOrderTake: () => {},
+    doLoanOrderCancel: () => {},
     listSize: 100
   };
 
@@ -54,14 +56,14 @@ export default class OrdersFillableList extends Component {
         <br />
         <CardOrderFillableTitle />
         <Scrollbar noScrollX style={{ minHeight: 250, maxHeight: 400 }}>
-          {this.renderLendOrdersList(this.state.bids, false, this._handleLoanOrderTake)}
-          {this.renderLendOrdersList(this.state.asks, true, this._handleLoanOrderTake)}
+          {this.renderLendOrdersList(this.state.bids, false, this._handleLoanOrderTake, this._handleLoanOrderCancel)}
+          {this.renderLendOrdersList(this.state.asks, true, this._handleLoanOrderTake, this._handleLoanOrderCancel)}
         </Scrollbar>
       </div>
     );
   }
 
-  renderLendOrdersList(ordersList, isAsk, onTakeAction) {
+  renderLendOrdersList(ordersList, isAsk, onTakeAction, onCancelAction) {
     return (
       <List
         size="small"
@@ -75,6 +77,7 @@ export default class OrdersFillableList extends Component {
               data={item}
               isAsk={isAsk}
               doLoanOrderTake={onTakeAction}
+              doLoanOrderCancel={onCancelAction}
             />
           </Item>
         )}
@@ -94,6 +97,12 @@ export default class OrdersFillableList extends Component {
 
   _handleLoanOrderTake = request => {
     return this.props.doLoanOrderTake(request).then(result => {
+      this._handleReload();
+    });
+  };
+
+  _handleLoanOrderCancel = request => {
+    return this.props.doLoanOrderCancel(request).then(result => {
       this._handleReload();
     });
   };

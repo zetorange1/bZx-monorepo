@@ -187,7 +187,6 @@ export default class BZXWidgetProviderAugur {
       pageResults = pageResults.filter(
         e =>
           e.collateralTokenAddress.toLowerCase() === zeroAddress.toLowerCase() &&
-          e.makerAddress.toLowerCase() !== this.account.toLowerCase() &&
           assetsAddresses.includes(e.loanTokenAddress.toLowerCase())
       );
 
@@ -216,7 +215,6 @@ export default class BZXWidgetProviderAugur {
       pageResults = pageResults.filter(
         e =>
           e.collateralTokenAddress.toLowerCase() !== zeroAddress.toLowerCase() &&
-          e.makerAddress.toLowerCase() !== this.account.toLowerCase() &&
           assetsAddresses.includes(e.loanTokenAddress.toLowerCase())
       );
 

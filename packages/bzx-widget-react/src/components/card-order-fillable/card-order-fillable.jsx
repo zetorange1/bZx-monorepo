@@ -14,7 +14,8 @@ export default class CardOrderFillable extends Component {
     currentAsset: PropTypes.string,
     isAsk: PropTypes.bool,
     data: PropTypes.object,
-    doLoanOrderTake: PropTypes.func
+    doLoanOrderTake: PropTypes.func,
+    doLoanOrderCancel: PropTypes.func
   };
 
   styleColumnRowType = {
@@ -91,14 +92,29 @@ export default class CardOrderFillable extends Component {
   }
 
   renderColumnActions() {
-    return (
+    return this.props.data.makerAddress.toLowerCase() !== this.props.currentAccount.toLowerCase() ? (
       <Button block size={"small"} onClick={this._handleLoanOrderTakeClicked}>
         {this.props.isAsk ? "lend" : "borrow"}
+      </Button>
+    ) : (
+      <Button block size={"small"} onClick={this._handleLoanOrderCancelClicked}>
+        cancel
       </Button>
     );
   }
 
-  _handleLoanOrderCancelClicked = () => {};
+  _handleLoanOrderCancelClicked = () => {
+    let resultPromise = this.props.doLoanOrderCancel({
+      loanOrderHash: this.props.data.loanOrderHash,
+      amount: new BigNumber(
+        this.props.data.loanTokenAmount - this.props.data.orderFilledAmount - this.props.data.orderCancelledAmount
+      ).toString()
+    });
+    resultPromise.then(
+      value => message.success(`Cancel order operation was successful! TX: ${value}`),
+      value => message.error(`Cancel order operation failed: ${value}!`)
+    );
+  };
 
   _handleLoanOrderTakeClicked = () => {
     let resultPromise = this.props.doLoanOrderTake({
