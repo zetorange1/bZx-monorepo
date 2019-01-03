@@ -261,8 +261,8 @@ export default class CardPosition extends Component {
   _handleLoanCloseClicked = () => {
     let resultPromise = this.props.onLoanClose({ loanOrderHash: this.props.data.loanOrderHash });
     resultPromise.then(
-      value => message.success(`Cancel loan order operation was successful! TX: ${value}`),
-      value => message.error(`Cancel loan order operation failed: ${value}!`)
+      value => message.success(`Close loan order operation was successful! TX: ${value}`),
+      value => message.error(`Close loan order operation failed: ${value}!`)
     );
   };
 
