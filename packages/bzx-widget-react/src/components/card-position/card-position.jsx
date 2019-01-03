@@ -101,11 +101,11 @@ export default class CardPosition extends Component {
         </div>
         <div style={this.ellipsisStyle}>
           <span style={this.paramHeaderStyle}>Amount (taken / full):</span>{" "}
+          {new BigNumber(this.props.data.loanTokenAmountFilled).dividedBy(1000000000000000000).toFixed(4)}
+          {" / "}
           {this.state.fullOrder
             ? new BigNumber(this.state.fullOrder.loanTokenAmount).dividedBy(1000000000000000000).toFixed(4)
             : "?"}
-          {" / "}
-          {new BigNumber(this.props.data.loanTokenAmountFilled).dividedBy(1000000000000000000).toFixed(4)}
         </div>
         <div style={this.ellipsisStyle}>
           <span style={this.paramHeaderStyle}>Interest accrued:</span>{" "}
