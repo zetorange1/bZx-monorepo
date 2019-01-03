@@ -10,11 +10,11 @@ import * as moment from "moment";
 
 export default class CardOrderFillable extends Component {
   static propTypes = {
+    currentAccount: PropTypes.string,
+    currentAsset: PropTypes.string,
     isAsk: PropTypes.bool,
     data: PropTypes.object,
-    doLoanOrderTake: PropTypes.func,
-    getTokenNameFromAddress: PropTypes.func,
-    getMarginLevels: PropTypes.func
+    doLoanOrderTake: PropTypes.func
   };
 
   styleColumnRowType = {
@@ -55,8 +55,6 @@ export default class CardOrderFillable extends Component {
     this.state = {};
   }
 
-  componentDidMount() {}
-
   render() {
     return (
       <div style={{ height: "24px", width: "400px" }}>
@@ -64,11 +62,7 @@ export default class CardOrderFillable extends Component {
         <div style={this.styleColumnAmount}>{this.renderColumnInterest()}</div>
         <div style={this.styleColumnAmount}>{this.renderColumnAmount()}</div>
         <div style={this.styleColumnDate}>{this.renderColumnExpDate()}</div>
-        <div style={this.styleColumnButton}>
-          <Button block size={"small"} onClick={this._handleLoanOrderTakeClicked}>
-            {this.props.isAsk ? "lend" : "borrow"}
-          </Button>
-        </div>
+        <div style={this.styleColumnButton}>{this.renderColumnActions()}</div>
       </div>
     );
   }
@@ -95,6 +89,16 @@ export default class CardOrderFillable extends Component {
   renderColumnExpDate() {
     return moment.unix(this.props.data.expirationUnixTimestampSec).format("YYYY.MM.DD HH:mm:ss");
   }
+
+  renderColumnActions() {
+    return (
+      <Button block size={"small"} onClick={this._handleLoanOrderTakeClicked}>
+        {this.props.isAsk ? "lend" : "borrow"}
+      </Button>
+    );
+  }
+
+  _handleLoanOrderCancelClicked = () => {};
 
   _handleLoanOrderTakeClicked = () => {
     let resultPromise = this.props.doLoanOrderTake({

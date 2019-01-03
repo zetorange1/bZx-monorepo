@@ -13,15 +13,15 @@ import * as moment from "moment";
 export default class CardPosition extends Component {
   static propTypes = {
     data: PropTypes.object,
+    currentAccount: PropTypes.string,
+    currentAsset: PropTypes.string,
     onLoanOrderCancel: PropTypes.func,
     onLoanClose: PropTypes.func,
     onLoanTradeWithCurrentAsset: PropTypes.func,
-    getTokenNameFromAddress: PropTypes.func,
     getMarginLevels: PropTypes.func,
     getPositionOffset: PropTypes.func,
     getSingleOrder: PropTypes.func,
-    getAccount: PropTypes.func,
-    currentAsset: PropTypes.string,
+    getTokenNameFromAddress: PropTypes.func,
     isWethToken: PropTypes.func
   };
 
@@ -39,7 +39,6 @@ export default class CardPosition extends Component {
     super(props);
 
     this.state = {
-      account: this.props.getAccount(),
       actionTradeWithCurrentAssetEnabled: false,
       actionLoanOrderCancelEnabled: false,
       profitStatus: null,
@@ -49,19 +48,20 @@ export default class CardPosition extends Component {
   }
 
   componentDidMount() {
-    if (this.props.data.trader.toLowerCase() === this.state.account.toLowerCase()) {
+    if (this.props.data.trader.toLowerCase() === this.props.currentAccount.toLowerCase()) {
       this.props.getPositionOffset(this.props.data.loanOrderHash).then(result => {
         this.setState({ ...this.state, profitStatus: result });
       });
     }
 
     this.props.getSingleOrder(this.props.data.loanOrderHash).then(result => {
+      console.dir(result);
       this.setState({
         ...this.state,
         fullOrder: result,
-        actionLoanOrderCancelEnabled: new BigNumber(result.loanTokenAmount).gt(
-          new BigNumber(this.props.data.loanTokenAmountFilled)
-        )
+        actionLoanOrderCancelEnabled: new BigNumber(result.loanTokenAmount)
+          .minus(new BigNumber(result.orderCancelledAmount))
+          .gt(new BigNumber(this.props.data.loanTokenAmountFilled))
       });
     });
 
@@ -77,13 +77,18 @@ export default class CardPosition extends Component {
         actionTradeWithCurrentAssetEnabled:
           this.props.isWethToken(nextProps.currentAsset.toLowerCase()) !==
             this.props.isWethToken(nextProps.data.loanTokenAddress.toLowerCase()) &&
-          nextProps.data.trader.toLowerCase() === this.state.account.toLowerCase()
+          nextProps.data.trader.toLowerCase() === this.props.currentAccount.toLowerCase(),
+        actionLoanOrderCancelEnabled: this.state.fullOrder
+          ? new BigNumber(this.state.fullOrder.loanTokenAmount)
+              .minus(new BigNumber(this.state.fullOrder.orderCancelledAmount))
+              .gt(new BigNumber(this.props.data.loanTokenAmountFilled))
+          : false
       });
     }
   }
 
   render() {
-    return this.props.data.trader.toLowerCase() === this.state.account.toLowerCase()
+    return this.props.data.trader.toLowerCase() === this.props.currentAccount.toLowerCase()
       ? this.renderCardBorrowersLoan()
       : this.renderCardLendersLoan();
   }
@@ -124,7 +129,6 @@ export default class CardPosition extends Component {
           {moment.unix(this.props.data.loanEndUnixTimestampSec).format("dddd, MMMM Do YYYY, h:mm:ss a")}
         </div>
         <br />
-        {this.renderTradeWithCurrentAssetButton()}
         {this.renderLoanOrderCancelButton()}
       </Card>
     );

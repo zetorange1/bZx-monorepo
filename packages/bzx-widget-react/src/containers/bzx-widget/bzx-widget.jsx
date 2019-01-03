@@ -12,8 +12,12 @@ import QuickPositionForm from "../quick-position-form/quick-position-form";
 import OrdersFillableList from "../orders-fillable-list/orders-fillable-list";
 import PositionsList from "../positions-list/positions-list";
 import InputAsset from "../../components/input-asset/input-asset";
-import { EVENT_ASSET_UPDATE, EVENT_INIT_FAILED, EVENT_ASSET_SELECTED } from "@bzxnetwork/bzx-widget-common";
-import EventEmitter from "events";
+import {
+  EVENT_ACCOUNT_UPDATE,
+  EVENT_ASSET_UPDATE,
+  EVENT_INIT_FAILED,
+  EVENT_ASSET_SELECTED
+} from "@bzxnetwork/bzx-widget-common";
 
 export default class BZXWidget extends Component {
   static propTypes = {
@@ -23,31 +27,33 @@ export default class BZXWidget extends Component {
 
   state = {
     assets: [],
-    asset: ""
+    currentAsset: "",
+    currentAccount: ""
   };
-
-  widgetEventEmitter = new EventEmitter();
 
   constructor(props) {
     super(props);
 
-    this.state = { assets: this.props.provider.assets, asset: this.props.provider.defaultAsset };
+    this.state = {
+      assets: this.props.provider.assets,
+      currentAsset: this.props.provider.defaultAsset,
+      currentAccount: this.props.provider.getAccount()
+    };
+
+    this.props.provider.eventEmitter.on(EVENT_ACCOUNT_UPDATE, this._handleAccountUpdate.bind(this));
     this.props.provider.eventEmitter.on(EVENT_ASSET_UPDATE, this._handleAssetsUpdate.bind(this));
     this.props.provider.eventEmitter.on(EVENT_INIT_FAILED, this._handleProviderInitFailed.bind(this));
-
-    this.widgetEventEmitter.emit(EVENT_ASSET_SELECTED, this.props.provider.defaultAsset);
   }
 
   assetChanged = value => {
-    this.setState({ ...this.state, asset: value });
-    this.widgetEventEmitter.emit(EVENT_ASSET_SELECTED, value);
+    this.setState({ ...this.state, currentAsset: value });
   };
 
   render() {
     return (
       <div style={this.props.widgetStyles}>
         <div>
-          <InputAsset options={this.state.assets} value={this.state.asset} onChanged={this.assetChanged} />
+          <InputAsset options={this.state.assets} value={this.state.currentAsset} onChanged={this.assetChanged} />
         </div>
 
         <br />
@@ -77,18 +83,18 @@ export default class BZXWidget extends Component {
             </Tabs.TabPane>
             <Tabs.TabPane tab="Order book" key="4">
               <OrdersFillableList
-                doLoanOrderTake={this.props.provider.doLoanOrderTake}
+                currentAccount={this.state.currentAccount}
+                currentAsset={this.state.currentAsset}
                 listLoanOrdersBidsAvailable={this.props.provider.listLoanOrdersBidsAvailable}
                 listLoanOrdersAsksAvailable={this.props.provider.listLoanOrdersAsksAvailable}
-                getTokenNameFromAddress={this.props.provider.getTokenNameFromAddress}
-                getMarginLevels={this.props.provider.getMarginLevels}
-                getAccount={this.props.provider.getAccount}
-                widgetEventEmitter={this.widgetEventEmitter}
-                getCurrentAsset={this.getCurrentAsset}
+                doLoanOrderTake={this.props.provider.doLoanOrderTake}
+                listSize={100}
               />
             </Tabs.TabPane>
             <Tabs.TabPane tab="My orders" key="5">
               <PositionsList
+                currentAccount={this.state.currentAccount}
+                currentAsset={this.state.currentAsset}
                 onLoanOrderCancel={this.props.provider.doLoanOrderCancel}
                 onLoanClose={this.props.provider.doLoanClose}
                 onLoanTradeWithCurrentAsset={this._handleLoanTradeWithCurrentAsset}
@@ -96,9 +102,6 @@ export default class BZXWidget extends Component {
                 getTokenNameFromAddress={this.props.provider.getTokenNameFromAddress}
                 getMarginLevels={this.props.provider.getMarginLevels}
                 getPositionOffset={this.props.provider.getPositionOffset}
-                getAccount={this.props.provider.getAccount}
-                widgetEventEmitter={this.widgetEventEmitter}
-                getCurrentAsset={this.getCurrentAsset}
                 isWethToken={this.props.provider.isWethToken}
                 getSingleOrder={this.props.provider.getSingleOrder}
               />
@@ -109,35 +112,38 @@ export default class BZXWidget extends Component {
     );
   }
 
-  getCurrentAsset = () => {
-    return this.state.asset;
-  };
-
   _handleLoanTradeWithCurrentAsset = value => {
-    const request = { ...value, asset: this.state.asset };
+    const request = { ...value, asset: this.state.currentAsset };
     return this.props.provider.doLoanTradeWithCurrentAsset(request);
   };
 
   _handleLendApprove = value => {
-    const request = { ...value, asset: this.state.asset };
+    const request = { ...value, asset: this.state.currentAsset };
     return this.props.provider.doLendOrderApprove(request);
   };
 
   _handleBorrowApprove = value => {
-    const request = { ...value, asset: this.state.asset };
+    const request = { ...value, asset: this.state.currentAsset };
     return this.props.provider.doBorrowOrderApprove(request);
   };
 
   _handleQuickPositionApprove = value => {
-    const request = { ...value, asset: this.state.asset };
+    const request = { ...value, asset: this.state.currentAsset };
     return this.props.provider.doQuickPositionApprove(request);
+  };
+
+  _handleAccountUpdate = currentAccount => {
+    this.setState({
+      ...this.state,
+      currentAccount: currentAccount
+    });
   };
 
   _handleAssetsUpdate = (assets, defaultAsset) => {
     this.setState({
       ...this.state,
       assets: assets,
-      asset: defaultAsset
+      currentAsset: defaultAsset
     });
   };
 

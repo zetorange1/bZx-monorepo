@@ -6,7 +6,7 @@ import moment from "moment";
 import Web3 from "web3";
 
 import { parseUrlGetParams, zeroAddress } from "./utils";
-import { EVENT_ASSET_UPDATE, EVENT_INIT_FAILED } from "@bzxnetwork/bzx-widget-common";
+import { EVENT_ACCOUNT_UPDATE, EVENT_ASSET_UPDATE, EVENT_INIT_FAILED } from "@bzxnetwork/bzx-widget-common";
 
 BigNumber.config({ EXPONENTIAL_AT: 20 });
 
@@ -30,6 +30,7 @@ export default class BZXWidgetProviderAugur {
   // asset to select by default in the input on top
   defaultAsset = "";
 
+  account = "";
   eventEmitter = new EventEmitter();
 
   constructor() {
@@ -43,6 +44,7 @@ export default class BZXWidgetProviderAugur {
       this.web3.currentProvider.enable().then(
         result => {
           this.account = result[0];
+          this.eventEmitter.emit(EVENT_ACCOUNT_UPDATE, this.account);
 
           // init bzxjs
           this.bzxjs = new BZxJS(this.web3, { networkId: this.networkId });

@@ -9,45 +9,36 @@ import Pagination from "antd/lib/pagination";
 import "./../../styles/components/pagination/index.less";
 import CardPosition from "../../components/card-position/card-position";
 import Scrollbar from "react-scrollbars-custom";
-import { EVENT_ASSET_SELECTED } from "@bzxnetwork/bzx-widget-common";
 
 export default class PositionsList extends Component {
   static propTypes = {
     listLoansActive: PropTypes.func,
+    listSize: PropTypes.number,
+
+    currentAccount: PropTypes.string,
+    currentAsset: PropTypes.string,
     onLoanOrderCancel: PropTypes.func,
     onLoanClose: PropTypes.func,
     onLoanTradeWithCurrentAsset: PropTypes.func,
-    getTokenNameFromAddress: PropTypes.func,
     getMarginLevels: PropTypes.func,
     getPositionOffset: PropTypes.func,
-    getAccount: PropTypes.func,
-    widgetEventEmitter: PropTypes.object,
-    getCurrentAsset: PropTypes.func,
-    isWethToken: PropTypes.func,
-    listSize: PropTypes.number,
-    getSingleOrder: PropTypes.func
+    getSingleOrder: PropTypes.func,
+    getTokenNameFromAddress: PropTypes.func,
+    isWethToken: PropTypes.func
   };
 
   static defaultProps = {
     listLoansActive: () => [],
-    onLoanOrderCancel: () => {},
-    onLoanClose: () => {},
-    LoanTradeWithCurrentAsset: () => {},
     listSize: 100
   };
 
   constructor(props) {
     super(props);
 
-    this.state = { ...props.stateDefaults, pageSize: 3, positions: [], currentPage: 1, currentAsset: "" };
+    this.state = { ...props.stateDefaults, pageSize: 3, positions: [], currentPage: 1 };
   }
 
   componentDidMount() {
-    const currentAsset = this.props.getCurrentAsset();
-    this.setState({ ...this.state, currentAsset: currentAsset });
-
-    this.props.widgetEventEmitter.on(EVENT_ASSET_SELECTED, this._handleAssetSelect.bind(this));
-
     this.props.listLoansActive(this.props.listSize).then(result => {
       this.setState({ ...this.state, positions: result });
     });
@@ -94,8 +85,8 @@ export default class PositionsList extends Component {
           getTokenNameFromAddress={this.props.getTokenNameFromAddress}
           getMarginLevels={this.props.getMarginLevels}
           getPositionOffset={this.props.getPositionOffset}
-          getAccount={this.props.getAccount}
-          currentAsset={this.state.currentAsset}
+          currentAccount={this.props.currentAccount}
+          currentAsset={this.props.currentAsset}
           isWethToken={this.props.isWethToken}
           getSingleOrder={this.props.getSingleOrder}
         />
@@ -116,9 +107,5 @@ export default class PositionsList extends Component {
     reloadPromise.then(result => {
       message.success("List of positions has been successfully updated");
     });
-  };
-
-  _handleAssetSelect = value => {
-    this.setState({ ...this.state, currentAsset: value });
   };
 }

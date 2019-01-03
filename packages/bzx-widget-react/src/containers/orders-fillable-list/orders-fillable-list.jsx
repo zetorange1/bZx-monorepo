@@ -17,17 +17,17 @@ import { EVENT_ASSET_SELECTED } from "@bzxnetwork/bzx-widget-common";
 
 export default class OrdersFillableList extends Component {
   static propTypes = {
-    listOrdersAvailable: PropTypes.func,
+    currentAccount: PropTypes.string,
+    currentAsset: PropTypes.string,
+    listLoanOrdersBidsAvailable: PropTypes.func,
+    listLoanOrdersAsksAvailable: PropTypes.func,
     doLoanOrderTake: PropTypes.func,
-    getTokenNameFromAddress: PropTypes.func,
-    getMarginLevels: PropTypes.func,
-    getAccount: PropTypes.func,
-    widgetEventEmitter: PropTypes.object,
-    getCurrentAsset: PropTypes.func,
     listSize: PropTypes.number
   };
 
   static defaultProps = {
+    currentAccount: "",
+    currentAsset: "",
     listLoanOrdersBidsAvailable: () => [],
     listLoanOrdersAsksAvailable: () => [],
     doLoanOrderTake: () => {},
@@ -37,14 +37,10 @@ export default class OrdersFillableList extends Component {
   constructor(props) {
     super(props);
 
-    this.state = { ...props.stateDefaults, pageSize: 3, bids: [], asks: [], currentPage: 1, currentAsset: "" };
+    this.state = { ...props.stateDefaults, pageSize: 3, bids: [], asks: [], currentPage: 1 };
   }
 
   componentDidMount() {
-    const currentAsset = this.props.getCurrentAsset();
-    this.setState({ ...this.state, currentAsset: currentAsset });
-    this.props.widgetEventEmitter.on(EVENT_ASSET_SELECTED, this._handleAssetSelect.bind(this));
-
     this.props
       .listLoanOrdersBidsAvailable(e => true, this._sortOrdersComparatorFunction, this.props.listSize)
       .then(result => {
@@ -83,14 +79,7 @@ export default class OrdersFillableList extends Component {
         locale={{ emptyText: isAsk ? "No asks" : "No bids" }}
         renderItem={item => (
           <Item key={item.loanOrderHash}>
-            <CardOrderFillable
-              data={item}
-              isAsk={isAsk}
-              doLoanOrderTake={onTakeAction}
-              getTokenNameFromAddress={this.props.getTokenNameFromAddress}
-              getMarginLevels={this.props.getMarginLevels}
-              getAccount={this.props.getAccount}
-            />
+            <CardOrderFillable data={item} isAsk={isAsk} doLoanOrderTake={onTakeAction} />
           </Item>
         )}
       />
@@ -101,10 +90,10 @@ export default class OrdersFillableList extends Component {
     return a.interestRate !== b.interestRate
       ? b.interestRate - b.interestRate
       : a.loanTokenAmount !== b.loanTokenAmount
-      ? b.loanTokenAmount - b.loanTokenAmount
-      : a.expirationUnixTimestampSec !== b.expirationUnixTimestampSec
-      ? b.expirationUnixTimestampSec - b.expirationUnixTimestampSec
-      : 0;
+        ? b.loanTokenAmount - b.loanTokenAmount
+        : a.expirationUnixTimestampSec !== b.expirationUnixTimestampSec
+          ? b.expirationUnixTimestampSec - b.expirationUnixTimestampSec
+          : 0;
   };
 
   _handleLoanOrderTake = request => {
@@ -139,9 +128,5 @@ export default class OrdersFillableList extends Component {
     Promise.all([listLoanOrdersBidsAvailablePromise, listLoanOrdersAsksAvailablePromise]).then(result => {
       message.success("List of orders has been successfully updated!");
     });
-  };
-
-  _handleAssetSelect = value => {
-    this.setState({ ...this.state, currentAsset: value });
   };
 }
