@@ -15,8 +15,7 @@ import InputAsset from "../../components/input-asset/input-asset";
 import {
   EVENT_ACCOUNT_UPDATE,
   EVENT_ASSET_UPDATE,
-  EVENT_INIT_FAILED,
-  EVENT_ASSET_SELECTED
+  EVENT_INIT_FAILED
 } from "@bzxnetwork/bzx-widget-common";
 
 export default class BZXWidget extends Component {

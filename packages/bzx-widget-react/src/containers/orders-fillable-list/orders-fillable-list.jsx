@@ -13,8 +13,6 @@ import Scrollbar from "react-scrollbars-custom";
 import CardOrderFillable from "../../components/card-order-fillable/card-order-fillable";
 import CardOrderFillableTitle from "../../components/card-order-fillable/card-order-fillable-title";
 
-import { EVENT_ASSET_SELECTED } from "@bzxnetwork/bzx-widget-common";
-
 export default class OrdersFillableList extends Component {
   static propTypes = {
     currentAccount: PropTypes.string,
