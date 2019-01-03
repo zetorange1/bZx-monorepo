@@ -41,6 +41,7 @@ export default class CardPosition extends Component {
     this.state = {
       account: this.props.getAccount(),
       actionTradeWithCurrentAssetEnabled: false,
+      actionLoanOrderCancelEnabled: false,
       profitStatus: null,
       fullOrder: null,
       marginLevel: null
@@ -54,7 +55,13 @@ export default class CardPosition extends Component {
       });
     } else {
       this.props.getSingleOrder(this.props.data.loanOrderHash).then(result => {
-        this.setState({ ...this.state, fullOrder: result });
+        this.setState({
+          ...this.state,
+          fullOrder: result,
+          actionLoanOrderCancelEnabled: new BigNumber(result.loanTokenAmount).gt(
+            new BigNumber(this.props.data.loanTokenAmountFilled)
+          )
+        });
       });
     }
 
@@ -104,11 +111,7 @@ export default class CardPosition extends Component {
         </div>
         <br />
         {this.renderTradeWithCurrentAssetButton()}
-        <div>
-          <Button block onClick={this._handleLoanOrderCancelClicked}>
-            Cancel loan order
-          </Button>
-        </div>
+        {this.renderLoanOrderCancelButton()}
       </Card>
     );
   }
@@ -132,11 +135,7 @@ export default class CardPosition extends Component {
         </div>
         <br />
         {this.renderTradeWithCurrentAssetButton()}
-        <div>
-          <Button block onClick={this._handleLoanCloseClicked}>
-            Close loan order
-          </Button>
-        </div>
+        {this.renderLoanCloseButton()}
       </Card>
     );
   }
@@ -188,6 +187,26 @@ export default class CardPosition extends Component {
           disabled={!this.state.actionTradeWithCurrentAssetEnabled}
         >
           Open position against active asset
+        </Button>
+      </div>
+    );
+  }
+
+  renderLoanOrderCancelButton() {
+    return (
+      <div>
+        <Button block onClick={this._handleLoanOrderCancelClicked} disabled={!this.state.actionLoanOrderCancelEnabled}>
+          Cancel loan order
+        </Button>
+      </div>
+    );
+  }
+
+  renderLoanCloseButton() {
+    return (
+      <div>
+        <Button block onClick={this._handleLoanCloseClicked}>
+          Close loan
         </Button>
       </div>
     );
