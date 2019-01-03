@@ -342,12 +342,13 @@ export default class BZXWidgetProviderAugur {
   };
 
   doLoanTradeWithCurrentAsset = async value => {
-    console.dir(value);
-    await this.bzxjs.tradePositionWithOracle({
-      orderHash: value.loanOrderHash.toLowerCase(),
-      tradeTokenAddress: value.asset.toLowerCase(),
-      getObject: false,
-      txOpts: { from: this.account.toLowerCase(), gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
+    return new Promise((resolve, reject) => {
+      try {
+        this._handleLoanTradeWithCurrentAsset(value, resolve, reject);
+      } catch (e) {
+        console.dir(e);
+        reject("error happened while processing your request");
+      }
     });
   };
 
@@ -933,6 +934,23 @@ export default class BZXWidgetProviderAugur {
     await this._takeAugurOrdersWithBzx(sharesLendOrders, this.wethAddress);
 
     resolve();
+  };
+
+  _handleLoanTradeWithCurrentAsset = async (value, resolve, reject) => {
+    try {
+      const transactionReceipt = await this.bzxjs.tradePositionWithOracle({
+        orderHash: value.loanOrderHash.toLowerCase(),
+        tradeTokenAddress: value.asset.toLowerCase(),
+        getObject: false,
+        txOpts: { from: this.account.toLowerCase(), gasPrice: this.defaultGasPrice, gas: this.defaultGasAmount }
+      });
+
+      resolve(transactionReceipt.transactionHash);
+    } catch (e) {
+      console.dir(e);
+      reject("error happened while processing your request");
+      return;
+    }
   };
 
   _findAugurLowestAskSellOrders = async (marketId, marketShareTokenAddress, amount) => {
