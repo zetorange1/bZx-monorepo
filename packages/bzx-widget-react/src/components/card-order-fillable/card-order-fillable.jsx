@@ -81,10 +81,11 @@ export default class CardOrderFillable extends Component {
   }
 
   renderColumnAmount() {
-    const amountInOrder =
-      this.props.data.loanTokenAmount - this.props.data.orderFilledAmount - this.props.data.orderCancelledAmount;
+    const amountInOrder = new BigNumber(this.props.data.loanTokenAmount)
+      .minus(this.props.data.orderFilledAmount)
+      .minus(this.props.data.orderCancelledAmount);
 
-    return new BigNumber(amountInOrder).dividedBy(1000000000000000000).toFixed(4);
+    return new amountInOrder.dividedBy(1000000000000000000).toFixed(4);
   }
 
   renderColumnExpDate() {
@@ -104,11 +105,13 @@ export default class CardOrderFillable extends Component {
   }
 
   _handleLoanOrderCancelClicked = () => {
+    const amountInOrder = new BigNumber(this.props.data.loanTokenAmount)
+      .minus(this.props.data.orderFilledAmount)
+      .minus(this.props.data.orderCancelledAmount);
+
     let resultPromise = this.props.doLoanOrderCancel({
       loanOrderHash: this.props.data.loanOrderHash,
-      amount: new BigNumber(
-        this.props.data.loanTokenAmount - this.props.data.orderFilledAmount - this.props.data.orderCancelledAmount
-      ).toString()
+      amount: amountInOrder.toString()
     });
     resultPromise.then(
       value => message.success(`Cancel order operation was successful! TX: ${value}`),
@@ -117,14 +120,16 @@ export default class CardOrderFillable extends Component {
   };
 
   _handleLoanOrderTakeClicked = () => {
+    const amountInOrder = new BigNumber(this.props.data.loanTokenAmount)
+      .minus(this.props.data.orderFilledAmount)
+      .minus(this.props.data.orderCancelledAmount);
+
     let resultPromise = this.props.doLoanOrderTake({
       loanOrderHash: this.props.data.loanOrderHash,
       loanTokenAddress: this.props.data.loanTokenAddress,
       collateralTokenAddress: this.props.data.collateralTokenAddress,
       isAsk: this.props.isAsk,
-      amount: new BigNumber(
-        this.props.data.loanTokenAmount - this.props.data.orderFilledAmount - this.props.data.orderCancelledAmount
-      ).toString()
+      amount: amountInOrder.toString()
     });
     resultPromise.then(
       value => message.success(`Take order operation was successful! TX: ${value}`),
