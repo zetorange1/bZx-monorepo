@@ -41,6 +41,9 @@ export default class BZXWidgetProviderAugur {
     const alreadyInjected = typeof web3 !== `undefined`;
     if (alreadyInjected) {
       this.web3 = new Web3(web3.currentProvider);
+      this.web3.currentProvider.publicConfigStore.on("update", result =>
+        this.eventEmitter.emit(EVENT_ACCOUNT_UPDATE, result ? result.selectedAddress : "")
+      );
       this.web3.currentProvider.enable().then(
         result => {
           this.account = result[0];
