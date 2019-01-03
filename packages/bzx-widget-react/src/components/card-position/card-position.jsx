@@ -53,17 +53,17 @@ export default class CardPosition extends Component {
       this.props.getPositionOffset(this.props.data.loanOrderHash).then(result => {
         this.setState({ ...this.state, profitStatus: result });
       });
-    } else {
-      this.props.getSingleOrder(this.props.data.loanOrderHash).then(result => {
-        this.setState({
-          ...this.state,
-          fullOrder: result,
-          actionLoanOrderCancelEnabled: new BigNumber(result.loanTokenAmount).gt(
-            new BigNumber(this.props.data.loanTokenAmountFilled)
-          )
-        });
-      });
     }
+
+    this.props.getSingleOrder(this.props.data.loanOrderHash).then(result => {
+      this.setState({
+        ...this.state,
+        fullOrder: result,
+        actionLoanOrderCancelEnabled: new BigNumber(result.loanTokenAmount).gt(
+          new BigNumber(this.props.data.loanTokenAmountFilled)
+        )
+      });
+    });
 
     this.props.getMarginLevels(this.props.data.loanOrderHash).then(result => {
       this.setState({ ...this.state, marginLevel: result });
@@ -100,6 +100,14 @@ export default class CardPosition extends Component {
           {this.props.data.loanTokenAddress})
         </div>
         <div style={this.ellipsisStyle}>
+          <span style={this.paramHeaderStyle}>Amount (taken / full):</span>{" "}
+          {this.state.fullOrder
+            ? new BigNumber(this.state.fullOrder.loanTokenAmount).dividedBy(1000000000000000000).toFixed(4)
+            : "?"}
+          {" / "}
+          {new BigNumber(this.props.data.loanTokenAmountFilled).dividedBy(1000000000000000000).toFixed(4)}
+        </div>
+        <div style={this.ellipsisStyle}>
           <span style={this.paramHeaderStyle}>Interest accrued:</span>{" "}
           {new BigNumber(this.props.data.interestTotalAccrued).dividedBy(1000000000000000000).toFixed(4)}{" "}
           {this.props.getTokenNameFromAddress(this.props.data.interestTokenAddress.toLowerCase())}
@@ -126,6 +134,14 @@ export default class CardPosition extends Component {
           <span style={this.paramHeaderStyle}>Token:</span>{" "}
           {this.props.getTokenNameFromAddress(this.props.data.loanTokenAddress.toLowerCase())} (
           {this.props.data.loanTokenAddress})
+        </div>
+        <div style={this.ellipsisStyle}>
+          <span style={this.paramHeaderStyle}>Amount (taken / full):</span>{" "}
+          {this.state.fullOrder
+            ? new BigNumber(this.state.fullOrder.loanTokenAmount).dividedBy(1000000000000000000).toFixed(4)
+            : "?"}
+          {" / "}
+          {new BigNumber(this.props.data.loanTokenAmountFilled).dividedBy(1000000000000000000).toFixed(4)}
         </div>
         {this.renderProfitOrLoss()}
         <div style={this.ellipsisStyle}>{this.renderMarginLevels()}</div>
