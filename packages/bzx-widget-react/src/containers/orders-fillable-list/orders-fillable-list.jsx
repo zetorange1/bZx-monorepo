@@ -41,17 +41,7 @@ export default class OrdersFillableList extends Component {
   }
 
   componentDidMount() {
-    this.props
-      .listLoanOrdersBidsAvailable(e => true, this._sortOrdersComparatorFunction, this.props.listSize)
-      .then(result => {
-        this.setState({ ...this.state, bids: result });
-      });
-
-    this.props
-      .listLoanOrdersAsksAvailable(e => true, this._sortOrdersComparatorFunction, this.props.listSize)
-      .then(result => {
-        this.setState({ ...this.state, asks: result });
-      });
+    this._handleReload();
   }
 
   render() {
@@ -92,13 +82,13 @@ export default class OrdersFillableList extends Component {
     );
   }
 
-  _sortOrdersComparatorFunction = (a, b) => {
+  _sortLoanOrdersComparatorFunction = (a, b) => {
     return a.interestRate !== b.interestRate
-      ? b.interestRate - b.interestRate
+      ? b.interestRate - a.interestRate
       : a.loanTokenAmount !== b.loanTokenAmount
-        ? b.loanTokenAmount - b.loanTokenAmount
+        ? b.loanTokenAmount - a.loanTokenAmount
         : a.expirationUnixTimestampSec !== b.expirationUnixTimestampSec
-          ? b.expirationUnixTimestampSec - b.expirationUnixTimestampSec
+          ? b.expirationUnixTimestampSec - a.expirationUnixTimestampSec
           : 0;
   };
 
@@ -115,7 +105,7 @@ export default class OrdersFillableList extends Component {
   _handleReload = () => {
     const listLoanOrdersBidsAvailablePromise = this.props.listLoanOrdersBidsAvailable(
       e => true,
-      this._sortOrdersComparatorFunction,
+      this._sortLoanOrdersComparatorFunction,
       this.props.listSize
     );
     listLoanOrdersBidsAvailablePromise.then(result => {
@@ -124,7 +114,7 @@ export default class OrdersFillableList extends Component {
 
     const listLoanOrdersAsksAvailablePromise = this.props.listLoanOrdersAsksAvailable(
       e => true,
-      this._sortOrdersComparatorFunction,
+      this._sortLoanOrdersComparatorFunction,
       this.props.listSize
     );
     listLoanOrdersAsksAvailablePromise.then(result => {
