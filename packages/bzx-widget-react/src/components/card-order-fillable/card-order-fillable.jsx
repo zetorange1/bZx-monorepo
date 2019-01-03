@@ -85,7 +85,7 @@ export default class CardOrderFillable extends Component {
       .minus(this.props.data.orderFilledAmount)
       .minus(this.props.data.orderCancelledAmount);
 
-    return new amountInOrder.dividedBy(1000000000000000000).toFixed(4);
+    return amountInOrder.dividedBy(1000000000000000000).toFixed(4);
   }
 
   renderColumnExpDate() {
