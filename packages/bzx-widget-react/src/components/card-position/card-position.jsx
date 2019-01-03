@@ -235,7 +235,7 @@ export default class CardPosition extends Component {
           onClick={this._handleLoanOrderWithdrawProfitClicked}
           disabled={!this.state.actionLoanOrderWithdrawProfitEnabled}
         >
-          Cancel loan order
+          Withdraw profit
         </Button>
       </div>
     );
@@ -266,8 +266,8 @@ export default class CardPosition extends Component {
       loanOrderHash: this.props.data.loanOrderHash.toLowerCase()
     });
     resultPromise.then(
-      value => message.success(`Cancel loan order operation was successful! TX: ${value}`),
-      value => message.error(`Cancel loan order operation failed: ${value}!`)
+      value => message.success(`Withdraw profit operation was successful! TX: ${value}`),
+      value => message.error(`Withdraw profit operation failed: ${value}!`)
     );
   };
 
@@ -296,8 +296,8 @@ export default class CardPosition extends Component {
   _handleLoanTradeWithCurrentAssetClicked = () => {
     let resultPromise = this.props.onLoanTradeWithCurrentAsset({ loanOrderHash: this.props.data.loanOrderHash });
     resultPromise.then(
-      value => message.success(`Cancel loan order operation was successful! TX: ${value}`),
-      value => message.error(`Cancel loan order operation failed: ${value}!`)
+      value => message.success(`Trade with current asset operation was successful! TX: ${value}`),
+      value => message.error(`Trade with current asset operation failed: ${value}!`)
     );
   };
 }
