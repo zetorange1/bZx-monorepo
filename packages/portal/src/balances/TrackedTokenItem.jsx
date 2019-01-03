@@ -531,7 +531,7 @@ export default class TrackedTokenItem extends BZxComponent {
       FAUCET_TOKEN_SYMBOLS[this.props.bZx.networkName].includes(symbol);
     return (
       <Container>
-        <TokenInfo href={`${this.props.bZx.etherscanURL}token/${address}`}>
+        <TokenInfo href={`${this.props.bZx.etherscanURL}token/${address}?a=${this.props.accounts[0]}`}>
           <TokenIcon src={iconUrl} />
           <Name>{name}</Name>
         </TokenInfo>
