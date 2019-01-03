@@ -64,26 +64,27 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
             return 0;
         }
 
-        uint256 remainingLoanTokenAmount = orderValues[0].sub(_getUnavailableLoanTokenAmount(loanOrderHash));
-        uint256 cancelledLoanTokenAmount = Math.min256(cancelLoanTokenAmount, remainingLoanTokenAmount);
+        uint256 remainingCancelAmount = orderValues[0].sub(orderCancelledAmounts[loanOrderHash]);
+        uint256 cancelledLoanTokenAmount = Math.min256(cancelLoanTokenAmount, remainingCancelAmount);
         if (cancelledLoanTokenAmount == 0) {
             // none left to cancel
             return 0;
         }
 
-        if (remainingLoanTokenAmount == cancelledLoanTokenAmount) {
+        orderCancelledAmounts[loanOrderHash] = orderCancelledAmounts[loanOrderHash].add(cancelledLoanTokenAmount);
+
+        uint256 remainingLoanTokenAmount = orderValues[0].sub(_getUnavailableLoanTokenAmount(loanOrderHash));
+        if (remainingLoanTokenAmount == 0) {
             _removeLoanOrder(loanOrderHash, address(0));
         }
-
-        orderCancelledAmounts[loanOrderHash] = orderCancelledAmounts[loanOrderHash].add(cancelledLoanTokenAmount);
 
         emit LogLoanCancelled(
             msg.sender,
             cancelledLoanTokenAmount,
-            (remainingLoanTokenAmount - cancelledLoanTokenAmount),
+            remainingLoanTokenAmount,
             loanOrderHash
         );
-    
+
         return cancelledLoanTokenAmount;
     }
 
@@ -114,26 +115,27 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
             return 0;
         }
 
-        uint256 remainingLoanTokenAmount = loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrder.loanOrderHash));
-        uint256 cancelledLoanTokenAmount = Math.min256(cancelLoanTokenAmount, remainingLoanTokenAmount);
+        uint256 remainingCancelAmount = loanOrder.loanTokenAmount.sub(orderCancelledAmounts[loanOrder.loanOrderHash]);
+        uint256 cancelledLoanTokenAmount = Math.min256(cancelLoanTokenAmount, remainingCancelAmount);
         if (cancelledLoanTokenAmount == 0) {
             // none left to cancel
             return 0;
         }
 
-        if (remainingLoanTokenAmount == cancelledLoanTokenAmount) {
+        orderCancelledAmounts[loanOrder.loanOrderHash] = orderCancelledAmounts[loanOrder.loanOrderHash].add(cancelledLoanTokenAmount);
+
+        uint256 remainingLoanTokenAmount = loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrder.loanOrderHash));
+        if (remainingLoanTokenAmount == 0) {
             _removeLoanOrder(loanOrder.loanOrderHash, address(0));
         }
-
-        orderCancelledAmounts[loanOrder.loanOrderHash] = orderCancelledAmounts[loanOrder.loanOrderHash].add(cancelledLoanTokenAmount);
 
         emit LogLoanCancelled(
             msg.sender,
             cancelledLoanTokenAmount,
-            (remainingLoanTokenAmount - cancelledLoanTokenAmount),
+            remainingLoanTokenAmount,
             loanOrder.loanOrderHash
         );
-    
+
         return cancelledLoanTokenAmount;
     }
 

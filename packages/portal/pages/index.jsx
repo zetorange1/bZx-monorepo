@@ -306,6 +306,7 @@ switch (domainData.subdomain) {
                     bZx={bZx}
                     accounts={accounts}
                     tokens={tokens}
+                    changeTab={this.changeTab}
                     tabId={tabId}
                   />
                 </ContentContainer>

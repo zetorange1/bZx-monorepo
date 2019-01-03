@@ -66,7 +66,7 @@ export default class OrderItem extends React.Component {
     this.setState(p => ({ showRawOrder: !p.showRawOrder }));
 
   render() {
-    const { takenOrder, accounts, tokens, noShadow } = this.props;
+    const { takenOrder, accounts, tokens, noShadow, changeTab } = this.props;
     const { showRawOrder } = this.state;
     // const { loanPositions } = this.state;
 
@@ -140,6 +140,17 @@ export default class OrderItem extends React.Component {
       takenOrder.feeRecipientAddress !==
       `0x0000000000000000000000000000000000000000`;
 
+    let totalRemaining = toBigNumber(
+      takenOrder.loanTokenAmount -
+      takenOrder.orderFilledAmount -
+      takenOrder.orderCancelledAmount,
+      10 ** -loanTokenDecimals
+    );
+    if (totalRemaining.lt(0))
+      totalRemaining = "0";
+    else
+      totalRemaining = totalRemaining.toString();
+
     return (
       <Card style={noShadow === true ? { boxShadow: `unset` } : {}}>
         <CardContent>
@@ -170,7 +181,12 @@ export default class OrderItem extends React.Component {
               <AddressLink href={loanTokenAddressLink}>
                 {takenOrder.loanTokenAddress}
               </AddressLink>
-              )
+              ){` `}
+              {isMaker && toBigNumber(takenOrder.orderCancelledAmount).lt(takenOrder.loanTokenAmount) ? (
+                <a href="#" onClick={() => changeTab(`Orders_FillOrder`, takenOrder)} style={{ fontSize: `0.75rem` }}>
+                  Cancel Order
+                </a>
+              ) : `` }
             </DataPoint>
           </DataPointContainer>
 
@@ -212,14 +228,9 @@ export default class OrderItem extends React.Component {
             </DataPointContainer>
 
             <DataPointContainer>
-              <Label>Total Remaining</Label>
+              <Label>Total Fillable</Label>
               <DataPoint>
-                {fromBigNumber(
-                  takenOrder.loanTokenAmount -
-                    takenOrder.orderFilledAmount -
-                    takenOrder.orderCancelledAmount,
-                  10 ** loanTokenDecimals
-                )}
+                {totalRemaining}
                 {` `}
                 {loanTokenSymbol}
               </DataPoint>

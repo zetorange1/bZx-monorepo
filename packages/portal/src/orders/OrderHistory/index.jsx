@@ -59,7 +59,7 @@ export default class OrderHistory extends BZxComponent {
   };
 
   render() {
-    const { bZx, accounts, tokens } = this.props;
+    const { bZx, accounts, tokens, changeTab } = this.props;
     const { orders, loading, error, count } = this.state;
     if (error) {
       return (
@@ -107,15 +107,26 @@ export default class OrderHistory extends BZxComponent {
         </InfoContainer>
         <br />
         {orders.length > 0 ? (
-          orders.map(takenOrder => (
-            <OrderItem
-              key={takenOrder.loanOrderHash}
-              bZx={bZx}
-              accounts={accounts}
-              tokens={tokens}
-              takenOrder={takenOrder}
-            />
-          ))
+          orders.map(takenOrder => {
+            takenOrder.networkId = bZx.networkId; // eslint-disable-line no-param-reassign
+            takenOrder.makerRole = // eslint-disable-line no-param-reassign
+            takenOrder.collateralTokenAddress ===
+              `0x0000000000000000000000000000000000000000`
+                ? `0`
+                : `1`;
+            // console.log(bZx);
+            // if (takenOrder.makerAddress !== accounts[0].toLowerCase())
+            return (
+              <OrderItem
+                key={takenOrder.loanOrderHash}
+                bZx={bZx}
+                accounts={accounts}
+                tokens={tokens}
+                takenOrder={takenOrder}
+                changeTab={changeTab}
+              />
+            );
+          })
         ) : (
           <p>You have no orders, try refreshing.</p>
         )}

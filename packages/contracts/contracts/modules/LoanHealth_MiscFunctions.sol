@@ -545,7 +545,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
             // since order is not expired, we make the closeAmount available for borrowing again
             orderFilledAmounts[loanOrderHash] = orderFilledAmounts[loanOrderHash].sub(closeAmount);
 
-            if (!orderListIndex[loanOrderHash][address(0)].isSet) {
+            if (!orderListIndex[loanOrderHash][address(0)].isSet && loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrderHash)) > 0) {
                 // record of fillable (non-expired, unfilled) orders
                 orderList[address(0)].push(loanOrderHash);
                 orderListIndex[loanOrderHash][address(0)] = ListIndex({
@@ -718,7 +718,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
                 // since order is not expired, we make the positionTokenAmountFilled available for borrowing again
                 orderFilledAmounts[loanOrder.loanOrderHash] = orderFilledAmounts[loanOrder.loanOrderHash].sub(loanPosition.positionTokenAmountFilled);
 
-                if (!orderListIndex[loanOrder.loanOrderHash][address(0)].isSet) {
+                if (!orderListIndex[loanOrder.loanOrderHash][address(0)].isSet && loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrder.loanOrderHash)) > 0) {
                     // record of fillable (non-expired, unfilled) orders
                     orderList[address(0)].push(loanOrder.loanOrderHash);
                     orderListIndex[loanOrder.loanOrderHash][address(0)] = ListIndex({

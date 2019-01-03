@@ -69,7 +69,8 @@ export default ({
   interestTokenAddress,
   interestAmount,
   collateralTokenAddress,
-  collateralTokenAmount
+  collateralTokenAmount,
+  isMaker
 }) => {
   const getTokenInfo = address => tokens.filter(t => t.address === address)[0];
   const loanToken = getTokenInfo(loanTokenAddress);
@@ -95,8 +96,8 @@ export default ({
           <Tooltip title={<TooltipText>{loanToken.address}</TooltipText>}>
             <CoinAmount>
               {loanTokenAvailable
-                ? `${loanTokenAvailable} ${loanToken.symbol} Available`
-                : `(order already filled)`}
+                ? `${loanTokenAvailable} ${loanToken.symbol} Available` + (isMaker ? ` for Cancel` : ``)
+                : `(order already filled/cancelled)`}
             </CoinAmount>
           </Tooltip>
         </TokenContainer>

@@ -25,7 +25,8 @@ contract MiscFunctions is BZxStorage, MathFunctions {
         view
         returns (uint)
     {
-        return orderFilledAmounts[loanOrderHash].add(orderCancelledAmounts[loanOrderHash]);
+        uint256 unavailableAmount = orderFilledAmounts[loanOrderHash].add(orderCancelledAmounts[loanOrderHash]);
+        return (orders[loanOrderHash].loanTokenAmount >= unavailableAmount ? unavailableAmount : orders[loanOrderHash].loanTokenAmount);
     }
 
     function _getCollateralRequired(

@@ -72,11 +72,13 @@ export default class FillOrder extends BZxComponent {
       const orderDetail = await this.getSingleOrder(orderHash);
       console.log(orderDetail);
       if (Object.keys(orderDetail).length !== 0) {
-        const loanTokenAvailable =
+        let loanTokenAvailable =
           orderDetail.loanTokenAmount -
-          orderDetail.orderFilledAmount -
+          (this.props.order.makerAddress.toLowerCase() !== this.props.accounts[0].toLowerCase() ? orderDetail.orderFilledAmount : 0) -
           orderDetail.orderCancelledAmount;
-        this.setState({ loanTokenAvailable });
+          if (loanTokenAvailable < 0)
+            loanTokenAvailable = 0;
+          this.setState({ loanTokenAvailable });
       } else {
         const cancelledAmount = await this.props.bZx.orderCancelledAmount(
           orderHash
@@ -337,6 +339,7 @@ export default class FillOrder extends BZxComponent {
             )}
             collateralTokenAddress={order.collateralTokenAddress}
             collateralTokenAmount={this.state.collateralTokenAmount}
+            isMaker={isMaker}
           />
           <Details
             bZx={bZx}
@@ -414,7 +417,7 @@ export default class FillOrder extends BZxComponent {
           <Fragment>
             <Section>
               <p>
-                This order is completely filled. There is no loan token
+                This order is completely filled or cancelled. There is no loan token
                 remaining.
               </p>
             </Section>

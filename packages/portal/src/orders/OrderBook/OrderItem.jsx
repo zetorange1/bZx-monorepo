@@ -144,6 +144,17 @@ export default class OrderItem extends React.Component {
       fillableOrder.feeRecipientAddress !==
       `0x0000000000000000000000000000000000000000`;
 
+    let totalRemaining = toBigNumber(
+      fillableOrder.loanTokenAmount -
+        fillableOrder.orderFilledAmount -
+        fillableOrder.orderCancelledAmount,
+      10 ** -loanTokenDecimals
+    );
+    if (totalRemaining.lt(0))
+      totalRemaining = "0";
+    else
+      totalRemaining = totalRemaining.toString();
+
     return (
       <Card style={noShadow === true ? { boxShadow: `unset` } : {}}>
         <CardContent>
@@ -218,14 +229,9 @@ export default class OrderItem extends React.Component {
             </DataPointContainer>
 
             <DataPointContainer>
-              <Label>Total Remaining</Label>
+              <Label>Total Fillable</Label>
               <DataPoint>
-                {fromBigNumber(
-                  fillableOrder.loanTokenAmount -
-                    fillableOrder.orderFilledAmount -
-                    fillableOrder.orderCancelledAmount,
-                  10 ** loanTokenDecimals
-                )}
+                {totalRemaining}
                 {` `}
                 {loanTokenSymbol}
               </DataPoint>
