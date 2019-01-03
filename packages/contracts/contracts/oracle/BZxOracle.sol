@@ -21,7 +21,7 @@ import "../storage/BZxObjects.sol";
 import "../shared/WETHInterface.sol";
 
 // solhint-disable-next-line contract-name-camelcase
-interface KyberNetwork_Interface {
+interface KyberNetworkInterface {
     /// @notice use token address ETH_TOKEN_ADDRESS for ether
     /// @dev makes a trade between src and dest token and send dest token to destAddress
     /// @param src Src token
@@ -53,6 +53,21 @@ interface KyberNetwork_Interface {
         external
         view
         returns (uint256 expectedRate, uint256 slippageRate);
+
+    function kyberNetworkContract()
+        external
+        view
+        returns (address);
+
+    function getReserves()
+        external
+        view
+        returns (address[] memory);
+
+    function feeBurnerContract()
+        external
+        view
+        returns (address);
 }
 
 
@@ -688,6 +703,24 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         }
     }
 
+    function claimFees()
+        public
+    {
+        address kyberNetworkContract = KyberNetworkInterface(kyberContract).kyberNetworkContract();
+        address[] memory reserves = KyberNetworkInterface(kyberNetworkContract).getReserves();
+        address feeBurnerAddress = KyberNetworkInterface(kyberNetworkContract).feeBurnerContract();
+        for(uint256 i=0; i < reserves.length; i++) {
+            (bool result,) = feeBurnerAddress.call(
+                abi.encodeWithSignature(
+                    "sendFeeToWallet(address,address)",
+                    address(this),
+                    reserves[i]
+                )
+            );
+            require(result, "sendFeeToWallet failed");
+        }
+    }
+
     /*
     * Owner functions
     */
@@ -823,6 +856,42 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         ));
     }
 
+    function tradeOwnedAsset(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint256 sourceTokenAmount)
+        public
+        onlyOwner
+        returns (uint256 destTokenAmountReceived)
+    {
+        // re-up the Kyber spend approval if needed
+        uint256 tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(address(this), kyberContract);
+        if (tempAllowance < sourceTokenAmount) {
+            if (tempAllowance > 0) {
+                // reset approval to 0
+                eip20Approve(
+                    sourceTokenAddress,
+                    kyberContract,
+                    0);
+            }
+
+            eip20Approve(
+                sourceTokenAddress,
+                kyberContract,
+                MAX_FOR_KYBER);
+        }
+
+        destTokenAmountReceived = KyberNetworkInterface(kyberContract).trade(
+            sourceTokenAddress,
+            sourceTokenAmount,
+            destTokenAddress,
+            address(this),
+            MAX_FOR_KYBER,
+            0,
+            address(this)
+        );
+    }
+
     /*
     * Internal functions
     */
@@ -894,7 +963,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             expectedRate = 10**18;
             slippageRate = 10**18;
         } else {
-            (expectedRate, slippageRate) = KyberNetwork_Interface(kyberContract).getExpectedRate(
+            (expectedRate, slippageRate) = KyberNetworkInterface(kyberContract).getExpectedRate(
                 sourceTokenAddress,
                 destTokenAddress,
                 sourceTokenAmount
@@ -958,14 +1027,14 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
             uint256 sourceBalanceBefore = EIP20(sourceTokenAddress).balanceOf.gas(4999)(address(this));
 
-            destTokenAmountReceived = KyberNetwork_Interface(kyberContract).trade(
+            destTokenAmountReceived = KyberNetworkInterface(kyberContract).trade(
                 sourceTokenAddress,
                 sourceTokenAmount,
                 destTokenAddress,
                 vaultContract, // BZxVault receives the trade proceeds
                 maxDestTokenAmount,
                 0, // no min coversation rate
-                address(0)
+                address(this)
             );
 
             sourceTokenAmountUsed = sourceBalanceBefore.sub(EIP20(sourceTokenAddress).balanceOf.gas(4999)(address(this)));
@@ -1032,7 +1101,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                     receiver,
                     destWethAmountNeeded,
                     0, // no min coversation rate
-                    address(0)
+                    address(this)
                 )
             );
 
@@ -1117,7 +1186,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                     receiver,
                     destTokenAmountNeeded,
                     0, // no min coversation rate
-                    address(0)
+                    address(this)
                 )
             );
 

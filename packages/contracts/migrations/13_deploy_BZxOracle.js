@@ -55,6 +55,13 @@ module.exports = (deployer, network, accounts) => {
       .then(async function() {
         var oracle = await BZxOracle.deployed();
 
+        if (network == "mainnet") {
+          let txData = web3.eth.abi.encodeFunctionSignature('registerWallet(address)') +
+            web3.eth.abi.encodeParameters(['address'], [oracle.address]).substr(2);
+
+          await web3.eth.sendTransaction({to: config["addresses"][network]["KyberRegisterWallet"], data: txData});
+        }    
+
         var wethT = await EIP20.at(config["addresses"][network]["ZeroEx"]["WETH9"]);
         if (!OLD_ORACLE_ADDRESS) {
           var weth = await WETH.at(config["addresses"][network]["ZeroEx"]["WETH9"]);
