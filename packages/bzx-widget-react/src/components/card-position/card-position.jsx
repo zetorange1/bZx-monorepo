@@ -100,8 +100,14 @@ export default class CardPosition extends Component {
           {this.props.data.loanTokenAddress})
         </div>
         <div style={this.ellipsisStyle}>
-          <span style={this.paramHeaderStyle}>Amount (taken / full):</span>{" "}
-          {new BigNumber(this.props.data.loanTokenAmountFilled).dividedBy(1000000000000000000).toFixed(4)}
+          <span style={this.paramHeaderStyle}>Amount (avail. / full):</span>{" "}
+          {this.state.fullOrder
+            ? new BigNumber(this.state.fullOrder.loanTokenAmount)
+                .minus(new BigNumber(this.props.data.loanTokenAmountFilled))
+                .minus(new BigNumber(this.state.fullOrder.orderCancelledAmount))
+                .dividedBy(1000000000000000000)
+                .toFixed(4)
+            : "?"}
           {" / "}
           {this.state.fullOrder
             ? new BigNumber(this.state.fullOrder.loanTokenAmount).dividedBy(1000000000000000000).toFixed(4)
@@ -136,12 +142,18 @@ export default class CardPosition extends Component {
           {this.props.data.loanTokenAddress})
         </div>
         <div style={this.ellipsisStyle}>
-          <span style={this.paramHeaderStyle}>Amount (taken / full):</span>{" "}
+          <span style={this.paramHeaderStyle}>Amount (avail. / full):</span>{" "}
+          {this.state.fullOrder
+            ? new BigNumber(this.state.fullOrder.loanTokenAmount)
+                .minus(new BigNumber(this.props.data.loanTokenAmountFilled))
+                .minus(new BigNumber(this.state.fullOrder.orderCancelledAmount))
+                .dividedBy(1000000000000000000)
+                .toFixed(4)
+            : "?"}
+          {" / "}
           {this.state.fullOrder
             ? new BigNumber(this.state.fullOrder.loanTokenAmount).dividedBy(1000000000000000000).toFixed(4)
             : "?"}
-          {" / "}
-          {new BigNumber(this.props.data.loanTokenAmountFilled).dividedBy(1000000000000000000).toFixed(4)}
         </div>
         {this.renderProfitOrLoss()}
         <div style={this.ellipsisStyle}>{this.renderMarginLevels()}</div>
