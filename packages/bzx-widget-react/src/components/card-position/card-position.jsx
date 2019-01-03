@@ -131,7 +131,6 @@ export default class CardPosition extends Component {
           {moment.unix(this.props.data.loanEndUnixTimestampSec).format("dddd, MMMM Do YYYY, h:mm:ss a")}
         </div>
         <br />
-        {this.renderLoanOrderWithdrawProfitButton()}
         {this.renderLoanOrderCancelButton()}
       </Card>
     );
@@ -170,6 +169,7 @@ export default class CardPosition extends Component {
         </div>
         <br />
         {this.renderTradeWithCurrentAssetButton()}
+        {this.renderLoanOrderWithdrawProfitButton()}
         {this.renderLoanCloseButton()}
       </Card>
     );
