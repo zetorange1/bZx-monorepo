@@ -18,6 +18,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  "homepage": "https://portal.bzx.network/widget",
   "eslintConfig": {
     "extends": "react-app"
   },
