@@ -65,7 +65,7 @@ module.exports = (deployer, network, accounts) => {
             data: txData,
             gasPrice: 10000000000
           });
-        }    
+        }
 
         var wethT = await EIP20.at(config["addresses"][network]["ZeroEx"]["WETH9"]);
         if (!OLD_ORACLE_ADDRESS) {
