@@ -6804,19 +6804,6 @@ ethereumjs-wallet@0.6.0:
     utf8 "^2.1.1"
     uuid "^2.0.1"
 
-ethereumjs-wallet@^0.6.0:
-  version "0.6.2"
-  resolved "https://registry.yarnpkg.com/ethereumjs-wallet/-/ethereumjs-wallet-0.6.2.tgz#67244b6af3e8113b53d709124b25477b64aeccda"
-  dependencies:
-    aes-js "^3.1.1"
-    bs58check "^2.1.2"
-    ethereumjs-util "^5.2.0"
-    hdkey "^1.0.0"
-    safe-buffer "^5.1.2"
-    scrypt.js "^0.2.0"
-    utf8 "^3.0.0"
-    uuid "^3.3.2"
-
 ethereumjs-wallet@^0.6.3:
   version "0.6.3"
   resolved "https://registry.yarnpkg.com/ethereumjs-wallet/-/ethereumjs-wallet-0.6.3.tgz#b0eae6f327637c2aeb9ccb9047b982ac542e6ab1"
@@ -8486,7 +8473,7 @@ hdkey@^0.7.0, hdkey@^0.7.1:
     coinstring "^2.0.0"
     secp256k1 "^3.0.1"
 
-hdkey@^1.0.0, hdkey@^1.1.0:
+hdkey@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/hdkey/-/hdkey-1.1.0.tgz#e74e7b01d2c47f797fa65d1d839adb7a44639f29"
   dependencies:
@@ -15832,14 +15819,6 @@ truffle-hdwallet-provider@^1.0.0-web3one.1:
   version "1.0.0-web3one.1"
   resolved "https://registry.yarnpkg.com/truffle-hdwallet-provider/-/truffle-hdwallet-provider-1.0.0-web3one.1.tgz#89fbdb74a13156112b5c7e1c4b8f0e03a360b867"
 
-truffle-privatekey-provider@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/truffle-privatekey-provider/-/truffle-privatekey-provider-0.1.0.tgz#16a3ecbafc5d911dccc9850ba2aa413022c77009"
-  dependencies:
-    ethereumjs-wallet "^0.6.0"
-    web3 "^1.0.0-beta.34"
-    web3-provider-engine "^14.0.5"
-
 "truffle-privatekey-provider@https://github.com/bZxNetwork/truffle-privatekey-provider":
   version "1.0.0-web3one.0"
   resolved "https://github.com/bZxNetwork/truffle-privatekey-provider#f56fcbb82fe797ebe8246ac64e1e6c5c2349cfd4"
@@ -16955,7 +16934,7 @@ web3-net@1.0.0-beta.36:
     web3-core-method "1.0.0-beta.36"
     web3-utils "1.0.0-beta.36"
 
-web3-provider-engine@14.0.6, web3-provider-engine@^14.0.5, web3-provider-engine@^14.0.6:
+web3-provider-engine@14.0.6, web3-provider-engine@^14.0.6:
   version "14.0.6"
   resolved "https://registry.yarnpkg.com/web3-provider-engine/-/web3-provider-engine-14.0.6.tgz#cbdd66fe20c0136a3a495cbe40d18b6c4160d5f0"
   dependencies:

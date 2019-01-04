@@ -1,6 +1,6 @@
 {
   "name": "@bzxnetwork/bounty_hunters",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Scripts to monitor position health and liquidate",
   "keywords": [],
   "license": "Apache-2.0",
@@ -14,12 +14,12 @@
   },
   "dependencies": {
     "bignumber.js": "^7.0.1",
-    "@bzxnetwork/bzx.js": "^0.3.6",
+    "@bzxnetwork/bzx.js": "0.4.3",
     "forever-monitor": "^1.7.1",
     "minimist": "^1.2.0",
     "moment": "^2.22.1",
     "truffle-hdwallet-provider": "^1.0.0-web3one.1",
-    "truffle-privatekey-provider": "^0.1.0",
+    "truffle-privatekey-provider": "https://github.com/bZxNetwork/truffle-privatekey-provider",
     "web3": "1.0.0-beta.34",
     "winston": "^3.0.0"
   },

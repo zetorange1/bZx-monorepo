@@ -31,7 +31,6 @@
     "web3-utils": "1.0.0-beta.34"
   },
   "devDependencies": {
-    "@bzxnetwork/bzx.js": "^0.3.6",
     "@digix/doxity": "git://github.com/DigixGlobal/doxity.git#doxity-latest",
     "babel": "^6.23.0",
     "babel-cli": "^6.26.0",
