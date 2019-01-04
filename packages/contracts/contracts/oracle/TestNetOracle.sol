@@ -24,7 +24,7 @@ contract TestNetOracle is BZxOracle {
 
     address public faucetContract;
 
-    mapping (address => mapping (address => uint)) public rates;
+    mapping (address => mapping (address => uint256)) public rates;
 
     constructor(
         address _vaultContract,

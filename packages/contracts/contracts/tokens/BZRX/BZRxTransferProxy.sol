@@ -14,7 +14,7 @@ contract BZRxTransferProxy is Ownable {
     using SafeMath for uint256;
 
     address public bZRxTokenContractAddress;
-    mapping (address => uint) public transferAllowance;
+    mapping (address => uint256) public transferAllowance;
 
     string public name = "bZx Protocol Token";
     string public symbol = "BZRX";

@@ -77,7 +77,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     // this is the value the Kyber portal uses when setting a very high maximum number
     uint256 internal constant MAX_FOR_KYBER = 57896044618658097711785492504343953926634992332820282019728792003956564819968;
 
-    mapping (address => uint) internal decimals;
+    mapping (address => uint256) internal decimals;
 
     // Bounty hunters are remembursed from collateral
     // The oracle requires a minimum amount
@@ -112,7 +112,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     address public bZRxTokenContract;
 /* solhint-enable var-name-mixedcase */
 
-    mapping (uint256 => uint) public collateralInWethAmounts; // mapping of position ids to initial collateralInWethAmounts
+    mapping (uint256 => uint256) public collateralInWethAmounts; // mapping of position ids to initial collateralInWethAmounts
 
     constructor(
         address _vaultContract,

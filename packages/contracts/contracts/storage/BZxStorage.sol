@@ -31,13 +31,13 @@ contract BZxStorage is BZxObjects, BZxEvents, ReentrancyGuard, Ownable, GasTrack
     // Loan Orders
     mapping (bytes32 => LoanOrder) public orders; // mapping of loanOrderHash to on chain loanOrders
     mapping (bytes32 => LoanOrderAux) public orderAux; // mapping of loanOrderHash to on chain loanOrder auxiliary parameters
-    mapping (bytes32 => uint) public orderFilledAmounts; // mapping of loanOrderHash to loanTokenAmount filled
-    mapping (bytes32 => uint) public orderCancelledAmounts; // mapping of loanOrderHash to loanTokenAmount cancelled
+    mapping (bytes32 => uint256) public orderFilledAmounts; // mapping of loanOrderHash to loanTokenAmount filled
+    mapping (bytes32 => uint256) public orderCancelledAmounts; // mapping of loanOrderHash to loanTokenAmount cancelled
     mapping (bytes32 => address) public orderLender; // mapping of loanOrderHash to lender (only one lender per order)
 
     // Loan Positions
     mapping (uint256 => LoanPosition) public loanPositions; // mapping of position ids to loanPositions
-    mapping (bytes32 => mapping (address => uint)) public loanPositionsIds; // mapping of loanOrderHash to mapping of trader address to position id
+    mapping (bytes32 => mapping (address => uint256)) public loanPositionsIds; // mapping of loanOrderHash to mapping of trader address to position id
 
     // Lists
     mapping (address => bytes32[]) public orderList; // mapping of lenders and trader addresses to array of loanOrderHashes
@@ -49,10 +49,10 @@ contract BZxStorage is BZxObjects, BZxEvents, ReentrancyGuard, Ownable, GasTrack
     mapping (uint256 => ListIndex) public positionListIndex; // mapping of position ids to ListIndex objects
 
     // Interest
-    mapping (uint256 => uint) public interestTotal; // mapping of position ids to total interest escrowed when the loan opens
-    mapping (uint256 => uint) public interestPaid; // mapping of position ids to amount of interest paid so far to a lender
-    mapping (uint256 => uint) public interestRefunded; // mapping of position ids to amount of interest refunded to the trader
-    mapping (uint256 => uint) public interestPaidDate; // mapping of position ids to timestamp of last interest pay date
+    mapping (uint256 => uint256) public interestTotal; // mapping of position ids to total interest escrowed when the loan opens
+    mapping (uint256 => uint256) public interestPaid; // mapping of position ids to amount of interest paid so far to a lender
+    mapping (uint256 => uint256) public interestRefunded; // mapping of position ids to amount of interest refunded to the trader
+    mapping (uint256 => uint256) public interestPaidDate; // mapping of position ids to timestamp of last interest pay date
 
     // Other Storage
     mapping (address => address) public oracleAddresses; // mapping of oracles to their current logic contract

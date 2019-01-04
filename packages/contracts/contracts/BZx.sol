@@ -547,7 +547,7 @@ contract BZx is BZxStorage {
         address trader)
         public
         view
-        returns (uint, uint, uint);
+        returns (uint256, uint256, uint256);
 
     /// @dev Gets current interest data for the loan
     /// @param loanOrderHash A unique hash representing the loan order

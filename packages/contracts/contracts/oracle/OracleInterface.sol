@@ -251,7 +251,7 @@ contract OracleInterface {
         uint256 sourceTokenAmount,
         uint256 maxDestTokenAmount)
         public
-        returns (uint, uint);
+        returns (uint256, uint256);
 
     /// @dev Places an automatic on-chain trade with a liquidity provider
     /// @param loanOrder The loanOrder object
@@ -267,7 +267,7 @@ contract OracleInterface {
         uint256 maxDestTokenAmount,
         bool ensureHealthy)
         public
-        returns (uint, uint);
+        returns (uint256, uint256);
 
     /// @dev Verifies a position has fallen below margin maintenance
     /// @dev then liquidates the position on-chain
@@ -278,7 +278,7 @@ contract OracleInterface {
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition)
         public
-        returns (uint, uint);
+        returns (uint256, uint256);
 
     /// @dev Liquidates collateral to cover loan losses and does any other processing required by the oracle
     /// @param loanOrder The loanOrder object

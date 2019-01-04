@@ -13,7 +13,7 @@ contract BZRXFakeFaucet is EIP20Wrapper, Ownable {
 
     uint256 public faucetThresholdSecs = 14400; // 4 hours
 
-    mapping (address => mapping (address => uint)) public faucetUsers; // mapping of users to mapping of tokens to last request times
+    mapping (address => mapping (address => uint256)) public faucetUsers; // mapping of users to mapping of tokens to last request times
 
     function() external payable {}
 

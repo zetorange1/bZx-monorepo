@@ -43,7 +43,7 @@ contract BZRxTokenSale is Ownable {
     mapping (address => TokenPurchases) public purchases;
 
     bool public whitelistEnforced = false;
-    mapping (address => uint) public whitelist;
+    mapping (address => uint256) public whitelist;
 
     modifier saleOpen() {
         require(!saleClosed, "sale is closed");

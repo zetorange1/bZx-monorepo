@@ -373,7 +373,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
         address trader)
         public
         view
-        returns (uint, uint, uint)
+        returns (uint256, uint256, uint256)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
@@ -789,7 +789,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
         LoanPosition memory loanPosition)
         internal
         view
-        returns (uint, uint, uint)
+        returns (uint256, uint256, uint256)
     {
         return (
             loanOrder.initialMarginAmount,

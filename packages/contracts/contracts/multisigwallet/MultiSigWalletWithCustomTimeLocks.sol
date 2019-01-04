@@ -25,7 +25,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     mapping (bytes4 => CustomTimeLock) public customTimeLocks; // mapping of function headers to CustomTimeLock structs
     string[] public customTimeLockFunctions; // array of functions with custom values
 
-    mapping (uint256 => uint) public confirmationTimes;
+    mapping (uint256 => uint256) public confirmationTimes;
 
     modifier notFullyConfirmed(uint256 transactionId) {
         require(!isConfirmed(transactionId));
