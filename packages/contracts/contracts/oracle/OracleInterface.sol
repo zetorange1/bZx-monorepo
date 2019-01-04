@@ -322,13 +322,13 @@ contract OracleInterface {
     /// @dev Returns the current excess or deficit position amount from the loan principal
     /// @param loanOrder The loanOrder object
     /// @param loanPosition The loanPosition object
-    /// @return isPositive, offsetAmount (denominated in positionToken)
+    /// @return isPositive, positionOffsetAmount, loanOffsetAmount
     function getPositionOffset(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition)
         public
         view
-        returns (bool isPositive, uint256 offsetAmount);
+        returns (bool isPositive, uint256 positionOffsetAmount, uint256 loanOffsetAmount);
 
     /// @dev Returns the current margin level for this particular loan/position
     /// @param loanTokenAddress The token that was loaned
@@ -347,7 +347,7 @@ contract OracleInterface {
         uint256 collateralTokenAmount)
         public
         view
-        returns (uint);
+        returns (uint256);
 
     /// @dev Checks if the ERC20 token pair is supported by the oracle
     /// @param sourceTokenAddress Token being sold

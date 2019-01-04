@@ -53,7 +53,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
         external
         nonReentrant
         tracksGas
-        returns (uint)
+        returns (uint256)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
@@ -87,7 +87,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
         external
         nonReentrant
         tracksGas
-        returns (uint)
+        returns (uint256)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {

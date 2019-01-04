@@ -52,7 +52,7 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
         external
         nonReentrant
         tracksGas
-        returns (uint)
+        returns (uint256)
     {
         bytes32 loanOrderHash = _getLoanOrderHash(orderAddresses, orderValues, oracleData);
 
@@ -98,7 +98,7 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
         external
         nonReentrant
         tracksGas
-        returns (uint)
+        returns (uint256)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {

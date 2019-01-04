@@ -40,7 +40,7 @@ contract OrderTaking_takeLoanOrderAsTrader is BZxStorage, BZxProxiable, OrderTak
     /// @param tradeTokenToFillAddress If non-zero address, will swap the loanToken for this asset using the oracle.
     /// @param withdrawOnOpen If true, will overcollateralize the loan and withdraw the position token to the trader's wallet. If set, tradeTokenToFillAddress is ignored.
     /// @param signature ECDSA signature in raw bytes (rsv).
-    /// @return Total amount of loanToken borrowed (uint).
+    /// @return Total amount of loanToken borrowed (uint256).
     /// @dev Traders can take a portion of the total coin being lended (loanTokenAmountFilled).
     /// @dev Traders also specify the token that will fill the margin requirement if they are taking the order.
     function takeLoanOrderAsTrader(
@@ -55,7 +55,7 @@ contract OrderTaking_takeLoanOrderAsTrader is BZxStorage, BZxProxiable, OrderTak
         external
         nonReentrant
         tracksGas
-        returns (uint)
+        returns (uint256)
     {
         bytes32 loanOrderHash = _addLoanOrder(
             orderAddresses,

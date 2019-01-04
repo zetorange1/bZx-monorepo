@@ -43,7 +43,7 @@ interface KyberNetworkInterface {
     )
         external
         payable
-        returns(uint);
+        returns(uint256);
 
     /// @notice use token address ETH_TOKEN_ADDRESS for ether
     function getExpectedRate(
@@ -591,14 +591,15 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                             .div(_getDecimalPrecision(sourceTokenAddress, destTokenAddress));
     }
 
-    // returns bool isPositive, uint256 offsetAmount
-    // the position's offset from loan principal denominated in positionToken
+    // isPositive: true if there's a profit
+    // positionOffsetAmount: the profit or loss in positionToken
+    // loanOffsetAmount: the profit or loss in loanToken
     function getPositionOffset(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition)
         public
         view
-        returns (bool isPositive, uint256 offsetAmount)
+        returns (bool isPositive, uint256 positionOffsetAmount, uint256 loanOffsetAmount)
     {
         uint256 collateralToPositionAmount;
         if (loanPosition.collateralTokenAddressFilled == loanPosition.positionTokenAddressFilled) {
@@ -609,34 +610,42 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 loanPosition.positionTokenAddressFilled,
                 loanPosition.collateralTokenAmountFilled);
             if (collateralToPositionRate == 0) {
-                return (false,0);
+                return (false,0,0);
             }
             collateralToPositionAmount = loanPosition.collateralTokenAmountFilled.mul(collateralToPositionRate).div(_getDecimalPrecision(loanPosition.collateralTokenAddressFilled, loanPosition.positionTokenAddressFilled));
         }
 
         uint256 loanToPositionAmount;
+        uint256 loanToPositionRate;
         if (loanOrder.loanTokenAddress == loanPosition.positionTokenAddressFilled) {
             loanToPositionAmount = loanPosition.loanTokenAmountFilled;
+            loanToPositionRate = 10**18;
         } else {
-            (uint256 loanToPositionRate,) = _getExpectedRate(
+            (loanToPositionRate,) = _getExpectedRate(
                 loanOrder.loanTokenAddress,
                 loanPosition.positionTokenAddressFilled,
                 loanPosition.loanTokenAmountFilled);
             if (loanToPositionRate == 0) {
-                return (false,0);
+                return (false,0,0);
             }
             loanToPositionAmount = loanPosition.loanTokenAmountFilled.mul(loanToPositionRate).div(_getDecimalPrecision(loanOrder.loanTokenAddress, loanPosition.positionTokenAddressFilled));
         }
 
-        uint256 initialPosition = loanToPositionAmount.add(loanToPositionAmount.mul(loanOrder.initialMarginAmount).div(10**20));
-        uint256 currentPosition = loanPosition.positionTokenAmountFilled.add(collateralToPositionAmount);
-        if (currentPosition > initialPosition) {
+        uint256 combinedCollateral = loanPosition.positionTokenAmountFilled.add(collateralToPositionAmount);
+        uint256 initialCombinedCollateral = loanToPositionAmount.add(loanToPositionAmount.mul(loanOrder.initialMarginAmount).div(10**20));
+
+        isPositive = false;
+        uint256 netCollateral = 0;
+        if (combinedCollateral > initialCombinedCollateral) {
+            netCollateral = combinedCollateral.sub(initialCombinedCollateral);
             isPositive = true;
-            offsetAmount = Math.min256(loanPosition.positionTokenAmountFilled, currentPosition - initialPosition);
-        } else {
-            isPositive = false;
-            offsetAmount = initialPosition - currentPosition;
+        } else if (combinedCollateral < initialCombinedCollateral) {
+            netCollateral = initialCombinedCollateral.sub(combinedCollateral);
         }
+
+        positionOffsetAmount = Math.min256(loanPosition.positionTokenAmountFilled, netCollateral);
+
+        loanOffsetAmount = netCollateral.mul(_getDecimalPrecision(loanOrder.loanTokenAddress, loanPosition.positionTokenAddressFilled)).div(loanToPositionRate);
     }
 
     /// @return The current margin amount (a percentage -> i.e. 54350000000000000000 == 54.35%)
@@ -649,7 +658,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         uint256 collateralTokenAmount)
         public
         view
-        returns (uint)
+        returns (uint256)
     {
         uint256 collateralToLoanAmount;
         if (collateralTokenAddress == loanTokenAddress) {
@@ -666,10 +675,12 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         }
 
         uint256 positionToLoanAmount;
+        uint256 positionToLoanRate;
         if (positionTokenAddress == loanTokenAddress) {
             positionToLoanAmount = positionTokenAmount;
+            positionToLoanRate = 10**18;
         } else {
-            (uint256 positionToLoanRate,) = _getExpectedRate(
+            (positionToLoanRate,) = _getExpectedRate(
                 positionTokenAddress,
                 loanTokenAddress,
                 positionTokenAmount);
@@ -679,9 +690,9 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             positionToLoanAmount = positionTokenAmount.mul(positionToLoanRate).div(_getDecimalPrecision(positionTokenAddress, loanTokenAddress));
         }
 
-        uint256 totalCollateral = collateralToLoanAmount.add(positionToLoanAmount);
-        if (totalCollateral > loanTokenAmount) {
-            return totalCollateral.sub(loanTokenAmount).mul(10**20).div(loanTokenAmount);
+        uint256 combinedCollateral = collateralToLoanAmount.add(positionToLoanAmount);
+        if (combinedCollateral > loanTokenAmount) {
+            return combinedCollateral.sub(loanTokenAmount).mul(10**20).div(loanTokenAmount);
         } else {
             return 0;
         }
@@ -934,7 +945,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         address destToken)
         internal
         view
-        returns(uint)
+        returns(uint256)
     {
         uint256 sourceTokenDecimals = decimals[sourceToken];
         if (sourceTokenDecimals == 0)

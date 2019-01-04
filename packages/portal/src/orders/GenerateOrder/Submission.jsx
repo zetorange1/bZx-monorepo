@@ -20,7 +20,7 @@ const Submission = ({ onSubmit, setPushOnChainCheckbox, pushOnChain, sendToRelay
       />
     </div>
     <Button variant="raised" color="primary" onClick={onSubmit}>
-      {pushOnChain ? `Sign Order and Push` : `Sign Order`}
+      {pushOnChain ? `Push On Chain` : `Sign Order`}
     </Button>
   </Section>
 );

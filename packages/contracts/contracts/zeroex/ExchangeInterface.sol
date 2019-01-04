@@ -29,7 +29,7 @@ interface ExchangeInterface {
         bytes32[] calldata r,
         bytes32[] calldata s)
         external
-        returns (uint);
+        returns (uint256);
 
     function isValidSignature(
         address signer,

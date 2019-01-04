@@ -125,7 +125,8 @@ export const getPositionOffset = async (
 
   return {
     isPositive: data.isPositive,
-    offsetAmount: data.offsetAmount,
+    positionOffsetAmount: data.positionOffsetAmount,
+    loanOffsetAmount: data.loanOffsetAmount,
     positionTokenAddress: data.positionTokenAddress
   };
 };

@@ -372,6 +372,7 @@ export default class OpenedLoan extends BZxComponent {
             symbol={positionTokenSymbol}
             decimals={positionTokenDecimals}
             data={this.props.data}
+            loanTokenSymbol={loanTokenSymbol}
           />
 
           <LowerUpperRight>

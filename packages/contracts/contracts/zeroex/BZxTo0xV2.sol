@@ -92,7 +92,7 @@ contract BZxTo0xV2 is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
     function getPartialAmount(uint256 numerator, uint256 denominator, uint256 target)
         public
         pure
-        returns (uint)
+        returns (uint256)
     {
         return SafeMath.div(SafeMath.mul(numerator, target), denominator);
     }

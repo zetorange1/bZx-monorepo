@@ -37,7 +37,7 @@ contract OrderTaking_takeLoanOrderOnChainAsTrader is BZxStorage, BZxProxiable, O
     /// @param loanTokenAmountFilled Desired amount of loanToken the trader wants to borrow.
     /// @param tradeTokenToFillAddress If non-zero address, will swap the loanToken for this asset using the oracle.
     /// @param withdrawOnOpen If true, will overcollateralize the loan and withdraw the position token to the trader's wallet. If set, tradeTokenToFillAddress is ignored.
-    /// @return Total amount of loanToken borrowed (uint).
+    /// @return Total amount of loanToken borrowed (uint256).
     /// @dev Traders can take a portion of the total coin being lended (loanTokenAmountFilled).
     /// @dev Traders also specify the token that will fill the margin requirement if they are taking the order.
     function takeLoanOrderOnChainAsTrader(
@@ -49,7 +49,7 @@ contract OrderTaking_takeLoanOrderOnChainAsTrader is BZxStorage, BZxProxiable, O
         external
         nonReentrant
         tracksGas
-        returns (uint)
+        returns (uint256)
     {
         LoanOrder memory loanOrder = _takeLoanOrder(
             loanOrderHash,

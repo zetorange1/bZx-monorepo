@@ -587,7 +587,7 @@ contract OrderTakingFunctions is BZxStorage, InterestFunctions {
         address trader,
         address tradeTokenToFillAddress)
         internal
-        returns (uint)
+        returns (uint256)
     {
         LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrder.loanOrderHash][trader]];
         if (tradeTokenToFillAddress == loanPosition.positionTokenAddressFilled) {

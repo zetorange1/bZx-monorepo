@@ -207,7 +207,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     function getSecondsTimeLocked(bytes4 _funcId)
         public
         view
-        returns (uint)
+        returns (uint256)
     {
         if (customTimeLocks[_funcId].isSet)
             return customTimeLocks[_funcId].secondsTimeLocked;
@@ -221,7 +221,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     function getSecondsTimeLockedByString(string memory _funcId)
         public
         view
-        returns (uint)
+        returns (uint256)
     {
         return (getSecondsTimeLocked(bytes4(keccak256(abi.encodePacked(_funcId)))));
     }
@@ -232,7 +232,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     function getSecondsTimeLockedByTx(uint256 transactionId)
         public
         view
-        returns (uint)
+        returns (uint256)
     {
         Transaction memory txn = transactions[transactionId];
         bytes memory data = txn.data;
@@ -249,7 +249,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     function getTimeLockSecondsRemaining(uint256 transactionId)
         public
         view
-        returns (uint)
+        returns (uint256)
     {
         uint256 timelock = getSecondsTimeLockedByTx(transactionId);
         if (timelock > 0 && confirmationTimes[transactionId] > 0) {

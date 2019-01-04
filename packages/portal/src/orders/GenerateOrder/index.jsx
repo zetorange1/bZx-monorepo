@@ -297,36 +297,37 @@ export default class GenerateOrder extends React.Component {
       console.log(saltedOrderObj);
       const orderHash = getOrderHash(saltedOrderObj);
       try {
-        const signature = await signOrder(
-          orderHash,
-          this.props.accounts,
-          this.props.bZx
-        );
-
-        const orderWithSignature = {
-          ...saltedOrderObj,
-          signature
-        };
-        console.log(`orderHash`, orderHash);
-        const finalOrder = await addNetworkId(
-          orderWithSignature,
-          this.props.web3
-        );
-        const isSigValid = await this.props.bZx.isValidSignatureAsync({
-          account: this.props.accounts[0].toLowerCase(),
-          orderHash,
-          signature
-        });
-        console.log(`isSigValid`, isSigValid);
+        
         if (this.state.pushOnChain) {
           // console.log(finalOrder);
           pushOrderOnChain(
-            finalOrder,
+            saltedOrderObj,
             this.props.web3,
             this.props.bZx,
             this.props.accounts
           );
         } else {
+          const signature = await signOrder(
+            orderHash,
+            this.props.accounts,
+            this.props.bZx
+          );
+
+          const orderWithSignature = {
+            ...saltedOrderObj,
+            signature
+          };
+          console.log(`orderHash`, orderHash);
+          const finalOrder = await addNetworkId(
+            orderWithSignature,
+            this.props.web3
+          );
+          const isSigValid = await this.props.bZx.isValidSignatureAsync({
+            account: this.props.accounts[0].toLowerCase(),
+            orderHash,
+            signature
+          });
+          console.log(`isSigValid`, isSigValid);
           this.setState({ orderHash, finalOrder });
         }
       } catch (e) {

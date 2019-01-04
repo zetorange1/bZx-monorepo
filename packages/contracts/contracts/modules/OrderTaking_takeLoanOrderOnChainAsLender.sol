@@ -33,7 +33,7 @@ contract OrderTaking_takeLoanOrderOnChainAsLender is BZxStorage, BZxProxiable, O
 
     /// @dev Takes the order as lender that's already pushed on chain
     /// @param loanOrderHash A unique hash representing the loan order.
-    /// @return Total amount of loanToken borrowed (uint).
+    /// @return Total amount of loanToken borrowed (uint256).
     /// @dev Lenders have to fill the entire desired amount the trader wants to borrow.
     /// @dev This makes loanTokenAmountFilled = loanOrder.loanTokenAmount.
     function takeLoanOrderOnChainAsLender(
@@ -41,7 +41,7 @@ contract OrderTaking_takeLoanOrderOnChainAsLender is BZxStorage, BZxProxiable, O
         external
         nonReentrant
         tracksGas
-        returns (uint)
+        returns (uint256)
     {
         LoanOrderAux memory loanOrderAux = orderAux[loanOrderHash];
         

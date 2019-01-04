@@ -23,7 +23,7 @@ contract MiscFunctions is BZxStorage, MathFunctions {
         bytes32 loanOrderHash)
         internal
         view
-        returns (uint)
+        returns (uint256)
     {
         uint256 unavailableAmount = orderFilledAmounts[loanOrderHash].add(orderCancelledAmounts[loanOrderHash]);
         return (orders[loanOrderHash].loanTokenAmount >= unavailableAmount ? unavailableAmount : orders[loanOrderHash].loanTokenAmount);

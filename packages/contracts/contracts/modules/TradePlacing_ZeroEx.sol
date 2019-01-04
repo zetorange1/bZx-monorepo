@@ -93,7 +93,7 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
         external
         nonReentrant
         tracksGas
-        returns (uint)
+        returns (uint256)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
@@ -175,7 +175,7 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
         public
         nonReentrant
         tracksGas
-        returns (uint)
+        returns (uint256)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {

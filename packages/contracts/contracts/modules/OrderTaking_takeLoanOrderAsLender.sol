@@ -36,7 +36,7 @@ contract OrderTaking_takeLoanOrderAsLender is BZxStorage, BZxProxiable, OrderTak
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), withdrawOnOpen, and salt.
     /// @param oracleData An arbitrary length bytes stream to pass to the oracle.
     /// @param signature ECDSA signature in raw bytes (rsv).
-    /// @return Total amount of loanToken borrowed (uint).
+    /// @return Total amount of loanToken borrowed (uint256).
     /// @dev Lenders have to fill the entire desired amount the trader wants to borrow.
     /// @dev This makes loanTokenAmountFilled = loanOrder.loanTokenAmount.
     function takeLoanOrderAsLender(
@@ -47,7 +47,7 @@ contract OrderTaking_takeLoanOrderAsLender is BZxStorage, BZxProxiable, OrderTak
         external
         nonReentrant
         tracksGas
-        returns (uint)
+        returns (uint256)
     {
         bytes32 loanOrderHash = _addLoanOrder(
             orderAddresses,

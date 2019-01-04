@@ -73,7 +73,7 @@ contract InterestFunctions is BZxStorage, MathFunctions, MiscFunctions {
         bool convert,
         bool emitEvent)
         internal
-        returns (uint)
+        returns (uint256)
     {
         (uint256 amountPaid, uint256 interestTotalAccrued) = _setInterestPaidForPosition(
             loanOrder,

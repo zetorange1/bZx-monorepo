@@ -57,7 +57,7 @@ contract BZRxTransferProxy is Ownable {
     function totalSupply() 
         public 
         /* view */ 
-        returns (uint) 
+        returns (uint256) 
     {
         return StandardToken(bZRxTokenContractAddress).totalSupply.gas(4999)();
     }
@@ -67,7 +67,7 @@ contract BZRxTransferProxy is Ownable {
         address _owner) 
         public 
         /* view */ 
-        returns (uint)
+        returns (uint256)
     {
         return StandardToken(bZRxTokenContractAddress).balanceOf.gas(4999)(_owner);
     }
@@ -78,7 +78,7 @@ contract BZRxTransferProxy is Ownable {
         address _spender)
         public
         /* view */
-        returns (uint)
+        returns (uint256)
     {
         return StandardToken(bZRxTokenContractAddress).allowance.gas(4999)(_owner, _spender);
     }

@@ -105,7 +105,7 @@ export default class FillOrder extends BZxComponent {
       loanTokenAmount &&
       initialMarginAmount
     ) {
-      if (collateralTokenAddress && collateralTokenAddress !== `0x0000000000000000000000000000000000000000`) {
+      if (toBigNumber(loanTokenAmount).gt(0) && collateralTokenAddress && collateralTokenAddress !== `0x0000000000000000000000000000000000000000`) {
         this.setState({ [`collateralTokenAmount`]: `loading...` });
         collateralRequired = toBigNumber(await getInitialCollateralRequired(
           loanTokenAddress,

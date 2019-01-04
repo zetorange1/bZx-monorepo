@@ -46,7 +46,7 @@ contract TradePlacing_Oracle is BZxStorage, BZxProxiable, MiscFunctions {
         external
         nonReentrant
         tracksGas
-        returns (uint)
+        returns (uint256)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {

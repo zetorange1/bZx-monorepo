@@ -380,7 +380,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
 
         bool isPositive;
-        (isPositive, amountWithdrawn,) = _getPositionOffset(
+        (isPositive, amountWithdrawn,,) = _getPositionOffset(
             loanOrder,
             loanPosition);
         if (amountWithdrawn == 0 || !isPositive) {
@@ -429,14 +429,15 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position
     /// @return isPositive False it there's a deficit, True otherwise
-    /// @return offsetAmount The amount of excess or deficit
+    /// @return positionOffsetAmount The amount of excess or deficit in positionToken
+    /// @return loanOffsetAmount The actual profit or loss in loanToken
     /// @return positionTokenAddress The position token current filled, which could be the same as the loanToken
     function getPositionOffset(
         bytes32 loanOrderHash,
         address trader)
         public
         view
-        returns (bool isPositive, uint256 offsetAmount, address positionTokenAddress)
+        returns (bool isPositive, uint256 positionOffsetAmount, uint256 loanOffsetAmount, address positionTokenAddress)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
@@ -454,17 +455,17 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         LoanPosition memory loanPosition)
         internal
         view
-        returns (bool isPositive, uint256 offsetAmount, address positionTokenAddress)
+        returns (bool isPositive, uint256 positionOffsetAmount, uint256 loanOffsetAmount, address positionTokenAddress)
     {
         if (loanOrder.loanTokenAddress == address(0)) {
-            return (false,0,address(0));
+            return (false,0,0,address(0));
         }
 
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return (false,0,address(0));
+            return (false,0,0,address(0));
         }
 
-        (isPositive, offsetAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getPositionOffset(loanOrder, loanPosition);
+        (isPositive, positionOffsetAmount, loanOffsetAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getPositionOffset(loanOrder, loanPosition);
 
         positionTokenAddress = loanPosition.positionTokenAddressFilled;
     }
