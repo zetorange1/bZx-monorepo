@@ -134,7 +134,6 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
       logger.log("info", `${idx} :: currentMarginAmount: ${currentMarginAmount}`);
 
       const isUnSafe = !BigNumber(currentMarginAmount)
-        .dividedBy(1e18)
         .gt(maintenanceMarginAmount);
 
       const expireDate = moment(loanEndUnixTimestampSec * 1000).utc();
