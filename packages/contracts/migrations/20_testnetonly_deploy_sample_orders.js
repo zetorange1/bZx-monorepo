@@ -5,7 +5,7 @@ var BZx = artifacts.require("BZx");
 var BZxVault = artifacts.require("BZxVault");
 var BZxOracle = artifacts.require("TestNetOracle");
 var BZRxToken = artifacts.require("BZRxToken");
-var BZRxTokenSale = artifacts.require("BZRxTokenSale");
+var BZRxTokenConvert = artifacts.require("BZRxTokenConvert");
 var BZxEther = artifacts.require("BZxEther");
 var ERC20 = artifacts.require("ERC20"); // for testing with any ERC20 token
 
@@ -76,15 +76,13 @@ module.exports = (deployer, network, accounts) => {
       var vault = await BZxVault.deployed();
       var oracle = await BZxOracle.deployed();
       var bzrx_token = await BZRxToken.deployed();
-      var bzrx_tokensale = await BZRxTokenSale.deployed();
-
-      await bzrx_tokensale.closeSale(false);
+      var bzrx_token_convert = await BZRxTokenConvert.deployed();
 
       var bZxTo0x = await BZxTo0x.deployed();
       //var zrx_token;
       var zrx_token = await ERC20.at(config["addresses"]["development"]["ZeroEx"]["ZRXToken"]);
 
-      var weth = BZxEther.deployed();
+      var weth = await BZxEther.deployed();
 
       for (var i = 0; i < 10; i++) {
         test_tokens[i] = await artifacts.require("TestToken" + i).deployed();
@@ -101,22 +99,50 @@ module.exports = (deployer, network, accounts) => {
       maker0xToken1 = test_tokens[5];
 
       await Promise.all([
-        await bzrx_token.mint(lender1_account, toWei(100, "ether"), { from: owner_account }),
+        await bzrx_token.mint(lender1_account, toWei(10000, "ether"), { from: owner_account }),
+
+        await weth.deposit({ from: owner_account, value: toWei(10, "ether") }),
+        await weth.approve(vault.address, MAX_UINT, {
+          from: owner_account
+        }),
+
+        await weth.deposit({ from: lender1_account, value: toWei(10, "ether") }),
+        await weth.approve(vault.address, MAX_UINT, {
+          from: lender1_account
+        }),
+        
         await weth.deposit({ from: lender2_account, value: toWei(10, "ether") }),
+        await weth.approve(vault.address, MAX_UINT, {
+          from: lender2_account
+        }),
+        
         await weth.deposit({ from: trader1_account, value: toWei(10, "ether") }),
-        await weth.deposit({ from: trader2_account, value: toWei(0.00001, "ether") }),
+        await weth.approve(vault.address, MAX_UINT, {
+          from: trader1_account
+        }),
+        
+        await weth.deposit({ from: trader2_account, value: toWei(10, "ether") }),
+        await weth.approve(vault.address, MAX_UINT, {
+          from: trader2_account
+        }),
+
+
+        // lender1_account has BZRX
         await bzrx_token.approve(vault.address, MAX_UINT, {
           from: lender1_account
         }),
-        await weth.approve(bzrx_tokensale.address, MAX_UINT, {
+
+        // lender2_account, trader1_account, trader2_account don't have BZRX
+        await weth.approve(bzrx_token_convert.address, MAX_UINT, {
           from: lender2_account
         }),
-        await weth.approve(bzrx_tokensale.address, MAX_UINT, {
+        await weth.approve(bzrx_token_convert.address, MAX_UINT, {
           from: trader1_account
         }),
-        await weth.approve(bzrx_tokensale.address, MAX_UINT, {
+        await weth.approve(bzrx_token_convert.address, MAX_UINT, {
           from: trader2_account
         }),
+
         await loanToken1.transfer(lender1_account, toWei(1000000, "ether"), { from: owner_account }),
         await loanToken2.transfer(lender2_account, toWei(1000000, "ether"), { from: owner_account }),
         await loanToken1.approve(vault.address, MAX_UINT, {
