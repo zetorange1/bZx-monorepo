@@ -2,7 +2,7 @@ import BZx from "../../../../contracts/test_network/deployed/BZx.json";
 import BZxOracle from "../../../../contracts/test_network/deployed/BZxOracle.json";
 import BZxTo0x from "../../../../contracts/test_network/deployed/BZxTo0x.json";
 import BZxToken from "../../../../contracts/test_network/deployed/BZRxToken.json";
-import BZRxTokenSale from "../../../../contracts/test_network/deployed/BZRxTokenSale.json";
+import BZRxTokenConvert from "../../../../contracts/test_network/deployed/BZRxTokenConvert.json";
 import BZxEther from "../../../../contracts/test_network/deployed/BZxEther.json";
 import BZxVault from "../../../../contracts/test_network/deployed/BZxVault.json";
 import EIP20 from "../../../../contracts/test_network/deployed/EIP20.json";
@@ -21,9 +21,6 @@ import TokenRegistry from "../../../../contracts/test_network/deployed/TokenRegi
 import OracleInterface from "../../../../contracts/test_network/deployed/OracleInterface.json";
 import TestNetFaucet from "../../../../contracts/test_network/deployed/TestNetFaucet.json";
 
-import LoanToken from "../../../../contracts/test_network/deployed/LoanToken.json";
-import PositionToken from "../../../../contracts/test_network/deployed/PositionToken.json";
-
 import ZRXToken from "../../../../contracts/test_network/deployed/ZRXToken.json";
 import WETH from "../../../../contracts/test_network/deployed/WETH.json";
 
@@ -32,7 +29,7 @@ export default {
   BZxOracle,
   BZxTo0x,
   BZxToken,
-  BZRxTokenSale,
+  BZRxTokenConvert,
   BZxEther,
   BZxVault,
   EIP20,
@@ -51,8 +48,5 @@ export default {
   ZRXToken,
   WETH,
   OracleInterface,
-  TestNetFaucet,
-
-  LoanToken,
-  PositionToken
+  TestNetFaucet
 };
