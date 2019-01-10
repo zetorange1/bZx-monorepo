@@ -16,7 +16,7 @@ import "../modifiers/GasRefunder.sol";
 import "../tokens/EIP20.sol";
 import "../tokens/EIP20Wrapper.sol";
 import "./OracleInterface.sol";
-import "../storage/BZxObjects.sol";
+import "./OracleNotifier.sol";
 
 import "../shared/WETHInterface.sol";
 
@@ -70,8 +70,7 @@ interface KyberNetworkInterface {
         returns (address);
 }
 
-
-contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
+contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
     using SafeMath for uint256;
 
     // this is the value the Kyber portal uses when setting a very high maximum number
@@ -137,16 +136,21 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
 
     function didAddOrder(
-        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanOrderAux memory /* loanOrderAux */,
-        bytes memory /* oracleData */,
-        address /* taker */,
+        bytes memory oracleData,
+        address /* takerAddress */,
         uint256 /* gasUsed */)
         public
         onlyBZx
         updatesEMA(tx.gasprice)
         returns (bool)
     {
+        setNotifications(
+            loanOrder.loanOrderHash,
+            oracleData
+        );
+
         return true;
     }
 
@@ -221,10 +225,11 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
         // Transfers the interest to the lender, less the interest fee.
         // The fee is retained by the oracle.
+        uint amountPaid = amountOwed.sub(interestFee);
         if (!_transferToken(
             loanOrder.interestTokenAddress,
             lender,
-            amountOwed.sub(interestFee))) {
+            amountPaid)) {
             revert("BZxOracle::didPayInterest: _transferToken failed");
         }
 
@@ -235,6 +240,14 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 interestFee,
                 address(this), // BZxOracle receives the WETH proceeds
                 MAX_FOR_KYBER // no limit on the dest amount
+            );
+        }
+
+        if (interestPaidNotifier[loanOrder.loanOrderHash] != address(0)) {
+            OracleNotifierInterface(interestPaidNotifier[loanOrder.loanOrderHash]).interestPaidNotifier(
+                loanOrder,
+                lender,
+                amountPaid
             );
         }
 
@@ -305,24 +318,11 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         return true;
     }
 
-    function didCloseLoanPartially(
-        BZxObjects.LoanOrder memory /* loanOrder */,
-        BZxObjects.LoanPosition memory /* loanPosition */,
-        address payable /* loanCloser */,
-        uint256 /* closeAmount */,
-        uint256 /* gasUsed */)
-        public
-        onlyBZx
-        updatesEMA(tx.gasprice)
-        returns (bool)
-    {
-        return true;
-    }
-
     function didCloseLoan(
-        BZxObjects.LoanOrder memory /* loanOrder */,
-        BZxObjects.LoanPosition memory /* loanPosition */,
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
         address payable loanCloser,
+        uint256 closeAmount,
         bool isLiquidation,
         uint256 gasUsed)
         public
@@ -353,6 +353,16 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                     emaValue
                 );
             }
+        }
+
+        if (loanCloseNotifier[loanOrder.loanOrderHash] != address(0)) {
+            OracleNotifierInterface(loanCloseNotifier[loanOrder.loanOrderHash]).loanCloseNotifier(
+                loanOrder,
+                loanPosition,
+                loanCloser,
+                closeAmount,
+                isLiquidation
+            );
         }
 
         return true;
@@ -690,11 +700,15 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             positionToLoanAmount = positionTokenAmount.mul(positionToLoanRate).div(_getDecimalPrecision(positionTokenAddress, loanTokenAddress));
         }
 
-        uint256 combinedCollateral = collateralToLoanAmount.add(positionToLoanAmount);
-        if (combinedCollateral > loanTokenAmount) {
-            return combinedCollateral.sub(loanTokenAmount).mul(10**20).div(loanTokenAmount);
+        if (positionToLoanAmount >= loanTokenAmount) {
+            return collateralToLoanAmount.add(positionToLoanAmount).sub(loanTokenAmount).mul(10**20).div(loanTokenAmount);
         } else {
-            return 0;
+            uint256 offset = loanTokenAmount.sub(positionToLoanAmount);
+            if (collateralToLoanAmount > offset) {
+                return collateralToLoanAmount.sub(offset).mul(10**20).div(loanTokenAmount);
+            } else {
+                return 0;
+            }
         }
     }
 

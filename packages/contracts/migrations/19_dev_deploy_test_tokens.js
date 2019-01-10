@@ -1,13 +1,14 @@
 var TokenRegistry = artifacts.require("TokenRegistry");
 var TestNetFaucet = artifacts.require("TestNetFaucet");
 var TestNetOracle = artifacts.require("TestNetOracle");
+var BZxEther = artifacts.require("BZxEther");
 
 const path = require("path");
 const config = require("../protocol-config.js");
 
 module.exports = (deployer, network, accounts) => {
   //if (true) return;
-  if (network == "develop" || network == "development" || network == "testnet" || network == "coverage")
+  if (network == "development" || network == "develop" || network == "testnet" || network == "coverage")
     network = "development";
   else {
     // comment out if we need to deploy to other networks
@@ -26,7 +27,7 @@ module.exports = (deployer, network, accounts) => {
 
         await oracle.setRates(
           t.address,
-          config["addresses"][network]["ZeroEx"]["WETH9"],
+          BZxEther.address,
           web3.utils.toWei(((Math.floor(Math.random() * 100) + 2)/1000).toString(), "ether")
         );
       }

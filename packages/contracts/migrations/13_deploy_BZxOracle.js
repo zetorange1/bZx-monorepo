@@ -6,8 +6,8 @@ var BZxProxy = artifacts.require("BZxProxy");
 var BZxProxySettings = artifacts.require("BZxProxySettings");
 var OracleRegistry = artifacts.require("OracleRegistry");
 
-var WETH = artifacts.require("WETHInterface");
-var EIP20 = artifacts.require("EIP20");
+//var WETH = artifacts.require("WETHInterface");
+var BZxEther = artifacts.require("BZxEther");
 
 const path = require("path");
 const config = require("../protocol-config.js");
@@ -17,8 +17,14 @@ const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 const OLD_ORACLE_ADDRESS = "";
 
 module.exports = (deployer, network, accounts) => {
-  if (network == "develop" || network == "testnet" || network == "coverage") {
+
+  var weth_token_address;
+
+  if (network == "development" || network == "develop" || network == "testnet" || network == "coverage") {
     network = "development";
+    weth_token_address = BZxEther.address;
+  } else {
+    weth_token_address = config["addresses"][network]["ZeroEx"]["WETH9"];
   }
 
   if (network == "mainnet" || network == "ropsten") {
@@ -48,7 +54,7 @@ module.exports = (deployer, network, accounts) => {
         BZxOracle,
         BZxVault.address,
         config["addresses"][network]["KyberContractAddress"] || NULL_ADDRESS,
-        config["addresses"][network]["ZeroEx"]["WETH9"],
+        weth_token_address,
         bzrx_token_address,
         { from: accounts[0] }
       )
@@ -67,11 +73,10 @@ module.exports = (deployer, network, accounts) => {
           });
         }
 
-        var wethT = await EIP20.at(config["addresses"][network]["ZeroEx"]["WETH9"]);
+        var weth = await BZxEther.at(weth_token_address);
         if (!OLD_ORACLE_ADDRESS) {
-          var weth = await WETH.at(config["addresses"][network]["ZeroEx"]["WETH9"]);
           await weth.deposit({ value: valueAmount });
-          await wethT.transfer(oracle.address, valueAmount);
+          await weth.transfer(oracle.address, valueAmount);
         }
 
         var bZxProxy = await BZxProxySettings.at(BZxProxy.address);
@@ -93,9 +98,9 @@ module.exports = (deployer, network, accounts) => {
             oracleAddress,
             web3.utils.toWei(10000000, "ether")
           );*/
-          var oldWETHBalance = await wethT.balanceOf(bZxOracleOld.address);
+          var oldWETHBalance = await weth.balanceOf(bZxOracleOld.address);
           if (oldWETHBalance.toString() !== "0") {
-            await bZxOracleOld.transferToken(wethT.address, oracleAddress, oldWETHBalance);
+            await bZxOracleOld.transferToken(weth.address, oracleAddress, oldWETHBalance);
           }
 
           await oracleRegistry.removeOracle(CURRENT_OLD_ORACLE_ADDRESS, 0);

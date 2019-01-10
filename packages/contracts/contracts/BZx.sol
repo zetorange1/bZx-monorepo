@@ -519,7 +519,7 @@ contract BZx is BZxStorage {
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position
     /// @return True on success
-    function forceCloanLoan(
+    function forceCloseLoan(
         bytes32 loanOrderHash,
         address trader)
         public
@@ -557,10 +557,47 @@ contract BZx is BZxStorage {
     /// @return interestTotalAccrued The total amount of interest that has been earned so far
     /// @return interestPaidSoFar The amount of earned interest that has been withdrawn
     /// @return interestLastPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet
+    /// @return interestAmount The actual interest amount paid per day for this loan
     function getInterest(
         bytes32 loanOrderHash,
         address trader)
         public
         view
-        returns (address lender, address interestTokenAddress, uint256 interestTotalAccrued, uint256 interestPaidSoFar, uint256 interestLastPaidDate);
+        returns (
+            address,
+            address,
+            uint256,
+            uint256,
+            uint256,
+            uint256);
+
+    /// @dev Gets the aggregated current interest data for all loans for a given order.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @return lender The lender for this loan order
+    /// @return interestTokenAddress The interset token used in this loan order
+    /// @return interestTotalAccrued The total amount of interest that has been earned so far
+    /// @return interestPaidSoFar The amount of earned interest that has been withdrawn
+    /// @return interestLastPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet
+    /// @return interestAmount The actual interest amount paid per day, based on open loan positions
+    function getInterestForOrder(
+        bytes32 loanOrderHash)
+        public
+        view
+        returns (
+            address lender,
+            address interestTokenAddress,
+            uint256 interestTotalAccrued,
+            uint256 interestPaidSoFar,
+            uint256 interestLastPaidDate,
+            uint256 interestAmount);
+
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param trader The trader of the position
+    /// @return True if the position is open/active, false otherwise
+    function isPositionOpen(
+        bytes32 loanOrderHash,
+        address trader)
+        public
+        view
+        returns (bool);
 }

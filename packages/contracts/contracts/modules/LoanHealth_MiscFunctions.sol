@@ -31,102 +31,11 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
         public
         onlyOwner
     {
-        targets[bytes4(keccak256("payInterest(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("payInterestForOrder(bytes32)"))] = _target;
         targets[bytes4(keccak256("liquidatePosition(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("closeLoanPartially(bytes32,uint256)"))] = _target;
         targets[bytes4(keccak256("closeLoan(bytes32)"))] = _target;
-        targets[bytes4(keccak256("forceCloanLoan(bytes32,address)"))] = _target;
+        targets[bytes4(keccak256("forceCloseLoan(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("shouldLiquidate(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("getMarginLevels(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("getInterest(bytes32,address)"))] = _target;
-    }
-
-    /// @dev Pays the lender of a loan the total amount of interest accrued for a loan.
-    /// @dev Note that this function can be safely called by anyone.
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param trader The address of the trader/borrower of a loan.
-    /// @return The amount of interest paid out.
-    function payInterest(
-        bytes32 loanOrderHash,
-        address trader)
-        external
-        nonReentrant
-        tracksGas
-        returns (uint256)
-    {
-        LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.loanTokenAddress == address(0)) {
-            revert("BZxLoanHealth::payInterest: loanOrder.loanTokenAddress == address(0)");
-        }
-
-        LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
-        if (loanPosition.loanTokenAmountFilled == 0) {
-            revert("BZxLoanHealth::payInterest: loanPosition.loanTokenAmountFilled == 0");
-        }
-        
-        uint256 amountPaid = _payInterestForPosition(
-            loanOrder,
-            loanPosition,
-            true, // convert
-            true // emitEvent
-        );
-
-        return amountPaid;
-    }
-
-    /// @dev Pays the lender the total amount of interest accrued from all loans for a given order.
-    /// @dev This function can potentially run out of gas before finishing if there are two many loans assigned to
-    /// @dev an order. If this occurs, interest owed can be paid out using the payInterest function. Payouts are
-    /// @dev automatic as positions close, as well.
-    /// @dev Note that this function can be safely called by anyone.
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @return The amount of interest paid out.
-    function payInterestForOrder(
-        bytes32 loanOrderHash)
-        external
-        nonReentrant
-        tracksGas
-        returns (uint256)
-    {
-        LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.loanTokenAddress == address(0)) {
-            revert("BZxLoanHealth::payInterest: loanOrder.loanTokenAddress == address(0)");
-        }
-
-        uint256 totalAmountPaid = 0;
-        uint256 totalAmountAccrued = 0;
-        for (uint256 i=0; i < orderPositionList[loanOrderHash].length; i++) {
-            // can still pay any unpaid accrued interest after a loan has closed
-            LoanPosition memory loanPosition = loanPositions[orderPositionList[loanOrderHash][i]];
-            if (loanPosition.loanTokenAmountFilled == 0) {
-                revert("BZxLoanHealth::payInterest: loanPosition.loanTokenAmountFilled == 0");
-            }
-
-            (uint256 amountPaid, uint256 interestTotalAccrued) = _setInterestPaidForPosition(
-                loanOrder,
-                loanPosition);
-            totalAmountPaid = totalAmountPaid.add(amountPaid);
-            totalAmountAccrued = totalAmountAccrued.add(interestTotalAccrued);
-        }
-
-        if (totalAmountPaid > 0) {
-            _sendInterest(
-                loanOrder,
-                totalAmountPaid,
-                true // convert
-            );
-
-            emit LogPayInterestForOrder(
-                loanOrder.loanOrderHash,
-                orderLender[loanOrder.loanOrderHash],
-                totalAmountPaid,
-                totalAmountAccrued,
-                orderPositionList[loanOrderHash].length
-            );
-        }
-
-        return totalAmountPaid;
     }
 
     /// @dev Checks that a position meets the conditions for liquidation, then closes the position and loan.
@@ -169,10 +78,6 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
                 !DEBUG_MODE, // isLiquidation
                 false // ensureHealthy
             );
-
-            if (loanTokenAmount == 0) {
-                revert("BZxLoanHealth::liquidatePosition: loanTokenAmount == 0");
-            }
 
             if (positionTokenAmountUsed < loanPosition.positionTokenAmountFilled) {
                 // left over sourceToken needs to be dispursed
@@ -248,7 +153,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position
     /// @return True on success
-    function forceCloanLoan(
+    function forceCloseLoan(
         bytes32 loanOrderHash,
         address trader)
         public
@@ -303,7 +208,10 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
             ));
         }
 
-        loanPosition.loanTokenAmountUsed = 0;
+        uint256 closeAmount = loanPosition.loanTokenAmountFilled;
+        
+        loanPosition.loanTokenAmountFilled = 0;
+        //loanPosition.loanTokenAmountUsed = 0; <- not used yet
         loanPosition.active = false;
         _removePosition(
             loanOrderHash,
@@ -322,6 +230,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
             loanOrder,
             loanPosition,
             msg.sender, // loanCloser
+            closeAmount,
             false, // isLiquidation
             gasUsed
         ));
@@ -362,78 +271,6 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
             loanPosition);
     }
 
-    /// @dev Gets current margin data for the loan
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param trader The trader of the position
-    /// @return initialMarginAmount The initial margin percentage set on the loan order
-    /// @return maintenanceMarginAmount The maintenance margin percentage set on the loan order
-    /// @return currentMarginAmount The current margin percentage, representing the health of the loan (i.e. 54350000000000000000 == 54.35%)
-    function getMarginLevels(
-        bytes32 loanOrderHash,
-        address trader)
-        public
-        view
-        returns (uint256, uint256, uint256)
-    {
-        LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.loanTokenAddress == address(0)) {
-            return (0,0,0);
-        }
-
-        LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
-        if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return (0,0,0);
-        }
-
-        return (_getMarginLevels(
-            loanOrder,
-            loanPosition));
-    }
-
-    /// @dev Gets current interest data for the loan
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param trader The trader of the position
-    /// @return lender The lender in this loan
-    /// @return interestTokenAddress The interset token used in this loan
-    /// @return interestTotalAccrued The total amount of interest that has been earned so far
-    /// @return interestPaidSoFar The amount of earned interest that has been withdrawn
-    /// @return interestLastPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet
-    function getInterest(
-        bytes32 loanOrderHash,
-        address trader)
-        public
-        view
-        returns (
-            address lender, 
-            address interestTokenAddress, 
-            uint256 interestTotalAccrued, 
-            uint256 interestPaidSoFar,
-            uint256 interestLastPaidDate)
-    {
-
-        LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.loanTokenAddress == address(0)) {
-            return (address(0),address(0),0,0,0);
-        }
-
-        // can still get interest for closed loans
-        LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
-        if (loanPosition.loanTokenAmountFilled == 0) {
-            return (address(0),address(0),0,0,0);
-        }
-
-        InterestData memory interestData = _getInterestData(
-            loanOrder,
-            loanPosition
-        );
-        return (
-            orderLender[loanOrderHash],
-            interestData.interestTokenAddress,
-            interestData.interestTotalAccrued,
-            interestData.interestPaidSoFar,
-            interestData.interestLastPaidDate
-        );
-    }
 
     /*
     * Internal functions
@@ -505,6 +342,14 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
             }
         }
 
+        uint256 marginAmountBeforeClose = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getCurrentMarginAmount(
+            loanOrder.loanTokenAddress,
+            loanPosition.positionTokenAddressFilled,
+            loanPosition.collateralTokenAddressFilled,
+            loanPosition.loanTokenAmountFilled,
+            loanPosition.positionTokenAmountFilled,
+            loanPosition.collateralTokenAmountFilled);
+
         if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
             (uint256 loanTokenAmountClosed, uint256 positionTokenAmountUsed) = _tradePositionWithOracle(
                 loanOrder,
@@ -522,15 +367,33 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
             if (loanPosition.positionTokenAmountFilled < positionTokenAmountUsed) {
                 revert("BZxLoanHealth::_closeLoanPartially: positionTokenAmountFilled < positionTokenAmountUsed");
             }
+
             loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(positionTokenAmountUsed);
         } else {
             if (loanPosition.positionTokenAmountFilled < closeAmount) {
                 revert("BZxLoanHealth::_closeLoanPartially: positionTokenAmountFilled < closeAmount");
             }
+
             loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(closeAmount);
         }
+        
+        (,uint256 loanToCollateralTokenAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+            loanOrder.loanTokenAddress,
+            loanPosition.collateralTokenAddressFilled,
+            closeAmount);
+        uint256 collateralCloseAmount = loanToCollateralTokenAmount.mul(marginAmountBeforeClose).div(10**20);
+        if (collateralCloseAmount > 0) {
+            // send excess collateral token back to the trader
+            if (! BZxVault(vaultContract).withdrawToken(
+                loanPosition.collateralTokenAddressFilled,
+                msg.sender,
+                collateralCloseAmount
+            )) {
+                revert("BZxLoanHealth::_closeLoanPartially: BZxVault.withdrawToken collateral failed");
+            }
 
-        loanPosition.loanTokenAmountFilled = loanPosition.loanTokenAmountFilled.sub(closeAmount);
+            loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(collateralCloseAmount);
+        }
 
         // send closed token back to the lender
         if (! BZxVault(vaultContract).withdrawToken(
@@ -541,12 +404,15 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
             revert("BZxLoanHealth::_closeLoanPartially: BZxVault.withdrawToken loan failed");
         }
 
+        loanPosition.loanTokenAmountFilled = loanPosition.loanTokenAmountFilled.sub(closeAmount);
+        //loanPosition.loanTokenAmountUsed = loanPosition.loanTokenAmountUsed.sub(closeAmount); <- not used yet
+
         if (orderAux[loanOrderHash].expirationUnixTimestampSec == 0 || block.timestamp < orderAux[loanOrderHash].expirationUnixTimestampSec) {
             // since order is not expired, we make the closeAmount available for borrowing again
             orderFilledAmounts[loanOrderHash] = orderFilledAmounts[loanOrderHash].sub(closeAmount);
 
             if (!orderListIndex[loanOrderHash][address(0)].isSet && loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrderHash)) > 0) {
-                // record of fillable (non-expired, unfilled) orders
+                // record of fillable (non-expired/unfilled) orders
                 orderList[address(0)].push(loanOrderHash);
                 orderListIndex[loanOrderHash][address(0)] = ListIndex({
                     index: orderList[address(0)].length-1,
@@ -554,15 +420,16 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
                 });
             }
         }
-        
-        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didCloseLoanPartially(
+
+        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didCloseLoan(
             loanOrder,
             loanPosition,
             msg.sender, // loanCloser
             closeAmount,
+            false, // isLiquidation
             gasUsed
         )) {
-            revert("BZxLoanHealth::_closeLoanPartially: OracleInterface.didCloseLoanPartially failed");
+            revert("BZxLoanHealth::_closeLoanPartially: OracleInterface.didCloseLoan failed");
         }
 
         return true;
@@ -594,10 +461,6 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
                 false, // isLiquidation
                 false // ensureHealthy
             );
-
-            if (loanTokenAmount == 0) {
-                revert("BZxLoanHealth::_closeLoan: loanTokenAmount == 0");
-            }
 
             if (positionTokenAmountUsed < loanPosition.positionTokenAmountFilled) {
                 // left over sourceToken needs to be dispursed
@@ -719,7 +582,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
                 orderFilledAmounts[loanOrder.loanOrderHash] = orderFilledAmounts[loanOrder.loanOrderHash].sub(loanPosition.positionTokenAmountFilled);
 
                 if (!orderListIndex[loanOrder.loanOrderHash][address(0)].isSet && loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrder.loanOrderHash)) > 0) {
-                    // record of fillable (non-expired, unfilled) orders
+                    // record of fillable (non-expired/unfilled) orders
                     orderList[address(0)].push(loanOrder.loanOrderHash);
                     orderListIndex[loanOrder.loanOrderHash][address(0)] = ListIndex({
                         index: orderList[address(0)].length-1,
@@ -729,7 +592,10 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
             }
         }
 
-        loanPosition.loanTokenAmountUsed = 0;
+        uint256 closeAmount = loanPosition.loanTokenAmountFilled;
+
+        loanPosition.loanTokenAmountFilled = 0;
+        //loanPosition.loanTokenAmountUsed = 0; <- not used yet
         loanPosition.active = false;
         _removePosition(
             loanOrder.loanOrderHash,
@@ -748,6 +614,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
             loanOrder,
             loanPosition,
             msg.sender, // loanCloser
+            closeAmount,
             isLiquidation,
             gasUsed
         )) {
@@ -780,27 +647,5 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions
             // trim array
             positionList.length--;
         }
-    }
-
-    // returns initialMarginAmount, maintenanceMarginAmount, currentMarginAmount
-    // currentMarginAmount is a percentage -> i.e. 54350000000000000000 == 54.35%
-    function _getMarginLevels(
-        LoanOrder memory loanOrder,
-        LoanPosition memory loanPosition)
-        internal
-        view
-        returns (uint256, uint256, uint256)
-    {
-        return (
-            loanOrder.initialMarginAmount,
-            loanOrder.maintenanceMarginAmount,
-            OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getCurrentMarginAmount(
-                loanOrder.loanTokenAddress,
-                loanPosition.positionTokenAddressFilled,
-                loanPosition.collateralTokenAddressFilled,
-                loanPosition.loanTokenAmountFilled,
-                loanPosition.positionTokenAmountFilled,
-                loanPosition.collateralTokenAmountFilled)
-        );
     }
 }

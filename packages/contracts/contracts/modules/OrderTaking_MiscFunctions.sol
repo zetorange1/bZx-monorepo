@@ -163,12 +163,14 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
 
         require(!orderListIndex[loanOrderHash][address(0)].isSet, "BZxOrderTaking::pushLoanOrderOnChain: this order is already on chain");
 
-        // record of fillable (non-expired, unfilled) orders
-        orderList[address(0)].push(loanOrderHash);
-        orderListIndex[loanOrderHash][address(0)] = ListIndex({
-            index: orderList[address(0)].length-1,
-            isSet: true
-        });
+        if (orderValues[0] > 0) {
+            // record of fillable (non-expired/unfilled) orders
+            orderList[address(0)].push(loanOrderHash);
+            orderListIndex[loanOrderHash][address(0)] = ListIndex({
+                index: orderList[address(0)].length-1,
+                isSet: true
+            });
+        }
 
         return loanOrderHash;
     }

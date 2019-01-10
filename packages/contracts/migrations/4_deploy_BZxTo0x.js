@@ -9,7 +9,7 @@ const BN = require("bn.js");
 const MAX_UINT = (new BN(2)).pow(new BN(256)).sub(new BN(1));
 
 module.exports = (deployer, network, accounts) => {
-  if (network == "develop" || network == "testnet" || network == "coverage") {
+  if (network == "development" || network == "develop" || network == "testnet" || network == "coverage") {
     network = "development";
   }
 

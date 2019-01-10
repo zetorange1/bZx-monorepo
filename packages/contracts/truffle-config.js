@@ -90,6 +90,10 @@ module.exports = {
         mainnetPrivKey,
         "https://mainnet.infura.io/v3/" + infuraApikey
       ),
+      /*provider: () => new HDWalletProvider(
+        mainnetMnemonic,
+        "https://mainnet.infura.io/v3/" + infuraApikey
+      ),*/
       network_id: 1,
       gas: 6721975,
       gasPrice: 10000000000,

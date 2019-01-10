@@ -1470,7 +1470,7 @@ contract("BZxTest", function(accounts) {
       assert.equal(loans.length, 1);
       assert.isTrue(loans[0].active);
 
-      await bZx.forceCloanLoan(OrderHash_bZx_1, trader1, { from: owner });
+      await bZx.forceCloseLoan(OrderHash_bZx_1, trader1, { from: owner });
 
       loans = decodeLoanPosition(
         await bZx.getSingleLoan.call(OrderHash_bZx_1, trader1)

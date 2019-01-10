@@ -2210,7 +2210,7 @@ contract("BZxTest", function(accounts) {
     ? it
     : it.skip)("should force close loan", function(done) {
     bZx
-      .forceCloanLoan(OrderHash_bZx_1, trader1_account, { from: owner_account })
+      .forceCloseLoan(OrderHash_bZx_1, trader1_account, { from: owner_account })
       .then(function(tx) {
         console.log(txPrettyPrint(tx, "should force close loan"));
         assert.isOk(tx);

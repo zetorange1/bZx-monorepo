@@ -163,26 +163,11 @@ contract OracleInterface {
         public
         returns (bool);
 
-    /// @dev Called by bZx after a loan is partially closed
+    /// @dev Called by bZx after a loan is closed fully or partially
     /// @param loanOrder The loanOrder object
     /// @param loanPosition The loanPosition object
     /// @param loanCloser The user that closed the loan
     /// @param closeAmount The amount of loan token being returned to the lender
-    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
-    /// @return Successful execution of the function
-    function didCloseLoanPartially(
-        BZxObjects.LoanOrder memory loanOrder,
-        BZxObjects.LoanPosition memory loanPosition,
-        address payable loanCloser,
-        uint256 closeAmount,
-        uint256 gasUsed)
-        public
-        returns (bool);
-
-    /// @dev Called by bZx after a loan is closed
-    /// @param loanOrder The loanOrder object
-    /// @param loanPosition The loanPosition object
-    /// @param loanCloser The user that closed the loan
     /// @param isLiquidation A boolean indicating if the loan was closed due to liquidation
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
@@ -190,6 +175,7 @@ contract OracleInterface {
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
         address payable loanCloser,
+        uint256 closeAmount,
         bool isLiquidation,
         uint256 gasUsed)
         public

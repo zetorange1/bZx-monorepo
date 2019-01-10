@@ -6,7 +6,7 @@ var BZxVault = artifacts.require("BZxVault");
 var BZxOracle = artifacts.require("TestNetOracle");
 var BZRxToken = artifacts.require("BZRxToken");
 var BZRxTokenSale = artifacts.require("BZRxTokenSale");
-var WETHInterface = artifacts.require("WETHInterface");
+var BZxEther = artifacts.require("BZxEther");
 var ERC20 = artifacts.require("ERC20"); // for testing with any ERC20 token
 
 //var fs = require('fs');
@@ -84,8 +84,7 @@ module.exports = (deployer, network, accounts) => {
       //var zrx_token;
       var zrx_token = await ERC20.at(config["addresses"]["development"]["ZeroEx"]["ZRXToken"]);
 
-      var weth = await WETHInterface.at(config["addresses"][network]["ZeroEx"]["WETH9"]);
-      var weth_token = await ERC20.at(config["addresses"][network]["ZeroEx"]["WETH9"]);
+      var weth = BZxEther.deployed();
 
       for (var i = 0; i < 10; i++) {
         test_tokens[i] = await artifacts.require("TestToken" + i).deployed();
@@ -109,13 +108,13 @@ module.exports = (deployer, network, accounts) => {
         await bzrx_token.approve(vault.address, MAX_UINT, {
           from: lender1_account
         }),
-        await weth_token.approve(bzrx_tokensale.address, MAX_UINT, {
+        await weth.approve(bzrx_tokensale.address, MAX_UINT, {
           from: lender2_account
         }),
-        await weth_token.approve(bzrx_tokensale.address, MAX_UINT, {
+        await weth.approve(bzrx_tokensale.address, MAX_UINT, {
           from: trader1_account
         }),
-        await weth_token.approve(bzrx_tokensale.address, MAX_UINT, {
+        await weth.approve(bzrx_tokensale.address, MAX_UINT, {
           from: trader2_account
         }),
         await loanToken1.transfer(lender1_account, toWei(1000000, "ether"), { from: owner_account }),

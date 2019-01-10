@@ -11,7 +11,7 @@ var config = require("../protocol-config.js");
 const path = require("path");
 
 module.exports = (deployer, network, accounts) => {
-  if (network == "develop" || network == "testnet" || network == "coverage") {
+  if (network == "development" || network == "develop" || network == "testnet" || network == "coverage") {
     network = "development";
   } else {
     return;

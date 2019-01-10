@@ -35,6 +35,7 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
         targets[bytes4(keccak256("changeTraderOwnership(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("changeLenderOwnership(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("increaseLoanableAmount(bytes32,uint256)"))] = _target;
+        targets[bytes4(keccak256("isPositionOpen(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("setLoanOrderDesc(bytes32,string)"))] = _target;
     }
 
@@ -195,9 +196,18 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
         
         uint256 newLoanTokenAmount = loanOrder.loanTokenAmount.add(loanTokenAmountToAdd);
 
-        // Interest amount per day is calculated based on the fraction of loan token filled over total loanTokenAmount.
-        // Since total loanTokenAmount is increasing, we increase interest proportionally.
-        loanOrder.interestAmount = loanOrder.interestAmount.mul(newLoanTokenAmount).div(loanOrder.loanTokenAmount);
+        if (loanOrder.interestAmount > 0) {
+            if (loanOrder.loanTokenAmount > 0) {
+                // Interest amount per day is calculated based on the fraction of loan token filled over total loanTokenAmount.
+                // Since total loanTokenAmount is increasing, we increase interest proportionally.
+                loanOrder.interestAmount = loanOrder.interestAmount.mul(newLoanTokenAmount).div(loanOrder.loanTokenAmount);
+            } else {
+                // HACK: We assume here that interestAmount has initially been set as a percentage when pushed on chain in a
+                // zero-value loan. We will convert it to an actual amount.
+                // Percentage format: 2% of total filled loan token per day = 2 * 10**18
+                loanOrder.interestAmount = newLoanTokenAmount.mul(loanOrder.interestAmount).div(10**20);
+            }
+        }
 
         loanOrder.loanTokenAmount = newLoanTokenAmount;
 
@@ -219,6 +229,24 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
         );
 
         return true;
+    }
+
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param trader The trader of the position
+    /// @return True if the position is open/active, false otherwise
+    function isPositionOpen(
+        bytes32 loanOrderHash,
+        address trader)
+        public
+        view
+        returns (bool)
+    {
+        LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
+        if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     /// @dev Allows the maker of an order to set a description

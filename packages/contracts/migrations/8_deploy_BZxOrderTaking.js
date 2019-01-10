@@ -12,7 +12,6 @@ const path = require("path");
 
 module.exports = (deployer, network, accounts) => {
   deployer.then(async () => {
-
     var bZxProxy = await BZxProxySettings.at(BZxProxy.address);
 
     await deployer.deploy(OrderTaking_MiscFunctions);

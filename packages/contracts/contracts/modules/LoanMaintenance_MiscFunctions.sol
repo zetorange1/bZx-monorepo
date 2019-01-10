@@ -425,6 +425,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
     /*
     * Constant public functions
     */
+
     /// @dev Get the current excess or deficit position amount from the loan principal
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position

@@ -166,6 +166,16 @@ contract OrderTakingFunctions is BZxStorage, InterestFunctions {
                 description: ""
             });
 
+            if (orderValues[8] == 0) {
+                // lender is maker
+                orderLender[loanOrderHash] = orderAddresses[0];
+                orderList[orderAddresses[0]].push(loanOrderHash);
+                orderListIndex[loanOrderHash][orderAddresses[0]] = ListIndex({
+                    index: orderList[orderAddresses[0]].length-1,
+                    isSet: true
+                });
+            }
+
             if (!_verifyNewLoanOrder(
                 loanOrder,
                 loanOrderAux,
@@ -282,7 +292,7 @@ contract OrderTakingFunctions is BZxStorage, InterestFunctions {
             revert("BZxOrderTaking::_verifyExistingLoanOrder: remainingLoanTokenAmount < loanTokenAmountFilled");
         } else if (remainingLoanTokenAmount > loanTokenAmountFilled) {
             if (!orderListIndex[loanOrder.loanOrderHash][address(0)].isSet) {
-                // record of fillable (non-expired, unfilled) orders
+                // record of fillable (non-expired/unfilled) orders
                 orderList[address(0)].push(loanOrder.loanOrderHash);
                 orderListIndex[loanOrder.loanOrderHash][address(0)] = ListIndex({
                     index: orderList[address(0)].length-1,
