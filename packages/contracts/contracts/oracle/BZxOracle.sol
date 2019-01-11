@@ -155,10 +155,10 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
     }
 
     function didTakeOrder(
-        BZxObjects.LoanOrder memory /* loanOrder */,
-        BZxObjects.LoanOrderAux memory /* loanOrderAux */,
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanOrderAux memory loanOrderAux,
         BZxObjects.LoanPosition memory loanPosition,
-        address /* taker */,
+        address taker,
         uint256 /* gasUsed */)
         public
         onlyBZx
@@ -180,12 +180,21 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         require(!enforceMinimum || collateralInWethAmount >= minimumCollateralInWethAmount, "collateral below minimum for BZxOracle");
         collateralInWethAmounts[loanPosition.positionId] = collateralInWethAmount;
 
+        if (takeOrderNotifier[loanOrder.loanOrderHash] != address(0)) {
+            OracleNotifierInterface(takeOrderNotifier[loanOrder.loanOrderHash]).takeOrderNotifier(
+                loanOrder,
+                loanOrderAux,
+                loanPosition,
+                taker
+            );
+        }
+
         return true;
     }
 
     function didTradePosition(
-        BZxObjects.LoanOrder memory /* loanOrder */,
-        BZxObjects.LoanPosition memory /* loanPosition */,
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
         uint256 /* gasUsed */)
         public
         onlyBZx
@@ -205,6 +214,13 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             "BZxOracle::didTradePosition: trade triggers liquidation"
         );
         */
+
+        if (tradePositionNotifier[loanOrder.loanOrderHash] != address(0)) {
+            OracleNotifierInterface(tradePositionNotifier[loanOrder.loanOrderHash]).tradePositionNotifier(
+                loanOrder,
+                loanPosition
+            );
+        }
 
         return true;
     }
@@ -243,8 +259,8 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             );
         }
 
-        if (interestPaidNotifier[loanOrder.loanOrderHash] != address(0)) {
-            OracleNotifierInterface(interestPaidNotifier[loanOrder.loanOrderHash]).interestPaidNotifier(
+        if (payInterestNotifier[loanOrder.loanOrderHash] != address(0)) {
+            OracleNotifierInterface(payInterestNotifier[loanOrder.loanOrderHash]).payInterestNotifier(
                 loanOrder,
                 lender,
                 amountPaid
@@ -355,8 +371,8 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             }
         }
 
-        if (loanCloseNotifier[loanOrder.loanOrderHash] != address(0)) {
-            OracleNotifierInterface(loanCloseNotifier[loanOrder.loanOrderHash]).loanCloseNotifier(
+        if (closeLoanNotifier[loanOrder.loanOrderHash] != address(0)) {
+            OracleNotifierInterface(closeLoanNotifier[loanOrder.loanOrderHash]).closeLoanNotifier(
                 loanOrder,
                 loanPosition,
                 loanCloser,
@@ -394,11 +410,12 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         return true;
     }
 
-    function didIncreaseLoanableAmount(
+    function didUpdateLoanAsLender(
         BZxObjects.LoanOrder memory /* loanOrder */,
         address /* lender */,
         uint256 /* loanTokenAmountAdded */,
         uint256 /* totalNewFillableAmount */,
+        uint256 /* newExpirationTimestamp */,
         uint256 /* gasUsed */)
         public
         onlyBZx

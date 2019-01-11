@@ -214,13 +214,15 @@ contract OracleInterface {
     /// @param lender The lender
     /// @param loanTokenAmountAdded The amount of loan token that was added to the order
     /// @param totalNewFillableAmount The total fillable amount still available for this order
+    /// @param newExpirationTimestamp The new expirationUnixTimestampSec of the loan
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
-    function didIncreaseLoanableAmount(
+    function didUpdateLoanAsLender(
         BZxObjects.LoanOrder memory loanOrder,
         address lender,
         uint256 loanTokenAmountAdded,
         uint256 totalNewFillableAmount,
+        uint256 newExpirationTimestamp,
         uint256 gasUsed)
         public
         returns (bool);

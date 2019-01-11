@@ -424,15 +424,17 @@ contract BZx is BZxStorage {
         external
         returns (bool);
 
-    /// @dev Allows a lender to increase the amount of token they will loan out for an order
-    /// @dev The order must already be on chain and have been partially filled
+    /// @dev Allows a lender to increase the amount of token they will loan out for an order and/or set the loan order expiration to a future date
+    /// @dev The order must already be on chain
     /// @dev Ensures the lender has enough balance and allowance
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param loanTokenAmountToAdd The amount to increase the loan token
+    /// @param increaseAmountForLoan Optional parameter to specify the amount of loan token increase
+    /// @param futureExpirationTimestamp Optional parameter to set the expirationUnixTimestampSec on the loan to a future date
     /// @return True on success
-    function increaseLoanableAmount(
+    function updateLoanAsLender(
         bytes32 loanOrderHash,
-        uint256 loanTokenAmountToAdd)      
+        uint256 increaseAmountForLoan,
+        uint256 futureExpirationTimestamp)
         external
         returns (bool);
 

@@ -11,14 +11,28 @@ import "../storage/BZxObjects.sol";
 
 interface OracleNotifierInterface {
 
-    function interestPaidNotifier(
+    function takeOrderNotifier(
+        BZxObjects.LoanOrder calldata loanOrder,
+        BZxObjects.LoanOrderAux calldata loanOrderAux,
+        BZxObjects.LoanPosition calldata loanPosition,
+        address taker)
+        external
+        returns (bool);
+
+    function tradePositionNotifier(
+        BZxObjects.LoanOrder calldata loanOrder,
+        BZxObjects.LoanPosition calldata loanPosition)
+        external
+        returns (bool);
+
+    function payInterestNotifier(
         BZxObjects.LoanOrder calldata loanOrder,
         address lender,
         uint256 amountPaid)
         external
         returns (bool);
 
-    function loanCloseNotifier(
+    function closeLoanNotifier(
         BZxObjects.LoanOrder calldata loanOrder,
         BZxObjects.LoanPosition calldata loanPosition,
         address loanCloser,

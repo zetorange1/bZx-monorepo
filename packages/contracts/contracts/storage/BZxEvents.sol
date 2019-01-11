@@ -95,10 +95,11 @@ contract BZxEvents {
         address indexed newOwner
     );
 
-    event LogIncreasedLoanableAmount(
+    event LogUpdateLoanAsLender(
         bytes32 indexed loanOrderHash,
         address indexed lender,
         uint256 loanTokenAmountAdded,
-        uint256 loanTokenAmountFillable
+        uint256 loanTokenAmountFillable,
+        uint256 expirationUnixTimestampSec
     );
 }

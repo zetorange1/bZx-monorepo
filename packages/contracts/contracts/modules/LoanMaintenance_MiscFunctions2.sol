@@ -34,7 +34,7 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
     {
         targets[bytes4(keccak256("changeTraderOwnership(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("changeLenderOwnership(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("increaseLoanableAmount(bytes32,uint256)"))] = _target;
+        targets[bytes4(keccak256("updateLoanAsLender(bytes32,uint256,uint256)"))] = _target;
         targets[bytes4(keccak256("isPositionOpen(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("setLoanOrderDesc(bytes32,string)"))] = _target;
     }
@@ -163,72 +163,92 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
         return true;
     }
 
-    /// @dev Allows a lender to increase the amount of token they will loan out for an order
-    /// @dev The order must already be on chain and have been partially filled
+    /// @dev Allows a lender to increase the amount of token they will loan out for an order and/or set the loan order expiration to a future date
+    /// @dev The order must already be on chain
     /// @dev Ensures the lender has enough balance and allowance
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param loanTokenAmountToAdd The amount to increase the loan token
+    /// @param increaseAmountForLoan Optional parameter to specify the amount of loan token increase
+    /// @param futureExpirationTimestamp Optional parameter to set the expirationUnixTimestampSec on the loan to a future date
     /// @return True on success
-    function increaseLoanableAmount(
+    function updateLoanAsLender(
         bytes32 loanOrderHash,
-        uint256 loanTokenAmountToAdd)      
+        uint256 increaseAmountForLoan,
+        uint256 futureExpirationTimestamp)
         external
         nonReentrant
         tracksGas
         returns (bool)
     {
-        if (orderLender[loanOrderHash] != msg.sender) {
-            revert("BZxOrderTaking::increaseLoanableAmount: msg.sender is not the lender");
+        if (orderLender[loanOrderHash] != msg.sender || orderAux[loanOrderHash].makerAddress != msg.sender) {
+            revert("BZxOrderTaking::updateLoanAsLender: sender did not make order as lender");
         }
 
         LoanOrder storage loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
-            revert("BZxOrderTaking::increaseLoanableAmount: loanOrder.loanTokenAddress == address(0)");
+            revert("BZxOrderTaking::updateLoanAsLender: loanOrder.loanTokenAddress == address(0)");
         }
 
-        uint256 totalNewFillableAmount = loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrderHash)).add(loanTokenAmountToAdd);
-        
-        // ensure adequate token balance
-        require (EIP20(loanOrder.loanTokenAddress).balanceOf.gas(4999)(msg.sender) >= totalNewFillableAmount, "BZxOrderTaking::increaseLoanableAmount: lender balance is insufficient");
+        bool success = false;
 
-        // ensure adequate token allowance
-        require (EIP20(loanOrder.loanTokenAddress).allowance.gas(4999)(msg.sender, vaultContract) >= totalNewFillableAmount, "BZxOrderTaking::increaseLoanableAmount: lender allowance is insufficient");
+        uint256 totalNewFillableAmount = loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrderHash));
+        if (increaseAmountForLoan > 0) {
+            totalNewFillableAmount = totalNewFillableAmount.add(increaseAmountForLoan);
         
-        uint256 newLoanTokenAmount = loanOrder.loanTokenAmount.add(loanTokenAmountToAdd);
+            // ensure adequate token balance
+            require (EIP20(loanOrder.loanTokenAddress).balanceOf.gas(4999)(msg.sender) >= totalNewFillableAmount, "BZxOrderTaking::updateLoanAsLender: lender balance is insufficient");
 
-        if (loanOrder.interestAmount > 0) {
-            if (loanOrder.loanTokenAmount > 0) {
-                // Interest amount per day is calculated based on the fraction of loan token filled over total loanTokenAmount.
-                // Since total loanTokenAmount is increasing, we increase interest proportionally.
-                loanOrder.interestAmount = loanOrder.interestAmount.mul(newLoanTokenAmount).div(loanOrder.loanTokenAmount);
-            } else {
-                // HACK: We assume here that interestAmount has initially been set as a percentage when pushed on chain in a
-                // zero-value loan. We will convert it to an actual amount.
-                // Percentage format: 2% of total filled loan token per day = 2 * 10**18
-                loanOrder.interestAmount = newLoanTokenAmount.mul(loanOrder.interestAmount).div(10**20);
+            // ensure adequate token allowance
+            require (EIP20(loanOrder.loanTokenAddress).allowance.gas(4999)(msg.sender, vaultContract) >= totalNewFillableAmount, "BZxOrderTaking::updateLoanAsLender: lender allowance is insufficient");
+
+            uint256 newLoanTokenAmount = loanOrder.loanTokenAmount.add(increaseAmountForLoan);
+
+            if (loanOrder.interestAmount > 0) {
+                if (loanOrder.loanTokenAmount > 0) {
+                    // Interest amount per day is calculated based on the fraction of loan token filled over total loanTokenAmount.
+                    // Since total loanTokenAmount is increasing, we increase interest proportionally.
+                    loanOrder.interestAmount = loanOrder.interestAmount.mul(newLoanTokenAmount).div(loanOrder.loanTokenAmount);
+                } else {
+                    // HACK: We assume here that interestAmount has initially been set as a percentage when pushed on chain in a
+                    // zero-value loan. We will convert it to an actual amount.
+                    // Percentage format: 2% of total filled loan token per day = 2 * 10**18
+                    loanOrder.interestAmount = newLoanTokenAmount.mul(loanOrder.interestAmount).div(10**20);
+                }
             }
+
+            loanOrder.loanTokenAmount = newLoanTokenAmount;
+
+            success = true;
         }
 
-        loanOrder.loanTokenAmount = newLoanTokenAmount;
-
-        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didIncreaseLoanableAmount(
-            loanOrder,
-            msg.sender,
-            loanTokenAmountToAdd,
-            totalNewFillableAmount,
-            gasUsed // initial used gas, collected in modifier
-        )) {
-            revert("BZxOrderTaking::increaseLoanableAmount: OracleInterface.didIncreaseLoanableAmount failed");
+        if (futureExpirationTimestamp > orderAux[loanOrderHash].expirationUnixTimestampSec) {
+            orderAux[loanOrderHash].expirationUnixTimestampSec = futureExpirationTimestamp;
+            success = true;
         }
 
-        emit LogIncreasedLoanableAmount(
-            loanOrderHash,
-            msg.sender,
-            loanTokenAmountToAdd,
-            totalNewFillableAmount
-        );
+        if (success) {
+            emit LogUpdateLoanAsLender(
+                loanOrderHash,
+                msg.sender,
+                increaseAmountForLoan,
+                totalNewFillableAmount,
+                orderAux[loanOrderHash].expirationUnixTimestampSec
+            );
 
-        return true;
+            if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didUpdateLoanAsLender(
+                loanOrder,
+                msg.sender,
+                increaseAmountForLoan,
+                totalNewFillableAmount,
+                orderAux[loanOrderHash].expirationUnixTimestampSec,
+                gasUsed // initial used gas, collected in modifier
+            )) {
+                revert("BZxOrderTaking::updateLoanAsLender: OracleInterface.didUpdateLoanAsLender failed");
+            }
+
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /// @param loanOrderHash A unique hash representing the loan order
