@@ -10,14 +10,15 @@ const validRange = (min, max, val) => {
 };
 
 const checkCoinsAdded = ({ loanTokenAddress, interestTokenAddress, collateralTokenAddress, role }, tokens) => {
-  const trackedTokens = getTrackedTokens(tokens);
+  return true;
+  /*const trackedTokens = getTrackedTokens(tokens);
 
   if (role === `lender`) {
     return trackedTokens.includes(loanTokenAddress);
   }
   const a = trackedTokens.includes(interestTokenAddress);
   const b = trackedTokens.includes(collateralTokenAddress);
-  return a && b;
+  return a && b;*/
 };
 
 const checkAllowance = async (bZx, accounts, tokenAddress) => {
@@ -28,14 +29,53 @@ const checkAllowance = async (bZx, accounts, tokenAddress) => {
   return allowance.toNumber() !== 0;
 };
 
+const silentAllowance = async (bZx, accounts, tokenAddress) => {
+    const txOpts = {
+      from: accounts[0],
+      // gas: 1000000,
+      gasPrice: window.defaultGasPrice.toString()
+    };
+
+    const txObj = await bZx.setAllowanceUnlimited({
+      tokenAddress: tokenAddress,
+      ownerAddress: accounts[0].toLowerCase(),
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      let gas = await txObj.estimateGas(txOpts);
+      console.log(gas);
+      txOpts.gas = window.gasValue(gas);
+      await txObj.send(txOpts);
+      return true;
+	} catch (error) {
+      console.error(error.message);
+      return false;
+    }
+}
+
 const checkCoinsApproved = async (bZx, accounts, state) => {
   const { loanTokenAddress, interestTokenAddress, collateralTokenAddress, role } = state;
   if (role === `lender`) {
     const loanTokenAllowed = await checkAllowance(bZx, accounts, loanTokenAddress);
-    return loanTokenAllowed;
+    if (!loanTokenAllowed) {
+        return (await silentAllowance(bZx, accounts, loanTokenAddress));
+    } else {
+        return true;
+	}
   }
-  const a = await checkAllowance(bZx, accounts, interestTokenAddress);
-  const b = await checkAllowance(bZx, accounts, collateralTokenAddress);
+
+  let a = await checkAllowance(bZx, accounts, interestTokenAddress);
+  if (!a) {
+    a = await silentAllowance(bZx, accounts, interestTokenAddress);
+  }
+
+  let b = await checkAllowance(bZx, accounts, collateralTokenAddress);
+  if (!b) {
+    b = await silentAllowance(bZx, accounts, collateralTokenAddress);
+  }
+
   return a && b;
 };
 

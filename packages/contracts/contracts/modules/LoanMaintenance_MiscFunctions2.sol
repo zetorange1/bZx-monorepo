@@ -209,9 +209,22 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
                     loanOrder.interestAmount = loanOrder.interestAmount.mul(newLoanTokenAmount).div(loanOrder.loanTokenAmount);
                 } else {
                     // HACK: We assume here that interestAmount has initially been set as a percentage when pushed on chain in a
-                    // zero-value loan. We will convert it to an actual amount.
-                    // Percentage format: 2% of total filled loan token per day = 2 * 10**18
-                    loanOrder.interestAmount = newLoanTokenAmount.mul(loanOrder.interestAmount).div(10**20);
+                    // zero-value loan. We will convert it to an actual amount based on loan value, denominated in interestToken.
+                    // Percentage format: 2% of total filled loan token value per day = 2 * 10**18
+                    // This is limited to tokens supported by the oracle.
+                    
+                    uint256 loanToInterestAmount;
+                    if (loanOrder.interestTokenAddress == loanOrder.loanTokenAddress) {
+                        loanToInterestAmount = newLoanTokenAmount;
+                    } else {
+                        (, loanToInterestAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+                            loanOrder.loanTokenAddress,
+                            loanOrder.interestTokenAddress,
+                            newLoanTokenAmount);
+                    }
+                    require(loanToInterestAmount > 0, "BZxOrderTaking::updateLoanAsLender: loanToInterestAmount == 0");
+
+                    loanOrder.interestAmount = loanToInterestAmount.mul(loanOrder.interestAmount).div(10**20);
                 }
             }
 

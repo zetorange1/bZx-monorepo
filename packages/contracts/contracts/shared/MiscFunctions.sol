@@ -16,6 +16,51 @@ import "./MathFunctions.sol";
 contract MiscFunctions is BZxStorage, MathFunctions {
     using SafeMath for uint256;
 
+    function _payInterest(
+        LoanOrder memory loanOrder,
+        LenderInterest storage interestDataLender,
+        LenderInterest storage interestTokenDataLender,
+        bool sendToOracle)
+        internal
+        returns (uint256)
+    {
+        uint256 interestOwedNow = 0;
+        if (interestDataLender.interestOwedPerDay > 0 && interestDataLender.interestPaidDate > 0 && loanOrder.interestTokenAddress != address(0)) {
+            interestOwedNow = block.timestamp.sub(interestDataLender.interestPaidDate).mul(interestDataLender.interestOwedPerDay).div(86400);
+            
+            if (interestOwedNow > 0) {
+                interestDataLender.interestPaid = interestDataLender.interestPaid.add(interestOwedNow);
+                interestTokenDataLender.interestPaid = interestTokenDataLender.interestPaid.add(interestOwedNow);
+
+                if (sendToOracle) {
+                    // send the interest to the oracle for further processing
+                    if (! BZxVault(vaultContract).withdrawToken(
+                        loanOrder.interestTokenAddress,
+                        oracleAddresses[loanOrder.oracleAddress],
+                        interestOwedNow
+                    )) {
+                        revert("_payInterest: BZxVault.withdrawToken failed");
+                    }
+
+                    // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
+                    if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didPayInterest(
+                        loanOrder,
+                        orderLender[loanOrder.loanOrderHash],
+                        interestOwedNow,
+                        gasUsed // initial used gas, collected in modifier
+                    )) {
+                        revert("_payInterest: OracleInterface.didPayInterest failed");
+                    }
+                }
+            }
+        }
+
+        interestDataLender.interestPaidDate = block.timestamp;
+        interestTokenDataLender.interestPaidDate = block.timestamp;
+
+        return interestOwedNow;
+    }
+
     /// @dev Calculates the sum of values already filled and cancelled for a given loanOrder.
     /// @param loanOrderHash A unique hash representing the loan order.
     /// @return Sum of values already filled and cancelled.

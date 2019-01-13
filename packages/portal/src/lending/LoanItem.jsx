@@ -69,7 +69,29 @@ const UpperRight = styled.div`
 export default class LoanItem extends BZxComponent {
   state = {
     showOrderDialog: false,
-    order: undefined
+    order: undefined,
+    interestPaid: toBigNumber(0),
+    interestUnPaid: toBigNumber(0)
+  };
+  
+  async componentWillReceiveProps(nextProps) {
+    await this.getLenderInterest();
+  }
+  
+  componentDidMount = async () => {
+    await this.getLenderInterest();
+  };
+
+  getLenderInterest = async () => {
+    const { bZx, data } = this.props;
+    const lenderInterest = await this.wrapAndRun(bZx.getLenderInterestForOrder({
+      loanOrderHash: data.loanOrderHash
+    }));
+    console.log(`lenderInterest`,lenderInterest);
+    await this.setState({ 
+      interestPaid: lenderInterest.interestPaid,
+      interestUnPaid: lenderInterest.interestUnPaid,
+    });
   };
 
   getSingleOrder = async loanOrderHash => {
@@ -96,13 +118,21 @@ export default class LoanItem extends BZxComponent {
   };
 
   render() {
-    const { tokens, bZx, accounts, web3, currentFee } = this.props;
+    const { 
+      tokens,
+      bZx,
+      accounts,
+      web3,
+      currentFee
+    } = this.props;
+    const {
+      interestPaid,
+      interestUnPaid
+    } = this.state;    
     const {
       collateralTokenAmountFilled,
       collateralTokenAddressFilled,
       interestTokenAddress,
-      interestTotalAccrued,
-      interestPaidSoFar,
       loanTokenAddress,
       loanTokenAmountFilled,
       positionTokenAddressFilled,
@@ -112,6 +142,7 @@ export default class LoanItem extends BZxComponent {
       loanStartUnixTimestampSec,
       active
     } = this.props.data;
+
 
     const collateralTokenSymbol = getSymbol(
       tokens,
@@ -130,10 +161,6 @@ export default class LoanItem extends BZxComponent {
     const positionTokenDecimals = getDecimals(
       tokens,
       positionTokenAddressFilled
-    );
-
-    const availableForWithdrawal = toBigNumber(interestTotalAccrued).minus(
-      toBigNumber(interestPaidSoFar)
     );
 
     const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
@@ -249,30 +276,21 @@ export default class LoanItem extends BZxComponent {
           {active ? (
             <Fragment>
               <br />
-
+              
               <DataPointContainer>
-                <Label>Total interest accrued</Label>
+                <Label>Interest earned (all loan total)</Label>
                 <DataPoint>
-                  {fromBigNumber(interestTotalAccrued, 10 ** interestTokenDecimals)}
+                  {fromBigNumber(interestPaid, 10 ** interestTokenDecimals)}
                   {` `}
                   {interestTokenSymbol}
                 </DataPoint>
               </DataPointContainer>
 
               <DataPointContainer>
-                <Label>Total interest withdrawn</Label>
-                <DataPoint>
-                  {fromBigNumber(interestPaidSoFar, 10 ** interestTokenDecimals)}
-                  {` `}
-                  {interestTokenSymbol}
-                </DataPoint>
-              </DataPointContainer>
-
-              <DataPointContainer>
-                <Label>Available for withdrawal (minus fees)</Label>
+                <Label>Withdrawable Interest (all loan total)</Label>
                 <DataPoint style={{ marginRight: `12px` }}>
                   {fromBigNumber(
-                    availableForWithdrawal,
+                    interestUnPaid,
                     10 ** interestTokenDecimals
                   )}
                   {` `}
@@ -284,7 +302,7 @@ export default class LoanItem extends BZxComponent {
                 <WithdrawInterest
                   bZx={bZx}
                   trader={trader}
-                  availableForWithdrawal={availableForWithdrawal}
+                  availableForWithdrawal={interestUnPaid}
                   symbol={interestTokenSymbol}
                   decimals={interestTokenDecimals}
                   accounts={accounts}
@@ -297,9 +315,9 @@ export default class LoanItem extends BZxComponent {
           ) : (
             <Fragment>
               <DataPointContainer>
-                <Label>Total interest earned</Label>
+                <Label>Interest earned (all loan total)</Label>
                 <DataPoint>
-                  {fromBigNumber(interestTotalAccrued, 10 ** interestTokenDecimals)}
+                  {fromBigNumber(interestPaid, 10 ** interestTokenDecimals)}
                   {` `}
                   {interestTokenSymbol}
                 </DataPoint>

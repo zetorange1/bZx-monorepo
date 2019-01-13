@@ -133,7 +133,7 @@ export const getPositionOffset = async (
 
 export const payInterest = (
   { web3, networkId, addresses },
-  { loanOrderHash, trader, getObject, txOpts }
+  { loanOrderHash, getObject, txOpts }
 ) => {
   const bZxContract = CoreUtils.getContractInstance(
     web3,
@@ -141,7 +141,7 @@ export const payInterest = (
     addresses.BZx
   );
 
-  const txObj = bZxContract.methods.payInterest(loanOrderHash, trader);
+  const txObj = bZxContract.methods.payInterest(loanOrderHash);
 
   if (getObject) {
     return txObj;
@@ -149,7 +149,49 @@ export const payInterest = (
   return txObj.send(txOpts);
 };
 
-export const getInterest = async (
+export const getLenderInterestForToken = async (
+  { web3, networkId, addresses },
+  { lender, interestTokenAddress }
+) => {
+  const bZxContract = CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
+  );
+  const data = await bZxContract.methods
+    .getLenderInterestForToken(lender, interestTokenAddress)
+    .call();
+  return {
+    interestPaid: data[0],
+    interestPaidDate: data[1],
+    interestOwedPerDay: data[2],
+    interestUnPaid: data[3]
+  };
+};
+
+export const getLenderInterestForOrder = async (
+  { web3, networkId, addresses },
+  { loanOrderHash }
+) => {
+  const bZxContract = CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
+  );
+  const data = await bZxContract.methods
+    .getLenderInterestForOrder(loanOrderHash)
+    .call();
+  return {
+    lender: data[0],
+    interestTokenAddress: data[1],
+    interestPaid: data[2],
+    interestPaidDate: data[3],
+    interestOwedPerDay: data[4],
+    interestUnPaid: data[5]
+  };
+};
+
+export const getTraderInterestForLoan = async (
   { web3, networkId, addresses },
   { loanOrderHash, trader }
 ) => {
@@ -159,13 +201,14 @@ export const getInterest = async (
     addresses.BZx
   );
   const data = await bZxContract.methods
-    .getInterest(loanOrderHash, trader)
+    .getTraderInterestForLoan(loanOrderHash, trader)
     .call();
   return {
-    lender: data[0],
-    interestTokenAddress: data[1],
-    interestTotalAccrued: data[2],
-    interestPaidSoFar: data[3]
+    interestTokenAddress: data[0],
+    interestOwedPerDay: data[1],
+    interestPaidTotal: data[2],
+    interestDepositTotal: data[3],
+    interestDepositRemaining: data[4]
   };
 };
 

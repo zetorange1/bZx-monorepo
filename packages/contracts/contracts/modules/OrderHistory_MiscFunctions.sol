@@ -9,10 +9,10 @@ pragma experimental ABIEncoderV2;
 import "../openzeppelin-solidity/Math.sol";
 
 import "../proxy/BZxProxiable.sol";
-import "../shared/InterestFunctions.sol";
+import "../shared/MiscFunctions.sol";
 
 
-contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctions {
+contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -148,9 +148,11 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
             loanPosition.loanEndUnixTimestampSec,
             loanPosition.active
         );
-        return _addExtraLoanData(
+        data = _addExtraLoanData(
             loanOrderHash,
-            loanPosition,
+            data);
+        return _addInterestData(
+            loanPosition.positionId,
             data);
     }
 
@@ -404,7 +406,9 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
                 );
                 tmpBytes = _addExtraLoanData(
                     orderList[loanParty][j-1],
-                    loanPosition,
+                    tmpBytes);
+                tmpBytes = _addInterestData(
+                    loanPosition.positionId,
                     tmpBytes);
 
                 if (itemCount == 0) {
@@ -428,7 +432,6 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
 
     function _addExtraLoanData(
         bytes32 loanOrderHash,
-        LoanPosition memory loanPosition,
         bytes memory data)
         internal
         view
@@ -436,16 +439,32 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, InterestFunctio
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
 
-        InterestData memory interestData = _getInterestData(loanOrder, loanPosition);
-
         bytes memory tmpBytes = abi.encode(
             loanOrderHash,
             loanOrder.loanTokenAddress,
-            interestData.interestTokenAddress,
-            interestData.interestTotalAccrued,
-            interestData.interestPaidSoFar,
-            interestData.interestLastPaidDate
+            loanOrder.interestTokenAddress
         );
+
+        return abi.encodePacked(data, tmpBytes);
+    }
+
+    function _addInterestData(
+        uint256 positionId,
+        bytes memory data)
+        internal
+        view
+        returns (bytes memory)
+    {
+        TraderInterest memory interestDataTrader = traderLoanInterest[positionId];
+
+        bytes memory tmpBytes = abi.encode(
+            interestDataTrader.interestUpdatedDate > 0 && interestDataTrader.interestOwedPerDay > 0 ?
+                interestDataTrader.interestPaid.add(
+                    block.timestamp.sub(interestDataTrader.interestUpdatedDate).mul(interestDataTrader.interestOwedPerDay).div(86400)
+                ) : interestDataTrader.interestPaid, // interestPaidTotal
+            loanPositions[positionId].loanEndUnixTimestampSec > block.timestamp ? loanPositions[positionId].loanEndUnixTimestampSec.sub(block.timestamp).mul(interestDataTrader.interestOwedPerDay).div(86400) : 0 // interestDepositRemaining
+        );
+
         return abi.encodePacked(data, tmpBytes);
     }
 }

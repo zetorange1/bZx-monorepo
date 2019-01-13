@@ -58,12 +58,16 @@ contract BZxObjects {
         uint256 positionId;
     }
 
-    struct InterestData {
-        address lender;
-        address interestTokenAddress;
-        uint256 interestTotalAccrued;
-        uint256 interestPaidSoFar;
-        uint256 interestLastPaidDate;
+    struct LenderInterest {
+        uint256 interestOwedPerDay;
+        uint256 interestPaid;
+        uint256 interestPaidDate;
     }
 
+    struct TraderInterest {
+        uint256 interestOwedPerDay;
+        uint256 interestPaid;
+        uint256 interestDepositTotal;
+        uint256 interestUpdatedDate;
+    }
 }

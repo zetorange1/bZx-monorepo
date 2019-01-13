@@ -51,67 +51,6 @@ export default class Borrowing extends BZxComponent {
   openDialog = () => this.setState({ showDialog: true });
   closeDialog = () => this.setState({ showDialog: false });
 
-  /// TODO: Not yet working ///
-  withdrawInterest = async () => {
-    const { accounts, bZx, loanOrderHash } = this.props;
-
-    const txOpts = {
-      from: accounts[0],
-      gas: 2000000,
-      gasPrice: window.defaultGasPrice.toString()
-    };
-
-    if (bZx.portalProviderName !== `MetaMask`) {
-      alert(`Please confirm this transaction on your device.`);
-    }
-
-    const txObj = await bZx.payInterestForOrder({
-      loanOrderHash,
-      getObject: true,
-      txOpts
-    });
-
-    try {
-      await txObj
-        .estimateGas(txOpts)
-        .then(gas => {
-          console.log(gas);
-          txOpts.gas = window.gasValue(gas);
-          txObj
-            .send(txOpts)
-            .once(`transactionHash`, hash => {
-              alert(`Transaction submitted, transaction hash:`, {
-                component: () => (
-                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
-                    {hash}
-                  </TxHashLink>
-                )
-              });
-            })
-            .then(() => {
-              alert(`Execution complete.`);
-              this.closeDialog();
-            })
-            .catch(error => {
-              console.error(error);
-              alert(
-                `We were not able to execute your transaction at this time.`
-              );
-              this.closeDialog();
-            });
-        })
-        .catch(error => {
-          console.error(error);
-          alert(`The transaction is failing. Please try again later.`);
-          this.closeDialog();
-        });
-    } catch (error) {
-      console.error(error);
-      alert(`The transaction is failing. Please try again later.`);
-      this.closeDialog();
-    }
-  };
-
   render() {
     const { bZx, tokens, accounts, web3 } = this.props;
     const { loans, loading, error, count, showDialog } = this.state;

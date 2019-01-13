@@ -82,7 +82,7 @@ module.exports = (deployer, network, accounts) => {
       //var zrx_token;
       var zrx_token = await ERC20.at(config["addresses"]["development"]["ZeroEx"]["ZRXToken"]);
 
-      var weth = await BZxEther.deployed();
+      var weth = await BZxEther.at(config["addresses"]["development"]["ZeroEx"]["WETH9"]); //await BZxEther.deployed();
 
       for (var i = 0; i < 10; i++) {
         test_tokens[i] = await artifacts.require("TestToken" + i).deployed();

@@ -167,7 +167,9 @@ export class BZxJS {
   closeLoan = (...props) => loanHealth.closeLoan(this, ...props);
 
   payInterest = (...props) => loanHealth.payInterest(this, ...props);
-  getInterest = (...props) => loanHealth.getInterest(this, ...props);
+  getLenderInterestForToken = (...props) => loanHealth.getLenderInterestForToken(this, ...props);
+  getLenderInterestForOrder = (...props) => loanHealth.getLenderInterestForOrder(this, ...props);
+  getTraderInterestForLoan = (...props) => loanHealth.getTraderInterestForLoan(this, ...props);
 
   requestFaucetToken = (...props) => utils.requestFaucetToken(this, ...props);
 

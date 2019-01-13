@@ -12,11 +12,11 @@ import "../storage/BZxStorage.sol";
 import "../BZxVault.sol";
 import "../oracle/OracleRegistry.sol";
 import "../oracle/OracleInterface.sol";
-import "./InterestFunctions.sol";
+import "./MiscFunctions.sol";
 
 import "../tokens/EIP20.sol";
 
-contract OrderTakingFunctions is BZxStorage, InterestFunctions {
+contract OrderTakingFunctions is BZxStorage, MiscFunctions {
     using SafeMath for uint256;
 
     // 0x signature types.
@@ -644,34 +644,37 @@ contract OrderTakingFunctions is BZxStorage, InterestFunctions {
     {
         // interest-free loan is permitted
         if (loanOrder.interestAmount > 0) {
+            LenderInterest storage interestDataLender = lenderOrderInterest[loanOrder.loanOrderHash];
+            LenderInterest storage interestTokenDataLender = lenderTokenInterest[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress];
+            TraderInterest storage interestDataTrader = traderLoanInterest[loanPosition.positionId];
 
-            if (block.timestamp > loanPosition.loanStartUnixTimestampSec) {
-                // pay any accured interest from an earlier loan fill
-                _payInterestForPosition(
-                    loanOrder,
-                    loanPosition,
-                    true, // convert,
-                    false // emitEvent
-                );
-            }
-            
-            // Total interest required if loan is kept open for the full duration.
-            // Unused interest at the end of a loan is refunded to the trader.
-            uint256 totalInterestRequired = _safeGetPartialAmountFloor(
+            // update lender interest
+            _payInterest(loanOrder, interestDataLender, interestTokenDataLender, true);
+            uint256 owedPerDay = _safeGetPartialAmountFloor(
                 loanTokenAmountFilled,
                 loanOrder.loanTokenAmount,
-                loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(loanOrder.interestAmount).div(86400)
+                loanOrder.interestAmount
             );
+            interestDataLender.interestOwedPerDay = interestDataLender.interestOwedPerDay.add(owedPerDay);
+            interestTokenDataLender.interestOwedPerDay = interestTokenDataLender.interestOwedPerDay.add(owedPerDay);
 
-            if (totalInterestRequired > 0) {
-                interestTotal[loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]] = 
-                    interestTotal[loanPositionsIds[loanOrder.loanOrderHash][loanPosition.trader]].add(totalInterestRequired);
+            // update trader interest
+            uint256 totalInterestToCollect = loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(owedPerDay).div(86400);
+            if (interestDataTrader.interestUpdatedDate > 0 && interestDataTrader.interestOwedPerDay > 0) {
+                interestDataTrader.interestPaid = interestDataTrader.interestPaid.add(
+                    block.timestamp.sub(interestDataTrader.interestUpdatedDate).mul(interestDataTrader.interestOwedPerDay).div(86400)
+                );
+            }
+            interestDataTrader.interestUpdatedDate = block.timestamp;
+            interestDataTrader.interestOwedPerDay = interestDataTrader.interestOwedPerDay.add(owedPerDay);
+            interestDataTrader.interestDepositTotal = interestDataTrader.interestDepositTotal.add(totalInterestToCollect);
 
+            if (totalInterestToCollect > 0) {
                 // deposit interest token
                 if (! BZxVault(vaultContract).depositToken(
                     loanOrder.interestTokenAddress,
                     loanPosition.trader,
-                    totalInterestRequired
+                    totalInterestToCollect
                 )) {
                     revert("BZxOrderTaking::_collectTotalInterest: BZxVault.depositToken interest failed");
                 }

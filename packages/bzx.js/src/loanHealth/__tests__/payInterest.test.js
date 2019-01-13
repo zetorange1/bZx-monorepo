@@ -80,7 +80,6 @@ describe("loanHealth", () => {
 
       promiEvent = bZxJS.payInterest({
         loanOrderHash,
-        trader: traders[0],
         txOpts
       });
     });

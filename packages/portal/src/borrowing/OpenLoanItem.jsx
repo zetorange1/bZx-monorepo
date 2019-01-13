@@ -175,8 +175,8 @@ export default class OpenedLoan extends BZxComponent {
       positionTokenAddressFilled,
       positionTokenAmountFilled,
       interestTokenAddress,
-      interestTotalAccrued,
-      interestPaidSoFar,
+      interestPaidTotal,
+      interestDepositRemaining,
       loanTokenAmountFilled,
       loanTokenAddress,
       loanStartUnixTimestampSec,
@@ -311,16 +311,16 @@ export default class OpenedLoan extends BZxComponent {
           <DataPointContainer>
             <Label>Interest paid so far</Label>
             <DataPoint>
-              {fromBigNumber(interestPaidSoFar, 10 ** interestTokenDecimals)}
+              {fromBigNumber(interestPaidTotal, 10 ** interestTokenDecimals)}
               {` `}
               {interestTokenSymbol}
             </DataPoint>
           </DataPointContainer>
 
           <DataPointContainer>
-            <Label>Interest accrued (total)</Label>
+            <Label>Interest Remaining</Label>
             <DataPoint>
-              {fromBigNumber(interestTotalAccrued, 10 ** interestTokenDecimals)}
+              {fromBigNumber(interestDepositRemaining, 10 ** interestTokenDecimals)}
               {` `}
               {interestTokenSymbol}
             </DataPoint>

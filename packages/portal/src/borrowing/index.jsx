@@ -37,7 +37,7 @@ export default class Borrowing extends BZxComponent {
         count: this.state.count,
         activeOnly: false
       }));
-      console.log(loans);
+      console.log(`loans`,loans);
       this.setState({ loans, loading: false, error: false });
     } catch(e) {
       console.log(e);

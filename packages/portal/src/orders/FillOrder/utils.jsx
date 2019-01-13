@@ -27,6 +27,32 @@ const checkAllowance = async (bZx, accounts, tokenAddress) => {
   return allowance.toNumber() !== 0;
 };
 
+const silentAllowance = async (bZx, accounts, tokenAddress) => {
+    const txOpts = {
+      from: accounts[0],
+      // gas: 1000000,
+      gasPrice: window.defaultGasPrice.toString()
+    };
+
+    const txObj = await bZx.setAllowanceUnlimited({
+      tokenAddress: tokenAddress,
+      ownerAddress: accounts[0].toLowerCase(),
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      let gas = await txObj.estimateGas(txOpts);
+      console.log(gas);
+      txOpts.gas = window.gasValue(gas);
+      await txObj.send(txOpts);
+      return true;
+	} catch (error) {
+      console.error(error.message);
+      return false;
+    }
+}
+
 const checkCoinsApproved = async (
   bZx,
   accounts,
@@ -37,14 +63,27 @@ const checkCoinsApproved = async (
   if (makerRole === `lender`) {
     // check that user has approved collateralToken and interestToken
     const { interestTokenAddress } = order;
-    const a = await checkAllowance(bZx, accounts, interestTokenAddress);
-    const b = await checkAllowance(bZx, accounts, collateralTokenAddress);
-    return a && b;
+    
+    let a = await checkAllowance(bZx, accounts, interestTokenAddress);
+      if (!a) {
+          a = await silentAllowance(bZx, accounts, interestTokenAddress);
+      }
+
+      let b = await checkAllowance(bZx, accounts, collateralTokenAddress);
+      if (!b) {
+        b = await silentAllowance(bZx, accounts, collateralTokenAddress);
+      }
+    
+      return a && b;
   }
   // check that user has approved loanToken
   const { loanTokenAddress } = order;
   const a = await checkAllowance(bZx, accounts, loanTokenAddress);
-  return a;
+  if (!a) {
+    return (await silentAllowance(bZx, accounts, loanTokenAddress));
+  } else {
+    return true;
+  }
 };
 
 const getNetwork = networkId => {

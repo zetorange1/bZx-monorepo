@@ -9,13 +9,13 @@ pragma experimental ABIEncoderV2;
 import "../openzeppelin-solidity/Math.sol";
 
 import "../proxy/BZxProxiable.sol";
-import "../shared/InterestFunctions.sol";
+import "../shared/MiscFunctions.sol";
 
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 
 
-contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, InterestFunctions {
+contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -31,98 +31,25 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, InterestFunction
         public
         onlyOwner
     {
-        targets[bytes4(keccak256("payInterest(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("payInterestForOrder(bytes32)"))] = _target;
+        targets[bytes4(keccak256("payInterest(bytes32)"))] = _target;
         targets[bytes4(keccak256("getMarginLevels(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("getInterest(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("getInterestForOrder(bytes32)"))] = _target;
+        targets[bytes4(keccak256("getLenderInterestForToken(address,address)"))] = _target;
+        targets[bytes4(keccak256("getLenderInterestForOrder(bytes32)"))] = _target;
+        targets[bytes4(keccak256("getTraderInterestForLoan(bytes32,address)"))] = _target;
     }
 
-    /// @dev Pays the lender of a loan the total amount of interest accrued for a loan.
+    /// @dev Pays the lender the total amount of interest accrued for a loan order
     /// @dev Note that this function can be safely called by anyone.
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param trader The address of the trader/borrower of a loan.
-    /// @return The amount of interest paid out.
+    /// @return The amount of interest paid out
     function payInterest(
-        bytes32 loanOrderHash,
-        address trader)
-        external
-        nonReentrant
-        tracksGas
-        returns (uint256)
-    {
-        LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.loanTokenAddress == address(0)) {
-            revert("BZxLoanHealth::payInterest: loanOrder.loanTokenAddress == address(0)");
-        }
-
-        LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
-        if (loanPosition.loanTokenAmountFilled == 0) {
-            revert("BZxLoanHealth::payInterest: loanPosition.loanTokenAmountFilled == 0");
-        }
-        
-        uint256 amountPaid = _payInterestForPosition(
-            loanOrder,
-            loanPosition,
-            true, // convert
-            true // emitEvent
-        );
-
-        return amountPaid;
-    }
-
-    /// @dev Pays the lender the total amount of interest accrued from all loans for a given order.
-    /// @dev This function can potentially run out of gas before finishing if there are two many loans assigned to
-    /// @dev an order. If this occurs, interest owed can be paid out using the payInterest function. Payouts are
-    /// @dev automatic as positions close, as well.
-    /// @dev Note that this function can be safely called by anyone.
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @return The amount of interest paid out.
-    function payInterestForOrder(
         bytes32 loanOrderHash)
         external
         nonReentrant
-        tracksGas
         returns (uint256)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.loanTokenAddress == address(0)) {
-            revert("BZxLoanHealth::payInterest: loanOrder.loanTokenAddress == address(0)");
-        }
-
-        uint256 totalAmountPaid = 0;
-        uint256 totalAmountAccrued = 0;
-        for (uint256 i=0; i < orderPositionList[loanOrderHash].length; i++) {
-
-            LoanPosition memory loanPosition = loanPositions[orderPositionList[loanOrderHash][i]];
-            if (loanPosition.loanTokenAmountFilled == 0) {
-                continue;
-            }
-
-            (uint256 amountPaid, uint256 interestTotalAccrued) = _setInterestPaidForPosition(
-                loanOrder,
-                loanPosition);
-            totalAmountPaid = totalAmountPaid.add(amountPaid);
-            totalAmountAccrued = totalAmountAccrued.add(interestTotalAccrued);
-        }
-
-        if (totalAmountPaid > 0) {
-            _sendInterest(
-                loanOrder,
-                totalAmountPaid,
-                true // convert
-            );
-
-            emit LogPayInterestForOrder(
-                loanOrder.loanOrderHash,
-                orderLender[loanOrder.loanOrderHash],
-                totalAmountPaid,
-                totalAmountAccrued,
-                orderPositionList[loanOrderHash].length
-            );
-        }
-
-        return totalAmountPaid;
+        return _payInterest(loanOrder, lenderOrderInterest[loanOrderHash], lenderTokenInterest[orderLender[loanOrderHash]][loanOrder.interestTokenAddress], true);
     }
 
     /// @dev Gets current margin data for the loan
@@ -153,18 +80,44 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, InterestFunction
             loanPosition));
     }
 
-    /// @dev Gets current interest data for the loan
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param trader The trader of the position
+    /// @dev Gets current lender interest data totals for all loans with a specific interest token
+    /// @param lender The lender address
+    /// @param interestTokenAddress The interest token address
+    /// @return interestPaid The total amount of interest that has been paid to a lender so far
+    /// @return interestPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet
+    /// @return interestOwedPerDay The amount of interest the lender is earning per day
+    /// @return interestUnPaid The total amount of interest the lender is owned and not yet withdrawn
+    function getLenderInterestForToken(
+        address lender,
+        address interestTokenAddress)
+        public
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256)
+    {
+        LenderInterest memory interestTokenDataLender = lenderTokenInterest[lender][interestTokenAddress];
+
+        return (
+            interestTokenDataLender.interestPaid,
+            interestTokenDataLender.interestPaid > 0 ? interestTokenDataLender.interestPaidDate : 0,
+            interestTokenDataLender.interestOwedPerDay,
+            interestTokenDataLender.interestPaidDate > 0 ? block.timestamp.sub(interestTokenDataLender.interestPaidDate).mul(interestTokenDataLender.interestOwedPerDay).div(86400) : 0
+        );
+    }
+
+    /// @dev Gets current lender interest data for the loan
+    /// @param loanOrderHash A unique hash representing the loan
     /// @return lender The lender in this loan
-    /// @return interestTokenAddress The interset token used in this loan
-    /// @return interestTotalAccrued The total amount of interest that has been earned so far
-    /// @return interestPaidSoFar The amount of earned interest that has been withdrawn
-    /// @return interestLastPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet
-    /// @return interestAmount The actual interest amount paid per day for this loan
-    function getInterest(
-        bytes32 loanOrderHash,
-        address trader)
+    /// @return interestTokenAddress The interest token used in this loan
+    /// @return interestPaid The total amount of interest that has been paid to a lender so far
+    /// @return interestPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet
+    /// @return interestOwedPerDay The amount of interest the lender is earning per day
+    /// @return interestUnPaid The total amount of interest the lender is owned and not yet withdrawn
+    function getLenderInterestForOrder(
+        bytes32 loanOrderHash)
         public
         view
         returns (
@@ -175,86 +128,52 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, InterestFunction
             uint256,
             uint256)
     {
-
-        LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.loanTokenAddress == address(0)) {
-            return (address(0),address(0),0,0,0,0);
-        }
-
-        // can still get interest for closed loans
-        LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
-        if (loanPosition.trader != trader) {
-            return (address(0),address(0),0,0,0,0);
-        }
-
-        InterestData memory interestData = _getInterestData(
-            loanOrder,
-            loanPosition
-        );
+        address lender = orderLender[loanOrderHash];
+        LenderInterest memory interestDataLender = lenderOrderInterest[loanOrderHash];
 
         return (
-            orderLender[loanOrderHash],
-            interestData.interestTokenAddress,
-            interestData.interestTotalAccrued,
-            interestData.interestPaidSoFar,
-            interestData.interestLastPaidDate,
-            loanOrder.loanTokenAmount > 0 ? loanOrder.interestAmount
-                .mul(loanPosition.loanTokenAmountFilled)
-                .div(loanOrder.loanTokenAmount) : 0
+            lender,
+            orders[loanOrderHash].interestTokenAddress,
+            interestDataLender.interestPaid,
+            interestDataLender.interestPaid > 0 ? interestDataLender.interestPaidDate : 0,
+            interestDataLender.interestOwedPerDay,
+            interestDataLender.interestPaidDate > 0 ? block.timestamp.sub(interestDataLender.interestPaidDate).mul(interestDataLender.interestOwedPerDay).div(86400) : 0
         );
     }
 
-    /// @dev Gets the aggregated current interest data for all loans for a given order.
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @return lender The lender for this loan order
-    /// @return interestTokenAddress The interset token used in this loan order
-    /// @return interestTotalAccrued The total amount of interest that has been earned so far
-    /// @return interestPaidSoFar The amount of earned interest that has been withdrawn
-    /// @return interestLastPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet
-    /// @return interestAmount The actual interest amount paid per day, based on open loan positions
-    function getInterestForOrder(
-        bytes32 loanOrderHash)
+    /// @dev Gets current trader interest data for the loan
+    /// @param loanOrderHash A unique hash representing the loan
+    /// @param trader The trader of the position
+    /// @return interestTokenAddress The interest token used in this loan
+    /// @return interestOwedPerDay The amount of interest the trader is paying per day
+    /// @return interestPaidTotal The total amount of interest the trader has paid so far to a lender
+    /// @return interestDepositTotal The total amount of interest the trader has deposited
+    /// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender
+    function getTraderInterestForLoan(
+        bytes32 loanOrderHash,
+        address trader)
         public
         view
         returns (
-            address lender,
-            address interestTokenAddress,
-            uint256 interestTotalAccrued,
-            uint256 interestPaidSoFar,
-            uint256 interestLastPaidDate,
-            uint256 interestAmount)
+            address,
+            uint256,
+            uint256,
+            uint256,
+            uint256)
     {
-        LoanOrder memory loanOrder = orders[loanOrderHash];
-        if (loanOrder.loanTokenAddress == address(0)) {
-            return (address(0),address(0),0,0,0,0);
-        }
+        uint256 positionId = loanPositionsIds[loanOrderHash][trader];
+        TraderInterest memory interestDataTrader = traderLoanInterest[positionId];
 
-        lender = orderLender[loanOrderHash];
-        interestTokenAddress = loanOrder.interestTokenAddress;
-        uint256 totalAmountFilled = 0;
-        for (uint256 i=0; i < orderPositionList[loanOrderHash].length; i++) {
-
-            // can still get interest for closed loans
-            LoanPosition memory loanPosition = loanPositions[orderPositionList[loanOrderHash][i]];
-            if (loanPosition.trader == address(0)) {
-                continue;
-            }
-
-            totalAmountFilled = totalAmountFilled.add(loanPosition.loanTokenAmountFilled);
-
-            InterestData memory interestData = _getInterestData(
-                loanOrder,
-                loanPosition
-            );
-
-            interestPaidSoFar = interestPaidSoFar.add(interestData.interestPaidSoFar);
-            interestTotalAccrued = interestTotalAccrued.add(interestData.interestTotalAccrued);
-            if (interestData.interestLastPaidDate > interestLastPaidDate)
-                interestLastPaidDate = interestData.interestLastPaidDate;
-        }
-        interestAmount = loanOrder.loanTokenAmount > 0 ? loanOrder.interestAmount
-            .mul(totalAmountFilled)
-            .div(loanOrder.loanTokenAmount) : 0;
+        return (
+            orders[loanOrderHash].interestTokenAddress,
+            interestDataTrader.interestOwedPerDay,
+            interestDataTrader.interestUpdatedDate > 0 && interestDataTrader.interestOwedPerDay > 0 ?
+                interestDataTrader.interestPaid.add(
+                    block.timestamp.sub(interestDataTrader.interestUpdatedDate).mul(interestDataTrader.interestOwedPerDay).div(86400)
+                ) : interestDataTrader.interestPaid,
+            interestDataTrader.interestDepositTotal,
+            loanPositions[positionId].loanEndUnixTimestampSec > block.timestamp ? loanPositions[positionId].loanEndUnixTimestampSec.sub(block.timestamp).mul(interestDataTrader.interestOwedPerDay).div(86400) : 0
+        );
     }
 
 

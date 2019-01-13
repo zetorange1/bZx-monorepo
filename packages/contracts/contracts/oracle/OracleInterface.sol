@@ -80,14 +80,12 @@ contract OracleInterface {
     /// @param loanOrder The loanOrder object
     /// @param lender The lender
     /// @param amountOwed The amount interest to pay
-    /// @param convert A boolean indicating if the interest should be converted to Ether
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
     function didPayInterest(
         BZxObjects.LoanOrder memory loanOrder,
         address lender,
         uint256 amountOwed,
-        bool convert,
         uint256 gasUsed)
         public
         returns (bool);

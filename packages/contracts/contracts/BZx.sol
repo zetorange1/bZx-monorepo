@@ -466,25 +466,11 @@ contract BZx is BZxStorage {
     * BZxLoanHealth functions
     */
 
-    /// @dev Pays the lender of a loan the total amount of interest accrued for a loan.
+    /// @dev Pays the lender the total amount of interest accrued for a loan order
     /// @dev Note that this function can be safely called by anyone.
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param trader The address of the trader/borrower of a loan.
-    /// @return The amount of interest paid out.
+    /// @return The amount of interest paid out
     function payInterest(
-        bytes32 loanOrderHash,
-        address trader)
-        external
-        returns (uint256);
-
-    /// @dev Pays the lender the total amount of interest accrued from all loans for a given order.
-    /// @dev This function can potentially run out of gas before finishing if there are two many loans assigned to
-    /// @dev an order. If this occurs, interest owed can be paid out using the payInterest function. Payouts are
-    /// @dev automatic as positions close, as well.
-    /// @dev Note that this function can be safely called by anyone.
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @return The amount of interest paid out.
-    function payInterestForOrder(
         bytes32 loanOrderHash)
         external
         returns (uint256);
@@ -551,18 +537,34 @@ contract BZx is BZxStorage {
         view
         returns (uint256, uint256, uint256);
 
-    /// @dev Gets current interest data for the loan
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param trader The trader of the position
+    /// @dev Gets current lender interest data totals for all loans with a specific interest token
+    /// @param lender The lender address
+    /// @param interestTokenAddress The interest token address
+    /// @return interestPaid The total amount of interest that has been paid to a lender so far
+    /// @return interestPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet
+    /// @return interestOwedPerDay The amount of interest the lender is earning per day
+    /// @return interestUnPaid The total amount of interest the lender is owned and not yet withdrawn
+    function getLenderInterestForToken(
+        address lender,
+        address interestTokenAddress)
+        public
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256);
+
+    /// @dev Gets current lender interest data for the loan
+    /// @param loanOrderHash A unique hash representing the loan
     /// @return lender The lender in this loan
-    /// @return interestTokenAddress The interset token used in this loan
-    /// @return interestTotalAccrued The total amount of interest that has been earned so far
-    /// @return interestPaidSoFar The amount of earned interest that has been withdrawn
-    /// @return interestLastPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet
-    /// @return interestAmount The actual interest amount paid per day for this loan
-    function getInterest(
-        bytes32 loanOrderHash,
-        address trader)
+    /// @return interestTokenAddress The interest token used in this loan
+    /// @return interestPaid The total amount of interest that has been paid to a lender so far
+    /// @return interestPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet
+    /// @return interestOwedPerDay The amount of interest the lender is earning per day
+    /// @return interestUnPaid The total amount of interest the lender is owned and not yet withdrawn
+    function getLenderInterestForOrder(
+        bytes32 loanOrderHash)
         public
         view
         returns (
@@ -573,25 +575,25 @@ contract BZx is BZxStorage {
             uint256,
             uint256);
 
-    /// @dev Gets the aggregated current interest data for all loans for a given order.
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @return lender The lender for this loan order
-    /// @return interestTokenAddress The interset token used in this loan order
-    /// @return interestTotalAccrued The total amount of interest that has been earned so far
-    /// @return interestPaidSoFar The amount of earned interest that has been withdrawn
-    /// @return interestLastPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet
-    /// @return interestAmount The actual interest amount paid per day, based on open loan positions
-    function getInterestForOrder(
-        bytes32 loanOrderHash)
+    /// @dev Gets current trader interest data for the loan
+    /// @param loanOrderHash A unique hash representing the loan
+    /// @param trader The trader of the position
+    /// @return interestTokenAddress The interest token used in this loan
+    /// @return interestOwedPerDay The amount of interest the trader is paying per day
+    /// @return interestPaidTotal The total amount of interest the trader has paid so far to a lender
+    /// @return interestDepositTotal The total amount of interest the trader has deposited
+    /// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender
+    function getTraderInterestForLoan(
+        bytes32 loanOrderHash,
+        address trader)
         public
         view
         returns (
-            address lender,
-            address interestTokenAddress,
-            uint256 interestTotalAccrued,
-            uint256 interestPaidSoFar,
-            uint256 interestLastPaidDate,
-            uint256 interestAmount);
+            address,
+            uint256,
+            uint256,
+            uint256,
+            uint256);
 
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position

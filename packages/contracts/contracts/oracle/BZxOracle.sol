@@ -229,7 +229,6 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         BZxObjects.LoanOrder memory loanOrder,
         address lender,
         uint256 amountOwed,
-        bool convert,
         uint256 /* gasUsed */)
         public
         onlyBZx
@@ -241,7 +240,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
 
         // Transfers the interest to the lender, less the interest fee.
         // The fee is retained by the oracle.
-        uint amountPaid = amountOwed.sub(interestFee);
+        uint256 amountPaid = amountOwed.sub(interestFee);
         if (!_transferToken(
             loanOrder.interestTokenAddress,
             lender,
@@ -249,7 +248,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             revert("BZxOracle::didPayInterest: _transferToken failed");
         }
 
-        if (convert && loanOrder.interestTokenAddress != wethContract && loanOrder.interestTokenAddress != bZRxTokenContract) {
+        if (loanOrder.interestTokenAddress != wethContract && loanOrder.interestTokenAddress != bZRxTokenContract) {
             // interest paid in WETH or BZRX is retained as is, other tokens are sold for WETH
             _tradeForWeth(
                 loanOrder.interestTokenAddress,

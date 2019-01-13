@@ -1264,7 +1264,7 @@ contract("BZxTest", function(accounts) {
       let oracleInitialBalance = await interestToken1.balanceOf.call(oracle.address);
       let lenderInitialBalance = await interestToken1.balanceOf.call(lender1);
 
-      let tx = await bZx.payInterest(OrderHash_bZx_1, trader1, {from: trader1});
+      let tx = await bZx.payInterest(OrderHash_bZx_1, {from: trader1});
 
       let payInterestEvent = eventsHelper.extractEvents(tx, "LogPayInterestForPosition")[0];
       let amountPaid = payInterestEvent.args.amountPaid;
@@ -1495,7 +1495,7 @@ contract("BZxTest", function(accounts) {
 
     data = data.substr(2); // remove 0x from front
 
-    const itemCount = 16;
+    const itemCount = 15;
     const objCount = data.length / 64 / itemCount;
 
     assert.isTrue(objCount % 1 == 0);
@@ -1525,11 +1525,9 @@ contract("BZxTest", function(accounts) {
         active: parseInt("0x" + params[9]) == 1,
         loanOrderHash: "0x" + params[10],
         loanTokenAddress: "0x" + params[11].substr(24),
-        expirationUnixTimestampSec: parseInt("0x" + params[12]),
-        interestTokenAddress: "0x" + params[13].substr(24),
-        interestTotalAccrued: parseInt("0x" + params[14]),
-        interestPaidSoFar: parseInt("0x" + params[15]),
-        interestLastPaidDate: parseInt("0x" + params[16])
+        interestTokenAddress: "0x" + params[12].substr(24),
+        interestPaidTotal: parseInt("0x" + params[13]),
+        interestDepositRemaining: parseInt("0x" + params[14]),
       });
     }
 

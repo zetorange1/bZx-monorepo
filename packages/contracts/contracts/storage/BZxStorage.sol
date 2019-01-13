@@ -49,10 +49,10 @@ contract BZxStorage is BZxObjects, BZxEvents, ReentrancyGuard, Ownable, GasTrack
     mapping (uint256 => ListIndex) public positionListIndex; // mapping of position ids to ListIndex objects
 
     // Interest
-    mapping (uint256 => uint256) public interestTotal; // mapping of position ids to total interest escrowed when the loan opens
-    mapping (uint256 => uint256) public interestPaid; // mapping of position ids to amount of interest paid so far to a lender
-    mapping (uint256 => uint256) public interestRefunded; // mapping of position ids to amount of interest refunded to the trader
-    mapping (uint256 => uint256) public interestPaidDate; // mapping of position ids to timestamp of last interest pay date
+    mapping (address => mapping (address => LenderInterest)) public lenderTokenInterest; // mapping of lender addresses to mapping of token addresses to LenderInterest objects
+    mapping (address => address[]) public lenderInterestTokenList; // mapping of lender addresses to list of lent tokens
+    mapping (bytes32 => LenderInterest) public lenderOrderInterest; // mapping of loanOrderHash to LenderInterest objects
+    mapping (uint256 => TraderInterest) public traderLoanInterest; // mapping of position ids to TraderInterest objects
 
     // Other Storage
     mapping (address => address) public oracleAddresses; // mapping of oracles to their current logic contract

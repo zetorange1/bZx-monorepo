@@ -66,21 +66,12 @@ contract BZxEvents {
         uint256 positionId
     );
 
-    event LogPayInterestForOrder(
+    event LogPayInterest(
         bytes32 indexed loanOrderHash,
         address indexed lender,
         uint256 amountPaid,
         uint256 totalAccrued,
         uint256 loanCount
-    );
-
-    event LogPayInterestForPosition(
-        bytes32 indexed loanOrderHash,
-        address indexed lender,
-        address indexed trader,
-        uint256 amountPaid,
-        uint256 totalAccrued,
-        uint256 positionId
     );
 
     event LogChangeTraderOwnership(

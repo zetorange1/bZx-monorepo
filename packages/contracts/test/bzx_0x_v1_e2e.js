@@ -1289,7 +1289,7 @@ contract("BZxTest", function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 16;
+    const itemCount = 13;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -1325,10 +1325,7 @@ contract("BZxTest", function(accounts) {
           loanOrderHash: "0x" + params[10],
           loanTokenAddress: "0x" + params[11].substr(24),
           expirationUnixTimestampSec: parseInt("0x" + params[12]),
-          interestTokenAddress: "0x" + params[13].substr(24),
-          interestTotalAccrued: parseInt("0x" + params[14]),
-          interestPaidSoFar: parseInt("0x" + params[15]),
-          interestLastPaidDate: parseInt("0x" + params[16])
+          interestTokenAddress: "0x" + params[13].substr(24)
         });
       }
 
@@ -1361,7 +1358,7 @@ contract("BZxTest", function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 16;
+    const itemCount = 15;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -1397,11 +1394,9 @@ contract("BZxTest", function(accounts) {
           active: parseInt("0x" + params[9]) == 1,
           loanOrderHash: "0x" + params[10],
           loanTokenAddress: "0x" + params[11].substr(24),
-          expirationUnixTimestampSec: parseInt("0x" + params[12]),
-          interestTokenAddress: "0x" + params[13].substr(24),
-          interestTotalAccrued: parseInt("0x" + params[14]),
-          interestPaidSoFar: parseInt("0x" + params[15]),
-          interestLastPaidDate: parseInt("0x" + params[16])
+          interestTokenAddress: "0x" + params[12].substr(24),
+          interestPaidTotal: parseInt("0x" + params[13]),
+          interestDepositRemaining: parseInt("0x" + params[14]),
         });
       }
 
@@ -1434,7 +1429,7 @@ contract("BZxTest", function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 16;
+    const itemCount = 15;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -1470,11 +1465,9 @@ contract("BZxTest", function(accounts) {
           active: parseInt("0x" + params[9]) == 1,
           loanOrderHash: "0x" + params[10],
           loanTokenAddress: "0x" + params[11].substr(24),
-          expirationUnixTimestampSec: parseInt("0x" + params[12]),
-          interestTokenAddress: "0x" + params[13].substr(24),
-          interestTotalAccrued: parseInt("0x" + params[14]),
-          interestPaidSoFar: parseInt("0x" + params[15]),
-          interestLastPaidDate: parseInt("0x" + params[16])
+          interestTokenAddress: "0x" + params[12].substr(24),
+          interestPaidTotal: parseInt("0x" + params[13]),
+          interestDepositRemaining: parseInt("0x" + params[14]),
         });
       }
 
@@ -1507,7 +1500,7 @@ contract("BZxTest", function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 16;
+    const itemCount = 15;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -1543,11 +1536,10 @@ contract("BZxTest", function(accounts) {
           active: parseInt("0x" + params[9]) == 1,
           loanOrderHash: "0x" + params[10],
           loanTokenAddress: "0x" + params[11].substr(24),
-          expirationUnixTimestampSec: parseInt("0x" + params[12]),
-          interestTokenAddress: "0x" + params[13].substr(24),
-          interestTotalAccrued: parseInt("0x" + params[14]),
-          interestPaidSoFar: parseInt("0x" + params[15]),
-          interestLastPaidDate: parseInt("0x" + params[16])
+          interestTokenAddress: "0x" + params[12].substr(24),
+          interestPaidTotal: parseInt("0x" + params[13]),
+          interestDepositRemaining: parseInt("0x" + params[14]),
+
         });
       }
 
@@ -2142,7 +2134,7 @@ contract("BZxTest", function(accounts) {
     ? it
     : it.skip)("should pay lender interest", function(done) {
     bZx
-      .payInterest(OrderHash_bZx_1, trader1_account, { from: trader1_account })
+      .payInterest(OrderHash_bZx_1, { from: trader1_account })
       .then(function(tx) {
         console.log(txPrettyPrint(tx, "should pay lender interest"));
         assert.isOk(tx);
