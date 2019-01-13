@@ -53,6 +53,30 @@ const silentAllowance = async (bZx, accounts, tokenAddress) => {
     }
 }
 
+// TODO: Verify sufficient BZRX token balance to pay fees
+const checkRelaysFees = async (
+  bZx,
+  accounts,
+  tokens,
+  order
+) => {
+  if (order.feeRecipientAddress === `0x0000000000000000000000000000000000000000`) {
+    return true;
+  }
+  const makerRole = order.makerRole === `0` ? `lender` : `trader`;
+  const feeToken = tokens.filter(
+    t => t.symbol === `BZRX`
+  )[0];
+  if ((makerRole === `lender` && order.traderRelayFee !== `0`) || (makerRole === `trader` && order.lenderRelayFee !== `0`)) {
+    const a = await checkAllowance(bZx, accounts, feeToken.address);
+    if (!a) {
+      return (await silentAllowance(bZx, accounts, feeToken.address));
+    } else {
+      return true;
+    }
+  }
+}
+
 const checkCoinsApproved = async (
   bZx,
   accounts,
@@ -63,26 +87,27 @@ const checkCoinsApproved = async (
   if (makerRole === `lender`) {
     // check that user has approved collateralToken and interestToken
     const { interestTokenAddress } = order;
-    
-    let a = await checkAllowance(bZx, accounts, interestTokenAddress);
-      if (!a) {
-          a = await silentAllowance(bZx, accounts, interestTokenAddress);
-      }
 
-      let b = await checkAllowance(bZx, accounts, collateralTokenAddress);
-      if (!b) {
-        b = await silentAllowance(bZx, accounts, collateralTokenAddress);
-      }
-    
-      return a && b;
-  }
-  // check that user has approved loanToken
-  const { loanTokenAddress } = order;
-  const a = await checkAllowance(bZx, accounts, loanTokenAddress);
-  if (!a) {
-    return (await silentAllowance(bZx, accounts, loanTokenAddress));
+    let a = await checkAllowance(bZx, accounts, interestTokenAddress);
+    if (!a) {
+      a = await silentAllowance(bZx, accounts, interestTokenAddress);
+    }
+
+    let b = await checkAllowance(bZx, accounts, collateralTokenAddress);
+    if (!b) {
+      b = await silentAllowance(bZx, accounts, collateralTokenAddress);
+    }
+
+    return a && b;
   } else {
-    return true;
+    // check that user has approved loanToken
+    const { loanTokenAddress } = order;
+    const a = await checkAllowance(bZx, accounts, loanTokenAddress);
+    if (!a) {
+      return (await silentAllowance(bZx, accounts, loanTokenAddress));
+    } else {
+      return true;
+    }
   }
 };
 
@@ -240,7 +265,7 @@ export const validateFillOrder = async (
 
       // check that user has tracked collateralToken and interestToken
       const { interestTokenAddress } = order;
-      if (
+      /*if (
         !trackedTokens.includes(interestTokenAddress) ||
         !trackedTokens.includes(collateralTokenAddress)
       ) {
@@ -248,7 +273,7 @@ export const validateFillOrder = async (
           `Your interest token or collateral token is not tracked. Please go to the Balances page to make sure these tokens are added and approved.`
         );
         return false;
-      }
+      }*/
 
       const collateralTokenBalance = await getTokenBalance(
         bZx,
@@ -299,12 +324,12 @@ export const validateFillOrder = async (
     } else {
       // check that user has tracked loanToken
       const { loanTokenAddress, loanTokenAmount } = order;
-      if (!trackedTokens.includes(loanTokenAddress)) {
+      /*if (!trackedTokens.includes(loanTokenAddress)) {
         alert(
           `Your loan token is not tracked. Please go to the Balances page to make sure this token is added and approved.`
         );
         return false;
-      }
+      }*/
 
       const loanTokenBalance = await getTokenBalance(
         bZx,
@@ -336,6 +361,15 @@ export const validateFillOrder = async (
       );
       return false;
     }
+
+    const relayFeesOk = await checkRelaysFees(bZx, accounts, tokens, order);
+    if (!relayFeesOk) {
+      alert(
+        `Please ensure you have enough BZRX to pay relay fees.`
+      );
+      return false;
+    }
+
     console.log(`validateFillOrder`);
     console.log(order, fillOrderAmount, collateralTokenAddress);
     return true;

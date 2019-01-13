@@ -55,28 +55,52 @@ const silentAllowance = async (bZx, accounts, tokenAddress) => {
     }
 }
 
+// TODO: Verify sufficient BZRX token balance to pay fees
+const checkRelaysFees = async (
+  bZx,
+  accounts,
+  tokens,
+  state
+) => {
+  const { role, feeRecipientAddress, traderRelayFee, lenderRelayFee } = state;
+  if (feeRecipientAddress === `0x0000000000000000000000000000000000000000`) {
+    return true;
+  }
+  const feeToken = tokens.filter(
+    t => t.symbol === `BZRX`
+  )[0];
+  if ((role === `trader` && traderRelayFee !== `0`) || (role === `lender` && lenderRelayFee !== `0`)) {
+    const a = await checkAllowance(bZx, accounts, feeToken.address);
+    if (!a) {
+      return (await silentAllowance(bZx, accounts, feeToken.address));
+    } else {
+      return true;
+    }
+  }
+}
+
 const checkCoinsApproved = async (bZx, accounts, state) => {
   const { loanTokenAddress, interestTokenAddress, collateralTokenAddress, role } = state;
   if (role === `lender`) {
     const loanTokenAllowed = await checkAllowance(bZx, accounts, loanTokenAddress);
     if (!loanTokenAllowed) {
-        return (await silentAllowance(bZx, accounts, loanTokenAddress));
+      return (await silentAllowance(bZx, accounts, loanTokenAddress));
     } else {
-        return true;
-	}
-  }
+      return true;
+    }
+  } else {
+    let a = await checkAllowance(bZx, accounts, interestTokenAddress);
+    if (!a) {
+      a = await silentAllowance(bZx, accounts, interestTokenAddress);
+    }
 
-  let a = await checkAllowance(bZx, accounts, interestTokenAddress);
-  if (!a) {
-    a = await silentAllowance(bZx, accounts, interestTokenAddress);
-  }
+    let b = await checkAllowance(bZx, accounts, collateralTokenAddress);
+    if (!b) {
+      b = await silentAllowance(bZx, accounts, collateralTokenAddress);
+    }
 
-  let b = await checkAllowance(bZx, accounts, collateralTokenAddress);
-  if (!b) {
-    b = await silentAllowance(bZx, accounts, collateralTokenAddress);
+    return a && b;
   }
-
-  return a && b;
 };
 
 const checkCoinsAllowed = (state, tokens, networkId) => {
@@ -171,6 +195,14 @@ export default async (bZx, accounts, state, tokens, web3) => {
   if (!coinsApproved) {
     alert(
       `Some of your selected tokens have not been approved. Please go to the Balances page and approve these tokens.`
+    );
+    return false;
+  }
+
+  const relayFeesOk = await checkRelaysFees(bZx, accounts, tokens, state);
+  if (!relayFeesOk) {
+    alert(
+      `Please ensure you have enough BZRX to pay relay fees.`
     );
     return false;
   }
