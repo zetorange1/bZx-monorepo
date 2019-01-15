@@ -78,7 +78,7 @@ describe("loanHealth", () => {
         ownerAddress: lenders[0]
       });
 
-      promiEvent = bZxJS.payInterest({
+      promiEvent = bZxJS.payInterestForOrder({
         loanOrderHash,
         txOpts
       });

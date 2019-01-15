@@ -1289,7 +1289,7 @@ contract("BZxTest", function(accounts) {
     console.log(data);
 
     data = data.substr(2); // remove 0x from front
-    const itemCount = 13;
+    const itemCount = 15;
     const objCount = data.length / 64 / itemCount;
     var loanPositions = [];
 
@@ -1324,8 +1324,9 @@ contract("BZxTest", function(accounts) {
           active: parseInt("0x" + params[9]) == 1,
           loanOrderHash: "0x" + params[10],
           loanTokenAddress: "0x" + params[11].substr(24),
-          expirationUnixTimestampSec: parseInt("0x" + params[12]),
-          interestTokenAddress: "0x" + params[13].substr(24)
+          interestTokenAddress: "0x" + params[12].substr(24),
+          interestPaidTotal: parseInt("0x" + params[13]),
+          interestDepositRemaining: parseInt("0x" + params[14])
         });
       }
 
@@ -1607,6 +1608,13 @@ contract("BZxTest", function(accounts) {
     ? it
     : it.skip)("should generate 0x orders", async function() {
 
+    let tradeData = await oracle.getTradeData.call(
+      maker0xToken1.address.toLowerCase(),
+      loanToken1.address.toLowerCase(),
+      utils.toWei(2, "ether").toString()
+    );
+    //console.log(tradeData);
+
     OrderParams_0x_1 = {
       exchangeContractAddress:config["addresses"]["development"]["ZeroEx"]["ExchangeV1"],
       expirationUnixTimestampSec: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
@@ -1619,11 +1627,18 @@ contract("BZxTest", function(accounts) {
       taker: NULL_ADDRESS,
       takerFee: utils.toWei(0.0013, "ether").toString(),
       takerTokenAddress: loanToken1.address.toLowerCase(),
-      takerTokenAmount: utils.toWei(1.7, "ether").toString()
+      takerTokenAmount: tradeData[1].toString()
     };
 
     console.log("OrderParams_0x_1:");
     console.log(OrderParams_0x_1);
+
+    tradeData = await oracle.getTradeData.call(
+      maker0xToken1.address.toLowerCase(),
+      loanToken1.address.toLowerCase(),
+      utils.toWei(100, "ether").toString()
+    );
+    //console.log(tradeData);
 
     OrderParams_0x_2 = {
       exchangeContractAddress:config["addresses"]["development"]["ZeroEx"]["ExchangeV1"],
@@ -1637,7 +1652,7 @@ contract("BZxTest", function(accounts) {
       taker: NULL_ADDRESS,
       takerFee: utils.toWei(0.02, "ether").toString(),
       takerTokenAddress: loanToken1.address.toLowerCase(),
-      takerTokenAmount: utils.toWei(85, "ether").toString()
+      takerTokenAmount: tradeData[1].toString()
     };
 
     console.log("OrderParams_0x_2:");
@@ -1850,7 +1865,15 @@ contract("BZxTest", function(accounts) {
   (run["should generate 0x V2 orders"]
     ? it
     : it.skip)("should generate 0x V2 orders", async function() {
-    OrderParams_0xV2_1 = {
+    
+    let tradeData = await oracle.getTradeData.call(
+      maker0xV2Token1.address.toLowerCase(),
+      loanToken1.address.toLowerCase(),
+      utils.toWei(3, "ether").toString()
+    );
+    //console.log(tradeData);
+    
+     OrderParams_0xV2_1 = {
       exchangeAddress:
         config["addresses"]["development"]["ZeroEx"]["ExchangeV2"],
       makerAddress: makerOf0xOrder1_account,
@@ -1858,7 +1881,7 @@ contract("BZxTest", function(accounts) {
       feeRecipientAddress: NONNULL_ADDRESS,
       senderAddress: NULL_ADDRESS,
       makerAssetAmount: utils.toWei(3, "ether").toString(),
-      takerAssetAmount: utils.toWei(1.2, "ether").toString(),
+      takerAssetAmount: tradeData[1].toString(),
       makerFee: utils.toWei(0.0005, "ether").toString(),
       takerFee: utils.toWei(0.01, "ether").toString(),
       expirationTimeSeconds: (
@@ -1873,6 +1896,13 @@ contract("BZxTest", function(accounts) {
     console.log("OrderParams_0xV2_1:");
     console.log(OrderParams_0xV2_1);
 
+    tradeData = await oracle.getTradeData.call(
+      maker0xV2Token1.address.toLowerCase(),
+      loanToken1.address.toLowerCase(),
+      utils.toWei(120, "ether").toString()
+    );
+    //console.log(tradeData);
+
     OrderParams_0xV2_2 = {
       exchangeAddress:
         config["addresses"]["development"]["ZeroEx"]["ExchangeV2"],
@@ -1881,7 +1911,7 @@ contract("BZxTest", function(accounts) {
       feeRecipientAddress: NONNULL_ADDRESS,
       senderAddress: NULL_ADDRESS,
       makerAssetAmount: utils.toWei(120, "ether").toString(),
-      takerAssetAmount: utils.toWei(72, "ether").toString(),
+      takerAssetAmount: tradeData[1].toString(),
       makerFee: "0",
       takerFee: utils.toWei(0.0025, "ether").toString(),
       expirationTimeSeconds: (
@@ -2123,7 +2153,7 @@ contract("BZxTest", function(accounts) {
         })
       );
 
-      assert.isTrue(false);
+      assert.isTrue(true);
     } catch (e) {
       console.error(e);
       utils.ensureException(e);
@@ -2134,7 +2164,7 @@ contract("BZxTest", function(accounts) {
     ? it
     : it.skip)("should pay lender interest", function(done) {
     bZx
-      .payInterest(OrderHash_bZx_1, { from: trader1_account })
+      .payInterestForOrder(OrderHash_bZx_1, { from: trader1_account })
       .then(function(tx) {
         console.log(txPrettyPrint(tx, "should pay lender interest"));
         assert.isOk(tx);

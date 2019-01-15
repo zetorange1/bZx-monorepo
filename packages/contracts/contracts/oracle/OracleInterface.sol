@@ -74,11 +74,11 @@ contract OracleInterface {
         public
         returns (bool);
 
-    /// @dev Called by bZx after interest should be paid to a lender
-    /// @dev Assume the interest token has already been transfered to
+    /// @dev Called by bZx after interest should be paid to a lender for a loan order
+    /// @dev Assumes the interest token has already been transfered to
     /// @dev this contract before this function is called.
     /// @param loanOrder The loanOrder object
-    /// @param lender The lender
+    /// @param lender The lender address
     /// @param amountOwed The amount interest to pay
     /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
     /// @return Successful execution of the function
@@ -87,6 +87,22 @@ contract OracleInterface {
         address lender,
         uint256 amountOwed,
         uint256 gasUsed)
+        public
+        returns (bool);
+
+    /// @dev Called by bZx after the lender request a full earned interest payout for a specific interest token
+    /// @dev Assumes the interest token has already been transfered to
+    /// @dev this contract before this function is called.
+    /// @param lender The lender address
+    /// @param interestTokenAddress The interest token address
+    /// @param amountOwed The amount interest to pay
+    /// @param gasUsed The initial used gas, collected in a modifier in bZx, for optional gas refunds
+    /// @return Successful execution of the function
+    function didPayInterestByLender(
+        address lender,
+        address interestTokenAddress,
+        uint256 amountOwed,
+        uint256 /* gasUsed */)
         public
         returns (bool);
 

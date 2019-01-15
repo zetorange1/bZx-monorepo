@@ -146,7 +146,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         updatesEMA(tx.gasprice)
         returns (bool)
     {
-        setNotifications(
+        _setNotifications(
             loanOrder.loanOrderHash,
             oracleData
         );
@@ -225,6 +225,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         return true;
     }
 
+    // will not update the EMA
     function didPayInterest(
         BZxObjects.LoanOrder memory loanOrder,
         address lender,
@@ -232,7 +233,6 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         uint256 /* gasUsed */)
         public
         onlyBZx
-        updatesEMA(tx.gasprice)
         returns (bool)
     {
         // interestFeePercent is only editable by owner
@@ -263,6 +263,42 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
                 loanOrder,
                 lender,
                 amountPaid
+            );
+        }
+
+        return true;
+    }
+
+    // will not update the EMA
+    function didPayInterestByLender(
+        address lender,
+        address interestTokenAddress,
+        uint256 amountOwed,
+        uint256 /* gasUsed */)
+        public
+        onlyBZx
+        returns (bool)
+    {
+        // interestFeePercent is only editable by owner
+        uint256 interestFee = amountOwed.mul(interestFeePercent).div(10**20);
+
+        // Transfers the interest to the lender, less the interest fee.
+        // The fee is retained by the oracle.
+        uint256 amountPaid = amountOwed.sub(interestFee);
+        if (!_transferToken(
+            interestTokenAddress,
+            lender,
+            amountPaid)) {
+            revert("BZxOracle::didPayInterestByLender: _transferToken failed");
+        }
+
+        if (interestTokenAddress != wethContract && interestTokenAddress != bZRxTokenContract) {
+            // interest paid in WETH or BZRX is retained as is, other tokens are sold for WETH
+            _tradeForWeth(
+                interestTokenAddress,
+                interestFee,
+                address(this), // BZxOracle receives the WETH proceeds
+                MAX_FOR_KYBER // no limit on the dest amount
             );
         }
 
@@ -856,7 +892,8 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
     function setEMAValue (
         uint256 _newEMAValue)
         public
-        onlyOwner {
+        onlyOwner
+    {
         require(_newEMAValue != emaValue);
         emaValue = _newEMAValue;
     }
@@ -864,7 +901,8 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
     function setEMAPeriods (
         uint256 _newEMAPeriods)
         public
-        onlyOwner {
+        onlyOwner
+    {
         require(_newEMAPeriods > 1 && _newEMAPeriods != emaPeriods);
         emaPeriods = _newEMAPeriods;
     }

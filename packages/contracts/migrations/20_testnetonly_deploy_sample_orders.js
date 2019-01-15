@@ -1,3 +1,7 @@
+
+// if true, will not seed the network with any orders
+const tokenTxnsOnly = true;
+
 var BZxProxy = artifacts.require("BZxProxy");
 var BZxProxySettings = artifacts.require("BZxProxySettings");
 var BZxTo0x = artifacts.require("BZxTo0x");
@@ -101,27 +105,27 @@ module.exports = (deployer, network, accounts) => {
       await Promise.all([
         await bzrx_token.mint(lender1_account, toWei(10000, "ether"), { from: owner_account }),
 
-        await weth.deposit({ from: owner_account, value: toWei(10, "ether") }),
+        await weth.deposit({ from: owner_account, value: toWei(5, "ether") }),
         await weth.approve(vault.address, MAX_UINT, {
           from: owner_account
         }),
 
-        await weth.deposit({ from: lender1_account, value: toWei(10, "ether") }),
+        await weth.deposit({ from: lender1_account, value: toWei(5, "ether") }),
         await weth.approve(vault.address, MAX_UINT, {
           from: lender1_account
         }),
         
-        await weth.deposit({ from: lender2_account, value: toWei(10, "ether") }),
+        await weth.deposit({ from: lender2_account, value: toWei(2, "ether") }),
         await weth.approve(vault.address, MAX_UINT, {
           from: lender2_account
         }),
         
-        await weth.deposit({ from: trader1_account, value: toWei(10, "ether") }),
+        await weth.deposit({ from: trader1_account, value: toWei(2, "ether") }),
         await weth.approve(vault.address, MAX_UINT, {
           from: trader1_account
         }),
         
-        await weth.deposit({ from: trader2_account, value: toWei(10, "ether") }),
+        await weth.deposit({ from: trader2_account, value: toWei(2, "ether") }),
         await weth.approve(vault.address, MAX_UINT, {
           from: trader2_account
         }),
@@ -188,6 +192,10 @@ module.exports = (deployer, network, accounts) => {
           from: makerOf0xOrder_account
         })
       ]);
+
+      if (tokenTxnsOnly) {
+        return;
+      }
 
       /// should take sample loan order (as trader1)
       OrderParams_bZx_1 = {

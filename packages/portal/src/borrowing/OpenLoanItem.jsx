@@ -309,7 +309,7 @@ export default class OpenedLoan extends BZxComponent {
           </DataPointContainer>
 
           <DataPointContainer>
-            <Label>Interest paid so far</Label>
+            <Label>Interest Paid</Label>
             <DataPoint>
               {fromBigNumber(interestPaidTotal, 10 ** interestTokenDecimals)}
               {` `}

@@ -18,22 +18,29 @@ contract EMACollector {
     uint256 public outlierMultiplier = 2;
     uint256 public outlierAdder = 5**9 wei; // 5 gwei
 
+    uint256 internal emaLastUpdate;
+
     //event EMAUpdated(uint256 newEMA);
 
-    modifier updatesEMA(uint256 value) {
+    modifier updatesEMA(uint256 value)
+    {
         _;
 
         updateEMA(value);
     }
 
     function updateEMA(uint256 value)
-        internal {
+        internal
+    {
+        if (emaLastUpdate == block.timestamp)
+            return;
+
         /*
             Multiplier: 2 / (emaPeriods + 1)
             EMA: (LastestValue - PreviousEMA) * Multiplier + PreviousEMA
         */
 
-        require(emaPeriods >= 2, "emaPeriods < 2");
+        //require(emaPeriods >= 2, "emaPeriods < 2");
 
         // outliers are ignored
         if (value > emaValue && value >= SafeMath.add(SafeMath.mul(outlierMultiplier, emaValue), outlierAdder))
@@ -49,5 +56,7 @@ contract EMACollector {
                 emaValue / (emaPeriods + 1) * 2     // no overflow
             );
         //emit EMAUpdated(emaValue);
+
+        emaLastUpdate = block.timestamp;
     }
 }

@@ -28,11 +28,8 @@ module.exports = (deployer, network, accounts) => {
       bzrx_token_address = config["addresses"][network]["BZRXToken"];
       bzrx_ether_address = config["addresses"][network]["BZxEther"];
     } else {
-      bZRxToken = await BZRxToken.deployed();
-      bzrx_token_address = bZRxToken.address;
-
-      bZxEther = await BZxEther.deployed();
-      bzrx_ether_address = bZxEther.address;
+      bzrx_token_address = BZRxToken.address;
+      bzrx_ether_address = BZxEther.address;
 
       await bZxProxy.setDebugMode(true);
     }

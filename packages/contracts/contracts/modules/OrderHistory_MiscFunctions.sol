@@ -455,14 +455,14 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
         view
         returns (bytes memory)
     {
-        TraderInterest memory interestDataTrader = traderLoanInterest[positionId];
+        TraderInterest memory traderInterest = traderLoanInterest[positionId];
 
         bytes memory tmpBytes = abi.encode(
-            interestDataTrader.interestUpdatedDate > 0 && interestDataTrader.interestOwedPerDay > 0 ?
-                interestDataTrader.interestPaid.add(
-                    block.timestamp.sub(interestDataTrader.interestUpdatedDate).mul(interestDataTrader.interestOwedPerDay).div(86400)
-                ) : interestDataTrader.interestPaid, // interestPaidTotal
-            loanPositions[positionId].loanEndUnixTimestampSec > block.timestamp ? loanPositions[positionId].loanEndUnixTimestampSec.sub(block.timestamp).mul(interestDataTrader.interestOwedPerDay).div(86400) : 0 // interestDepositRemaining
+            traderInterest.interestUpdatedDate > 0 && traderInterest.interestOwedPerDay > 0 ?
+                traderInterest.interestPaid.add(
+                    block.timestamp.sub(traderInterest.interestUpdatedDate).mul(traderInterest.interestOwedPerDay).div(86400)
+                ) : traderInterest.interestPaid, // interestPaidTotal
+            loanPositions[positionId].loanEndUnixTimestampSec > block.timestamp ? loanPositions[positionId].loanEndUnixTimestampSec.sub(block.timestamp).mul(traderInterest.interestOwedPerDay).div(86400) : 0 // interestDepositRemaining
         );
 
         return abi.encodePacked(data, tmpBytes);

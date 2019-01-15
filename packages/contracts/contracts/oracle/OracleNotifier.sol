@@ -16,35 +16,35 @@ contract OracleNotifier {
     mapping (bytes32 => address) public payInterestNotifier; // external contract that is called when interest is paid to the lender
     mapping (bytes32 => address) public closeLoanNotifier; // external contract that is called when part or all of a loan is closed
 
-    function setNotifications(
-        bytes32 loanOrderHash,
+    function _setNotifications(
+        bytes32 notifyHash,
         bytes memory oracleData)
-        public
+        internal
     {
         address notifier;
         if (oracleData.length >= 20) {
             assembly {
                 notifier := mload(add(oracleData, 20))
             }
-            takeOrderNotifier[loanOrderHash] = notifier;
+            takeOrderNotifier[notifyHash] = notifier;
         }
         if (oracleData.length >= 40) {
             assembly {
                 notifier := mload(add(oracleData, 40))
             }
-            tradePositionNotifier[loanOrderHash] = notifier;
+            tradePositionNotifier[notifyHash] = notifier;
         }
         if (oracleData.length >= 60) {
             assembly {
                 notifier := mload(add(oracleData, 60))
             }
-            payInterestNotifier[loanOrderHash] = notifier;
+            payInterestNotifier[notifyHash] = notifier;
         }
         if (oracleData.length >= 80) {
             assembly {
                 notifier := mload(add(oracleData, 80))
             }
-            closeLoanNotifier[loanOrderHash] = notifier;
+            closeLoanNotifier[notifyHash] = notifier;
         }
     }
 }

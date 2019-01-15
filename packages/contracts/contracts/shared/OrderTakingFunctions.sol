@@ -644,30 +644,30 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
     {
         // interest-free loan is permitted
         if (loanOrder.interestAmount > 0) {
-            LenderInterest storage interestDataLender = lenderOrderInterest[loanOrder.loanOrderHash];
-            LenderInterest storage interestTokenDataLender = lenderTokenInterest[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress];
-            TraderInterest storage interestDataTrader = traderLoanInterest[loanPosition.positionId];
+            LenderInterest storage oracleInterest = lenderOracleInterest[orderLender[loanOrder.loanOrderHash]][oracleAddresses[loanOrder.oracleAddress]][loanOrder.interestTokenAddress];
+            LenderInterest storage lenderInterest = lenderOrderInterest[loanOrder.loanOrderHash];
+            TraderInterest storage traderInterest = traderLoanInterest[loanPosition.positionId];
 
             // update lender interest
-            _payInterest(loanOrder, interestDataLender, interestTokenDataLender, true);
+            _payInterestForOrder(loanOrder, oracleInterest, lenderInterest, true);
             uint256 owedPerDay = _safeGetPartialAmountFloor(
                 loanTokenAmountFilled,
                 loanOrder.loanTokenAmount,
                 loanOrder.interestAmount
             );
-            interestDataLender.interestOwedPerDay = interestDataLender.interestOwedPerDay.add(owedPerDay);
-            interestTokenDataLender.interestOwedPerDay = interestTokenDataLender.interestOwedPerDay.add(owedPerDay);
+            lenderInterest.interestOwedPerDay = lenderInterest.interestOwedPerDay.add(owedPerDay);
+            oracleInterest.interestOwedPerDay = oracleInterest.interestOwedPerDay.add(owedPerDay);
 
             // update trader interest
             uint256 totalInterestToCollect = loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(owedPerDay).div(86400);
-            if (interestDataTrader.interestUpdatedDate > 0 && interestDataTrader.interestOwedPerDay > 0) {
-                interestDataTrader.interestPaid = interestDataTrader.interestPaid.add(
-                    block.timestamp.sub(interestDataTrader.interestUpdatedDate).mul(interestDataTrader.interestOwedPerDay).div(86400)
+            if (traderInterest.interestUpdatedDate > 0 && traderInterest.interestOwedPerDay > 0) {
+                traderInterest.interestPaid = traderInterest.interestPaid.add(
+                    block.timestamp.sub(traderInterest.interestUpdatedDate).mul(traderInterest.interestOwedPerDay).div(86400)
                 );
             }
-            interestDataTrader.interestUpdatedDate = block.timestamp;
-            interestDataTrader.interestOwedPerDay = interestDataTrader.interestOwedPerDay.add(owedPerDay);
-            interestDataTrader.interestDepositTotal = interestDataTrader.interestDepositTotal.add(totalInterestToCollect);
+            traderInterest.interestUpdatedDate = block.timestamp;
+            traderInterest.interestOwedPerDay = traderInterest.interestOwedPerDay.add(owedPerDay);
+            traderInterest.interestDepositTotal = traderInterest.interestDepositTotal.add(totalInterestToCollect);
 
             if (totalInterestToCollect > 0) {
                 // deposit interest token

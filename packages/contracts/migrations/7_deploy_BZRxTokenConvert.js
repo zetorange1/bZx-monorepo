@@ -17,7 +17,7 @@ module.exports = (deployer, network, accounts) => {
   if (network == "development" || network == "develop" || network == "testnet" || network == "coverage") {
     network = "development";
     bzrx_token_address = BZRxToken.address
-    weth_token_address = BZxEther.address;
+    weth_token_address = config["addresses"]["development"]["ZeroEx"]["WETH9"]; //BZxEther.address;
   } else {
     bzrx_token_address = config["addresses"][network]["BZRXToken"];
     weth_token_address = config["addresses"][network]["ZeroEx"]["WETH9"];

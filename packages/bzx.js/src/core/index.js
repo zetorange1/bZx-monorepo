@@ -166,8 +166,9 @@ export class BZxJS {
   closeLoanPartially = (...props) => loanHealth.closeLoanPartially(this, ...props);
   closeLoan = (...props) => loanHealth.closeLoan(this, ...props);
 
-  payInterest = (...props) => loanHealth.payInterest(this, ...props);
-  getLenderInterestForToken = (...props) => loanHealth.getLenderInterestForToken(this, ...props);
+  payInterestForOrder = (...props) => loanHealth.payInterestForOrder(this, ...props);
+  payInterestForOracle = (...props) => loanHealth.payInterestForOracle(this, ...props);
+  getLenderInterestForOracle = (...props) => loanHealth.getLenderInterestForOracle(this, ...props);
   getLenderInterestForOrder = (...props) => loanHealth.getLenderInterestForOrder(this, ...props);
   getTraderInterestForLoan = (...props) => loanHealth.getTraderInterestForLoan(this, ...props);
 

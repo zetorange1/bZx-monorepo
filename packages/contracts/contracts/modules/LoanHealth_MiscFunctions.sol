@@ -170,12 +170,12 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
         require(loanOrder.loanTokenAddress != address(0));
 
         if (loanOrder.interestAmount > 0) {
-            LenderInterest storage interestDataLender = lenderOrderInterest[loanOrderHash];
-            LenderInterest storage interestTokenDataLender = lenderTokenInterest[orderLender[loanOrderHash]][loanOrder.interestTokenAddress];
-            TraderInterest storage interestDataTrader = traderLoanInterest[positionId];
+            LenderInterest storage oracleInterest = lenderOracleInterest[orderLender[loanOrderHash]][oracleAddresses[loanOrder.oracleAddress]][loanOrder.interestTokenAddress];
+            LenderInterest storage lenderInterest = lenderOrderInterest[loanOrderHash];
+            TraderInterest storage traderInterest = traderLoanInterest[positionId];
 
             // update lender interest
-            uint256 lenderInterestOwedNow = _payInterest(loanOrder, interestDataLender, interestTokenDataLender, false);
+            uint256 lenderInterestOwedNow = _payInterestForOrder(loanOrder, oracleInterest, lenderInterest, false);
             if (lenderInterestOwedNow > 0) {
                 require(BZxVault(vaultContract).withdrawToken(
                     loanOrder.interestTokenAddress,
@@ -183,19 +183,19 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
                     lenderInterestOwedNow
                 ));
             }
-            interestDataLender.interestOwedPerDay = interestDataLender.interestOwedPerDay.sub(interestDataTrader.interestOwedPerDay);
-            interestTokenDataLender.interestOwedPerDay = interestTokenDataLender.interestOwedPerDay.sub(interestDataTrader.interestOwedPerDay);
+            lenderInterest.interestOwedPerDay = lenderInterest.interestOwedPerDay.sub(traderInterest.interestOwedPerDay);
+            oracleInterest.interestOwedPerDay = oracleInterest.interestOwedPerDay.sub(traderInterest.interestOwedPerDay);
 
             // update trader interest
-            uint256 totalInterestToRefund = loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(interestDataTrader.interestOwedPerDay).div(86400);
-            if (interestDataTrader.interestUpdatedDate > 0 && interestDataTrader.interestOwedPerDay > 0) {
-                interestDataTrader.interestPaid = interestDataTrader.interestPaid.add(
-                    block.timestamp.sub(interestDataTrader.interestUpdatedDate).mul(interestDataTrader.interestOwedPerDay).div(86400)
+            uint256 totalInterestToRefund = loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(traderInterest.interestOwedPerDay).div(86400);
+            if (traderInterest.interestUpdatedDate > 0 && traderInterest.interestOwedPerDay > 0) {
+                traderInterest.interestPaid = traderInterest.interestPaid.add(
+                    block.timestamp.sub(traderInterest.interestUpdatedDate).mul(traderInterest.interestOwedPerDay).div(86400)
                 );
             }
-            interestDataTrader.interestUpdatedDate = block.timestamp;
-            interestDataTrader.interestOwedPerDay = 0;
-            interestDataTrader.interestDepositTotal = 0;
+            traderInterest.interestUpdatedDate = block.timestamp;
+            traderInterest.interestOwedPerDay = 0;
+            traderInterest.interestDepositTotal = 0;
 
             if (totalInterestToRefund > 0) {
                 require(BZxVault(vaultContract).withdrawToken(
@@ -321,30 +321,30 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
 
         // pay lender interest so far, and do partial interest refund to trader
         if (loanOrder.interestAmount > 0) {
-            LenderInterest storage interestDataLender = lenderOrderInterest[loanOrderHash];
-            LenderInterest storage interestTokenDataLender = lenderTokenInterest[orderLender[loanOrderHash]][loanOrder.interestTokenAddress];
-            TraderInterest storage interestDataTrader = traderLoanInterest[positionId];
+            LenderInterest storage oracleInterest = lenderOracleInterest[orderLender[loanOrderHash]][oracleAddresses[loanOrder.oracleAddress]][loanOrder.interestTokenAddress];
+            LenderInterest storage lenderInterest = lenderOrderInterest[loanOrderHash];
+            TraderInterest storage traderInterest = traderLoanInterest[positionId];
 
             // update lender interest
-            _payInterest(loanOrder, interestDataLender, interestTokenDataLender, true);
+            _payInterestForOrder(loanOrder, oracleInterest, lenderInterest, true);
             uint256 owedPerDay = _safeGetPartialAmountFloor(
                 closeAmount,
                 loanOrder.loanTokenAmount,
                 loanOrder.interestAmount
             );
-            interestDataLender.interestOwedPerDay = interestDataLender.interestOwedPerDay.sub(owedPerDay);
-            interestTokenDataLender.interestOwedPerDay = interestTokenDataLender.interestOwedPerDay.sub(owedPerDay);
+            lenderInterest.interestOwedPerDay = lenderInterest.interestOwedPerDay.sub(owedPerDay);
+            oracleInterest.interestOwedPerDay = oracleInterest.interestOwedPerDay.sub(owedPerDay);
 
             // update trader interest
             uint256 totalInterestToRefund = loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(owedPerDay).div(86400);
-            if (interestDataTrader.interestUpdatedDate > 0 && interestDataTrader.interestOwedPerDay > 0) {
-                interestDataTrader.interestPaid = interestDataTrader.interestPaid.add(
-                    block.timestamp.sub(interestDataTrader.interestUpdatedDate).mul(interestDataTrader.interestOwedPerDay).div(86400)
+            if (traderInterest.interestUpdatedDate > 0 && traderInterest.interestOwedPerDay > 0) {
+                traderInterest.interestPaid = traderInterest.interestPaid.add(
+                    block.timestamp.sub(traderInterest.interestUpdatedDate).mul(traderInterest.interestOwedPerDay).div(86400)
                 );
             }
-            interestDataTrader.interestUpdatedDate = block.timestamp;
-            interestDataTrader.interestOwedPerDay = interestDataTrader.interestOwedPerDay.sub(owedPerDay);
-            interestDataTrader.interestDepositTotal = interestDataTrader.interestDepositTotal.sub(totalInterestToRefund);
+            traderInterest.interestUpdatedDate = block.timestamp;
+            traderInterest.interestOwedPerDay = traderInterest.interestOwedPerDay.sub(owedPerDay);
+            traderInterest.interestDepositTotal = traderInterest.interestDepositTotal.sub(totalInterestToRefund);
 
             if (totalInterestToRefund > 0) {
                 if (! BZxVault(vaultContract).withdrawToken(
@@ -512,25 +512,25 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
         require(loanPosition.positionTokenAddressFilled == loanOrder.loanTokenAddress, "BZxLoanHealth::_finalizeLoan: loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress");
 
         if (loanOrder.interestAmount > 0) {
-            LenderInterest storage interestDataLender = lenderOrderInterest[loanOrder.loanOrderHash];
-            LenderInterest storage interestTokenDataLender = lenderTokenInterest[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress];
-            TraderInterest storage interestDataTrader = traderLoanInterest[loanPosition.positionId];
+            LenderInterest storage oracleInterest = lenderOracleInterest[orderLender[loanOrder.loanOrderHash]][oracleAddresses[loanOrder.oracleAddress]][loanOrder.interestTokenAddress];
+            LenderInterest storage lenderInterest = lenderOrderInterest[loanOrder.loanOrderHash];
+            TraderInterest storage traderInterest = traderLoanInterest[loanPosition.positionId];
 
             // update lender interest
-            _payInterest(loanOrder, interestDataLender, interestTokenDataLender, true);
-            interestDataLender.interestOwedPerDay = interestDataLender.interestOwedPerDay.sub(interestDataTrader.interestOwedPerDay);
-            interestTokenDataLender.interestOwedPerDay = interestTokenDataLender.interestOwedPerDay.sub(interestDataTrader.interestOwedPerDay);
+            _payInterestForOrder(loanOrder, oracleInterest, lenderInterest, true);
+            lenderInterest.interestOwedPerDay = lenderInterest.interestOwedPerDay.sub(traderInterest.interestOwedPerDay);
+            oracleInterest.interestOwedPerDay = oracleInterest.interestOwedPerDay.sub(traderInterest.interestOwedPerDay);
 
             // update trader interest
-            uint256 totalInterestToRefund = loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(interestDataTrader.interestOwedPerDay).div(86400);
-            if (interestDataTrader.interestUpdatedDate > 0 && interestDataTrader.interestOwedPerDay > 0) {
-                interestDataTrader.interestPaid = interestDataTrader.interestPaid.add(
-                    block.timestamp.sub(interestDataTrader.interestUpdatedDate).mul(interestDataTrader.interestOwedPerDay).div(86400)
+            uint256 totalInterestToRefund = loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(traderInterest.interestOwedPerDay).div(86400);
+            if (traderInterest.interestUpdatedDate > 0 && traderInterest.interestOwedPerDay > 0) {
+                traderInterest.interestPaid = traderInterest.interestPaid.add(
+                    block.timestamp.sub(traderInterest.interestUpdatedDate).mul(traderInterest.interestOwedPerDay).div(86400)
                 );
             }
-            interestDataTrader.interestUpdatedDate = block.timestamp;
-            interestDataTrader.interestOwedPerDay = 0;
-            interestDataTrader.interestDepositTotal = 0;
+            traderInterest.interestUpdatedDate = block.timestamp;
+            traderInterest.interestOwedPerDay = 0;
+            traderInterest.interestDepositTotal = 0;
 
             if (totalInterestToRefund > 0) {
                 if (! BZxVault(vaultContract).withdrawToken(

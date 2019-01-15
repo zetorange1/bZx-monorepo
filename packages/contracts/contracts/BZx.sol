@@ -470,8 +470,19 @@ contract BZx is BZxStorage {
     /// @dev Note that this function can be safely called by anyone.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @return The amount of interest paid out
-    function payInterest(
+    function payInterestForOrder(
         bytes32 loanOrderHash)
+        external
+        returns (uint256);
+
+    /// @dev Pays the lender the total amount of interest for open loans using a particular oracle and interest token
+    /// @dev Note that this function can be safely called by anyone.
+    /// @param oracleAddress The oracle address
+    /// @param interestTokenAddress The interest token address
+    /// @return The amount of interest paid out
+    function payInterestForOracle(
+        address oracleAddress,
+        address interestTokenAddress)
         external
         returns (uint256);
 
@@ -537,15 +548,17 @@ contract BZx is BZxStorage {
         view
         returns (uint256, uint256, uint256);
 
-    /// @dev Gets current lender interest data totals for all loans with a specific interest token
+    /// @dev Gets current lender interest data totals for all loans with a specific oracle and interest token
     /// @param lender The lender address
+    /// @param oracleAddress The oracle address
     /// @param interestTokenAddress The interest token address
     /// @return interestPaid The total amount of interest that has been paid to a lender so far
     /// @return interestPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet
     /// @return interestOwedPerDay The amount of interest the lender is earning per day
     /// @return interestUnPaid The total amount of interest the lender is owned and not yet withdrawn
-    function getLenderInterestForToken(
+    function getLenderInterestForOracle(
         address lender,
+        address oracleAddress,
         address interestTokenAddress)
         public
         view

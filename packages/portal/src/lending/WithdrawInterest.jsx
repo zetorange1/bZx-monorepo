@@ -38,7 +38,7 @@ export default class WithdrawInterest extends React.Component {
       alert(`Please confirm this transaction on your device.`);
     }
 
-    const txObj = await bZx.payInterest({
+    const txObj = await bZx.payInterestForOrder({
       loanOrderHash,
       getObject: true,
       txOpts

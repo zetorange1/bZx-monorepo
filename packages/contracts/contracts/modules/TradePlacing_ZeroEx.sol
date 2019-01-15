@@ -131,13 +131,6 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
             revert("BZxTradePlacing::tradePositionWith0x: tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled");
         }
 
-        // trade can't trigger liquidation
-        if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
-                loanOrder,
-                loanPosition)) {
-            revert("BZxTradePlacing::tradePositionWith0x: trade triggers liquidation");
-        }
-
         emit LogPositionTraded(
             loanOrderHash,
             loanPosition.trader,
@@ -151,6 +144,13 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
         // the trade token becomes the new position token
         loanPosition.positionTokenAddressFilled = tradeTokenAddress;
         loanPosition.positionTokenAmountFilled = tradeTokenAmount;
+
+        // trade can't trigger liquidation
+        if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
+                loanOrder,
+                loanPosition)) {
+            revert("BZxTradePlacing::tradePositionWith0x: trade triggers liquidation");
+        }
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
             loanOrder,
@@ -213,13 +213,6 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
             revert("BZxTradePlacing::tradePositionWith0x: tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled");
         }
 
-        // trade can't trigger liquidation
-        if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
-                loanOrder,
-                loanPosition)) {
-            revert("BZxTradePlacing::tradePositionWith0x: trade triggers liquidation");
-        }
-
         emit LogPositionTraded(
             loanOrderHash,
             loanPosition.trader,
@@ -233,6 +226,13 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
         // the trade token becomes the new position token
         loanPosition.positionTokenAddressFilled = tradeTokenAddress;
         loanPosition.positionTokenAmountFilled = tradeTokenAmount;
+
+        // trade can't trigger liquidation
+        if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
+                loanOrder,
+                loanPosition)) {
+            revert("BZxTradePlacing::tradePositionWith0x: trade triggers liquidation");
+        }
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
             loanOrder,

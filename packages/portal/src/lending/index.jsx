@@ -127,7 +127,9 @@ export default class Borrowing extends BZxComponent {
             </div>
           ) : `` */}
           </SectionLabel>
-          {openLoans.map(data => (
+          {openLoans.map(data => {
+            data.ts = Date.now();
+            return (
             <LoanItem
               key={data.loanOrderHash + data.trader + data.loanStartUnixTimestampSec}
               bZx={bZx}
@@ -137,7 +139,7 @@ export default class Borrowing extends BZxComponent {
               web3={web3}
               currentFee={currentFee}
             />
-          ))}
+          )})}
         </Section>
         <Section>
           <SectionLabel>Closed Loans ({closedLoans.length})</SectionLabel>

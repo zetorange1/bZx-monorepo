@@ -16,21 +16,23 @@ import "./MathFunctions.sol";
 contract MiscFunctions is BZxStorage, MathFunctions {
     using SafeMath for uint256;
 
-    function _payInterest(
+    function _payInterestForOrder(
         LoanOrder memory loanOrder,
-        LenderInterest storage interestDataLender,
-        LenderInterest storage interestTokenDataLender,
+        LenderInterest storage oracleInterest,
+        LenderInterest storage lenderInterest,
         bool sendToOracle)
         internal
         returns (uint256)
     {
         uint256 interestOwedNow = 0;
-        if (interestDataLender.interestOwedPerDay > 0 && interestDataLender.interestPaidDate > 0 && loanOrder.interestTokenAddress != address(0)) {
-            interestOwedNow = block.timestamp.sub(interestDataLender.interestPaidDate).mul(interestDataLender.interestOwedPerDay).div(86400);
+        if (oracleInterest.interestOwedPerDay > 0 && oracleInterest.interestPaidDate > 0 && loanOrder.interestTokenAddress != address(0)) {
+            interestOwedNow = block.timestamp.sub(oracleInterest.interestPaidDate).mul(oracleInterest.interestOwedPerDay).div(86400);
             
             if (interestOwedNow > 0) {
-                interestDataLender.interestPaid = interestDataLender.interestPaid.add(interestOwedNow);
-                interestTokenDataLender.interestPaid = interestTokenDataLender.interestPaid.add(interestOwedNow);
+                address lender = orderLender[loanOrder.loanOrderHash];
+                lenderInterest.interestPaid = lenderInterest.interestPaid.add(interestOwedNow);
+                oracleInterest.interestPaid = oracleInterest.interestPaid.add(interestOwedNow);
+                tokenInterestPaid[lender][loanOrder.interestTokenAddress] = tokenInterestPaid[lender][loanOrder.interestTokenAddress].add(interestOwedNow);
 
                 if (sendToOracle) {
                     // send the interest to the oracle for further processing
@@ -45,18 +47,27 @@ contract MiscFunctions is BZxStorage, MathFunctions {
                     // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
                     if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didPayInterest(
                         loanOrder,
-                        orderLender[loanOrder.loanOrderHash],
+                        lender,
                         interestOwedNow,
                         gasUsed // initial used gas, collected in modifier
                     )) {
                         revert("_payInterest: OracleInterface.didPayInterest failed");
                     }
                 }
+
+                emit LogPayInterestForOrder(
+                    loanOrder.loanOrderHash,
+                    lender,
+                    loanOrder.interestTokenAddress,
+                    interestOwedNow,
+                    lenderInterest.interestPaid,
+                    orderPositionList[loanOrder.loanOrderHash].length
+                );
             }
         }
 
-        interestDataLender.interestPaidDate = block.timestamp;
-        interestTokenDataLender.interestPaidDate = block.timestamp;
+        lenderInterest.interestPaidDate = block.timestamp;
+        oracleInterest.interestPaidDate = block.timestamp;
 
         return interestOwedNow;
     }

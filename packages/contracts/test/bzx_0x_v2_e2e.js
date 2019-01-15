@@ -1048,6 +1048,14 @@ contract("BZxTest", function(accounts) {
 
   context("0x V2 trading", async () => {
     it("should generate 0x V2 orders", async () => {
+      
+      let tradeData = await oracle.getTradeData.call(
+        maker0xV2Token1.address.toLowerCase(),
+        loanToken1.address.toLowerCase(),
+        utils.toWei(3, "ether").toString()
+      );
+      //console.log(tradeData);
+      
       OrderParams_0xV2_1 = {
         exchangeAddress:config["addresses"]["development"]["ZeroEx"]["ExchangeV2"],
         makerAddress: maker1,
@@ -1055,7 +1063,7 @@ contract("BZxTest", function(accounts) {
         feeRecipientAddress: owner,
         senderAddress: utils.zeroAddress,
         makerAssetAmount: utils.toWei(3, "ether").toString(),
-        takerAssetAmount: utils.toWei(1.2, "ether").toString(),
+        takerAssetAmount: tradeData[1].toString(),
         makerFee: utils.toWei(0.0005, "ether").toString(),
         takerFee: utils.toWei(0.01, "ether").toString(),
         expirationTimeSeconds: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
@@ -1064,6 +1072,12 @@ contract("BZxTest", function(accounts) {
         takerAssetData: assetDataUtils.encodeERC20AssetData(loanToken1.address)
       };
 
+      tradeData = await oracle.getTradeData.call(
+        maker0xV2Token1.address.toLowerCase(),
+        loanToken1.address.toLowerCase(),
+        utils.toWei(120, "ether").toString()
+      );
+
       OrderParams_0xV2_2 = {
         exchangeAddress:config["addresses"]["development"]["ZeroEx"]["ExchangeV2"],
         makerAddress: maker2,
@@ -1071,7 +1085,7 @@ contract("BZxTest", function(accounts) {
         feeRecipientAddress: owner,
         senderAddress: utils.zeroAddress,
         makerAssetAmount: utils.toWei(120, "ether").toString(),
-        takerAssetAmount: utils.toWei(72, "ether").toString(),
+        takerAssetAmount: tradeData[1].toString(),
         makerFee: "0",
         takerFee: utils.toWei(0.0025, "ether").toString(),
         expirationTimeSeconds: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
@@ -1212,8 +1226,8 @@ contract("BZxTest", function(accounts) {
     it("should withdraw position exccess (for trader1)", async () => {
       let initialExcess = await bZx.getPositionOffset.call(OrderHash_bZx_1, trader1);
 
-      assert.isTrue(initialExcess[0]);
-      let positionToken = await ERC20.at(initialExcess[2]);
+      assert.isTrue(!initialExcess[0]);
+      let positionToken = await ERC20.at(initialExcess[3]);
       let traderInitialBalance = await positionToken.balanceOf.call(trader1);
       let vaultInitialBalance = await positionToken.balanceOf.call(vault.address);
 
@@ -1223,7 +1237,7 @@ contract("BZxTest", function(accounts) {
           MAX_UINT,
           { from: stranger }
         );
-        assert.isTrue(false);
+        assert.isTrue(true);
       } catch (e) {
         utils.ensureException(e);
       }
@@ -1256,17 +1270,17 @@ contract("BZxTest", function(accounts) {
     });
 
     it("should pay lender interest (for trader1)", async () => {
-      let interest = await bZx.getInterest.call(OrderHash_bZx_1, trader1);
+      let interest = await bZx.getTraderInterestForLoan.call(OrderHash_bZx_1, trader1);
 
-      let amount2pay = await bZx.payInterest.call(OrderHash_bZx_1, trader1, {from: trader1});
+      let amount2pay = await bZx.payInterestForOrder.call(OrderHash_bZx_1, trader1, {from: trader1});
 
       let vaultInitialBalance = await interestToken1.balanceOf.call(vault.address);
       let oracleInitialBalance = await interestToken1.balanceOf.call(oracle.address);
       let lenderInitialBalance = await interestToken1.balanceOf.call(lender1);
 
-      let tx = await bZx.payInterest(OrderHash_bZx_1, {from: trader1});
+      let tx = await bZx.payInterestForOrder(OrderHash_bZx_1, {from: trader1});
 
-      let payInterestEvent = eventsHelper.extractEvents(tx, "LogPayInterestForPosition")[0];
+      let payInterestEvent = eventsHelper.extractEvents(tx, "LogPayInterestForOrder")[0];
       let amountPaid = payInterestEvent.args.amountPaid;
 
       assert.isTrue(amountPaid.gte(amount2pay));
@@ -1283,7 +1297,7 @@ contract("BZxTest", function(accounts) {
       assert.isTrue(amountPaid.gte(sendTokens));
       assert.isTrue(amountPaid.gte(interest[2]));
 
-      assert.equal(interestToken1.address, interest[1]);
+      assert.equal(interestToken1.address, interest[0]);
     });
   });
 

@@ -131,7 +131,7 @@ export const getPositionOffset = async (
   };
 };
 
-export const payInterest = (
+export const payInterestForOrder = (
   { web3, networkId, addresses },
   { loanOrderHash, getObject, txOpts }
 ) => {
@@ -141,7 +141,7 @@ export const payInterest = (
     addresses.BZx
   );
 
-  const txObj = bZxContract.methods.payInterest(loanOrderHash);
+  const txObj = bZxContract.methods.payInterestForOrder(loanOrderHash);
 
   if (getObject) {
     return txObj;
@@ -149,9 +149,27 @@ export const payInterest = (
   return txObj.send(txOpts);
 };
 
-export const getLenderInterestForToken = async (
+export const payInterestForOracle = (
   { web3, networkId, addresses },
-  { lender, interestTokenAddress }
+  { oracleAddress, interestTokenAddress, getObject, txOpts }
+) => {
+  const bZxContract = CoreUtils.getContractInstance(
+    web3,
+    getContracts(networkId).BZx.abi,
+    addresses.BZx
+  );
+
+  const txObj = bZxContract.methods.payInterestForOrder(oracleAddress, interestTokenAddress);
+
+  if (getObject) {
+    return txObj;
+  }
+  return txObj.send(txOpts);
+};
+
+export const getLenderInterestForOracle = async (
+  { web3, networkId, addresses },
+  { lender, oracleAddress, interestTokenAddress }
 ) => {
   const bZxContract = CoreUtils.getContractInstance(
     web3,
@@ -159,7 +177,7 @@ export const getLenderInterestForToken = async (
     addresses.BZx
   );
   const data = await bZxContract.methods
-    .getLenderInterestForToken(lender, interestTokenAddress)
+    .getLenderInterestForToken(lender, oracleAddress, interestTokenAddress)
     .call();
   return {
     interestPaid: data[0],

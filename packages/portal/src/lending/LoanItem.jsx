@@ -75,7 +75,8 @@ export default class LoanItem extends BZxComponent {
   };
   
   async componentWillReceiveProps(nextProps) {
-    await this.getLenderInterest();
+    if (nextProps.data.ts !== this.props.data.ts)
+      await this.getLenderInterest();
   }
   
   componentDidMount = async () => {
@@ -278,7 +279,7 @@ export default class LoanItem extends BZxComponent {
               <br />
               
               <DataPointContainer>
-                <Label>Interest earned (all loan total)</Label>
+                <Label>Interest Paid (all loan total)</Label>
                 <DataPoint>
                   {fromBigNumber(interestPaid, 10 ** interestTokenDecimals)}
                   {` `}
