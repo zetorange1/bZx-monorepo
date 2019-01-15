@@ -585,7 +585,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
                 )) {
                     revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken profit failed");
                 }
-                loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(profit);
+                loanPosition.positionTokenAmountFilled = loanPosition.loanTokenAmountFilled;
             }
 
             // send remaining loan token back to the lender

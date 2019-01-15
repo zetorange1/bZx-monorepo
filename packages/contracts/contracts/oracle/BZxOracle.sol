@@ -922,17 +922,24 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
 
     function transferToken(
         address tokenAddress,
-        address payable to,
+        address to,
         uint256 value)
         public
         onlyOwner
         returns (bool)
     {
-        return (_transferToken(
-            tokenAddress,
-            to,
-            value
-        ));
+        uint256 balance = EIP20(tokenAddress).balanceOf.gas(4999)(address(this));
+        if (value > balance) {
+            return EIP20(tokenAddress).transfer(
+                to,
+                balance
+            );
+        } else {
+            return EIP20(tokenAddress).transfer(
+                to,
+                value
+            );
+        }
     }
 
     function tradeOwnedAsset(

@@ -45,7 +45,6 @@ module.exports = (deployer, network, accounts) => {
     }*/
 
     await bZRxToken.addMinter(BZRxTokenConvert.address);
-    //await bZRxToken.addMinter(BZxVault.address);
 
     // bZx Proxy uses BZRxTokenConvert contract as BZRX token until the tokensale ends
     var bZxProxy = await BZxProxySettings.at(BZxProxy.address);

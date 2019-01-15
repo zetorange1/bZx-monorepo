@@ -18,7 +18,7 @@ contract EMACollector {
     uint256 public outlierMultiplier = 2;
     uint256 public outlierAdder = 5**9 wei; // 5 gwei
 
-    uint256 internal emaLastUpdate;
+    //uint256 internal emaLastUpdate;
 
     //event EMAUpdated(uint256 newEMA);
 
@@ -32,8 +32,8 @@ contract EMACollector {
     function updateEMA(uint256 value)
         internal
     {
-        if (emaLastUpdate == block.timestamp)
-            return;
+        /*if (emaLastUpdate == block.timestamp)
+            return;*/
 
         /*
             Multiplier: 2 / (emaPeriods + 1)
@@ -57,6 +57,6 @@ contract EMACollector {
             );
         //emit EMAUpdated(emaValue);
 
-        emaLastUpdate = block.timestamp;
+        //emaLastUpdate = block.timestamp;
     }
 }

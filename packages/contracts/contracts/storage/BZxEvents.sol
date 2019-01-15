@@ -66,14 +66,6 @@ contract BZxEvents {
         uint256 positionId
     );
 
-    event LogPayInterest(
-        bytes32 indexed loanOrderHash,
-        address indexed lender,
-        uint256 amountPaid,
-        uint256 totalAccrued,
-        uint256 loanCount
-    );
-
     event LogPayInterestForOracle(
         address indexed lender,
         address indexed oracleAddress,

@@ -12,13 +12,9 @@ import "./storage/BZxStorage.sol";
 import "./zeroex/ExchangeV2Interface.sol";
 
 // This interface is meant to used with the deployed BZxProxy contract (proxy/BZxProxy.sol) address.
-// js example: var bZx = await BZx.at((await BZxProxy.deployed()).address);
+// js example: const bZx = await BZx.at(BZxProxy.address);
 
 contract BZx is BZxStorage {
-
-    /*
-    * BZxOrderTaking functions
-    */
 
     /// @dev Takes the order as trader
     /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFillAddress.
@@ -303,10 +299,6 @@ contract BZx is BZxStorage {
         view
         returns (LoanPosition memory);
 
-    /*
-    * BZxTradePlacing functions
-    */
-
     /// @dev Executes a 0x trade using loaned funds.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param orderData0x 0x order arguments, converted to hex, padded to 32 bytes and concatenated (multi-order batching allowed)
@@ -340,10 +332,6 @@ contract BZx is BZxStorage {
         address tradeTokenAddress)
         external
         returns (uint256);
-
-    /*
-    * BZxLoanMaintenance functions
-    */
 
     /// @dev Allows the trader to increase the collateral for a loan.
     /// @param loanOrderHash A unique hash representing the loan order
@@ -461,10 +449,6 @@ contract BZx is BZxStorage {
         public
         view
         returns (bool isPositive, uint256 positionOffsetAmount, uint256 loanOffsetAmount, address positionTokenAddress);
-
-    /*
-    * BZxLoanHealth functions
-    */
 
     /// @dev Pays the lender the total amount of interest accrued for a loan order
     /// @dev Note that this function can be safely called by anyone.
