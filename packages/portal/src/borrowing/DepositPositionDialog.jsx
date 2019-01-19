@@ -25,9 +25,65 @@ export default class DepositPositionDialog extends React.Component {
 
   setAmount = e => this.setState({ amount: e.target.value });
 
+  checkAllowance = async (tokenAddress) => {
+    const { accounts, bZx } = this.props;
+    const allowance = await bZx.getAllowance({
+      tokenAddress,
+      ownerAddress: accounts[0].toLowerCase()
+    });
+    return allowance.toNumber() !== 0;
+  };
+  
+  silentAllowance = async (tokenAddress) => {
+    const { accounts, bZx } = this.props;
+    const txOpts = {
+      from: accounts[0],
+      // gas: 1000000,
+      gasPrice: window.defaultGasPrice.toString()
+    };
+
+    const txObj = await bZx.setAllowanceUnlimited({
+      tokenAddress: tokenAddress,
+      ownerAddress: accounts[0].toLowerCase(),
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      let gas = await txObj.estimateGas(txOpts);
+      console.log(gas);
+      txOpts.gas = window.gasValue(gas);
+      await txObj.send(txOpts);
+      return true;
+    } catch (error) {
+      console.error(error.message);
+      return false;
+    }
+  }
+
   depositPosition = async () => {
     const { accounts, web3, bZx, loanOrderHash, positionToken } = this.props;
     const { amount } = this.state;
+
+    await this.setState({ isSubmitted: true });
+
+    try {
+      const a = await this.checkAllowance(positionToken.address);
+      if (!a) {
+        if (!(await this.silentAllowance(positionToken.address))) {
+          alert(`Please go to the Balances page and approve `+positionToken.symbol+`.`);
+          this.props.onClose();
+          await this.setState({ isSubmitted: false });
+          return;
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      alert(`Please go to the Balances page and approve `+positionToken.symbol+`.`);
+      this.props.onClose();
+      await this.setState({ isSubmitted: false });
+      return;
+    }
 
     const txOpts = {
       from: accounts[0],
@@ -75,6 +131,7 @@ export default class DepositPositionDialog extends React.Component {
             .then(() => {
               alert(`Execution complete.`);
               this.props.onClose();
+              this.setState({ isSubmitted: false });
             })
             .catch(error => {
               console.error(error);
@@ -82,17 +139,20 @@ export default class DepositPositionDialog extends React.Component {
                 `An error occured. Make sure that you have approved the token and have sufficient balance.`
               );
               this.props.onClose();
+              this.setState({ isSubmitted: false });
             });
         })
         .catch(error => {
           console.error(error);
           alert(`The transaction is failing. Please try again later.`);
           this.props.onClose();
+          this.setState({ isSubmitted: false });
         });
     } catch (error) {
       console.error(error);
       alert(`The transaction is failing. Please try again later.`);
       this.props.onClose();
+      this.setState({ isSubmitted: false });
     }
   };
 
@@ -123,9 +183,10 @@ export default class DepositPositionDialog extends React.Component {
             onClick={this.depositPosition}
             variant="raised"
             color="primary"
+            disabled={this.state.isSubmitted}
             fullWidth
           >
-            Deposit
+            {this.state.isSubmitted ? `Please Wait` : `Deposit`}
           </Button>
         </DialogContent>
       </Dialog>

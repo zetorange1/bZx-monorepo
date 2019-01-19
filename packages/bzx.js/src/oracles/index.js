@@ -69,7 +69,7 @@ export const getOracleList = async ({ web3, networkId }) => {
 
   // Fallback to on chain OracleRegistry if local list not found
   // Note: The local list is a stopgap to address MetaMask/Infura instability
-  
+
   const {
     oracleAddresses,
     oracleNameLengths,
@@ -138,6 +138,7 @@ export const getConversionData = async (
 
   return {
     rate: 0 in data && data[0] ? data[0] : new BigNumber(0),
-    amount: 1 in data && data[1] ? data[1] : new BigNumber(0)
+    precision: 1 in data && data[1] ? data[1] : new BigNumber(0),
+    amount: 2 in data && data[2] ? data[2] : new BigNumber(0)
   };
 };

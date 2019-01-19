@@ -25,7 +25,7 @@ export const depositCollateral = (
 
 export const withdrawCollateral = (
   { web3, networkId, addresses },
-  { loanOrderHash, collateralTokenFilled, withdrawAmount, getObject, txOpts }
+  { loanOrderHash, withdrawAmount, getObject, txOpts }
 ) => {
   const bZxContract = CoreUtils.getContractInstance(
     web3,
@@ -35,7 +35,6 @@ export const withdrawCollateral = (
 
   const txObj = bZxContract.methods.withdrawCollateral(
     loanOrderHash,
-    collateralTokenFilled,
     web3.utils.toBN(withdrawAmount).toString(10)
   );
 
@@ -127,7 +126,7 @@ export const getPositionOffset = async (
     isPositive: data.isPositive,
     positionOffsetAmount: data.positionOffsetAmount,
     loanOffsetAmount: data.loanOffsetAmount,
-    positionTokenAddress: data.positionTokenAddress
+   	collateralOffsetAmount: data.collateralOffsetAmount
   };
 };
 

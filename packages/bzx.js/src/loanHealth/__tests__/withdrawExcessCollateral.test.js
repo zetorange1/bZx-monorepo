@@ -86,7 +86,6 @@ describe("loanHeath", () => {
 
       promiEvent = bZxJS.withdrawCollateral({
         loanOrderHash,
-        collateralTokenFilled,
         withdrawAmount,
         txOpts
       });

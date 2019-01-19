@@ -312,25 +312,25 @@ contract OracleInterface {
     /// @param sourceTokenAddress Token being sold
     /// @param destTokenAddress Token being bought
     /// @param sourceTokenAmount The amount of token being sold
-    /// @return The trade rate and amount of destToken that would be received from the trade
+    /// @return The trade rate, precision between tokens, and amount of destToken that would be received from the trade
     function getTradeData(
         address sourceTokenAddress,
         address destTokenAddress,
         uint256 sourceTokenAmount)
         public
         view
-        returns (uint256 sourceToDestRate, uint256 destTokenAmount);
+        returns (uint256 sourceToDestRate, uint256 sourceToDestPrecision, uint256 destTokenAmount);
 
     /// @dev Returns the current excess or deficit position amount from the loan principal
     /// @param loanOrder The loanOrder object
     /// @param loanPosition The loanPosition object
-    /// @return isPositive, positionOffsetAmount, loanOffsetAmount
+    /// @return isPositive, positionOffsetAmount, loanOffsetAmount, collateralOffsetAmount
     function getPositionOffset(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition)
         public
         view
-        returns (bool isPositive, uint256 positionOffsetAmount, uint256 loanOffsetAmount);
+        returns (bool isPositive, uint256 positionOffsetAmount, uint256 loanOffsetAmount, uint256 collateralOffsetAmount);
 
     /// @dev Returns the current margin level for this particular loan/position
     /// @param loanTokenAddress The token that was loaned

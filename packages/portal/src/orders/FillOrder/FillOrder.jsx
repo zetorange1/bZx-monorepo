@@ -193,6 +193,8 @@ export default class FillOrder extends BZxComponent {
       resetOrder
     } = this.props;
 
+    await this.setState({ isSubmitted: true });
+
     await this.refreshCollateralAmountNoEvent();
     const {
       fillOrderAmount,
@@ -240,6 +242,8 @@ export default class FillOrder extends BZxComponent {
           changeTab
         );
       }
+    } else {
+      await this.setState({ isSubmitted: false });
     }
   };
 
@@ -253,6 +257,8 @@ export default class FillOrder extends BZxComponent {
       changeTab,
       resetOrder
     } = this.props;
+
+    await this.setState({ isSubmitted: true });
 
     await this.refreshCollateralAmountNoEvent();
     const { fillOrderAmount, loanTokenAvailable } = this.state;
@@ -287,6 +293,8 @@ export default class FillOrder extends BZxComponent {
           changeTab
         );
       }
+    } else {
+      await this.setState({ isSubmitted: false });
     }
   };
 
@@ -376,8 +384,9 @@ export default class FillOrder extends BZxComponent {
                     variant="raised"
                     color="primary"
                     onClick={this.handleCancelSubmit}
+                    disabled={this.state.isSubmitted}
                   >
-                    Cancel Order
+                    {this.state.isSubmitted ? `Please Wait` : `Cancel Order`}
                   </SubmitBtn>
                 </Fragment>
               ) : (
@@ -406,8 +415,9 @@ export default class FillOrder extends BZxComponent {
                     variant="raised"
                     color="primary"
                     onClick={this.handleSubmit}
+                    disabled={this.state.isSubmitted}
                   >
-                    Fill Order
+                    {this.state.isSubmitted ? `Please Wait` : `Fill Order`}
                   </SubmitBtn>
                 </Fragment>
               )}

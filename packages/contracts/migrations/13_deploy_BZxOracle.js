@@ -104,7 +104,34 @@ module.exports = (deployer, network, accounts) => {
           }
 
           await oracleRegistry.removeOracle(CURRENT_OLD_ORACLE_ADDRESS, 0);
+
           await bZxProxy.setOracleReference(OLD_ORACLE_ADDRESS, oracleAddress);
+
+          /*if (CURRENT_OLD_ORACLE_ADDRESS.toLowerCase() != OLD_ORACLE_ADDRESS.toLowerCase()) {
+            await bZxProxy.setOracleReference(CURRENT_OLD_ORACLE_ADDRESS, oracleAddress);
+          }*/
+
+          if (network == "development") {
+            for(let i=0; i <= 9; i++) {
+              let t = await artifacts.require("TestToken"+i);
+
+              let rate = (await bZxOracleOld.getTradeData(
+                t.address,
+                weth_token_address,
+                "0"
+              )).sourceToDestRate;
+              await oracle.setRates(
+                t.address,
+                weth_token_address,
+                rate.toString()
+              );
+            }
+
+            let TestNetFaucet = artifacts.require("TestNetFaucet");
+            let testNetFaucet = await TestNetFaucet.deployed();
+            await oracle.setFaucetContractAddress(testNetFaucet.address);
+            await testNetFaucet.setOracleContractAddress(oracle.address);
+          }
         }
 
         await oracleRegistry.addOracle(oracleAddress, "bZxOracle");

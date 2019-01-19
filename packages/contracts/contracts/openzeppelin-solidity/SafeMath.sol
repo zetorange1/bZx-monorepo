@@ -34,6 +34,17 @@ library SafeMath {
   }
 
   /**
+  * @dev Integer division of two numbers, rounding up and truncating the quotient
+  */
+  function divCeil(uint256 _a, uint256 _b) internal pure returns (uint256) {
+    if (_a == 0) {
+      return 0;
+    }
+
+    return ((_a - 1) / _b) + 1;
+  }
+
+  /**
   * @dev Subtracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
   */
   function sub(uint256 _a, uint256 _b) internal pure returns (uint256) {

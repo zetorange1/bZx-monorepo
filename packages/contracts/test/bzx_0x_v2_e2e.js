@@ -1048,14 +1048,14 @@ contract("BZxTest", function(accounts) {
 
   context("0x V2 trading", async () => {
     it("should generate 0x V2 orders", async () => {
-      
+
       let tradeData = await oracle.getTradeData.call(
         maker0xV2Token1.address.toLowerCase(),
         loanToken1.address.toLowerCase(),
         utils.toWei(3, "ether").toString()
       );
       //console.log(tradeData);
-      
+
       OrderParams_0xV2_1 = {
         exchangeAddress:config["addresses"]["development"]["ZeroEx"]["ExchangeV2"],
         makerAddress: maker1,
@@ -1063,7 +1063,7 @@ contract("BZxTest", function(accounts) {
         feeRecipientAddress: owner,
         senderAddress: utils.zeroAddress,
         makerAssetAmount: utils.toWei(3, "ether").toString(),
-        takerAssetAmount: tradeData[1].toString(),
+        takerAssetAmount: tradeData[2].toString(),
         makerFee: utils.toWei(0.0005, "ether").toString(),
         takerFee: utils.toWei(0.01, "ether").toString(),
         expirationTimeSeconds: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
@@ -1085,7 +1085,7 @@ contract("BZxTest", function(accounts) {
         feeRecipientAddress: owner,
         senderAddress: utils.zeroAddress,
         makerAssetAmount: utils.toWei(120, "ether").toString(),
-        takerAssetAmount: tradeData[1].toString(),
+        takerAssetAmount: tradeData[2].toString(),
         makerFee: "0",
         takerFee: utils.toWei(0.0025, "ether").toString(),
         expirationTimeSeconds: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
@@ -1227,7 +1227,9 @@ contract("BZxTest", function(accounts) {
       let initialExcess = await bZx.getPositionOffset.call(OrderHash_bZx_1, trader1);
 
       assert.isTrue(!initialExcess[0]);
-      let positionToken = await ERC20.at(initialExcess[3]);
+
+      let positionId = await bZx.loanPositionsIds.call(OrderHash_bZx_1, trader1);
+      let positionToken = (await bZx.loanPositions.call(positionId))[2];
       let traderInitialBalance = await positionToken.balanceOf.call(trader1);
       let vaultInitialBalance = await positionToken.balanceOf.call(vault.address);
 

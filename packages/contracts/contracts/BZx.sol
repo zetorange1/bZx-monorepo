@@ -348,14 +348,13 @@ contract BZx is BZxStorage {
     /// @dev Allows the trader to withdraw excess collateral for a loan.
     /// @dev Excess collateral is any amount above the initial margin.
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param collateralTokenFilled The address of the collateral token used
-    /// @return excessCollateral The amount of excess collateral token to withdraw. The actual amount withdrawn will be less if there's less excess.
+    /// @param withdrawAmount The amount to withdraw
+    /// @return amountWithdrawn The amount withdrawn denominated in collateralToken. Can be less than withdrawAmount.
     function withdrawCollateral(
         bytes32 loanOrderHash,
-        address collateralTokenFilled,
         uint256 withdrawAmount)
         external
-        returns (uint256 excessCollateral);
+        returns (uint256 amountWithdrawn);
 
     /// @dev Allows the trader to change the collateral token being used for a loan.
     /// @dev This function will transfer in the initial margin requirement of the new token and the old token will be refunded to the trader.
@@ -439,16 +438,16 @@ contract BZx is BZxStorage {
     /// @dev Get the current excess or deficit position amount from the loan principal
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position
-    /// @return isPositive False it there's a deficit, True otherwise
-    /// @return positionOffsetAmount The amount of excess or deficit in positionToken
-    /// @return loanOffsetAmount The actual profit or loss in loanToken
-    /// @return positionTokenAddress The position token current filled, which could be the same as the loanToken
+    /// @return isPositive True if there's an surplus, False otherwise
+    /// @return positionOffsetAmount The amount of surplus or deficit in positionToken
+    /// @return loanOffsetAmount The amount of surplus or deficit in loanToken
+    /// @return collateralOffsetAmount The amount of surplus or deficit in collateralToken
     function getPositionOffset(
         bytes32 loanOrderHash,
         address trader)
         public
         view
-        returns (bool isPositive, uint256 positionOffsetAmount, uint256 loanOffsetAmount, address positionTokenAddress);
+        returns (bool isPositive, uint256 positionOffsetAmount, uint256 loanOffsetAmount, uint256 collateralOffsetAmount);
 
     /// @dev Pays the lender the total amount of interest accrued for a loan order
     /// @dev Note that this function can be safely called by anyone.

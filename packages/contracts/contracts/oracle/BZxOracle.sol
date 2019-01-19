@@ -641,73 +641,74 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         uint256 sourceTokenAmount)
         public
         view
-        returns (uint256 sourceToDestRate, uint256 destTokenAmount)
+        returns (uint256 sourceToDestRate, uint256 sourceToDestPrecision, uint256 destTokenAmount)
     {
         (sourceToDestRate,) = _getExpectedRate(
             sourceTokenAddress,
             destTokenAddress,
             sourceTokenAmount);
 
+        sourceToDestPrecision = _getDecimalPrecision(sourceTokenAddress, destTokenAddress);
+
         destTokenAmount = sourceTokenAmount
                             .mul(sourceToDestRate)
-                            .div(_getDecimalPrecision(sourceTokenAddress, destTokenAddress));
+                            .div(sourceToDestPrecision);
     }
 
-    // isPositive: true if there's a profit
-    // positionOffsetAmount: the profit or loss in positionToken
-    // loanOffsetAmount: the profit or loss in loanToken
     function getPositionOffset(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition)
         public
         view
-        returns (bool isPositive, uint256 positionOffsetAmount, uint256 loanOffsetAmount)
+        returns (bool isPositive, uint256 positionOffsetAmount, uint256 loanOffsetAmount, uint256 collateralOffsetAmount)
     {
-        uint256 collateralToPositionAmount;
-        if (loanPosition.collateralTokenAddressFilled == loanPosition.positionTokenAddressFilled) {
-            collateralToPositionAmount = loanPosition.collateralTokenAmountFilled;
+        uint256 collateralToLoanAmount;
+        uint256 collateralToLoanRatePrecise;
+        if (loanPosition.collateralTokenAddressFilled == loanOrder.loanTokenAddress) {
+            collateralToLoanAmount = loanPosition.collateralTokenAmountFilled;
+            collateralToLoanRatePrecise = 10**18;
         } else {
-            (uint256 collateralToPositionRate,) = _getExpectedRate(
+            (collateralToLoanRatePrecise,) = _getExpectedRate(
                 loanPosition.collateralTokenAddressFilled,
-                loanPosition.positionTokenAddressFilled,
-                loanPosition.collateralTokenAmountFilled);
-            if (collateralToPositionRate == 0) {
-                return (false,0,0);
-            }
-            collateralToPositionAmount = loanPosition.collateralTokenAmountFilled.mul(collateralToPositionRate).div(_getDecimalPrecision(loanPosition.collateralTokenAddressFilled, loanPosition.positionTokenAddressFilled));
-        }
-
-        uint256 loanToPositionAmount;
-        uint256 loanToPositionRate;
-        if (loanOrder.loanTokenAddress == loanPosition.positionTokenAddressFilled) {
-            loanToPositionAmount = loanPosition.loanTokenAmountFilled;
-            loanToPositionRate = 10**18;
-        } else {
-            (loanToPositionRate,) = _getExpectedRate(
                 loanOrder.loanTokenAddress,
-                loanPosition.positionTokenAddressFilled,
-                loanPosition.loanTokenAmountFilled);
-            if (loanToPositionRate == 0) {
-                return (false,0,0);
+                loanPosition.collateralTokenAmountFilled);
+            if (collateralToLoanRatePrecise == 0) {
+                return (false,0,0,0);
             }
-            loanToPositionAmount = loanPosition.loanTokenAmountFilled.mul(loanToPositionRate).div(_getDecimalPrecision(loanOrder.loanTokenAddress, loanPosition.positionTokenAddressFilled));
+            collateralToLoanRatePrecise = collateralToLoanRatePrecise.mul(10**18).div(_getDecimalPrecision(loanPosition.collateralTokenAddressFilled, loanOrder.loanTokenAddress));
+            collateralToLoanAmount = loanPosition.collateralTokenAmountFilled.mul(collateralToLoanRatePrecise).div(10**18);
         }
 
-        uint256 combinedCollateral = loanPosition.positionTokenAmountFilled.add(collateralToPositionAmount);
-        uint256 initialCombinedCollateral = loanToPositionAmount.add(loanToPositionAmount.mul(loanOrder.initialMarginAmount).div(10**20));
+        uint256 positionToLoanAmount;
+        uint256 positionToLoanRatePrecise;
+        if (loanPosition.positionTokenAddressFilled == loanOrder.loanTokenAddress) {
+            positionToLoanAmount = loanPosition.positionTokenAmountFilled;
+            positionToLoanRatePrecise = 10**18;
+        } else {
+            (positionToLoanRatePrecise,) = _getExpectedRate(
+                loanPosition.positionTokenAddressFilled,
+                loanOrder.loanTokenAddress,
+                loanPosition.positionTokenAmountFilled);
+            if (positionToLoanRatePrecise == 0) {
+                return (false,0,0,0);
+            }
+            positionToLoanRatePrecise = positionToLoanRatePrecise.mul(10**18).div(_getDecimalPrecision(loanPosition.positionTokenAddressFilled, loanOrder.loanTokenAddress));
+            positionToLoanAmount = loanPosition.positionTokenAmountFilled.mul(positionToLoanRatePrecise).div(10**18);
+        }
+
+        positionToLoanAmount = positionToLoanAmount.add(collateralToLoanAmount);
+        uint256 initialCombinedCollateral = loanPosition.loanTokenAmountFilled.add(loanPosition.loanTokenAmountFilled.mul(loanOrder.initialMarginAmount).div(10**20));
 
         isPositive = false;
-        uint256 netCollateral = 0;
-        if (combinedCollateral > initialCombinedCollateral) {
-            netCollateral = combinedCollateral.sub(initialCombinedCollateral);
+        if (positionToLoanAmount > initialCombinedCollateral) {
+            loanOffsetAmount = positionToLoanAmount.sub(initialCombinedCollateral);
             isPositive = true;
-        } else if (combinedCollateral < initialCombinedCollateral) {
-            netCollateral = initialCombinedCollateral.sub(combinedCollateral);
+        } else if (positionToLoanAmount < initialCombinedCollateral) {
+            loanOffsetAmount = initialCombinedCollateral.sub(positionToLoanAmount);
         }
 
-        positionOffsetAmount = Math.min256(loanPosition.positionTokenAmountFilled, netCollateral);
-
-        loanOffsetAmount = netCollateral.mul(_getDecimalPrecision(loanOrder.loanTokenAddress, loanPosition.positionTokenAddressFilled)).div(loanToPositionRate);
+        positionOffsetAmount = loanOffsetAmount.mul(10**18).div(positionToLoanRatePrecise);
+        collateralOffsetAmount = loanOffsetAmount.mul(10**18).div(collateralToLoanRatePrecise);
     }
 
     /// @return The current margin amount (a percentage -> i.e. 54350000000000000000 == 54.35%)

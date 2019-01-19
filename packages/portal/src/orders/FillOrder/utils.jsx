@@ -530,6 +530,7 @@ export const submitFillOrder = (
             console.log();
             resetOrder();
             alert(`Your loan has been opened.`);
+            this.setState({ isSubmitted: false });
           })
           .catch(error => {
             console.error(error.message);
@@ -540,6 +541,7 @@ export const submitFillOrder = (
             ) {
               alert();
             }
+            this.setState({ isSubmitted: false });
           });
       })
       .catch(error => {
@@ -547,12 +549,14 @@ export const submitFillOrder = (
         alert(
           `The transaction is failing. This loan cannot be opened at this time. Please check the parameters of the order.`
         );
+        this.setState({ isSubmitted: false });
       });
   } catch (error) {
     console.error(error);
     alert(
       `The transaction is failing. This loan cannot be opened at this time. Please check the parameters of the order.`
     );
+    this.setState({ isSubmitted: false });
   }
 
   return true;
@@ -639,6 +643,7 @@ export const submitFillOrderWithHash = (
             console.log();
             changeTab(`Orders_OrderBook`);
             alert(`Your loan has been opened.`);
+            this.setState({ isSubmitted: false });
           })
           .catch(error => {
             console.error(error.message);
@@ -649,6 +654,7 @@ export const submitFillOrderWithHash = (
             ) {
               alert();
             }
+            this.setState({ isSubmitted: false });
           });
       })
       .catch(error => {
@@ -656,12 +662,14 @@ export const submitFillOrderWithHash = (
         alert(
           `The transaction is failing. This loan cannot be opened at this time. Please check the parameters of the order.`
         );
+        this.setState({ isSubmitted: false });
       });
   } catch (error) {
     console.error(error);
     alert(
       `The transaction is failing. This loan cannot be opened at this time. Please check the parameters of the order.`
     );
+    this.setState({ isSubmitted: false });
   }
 
   return true;
@@ -721,6 +729,7 @@ export const submitCancelOrder = (
             console.log();
             resetOrder();
             alert(`You have canceled all or part of your loan order.`);
+            this.setState({ isSubmitted: false });
           })
           .catch(error => {
             console.error(error.message);
@@ -731,6 +740,7 @@ export const submitCancelOrder = (
             ) {
               alert();
             }
+            this.setState({ isSubmitted: false });
           });
       })
       .catch(error => {
@@ -738,12 +748,14 @@ export const submitCancelOrder = (
         alert(
           `The transaction is failing. This loan cannot be canceled at this time. Please check the parameters of the order.`
         );
+        this.setState({ isSubmitted: false });
       });
   } catch (error) {
     console.error(error);
     alert(
       `The transaction is failing. This loan cannot be canceled at this time. Please check the parameters of the order.`
     );
+    this.setState({ isSubmitted: false });
   }
 
   return true;
@@ -804,6 +816,7 @@ export const submitCancelOrderWithHash = (
             console.log();
             changeTab(`Orders_OrderBook`);
             alert(`You have canceled all or part of your loan order.`);
+            this.setState({ isSubmitted: false });
           })
           .catch(error => {
             console.error(error.message);
@@ -814,6 +827,7 @@ export const submitCancelOrderWithHash = (
             ) {
               alert();
             }
+            this.setState({ isSubmitted: false });
           });
       })
       .catch(error => {
@@ -821,12 +835,14 @@ export const submitCancelOrderWithHash = (
         alert(
           `The transaction is failing. This loan cannot be canceled at this time. Please check the parameters of the order.`
         );
+        this.setState({ isSubmitted: false });
       });
   } catch (error) {
     console.error(error);
     alert(
       `The transaction is failing. This loan cannot be canceled at this time. Please check the parameters of the order.`
     );
+    this.setState({ isSubmitted: false });
   }
 
   return true;

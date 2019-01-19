@@ -95,7 +95,7 @@ contract MiscFunctions is BZxStorage, MathFunctions {
         view
         returns (uint256 collateralTokenAmount)
     {
-        (,collateralTokenAmount) = OracleInterface(oracleAddresses[oracleAddress]).getTradeData(
+        (,,collateralTokenAmount) = OracleInterface(oracleAddresses[oracleAddress]).getTradeData(
             loanTokenAddress,
             collateralTokenAddress,
             loanTokenAmountFilled

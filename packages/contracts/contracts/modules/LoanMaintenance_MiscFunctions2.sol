@@ -217,7 +217,7 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
                     if (loanOrder.interestTokenAddress == loanOrder.loanTokenAddress) {
                         loanToInterestAmount = newLoanTokenAmount;
                     } else {
-                        (, loanToInterestAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+                        (,,loanToInterestAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
                             loanOrder.loanTokenAddress,
                             loanOrder.interestTokenAddress,
                             newLoanTokenAmount);

@@ -1627,7 +1627,7 @@ contract("BZxTest", function(accounts) {
       taker: NULL_ADDRESS,
       takerFee: utils.toWei(0.0013, "ether").toString(),
       takerTokenAddress: loanToken1.address.toLowerCase(),
-      takerTokenAmount: tradeData[1].toString()
+      takerTokenAmount: tradeData[2].toString()
     };
 
     console.log("OrderParams_0x_1:");
@@ -1652,7 +1652,7 @@ contract("BZxTest", function(accounts) {
       taker: NULL_ADDRESS,
       takerFee: utils.toWei(0.02, "ether").toString(),
       takerTokenAddress: loanToken1.address.toLowerCase(),
-      takerTokenAmount: tradeData[1].toString()
+      takerTokenAmount: tradeData[2].toString()
     };
 
     console.log("OrderParams_0x_2:");
@@ -1865,14 +1865,14 @@ contract("BZxTest", function(accounts) {
   (run["should generate 0x V2 orders"]
     ? it
     : it.skip)("should generate 0x V2 orders", async function() {
-    
+
     let tradeData = await oracle.getTradeData.call(
       maker0xV2Token1.address.toLowerCase(),
       loanToken1.address.toLowerCase(),
       utils.toWei(3, "ether").toString()
     );
     //console.log(tradeData);
-    
+
      OrderParams_0xV2_1 = {
       exchangeAddress:
         config["addresses"]["development"]["ZeroEx"]["ExchangeV2"],
@@ -1881,7 +1881,7 @@ contract("BZxTest", function(accounts) {
       feeRecipientAddress: NONNULL_ADDRESS,
       senderAddress: NULL_ADDRESS,
       makerAssetAmount: utils.toWei(3, "ether").toString(),
-      takerAssetAmount: tradeData[1].toString(),
+      takerAssetAmount: tradeData[2].toString(),
       makerFee: utils.toWei(0.0005, "ether").toString(),
       takerFee: utils.toWei(0.01, "ether").toString(),
       expirationTimeSeconds: (
@@ -1911,7 +1911,7 @@ contract("BZxTest", function(accounts) {
       feeRecipientAddress: NONNULL_ADDRESS,
       senderAddress: NULL_ADDRESS,
       makerAssetAmount: utils.toWei(120, "ether").toString(),
-      takerAssetAmount: tradeData[1].toString(),
+      takerAssetAmount: tradeData[2].toString(),
       makerFee: "0",
       takerFee: utils.toWei(0.0025, "ether").toString(),
       expirationTimeSeconds: (

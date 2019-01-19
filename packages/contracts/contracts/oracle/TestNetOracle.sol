@@ -137,8 +137,7 @@ contract TestNetOracle is BZxOracle {
                 }
             }
         } else {
-            (uint256 tradeRate,) = getTradeData(sourceTokenAddress, destTokenAddress, 0);
-            uint256 precision = _getDecimalPrecision(sourceTokenAddress, destTokenAddress);
+            (uint256 tradeRate, uint256 precision,) = getTradeData(sourceTokenAddress, destTokenAddress, 0);
             destTokenAmountReceived = sourceTokenAmount.mul(tradeRate).div(precision);
 
             if (destTokenAmountReceived > maxDestTokenAmount) {

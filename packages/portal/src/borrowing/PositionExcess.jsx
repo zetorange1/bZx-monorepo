@@ -4,7 +4,7 @@ import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
 import DialogContent from "@material-ui/core/DialogContent";
 import { COLORS } from "../styles/constants";
-import { fromBigNumber } from "../common/utils";
+import { toBigNumber, fromBigNumber } from "../common/utils";
 import { SectionLabel } from "../common/FormSection";
 import BZxComponent from "../common/BZxComponent";
 
@@ -40,7 +40,6 @@ export default class PositionExcess extends BZxComponent {
     error: false,
     withdrawAmount: 0,
     positionOffset: 0,
-    loanOffset: 0,
     isPositive: null,
     showDialog: false
   };
@@ -69,9 +68,8 @@ export default class PositionExcess extends BZxComponent {
       console.log(data);
       await this.setState({
         loading: false,
-        positionOffset: data.positionOffsetAmount,
-        withdrawAmount: data.positionOffsetAmount, // TEMP
-        loanOffset: data.loanOffsetAmount, // TEMP
+        positionOffset: toBigNumber(data.positionOffsetAmount),
+        withdrawAmount: toBigNumber(data.positionOffsetAmount), // TEMP
         isPositive: data.isPositive
       });
     } catch(e) {
@@ -144,8 +142,14 @@ export default class PositionExcess extends BZxComponent {
   closeDialog = () => this.setState({ showDialog: false });
 
   render() {
-    const { loading, error, positionOffset, loanOffset, withdrawAmount, isPositive, showDialog } = this.state;
-    const { symbol, decimals, loanTokenSymbol } = this.props;
+    const { loading, error, positionOffset, isPositive, showDialog } = this.state;
+    const { symbol, decimals, loanTokenSymbol, data } = this.props;
+    let amountWithdrawable = toBigNumber(0);
+    if (isPositive) {
+      amountWithdrawable = positionOffset.lt(data.positionTokenAmountFilled) ? 
+        positionOffset : toBigNumber(data.positionTokenAmountFilled);
+    }
+
     return (
       <Fragment>
         <br />
@@ -162,17 +166,16 @@ export default class PositionExcess extends BZxComponent {
                 {!isPositive && positionOffset.toString() !== `0` && `-`}
                 {fromBigNumber(positionOffset, 10 ** decimals)}
                 {` ${symbol}`}
-                {loanTokenSymbol !== symbol ? (
+                {isPositive ? (
                   <Fragment>
                     {` (`}
-                    {!isPositive && loanOffset.toString() !== `0` && `-`}
-                    {fromBigNumber(loanOffset, 10 ** decimals)}
-                    {` ${loanTokenSymbol})`}
+                    {fromBigNumber(amountWithdrawable, 10 ** decimals)}
+                    {` ${symbol})`}
                   </Fragment>
                 ) : `` }
               </DataPoint>
               {isPositive &&
-                positionOffset.toString() !== `0` && (
+                amountWithdrawable.gt(0) && (
                   <a
                     href="#"
                     style={{ marginLeft: `12px` }}
@@ -191,7 +194,7 @@ export default class PositionExcess extends BZxComponent {
           <DialogContent>
             <SectionLabel>Withdraw Position</SectionLabel>
             <p>
-              This will withdraw {fromBigNumber(positionOffset, 10 ** decimals)}
+              This will withdraw {fromBigNumber(amountWithdrawable, 10 ** decimals)}
               {` `}
               {symbol} from your loan.
             </p>
