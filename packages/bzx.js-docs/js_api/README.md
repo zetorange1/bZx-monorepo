@@ -63,7 +63,7 @@ Creates an instance of BZxJS.
 ```typescript
   constructor(
     web3: Web3,
-    params: { networkId: number; addresses?: string[] }
+    params: { networkId: number; addresses?: string[]; }
   );
 ```
 
@@ -284,9 +284,9 @@ Check order hash signature validity.
 
 ```typescript
   static isValidSignature(params: {
-    account: string,
-    orderHash: string,
-    signature: string
+    account: string;
+    orderHash: string;
+    signature: string;
   }): boolean;
 ```
 
@@ -310,9 +310,9 @@ Check order hash signature validity.
 
 ```typescript
   isValidSignatureAsync(params: {
-    account: string,
-    orderHash: string,
-    signature: string
+    account: string;
+    orderHash: string;
+    signature: string;
   }): Promise<boolean>;
 ```
 
@@ -434,7 +434,7 @@ Get single loan order by it's `params.loanOrderHash`.
 
 ```typescript
   getSingleOrder(params: { 
-    loanOrderHash: string 
+    loanOrderHash: string;
   }): Promise<ILoanOrderFillable>;
 ```
 
@@ -455,7 +455,8 @@ Get the list of loan orders that are available for taking.
 ```typescript
   getOrdersFillable(params: { 
     start: number; 
-    count: number 
+    count: number;
+    oracleFilter?: string;
   }): Promise<ILoanOrderFillable[]>;
 ```
 
@@ -464,6 +465,8 @@ Get the list of loan orders that are available for taking.
 `params.start` starting number of the loan order in the list of orders that are available for taking
 
 `params.count` maximum number of loan orders to return
+
+`params.oracleFilter` oracleAddress to filter list of loan orders
 
 ###### Returns
 
@@ -479,7 +482,8 @@ Return the list of loan orders filtered by specified `params.loanPartyAddress`.
   getOrdersForUser(params: {
     loanPartyAddress: string; 
     start: number;
-    count: number
+    count: number;
+    oracleFilter?: string;
   }): Promise<ILoanOrderFillable[]>;
 ```
 
@@ -490,6 +494,8 @@ Return the list of loan orders filtered by specified `params.loanPartyAddress`.
 `params.start` starting number of the loan order in the list of orders
 
 `params.count` maximum number of loan orders to return
+
+`params.oracleFilter` oracleAddress to filter list of loan orders
 
 ###### Returns
 
@@ -504,8 +510,11 @@ Take loan order created and signed by the lender and push it on-chain.
 ```typescript
   takeLoanOrderAsTrader(params: {
     order: ILoanOrderFillRequest;
+    oracleData: any;
     collateralTokenAddress: string;
     loanTokenAmountFilled: BigNumber;
+    tradeTokenToFillAddress: string;
+    withdrawOnOpen: string;
     getObject: boolean;
     txOpts: Tx;
   }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
@@ -515,9 +524,18 @@ Take loan order created and signed by the lender and push it on-chain.
 
 `params.order` signed loan order `ILoanOrderFillRequest`
 
+`params.oracleData` information specific for selected oracle. for bZxOracle it should be empty string, for augur oracle this should be augur oracle market.
+
 `params.collateralTokenAddress` desired address of the collateral the trader wants to use
 
 `params.loanTokenAmountFilled` desired amount of loanToken the trader wants to borrow
+
+`params.tradeTokenToFillAddress` if `"0"` then nothing happens, if non-zero, than a trade is made with the oracle once the loan is opened
+
+`params.withdrawOnOpen`
+      if `true`, then over-collateralize (initial margin + 100% of loan value), and withdraw the loan token to the trader's wallet                  
+      if `false`, that normal margin loan (initial margin collateral only)
+      NOTE: if true, than `params.tradeTokenToFillAddress` is ignored and assumed to be equal to `"0`
 
 `params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
@@ -536,6 +554,7 @@ Take loan order created and signed by the trader and push it on-chain.
 ```typescript
   takeLoanOrderAsLender(params: {
     order: ILoanOrderFillRequest;
+    oracleData: any;
     getObject: boolean;
     txOpts: Tx;
   }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
@@ -544,6 +563,8 @@ Take loan order created and signed by the trader and push it on-chain.
 ###### Arguments
 
 `params.order` signed loan order `ILoanOrderFillRequest`
+
+`params.oracleData` information specific for selected oracle. for bZxOracle it should be empty string, for augur oracle this should be augur oracle market.
 
 `params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
@@ -562,6 +583,7 @@ Push signed loan order on-chain.
 ```typescript
   pushLoanOrderOnChain(params: {
     order: ILoanOrderFillRequest;
+    oracleData: any;
     getObject: boolean;
     txOpts: Tx;
   }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
@@ -570,6 +592,8 @@ Push signed loan order on-chain.
 ###### Arguments
 
 `params.order` signed loan order `ILoanOrderFillRequest`
+
+`params.oracleData` information specific for selected oracle. for bZxOracle it should be empty string, for augur oracle this should be augur oracle market.
 
 `params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
@@ -590,6 +614,8 @@ Take loan order created and signed by the lender and already located on-chain (p
     loanOrderHash: string;
     collateralTokenAddress: string;
     loanTokenAmountFilled: BigNumber;
+    tradeTokenToFillAddress: string;
+    withdrawOnOpen: string;
     getObject: boolean;
     txOpts: Tx;
   }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
@@ -602,6 +628,13 @@ Take loan order created and signed by the lender and already located on-chain (p
 `params.collateralTokenAddress` desired address of the collateral the trader wants to use
 
 `params.loanTokenAmountFilled` desired amount of loanToken the trader wants to borrow
+
+`params.tradeTokenToFillAddress` if `"0"` then nothing happens, if non-zero, than a trade is made with the oracle once the loan is opened
+
+`params.withdrawOnOpen`
+      if `true`, then over-collateralize (initial margin + 100% of loan value), and withdraw the loan token to the trader's wallet                  
+      if `false`, that normal margin loan (initial margin collateral only)
+      NOTE: if true, than `params.tradeTokenToFillAddress` is ignored and assumed to be equal to `"0`
 
 `params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
@@ -760,12 +793,12 @@ Get current margin data for the loan order.
 
 ________________________________________________________________________________
 
-##### getProfitOrLoss
+##### getPositionOffset
 
 Get the current profit/loss data of the position.
 
 ```typescript
-  getProfitOrLoss(params: {
+  getPositionOffset(params: {
     loanOrderHash: string;
     trader: string;
   }): Promise<IProfitStatus>;
@@ -783,13 +816,14 @@ Get the current profit/loss data of the position.
 
 ________________________________________________________________________________
 
-##### withdrawProfit
+##### withdrawPosition
 
-Withdraw profits, if any. This function should be called by the trader.
+Allows the trader to withdraw any amount in excess of their loan principal. The trader will only be able to withdraw an amount the keeps the loan at or above initial margin.
 
 ```typescript
-  withdrawProfit(params: {
+  withdrawPosition(params: {
     loanOrderHash: string;
+    withdrawAmount: string;
     getObject: boolean;
     txOpts: Tx;
   }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
@@ -799,6 +833,8 @@ Withdraw profits, if any. This function should be called by the trader.
 
 `params.loanOrderHash` a unique hash representing the loan order
 
+`params.withdrawAmount` amount of the token to withdraw
+
 `params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
 
 `params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
@@ -806,7 +842,37 @@ Withdraw profits, if any. This function should be called by the trader.
 ###### Returns
 
 `Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
+________________________________________________________________________________
 
+##### depositPosition
+
+Allows the trader to return the position/loan token to increase their escrowed balance. This should be used by the trader if they've withdraw an overcollateralized loan.
+
+```typescript
+  depositPosition(params: {
+    loanOrderHash: string;
+    depositTokenAddress: string;
+    depositAmount: string;
+    getObject: boolean;
+    txOpts: Tx;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
+```
+
+###### Arguments
+
+`params.loanOrderHash` a unique hash representing the loan order
+
+`params.depositTokenAddress` the address of the token being returned
+
+`params.depositAmount` amount of the token to deposit
+
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
+
+`params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
+
+###### Returns
+
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
 ________________________________________________________________________________
 
 ##### getInterest
@@ -868,6 +934,7 @@ Cancels remaining (untaken) loan.
 ```typescript
   cancelLoanOrder(params: {
     order: ILoanOrderFillRequest;
+    oracleData: any;
     cancelLoanTokenAmount: string;
     getObject: boolean;
     txOpts: Tx;
@@ -877,6 +944,8 @@ Cancels remaining (untaken) loan.
 ###### Arguments
 
 `params.order` signed loan order `ILoanOrderFillRequest`
+
+`params.oracleData` information specific for selected oracle. for bZxOracle it should be empty string, for augur oracle this should be augur oracle market.
 
 `params.cancelLoanTokenAmount` the amount of remaining unloaned token to cancel
 
@@ -919,6 +988,70 @@ Cancels remaining (untaken) loan.
 
 ________________________________________________________________________________
 
+##### orderFilledAmount
+
+Returns amount of tokens filled in the loan order
+
+```typescript
+  orderFilledAmount(
+    loanOrderHash: string
+  ): Promise<string>;
+```
+###### Arguments
+
+`loanOrderHash` the collateral token used by the trader
+
+###### Returns
+
+`Promise` for `string` containing the cancelled amount
+________________________________________________________________________________
+
+##### orderCancelledAmount
+
+Returns amount of tokens canceled in the loan order
+
+```typescript
+  orderCancelledAmount(
+    loanOrderHash: string
+  ): Promise<string>;
+```
+###### Arguments
+
+`loanOrderHash` the collateral token used by the trader
+
+###### Returns
+
+`Promise` for `string` containing the cancelled amount
+________________________________________________________________________________
+
+##### closeLoanPartially
+
+Called by the trader to close part of their loan early.
+
+```typescript
+  closeLoanPartially(params: {
+    loanOrderHash: string;
+    closeAmount: string;
+    getObject: boolean;
+    txOpts: Tx;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
+```
+
+###### Arguments
+
+`params.loanOrderHash` a unique hash representing the loan order
+
+`params.closeAmount` the amount of the loan token to return to the lender
+
+`params.getObject` should this function return `Promise<TransactionReceipt>` (`false`) or `TransactionObject<TransactionReceipt>` (`true`)
+
+`params.txOpts` web3 transaction options object (`from`, `gasPrice`, `gas` etc.)
+
+###### Returns
+
+`Promise<TransactionReceipt>` or `TransactionObject<TransactionReceipt>`
+
+________________________________________________________________________________
 ##### closeLoan
 
 Called by the trader to close their loan early.
@@ -1073,14 +1206,14 @@ Increase the collateral for a loan.
 
 ________________________________________________________________________________
 
-##### withdrawExcessCollateral
+##### withdrawCollateral
 
 Allows the trader to withdraw excess collateral for a loan.
 
 Excess collateral is any amount above the initial margin.
 
 ```typescript
-  withdrawExcessCollateral(params: {
+  withdrawCollateral(params: {
     loanOrderHash: string;
     collateralTokenFilled: string;
     withdrawAmount: string;
@@ -1143,7 +1276,7 @@ ________________________________________________________________________________
 Execute a 0x trade using loaned funds on 0x V2 protocol network.
 
 ```typescript
-  tradePositionWith0x(params: {
+  tradePositionWith0xV2(params: {
     order0x: IZeroExV2TradeRequest;
     orderHashBZx: string;
     getObject: boolean;
@@ -1430,6 +1563,9 @@ ________________________________________________________________________________
 ```typescript
 export declare interface ILoanOrderFillable {
   makerAddress: string;
+  takerAddress: string;
+  tradeTokenToFillAddress: string;
+  withdrawOnOpen: boolean;
   loanTokenAddress: string;
   interestTokenAddress: string;
   collateralTokenAddress: string;
@@ -1458,6 +1594,9 @@ ________________________________________________________________________________
 ```typescript
 export declare interface ILoanOrderFillRequest {
   makerAddress: string;
+  takerAddress: string;
+  tradeTokenToFillAddress: string;
+  withdrawOnOpen: boolean;
   loanTokenAddress: string;
   interestTokenAddress: string;
   collateralTokenAddress: string;
@@ -1503,7 +1642,7 @@ export declare interface ILoanPositionState {
 ```
 ________________________________________________________________________________
 
-##### IZeroExOrder
+##### IZeroExOrder (obsolete, use `IZeroExV2Order`)
 
 ```typescript
 export declare interface IZeroExOrder {
@@ -1576,7 +1715,7 @@ export declare interface ISignatureParams {
 ```
 ________________________________________________________________________________
 
-##### IZeroExOrderSigned
+##### IZeroExOrderSigned (obsolete, use `IZeroExV2OrderSigned`)
 
 ```typescript
 export declare interface IZeroExOrderSigned extends IZeroExOrder {
@@ -1594,7 +1733,7 @@ export declare interface IZeroExV2OrderSigned extends IZeroExV2Order {
 ```
 ________________________________________________________________________________
 
-##### IZeroExTradeRequest
+##### IZeroExTradeRequest (obsolete, use `IZeroExV2TradeRequest`)
 
 ```typescript
 export declare interface IZeroExTradeRequest {
@@ -1650,8 +1789,8 @@ ________________________________________________________________________________
 
 ```typescript
 export declare interface IProfitStatus {
-  isProfit: boolean;
-  profitOrLoss: string;
+  isPositive: boolean;
+  offsetAmount: string;
   positionTokenAddress: string;
 }
 ```

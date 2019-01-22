@@ -1,5 +1,5 @@
 const Web3 = require("web3");
-const { BZxJS } = require("bzx.js");
+const { BZxJS } = require("@bzxnetwork/bzx.js");
 const utils = require("./utils");
 
 async function initConnectivity() {

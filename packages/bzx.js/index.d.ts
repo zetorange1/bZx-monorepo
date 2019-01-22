@@ -289,6 +289,36 @@ export declare class BZxJS {
     txOpts: Tx;
   }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
+  orderFilledAmount(
+    loanOrderHash: string
+  ): Promise<string>;
+
+  orderCancelledAmount(
+    loanOrderHash: string
+  ): Promise<string>;
+
+  withdrawPosition(params: {
+    loanOrderHash: string;
+    withdrawAmount: string;
+    getObject: boolean;
+    txOpts: Tx;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
+
+  depositPosition(params: {
+    loanOrderHash: string;
+    depositTokenAddress: string;
+    depositAmount: string;
+    getObject: boolean;
+    txOpts: Tx;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
+
+  closeLoanPartially(params: {
+    loanOrderHash: string;
+    closeAmount: string;
+    getObject: boolean;
+    txOpts: Tx;
+  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
+
   closeLoan(params: {
     loanOrderHash: string;
     getObject: boolean;
@@ -351,7 +381,7 @@ export declare class BZxJS {
     txOpts: Tx;
   }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
-  withdrawExcessCollateral(params: {
+  withdrawCollateral(params: {
     loanOrderHash: string;
     collateralTokenFilled: string;
     withdrawAmount: string;
@@ -360,12 +390,6 @@ export declare class BZxJS {
   }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   getPositionOffset(params: { loanOrderHash: string; trader: string }): Promise<IProfitStatus>;
-
-  withdrawProfit(params: {
-    loanOrderHash: string;
-    getObject: boolean;
-    txOpts: Tx;
-  }): Promise<TransactionReceipt> | TransactionObject<TransactionReceipt>;
 
   getInterest(params: { loanOrderHash: string; trader: string }): Promise<IInterestStatus>;
 

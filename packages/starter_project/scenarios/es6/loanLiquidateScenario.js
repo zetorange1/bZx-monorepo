@@ -1,7 +1,7 @@
 const artifacts = require("./../../artifacts");
 const utils = require("./../../utils");
 
-const { BZxJS } = require("bzx.js");
+const { BZxJS } = require("@bzxnetwork/bzx.js");
 const BigNumber = require("bignumber.js");
 const moment = require("moment");
 
@@ -18,6 +18,9 @@ async function loanLiquidateScenario(l, c, lenderAddress, trader1Address, trader
   const lendOrder = {
     bZxAddress: artifacts.bZx.address.toLowerCase(),
     makerAddress: lenderAddress.toLowerCase(),
+    takerAddress: utils.zeroAddress.toLowerCase(),
+    tradeTokenToFillAddress: utils.zeroAddress.toLowerCase(),
+    withdrawOnOpen: "0",
     loanTokenAddress: loanToken.address.toLowerCase(),
     interestTokenAddress: interestToken.address.toLowerCase(),
     collateralTokenAddress: utils.zeroAddress.toLowerCase(),
@@ -36,7 +39,7 @@ async function loanLiquidateScenario(l, c, lenderAddress, trader1Address, trader
   };
 
   // creating hash of lend order (on-chain mode)
-  const lendOrderHash = await c.bzxjs.getLoanOrderHashAsync(lendOrder);
+  const lendOrderHash = BZxJS.getLoanOrderHashHex({ ...lendOrder, oracleData: "" } );
   console.dir(lendOrderHash);
 
   // creating signature of lend order
@@ -60,6 +63,8 @@ async function loanLiquidateScenario(l, c, lenderAddress, trader1Address, trader
     order: signedLendOrder,
     collateralTokenAddress: collateralToken.address,
     loanTokenAmountFilled: c.web3.utils.toWei("0.1", "ether"),
+    tradeTokenToFillAddress: utils.zeroAddress.toLowerCase(),
+    withdrawOnOpen: "0",
     getObject: false,
     txOpts: { from: trader1Address, gasLimit: utils.gasLimit }
   });

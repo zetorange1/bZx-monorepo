@@ -1,4 +1,4 @@
-const { BZxJS } = require("bzx.js");
+const { BZxJS } = require("@bzxnetwork/bzx.js");
 
 const artifacts = require("./../../artifacts");
 const utils = require("./../../utils");
@@ -14,6 +14,9 @@ async function lendOrderScenario(l, c, lenderAddress, traderAddress, oracles) {
   const lendOrder = {
     bZxAddress: artifacts.bZx.address.toLowerCase(),
     makerAddress: lenderAddress.toLowerCase(),
+    takerAddress: utils.zeroAddress.toLowerCase(),
+    tradeTokenToFillAddress: utils.zeroAddress.toLowerCase(),
+    withdrawOnOpen: "0",
     loanTokenAddress: loanToken.address.toLowerCase(),
     interestTokenAddress: interestToken.address.toLowerCase(),
     collateralTokenAddress: utils.zeroAddress.toLowerCase(),
@@ -37,7 +40,7 @@ async function lendOrderScenario(l, c, lenderAddress, traderAddress, oracles) {
   console.dir(lendOrderHash);
 
   // creating hash of lend order (off-chain mode)
-  const lendOrderHashHex = BZxJS.getLoanOrderHashHex(lendOrder);
+  const lendOrderHashHex = BZxJS.getLoanOrderHashHex({ ...lendOrder, oracleData: "" } );
   console.dir(lendOrderHashHex);
 
   // creating signature of lend order
@@ -61,6 +64,8 @@ async function lendOrderScenario(l, c, lenderAddress, traderAddress, oracles) {
     order: signedLendOrder,
     collateralTokenAddress: collateralToken.address,
     loanTokenAmountFilled: c.web3.utils.toWei("1", "ether"),
+    tradeTokenToFillAddress: utils.zeroAddress.toLowerCase(),
+    withdrawOnOpen: "0",
     getObject: false,
     txOpts: { from: traderAddress, gasLimit: utils.gasLimit }
   });
@@ -96,6 +101,9 @@ async function lendOrderOnChainScenario(l, c, lenderAddress, traderAddress, orac
   const lendOrder = {
     bZxAddress: artifacts.bZx.address.toLowerCase(),
     makerAddress: lenderAddress.toLowerCase(),
+    takerAddress: utils.zeroAddress.toLowerCase(),
+    tradeTokenToFillAddress: utils.zeroAddress.toLowerCase(),
+    withdrawOnOpen: "0",
     loanTokenAddress: loanToken.address.toLowerCase(),
     interestTokenAddress: interestToken.address.toLowerCase(),
     collateralTokenAddress: utils.zeroAddress.toLowerCase(),
@@ -119,7 +127,7 @@ async function lendOrderOnChainScenario(l, c, lenderAddress, traderAddress, orac
   console.dir(lendOrderHash);
 
   // creating hash of lend order (off-chain mode)
-  const lendOrderHashHex = BZxJS.getLoanOrderHashHex(lendOrder);
+  const lendOrderHashHex = BZxJS.getLoanOrderHashHex({ ...lendOrder, oracleData: "" } );
   console.dir(lendOrderHashHex);
 
   // creating signature of lend order
@@ -151,6 +159,8 @@ async function lendOrderOnChainScenario(l, c, lenderAddress, traderAddress, orac
     loanOrderHash: lendOrderHash,
     collateralTokenAddress: collateralToken.address,
     loanTokenAmountFilled: c.web3.utils.toWei("1", "ether"),
+    tradeTokenToFillAddress: utils.zeroAddress.toLowerCase(),
+    withdrawOnOpen: "0",
     getObject: false,
     txOpts: { from: traderAddress, gasLimit: utils.gasLimit }
   });
