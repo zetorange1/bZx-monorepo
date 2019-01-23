@@ -644,7 +644,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
     {
         // interest-free loan is permitted
         if (loanOrder.interestAmount > 0) {
-            LenderInterest storage oracleInterest = lenderOracleInterest[orderLender[loanOrder.loanOrderHash]][oracleAddresses[loanOrder.oracleAddress]][loanOrder.interestTokenAddress];
+            LenderInterest storage oracleInterest = lenderOracleInterest[orderLender[loanOrder.loanOrderHash]][loanOrder.oracleAddress][loanOrder.interestTokenAddress];
             LenderInterest storage lenderInterest = lenderOrderInterest[loanOrder.loanOrderHash];
             TraderInterest storage traderInterest = traderLoanInterest[loanPosition.positionId];
 

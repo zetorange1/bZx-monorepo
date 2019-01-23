@@ -170,7 +170,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
         require(loanOrder.loanTokenAddress != address(0));
 
         if (loanOrder.interestAmount > 0) {
-            LenderInterest storage oracleInterest = lenderOracleInterest[orderLender[loanOrderHash]][oracleAddresses[loanOrder.oracleAddress]][loanOrder.interestTokenAddress];
+            LenderInterest storage oracleInterest = lenderOracleInterest[orderLender[loanOrderHash]][loanOrder.oracleAddress][loanOrder.interestTokenAddress];
             LenderInterest storage lenderInterest = lenderOrderInterest[loanOrderHash];
             TraderInterest storage traderInterest = traderLoanInterest[positionId];
 
@@ -321,7 +321,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
 
         // pay lender interest so far, and do partial interest refund to trader
         if (loanOrder.interestAmount > 0) {
-            LenderInterest storage oracleInterest = lenderOracleInterest[orderLender[loanOrderHash]][oracleAddresses[loanOrder.oracleAddress]][loanOrder.interestTokenAddress];
+            LenderInterest storage oracleInterest = lenderOracleInterest[orderLender[loanOrderHash]][loanOrder.oracleAddress][loanOrder.interestTokenAddress];
             LenderInterest storage lenderInterest = lenderOrderInterest[loanOrderHash];
             TraderInterest storage traderInterest = traderLoanInterest[positionId];
 
@@ -512,7 +512,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
         require(loanPosition.positionTokenAddressFilled == loanOrder.loanTokenAddress, "BZxLoanHealth::_finalizeLoan: loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress");
 
         if (loanOrder.interestAmount > 0) {
-            LenderInterest storage oracleInterest = lenderOracleInterest[orderLender[loanOrder.loanOrderHash]][oracleAddresses[loanOrder.oracleAddress]][loanOrder.interestTokenAddress];
+            LenderInterest storage oracleInterest = lenderOracleInterest[orderLender[loanOrder.loanOrderHash]][loanOrder.oracleAddress][loanOrder.interestTokenAddress];
             LenderInterest storage lenderInterest = lenderOrderInterest[loanOrder.loanOrderHash];
             TraderInterest storage traderInterest = traderLoanInterest[loanPosition.positionId];
 

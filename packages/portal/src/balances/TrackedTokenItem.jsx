@@ -561,6 +561,7 @@ export default class TrackedTokenItem extends BZxComponent {
             color="primary"
             onClick={this.toggleSendDialog}
             style={{ marginLeft: `12px` }}
+            disabled={symbol === `BZRX`}
           >
             Send
           </Button>

@@ -50,7 +50,7 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
         returns (uint256)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        return _payInterestForOrder(loanOrder, lenderOracleInterest[orderLender[loanOrderHash]][oracleAddresses[loanOrder.oracleAddress]][loanOrder.interestTokenAddress], lenderOrderInterest[loanOrderHash], true);
+        return _payInterestForOrder(loanOrder, lenderOracleInterest[orderLender[loanOrderHash]][loanOrder.oracleAddress][loanOrder.interestTokenAddress], lenderOrderInterest[loanOrderHash], true);
     }
 
     /// @dev Pays the lender the total amount of interest for open loans using a particular oracle and interest token
@@ -66,7 +66,7 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
         returns (uint256)
     {
         address oracleRef = oracleAddresses[oracleAddress];
-        LenderInterest storage oracleInterest = lenderOracleInterest[msg.sender][oracleRef][interestTokenAddress];
+        LenderInterest storage oracleInterest = lenderOracleInterest[msg.sender][oracleAddress][interestTokenAddress];
 
         uint256 interestOwedNow = 0;
         if (oracleInterest.interestOwedPerDay > 0 && oracleInterest.interestPaidDate > 0 && interestTokenAddress != address(0)) {
