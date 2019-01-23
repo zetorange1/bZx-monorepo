@@ -1,8 +1,7 @@
 {
-  "name": "bzx-starter_project",
-  "version": "0.1.0",
-  "private": true,
-  "description": "",
+  "name": "@bzxnetwork/starter_project",
+  "version": "0.1.1",
+  "description": "Sample code to quickly get started using the bzx.js library",
   "keywords": [],
   "license": "Apache-2.0",
   "homepage": "https://github.com/bZxNetwork/bZx-monorepo/tree/master/packages/started_project#readme",
@@ -16,7 +15,7 @@
   "dependencies": {
     "0x.js": "^1.0.8",
     "bignumber.js": "^7.0.1",
-    "@bzxnetwork/bzx.js": "^0.3.6",
+    "@bzxnetwork/bzx.js": "0.4.6",
     "cross-env": "^5.2.0",
     "moment": "^2.22.1",
     "web3": "1.0.0-beta.36",

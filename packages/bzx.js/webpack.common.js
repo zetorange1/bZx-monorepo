@@ -26,5 +26,10 @@ module.exports = {
       }
     ]
   },
-  externals: [nodeExternals()] // in order to ignore all modules in node_modules folder from bundling
+  // in order to ignore all modules in node_modules folder from bundling
+  externals: [
+  nodeExternals(),
+  nodeExternals({
+    modulesDir: path.resolve(__dirname, '../../node_modules')
+  })]
 };

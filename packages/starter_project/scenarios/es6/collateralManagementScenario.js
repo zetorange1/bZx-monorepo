@@ -1,6 +1,6 @@
 const BigNumber = require("bignumber.js");
 
-const { BZxJS } = require("bzx.js");
+const { BZxJS } = require("@bzxnetwork/bzx.js");
 
 const artifacts = require("./../../artifacts");
 const utils = require("./../../utils");
@@ -17,6 +17,9 @@ async function collateralManagementScenario(l, c, lenderAddress, traderAddress, 
   const lendOrder = {
     bZxAddress: artifacts.bZx.address.toLowerCase(),
     makerAddress: lenderAddress.toLowerCase(),
+    takerAddress: utils.zeroAddress.toLowerCase(),
+    tradeTokenToFillAddress: utils.zeroAddress.toLowerCase(),
+    withdrawOnOpen: "0",
     loanTokenAddress: loanToken.address.toLowerCase(),
     interestTokenAddress: interestToken.address.toLowerCase(),
     collateralTokenAddress: utils.zeroAddress.toLowerCase(),
@@ -40,7 +43,7 @@ async function collateralManagementScenario(l, c, lenderAddress, traderAddress, 
   console.dir(lendOrderHash);
 
   // creating hash of lend order (off-chain mode)
-  const lendOrderHashHex = BZxJS.getLoanOrderHashHex(lendOrder);
+  const lendOrderHashHex = BZxJS.getLoanOrderHashHex({ ...lendOrder, oracleData: "" } );
   console.dir(lendOrderHashHex);
 
   // creating signature of lend order
@@ -64,6 +67,8 @@ async function collateralManagementScenario(l, c, lenderAddress, traderAddress, 
     order: signedLendOrder,
     collateralTokenAddress: collateral1Token.address,
     loanTokenAmountFilled: c.web3.utils.toWei("1", "ether"),
+    tradeTokenToFillAddress: utils.zeroAddress.toLowerCase(),
+    withdrawOnOpen: "0",
     getObject: false,
     txOpts: { from: traderAddress, gasLimit: utils.gasLimit }
   });
@@ -83,17 +88,17 @@ async function collateralManagementScenario(l, c, lenderAddress, traderAddress, 
   transactionReceipt = await c.bzxjs.depositCollateral({
     loanOrderHash: lendOrderHash,
     collateralTokenFilled: collateral1Token.address,
-    depositAmount: (new BigNumber(initialCollateralRequired)).multipliedBy(2).toString(),
+    depositAmount: c.web3.utils.toWei("0.02", "ether").toString(),
     getObject: false,
     txOpts: { from: traderAddress, gasLimit: utils.gasLimit }
   });
   console.dir(transactionReceipt);
 
   // decrease collateral for specified order by withdrawing some tokens
-  transactionReceipt = await c.bzxjs.withdrawExcessCollateral({
+  transactionReceipt = await c.bzxjs.withdrawCollateral({
     loanOrderHash: lendOrderHash,
     collateralTokenFilled: collateral1Token.address,
-    withdrawAmount: (new BigNumber(initialCollateralRequired)).multipliedBy(2).toString(),
+    withdrawAmount: c.web3.utils.toWei("0.02", "ether").toString(),
     getObject: false,
     txOpts: { from: traderAddress, gasLimit: utils.gasLimit }
   });

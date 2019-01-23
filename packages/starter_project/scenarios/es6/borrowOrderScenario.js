@@ -1,4 +1,4 @@
-const { BZxJS } = require("bzx.js");
+const { BZxJS } = require("@bzxnetwork/bzx.js");
 
 const artifacts = require("./../../artifacts");
 const utils = require("./../../utils");
@@ -14,6 +14,9 @@ async function borrowOrderScenario(l, c, lenderAddress, traderAddress, oracles) 
   const borrowOrder = {
     bZxAddress: artifacts.bZx.address.toLowerCase(),
     makerAddress: traderAddress.toLowerCase(),
+    takerAddress: utils.zeroAddress.toLowerCase(),
+    tradeTokenToFillAddress: utils.zeroAddress.toLowerCase(),
+    withdrawOnOpen: "0",
     loanTokenAddress: loanToken.address.toLowerCase(),
     interestTokenAddress: interestToken.address.toLowerCase(),
     collateralTokenAddress: collateralToken.address.toLowerCase(),
@@ -37,7 +40,7 @@ async function borrowOrderScenario(l, c, lenderAddress, traderAddress, oracles) 
   console.dir(borrowOrderHash);
 
   // creating hash of borrow order (off-chain mode)
-  const borrowOrderHashHex = BZxJS.getLoanOrderHashHex(borrowOrder);
+  const borrowOrderHashHex = BZxJS.getLoanOrderHashHex({ ...borrowOrder, oracleData: "" } );
   console.dir(borrowOrderHashHex);
 
   // creating signature of borrow order
@@ -84,6 +87,9 @@ async function borrowOrderOnChainScenario(l, c, lenderAddress, traderAddress, or
   const borrowOrder = {
     bZxAddress: artifacts.bZx.address.toLowerCase(),
     makerAddress: traderAddress.toLowerCase(),
+    takerAddress: utils.zeroAddress.toLowerCase(),
+    tradeTokenToFillAddress: utils.zeroAddress.toLowerCase(),
+    withdrawOnOpen: "0",
     loanTokenAddress: loanToken.address.toLowerCase(),
     interestTokenAddress: interestToken.address.toLowerCase(),
     collateralTokenAddress: collateralToken.address.toLowerCase(),
@@ -107,7 +113,7 @@ async function borrowOrderOnChainScenario(l, c, lenderAddress, traderAddress, or
   console.dir(borrowOrderHash);
 
   // creating hash of borrow order (off-chain mode)
-  const borrowOrderHashHex = BZxJS.getLoanOrderHashHex(borrowOrder);
+  const borrowOrderHashHex = BZxJS.getLoanOrderHashHex({ ...borrowOrder, oracleData: "" } );
   console.dir(borrowOrderHashHex);
 
   // creating signature of borrow order

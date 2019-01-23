@@ -12,7 +12,7 @@ const { providers, Contract } = require("ethers");
 const artifacts = require("./../../artifacts");
 const utils = require("./../../utils");
 
-const { BZxJS } = require("bzx.js");
+const { BZxJS } = require("@bzxnetwork/bzx.js");
 
 async function zeroExTradeScenario(l, c, lenderAddress, trader1Address, trader2Address, tokens, oracles) {
   const latestBlock = await c.web3.eth.getBlock("latest");
@@ -39,6 +39,9 @@ async function zeroExTradeScenario(l, c, lenderAddress, trader1Address, trader2A
   const lendOrder = {
     bZxAddress: artifacts.bZx.address.toLowerCase(),
     makerAddress: lenderAddress.toLowerCase(),
+    takerAddress: utils.zeroAddress.toLowerCase(),
+    tradeTokenToFillAddress: utils.zeroAddress.toLowerCase(),
+    withdrawOnOpen: "0",
     loanTokenAddress: loanToken.address.toLowerCase(),
     interestTokenAddress: interestToken.address.toLowerCase(),
     collateralTokenAddress: utils.zeroAddress.toLowerCase(),
@@ -57,7 +60,7 @@ async function zeroExTradeScenario(l, c, lenderAddress, trader1Address, trader2A
   };
 
   // creating hash of lend order (on-chain mode)
-  const lendOrderHash = await c.bzxjs.getLoanOrderHashAsync(lendOrder);
+  const lendOrderHash = BZxJS.getLoanOrderHashHex({ ...lendOrder, oracleData: "" } );
   console.dir(lendOrderHash);
 
   // creating signature of lend order
@@ -81,6 +84,8 @@ async function zeroExTradeScenario(l, c, lenderAddress, trader1Address, trader2A
     order: signedLendOrder,
     collateralTokenAddress: collateralToken.address,
     loanTokenAmountFilled: c.web3.utils.toWei("0.1", "ether"),
+    tradeTokenToFillAddress: utils.zeroAddress.toLowerCase(),
+    withdrawOnOpen: "0",
     getObject: false,
     txOpts: { from: trader1Address, gasLimit: utils.gasLimit }
   });
@@ -123,11 +128,12 @@ async function zeroExTradeScenario(l, c, lenderAddress, trader1Address, trader2A
   console.dir(zeroExOrderSignature);
 
   // validating signature of exchange order (zeroExOrder)
-  let is0xValidLendOrderSignature = await c.bzxjs.isValidSignatureAsync({
-    account: trader2Address,
-    orderHash: zeroExOrderHash,
-    signature: zeroExOrderSignature
-  });
+  let is0xValidLendOrderSignature = await signatureUtils.isValidSignatureAsync(
+    c.provider,
+    zeroExOrderHash,
+    zeroExOrderSignature,
+    trader2Address
+  );
   console.dir(is0xValidLendOrderSignature);
 
   // signing exchange order (zeroExOrder) by adding signature
@@ -167,14 +173,15 @@ async function zeroExTradeScenario(l, c, lenderAddress, trader1Address, trader2A
   console.dir(interestAfterPayout);
 
   // calculating current profit or loss
-  let profitOrLoss = await c.bzxjs.getProfitOrLoss({ loanOrderHash: lendOrderHash, trader: trader1Address });
+  let profitOrLoss = await c.bzxjs.getPositionOffset({ loanOrderHash: lendOrderHash, trader: trader1Address });
   console.dir(profitOrLoss);
 
   // withdrawing profit if any
   // we should make this check before calling withdrawProfit, or we can get revert if no profit there
-  if (profitOrLoss.isProfit && profitOrLoss.profitOrLoss !== "0") {
+  if (profitOrLoss.isPositive && profitOrLoss.offsetAmount !== "0") {
     transactionReceipt = await c.bzxjs.withdrawProfit({
       loanOrderHash: lendOrderHash,
+      withdrawAmount: profitOrLoss.offsetAmount.toString(),
       getObject: false,
       txOpts: { from: trader1Address, gasLimit: utils.gasLimit }
     });
