@@ -104,7 +104,7 @@ export default class DepositCollateralDialog extends React.Component {
 
     const txObj = await bZx.depositCollateral({
       loanOrderHash,
-      collateralTokenFilled: collateralToken.address,
+      depositTokenAddress: collateralToken.address,
       depositAmount: toBigNumber(amount, 10 ** collateralToken.decimals),
       getObject: true,
       txOpts

@@ -846,7 +846,7 @@ ________________________________________________________________________________
 
 ##### depositPosition
 
-Allows the trader to return the position/loan token to increase their escrowed balance. This should be used by the trader if they've withdraw an overcollateralized loan.
+Allows the trader to return the position/loan token to increase their escrowed balance. This should be used by the trader if they've withdraw an overcollateralized loan. If depositTokenAddress does not match the current position, it will traded with the oracle.
 
 ```typescript
   depositPosition(params: {
@@ -1176,12 +1176,12 @@ ________________________________________________________________________________
 
 ##### depositCollateral
 
-Increase the collateral for a loan.
+Increase the collateral for a loan. If depositTokenAddress does not match the current collateral token, it will traded with the oracle.
 
 ```typescript
   depositCollateral(params: {
     loanOrderHash: string;
-    collateralTokenFilled: string;
+    depositTokenAddress: string;
     depositAmount: string;
     getObject: boolean;
     txOpts: Tx;
@@ -1192,7 +1192,7 @@ Increase the collateral for a loan.
 
 `params.loanOrderHash` a unique hash representing the loan order
 
-`params.collateralTokenFilled` the address of the collateral token used
+`params.depositTokenAddress` the address of the collateral token used
 
 `params.depositAmount` the amount of additional collateral token to deposit.
 

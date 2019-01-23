@@ -3,7 +3,7 @@ import { getContracts } from "../contracts";
 
 export const depositCollateral = (
   { web3, networkId, addresses },
-  { loanOrderHash, collateralTokenFilled, depositAmount, getObject, txOpts }
+  { loanOrderHash, depositTokenAddress, depositAmount, getObject, txOpts }
 ) => {
   const bZxContract = CoreUtils.getContractInstance(
     web3,
@@ -13,7 +13,7 @@ export const depositCollateral = (
 
   const txObj = bZxContract.methods.depositCollateral(
     loanOrderHash,
-    collateralTokenFilled,
+    depositTokenAddress,
     web3.utils.toBN(depositAmount).toString(10)
   );
 

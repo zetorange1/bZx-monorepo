@@ -105,10 +105,6 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
             revert("BZxTradePlacing::tradePositionWith0x: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
 
-        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
-            revert("BZxTradePlacing::tradePositionWith0x: block.timestamp >= loanPosition.loanEndUnixTimestampSec");
-        }
-
         // transfer the current position token to the BZxTo0x contract
         if (!BZxVault(vaultContract).withdrawToken(
             loanPosition.positionTokenAddressFilled,
@@ -185,10 +181,6 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
         LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             revert("BZxTradePlacing::tradePositionWith0x: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
-        }
-
-        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
-            revert("BZxTradePlacing::tradePositionWith0x: block.timestamp >= loanPosition.loanEndUnixTimestampSec");
         }
 
         // transfer the current position token to the BZxTo0xV2 contract

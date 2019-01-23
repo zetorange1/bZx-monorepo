@@ -334,13 +334,14 @@ contract BZx is BZxStorage {
         returns (uint256);
 
     /// @dev Allows the trader to increase the collateral for a loan.
+    /// @dev If depositTokenAddress is not the correct token, it will be traded to the correct token using the oracle.
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param collateralTokenFilled The address of the collateral token used
-    /// @param depositAmount The amount of additional collateral token to deposit
+    /// @param depositTokenAddress The address of the collateral token used.
+    /// @param depositAmount The amount of additional collateral token to deposit.
     /// @return True on success
     function depositCollateral(
         bytes32 loanOrderHash,
-        address collateralTokenFilled,
+        address depositTokenAddress,
         uint256 depositAmount)
         external
         returns (bool);
@@ -378,11 +379,12 @@ contract BZx is BZxStorage {
         external
         returns (uint256 amountWithdrawn);
 
-    /// @dev Allows the trader to return the position/loan token to increase their escrowed balance.
-    /// @dev This should be used by the trader if they've withdraw an overcollateralized loan.
+    /// @dev Allows the trader to return the position/loan token to increase their escrowed balance
+    /// @dev This should be used by the trader if they've withdraw an overcollateralized loan
+    /// @dev If depositTokenAddress is not the correct token, it will be traded to the correct token using the oracle.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param depositTokenAddress The address of the position token being returned
-    /// @param depositAmount The amount of position token to deposit
+    /// @param depositAmount The amount of position token to deposit.
     /// @return True on success
     function depositPosition(
         bytes32 loanOrderHash,

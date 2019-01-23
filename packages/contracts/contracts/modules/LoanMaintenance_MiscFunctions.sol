@@ -40,13 +40,14 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
     }
 
     /// @dev Allows the trader to increase the collateral for a loan.
+    /// @dev If depositTokenAddress is not the correct token, it will be traded to the correct token using the oracle.
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param collateralTokenFilled The address of the collateral token used.
+    /// @param depositTokenAddress The address of the collateral token used.
     /// @param depositAmount The amount of additional collateral token to deposit.
     /// @return True on success
     function depositCollateral(
         bytes32 loanOrderHash,
-        address collateralTokenFilled,
+        address depositTokenAddress,
         uint256 depositAmount)
         external
         nonReentrant
@@ -65,28 +66,62 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             revert("BZxLoanHealth::depositCollateral: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
 
-        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
-            revert("BZxLoanHealth::depositCollateral: block.timestamp >= loanPosition.loanEndUnixTimestampSec");
+        if (depositTokenAddress != loanPosition.collateralTokenAddressFilled) {
+            revert("BZxLoanHealth::depositCollateral: depositTokenAddress != loanPosition.collateralTokenAddressFilled");
         }
 
-        if (collateralTokenFilled != loanPosition.collateralTokenAddressFilled) {
-            revert("BZxLoanHealth::depositCollateral: collateralTokenFilled != loanPosition.collateralTokenAddressFilled");
-        }
+        uint256 collateralTokenAmountReceived;
+        if (depositTokenAddress != loanPosition.collateralTokenAddressFilled) {
+            // send deposit token directly to the oracle to trade it
+            if (!BZxVault(vaultContract).transferTokenFrom(
+                depositTokenAddress,
+                msg.sender,
+                oracleAddresses[loanOrder.oracleAddress],
+                depositAmount)) {
+                revert("BZxLoanHealth::depositCollateral: BZxVault.transferTokenFrom failed");
+            }
 
-        if (! BZxVault(vaultContract).depositToken(
-            collateralTokenFilled,
-            msg.sender,
-            depositAmount
-        )) {
-            revert("BZxLoanHealth::depositCollateral: BZxVault.depositToken collateral failed");
-        }
+            uint256 depositTokenAmountUsed;
+            (collateralTokenAmountReceived, depositTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).trade(
+                depositTokenAddress,
+                loanPosition.collateralTokenAddressFilled,
+                depositAmount,
+                MAX_UINT);
 
-        loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.add(depositAmount);
+            if (collateralTokenAmountReceived == 0) {
+                revert("BZxLoanHealth::depositCollateral: collateralTokenAmountReceived == 0");
+            }
+
+            if (depositTokenAmountUsed < depositAmount) {
+                // left over depositToken needs to be refunded to trader
+                if (! BZxVault(vaultContract).withdrawToken(
+                    depositTokenAddress,
+                    msg.sender,
+                    depositAmount.sub(depositTokenAmountUsed)
+                )) {
+                    revert("BZxLoanHealth::depositCollateral: BZxVault.withdrawToken deposit failed");
+                }
+            }
+
+            loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.add(collateralTokenAmountReceived);
+        } else {
+            // send deposit token to the vault
+            if (! BZxVault(vaultContract).depositToken(
+                depositTokenAddress,
+                msg.sender,
+                depositAmount
+            )) {
+                revert("BZxLoanHealth::depositCollateral: BZxVault.depositToken position failed");
+            }
+
+            loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.add(depositAmount);
+            collateralTokenAmountReceived = depositAmount;
+        }
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didDepositCollateral(
             loanOrder,
             loanPosition,
-            depositAmount,
+            collateralTokenAmountReceived,
             gasUsed // initial used gas, collected in modifier
         )) {
             revert("BZxLoanHealth::depositCollateral: OracleInterface.didDepositCollateral failed");
@@ -180,10 +215,6 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             revert("BZxLoanHealth::changeCollateral: collateralTokenFilled == address(0) || collateralTokenFilled == loanPosition.collateralTokenAddressFilled");
         }
 
-        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
-            revert("BZxLoanHealth::changeCollateral: block.timestamp >= loanPosition.loanEndUnixTimestampSec");
-        }
-
         (bool isPositive,,,uint256 collateralOffset) = _getPositionOffset(
             loanOrder,
             loanPosition);
@@ -239,6 +270,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
 
     /// @dev Allows the trader to return the position/loan token to increase their escrowed balance
     /// @dev This should be used by the trader if they've withdraw an overcollateralized loan
+    /// @dev If depositTokenAddress is not the correct token, it will be traded to the correct token using the oracle.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param depositTokenAddress The address of the position token being returned
     /// @param depositAmount The amount of position token to deposit.
@@ -274,7 +306,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
                 depositAmount)) {
                 revert("BZxLoanHealth::depositPosition: BZxVault.transferTokenFrom failed");
             }
-            
+
             uint256 depositTokenAmountUsed;
             (positionTokenAmountReceived, depositTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).trade(
                 depositTokenAddress,
@@ -299,7 +331,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
 
             loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.add(positionTokenAmountReceived);
         } else {
-            // send deposit token to the value
+            // send deposit token to the vault
             if (! BZxVault(vaultContract).depositToken(
                 depositTokenAddress,
                 msg.sender,
