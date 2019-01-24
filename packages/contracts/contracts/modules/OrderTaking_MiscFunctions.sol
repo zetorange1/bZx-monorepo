@@ -33,6 +33,8 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
         targets[bytes4(keccak256("pushLoanOrderOnChain(address[8],uint256[11],bytes,bytes)"))] = _target;
         targets[bytes4(keccak256("preSign(address,address[8],uint256[11],bytes,bytes)"))] = _target;
         targets[bytes4(keccak256("preSignWithHash(address,bytes32,bytes)"))] = _target;
+        targets[bytes4(keccak256("toggleDelegateApproved(address,bool)"))] = _target;
+        targets[bytes4(keccak256("getLoanTokenFillable(bytes32)"))] = _target;
         targets[bytes4(keccak256("getLoanOrderHash(address[8],uint256[11],bytes)"))] = _target;
         targets[bytes4(keccak256("isValidSignature(address,bytes32,bytes)"))] = _target;
         targets[bytes4(keccak256("getInitialCollateralRequired(address,address,address,uint256,uint256)"))] = _target;
@@ -156,6 +158,7 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
         returns (bytes32)
     {
         bytes32 loanOrderHash = _addLoanOrder(
+            msg.sender,
             orderAddresses,
             orderValues,
             oracleData,
@@ -215,6 +218,30 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
             hash,
             signature
         );
+    }
+
+    /// @dev Toggles approval of a deletate that can fill orders on behalf of another user
+    /// @param delegate The delegate address
+    /// @param isApproved If true, the delegate is approved. If false, the delegate is not approved
+    function toggleDelegateApproved(
+        address delegate,
+        bool isApproved)
+        external
+    {
+        allowedValidators[msg.sender][delegate] = isApproved;
+    }
+
+    /// @dev Returns the amount of fillable loan token for an order
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @return The amount of loan token fillable
+    function getLoanTokenFillable(
+        bytes32 loanOrderHash)
+        public
+        view
+        returns (uint256)
+    {
+        // _getUnavailableLoanTokenAmount will never return a value greater than orders[loanOrderHash].loanTokenAmount
+        return orders[loanOrderHash].loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrderHash));
     }
 
     /// @dev Calculates Keccak-256 hash of order with specified parameters.

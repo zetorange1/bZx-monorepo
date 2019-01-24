@@ -58,12 +58,21 @@ contract OrderTaking_takeLoanOrderAsTrader is BZxStorage, BZxProxiable, OrderTak
         returns (uint256)
     {
         bytes32 loanOrderHash = _addLoanOrder(
+            msg.sender,
             orderAddresses,
             orderValues,
             oracleData,
             signature);
 
-        LoanOrder memory loanOrder = _takeLoanOrder(
+        // Lenders that are makers can change the relative interest amount for new loans once the loan order is on-chain.
+        // We check for this change here, which invalidates the off-chain order object.
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        require (loanOrder.interestAmount.mul(10**18).div(loanOrder.loanTokenAmount) == orderValues[1].mul(10**18).div(orderValues[0]),
+            "takeLoanOrderAsTrader: order invalidated by maker"
+        );
+
+        loanOrder = _takeLoanOrder(
+            msg.sender,
             loanOrderHash,
             collateralTokenFilled,
             loanTokenAmountFilled,

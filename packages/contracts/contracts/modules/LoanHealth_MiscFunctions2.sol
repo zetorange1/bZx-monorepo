@@ -54,7 +54,7 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
     }
 
     /// @dev Pays the lender the total amount of interest for open loans using a particular oracle and interest token
-    /// @dev Note that this function can be safely called by anyone.
+    /// @dev Note that this function can be only be called by a lender for their loans.
     /// @param oracleAddress The oracle address
     /// @param interestTokenAddress The interest token address
     /// @return The amount of interest paid out

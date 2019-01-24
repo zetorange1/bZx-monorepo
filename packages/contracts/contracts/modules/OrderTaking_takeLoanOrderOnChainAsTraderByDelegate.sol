@@ -12,7 +12,7 @@ import "../proxy/BZxProxiable.sol";
 import "../shared/OrderTakingFunctions.sol";
 
 
-contract OrderTaking_takeLoanOrderOnChainAsTrader is BZxStorage, BZxProxiable, OrderTakingFunctions {
+contract OrderTaking_takeLoanOrderOnChainAsTraderByDelegate is BZxStorage, BZxProxiable, OrderTakingFunctions {
     using SafeMath for uint256;
 
     constructor() public {}
@@ -28,10 +28,11 @@ contract OrderTaking_takeLoanOrderOnChainAsTrader is BZxStorage, BZxProxiable, O
         public
         onlyOwner
     {
-        targets[bytes4(keccak256("takeLoanOrderOnChainAsTrader(bytes32,address,uint256,address,bool)"))] = _target;
+        targets[bytes4(keccak256("takeLoanOrderOnChainAsTraderByDelegate(address,bytes32,address,uint256,address,bool)"))] = _target;
     }
 
-    /// @dev Takes the order as trader that's already pushed on chain
+    /// @dev Allows a delegate to take an on-chain order on behalf of a trader
+    /// @param trader The trader to which to fill the order.
     /// @param loanOrderHash A unique hash representing the loan order.
     /// @param collateralTokenFilled Desired address of the collateralTokenAddress the trader wants to use.
     /// @param loanTokenAmountFilled Desired amount of loanToken the trader wants to borrow.
@@ -40,7 +41,8 @@ contract OrderTaking_takeLoanOrderOnChainAsTrader is BZxStorage, BZxProxiable, O
     /// @return Total amount of loanToken borrowed (uint256).
     /// @dev Traders can take a portion of the total coin being lended (loanTokenAmountFilled).
     /// @dev Traders also specify the token that will fill the margin requirement if they are taking the order.
-    function takeLoanOrderOnChainAsTrader(
+    function takeLoanOrderOnChainAsTraderByDelegate(
+        address trader,
         bytes32 loanOrderHash,
         address collateralTokenFilled,
         uint256 loanTokenAmountFilled,
@@ -51,8 +53,10 @@ contract OrderTaking_takeLoanOrderOnChainAsTrader is BZxStorage, BZxProxiable, O
         tracksGas
         returns (uint256)
     {
+        require(allowedValidators[trader][msg.sender], "takeLoanOrderOnChainAsTraderByDelegate: not authorized");
+        
         LoanOrder memory loanOrder = _takeLoanOrder(
-            msg.sender,
+            trader,
             loanOrderHash,
             collateralTokenFilled,
             loanTokenAmountFilled,
@@ -63,7 +67,7 @@ contract OrderTaking_takeLoanOrderOnChainAsTrader is BZxStorage, BZxProxiable, O
         if (!withdrawOnOpen && tradeTokenToFillAddress != address(0)) {
             _fillTradeToken(
                 loanOrder,
-                msg.sender, // trader
+                trader,
                 tradeTokenToFillAddress
             );
         }

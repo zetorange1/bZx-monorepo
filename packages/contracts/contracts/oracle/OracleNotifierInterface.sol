@@ -9,35 +9,35 @@ pragma experimental ABIEncoderV2;
 import "../storage/BZxObjects.sol";
 
 
-interface OracleNotifierInterface {
+contract OracleNotifierInterface {
 
     function takeOrderNotifier(
-        BZxObjects.LoanOrder calldata loanOrder,
-        BZxObjects.LoanOrderAux calldata loanOrderAux,
-        BZxObjects.LoanPosition calldata loanPosition,
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanOrderAux memory loanOrderAux,
+        BZxObjects.LoanPosition memory loanPosition,
         address taker)
-        external
+        public
         returns (bool);
 
     function tradePositionNotifier(
-        BZxObjects.LoanOrder calldata loanOrder,
-        BZxObjects.LoanPosition calldata loanPosition)
-        external
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition)
+        public
         returns (bool);
 
     function payInterestNotifier(
-        BZxObjects.LoanOrder calldata loanOrder,
+        BZxObjects.LoanOrder memory loanOrder,
         address lender,
         uint256 amountPaid)
-        external
+        public
         returns (bool);
 
     function closeLoanNotifier(
-        BZxObjects.LoanOrder calldata loanOrder,
-        BZxObjects.LoanPosition calldata loanPosition,
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
         address loanCloser,
         uint256 closeAmount,
         bool isLiquidation)
-        external
+        public
         returns (bool);
 }

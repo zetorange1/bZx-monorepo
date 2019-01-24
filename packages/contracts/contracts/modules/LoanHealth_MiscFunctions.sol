@@ -327,23 +327,24 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
 
             // update lender interest
             _payInterestForOrder(loanOrder, oracleInterest, lenderInterest, true);
-            uint256 owedPerDay = _safeGetPartialAmountFloor(
+            uint256 owedPerDayRefund = _safeGetPartialAmountFloor(
                 closeAmount,
-                loanOrder.loanTokenAmount,
-                loanOrder.interestAmount
+                loanPosition.loanTokenAmountFilled,
+                traderInterest.interestOwedPerDay
             );
-            lenderInterest.interestOwedPerDay = lenderInterest.interestOwedPerDay.sub(owedPerDay);
-            oracleInterest.interestOwedPerDay = oracleInterest.interestOwedPerDay.sub(owedPerDay);
+
+            lenderInterest.interestOwedPerDay = lenderInterest.interestOwedPerDay.sub(owedPerDayRefund);
+            oracleInterest.interestOwedPerDay = oracleInterest.interestOwedPerDay.sub(owedPerDayRefund);
 
             // update trader interest
-            uint256 totalInterestToRefund = loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(owedPerDay).div(86400);
+            uint256 totalInterestToRefund = loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(owedPerDayRefund).div(86400);
             if (traderInterest.interestUpdatedDate > 0 && traderInterest.interestOwedPerDay > 0) {
                 traderInterest.interestPaid = traderInterest.interestPaid.add(
                     block.timestamp.sub(traderInterest.interestUpdatedDate).mul(traderInterest.interestOwedPerDay).div(86400)
                 );
             }
             traderInterest.interestUpdatedDate = block.timestamp;
-            traderInterest.interestOwedPerDay = traderInterest.interestOwedPerDay.sub(owedPerDay);
+            traderInterest.interestOwedPerDay = traderInterest.interestOwedPerDay.sub(owedPerDayRefund);
             traderInterest.interestDepositTotal = traderInterest.interestDepositTotal.sub(totalInterestToRefund);
 
             if (totalInterestToRefund > 0) {

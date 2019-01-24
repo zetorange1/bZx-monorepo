@@ -50,6 +50,7 @@ contract OrderTaking_takeLoanOrderAsLender is BZxStorage, BZxProxiable, OrderTak
         returns (uint256)
     {
         bytes32 loanOrderHash = _addLoanOrder(
+            msg.sender,
             orderAddresses,
             orderValues,
             oracleData,
@@ -60,6 +61,7 @@ contract OrderTaking_takeLoanOrderAsLender is BZxStorage, BZxProxiable, OrderTak
         // lenders have to fill the entire uncanceled loanTokenAmount
         uint256 loanTokenAmountFilled = orderValues[0].sub(_getUnavailableLoanTokenAmount(loanOrderHash));
         LoanOrder memory loanOrder = _takeLoanOrder(
+            msg.sender,
             loanOrderHash,
             orderAddresses[3], // collateralTokenFilled
             loanTokenAmountFilled,

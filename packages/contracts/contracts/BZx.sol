@@ -88,6 +88,26 @@ contract BZx is BZxStorage {
         external
         returns (uint256);
 
+    /// @dev Allows a delegate to take an on-chain order on behalf of a trader
+    /// @param trader The trader to which to fill the order.
+    /// @param loanOrderHash A unique hash representing the loan order.
+    /// @param collateralTokenFilled Desired address of the collateralTokenAddress the trader wants to use.
+    /// @param loanTokenAmountFilled Desired amount of loanToken the trader wants to borrow.
+    /// @param tradeTokenToFillAddress If non-zero address, will swap the loanToken for this asset using the oracle.
+    /// @param withdrawOnOpen If true, will overcollateralize the loan and withdraw the position token to the trader's wallet. If set, tradeTokenToFillAddress is ignored.
+    /// @return Total amount of loanToken borrowed (uint256).
+    /// @dev Traders can take a portion of the total coin being lended (loanTokenAmountFilled).
+    /// @dev Traders also specify the token that will fill the margin requirement if they are taking the order.
+    function takeLoanOrderOnChainAsTraderByDelegate(
+        address trader,
+        bytes32 loanOrderHash,
+        address collateralTokenFilled,
+        uint256 loanTokenAmountFilled,
+        address tradeTokenToFillAddress,
+        bool withdrawOnOpen)
+        external
+        returns (uint256);
+
     /// @dev Takes the order as lender that's already pushed on chain
     /// @param loanOrderHash A unique hash representing the loan order.
     /// @return Total amount of loanToken borrowed (uint256).
@@ -124,6 +144,14 @@ contract BZx is BZxStorage {
         bytes calldata signature)
         external;
 
+    /// @dev Toggles approval of a deletate that can fill orders on behalf of another user
+    /// @param delegate The delegate address
+    /// @param isApproved If true, the delegate is approved. If false, the delegate is not approved
+    function toggleDelegateApproved(
+        address delegate,
+        bool isApproved)
+        external;
+
     /// @dev Cancels remaining (untaken) loan
     /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFillAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), withdrawOnOpen, and salt.
@@ -146,6 +174,15 @@ contract BZx is BZxStorage {
         bytes32 loanOrderHash,
         uint256 cancelLoanTokenAmount)
         external
+        returns (uint256);
+
+    /// @dev Returns the amount of fillable loan token for an order
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @return The amount of loan token fillable
+    function getLoanTokenFillable(
+        bytes32 loanOrderHash)
+        public
+        view
         returns (uint256);
 
     /// @dev Calculates Keccak-256 hash of order with specified parameters.
@@ -417,12 +454,14 @@ contract BZx is BZxStorage {
     /// @dev The order must already be on chain
     /// @dev Ensures the lender has enough balance and allowance
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param increaseAmountForLoan Optional parameter to specify the amount of loan token increase
-    /// @param futureExpirationTimestamp Optional parameter to set the expirationUnixTimestampSec on the loan to a future date
+    /// @param increaseAmountForLoan Parameter to specify the amount of loan token increase
+    /// @param newInterestRate Parameter to specify the amount of loan token increase
+    /// @param futureExpirationTimestamp Parameter to set the expirationUnixTimestampSec on the loan to a future date (0 removes the expiration date)
     /// @return True on success
     function updateLoanAsLender(
         bytes32 loanOrderHash,
         uint256 increaseAmountForLoan,
+        uint256 newInterestRate,
         uint256 futureExpirationTimestamp)
         external
         returns (bool);
@@ -461,7 +500,7 @@ contract BZx is BZxStorage {
         returns (uint256);
 
     /// @dev Pays the lender the total amount of interest for open loans using a particular oracle and interest token
-    /// @dev Note that this function can be safely called by anyone.
+    /// @dev Note that this function can be only be called by a lender for their loans.
     /// @param oracleAddress The oracle address
     /// @param interestTokenAddress The interest token address
     /// @return The amount of interest paid out

@@ -34,7 +34,7 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
     {
         targets[bytes4(keccak256("changeTraderOwnership(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("changeLenderOwnership(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("updateLoanAsLender(bytes32,uint256,uint256)"))] = _target;
+        targets[bytes4(keccak256("updateLoanAsLender(bytes32,uint256,uint256,uint256)"))] = _target;
         targets[bytes4(keccak256("isPositionOpen(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("setLoanOrderDesc(bytes32,string)"))] = _target;
     }
@@ -167,12 +167,14 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
     /// @dev The order must already be on chain
     /// @dev Ensures the lender has enough balance and allowance
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param increaseAmountForLoan Optional parameter to specify the amount of loan token increase
-    /// @param futureExpirationTimestamp Optional parameter to set the expirationUnixTimestampSec on the loan to a future date
+    /// @param increaseAmountForLoan Parameter to specify the amount of loan token increase
+    /// @param newInterestRate Parameter to specify the amount of loan token increase
+    /// @param futureExpirationTimestamp Parameter to set the expirationUnixTimestampSec on the loan to a future date (0 removes the expiration date)
     /// @return True on success
     function updateLoanAsLender(
         bytes32 loanOrderHash,
         uint256 increaseAmountForLoan,
+        uint256 newInterestRate,
         uint256 futureExpirationTimestamp)
         external
         nonReentrant
@@ -202,30 +204,10 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
 
             uint256 newLoanTokenAmount = loanOrder.loanTokenAmount.add(increaseAmountForLoan);
 
-            if (loanOrder.interestAmount > 0) {
-                if (loanOrder.loanTokenAmount > 0) {
-                    // Interest amount per day is calculated based on the fraction of loan token filled over total loanTokenAmount.
-                    // Since total loanTokenAmount is increasing, we increase interest proportionally.
-                    loanOrder.interestAmount = loanOrder.interestAmount.mul(newLoanTokenAmount).div(loanOrder.loanTokenAmount);
-                } else {
-                    // HACK: We assume here that interestAmount has initially been set as a percentage when pushed on chain in a
-                    // zero-value loan. We will convert it to an actual amount based on loan value, denominated in interestToken.
-                    // Percentage format: 2% of total filled loan token value per day = 2 * 10**18
-                    // This is limited to tokens supported by the oracle.
-                    
-                    uint256 loanToInterestAmount;
-                    if (loanOrder.interestTokenAddress == loanOrder.loanTokenAddress) {
-                        loanToInterestAmount = newLoanTokenAmount;
-                    } else {
-                        (,,loanToInterestAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
-                            loanOrder.loanTokenAddress,
-                            loanOrder.interestTokenAddress,
-                            newLoanTokenAmount);
-                    }
-                    require(loanToInterestAmount > 0, "BZxOrderTaking::updateLoanAsLender: loanToInterestAmount == 0");
-
-                    loanOrder.interestAmount = loanToInterestAmount.mul(loanOrder.interestAmount).div(10**20);
-                }
+            if (newInterestRate == 0 && loanOrder.interestAmount > 0 && loanOrder.loanTokenAmount > 0) {
+                // Interest amount per day is calculated based on the fraction of loan token filled over total loanTokenAmount.
+                // Since total loanTokenAmount is increasing, we increase interest proportionally.
+                loanOrder.interestAmount = loanOrder.interestAmount.mul(newLoanTokenAmount).div(loanOrder.loanTokenAmount);
             }
 
             loanOrder.loanTokenAmount = newLoanTokenAmount;
@@ -233,7 +215,29 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
             success = true;
         }
 
-        if (futureExpirationTimestamp > orderAux[loanOrderHash].expirationUnixTimestampSec) {
+        if (newInterestRate > 0 && loanOrder.loanTokenAmount > 0) {
+
+            // We will convert newInterestRate to an actual amount based on loan value, denominated in interestToken.
+            // Percentage format: 2% of total filled loan token value per day = 2 * 10**18
+            // This is limited to tokens supported by the oracle if interestTokenAddress != loanTokenAddress
+
+            uint256 loanToInterestAmount;
+            if (loanOrder.interestTokenAddress == loanOrder.loanTokenAddress) {
+                loanToInterestAmount = loanOrder.loanTokenAmount;
+            } else {
+                (,,loanToInterestAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+                    loanOrder.loanTokenAddress,
+                    loanOrder.interestTokenAddress,
+                    loanOrder.loanTokenAmount);
+                require(loanToInterestAmount > 0, "BZxOrderTaking::updateLoanAsLender: loanToInterestAmount == 0");
+            }
+
+            loanOrder.interestAmount = loanToInterestAmount.mul(newInterestRate).div(10**20);
+
+            success = true;
+        }
+
+        if (futureExpirationTimestamp == 0 || (futureExpirationTimestamp > block.timestamp && futureExpirationTimestamp > orderAux[loanOrderHash].expirationUnixTimestampSec)) {
             orderAux[loanOrderHash].expirationUnixTimestampSec = futureExpirationTimestamp;
             success = true;
         }
