@@ -1,7 +1,6 @@
 var BZxProxy = artifacts.require("BZxProxy");
 var BZxProxySettings = artifacts.require("BZxProxySettings");
 
-var OrderHistory_MiscFunctions = artifacts.require("OrderHistory_MiscFunctions");
 var OrderTaking_MiscFunctions = artifacts.require("OrderTaking_MiscFunctions");
 var OrderTaking_takeLoanOrderAsLender = artifacts.require("OrderTaking_takeLoanOrderAsLender");
 var OrderTaking_takeLoanOrderAsTrader = artifacts.require("OrderTaking_takeLoanOrderAsTrader");

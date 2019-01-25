@@ -45,9 +45,9 @@ module.exports = {
         ERC721Proxy: "0x2a9127c745688a165106c11cd4d647d2220af821",
         AssetProxyOwner: "0x2c824d2882baa668e0d5202b1e7f2922278703f8"
       },
-      KyberContractAddress: "0x11542D7807DFb2B44937F756b9092c76e814F8eD", // Kovan
-      BZRXToken: "0xe8b6a7FA1976bA6C2D3DD81F063Eb25d521186bb", // old: "0xd0c640eEd54c3877ABb958fa9753F50900325fC5",
-      BZxEther: "",
+      KyberContractAddress: "0x7e6b8b9510D71BF8EF0f893902EbB9C865eEF4Df", // Kovan
+      BZRXToken: "0xE31C829Fc92A6408376818Eb10cEd1c4Fd2D11f0",
+      BZxEther: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
       MultiSig: ""
     },
     rinkeby: {
@@ -63,9 +63,9 @@ module.exports = {
         ERC721Proxy: "0x8e1ff02637cb5e39f2fa36c14706aa348b065b09",
         AssetProxyOwner: "0x1da52d1d3a3acfa0a1836b737393b4e9931268fc"
       },
-      KyberContractAddress: "", // Rinkeby
+      KyberContractAddress: "0x39CC6802cF1625C30548B57D885932CB381EB4a4",
       BZRXToken: "0xb70ce29af9de22e28509cdcf3e0368b5a550548a",
-      BZxEther: "",
+      BZxEther: "0xc778417e063141139fce010982780140aa0cd5ab",
       MultiSig: ""
     },
     mainnet: {

@@ -68,7 +68,7 @@ function proceed() {
   };
 
   if (network != "mainnet") {
-    if (network != "ropsten") {
+    if (network != "ropsten" && network != "kovan") {
       for (var i = 0; i <= 9; i++) {
         addresses["TestToken" + i] = "unknown";
       }

@@ -119,7 +119,7 @@ const getNetwork = networkId => {
   let networkName;
   switch (networkId) {
     case 1: {
-      networkName = `Main net`;
+      networkName = `Mainnet`;
       break;
     }
     case 3: {

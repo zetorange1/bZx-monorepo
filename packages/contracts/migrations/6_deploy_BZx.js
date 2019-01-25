@@ -22,7 +22,7 @@ module.exports = (deployer, network, accounts) => {
 
     var bZxProxy = await BZxProxySettings.at(BZxProxy.address);
 
-    var bZRxToken, bZxEther, bzrx_token_address, bzrx_ether_address;
+    var bzrx_token_address, bzrx_ether_address;
 
     if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {
       bzrx_token_address = config["addresses"][network]["BZRXToken"];

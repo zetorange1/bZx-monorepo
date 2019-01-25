@@ -1,11 +1,11 @@
 var BZRxTokenConvert = artifacts.require("BZRxTokenConvert");
 var BZRxToken = artifacts.require("BZRxToken");
-var BZRxTransferProxy = artifacts.require("BZRxTransferProxy");
+//var BZRxTransferProxy = artifacts.require("BZRxTransferProxy");
 
 var BZxProxy = artifacts.require("BZxProxy");
 var BZxProxySettings = artifacts.require("BZxProxySettings");
 var BZxVault = artifacts.require("BZxVault");
-var BZxEther = artifacts.require("BZxEther");
+//var BZxEther = artifacts.require("BZxEther");
 
 var config = require("../protocol-config.js");
 const path = require("path");

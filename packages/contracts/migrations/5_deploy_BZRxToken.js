@@ -1,5 +1,4 @@
 var BZRxToken = artifacts.require("BZRxToken");
-var BZxEther = artifacts.require("BZxEther");
 
 const path = require("path");
 const config = require("../protocol-config.js");
@@ -13,8 +12,6 @@ module.exports = (deployer, network, accounts) => {
       return;
     }
 
-    let beth = await deployer.deploy(BZxEther);
-
     let token = await deployer.deploy(BZRxToken);
 
     if (network == "development") {
@@ -23,6 +20,8 @@ module.exports = (deployer, network, accounts) => {
         web3.utils.toWei("1000000", "ether")
       );
 
+      var BZxEther = artifacts.require("BZxEther");
+      let beth = await deployer.deploy(BZxEther);
       await beth.deposit({ value: web3.utils.toWei("10", "ether") });
     }
 

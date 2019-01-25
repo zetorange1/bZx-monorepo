@@ -1,11 +1,10 @@
 
 var BZxOracle;
 var BZxProxy = artifacts.require("BZxProxy");
-var BZxProxySettings = artifacts.require("BZxProxySettings");
 var BZxVault = artifacts.require("BZxVault");
 
 var LoanToken = artifacts.require("LoanToken");
-var PositionToken = artifacts.require("PositionToken");
+//var PositionToken = artifacts.require("PositionToken");
 
 //var BZxEther = artifacts.require("BZxEther");
 
@@ -23,10 +22,11 @@ module.exports = function(deployer, network, accounts) {
     network = "development";
     weth_token_address = config["addresses"][network]["ZeroEx"]["WETH9"]; //BZxEther.address;
   } else {
-    weth_token_address = config["addresses"][network]["ZeroEx"]["WETH9"];
+    //weth_token_address = config["addresses"][network]["ZeroEx"]["WETH9"];
+    return;
   }
 
-  if (network == "mainnet" || network == "ropsten") {
+  if (network == "mainnet" || network == "ropsten" || network == "kovan") {
     BZxOracle = artifacts.require("BZxOracle");
   } else {
     BZxOracle = artifacts.require("TestNetOracle");

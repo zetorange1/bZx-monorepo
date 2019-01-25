@@ -15,7 +15,7 @@ const path = require("path");
 const config = require("../protocol-config.js");
 
 module.exports = (deployer, network, accounts) => {
-  if (network == "ropsten" || network == "mainnet") {
+  if (network == "mainnet" || network == "ropsten" || network == "kovan") {
     // never deploy to these networks
     return;
   }

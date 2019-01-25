@@ -72,7 +72,10 @@ export default class Web3Container extends React.Component {
     // Known networks we actively support should be set here.
     // Currently only Ropsten is supported.
     const activeNetworkIds = {
-      3: `Ropsten Test Network`
+      1: `Mainnet`,
+      3: `Ropsten Testnet`,
+      4: `Rinkeby Testnet`,
+      42: `Kovan Testnet`
     };
 
     const displayNetworkError = () => {
@@ -92,7 +95,7 @@ export default class Web3Container extends React.Component {
             <Fragment>
               <div>
                 You may be on the wrong network. Please check that MetaMask is
-                set to Main Ethereum Network or Ropsten Test Network.
+                set to Mainnet, Ropsten, Kovan, or Rinkeby.
                 <br />
                 <br />
                 <div style={{ display: `inline-block` }}>

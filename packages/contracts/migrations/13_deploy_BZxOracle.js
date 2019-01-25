@@ -27,7 +27,7 @@ module.exports = (deployer, network, accounts) => {
     weth_token_address = config["addresses"][network]["ZeroEx"]["WETH9"];
   }
 
-  if (network == "mainnet" || network == "ropsten") {
+  if (network == "mainnet" || network == "ropsten" || network == "kovan") {
     BZxOracle = artifacts.require("BZxOracle");
   } else {
     BZxOracle = artifacts.require("TestNetOracle");
@@ -36,7 +36,6 @@ module.exports = (deployer, network, accounts) => {
   var bzrx_token_address;
   if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {
     bzrx_token_address = config["addresses"][network]["BZRXToken"];
-    //bzrx_token_address = BZRxToken.address;
   } else {
     bzrx_token_address = BZRxToken.address;
   }

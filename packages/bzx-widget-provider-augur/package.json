@@ -16,7 +16,7 @@
   },
   "main": "dist/bzx-widget-provider-augur.js",
   "dependencies": {
-    "@bzxnetwork/bzx.js": "0.4.6",
+    "@bzxnetwork/bzx.js": "0.4.7",
     "@bzxnetwork/bzx-widget-common": "^0.1.0",
     "augur.js": "^6.0.0",
     "bignumber.js": "^7.0.1",

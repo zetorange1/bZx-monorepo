@@ -10,6 +10,7 @@ var secrets = "",
   rinkebyMnemonic = "",
   mainnetMnemonic = "",
   infuraApikey = "",
+  alchemyApikey = "",
   mainnetPrivKey = "";
 try {
   secrets = require("../../config/secrets.js");
@@ -17,7 +18,8 @@ try {
     (kovanMnemonic = secrets["mnemonic"]["kovan"]),
     (rinkebyMnemonic = secrets["mnemonic"]["rinkeby"]),
     (mainnetMnemonic = secrets["mnemonic"]["mainnet"]),
-    (infuraApikey = secrets["infura_apikey"])
+    (infuraApikey = secrets["infura_apikey"]),
+    (alchemyApikey = secrets["alchemy_apikey"]),
     (mainnetPrivKey = secrets["private_key"]["mainnet"]);
 } catch (e) {}
 
@@ -64,11 +66,12 @@ module.exports = {
     kovan: {
       provider: () => new HDWalletProvider(
         kovanMnemonic,
-        "https://kovan.infura.io/v3/" + infuraApikey
+        "https://eth-kovan.alchemyapi.io/jsonrpc/" + alchemyApikey
+        //"https://kovan.infura.io/v3/" + infuraApikey
       ),
       network_id: 42,
       gas: 8000000,
-      gasPrice: 20000000000,
+      gasPrice: 10000000000,
       confirmations: 0,
       timeoutBlocks: 200,
       skipDryRun: true

@@ -43,7 +43,7 @@ const ChangeButtonLabel = styled.div`
 `;
 
 const networks = {
-  1: { name: `Main Net`, color: `#038789` },
+  1: { name: `Mainnet`, color: `#038789` },
   3: { name: `Ropsten Testnet`, color: `#E91550` },
   4: { name: `Rinkeby Testnet`, color: `#EBB33F` },
   42: { name: `Kovan Testnet`, color: `#690496` }

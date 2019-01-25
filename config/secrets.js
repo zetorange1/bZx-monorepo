@@ -1,5 +1,6 @@
 module.exports = {
   infura_apikey: "",
+  alchemy_apikey: "",
   mnemonic: {
     testnet: "concert load couple harbor equip island argue ramp clarify fence smart topic",
     b0xnet: "",
