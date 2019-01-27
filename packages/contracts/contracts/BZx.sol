@@ -454,15 +454,15 @@ contract BZx is BZxStorage {
     /// @dev The order must already be on chain
     /// @dev Ensures the lender has enough balance and allowance
     /// @param loanOrderHash A unique hash representing the loan order
-    /// @param increaseAmountForLoan Parameter to specify the amount of loan token increase
-    /// @param newInterestRate Parameter to specify the amount of loan token increase
-    /// @param futureExpirationTimestamp Parameter to set the expirationUnixTimestampSec on the loan to a future date (0 removes the expiration date)
+    /// @param increaseAmountForLoan Optional parameter to specify the amount of loan token increase
+    /// @param newInterestRate Optional parameter to specify the amount of loan token increase
+    /// @param newExpirationTimestamp Optional parameter to set the expirationUnixTimestampSec on the loan to a different date. A value of MAX_UINT (2**256 - 1) removes the expiration date.
     /// @return True on success
     function updateLoanAsLender(
         bytes32 loanOrderHash,
         uint256 increaseAmountForLoan,
         uint256 newInterestRate,
-        uint256 futureExpirationTimestamp)
+        uint256 newExpirationTimestamp)
         external
         returns (bool);
 

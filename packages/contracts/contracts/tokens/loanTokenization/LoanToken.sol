@@ -49,9 +49,10 @@ interface bZxInterface {
             uint256,    // interestPaidDate
             uint256,    // interestOwedPerDay
             uint256);   // interestUnPaid
+}
 
-    function getLoanTokenFillable(
-        bytes32 loanOrderHash)
+interface bZxOracleInterface {
+    function interestFeePercent()
         external
         view
         returns (uint256);
@@ -65,21 +66,24 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         uint256 amount;
     }
 
-    uint public baseRate = 5000000000000000000; // 5%
-    uint public rateMultiplier = 45000000000000000000; // 45%
+    uint256 public baseRate = 2500000000000000000; // 2.5%
+    uint256 public rateMultiplier = 20000000000000000000; // 20%
 
-    mapping (uint => bytes32) public loanOrderHashes;  // mapping of levergeAmount to loanOrderHash
+    // "fee percentage retained by the oracle" = SafeMath.sub(10**20, spreadMultiplier);
+    uint256 public spreadMultiplier;
+
+    mapping (uint256 => bytes32) public loanOrderHashes;  // mapping of levergeAmount to loanOrderHash
     mapping (bytes32 => LoanData) public loanOrderData; // mapping of loanOrderHash to LoanOrder
     bytes32[] public loanOrderHashList;
 
     TokenReserves[] public burntTokenReserveList; // array of TokenReserves
     mapping (address => BZxObjects.ListIndex) public burntTokenReserveListIndex; // mapping of lender address to ListIndex objects
-    uint public burntTokenReserved; // total outstanding burnt token amount
+    uint256 public burntTokenReserved; // total outstanding burnt token amount
 
-    uint public loanTokenUsed = 0; // current amount of loan token amount tied up in loans
+    uint256 public totalAssetBorrow = 0; // current amount of loan token amount tied up in loans
 
-    uint internal lastSettleTime;
-    uint internal lastPrice = 10**18;
+    uint256 internal lastSettleTime;
+    uint256 internal lastPrice = 10**18;
 
     modifier onlyOracle() {
         require(msg.sender == bZxOracle, "only Oracle allowed");
@@ -105,6 +109,8 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         bZxOracle = _bZxOracle;
         wethContract = _wethContract;
         loanTokenAddress = _loanTokenAddress;
+
+        spreadMultiplier = SafeMath.sub(10**20, bZxOracleInterface(_bZxOracle).interestFeePercent());
     }
 
     function()  
@@ -115,7 +121,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
     }
 
     function initLeverage(
-        uint[3] memory orderParams) // leverageAmount, initialMarginAmount, maintenanceMarginAmount
+        uint256[3] memory orderParams) // leverageAmount, initialMarginAmount, maintenanceMarginAmount
         public
         onlyOwner
     {
@@ -130,15 +136,15 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
             address(0) // tradeTokenToFillAddress
         ];
 
-        uint[11] memory orderValues = [
+        uint256[11] memory orderValues = [
             0, // loanTokenAmount
             0, // interestAmountPerDay
-            orderParams[1], // initialMarginAmount, 
-            orderParams[2], // maintenanceMarginAmount, 
-            0, // lenderRelayFee 
+            orderParams[1], // initialMarginAmount,
+            orderParams[2], // maintenanceMarginAmount,
+            0, // lenderRelayFee
             0, // traderRelayFee
-            maxDurationUnixTimestampSec, 
-            0, // expirationUnixTimestampSec (no expiration)
+            maxDurationUnixTimestampSec,
+            0, // expirationUnixTimestampSec
             0, // makerRole (0 = lender)
             0, // withdrawOnOpen
             uint(keccak256(abi.encodePacked(msg.sender, block.timestamp))) // salt
@@ -152,6 +158,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         );
         loanOrderData[loanOrderHash] = LoanData({
             loanOrderHash: loanOrderHash,
+            leverageAmount: orderParams[0],
             initialMarginAmount: orderParams[1],
             maintenanceMarginAmount: orderParams[2]
         });
@@ -159,100 +166,231 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         loanOrderHashes[orderParams[0]] = loanOrderHash;
     }
 
+    // these params should be percentages represented like so: 5% = 5000000000000000000
+    function setDemandCurve(
+        uint256 _baseRate,
+        uint256 _rateMultiplier)
+        public
+        onlyOwner
+    {
+        baseRate = _baseRate;
+        rateMultiplier = _rateMultiplier;
+    }
+
+    function setInterestFeePercent(
+        uint256 _newRate)
+        public
+        onlyOwner
+    {
+        require(_newRate <= 10**20);
+        spreadMultiplier = SafeMath.sub(10**20, _newRate);
+    }
+
+    function setBZxContract(
+        address _addr)
+        public
+        onlyOwner
+    {
+        bZxContract = _addr;
+    }
+
+    function setBZxVault(
+        address _addr)
+        public
+        onlyOwner
+    {
+        bZxVault = _addr;
+    }
+
+    function setBZxOracle(
+        address _addr)
+        public
+        onlyOwner
+    {
+        bZxOracle = _addr;
+    }
+
+    function setWETHContract(
+        address _addr)
+        public
+        onlyOwner
+    {
+        wethContract = _addr;
+    }
+
+    function setMaxDuration(
+        uint256 _duration)
+        public
+        onlyOwner
+    {
+        maxDurationUnixTimestampSec = _duration;
+    }
+
     function _getAllInterest()
         internal
         view
         returns (
-            uint256 interestPaidSoFar, 
+            uint256 interestPaidSoFar,
+            uint256 interestOwedPerDay,
             uint256 interestUnPaid)
     {
-        (interestPaidSoFar,,,interestUnPaid) = bZxInterface(bZxContract).getLenderInterestForOracle(
+        // these values don't account for any fees retained by the oracle, so we account for it elsewhere with spreadMultiplier
+        (interestPaidSoFar,,interestOwedPerDay,interestUnPaid) = bZxInterface(bZxContract).getLenderInterestForOracle(
             address(this),
             bZxOracle,
             loanTokenAddress // same as interestTokenAddress
         );
     }
 
-    function borrowerInterestRate()
+    function currentBorrowInterestRate()
         public
         view
-        returns (uint)
+        returns (uint256)
     {
-        uint utilizationRatio = 0;
-        
-        if (loanTokenUsed > 0 && totalSupply_ > 0) {
-            // U = total_borrow / total_supply
-            utilizationRatio = loanTokenUsed.mul(10**20).div(totalSupply_);
+        if (totalAssetBorrow > 0) {
+            (,uint256 interestOwedPerDay,) = _getAllInterest();
+            return interestOwedPerDay
+                .mul(10**20)
+                .div(totalAssetBorrow)
+                .mul(365);
+        } else {
+            return 0;
         }
-
-        // borrow rate = U * 45% + 5%
-        return utilizationRatio.mul(rateMultiplier).div(10**20).add(baseRate);
     }
 
-    function lenderInterestRate()
+    function currentSupplyInterestRate()
         public
         view
-        returns (uint)
+        returns (uint256)
     {
-        uint utilizationRatio = 0;
-        
-        if (loanTokenUsed > 0 && totalSupply_ > 0) {
-            // U = total_borrow / total_supply
-            utilizationRatio = loanTokenUsed.mul(10**20).div(totalSupply_);
-        }
-        
-        // borrow rate = U * 45% + 5%
-        uint borrowRate = utilizationRatio.mul(rateMultiplier).div(10**20).add(baseRate);
-
-        return borrowRate.mul(utilizationRatio).div(10**20);
+        return currentBorrowInterestRate()
+            .mul(_getUtilizationRate())
+            .div(10**20);
     }
 
+    function newBorrowInterestRate()
+        public
+        view
+        returns (uint256)
+    {
+        return _getUtilizationRate()
+            .mul(rateMultiplier)
+            .div(10**20)
+            .add(baseRate);
+    }
+
+    function newSupplyInterestRate()
+        public
+        view
+        returns (uint256)
+    {
+        uint256 utilizationRate = _getUtilizationRate();
+
+        uint256 newBorrowRate = utilizationRate
+            .mul(rateMultiplier)
+            .div(10**20)
+            .add(baseRate);
+        
+        return newBorrowRate
+            .mul(utilizationRate)
+            .div(10**20);
+    }
+
+    function _getUtilizationRate()
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 assetSupply = totalAssetSupply();
+        if (totalAssetBorrow > 0 && assetSupply > 0) {
+            // U = total_borrow / total_supply
+            return totalAssetBorrow
+                .mul(10**20)
+                .div(assetSupply);
+        } else {
+            return 0;
+        }
+    }
+
+    // this gets the combined total of paid and unpaid interest
     function interestReceived()
         public
         view
-        returns (uint interestTotalAccrued)
+        returns (uint256 interestTotalAccrued)
     {
-        // this gets the combined total of paid and unpaid interest
-        (uint256 interestPaidSoFar, uint256 interestUnPaid) = _getAllInterest();
-        return interestPaidSoFar.add(interestUnPaid);
+        (uint256 interestPaidSoFar,,uint256 interestUnPaid) = _getAllInterest();
+
+        return interestPaidSoFar
+            .add(interestUnPaid)
+            .mul(spreadMultiplier)
+            .div(10**20);
     }
 
     function tokenPrice()
         public
         view
-        returns (uint)
+        returns (uint256)
     {
-        (,uint256 interestUnPaid) = _getAllInterest();
+        (,,uint256 interestUnPaid) = _getAllInterest();
+
+        interestUnPaid = interestUnPaid
+            .mul(spreadMultiplier)
+            .div(10**20);
+
         return _tokenPrice(interestUnPaid);
     }
 
+    function totalAssetSupply()
+        public
+        view
+        returns (uint256)
+    {
+        (,,uint256 interestUnPaid) = _getAllInterest();
+
+        interestUnPaid = interestUnPaid
+            .mul(spreadMultiplier)
+            .div(10**20);
+
+        return _totalAssetSupply(interestUnPaid);
+    }
+
     function _tokenPrice(
-        uint256 unpaidInterest)
+        uint256 interestUnPaid)
         internal
         view
-        returns (uint)
+        returns (uint256)
     {
-        uint actualTotalSupply = totalSupply_.add(burntTokenReserved);
+        uint256 totalTokenSupply = totalSupply_.add(burntTokenReserved);
 
-        return actualTotalSupply > 0 ? 
-            ERC20(loanTokenAddress).balanceOf(address(this))
-            .add(loanTokenUsed)
-            .add(unpaidInterest)
+        return totalTokenSupply > 0 ?
+            _totalAssetSupply(interestUnPaid)
             .mul(10**18)
-            .div(actualTotalSupply) : lastPrice;
+            .div(totalTokenSupply) : lastPrice;
+    }
+
+    function _totalAssetSupply(
+        uint256 interestUnPaid)
+        internal
+        view
+        returns (uint256)
+    {
+        return ERC20(loanTokenAddress).balanceOf(address(this))
+            .add(totalAssetBorrow)
+            .add(interestUnPaid);
     }
 
     function mintWithEther()
         public
         payable
-        returns (uint mintAmount)
+        returns (uint256 mintAmount)
     {
         require (loanTokenAddress == wethContract, "ether is not supported");
 
         if (burntTokenReserveList.length > 0) {
-            // this will settle interest and claim free token previously reserved
             _claimLoanToken(burntTokenReserveList[0].lender);
             _claimLoanToken(msg.sender);
+        } else {
+            _settleInterest();
         }
 
         mintAmount = msg.value.mul(10**18).div(_tokenPrice(0));
@@ -263,14 +401,15 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
     }
 
     function mint(
-        uint depositAmount)
+        uint256 depositAmount)
         public
-        returns (uint mintAmount)
+        returns (uint256 mintAmount)
     {
         if (burntTokenReserveList.length > 0) {
-            // this will settle interest and claim free token previously reserved
             _claimLoanToken(burntTokenReserveList[0].lender);
             _claimLoanToken(msg.sender);
+        } else {
+            _settleInterest();
         }
 
         mintAmount = depositAmount.mul(10**18).div(_tokenPrice(0));
@@ -285,9 +424,9 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
     }
 
     function burnToEther(
-        uint burnAmount)
+        uint256 burnAmount)
         public
-        returns (uint loanAmountPaid)
+        returns (uint256 loanAmountPaid)
     {
         require (loanTokenAddress == wethContract, "ether is not supported");
 
@@ -300,9 +439,9 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
     }
 
     function burn(
-        uint burnAmount)
+        uint256 burnAmount)
         public
-        returns (uint loanAmountPaid)
+        returns (uint256 loanAmountPaid)
     {
         loanAmountPaid = _burnToken(burnAmount);
 
@@ -315,9 +454,9 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
     }
 
     function _burnToken(
-        uint burnAmount)
+        uint256 burnAmount)
         internal
-        returns (uint loanAmountPaid)
+        returns (uint256 loanAmountPaid)
     {
         require(burnAmount > 0, "burnAmount == 0");
 
@@ -325,24 +464,25 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         // require(balances[msg.sender] >= burnAmount, "burnAmount too high");
 
         if (burntTokenReserveList.length > 0) {
-            // this will settle interest and claim free token previously reserved
             _claimLoanToken(burntTokenReserveList[0].lender);
             _claimLoanToken(msg.sender);
+        } else {
+            _settleInterest();
         }
 
-        uint currentPrice = _tokenPrice(0);
+        uint256 currentPrice = _tokenPrice(0);
 
-        uint loanAmountOwed = burnAmount.mul(currentPrice).div(10**18);
-        uint loanTokenAvailable = ERC20(loanTokenAddress).balanceOf(address(this));
+        uint256 loanAmountOwed = burnAmount.mul(currentPrice).div(10**18);
+        uint256 loanTokenAvailableInContract = ERC20(loanTokenAddress).balanceOf(address(this));
 
         loanAmountPaid = loanAmountOwed;
-        if (loanAmountPaid > loanTokenAvailable) {
-            uint reserveAmount = loanAmountPaid.sub(loanTokenAvailable);
-            uint reserveTokenAmount = reserveAmount.mul(10**18).div(currentPrice);
+        if (loanAmountPaid > loanTokenAvailableInContract) {
+            uint256 reserveAmount = loanAmountPaid.sub(loanTokenAvailableInContract);
+            uint256 reserveTokenAmount = reserveAmount.mul(10**18).div(currentPrice);
 
             burntTokenReserved = burntTokenReserved.add(reserveTokenAmount);
             if (burntTokenReserveListIndex[msg.sender].isSet) {
-                uint index = burntTokenReserveListIndex[msg.sender].index;
+                uint256 index = burntTokenReserveListIndex[msg.sender].index;
                 burntTokenReserveList[index].amount = burntTokenReserveList[index].amount.add(reserveTokenAmount);
             } else {
                 burntTokenReserveList.push(TokenReserves({
@@ -355,7 +495,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
                 });
             }
 
-            loanAmountPaid = loanTokenAvailable;
+            loanAmountPaid = loanTokenAvailableInContract;
         }
 
         _burn(msg.sender, burnAmount);
@@ -365,11 +505,11 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
     }
 
     function getFillAmount(
-        uint depositAmount,
-        uint leverageAmount)
+        uint256 depositAmount,
+        uint256 leverageAmount)
         public
         view
-        returns (uint)
+        returns (uint256)
     {
         if (depositAmount == 0)
             return 0;
@@ -385,16 +525,16 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
 
     function _getFillAmount(
         LoanData memory loanData,
-        uint depositAmount)
+        uint256 depositAmount)
         internal
         view
-        returns (uint)
+        returns (uint256)
     {
         // assumes that collateral and interest token are the same
         return depositAmount
             .mul(10**40)
             .div(
-                borrowerInterestRate()
+                newBorrowInterestRate()
                 .mul(10**20)
                 .div(31536000) // 86400 * 365
                 .mul(maxDurationUnixTimestampSec)
@@ -405,13 +545,13 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
 
     // called by a borrower to open a loan
     function borrowToken(
-        uint fillAmount,
-        uint leverageAmount,
+        uint256 fillAmount,
+        uint256 leverageAmount,
         address collateralTokenAddress,
         address tradeTokenToFillAddress,
         bool withdrawOnOpen)
         public
-        returns (uint)
+        returns (uint256)
     {
         require(fillAmount > 0, "fillAmount == 0");
 
@@ -424,7 +564,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         require(ERC20(loanTokenAddress).balanceOf(address(this)) >= fillAmount, "insufficient loan supply");
 
         // re-up the BZxVault spend approval if needed
-        uint tempAllowance = ERC20(loanTokenAddress).allowance.gas(4999)(address(this), bZxVault);
+        uint256 tempAllowance = ERC20(loanTokenAddress).allowance.gas(4999)(address(this), bZxVault);
         if (tempAllowance < fillAmount) {
             if (tempAllowance > 0) {
                 // reset approval to 0
@@ -434,12 +574,11 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
             require(ERC20(loanTokenAddress).approve(bZxVault, MAX_UINT), "approval of loanToken failed");
         }
 
-        uint loanTokenFillableOnChain = bZxInterface(bZxContract).getLoanTokenFillable(loanOrderHash);
         require(bZxInterface(bZxContract).updateLoanAsLender(
             loanOrderHash,
-            fillAmount > loanTokenFillableOnChain ? fillAmount.sub(loanTokenFillableOnChain) : 0,
-            borrowerInterestRate().div(365),
-            0),
+            fillAmount,
+            newBorrowInterestRate().div(365),
+            block.timestamp+1),
             "updateLoanAsLender failed");
 
         require (bZxInterface(bZxContract).takeLoanOrderOnChainAsTraderByDelegate(
@@ -451,7 +590,12 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
             withdrawOnOpen) == fillAmount,
             "takeLoanOrderOnChainAsTraderByDelegate failed");
 
-        loanTokenUsed = loanTokenUsed.add(fillAmount);
+        totalAssetBorrow = totalAssetBorrow.add(fillAmount);
+
+        if (burntTokenReserveList.length > 0) {
+            _claimLoanToken(burntTokenReserveList[0].lender);
+            _claimLoanToken(msg.sender);
+        }
 
         return fillAmount;
     }
@@ -461,7 +605,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
     // returns amount claimed for the caller
     function claimLoanToken()
         public
-        returns (uint claimedAmount)
+        returns (uint256 claimedAmount)
     {
         claimedAmount = _claimLoanToken(msg.sender);
 
@@ -472,22 +616,22 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
     function _claimLoanToken(
         address lender)
         internal
-        returns (uint)
+        returns (uint256)
     {
         _settleInterest();
 
         if (!burntTokenReserveListIndex[lender].isSet)
             return 0;
         
-        uint index = burntTokenReserveListIndex[lender].index;
+        uint256 index = burntTokenReserveListIndex[lender].index;
 
-        uint currentPrice = _tokenPrice(0);
+        uint256 currentPrice = _tokenPrice(0);
 
-        uint claimAmount = burntTokenReserveList[index].amount.mul(currentPrice).div(10**18);
+        uint256 claimAmount = burntTokenReserveList[index].amount.mul(currentPrice).div(10**18);
         if (claimAmount == 0)
             return 0;
 
-        uint availableAmount = ERC20(loanTokenAddress).balanceOf.gas(4999)(address(this));
+        uint256 availableAmount = ERC20(loanTokenAddress).balanceOf.gas(4999)(address(this));
         if (claimAmount > availableAmount) {
             claimAmount = availableAmount;
         }
@@ -498,7 +642,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
                 claimAmount
             ), "transfer of loanToken failed");
 
-            uint claimTokenAmount = claimAmount.mul(10**18).div(currentPrice);
+            uint256 claimTokenAmount = claimAmount.mul(10**18).div(currentPrice);
             if (burntTokenReserveList[index].amount <= claimTokenAmount) {
                 // remove lender from burntToken list
                 if (burntTokenReserveList.length > 1) {
@@ -573,9 +717,13 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         returns (bool)
     {
         if (loanOrderData[loanOrder.loanOrderHash].loanOrderHash == loanOrder.loanOrderHash && 
-            closeAmount > 0 && loanTokenUsed >= closeAmount) {
+            closeAmount > 0 && totalAssetBorrow >= closeAmount) {
 
-            loanTokenUsed = loanTokenUsed.sub(closeAmount);
+            totalAssetBorrow = totalAssetBorrow.sub(closeAmount);
+
+            if (burntTokenReserveList.length > 0) {
+                _claimLoanToken(burntTokenReserveList[0].lender);
+            }
 
             return true;
         } else {
@@ -587,34 +735,55 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         internal
     {
         if (lastSettleTime != block.timestamp) {
-            bZxContract.call.gas(gasleft())(
+            (bool success,) = bZxContract.call.gas(gasleft())(
                 abi.encodeWithSignature(
                     "payInterestForOracle(address,address)",
                     bZxOracle,
                     loanTokenAddress // same as interestTokenAddress
                 )
             );
+            success;
             lastSettleTime = block.timestamp;
         }
     }
 
-    // returns token amount that is available for loaning or withdrawal
-    function getLoanAmountAvailable()
+    function marketLiquidity()
         public
         view
-        returns (uint)
+        returns (uint256)
     {
-        (,uint256 interestUnPaid) = _getAllInterest();
-        return ERC20(loanTokenAddress).balanceOf(address(this))
-            .add(interestUnPaid);
+        uint256 totalSupply = totalAssetSupply();
+        if (totalSupply > totalAssetBorrow) {
+            return totalSupply.sub(totalAssetBorrow);
+        } else {
+            return 0;
+        }
     }
 
     function getLoanData(
-        uint levergeAmount)
+        uint256 levergeAmount)
         public
         view
         returns (LoanData memory)
     {
         return loanOrderData[loanOrderHashes[levergeAmount]];
+    }
+
+    function getLoanOrderHashses()
+        public
+        view
+        returns (bytes32[] memory)
+    {
+        return loanOrderHashList;
+    }
+
+    // returns the user's balance of underlying token
+    function assetBalanceOf(
+        address _owner)
+        public
+        view
+        returns (uint256)
+    {
+        return balances[_owner].mul(tokenPrice()).div(10**18);
     }
 }

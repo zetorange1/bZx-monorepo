@@ -13,22 +13,24 @@ import "../../shared/WETHInterface.sol";
 
 contract LoanTokenization is UnlimitedAllowanceToken, DetailedERC20, Ownable {
 
-    uint internal constant MAX_UINT = 2**256 - 1;
+    uint256 internal constant MAX_UINT = 2**256 - 1;
 
     address public bZxContract;
     address public bZxVault;
     address public bZxOracle;
     address public wethContract;
+    uint256 public maxDurationUnixTimestampSec = 2419200; // 28 days
+
     address public loanTokenAddress;
-    uint public maxDurationUnixTimestampSec = 2419200; // 28 days
 
     event Mint(address indexed to, uint256 amount);
     event Burn(address indexed burner, uint256 value);
 
     struct LoanData {
         bytes32 loanOrderHash;
-        uint initialMarginAmount;
-        uint maintenanceMarginAmount;
+        uint256 leverageAmount;
+        uint256 initialMarginAmount;
+        uint256 maintenanceMarginAmount;
     }
 
     /**

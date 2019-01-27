@@ -821,7 +821,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         public
         onlyOwner
     {
-        require(newRate != interestFeePercent && newRate <= 100 * 10**18);
+        require(newRate != interestFeePercent && newRate <= 10**20);
         interestFeePercent = newRate;
     }
 
