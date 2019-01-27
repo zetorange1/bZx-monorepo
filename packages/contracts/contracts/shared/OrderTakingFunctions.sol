@@ -667,13 +667,17 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
             oracleInterest.interestOwedPerDay = oracleInterest.interestOwedPerDay.add(owedPerDay);
 
             // update trader interest
-            uint256 totalInterestToCollect = loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(owedPerDay).div(86400);
+            uint256 interestTime = block.timestamp;
+            if (interestTime > loanPosition.loanEndUnixTimestampSec) {
+                interestTime = loanPosition.loanEndUnixTimestampSec;
+            }
+            uint256 totalInterestToCollect = loanPosition.loanEndUnixTimestampSec.sub(interestTime).mul(owedPerDay).div(86400);
             if (traderInterest.interestUpdatedDate > 0 && traderInterest.interestOwedPerDay > 0) {
                 traderInterest.interestPaid = traderInterest.interestPaid.add(
-                    block.timestamp.sub(traderInterest.interestUpdatedDate).mul(traderInterest.interestOwedPerDay).div(86400)
+                    interestTime.sub(traderInterest.interestUpdatedDate).mul(traderInterest.interestOwedPerDay).div(86400)
                 );
             }
-            traderInterest.interestUpdatedDate = block.timestamp;
+            traderInterest.interestUpdatedDate = interestTime;
             traderInterest.interestOwedPerDay = traderInterest.interestOwedPerDay.add(owedPerDay);
             traderInterest.interestDepositTotal = traderInterest.interestDepositTotal.add(totalInterestToCollect);
 
@@ -686,6 +690,8 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
                 )) {
                     revert("BZxVault.depositToken interest failed");
                 }
+                
+                tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress] = tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress].add(totalInterestToCollect);
             }
         }
     }

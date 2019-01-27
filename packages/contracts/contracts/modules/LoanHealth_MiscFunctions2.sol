@@ -71,10 +71,12 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
         uint256 interestOwedNow = 0;
         if (oracleInterest.interestOwedPerDay > 0 && oracleInterest.interestPaidDate > 0 && interestTokenAddress != address(0)) {
             interestOwedNow = block.timestamp.sub(oracleInterest.interestPaidDate).mul(oracleInterest.interestOwedPerDay).div(86400);
+            if (interestOwedNow > tokenInterestOwed[msg.sender][interestTokenAddress])
+                interestOwedNow = tokenInterestOwed[msg.sender][interestTokenAddress];
 
             if (interestOwedNow > 0) {
                 oracleInterest.interestPaid = oracleInterest.interestPaid.add(interestOwedNow);
-                tokenInterestPaid[msg.sender][interestTokenAddress] = tokenInterestPaid[msg.sender][interestTokenAddress].add(interestOwedNow);
+                tokenInterestOwed[msg.sender][interestTokenAddress] = tokenInterestOwed[msg.sender][interestTokenAddress].sub(interestOwedNow);
 
                 // send the interest to the oracle for further processing
                 if (! BZxVault(vaultContract).withdrawToken(
@@ -160,11 +162,15 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
     {
         LenderInterest memory oracleInterest = lenderOracleInterest[lender][oracleAddress][interestTokenAddress];
 
+        uint256 interestUnPaid = block.timestamp.sub(oracleInterest.interestPaidDate).mul(oracleInterest.interestOwedPerDay).div(86400);
+        if (interestUnPaid > tokenInterestOwed[lender][interestTokenAddress])
+            interestUnPaid = tokenInterestOwed[lender][interestTokenAddress];
+
         return (
             oracleInterest.interestPaid,
             oracleInterest.interestPaid > 0 ? oracleInterest.interestPaidDate : 0,
             oracleInterest.interestOwedPerDay,
-            oracleInterest.interestPaidDate > 0 ? block.timestamp.sub(oracleInterest.interestPaidDate).mul(oracleInterest.interestOwedPerDay).div(86400) : 0
+            oracleInterest.interestPaidDate > 0 ? interestUnPaid : 0
         );
     }
 
@@ -202,13 +208,17 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
             interestPaid = interestPaid.add(oracleInterest.interestPaidDate.sub(lenderInterest.interestPaidDate).mul(lenderInterest.interestOwedPerDay).div(86400));
         }
 
+        uint256 interestUnPaid = block.timestamp.sub(interestPaidDate).mul(lenderInterest.interestOwedPerDay).div(86400);
+        if (interestUnPaid > tokenInterestOwed[lender][interestTokenAddress])
+            interestUnPaid = tokenInterestOwed[lender][interestTokenAddress];
+
         return (
             lender,
             interestTokenAddress,
             interestPaid,
             interestPaid > 0 ? interestPaidDate : 0,
             lenderInterest.interestOwedPerDay,
-            interestPaidDate > 0 ? block.timestamp.sub(interestPaidDate).mul(lenderInterest.interestOwedPerDay).div(86400) : 0
+            interestPaidDate > 0 ? interestUnPaid : 0
         );
     }
 

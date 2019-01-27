@@ -26,13 +26,15 @@ contract MiscFunctions is BZxStorage, MathFunctions {
     {
         uint256 interestOwedNow = 0;
         if (oracleInterest.interestOwedPerDay > 0 && oracleInterest.interestPaidDate > 0 && loanOrder.interestTokenAddress != address(0)) {
+            address lender = orderLender[loanOrder.loanOrderHash];
             interestOwedNow = block.timestamp.sub(oracleInterest.interestPaidDate).mul(oracleInterest.interestOwedPerDay).div(86400);
-            
+            if (interestOwedNow > tokenInterestOwed[lender][loanOrder.interestTokenAddress])
+                interestOwedNow = tokenInterestOwed[lender][loanOrder.interestTokenAddress];
+
             if (interestOwedNow > 0) {
-                address lender = orderLender[loanOrder.loanOrderHash];
                 lenderInterest.interestPaid = lenderInterest.interestPaid.add(interestOwedNow);
                 oracleInterest.interestPaid = oracleInterest.interestPaid.add(interestOwedNow);
-                tokenInterestPaid[lender][loanOrder.interestTokenAddress] = tokenInterestPaid[lender][loanOrder.interestTokenAddress].add(interestOwedNow);
+                tokenInterestOwed[lender][loanOrder.interestTokenAddress] = tokenInterestOwed[lender][loanOrder.interestTokenAddress].sub(interestOwedNow);
 
                 if (sendToOracle) {
                     // send the interest to the oracle for further processing
