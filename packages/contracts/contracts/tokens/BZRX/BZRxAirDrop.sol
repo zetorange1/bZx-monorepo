@@ -111,7 +111,7 @@ contract BZRxAirDrop is Ownable {
         onlyOwner
         returns (bool)
     {
-        uint256 balance = StandardToken(_tokenAddress).balanceOf.gas(4999)(address(this));
+        uint256 balance = StandardToken(_tokenAddress).balanceOf(address(this));
         if (_value > balance) {
             return StandardToken(_tokenAddress).transfer(
                 _to,

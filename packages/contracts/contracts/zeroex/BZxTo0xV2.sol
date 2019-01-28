@@ -219,7 +219,7 @@ contract BZxTo0xV2 is BZxTo0xShared, EIP20Wrapper, BZxOwnable {
         }
 
         // Make sure there is enough allowance for 0x Exchange Proxy to transfer the sourceToken needed for the 0x trade
-        uint256 tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(address(this), erc20ProxyContract);
+        uint256 tempAllowance = EIP20(sourceTokenAddress).allowance(address(this), erc20ProxyContract);
         if (tempAllowance < sourceTokenAmountToUse) {
             if (tempAllowance > 0) {
                 // reset approval to 0

@@ -208,7 +208,9 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
                     totalInterestToRefund
                 ));
 
-                tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress] = tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress].sub(totalInterestToRefund);
+                tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress] = totalInterestToRefund < tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress] ?
+                    tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress].sub(totalInterestToRefund) :
+                    0;
             }
         }
 
@@ -366,7 +368,9 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
                     revert("BZxLoanHealth::_closeLoanPartially: BZxVault.withdrawToken interest failed");
                 }
 
-                tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress] = tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress].sub(totalInterestToRefund);
+                tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress] = totalInterestToRefund < tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress] ?
+                    tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress].sub(totalInterestToRefund) :
+                    0;
             }
         }
 
@@ -558,7 +562,9 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
                     revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken interest failed");
                 }
 
-                tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress] = tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress].sub(totalInterestToRefund);
+                tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress] = totalInterestToRefund < tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress] ?
+                    tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress].sub(totalInterestToRefund) :
+                    0;
             }
         }
 

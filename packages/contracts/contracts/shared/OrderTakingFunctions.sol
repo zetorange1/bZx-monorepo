@@ -504,7 +504,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
                     // The trader has opened a position in a previous loan fill.
                     // We automatically add to that position
 
-                    uint256 balanceBeforeTrade = EIP20(loanOrder.loanTokenAddress).balanceOf.gas(4999)(oracleAddresses[loanOrder.oracleAddress]); // Changes to state require at least 5000 gas
+                    uint256 balanceBeforeTrade = EIP20(loanOrder.loanTokenAddress).balanceOf(oracleAddresses[loanOrder.oracleAddress]);
 
                     if (!BZxVault(vaultContract).withdrawToken(
                         loanOrder.loanTokenAddress,
@@ -522,7 +522,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
 
                     // It is assumed that all of the loan token will be traded, so the remaining token balance of the oracle
                     // shouldn't be greater than the balance before we sent the token to be traded.
-                    if (balanceBeforeTrade < EIP20(loanOrder.loanTokenAddress).balanceOf.gas(4999)(oracleAddresses[loanOrder.oracleAddress])) {
+                    if (balanceBeforeTrade < EIP20(loanOrder.loanTokenAddress).balanceOf(oracleAddresses[loanOrder.oracleAddress])) {
                         revert("balanceBeforeTrade is less");
                     }
                 } else {

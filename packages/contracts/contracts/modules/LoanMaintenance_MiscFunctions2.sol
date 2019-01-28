@@ -197,10 +197,10 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
             totalNewFillableAmount = totalNewFillableAmount.add(increaseAmountForLoan);
         
             // ensure adequate token balance
-            require (EIP20(loanOrder.loanTokenAddress).balanceOf.gas(4999)(msg.sender) >= totalNewFillableAmount, "BZxOrderTaking::updateLoanAsLender: lender balance is insufficient");
+            require (EIP20(loanOrder.loanTokenAddress).balanceOf(msg.sender) >= totalNewFillableAmount, "BZxOrderTaking::updateLoanAsLender: lender balance is insufficient");
 
             // ensure adequate token allowance
-            require (EIP20(loanOrder.loanTokenAddress).allowance.gas(4999)(msg.sender, vaultContract) >= totalNewFillableAmount, "BZxOrderTaking::updateLoanAsLender: lender allowance is insufficient");
+            require (EIP20(loanOrder.loanTokenAddress).allowance(msg.sender, vaultContract) >= totalNewFillableAmount, "BZxOrderTaking::updateLoanAsLender: lender allowance is insufficient");
 
             uint256 newLoanTokenAmount = loanOrder.loanTokenAmount.add(increaseAmountForLoan);
 

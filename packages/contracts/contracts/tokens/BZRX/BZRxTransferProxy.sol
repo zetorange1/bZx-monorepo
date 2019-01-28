@@ -59,7 +59,7 @@ contract BZRxTransferProxy is Ownable {
         /* view */ 
         returns (uint256) 
     {
-        return StandardToken(bZRxTokenContractAddress).totalSupply.gas(4999)();
+        return StandardToken(bZRxTokenContractAddress).totalSupply();
     }
 
     // for ERC20 conformity
@@ -69,7 +69,7 @@ contract BZRxTransferProxy is Ownable {
         /* view */ 
         returns (uint256)
     {
-        return StandardToken(bZRxTokenContractAddress).balanceOf.gas(4999)(_owner);
+        return StandardToken(bZRxTokenContractAddress).balanceOf(_owner);
     }
 
     // for ERC20 conformity
@@ -80,7 +80,7 @@ contract BZRxTransferProxy is Ownable {
         /* view */
         returns (uint256)
     {
-        return StandardToken(bZRxTokenContractAddress).allowance.gas(4999)(_owner, _spender);
+        return StandardToken(bZRxTokenContractAddress).allowance(_owner, _spender);
     }
 
     function setTransferAllowance(
@@ -108,7 +108,7 @@ contract BZRxTransferProxy is Ownable {
         onlyOwner
         returns (bool)
     {
-        uint256 balance = StandardToken(_tokenAddress).balanceOf.gas(4999)(address(this));
+        uint256 balance = StandardToken(_tokenAddress).balanceOf(address(this));
         if (_value > balance) {
             return StandardToken(_tokenAddress).transfer(
                 _to,

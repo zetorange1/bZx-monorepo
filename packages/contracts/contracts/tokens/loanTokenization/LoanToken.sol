@@ -564,7 +564,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         require(ERC20(loanTokenAddress).balanceOf(address(this)) >= fillAmount, "insufficient loan supply");
 
         // re-up the BZxVault spend approval if needed
-        uint256 tempAllowance = ERC20(loanTokenAddress).allowance.gas(4999)(address(this), bZxVault);
+        uint256 tempAllowance = ERC20(loanTokenAddress).allowance(address(this), bZxVault);
         if (tempAllowance < fillAmount) {
             if (tempAllowance > 0) {
                 // reset approval to 0
@@ -631,7 +631,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         if (claimAmount == 0)
             return 0;
 
-        uint256 availableAmount = ERC20(loanTokenAddress).balanceOf.gas(4999)(address(this));
+        uint256 availableAmount = ERC20(loanTokenAddress).balanceOf(address(this));
         if (claimAmount > availableAmount) {
             claimAmount = availableAmount;
         }

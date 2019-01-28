@@ -391,7 +391,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
 
             if (refundAmount > 0) {
                 // refunds are paid in ETH
-                uint256 wethBalance = EIP20(wethContract).balanceOf.gas(4999)(address(this));
+                uint256 wethBalance = EIP20(wethContract).balanceOf(address(this));
                 if (refundAmount > wethBalance)
                     refundAmount = wethBalance;
 
@@ -546,7 +546,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
     {
         require(isLiquidation || loanTokenAmountNeeded > 0, "!isLiquidation && loanTokenAmountNeeded == 0");
 
-        uint256 collateralTokenBalance = EIP20(loanPosition.collateralTokenAddressFilled).balanceOf.gas(4999)(address(this)); // Changes to state require at least 5000 gas
+        uint256 collateralTokenBalance = EIP20(loanPosition.collateralTokenAddressFilled).balanceOf(address(this));
         if (collateralTokenBalance < loanPosition.collateralTokenAmountFilled) { // sanity check
             revert("BZxOracle::processCollateral: collateralTokenBalance < loanPosition.collateralTokenAmountFilled");
         }
@@ -581,7 +581,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             }
         }
 
-        collateralTokenAmountUsed = collateralTokenBalance.sub(EIP20(loanPosition.collateralTokenAddressFilled).balanceOf.gas(4999)(address(this))); // Changes to state require at least 5000 gas
+        collateralTokenAmountUsed = collateralTokenBalance.sub(EIP20(loanPosition.collateralTokenAddressFilled).balanceOf(address(this)));
 
         if (collateralTokenAmountUsed < loanPosition.collateralTokenAmountFilled) {
             // send unused collateral token back to the vault
@@ -929,7 +929,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         onlyOwner
         returns (bool)
     {
-        uint256 balance = EIP20(tokenAddress).balanceOf.gas(4999)(address(this));
+        uint256 balance = EIP20(tokenAddress).balanceOf(address(this));
         if (value > balance) {
             return EIP20(tokenAddress).transfer(
                 to,
@@ -952,7 +952,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         returns (uint256 destTokenAmountReceived)
     {
         // re-up the Kyber spend approval if needed
-        uint256 tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(address(this), kyberContract);
+        uint256 tempAllowance = EIP20(sourceTokenAddress).allowance(address(this), kyberContract);
         if (tempAllowance < sourceTokenAmount) {
             if (tempAllowance > 0) {
                 // reset approval to 0
@@ -1096,7 +1096,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             }
         } else {
             // re-up the Kyber spend approval if needed
-            uint256 tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(address(this), kyberContract);
+            uint256 tempAllowance = EIP20(sourceTokenAddress).allowance(address(this), kyberContract);
             if (tempAllowance < sourceTokenAmount) {
                 if (tempAllowance > 0) {
                     // reset approval to 0
@@ -1112,7 +1112,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
                     MAX_FOR_KYBER);
             }
 
-            uint256 sourceBalanceBefore = EIP20(sourceTokenAddress).balanceOf.gas(4999)(address(this));
+            uint256 sourceBalanceBefore = EIP20(sourceTokenAddress).balanceOf(address(this));
 
             destTokenAmountReceived = KyberNetworkInterface(kyberContract).trade(
                 sourceTokenAddress,
@@ -1124,7 +1124,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
                 address(this)
             );
 
-            sourceTokenAmountUsed = sourceBalanceBefore.sub(EIP20(sourceTokenAddress).balanceOf.gas(4999)(address(this)));
+            sourceTokenAmountUsed = sourceBalanceBefore.sub(EIP20(sourceTokenAddress).balanceOf(address(this)));
             if (sourceTokenAmountUsed < sourceTokenAmount) {
                 // send unused source token back
                 if (!_transferToken(
@@ -1161,7 +1161,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             destWethAmountReceived = destWethAmountNeeded;
         } else {
             // re-up the Kyber spend approval if needed
-            uint256 tempAllowance = EIP20(sourceTokenAddress).allowance.gas(4999)(address(this), kyberContract);
+            uint256 tempAllowance = EIP20(sourceTokenAddress).allowance(address(this), kyberContract);
             if (tempAllowance < sourceTokenAmount) {
                 if (tempAllowance > 0) {
                     // reset approval to 0
@@ -1223,7 +1223,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         internal
         returns (uint256 destTokenAmountReceived)
     {
-        uint256 wethBalance = EIP20(wethContract).balanceOf.gas(4999)(address(this));
+        uint256 wethBalance = EIP20(wethContract).balanceOf(address(this));
         if (destTokenAddress == wethContract) {
             if (destTokenAmountNeeded > sourceWethAmount)
                 destTokenAmountNeeded = sourceWethAmount;
@@ -1246,7 +1246,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             }
 
             // re-up the Kyber spend approval if needed
-            uint256 tempAllowance = EIP20(wethContract).allowance.gas(4999)(address(this), kyberContract);
+            uint256 tempAllowance = EIP20(wethContract).allowance(address(this), kyberContract);
             if (tempAllowance < sourceWethAmount) {
                 if (tempAllowance > 0) {
                     // reset approval to 0
