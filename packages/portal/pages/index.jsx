@@ -19,6 +19,10 @@ import { withRouter } from 'next/router'
 
 import Balances from "../src/balances";
 
+import LoanTokens from "../src/tokenization/LoanTokens";
+//import PositionTokens from "../src/tokenization/PositionTokens";
+import DebugTokenization from "../src/tokenization/DebugTokenization";
+
 import GenerateOrder from "../src/orders/GenerateOrder";
 import FillOrder from "../src/orders/FillOrder";
 import OrderHistory from "../src/orders/OrderHistory";
@@ -37,11 +41,17 @@ import NetworkIndicator from "../src/common/NetworkIndicator";
 import { Divider } from "../src/common/FormSection";
 import { getTrackedTokens } from "../src/common/trackedTokens";
 
-const TABS = [
+const ORDER_TABS = [
   { id: `Orders_GenOrder`, label: `Generate Order` },
   { id: `Orders_OrderBook`, label: `Order Book` },
   { id: `Orders_FillOrder`, label: `Fill Order` },
   { id: `Orders_OrderHistory`, label: `Order History` }
+];
+
+const TOKENIZED_TABS = [
+  { id: `tokenizedloans_loantokens`, label: `Loan Tokens` },
+  //{ id: `tokenizedloans_positiontokens`, label: `Position Tokens` },
+  { id: `tokenizedloans_debug`, label: `Debug` }
 ];
 
 const getDomainData = () => {
@@ -68,14 +78,18 @@ switch (domainData.subdomain) {
     IndexExport = withRouter(withRoot(class extends React.Component {
       state = {
         activeCard: `balances`,
-        activeTab: `Orders_GenOrder`,
+        activeOrderTab: `Orders_GenOrder`,
+        activeTokenizedTab: `tokenizedloans_loantokens`,
         activeOrder: null,
         trackedTokens: [],
         providerName: `MetaMask`,
         getWeb3: true,
         web3IsReceived: false,
         hideChooseProviderDialog: false,
-        lastTokenRefresh: null
+        lastTokenRefresh: null,
+        iTokenHash: ``,
+        iTokenTrader: ``,
+        bZx: null
       };
     
       componentDidMount() {
@@ -83,7 +97,7 @@ switch (domainData.subdomain) {
           this.setState({ activeCard: this.props.router.query.p });
         }
       }
-    
+
       setProvider = provider => {
         switch (provider) {
           case `MetaMask`:
@@ -104,6 +118,9 @@ switch (domainData.subdomain) {
             break;
         }
       };
+
+      setiTokenHash = val => this.setState({ iTokenHash: val });
+      setiTokenTrader = val => this.setState({ iTokenTrader: val });
     
       toggleProviderDialog = event => {
         event.preventDefault();
@@ -114,10 +131,12 @@ switch (domainData.subdomain) {
       };
     
       changeCard = cardId => this.setState({ activeCard: cardId });
-      changeTab = (tabId, order) =>
-        this.setState({ activeTab: tabId, activeOrder: order });
+      changeOrderTab = (tabId, order) =>
+        this.setState({ activeOrderTab: tabId, activeOrder: order });
+      changeTokenizedTab = (tabId, order) =>
+        this.setState({ activeTokenizedTab: tabId, activeOrder: order });
     
-      web3Received = () => this.setState({ getWeb3: false, web3IsReceived: true });
+      web3Received = (bZx) => this.setState({ bZx, getWeb3: false, web3IsReceived: true });
     
       clearProvider = () => {
         this.setProvider(null);
@@ -154,6 +173,28 @@ switch (domainData.subdomain) {
               </Fragment>
             );
             break; // eslint-disable-line no-unreachable
+          case `tokenizedloans`:
+            return (
+              <Fragment>
+                <HeaderTitle>
+                  <HeaderTitleSiteName>bZx Portal</HeaderTitleSiteName>
+                  <HeaderTitleContext>Tokenized Loans</HeaderTitleContext>
+                </HeaderTitle>
+                <HeaderData />
+                <TabGroup>
+                  {TOKENIZED_TABS.map(tab => (
+                    <Tab
+                      key={tab.id}
+                      active={this.state.activeOrderTab === tab.id}
+                      onClick={() => this.changeTokenizedTab(tab.id)}
+                    >
+                      {tab.label}
+                    </Tab>
+                  ))}
+                </TabGroup>
+              </Fragment>
+            );
+            break; // eslint-disable-line no-unreachable
           case `orders`:
             return (
               <Fragment>
@@ -163,11 +204,11 @@ switch (domainData.subdomain) {
                 </HeaderTitle>
                 <HeaderData />
                 <TabGroup>
-                  {TABS.map(tab => (
+                  {ORDER_TABS.map(tab => (
                     <Tab
                       key={tab.id}
-                      active={this.state.activeTab === tab.id}
-                      onClick={() => this.changeTab(tab.id)}
+                      active={this.state.activeOrderTab === tab.id}
+                      onClick={() => this.changeOrderTab(tab.id)}
                     >
                       {tab.label}
                     </Tab>
@@ -254,6 +295,56 @@ switch (domainData.subdomain) {
               </Fragment>
             );
             break; // eslint-disable-line no-unreachable
+          case `tokenizedloans`:
+            return (
+              <Fragment>
+                <NetworkIndicator
+                  networkId={networkId}
+                  accounts={accounts}
+                  etherscanURL={bZx.etherscanURL}
+                  providerName={this.state.providerName}
+                  clearProvider={this.clearProvider}
+                />
+                <ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_loantokens`}>
+                  <LoanTokens
+                    web3={web3}
+                    zeroEx={zeroEx}
+                    bZx={bZx}
+                    accounts={accounts}
+                    tokens={tokens}
+                    setiTokenHash={this.setiTokenHash}
+                    setiTokenTrader={this.setiTokenTrader}
+                    iTokenHash={this.state.iTokenHash}
+                    iTokenTrader={this.state.iTokenTrader}
+                  />
+                </ContentContainer>
+                {/*<ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_positiontokens`}>
+                  <PositionTokens
+                    tokens={tokens}
+                    bZx={bZx}
+                    accounts={accounts}
+                    web3={web3}
+                    oracles={oracles}
+                    //setiTokenHash={this.setiTokenHash}
+                    //setiTokenTrader={this.setiTokenTrader}
+                    iTokenHash={this.state.iTokenHash}
+                    iTokenTrader={this.state.iTokenTrader}
+                  />
+                </ContentContainer>*/}
+                <ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_debug`}>
+                  <DebugTokenization
+                    tokens={tokens}
+                    bZx={bZx}
+                    accounts={accounts}
+                    web3={web3}
+                    oracles={oracles}
+                    iTokenHash={this.state.iTokenHash}
+                    iTokenTrader={this.state.iTokenTrader}
+                  />
+                </ContentContainer>
+              </Fragment>
+            );
+            break; // eslint-disable-line no-unreachable
           case `orders`:
             return (
               <Fragment>
@@ -265,7 +356,7 @@ switch (domainData.subdomain) {
                   clearProvider={this.clearProvider}
                 />
                 <ContentContainer
-                  show={this.state.activeTab === `Orders_OrderBook`}
+                  show={this.state.activeOrderTab === `Orders_OrderBook`}
                 >
                   <p>On-chain Fillable Orders</p>
                   <Divider />
@@ -273,11 +364,11 @@ switch (domainData.subdomain) {
                     bZx={bZx}
                     accounts={accounts}
                     tokens={tokens}
-                    changeTab={this.changeTab}
+                    changeOrderTab={this.changeOrderTab}
                     tabId={tabId}
                   />
                 </ContentContainer>
-                <ContentContainer show={this.state.activeTab === `Orders_GenOrder`}>
+                <ContentContainer show={this.state.activeOrderTab === `Orders_GenOrder`}>
                   <GenerateOrder
                     tokens={tokens}
                     bZx={bZx}
@@ -287,7 +378,7 @@ switch (domainData.subdomain) {
                   />
                 </ContentContainer>
                 <ContentContainer
-                  show={this.state.activeTab === `Orders_FillOrder`}
+                  show={this.state.activeOrderTab === `Orders_FillOrder`}
                 >
                   <FillOrder
                     tokens={tokens}
@@ -296,11 +387,11 @@ switch (domainData.subdomain) {
                     web3={web3}
                     accounts={accounts}
                     activeOrder={this.state.activeOrder}
-                    changeTab={this.changeTab}
+                    changeOrderTab={this.changeOrderTab}
                   />
                 </ContentContainer>
                 <ContentContainer
-                  show={this.state.activeTab === `Orders_OrderHistory`}
+                  show={this.state.activeOrderTab === `Orders_OrderHistory`}
                 >
                   <OrderHistory
                     bZx={bZx}
@@ -422,18 +513,21 @@ switch (domainData.subdomain) {
       render() {
         const {
           activeCard,
-          activeTab,
+          activeOrderTab,
+          activeTokenizedTab,
           // trackedTokens,
           providerName,
           getWeb3,
           web3IsReceived,
-          hideChooseProviderDialog
+          hideChooseProviderDialog,
+          bZx,
         } = this.state;
         return (
           <Layout
             changeCard={this.changeCard}
             providerName={providerName}
             web3IsReceived={web3IsReceived}
+            bZx={bZx}
           >
             <Card>
               <Header>
@@ -461,7 +555,6 @@ switch (domainData.subdomain) {
                     web3,
                     zeroEx,
                     tokens,
-                    bZx,
                     accounts,
                     oracles,
                     networkId
@@ -478,7 +571,8 @@ switch (domainData.subdomain) {
                         networkId
                       },
                       activeCard,
-                      activeTab
+                      activeOrderTab,
+                      activeTokenizedTab
                     )
                   }
                   providerName={providerName}
@@ -501,7 +595,8 @@ switch (domainData.subdomain) {
     IndexExport = withRouter(withRoot(class extends React.Component {
       state = {
         activeCard: this.props.router.query.p ? this.props.router.query.p : `balances`,
-        activeTab: ``,
+        activeOrderTab: ``,
+        activeTokenizedTab: ``,
         activeOrder: null,
         trackedTokens: [],
         providerName: `MetaMask`,

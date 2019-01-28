@@ -189,7 +189,7 @@ export default class FillOrder extends BZxComponent {
       web3,
       bZx,
       accounts,
-      changeTab,
+      changeOrderTab,
       resetOrder
     } = this.props;
 
@@ -239,7 +239,7 @@ export default class FillOrder extends BZxComponent {
           web3,
           bZx,
           accounts,
-          changeTab
+          changeOrderTab
         );
       }
     } else {
@@ -254,7 +254,7 @@ export default class FillOrder extends BZxComponent {
       web3,
       bZx,
       accounts,
-      changeTab,
+      changeOrderTab,
       resetOrder
     } = this.props;
 
@@ -290,7 +290,7 @@ export default class FillOrder extends BZxComponent {
           web3,
           bZx,
           accounts,
-          changeTab
+          changeOrderTab
         );
       }
     } else {

@@ -75,6 +75,8 @@ class NavContent extends React.Component {
   toggleSideNav = () => this.setState(p => ({ showSideNav: !p.showSideNav }));
 
   render() {
+    const { bZx } = this.props;
+
     return (
       <Fragment>
         <a href="https://bZx.network/">
@@ -101,6 +103,10 @@ class NavContent extends React.Component {
               <NavLink id="bounties" onClick={this.changeCardClick}>
                 Bounties
               </NavLink>
+              { bZx.networkId && (bZx.networkId == 50 || bZx.networkId == 42) ? (
+              <NavLink id="tokenizedloans" onClick={this.changeCardClick}>
+                Tokenized Loans
+              </NavLink> ) : ``}
             </HorizontalNav>
             <HamburgerBtn onClick={this.toggleSideNav}>menu</HamburgerBtn>
             <Overlay
@@ -127,6 +133,13 @@ class NavContent extends React.Component {
                 <NavLink id="bounties" onClick={this.changeCardClick}>
                   Bounties
                 </NavLink>
+                <NavLink id="tokenizedloans" onClick={this.changeCardClick}>
+                  Tokenized Loans
+                </NavLink>
+                { bZx.networkId && (bZx.networkId == 50 || bZx.networkId == 42) ? (
+                <NavLink id="tokenizedloans" onClick={this.changeCardClick}>
+                Tokenized Loans
+                </NavLink> ) : ``}
               </VerticalNav>
               <CloseDrawerBtn onClick={this.toggleSideNav}>
                 close

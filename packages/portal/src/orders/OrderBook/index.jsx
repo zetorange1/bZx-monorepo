@@ -58,7 +58,7 @@ export default class OrderBook extends BZxComponent {
   };
 
   render() {
-    const { bZx, accounts, tokens, changeTab } = this.props;
+    const { bZx, accounts, tokens, changeOrderTab } = this.props;
     const { orders, loading, error, count } = this.state;
     if (error) {
       return (
@@ -122,7 +122,7 @@ export default class OrderBook extends BZxComponent {
                 accounts={accounts}
                 tokens={tokens}
                 fillableOrder={fillableOrder}
-                changeTab={changeTab}
+                changeOrderTab={changeOrderTab}
               />
             );
           })

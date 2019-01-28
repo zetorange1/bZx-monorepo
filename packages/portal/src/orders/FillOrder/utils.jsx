@@ -573,7 +573,7 @@ export const submitFillOrderWithHash = (
   web3,
   bZx,
   accounts,
-  changeTab
+  changeOrderTab
 ) => {
   const txOpts = {
     from: accounts[0],
@@ -641,7 +641,7 @@ export const submitFillOrderWithHash = (
           })
           .then(() => {
             console.log();
-            changeTab(`Orders_OrderBook`);
+            changeOrderTab(`Orders_OrderBook`);
             alert(`Your loan has been opened.`);
             this.setState({ isSubmitted: false });
           })
@@ -769,7 +769,7 @@ export const submitCancelOrderWithHash = (
   web3,
   bZx,
   accounts,
-  changeTab
+  changeOrderTab
 ) => {
   const txOpts = {
     from: accounts[0],
@@ -814,7 +814,7 @@ export const submitCancelOrderWithHash = (
           })
           .then(() => {
             console.log();
-            changeTab(`Orders_OrderBook`);
+            changeOrderTab(`Orders_OrderBook`);
             alert(`You have canceled all or part of your loan order.`);
             this.setState({ isSubmitted: false });
           })

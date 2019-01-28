@@ -67,7 +67,7 @@ export default class OrderItem extends React.Component {
     this.setState(p => ({ showRawOrder: !p.showRawOrder }));
 
   render() {
-    const { fillableOrder, accounts, tokens, noShadow, changeTab } = this.props;
+    const { fillableOrder, accounts, tokens, noShadow, changeOrderTab } = this.props;
     const { showRawOrder } = this.state;
     // const { loanPositions } = this.state;
 
@@ -345,7 +345,7 @@ export default class OrderItem extends React.Component {
             <br />
             <MuiButton
               size="small"
-              onClick={() => changeTab(`Orders_FillOrder`, fillableOrder)}
+              onClick={() => changeOrderTab(`Orders_FillOrder`, fillableOrder)}
               variant="raised"
               color="primary"
               // disabled={isMaker}

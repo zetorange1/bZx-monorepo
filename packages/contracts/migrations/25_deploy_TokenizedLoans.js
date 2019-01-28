@@ -22,8 +22,8 @@ module.exports = function(deployer, network, accounts) {
     network = "development";
     weth_token_address = config["addresses"][network]["ZeroEx"]["WETH9"]; //BZxEther.address;
   } else {
-    //weth_token_address = config["addresses"][network]["ZeroEx"]["WETH9"];
     return;
+    weth_token_address = config["addresses"][network]["ZeroEx"]["WETH9"];
   }
 
   if (network == "mainnet" || network == "ropsten" || network == "kovan") {

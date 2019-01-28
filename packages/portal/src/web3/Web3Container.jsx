@@ -219,14 +219,13 @@ export default class Web3Container extends React.Component {
       return;
     }
 
-    this.props.web3Received();
+    this.props.web3Received(bZx);
 
     this.setState({
       loading: false,
       errorMsg: ``,
       web3,
       tokens,
-      bZx,
       accounts,
       oracles,
       networkId
@@ -239,7 +238,6 @@ export default class Web3Container extends React.Component {
       errorMsg,
       web3,
       tokens,
-      bZx,
       accounts,
       oracles,
       networkId
@@ -250,7 +248,8 @@ export default class Web3Container extends React.Component {
       setProvider,
       clearProvider,
       toggleProviderDialog,
-      hideChooseProviderDialog
+      hideChooseProviderDialog,
+      bZx
     } = this.props;
     if (!providerName) {
       if (hideChooseProviderDialog) {

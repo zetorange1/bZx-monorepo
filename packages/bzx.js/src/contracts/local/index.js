@@ -24,6 +24,8 @@ import TestNetFaucet from "../../../../contracts/test_network/deployed/TestNetFa
 import ZRXToken from "../../../../contracts/test_network/deployed/ZRXToken.json";
 import WETH from "../../../../contracts/test_network/deployed/WETH.json";
 
+import LoanToken from "../../../../contracts/test_network/deployed/LoanToken.json";
+
 export default {
   BZx,
   BZxOracle,
@@ -48,5 +50,7 @@ export default {
   ZRXToken,
   WETH,
   OracleInterface,
-  TestNetFaucet
+  TestNetFaucet,
+
+  LoanToken
 };
