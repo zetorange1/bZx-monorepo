@@ -1,6 +1,6 @@
 {
   "name": "@bzxnetwork/bounty_hunters",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Scripts to monitor position health and liquidate",
   "keywords": [],
   "license": "Apache-2.0",
@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "bignumber.js": "^7.0.1",
-    "@bzxnetwork/bzx.js": "0.4.7",
+    "@bzxnetwork/bzx.js": "0.4.8",
     "forever-monitor": "^1.7.1",
     "minimist": "^1.2.0",
     "moment": "^2.22.1",

@@ -1,6 +1,6 @@
 {
   "name": "@bzxnetwork/contracts",
-  "version": "0.4.7",
+  "version": "0.4.8",
   "description": "Smart contracts for the bZx protocol and external integrations",
   "keywords": [],
   "author": "bZeroX LLC 2019",
@@ -17,7 +17,7 @@
     "0x.js": "0.38.6",
     "@0xproject/order-utils": "1.0.1-rc.6",
     "@0xproject/types": "^0.2.3",
-    "@bzxnetwork/bzx.js": "0.4.7",
+    "@bzxnetwork/bzx.js": "0.4.8",
     "abi-decoder": "^1.2.0",
     "bignumber.js": "^7.0.1",
     "cpy-cli": "^2.0.0",
