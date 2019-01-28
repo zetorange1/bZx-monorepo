@@ -54,7 +54,8 @@ module.exports = {
     ropsten: {
       provider: () => new HDWalletProvider(
         ropstenMnemonic,
-        "https://ropsten.infura.io/v3/" + infuraApikey
+        "https://eth-ropsten.alchemyapi.io/jsonrpc/" + alchemyApikey
+        //"https://ropsten.infura.io/v3/" + infuraApikey
       ),
       network_id: 3,
       gas: 8000000,
@@ -79,7 +80,8 @@ module.exports = {
     rinkeby: {
       provider: () => new HDWalletProvider(
         rinkebyMnemonic,
-        "https://rinkeby.infura.io/v3/" + infuraApikey
+        "https://eth-rinkeby.alchemyapi.io/jsonrpc/" + alchemyApikey
+        //"https://rinkeby.infura.io/v3/" + infuraApikey
       ),
       network_id: 4,
       gas: 6721975,
@@ -91,7 +93,8 @@ module.exports = {
     mainnet: {
       provider: () => new PrivateKeyProvider(
         mainnetPrivKey,
-        "https://mainnet.infura.io/v3/" + infuraApikey
+        "https://eth-mainnet.alchemyapi.io/jsonrpc/" + alchemyApikey
+        //"https://mainnet.infura.io/v3/" + infuraApikey
       ),
       /*provider: () => new HDWalletProvider(
         mainnetMnemonic,

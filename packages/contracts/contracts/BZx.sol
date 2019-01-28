@@ -5,7 +5,7 @@
  
 /* solhint-disable func-order, separate-by-one-line-in-contract */
 
-pragma solidity 0.5.2;
+pragma solidity 0.5.3;
 pragma experimental ABIEncoderV2;
 
 import "./storage/BZxStorage.sol";

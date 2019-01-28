@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.5.2;
+pragma solidity 0.5.3;
 
 import "../../openzeppelin-solidity/Ownable.sol";
 
@@ -56,7 +56,7 @@ contract BZRxTransferProxy is Ownable {
     // for ERC20 conformity
     function totalSupply() 
         public 
-        /* view */ 
+        view
         returns (uint256) 
     {
         return StandardToken(bZRxTokenContractAddress).totalSupply();
@@ -66,7 +66,7 @@ contract BZRxTransferProxy is Ownable {
     function balanceOf(
         address _owner) 
         public 
-        /* view */ 
+        view
         returns (uint256)
     {
         return StandardToken(bZRxTokenContractAddress).balanceOf(_owner);
@@ -77,7 +77,7 @@ contract BZRxTransferProxy is Ownable {
         address _owner,
         address _spender)
         public
-        /* view */
+        view
         returns (uint256)
     {
         return StandardToken(bZRxTokenContractAddress).allowance(_owner, _spender);

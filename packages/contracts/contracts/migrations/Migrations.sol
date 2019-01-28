@@ -1,5 +1,5 @@
 
-pragma solidity 0.5.2;
+pragma solidity 0.5.3;
 
 
 contract Migrations {
