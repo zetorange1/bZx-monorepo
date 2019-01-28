@@ -277,13 +277,13 @@ export default class LoanTokens extends BZxComponent {
     console.log(txOpts);
 
     try {
-      //await txObj
-        //.estimateGas(txOpts)
-        //.then(gas => {
-          //console.log(gas);
-          //txOpts.gas = window.gasValue(gas)+10000;
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = window.gasValue(gas)+10000;
           console.log(txOpts);
-          await txObj
+          txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {
               alert(`Transaction submitted, transaction hash:`, {
@@ -304,12 +304,12 @@ export default class LoanTokens extends BZxComponent {
               alert(`The purchase did not complete. Please try again.`);
               this.setState({ buyAmount: ``, showBuyDialog: false });
             });
-        /*})
+        })
         .catch(error => {
           console.error(error.message);
           alert(`The purchase did not complete. Please try again.`);
           this.setState({ buyAmount: ``, showBuyDialog: false });
-        });*/
+        });
     } catch (error) {
       console.error(error.message);
       alert(`The purchase did not complete. Please try again.`);
@@ -337,13 +337,13 @@ export default class LoanTokens extends BZxComponent {
     console.log(txOpts);
 
     try {
-      //await txObj
-        //.estimateGas(txOpts)
-        //.then(gas => {
-          //console.log(gas);
-          //txOpts.gas = window.gasValue(gas);
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = window.gasValue(gas);
           console.log(txOpts);
-          await txObj
+          txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {
               alert(`Transaction submitted, transaction hash:`, {
@@ -364,12 +364,12 @@ export default class LoanTokens extends BZxComponent {
               alert(`The burn did not complete. Please try again.`);
               this.setState({ sellAmount: ``, showSellDialog: false });
             });
-        /*})
+        })
         .catch(error => {
           console.error(error.message);
           alert(`The burn did not complete. Please try again.`);
           this.setState({ sellAmount: ``, showSellDialog: false });
-        });*/
+        });
     } catch (error) {
       console.error(error.message);
       alert(`The burn did not complete. Please try again.`);
@@ -395,13 +395,13 @@ export default class LoanTokens extends BZxComponent {
     console.log(txOpts);
 
     try {
-      //await txObj
-        //.estimateGas(txOpts)
-        //.then(gas => {
-          //console.log(gas);
-          //txOpts.gas = window.gasValue(gas);
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = window.gasValue(gas);
           console.log(txOpts);
-          await txObj
+          txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {
               alert(`Transaction submitted, transaction hash:`, {
@@ -420,11 +420,11 @@ export default class LoanTokens extends BZxComponent {
               console.error(error.message);
               alert(`The txn did not complete. Please try again.`);
             });
-        /*})
+        })
         .catch(error => {
           console.error(error.message);
           alert(`The txn did not complete. Please try again.`);
-        });*/
+        });
     } catch (error) {
       console.error(error.message);
       alert(`The txn did not complete. Please try again.`);
@@ -560,13 +560,13 @@ export default class LoanTokens extends BZxComponent {
     console.log(txOpts);
 
     try {
-      //await txObj
-        //.estimateGas(txOpts)
-        //.then(gas => {
-          //console.log(gas);
-          //txOpts.gas = window.gasValue(gas)+10000;
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = window.gasValue(gas)+10000;
           console.log(txOpts);
-          await txObj
+          txObj
             .send(txOpts)
             .once(`transactionHash`, hash => {
               alert(`Transaction submitted, transaction hash:`, {
@@ -587,12 +587,12 @@ export default class LoanTokens extends BZxComponent {
               alert(`Could not open loan. Please try again.`);
               this.setState({ borrowAmount: ``, showBorrowDialog: false });
             });
-        /*})
+        })
         .catch(error => {
           console.error(error.message);
           alert(`Could not open loan. Please try again.`);
           this.setState({ borrowAmount: ``, showBorrowDialog: false });
-        });*/
+        });
     } catch (error) {
       console.error(error.message);
       alert(`Could not open loan. Please try again.`);
