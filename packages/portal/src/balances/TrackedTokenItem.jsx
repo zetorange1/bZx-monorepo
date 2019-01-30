@@ -43,6 +43,15 @@ const TokenInfo = styled.a.attrs({
   text-decoration: none;
 `;
 
+const TokenInfoLink = styled.a.attrs({
+  target: `_blank`,
+  rel: `noopener noreferrer`
+})`
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.75rem;
+`;
+
 const TokenIcon = styled.img`
   height: 24px;
   width: 24px;
@@ -544,6 +553,17 @@ export default class TrackedTokenItem extends BZxComponent {
         ) : (
           <div>loading...</div>
         )}
+        {` `}
+        {symbol === `WETH` ? (
+        <TokenInfoLink href={`https://weth.io`}>
+          More Info
+        </TokenInfoLink>
+        ) : ``}
+        {symbol === `WBTC` ? (
+        <TokenInfoLink href={`https://www.wbtc.network`}>
+          More Info
+        </TokenInfoLink>
+        ) : ``}
         <ButtonGroup>
           <Button
             variant="raised"

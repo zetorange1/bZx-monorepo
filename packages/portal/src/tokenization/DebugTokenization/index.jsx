@@ -132,7 +132,7 @@ export default class DebugTokenization extends BZxComponent {
 
     try {
       let order = {};
-      if (this.props.iTokenHash) {
+      if (this.props.CurrentHash) {
         const orderKeys = [
           `loanTokenAddress`,
           `interestTokenAddress`,
@@ -145,7 +145,7 @@ export default class DebugTokenization extends BZxComponent {
           `maxDurationUnixTimestampSec`,
           `loanOrderHash`,
         ]
-        const orderArr = await this.wrapAndRun(bzxContract.methods.getLoanOrder(this.props.iTokenHash).call());
+        const orderArr = await this.wrapAndRun(bzxContract.methods.getLoanOrder(this.props.CurrentHash).call());
 
         for(var i=0; i < orderKeys.length; i++) {
           order[orderKeys[i]] = orderArr[i];
@@ -154,14 +154,14 @@ export default class DebugTokenization extends BZxComponent {
         order[`loanTokenAmount`] = toBigNumber(order[`loanTokenAmount`], 10 ** -18).toString() + ` (normalized)`;
         order[`interestAmount`] = toBigNumber(order[`interestAmount`], 10 ** -18).toString()+ ` (normalized)`;
 
-        orderFilledAmounts = await this.wrapAndRun(bzxContract.methods.orderFilledAmounts(this.props.iTokenHash).call());
-        orderCancelledAmounts = await this.wrapAndRun(bzxContract.methods.orderCancelledAmounts(this.props.iTokenHash).call());
+        orderFilledAmounts = await this.wrapAndRun(bzxContract.methods.orderFilledAmounts(this.props.CurrentHash).call());
+        orderCancelledAmounts = await this.wrapAndRun(bzxContract.methods.orderCancelledAmounts(this.props.CurrentHash).call());
       }
 
-      console.log(`this.props.iTokenHash, this.props.iTokenTrader`, this.props.iTokenHash, this.props.iTokenTrader);
+      console.log(`this.props.CurrentHash, this.props.CurrentTrader`, this.props.CurrentHash, this.props.CurrentTrader);
 
       let orderAux = {};
-      if (this.props.iTokenHash) {
+      if (this.props.CurrentHash) {
         const orderAuxKeys = [
           `makerAddress`,
           `takerAddress`,
@@ -174,7 +174,7 @@ export default class DebugTokenization extends BZxComponent {
           `withdrawOnOpen`,
           `description`,
         ]
-        const orderAuxArr = await this.wrapAndRun(bzxContract.methods.getLoanOrderAux(this.props.iTokenHash).call());
+        const orderAuxArr = await this.wrapAndRun(bzxContract.methods.getLoanOrderAux(this.props.CurrentHash).call());
 
         for(var i=0; i < orderAuxKeys.length; i++) {
           orderAux[orderAuxKeys[i]] = orderAuxArr[i];
@@ -185,7 +185,7 @@ export default class DebugTokenization extends BZxComponent {
       }
 
       let position = {};
-      if (this.props.iTokenHash && this.props.iTokenTrader) {
+      if (this.props.CurrentHash && this.props.CurrentTrader) {
         const positionKeys = [
           `trader`,
           `collateralTokenAddressFilled`,
@@ -200,7 +200,7 @@ export default class DebugTokenization extends BZxComponent {
           `positionId`,
         ]
         const positionArr = await this.wrapAndRun(bzxContract.methods.getLoanPosition(
-          await this.wrapAndRun(bzxContract.methods.loanPositionsIds(this.props.iTokenHash, this.props.iTokenTrader).call())
+          await this.wrapAndRun(bzxContract.methods.loanPositionsIds(this.props.CurrentHash, this.props.CurrentTrader).call())
         ).call());
 
         for(var i=0; i < positionKeys.length; i++) {

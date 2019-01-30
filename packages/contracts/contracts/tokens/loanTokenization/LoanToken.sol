@@ -731,6 +731,12 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         }
     }
 
+    function settleInterest()
+        public
+    {
+        _settleInterest();
+    }
+
     function _settleInterest()
         internal
     {

@@ -48,7 +48,7 @@ export default class Bounties extends BZxComponent {
   };
 
   render() {
-    const { bZx, tokens, accounts, web3 } = this.props;
+    const { bZx, tokens, accounts, web3, setCurrentLoan, changeCard } = this.props;
     const { loans, loading, error, count } = this.state;
     if (error) {
       return (
@@ -97,6 +97,8 @@ export default class Bounties extends BZxComponent {
               accounts={accounts}
               data={data}
               web3={web3}
+              setCurrentLoan={setCurrentLoan}
+              changeCard={changeCard}
             />
           ))}
         </Section>

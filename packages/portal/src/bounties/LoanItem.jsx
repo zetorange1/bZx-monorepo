@@ -121,6 +121,11 @@ export default class LoanItem extends BZxComponent {
 
   handleExpandClick = () => this.setState({ expanded: !this.state.expanded });
 
+  debugLoan = () => {
+    this.props.setCurrentLoan(this.props.data.loanOrderHash, this.props.data.trader);
+    this.props.changeCard(`debug`);
+  }
+
   liquidate = () => {
     const { bZx, web3, accounts, data } = this.props;
     const { loanOrderHash, trader } = data;
@@ -281,6 +286,16 @@ export default class LoanItem extends BZxComponent {
           )}
 
           <DataPointContainer>
+            { process.env.NODE_ENV !== `production` ? (
+            <Button
+              style={{ marginTop: `12px`, marginRight: `12px` }}
+              variant="raised"
+              onClick={this.debugLoan}
+            >
+              Debug
+            </Button>
+            ) : ``}
+            
             <Button
               style={{ marginTop: `12px` }}
               variant="raised"

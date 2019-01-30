@@ -34,6 +34,8 @@ import Lending from "../src/lending";
 
 import Bounties from "../src/bounties";
 
+import Debug from "../src/debug";
+
 //import Tokensale from "../src/tokensale";
 
 import Web3Container from "../src/web3/Web3Container";
@@ -87,8 +89,8 @@ switch (domainData.subdomain) {
         web3IsReceived: false,
         hideChooseProviderDialog: false,
         lastTokenRefresh: null,
-        iTokenHash: ``,
-        iTokenTrader: ``,
+        currentHash: ``,
+        currentTrader: ``,
         bZx: null
       };
     
@@ -119,8 +121,7 @@ switch (domainData.subdomain) {
         }
       };
 
-      setiTokenHash = val => this.setState({ iTokenHash: val });
-      setiTokenTrader = val => this.setState({ iTokenTrader: val });
+      setCurrentLoan = (hash, trader) => this.setState({ currentHash: hash, currentTrader: trader });
     
       toggleProviderDialog = event => {
         event.preventDefault();
@@ -129,7 +130,7 @@ switch (domainData.subdomain) {
         }));*/
         this.setProvider(`MetaMask`);
       };
-    
+
       changeCard = cardId => this.setState({ activeCard: cardId });
       changeOrderTab = (tabId, order) =>
         this.setState({ activeOrderTab: tabId, activeOrder: order });
@@ -173,28 +174,7 @@ switch (domainData.subdomain) {
               </Fragment>
             );
             break; // eslint-disable-line no-unreachable
-          case `tokenizedloans`:
-            return (
-              <Fragment>
-                <HeaderTitle>
-                  <HeaderTitleSiteName>bZx Portal</HeaderTitleSiteName>
-                  <HeaderTitleContext>Tokenized Loans</HeaderTitleContext>
-                </HeaderTitle>
-                <HeaderData />
-                <TabGroup>
-                  {TOKENIZED_TABS.map(tab => (
-                    <Tab
-                      key={tab.id}
-                      active={this.state.activeOrderTab === tab.id}
-                      onClick={() => this.changeTokenizedTab(tab.id)}
-                    >
-                      {tab.label}
-                    </Tab>
-                  ))}
-                </TabGroup>
-              </Fragment>
-            );
-            break; // eslint-disable-line no-unreachable
+
           case `orders`:
             return (
               <Fragment>
@@ -250,6 +230,39 @@ switch (domainData.subdomain) {
               </Fragment>
             );
             break; // eslint-disable-line no-unreachable
+            case `tokenizedloans`:
+            return (
+              <Fragment>
+                <HeaderTitle>
+                  <HeaderTitleSiteName>bZx Portal</HeaderTitleSiteName>
+                  <HeaderTitleContext>Tokenized Loans</HeaderTitleContext>
+                </HeaderTitle>
+                <HeaderData />
+                <TabGroup>
+                  {TOKENIZED_TABS.map(tab => (
+                    <Tab
+                      key={tab.id}
+                      active={this.state.activeOrderTab === tab.id}
+                      onClick={() => this.changeTokenizedTab(tab.id)}
+                    >
+                      {tab.label}
+                    </Tab>
+                  ))}
+                </TabGroup>
+              </Fragment>
+            );
+            break; // eslint-disable-line no-unreachable
+            case `debug`:
+            return (
+              <Fragment>
+                <HeaderTitle>
+                  <HeaderTitleSiteName>bZx Portal</HeaderTitleSiteName>
+                  <HeaderTitleContext>Debug</HeaderTitleContext>
+                </HeaderTitle>
+                <HeaderData />
+              </Fragment>
+            );
+            break; // eslint-disable-line no-unreachable
           /*case `tokensale`:
             return (
               <Fragment>
@@ -292,56 +305,6 @@ switch (domainData.subdomain) {
                   updateTrackedTokens={this.updateTrackedTokens(tokens)}
                   lastTokenRefresh={this.state.lastTokenRefresh}
                 />
-              </Fragment>
-            );
-            break; // eslint-disable-line no-unreachable
-          case `tokenizedloans`:
-            return (
-              <Fragment>
-                <NetworkIndicator
-                  networkId={networkId}
-                  accounts={accounts}
-                  etherscanURL={bZx.etherscanURL}
-                  providerName={this.state.providerName}
-                  clearProvider={this.clearProvider}
-                />
-                <ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_loantokens`}>
-                  <LoanTokens
-                    web3={web3}
-                    zeroEx={zeroEx}
-                    bZx={bZx}
-                    accounts={accounts}
-                    tokens={tokens}
-                    setiTokenHash={this.setiTokenHash}
-                    setiTokenTrader={this.setiTokenTrader}
-                    iTokenHash={this.state.iTokenHash}
-                    iTokenTrader={this.state.iTokenTrader}
-                  />
-                </ContentContainer>
-                {/*<ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_positiontokens`}>
-                  <PositionTokens
-                    tokens={tokens}
-                    bZx={bZx}
-                    accounts={accounts}
-                    web3={web3}
-                    oracles={oracles}
-                    //setiTokenHash={this.setiTokenHash}
-                    //setiTokenTrader={this.setiTokenTrader}
-                    iTokenHash={this.state.iTokenHash}
-                    iTokenTrader={this.state.iTokenTrader}
-                  />
-                </ContentContainer>*/}
-                <ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_debug`}>
-                  <DebugTokenization
-                    tokens={tokens}
-                    bZx={bZx}
-                    accounts={accounts}
-                    web3={web3}
-                    oracles={oracles}
-                    iTokenHash={this.state.iTokenHash}
-                    iTokenTrader={this.state.iTokenTrader}
-                  />
-                </ContentContainer>
               </Fragment>
             );
             break; // eslint-disable-line no-unreachable
@@ -472,11 +435,84 @@ switch (domainData.subdomain) {
                   bZx={bZx}
                   accounts={accounts}
                   tokens={tokens}
+                  setCurrentLoan={this.setCurrentLoan}
+                  changeCard={this.changeCard}
                 />
               </Fragment>
             );
             break; // eslint-disable-line no-unreachable
-          /*case `tokensale`:
+            case `tokenizedloans`:
+            return (
+              <Fragment>
+                <NetworkIndicator
+                  networkId={networkId}
+                  accounts={accounts}
+                  etherscanURL={bZx.etherscanURL}
+                  providerName={this.state.providerName}
+                  clearProvider={this.clearProvider}
+                />
+                <ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_loantokens`}>
+                  <LoanTokens
+                    web3={web3}
+                    zeroEx={zeroEx}
+                    bZx={bZx}
+                    accounts={accounts}
+                    tokens={tokens}
+                    setCurrentLoan={this.setCurrentLoan}
+                    currentHash={this.state.currentHash}
+                    currentTrader={this.state.currentTrader}
+                  />
+                </ContentContainer>
+                {/*<ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_positiontokens`}>
+                  <PositionTokens
+                    tokens={tokens}
+                    bZx={bZx}
+                    accounts={accounts}
+                    web3={web3}
+                    oracles={oracles}
+                    //setCurrentLoan={this.setCurrentLoan}
+                    currentHash={this.state.currentHash}
+                    currentTrader={this.state.currentTrader}
+                  />
+                </ContentContainer>*/}
+                <ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_debug`}>
+                  <DebugTokenization
+                    tokens={tokens}
+                    bZx={bZx}
+                    accounts={accounts}
+                    web3={web3}
+                    oracles={oracles}
+                    currentHash={this.state.currentHash}
+                    currentTrader={this.state.currentTrader}
+                  />
+                </ContentContainer>
+              </Fragment>
+            );
+            break; // eslint-disable-line no-unreachable
+            case `debug`:
+            return (
+              <Fragment>
+                <NetworkIndicator
+                  networkId={networkId}
+                  accounts={accounts}
+                  etherscanURL={bZx.etherscanURL}
+                  providerName={this.state.providerName}
+                  clearProvider={this.clearProvider}
+                />
+                <Debug
+                  web3={web3}
+                  zeroEx={zeroEx}
+                  bZx={bZx}
+                  accounts={accounts}
+                  tokens={tokens}
+                  setCurrentLoan={this.setCurrentLoan}
+                  currentHash={this.state.currentHash}
+                  currentTrader={this.state.currentTrader}
+                />
+              </Fragment>
+            );
+            break; // eslint-disable-line no-unreachable
+            /*case `tokensale`:
             return (
               <Fragment>
                 <NetworkIndicator

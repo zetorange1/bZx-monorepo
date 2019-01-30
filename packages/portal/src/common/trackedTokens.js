@@ -1,6 +1,6 @@
 /* globals localStorage */
 
-export const PERMA_TOKEN_SYMBOLS = [`BZRX`, `BZRXFAKE`, `ZRX`, `WETH`];
+export const PERMA_TOKEN_SYMBOLS = [`BZRX`, `BZRXFAKE`, `ZRX`, `WETH`, `WBTC`];
 
 export const FAUCET_TOKEN_SYMBOLS = {
   mainnet: [`BZRXFAKE`],

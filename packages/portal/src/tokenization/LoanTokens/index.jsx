@@ -142,9 +142,7 @@ export default class LoanTokens extends BZxComponent {
       leverageHashes[leverage] = hashList[i];
     }
 
-    await this.props.setiTokenHash(leverageHashes[2]);
-
-    await this.props.setiTokenTrader(this.props.accounts[0]);
+    await this.props.setCurrentLoan(leverageHashes[2], this.props.accounts[0]);
 
     await this.setState({ 
       tokenContract,
@@ -241,7 +239,7 @@ export default class LoanTokens extends BZxComponent {
 
   setLeverageAmount = async e => {
     await this.setState({ leverageAmount: e.target.value });
-    await this.props.setiTokenHash(this.state.leverageHashes[e.target.value]);
+    await this.props.setCurrentLoan(this.state.leverageHashes[e.target.value], this.props.accounts[0]);
   }
 
   setStateForInput = key => e => this.setState({ [key]: e.target.value });

@@ -107,6 +107,10 @@ class NavContent extends React.Component {
               <NavLink id="tokenizedloans" onClick={this.changeCardClick}>
                 Tokenized Loans
               </NavLink> ) : ``}
+              { process.env.NODE_ENV !== `production` ? (
+              <NavLink id="debug" onClick={this.changeCardClick}>
+                Debug
+              </NavLink> ) : ``}
             </HorizontalNav>
             <HamburgerBtn onClick={this.toggleSideNav}>menu</HamburgerBtn>
             <Overlay
@@ -139,6 +143,10 @@ class NavContent extends React.Component {
                 { bZx.networkId && (bZx.networkId == 50 || bZx.networkId == 42) ? (
                 <NavLink id="tokenizedloans" onClick={this.changeCardClick}>
                 Tokenized Loans
+                </NavLink> ) : ``}
+                { process.env.NODE_ENV !== `production` ? (
+                <NavLink id="debug" onClick={this.changeCardClick}>
+                  Debug
                 </NavLink> ) : ``}
               </VerticalNav>
               <CloseDrawerBtn onClick={this.toggleSideNav}>
