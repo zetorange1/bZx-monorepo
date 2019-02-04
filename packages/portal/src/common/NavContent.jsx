@@ -137,9 +137,6 @@ class NavContent extends React.Component {
                 <NavLink id="bounties" onClick={this.changeCardClick}>
                   Bounties
                 </NavLink>
-                <NavLink id="tokenizedloans" onClick={this.changeCardClick}>
-                  Tokenized Loans
-                </NavLink>
                 { bZx.networkId && (bZx.networkId == 50 || bZx.networkId == 42) ? (
                 <NavLink id="tokenizedloans" onClick={this.changeCardClick}>
                 Tokenized Loans
