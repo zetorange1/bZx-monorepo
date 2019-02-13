@@ -11,7 +11,6 @@ npm install --save @bzxnetwork/bzx.js
 # Initialize
 
 ```javascript
-const Web3 = require("web3");
 const { BZxJS } = require("@bzxnetwork/bzx.js");
 
 const networkId = await web3.eth.net.getId();
