@@ -250,10 +250,11 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
 
         if (loanOrder.interestTokenAddress != wethContract && loanOrder.interestTokenAddress != bZRxTokenContract) {
             // interest paid in WETH or BZRX is retained as is, other tokens are sold for WETH
-            _tradeForWeth(
+            _trade(
                 loanOrder.interestTokenAddress,
-                interestFee,
+                wethContract,
                 address(this), // BZxOracle receives the WETH proceeds
+                interestFee,
                 MAX_FOR_KYBER // no limit on the dest amount
             );
         }
@@ -294,10 +295,11 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
 
         if (interestTokenAddress != wethContract && interestTokenAddress != bZRxTokenContract) {
             // interest paid in WETH or BZRX is retained as is, other tokens are sold for WETH
-            _tradeForWeth(
+            _trade(
                 interestTokenAddress,
-                interestFee,
+                wethContract,
                 address(this), // BZxOracle receives the WETH proceeds
+                interestFee,
                 MAX_FOR_KYBER // no limit on the dest amount
             );
         }
@@ -472,8 +474,10 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         (destTokenAmountReceived, sourceTokenAmountUsed) = _trade(
             sourceTokenAddress,
             destTokenAddress,
+            vaultContract,
             sourceTokenAmount,
             maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER);
+        require(destTokenAmountReceived > 0, "destTokenAmountReceived == 0");
     }
 
     function tradePosition(
@@ -489,8 +493,10 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         (destTokenAmountReceived, sourceTokenAmountUsed) = _trade(
             loanPosition.positionTokenAddressFilled,
             destTokenAddress,
+            vaultContract,
             loanPosition.positionTokenAmountFilled,
             maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER);
+        require(destTokenAmountReceived > 0, "destTokenAmountReceived == 0");
 
         if (ensureHealthy) {
             loanPosition.positionTokenAddressFilled = destTokenAddress;
@@ -530,8 +536,10 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         (destTokenAmountReceived, sourceTokenAmountUsed) = _trade(
             loanPosition.positionTokenAddressFilled,
             loanOrder.loanTokenAddress,
+            vaultContract,
             loanPosition.positionTokenAmountFilled,
             MAX_FOR_KYBER); // no limit on the dest amount
+        require(destTokenAmountReceived > 0, "destTokenAmountReceived == 0");
     }
 
     // note: bZx will only call this function if isLiquidation=true or loanTokenAmountNeeded > 0
@@ -560,22 +568,25 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         );
 
         if (loanTokenAmountNeeded > 0) {
+            uint256 wethBalance = EIP20(wethContract).balanceOf(address(this));
             if (collateralInWethAmounts[loanPosition.positionId] >= minimumCollateralInWethAmount && 
                 (minInitialMarginAmount == 0 || loanOrder.initialMarginAmount >= minInitialMarginAmount) &&
                 (minMaintenanceMarginAmount == 0 || loanOrder.maintenanceMarginAmount >= minMaintenanceMarginAmount)) {
                 // cover losses with collateral proceeds + oracle insurance
-                loanTokenAmountCovered = _tradeWithWeth(
+                (loanTokenAmountCovered,) = _trade(
+                    wethContract,
                     loanOrder.loanTokenAddress,
-                    MAX_FOR_KYBER, // maximum usable amount
                     vaultContract,
+                    wethBalance, // maximum usable amount
                     loanTokenAmountNeeded
                 );
             } else {
                 // cover losses with just collateral proceeds
-                loanTokenAmountCovered = _tradeWithWeth(
+                (loanTokenAmountCovered,) = _trade(
+                    wethContract,
                     loanOrder.loanTokenAddress,
-                    wethAmountReceived, // maximum usable amount
                     vaultContract,
+                    wethAmountReceived > wethBalance ? wethBalance : wethAmountReceived, // maximum usable amount
                     loanTokenAmountNeeded
                 );
             }
@@ -951,32 +962,13 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         onlyOwner
         returns (uint256 destTokenAmountReceived)
     {
-        // re-up the Kyber spend approval if needed
-        uint256 tempAllowance = EIP20(sourceTokenAddress).allowance(address(this), kyberContract);
-        if (tempAllowance < sourceTokenAmount) {
-            if (tempAllowance > 0) {
-                // reset approval to 0
-                eip20Approve(
-                    sourceTokenAddress,
-                    kyberContract,
-                    0);
-            }
-
-            eip20Approve(
-                sourceTokenAddress,
-                kyberContract,
-                MAX_FOR_KYBER);
-        }
-
-        destTokenAmountReceived = KyberNetworkInterface(kyberContract).trade(
+        (destTokenAmountReceived,) = _trade(
             sourceTokenAddress,
-            sourceTokenAmount,
             destTokenAddress,
             address(this),
-            MAX_FOR_KYBER,
-            0,
-            address(this)
-        );
+            sourceTokenAmount,
+            MAX_FOR_KYBER);
+        require(destTokenAmountReceived > 0, "destTokenAmountReceived == 0");
     }
 
     /*
@@ -1008,10 +1000,11 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         }
 
         // trade collateral token for WETH
-        wethAmountReceived = _tradeForWeth(
+        (wethAmountReceived,) = _trade(
             collateralTokenAddress,
-            collateralTokenAmountUsable,
+            wethContract,
             address(this), // BZxOracle receives the WETH proceeds
+            collateralTokenAmountUsable,
             !isLiquidation ? wethAmountNeeded : wethAmountNeeded.add(gasUpperBound.mul(emaValue).mul(bountyRewardPercent).div(10**20))
         );
     }
@@ -1061,6 +1054,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
     function _trade(
         address sourceTokenAddress,
         address destTokenAddress,
+        address receiverAddress,
         uint256 sourceTokenAmount,
         uint256 maxDestTokenAmount)
         internal
@@ -1078,20 +1072,22 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
                 sourceTokenAmountUsed = sourceTokenAmount;
             }
 
-            if (!_transferToken(
-                destTokenAddress,
-                vaultContract,
-                destTokenAmountReceived)) {
-                revert("BZxOracle::_trade: _transferToken failed");
-            }
-
-            if (sourceTokenAmountUsed < sourceTokenAmount) {
-                // send unused source token back
+            if (receiverAddress != address(this)) {
                 if (!_transferToken(
-                    sourceTokenAddress,
-                    vaultContract,
-                    sourceTokenAmount-sourceTokenAmountUsed)) {
+                    destTokenAddress,
+                    receiverAddress,
+                    destTokenAmountReceived)) {
                     revert("BZxOracle::_trade: _transferToken failed");
+                }
+
+                if (sourceTokenAmountUsed < sourceTokenAmount) {
+                    // send unused source token back
+                    if (!_transferToken(
+                        sourceTokenAddress,
+                        receiverAddress,
+                        sourceTokenAmount-sourceTokenAmountUsed)) {
+                        revert("BZxOracle::_trade: _transferToken failed");
+                    }
                 }
             }
         } else {
@@ -1114,69 +1110,6 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
 
             uint256 sourceBalanceBefore = EIP20(sourceTokenAddress).balanceOf(address(this));
 
-            destTokenAmountReceived = KyberNetworkInterface(kyberContract).trade(
-                sourceTokenAddress,
-                sourceTokenAmount,
-                destTokenAddress,
-                vaultContract, // BZxVault receives the trade proceeds
-                maxDestTokenAmount,
-                0, // no min coversation rate
-                address(this)
-            );
-
-            sourceTokenAmountUsed = sourceBalanceBefore.sub(EIP20(sourceTokenAddress).balanceOf(address(this)));
-            if (sourceTokenAmountUsed < sourceTokenAmount) {
-                // send unused source token back
-                if (!_transferToken(
-                    sourceTokenAddress,
-                    vaultContract,
-                    sourceTokenAmount-sourceTokenAmountUsed)) {
-                    revert("BZxOracle::_trade: _transferToken failed");
-                }
-            }
-        }
-    }
-
-    function _tradeForWeth(
-        address sourceTokenAddress,
-        uint256 sourceTokenAmount,
-        address receiver,
-        uint256 destWethAmountNeeded)
-        internal
-        returns (uint256 destWethAmountReceived)
-    {
-        if (sourceTokenAddress == wethContract) {
-            if (destWethAmountNeeded > sourceTokenAmount)
-                destWethAmountNeeded = sourceTokenAmount;
-
-            if (receiver != address(this)) {
-                if (!_transferToken(
-                    wethContract,
-                    receiver,
-                    destWethAmountNeeded)) {
-                    revert("BZxOracle::_tradeForWeth: _transferToken failed");
-                }
-            }
-
-            destWethAmountReceived = destWethAmountNeeded;
-        } else {
-            // re-up the Kyber spend approval if needed
-            uint256 tempAllowance = EIP20(sourceTokenAddress).allowance(address(this), kyberContract);
-            if (tempAllowance < sourceTokenAmount) {
-                if (tempAllowance > 0) {
-                    // reset approval to 0
-                    eip20Approve(
-                        sourceTokenAddress,
-                        kyberContract,
-                        0);
-                }
-
-                eip20Approve(
-                    sourceTokenAddress,
-                    kyberContract,
-                    MAX_FOR_KYBER);
-            }
-
             /* the following code is to allow the Kyber trade to fail silently and not revert if it does, preventing a "bubble up" */
 
             (bool result, bytes memory data) = kyberContract.call.gas(gasleft())(
@@ -1184,94 +1117,9 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
                     "trade(address,uint256,address,address,uint256,uint256,address)",
                     sourceTokenAddress,
                     sourceTokenAmount,
-                    wethContract,
-                    receiver,
-                    destWethAmountNeeded,
-                    0, // no min coversation rate
-                    address(this)
-                )
-            );
-
-            assembly {
-                switch result
-                case 0 {
-                    destWethAmountReceived := 0
-                }
-                default {
-                    destWethAmountReceived := mload(add(data, 32))
-                }
-            }
-
-            /*assembly {
-                switch result
-                case 0 {
-                    destWethAmountReceived := 0
-                }
-                default {
-                    returndatacopy(0, 0, 0x20) 
-                    destWethAmountReceived := mload(0)
-                }
-            }*/
-        }
-    }
-
-    function _tradeWithWeth(
-        address destTokenAddress,
-        uint256 sourceWethAmount,
-        address receiver,
-        uint256 destTokenAmountNeeded)
-        internal
-        returns (uint256 destTokenAmountReceived)
-    {
-        uint256 wethBalance = EIP20(wethContract).balanceOf(address(this));
-        if (destTokenAddress == wethContract) {
-            if (destTokenAmountNeeded > sourceWethAmount)
-                destTokenAmountNeeded = sourceWethAmount;
-            if (destTokenAmountNeeded > wethBalance)
-                destTokenAmountNeeded = wethBalance;
-
-            if (receiver != address(this)) {
-                if (!_transferToken(
-                    wethContract,
-                    receiver,
-                    destTokenAmountNeeded)) {
-                    revert("BZxOracle::_tradeWithWeth: _transferToken failed");
-                }
-            }
-
-            destTokenAmountReceived = destTokenAmountNeeded;
-        } else {
-            if (sourceWethAmount > wethBalance) {
-                sourceWethAmount = wethBalance;
-            }
-
-            // re-up the Kyber spend approval if needed
-            uint256 tempAllowance = EIP20(wethContract).allowance(address(this), kyberContract);
-            if (tempAllowance < sourceWethAmount) {
-                if (tempAllowance > 0) {
-                    // reset approval to 0
-                    eip20Approve(
-                        wethContract,
-                        kyberContract,
-                        0);
-                }
-
-                eip20Approve(
-                    wethContract,
-                    kyberContract,
-                    MAX_FOR_KYBER);
-            }
-
-            /* the following code is to allow the Kyber trade to fail silently and not revert if it does, preventing a "bubble up" */
-
-            (bool result, bytes memory data) = kyberContract.call.gas(gasleft())(
-                abi.encodeWithSignature(
-                    "trade(address,uint256,address,address,uint256,uint256,address)",
-                    wethContract,
-                    sourceWethAmount,
                     destTokenAddress,
-                    receiver,
-                    destTokenAmountNeeded,
+                    receiverAddress,
+                    maxDestTokenAmount,
                     0, // no min coversation rate
                     address(this)
                 )
@@ -1287,16 +1135,19 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
                 }
             }
 
-            /*assembly {
-                switch result
-                case 0 {
-                    destTokenAmountReceived := 0
+            sourceTokenAmountUsed = sourceBalanceBefore.sub(EIP20(sourceTokenAddress).balanceOf(address(this)));
+
+            if (receiverAddress != address(this)) {
+                if (sourceTokenAmountUsed < sourceTokenAmount) {
+                    // send unused source token back
+                    if (!_transferToken(
+                        sourceTokenAddress,
+                        receiverAddress,
+                        sourceTokenAmount-sourceTokenAmountUsed)) {
+                        revert("BZxOracle::_trade: _transferToken failed");
+                    }
                 }
-                default {
-                    returndatacopy(0, 0, 0x20) 
-                    destTokenAmountReceived := mload(0)
-                }
-            }*/
+            }
         }
     }
 
