@@ -154,7 +154,7 @@ export default class LoanTokens extends BZxComponent {
     await this.refreshTokenData();
   }
 
-  getBZxEtherBalance = async (stateVar, who) => {
+  getWETHBalance = async (stateVar, who) => {
     const { bZx, tokens, accounts } = this.props;
     const token = await tokens.filter(t => t.symbol === `WETH`)[0];
 
@@ -217,8 +217,8 @@ export default class LoanTokens extends BZxComponent {
         error: false 
       });
 
-      await this.getBZxEtherBalance(`wethBalance`, accounts[0]);
-      await this.getBZxEtherBalance(`wethBalanceContract`, this.state.tokenContract._address);
+      await this.getWETHBalance(`wethBalance`, accounts[0]);
+      await this.getWETHBalance(`wethBalanceContract`, this.state.tokenContract._address);
 
     } catch(e) {
       console.log(e);

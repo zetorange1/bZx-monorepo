@@ -15,7 +15,7 @@ const path = require("path");
 var config = require("../protocol-config.js");
 
 module.exports = function(deployer, network, accounts) {
-
+return;
   network = network.replace("-fork", "");
   var weth_token_address;
   if (network == "development" || network == "develop" || network == "testnet" || network == "coverage") {

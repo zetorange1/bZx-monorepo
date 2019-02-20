@@ -131,7 +131,7 @@ contract OrderHistory_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
         returns (bytes memory)
     {
         LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
-        if (loanPosition.loanTokenAmountFilled == 0) {
+        if (loanPosition.loanStartUnixTimestampSec == 0) {
             return "";
         }
 

@@ -1,7 +1,6 @@
 var TokenRegistry = artifacts.require("TokenRegistry");
 var TestNetFaucet = artifacts.require("TestNetFaucet");
 var TestNetOracle = artifacts.require("TestNetOracle");
-var BZxEther = artifacts.require("BZxEther");
 
 const path = require("path");
 const config = require("../protocol-config.js");
@@ -27,7 +26,7 @@ module.exports = (deployer, network, accounts) => {
 
         await oracle.setRates(
           t.address,
-          BZxEther.address,
+          config["addresses"][network]["ZeroEx"]["WETH9"],
           web3.utils.toWei(((Math.floor(Math.random() * 100) + 2)/1000).toString(), "ether")
         );
       }

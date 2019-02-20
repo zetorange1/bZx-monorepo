@@ -103,8 +103,8 @@ contract TestNetOracle is BZxOracle {
     function _trade(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint256 sourceTokenAmount,
         address receiverAddress,
+        uint256 sourceTokenAmount,
         uint256 maxDestTokenAmount)
         internal
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
@@ -164,7 +164,7 @@ contract TestNetOracle is BZxOracle {
                     // send unused source token back
                     if (!_transferToken(
                         sourceTokenAddress,
-                        vaultContract,
+                        receiverAddress,
                         sourceTokenAmount-sourceTokenAmountUsed)) {
                         revert("TestNetOracle::_trade: _transferToken failed");
                     }

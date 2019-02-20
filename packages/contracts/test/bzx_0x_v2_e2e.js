@@ -1050,8 +1050,8 @@ contract("BZxTest", function(accounts) {
     it("should generate 0x V2 orders", async () => {
 
       let tradeData = await oracle.getTradeData.call(
-        maker0xV2Token1.address.toLowerCase(),
         loanToken1.address.toLowerCase(),
+        maker0xV2Token1.address.toLowerCase(),
         utils.toWei(3, "ether").toString()
       );
       //console.log(tradeData);
@@ -1062,8 +1062,8 @@ contract("BZxTest", function(accounts) {
         takerAddress: utils.zeroAddress,
         feeRecipientAddress: owner,
         senderAddress: utils.zeroAddress,
-        makerAssetAmount: utils.toWei(3, "ether").toString(),
-        takerAssetAmount: tradeData[2].toString(),
+        makerAssetAmount: tradeData[2].toString(),
+        takerAssetAmount: utils.toWei(3, "ether").toString(),
         makerFee: utils.toWei(0.0005, "ether").toString(),
         takerFee: utils.toWei(0.01, "ether").toString(),
         expirationTimeSeconds: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
@@ -1073,9 +1073,9 @@ contract("BZxTest", function(accounts) {
       };
 
       tradeData = await oracle.getTradeData.call(
-        maker0xV2Token1.address.toLowerCase(),
         loanToken1.address.toLowerCase(),
-        utils.toWei(120, "ether").toString()
+        maker0xV2Token1.address.toLowerCase(),
+        utils.toWei(100000, "ether").toString()
       );
 
       OrderParams_0xV2_2 = {
@@ -1084,8 +1084,8 @@ contract("BZxTest", function(accounts) {
         takerAddress: utils.zeroAddress,
         feeRecipientAddress: owner,
         senderAddress: utils.zeroAddress,
-        makerAssetAmount: utils.toWei(120, "ether").toString(),
-        takerAssetAmount: tradeData[2].toString(),
+        makerAssetAmount: tradeData[2].toString(),
+        takerAssetAmount: utils.toWei(100000, "ether").toString(),
         makerFee: "0",
         takerFee: utils.toWei(0.0025, "ether").toString(),
         expirationTimeSeconds: ((await web3.eth.getBlock("latest")).timestamp + 86400).toString(),
@@ -1224,12 +1224,24 @@ contract("BZxTest", function(accounts) {
 
   context("Position Excess and Interests", async () => {
     it("should withdraw position exccess (for trader1)", async () => {
-      let initialExcess = await bZx.getPositionOffset.call(OrderHash_bZx_1, trader1);
-
-      assert.isTrue(!initialExcess[0]);
 
       let positionId = await bZx.loanPositionsIds.call(OrderHash_bZx_1, trader1);
-      let positionToken = (await bZx.loanPositions.call(positionId))[2];
+      let positionToken = await ERC20.at((await bZx.loanPositions.call(positionId))[2]);
+
+      await bZx.depositPosition(
+        OrderHash_bZx_1,
+        positionToken.address,
+        "1000000000000000000",
+        { from: trader1 }
+      );
+      
+      let initialExcess = await bZx.getPositionOffset.call(
+        OrderHash_bZx_1,
+        trader1
+      );
+      //console.log("initialExcess",initialExcess);
+      assert.isTrue(initialExcess[0]);
+
       let traderInitialBalance = await positionToken.balanceOf.call(trader1);
       let vaultInitialBalance = await positionToken.balanceOf.call(vault.address);
 
@@ -1254,6 +1266,7 @@ contract("BZxTest", function(accounts) {
         OrderHash_bZx_1,
         trader1
       );
+      //console.log("finalExcess",finalExcess);
       assert.isFalse(finalExcess[0]);
 
       let traderFinalBalance = await positionToken.balanceOf.call(
@@ -1425,7 +1438,6 @@ contract("BZxTest", function(accounts) {
 
       await bZx.withdrawCollateral(
         OrderHash_bZx_1,
-        interestToken1.address,
         VALUE,
         { from: trader1 }
       );

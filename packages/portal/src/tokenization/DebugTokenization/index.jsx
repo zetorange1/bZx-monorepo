@@ -214,7 +214,7 @@ export default class DebugTokenization extends BZxComponent {
 
 
       const TradeToken = await this.props.bZx.getWeb3Contract(`TestToken9`);
-      const LoanedToken = await this.props.bZx.getWeb3Contract(`BZxEther`);
+      const LoanedToken = await this.props.bZx.getWeb3Contract(`WETH`);
       const oracleContract = await this.props.bZx.getWeb3Contract(`BZxOracle`);
       const currentRateObj = await this.wrapAndRun(oracleContract.methods.getTradeData(
         TradeToken._address,
@@ -269,7 +269,7 @@ export default class DebugTokenization extends BZxComponent {
     };
 
     const TradeToken = await this.props.bZx.getWeb3Contract(`TestToken9`);
-    const LoanedToken = await this.props.bZx.getWeb3Contract(`BZxEther`);
+    const LoanedToken = await this.props.bZx.getWeb3Contract(`WETH`);
 
     txOpts.data = web3.eth.abi.encodeFunctionSignature('setRates(address,address,uint256)') +
       web3.eth.abi.encodeParameters(['address','address','uint256'], [TradeToken._address,LoanedToken._address,toBigNumber(rates, 10 ** 18).toString()]).substr(2);

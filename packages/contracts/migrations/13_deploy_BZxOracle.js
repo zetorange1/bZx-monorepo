@@ -6,7 +6,7 @@ var BZxProxy = artifacts.require("BZxProxy");
 var BZxProxySettings = artifacts.require("BZxProxySettings");
 var OracleRegistry = artifacts.require("OracleRegistry");
 
-//var WETH = artifacts.require("WETHInterface");
+var WETH = artifacts.require("WETHInterface");
 var BZxEther = artifacts.require("BZxEther");
 
 const path = require("path");
@@ -22,7 +22,7 @@ module.exports = (deployer, network, accounts) => {
 
   if (network == "development" || network == "develop" || network == "testnet" || network == "coverage") {
     network = "development";
-    weth_token_address = BZxEther.address;
+    weth_token_address = config["addresses"][network]["ZeroEx"]["WETH9"];
   } else {
     weth_token_address = config["addresses"][network]["ZeroEx"]["WETH9"];
   }

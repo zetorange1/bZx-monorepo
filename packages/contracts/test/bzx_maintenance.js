@@ -201,7 +201,7 @@ contract("BZxLoanMaintenance", function(accounts) {
         it("should allow new owner to manage collateral", async () => {
             await bZx.changeCollateral(orderHash, interestToken1.address, {from: strangerTrader});
             await bZx.depositCollateral(orderHash, interestToken1.address, 10, {from: strangerTrader});
-            await bZx.withdrawCollateral(orderHash, interestToken1.address, 10, {from: strangerTrader});
+            await bZx.withdrawCollateral(orderHash, 10, {from: strangerTrader});
         });
 
         after("clean up", async () => {

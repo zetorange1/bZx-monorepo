@@ -723,7 +723,8 @@ contract("BZxTest", function(accounts) {
   (run["should take sample loan order (as lender1/trader2) on chain"]
     ? it
     : it.skip)("should take sample loan order (as lender1/trader2) on chain", function(done) {
-    bZx
+    try {
+      bZx
       .takeLoanOrderOnChainAsTrader(
         OrderHash_bZx_1,
         collateralToken1.address,
@@ -751,6 +752,11 @@ contract("BZxTest", function(accounts) {
         assert.isOk(false);
         done();
       };
+    } catch (error) {
+      console.error("error: " + error);
+      assert.isOk(false);
+      done();
+    }
   });
 
   (run["should generate loanOrderHash (as trader2)"]
@@ -1609,8 +1615,8 @@ contract("BZxTest", function(accounts) {
     : it.skip)("should generate 0x orders", async function() {
 
     let tradeData = await oracle.getTradeData.call(
-      maker0xToken1.address.toLowerCase(),
       loanToken1.address.toLowerCase(),
+      maker0xToken1.address.toLowerCase(),
       utils.toWei(2, "ether").toString()
     );
     //console.log(tradeData);
@@ -1622,21 +1628,21 @@ contract("BZxTest", function(accounts) {
       maker: makerOf0xOrder1_account,
       makerFee: utils.toWei(0.002, "ether").toString(),
       makerTokenAddress: maker0xToken1.address.toLowerCase(),
-      makerTokenAmount: utils.toWei(2, "ether").toString(),
+      makerTokenAmount: tradeData[2].toString(),
       salt: generatePseudoRandomSalt().toString(),
       taker: NULL_ADDRESS,
       takerFee: utils.toWei(0.0013, "ether").toString(),
       takerTokenAddress: loanToken1.address.toLowerCase(),
-      takerTokenAmount: tradeData[2].toString()
+      takerTokenAmount: utils.toWei(2, "ether").toString()
     };
 
     console.log("OrderParams_0x_1:");
     console.log(OrderParams_0x_1);
 
     tradeData = await oracle.getTradeData.call(
-      maker0xToken1.address.toLowerCase(),
       loanToken1.address.toLowerCase(),
-      utils.toWei(100, "ether").toString()
+      maker0xToken1.address.toLowerCase(),
+      utils.toWei(100000, "ether").toString()
     );
     //console.log(tradeData);
 
@@ -1647,12 +1653,12 @@ contract("BZxTest", function(accounts) {
       maker: makerOf0xOrder2_account,
       makerFee: utils.toWei(0.1, "ether").toString(),
       makerTokenAddress: maker0xToken1.address.toLowerCase(),
-      makerTokenAmount: utils.toWei(100, "ether").toString(),
+      makerTokenAmount: tradeData[2].toString(),
       salt: generatePseudoRandomSalt().toString(),
       taker: NULL_ADDRESS,
       takerFee: utils.toWei(0.02, "ether").toString(),
       takerTokenAddress: loanToken1.address.toLowerCase(),
-      takerTokenAmount: tradeData[2].toString()
+      takerTokenAmount: utils.toWei(100000, "ether").toString(),
     };
 
     console.log("OrderParams_0x_2:");
@@ -1867,8 +1873,8 @@ contract("BZxTest", function(accounts) {
     : it.skip)("should generate 0x V2 orders", async function() {
 
     let tradeData = await oracle.getTradeData.call(
-      maker0xV2Token1.address.toLowerCase(),
       loanToken1.address.toLowerCase(),
+      maker0xV2Token1.address.toLowerCase(),
       utils.toWei(3, "ether").toString()
     );
     //console.log(tradeData);
@@ -1880,8 +1886,8 @@ contract("BZxTest", function(accounts) {
       takerAddress: NULL_ADDRESS,
       feeRecipientAddress: NONNULL_ADDRESS,
       senderAddress: NULL_ADDRESS,
-      makerAssetAmount: utils.toWei(3, "ether").toString(),
-      takerAssetAmount: tradeData[2].toString(),
+      makerAssetAmount: tradeData[2].toString(),
+      takerAssetAmount: utils.toWei(3, "ether").toString(),
       makerFee: utils.toWei(0.0005, "ether").toString(),
       takerFee: utils.toWei(0.01, "ether").toString(),
       expirationTimeSeconds: (
@@ -1897,9 +1903,9 @@ contract("BZxTest", function(accounts) {
     console.log(OrderParams_0xV2_1);
 
     tradeData = await oracle.getTradeData.call(
-      maker0xV2Token1.address.toLowerCase(),
       loanToken1.address.toLowerCase(),
-      utils.toWei(120, "ether").toString()
+      maker0xV2Token1.address.toLowerCase(),
+      utils.toWei(100000, "ether").toString()
     );
     //console.log(tradeData);
 
@@ -1910,8 +1916,8 @@ contract("BZxTest", function(accounts) {
       takerAddress: NULL_ADDRESS,
       feeRecipientAddress: NONNULL_ADDRESS,
       senderAddress: NULL_ADDRESS,
-      makerAssetAmount: utils.toWei(120, "ether").toString(),
-      takerAssetAmount: tradeData[2].toString(),
+      makerAssetAmount: tradeData[2].toString(),
+      takerAssetAmount: utils.toWei(100000, "ether").toString(),
       makerFee: "0",
       takerFee: utils.toWei(0.0025, "ether").toString(),
       expirationTimeSeconds: (
@@ -2180,7 +2186,8 @@ contract("BZxTest", function(accounts) {
   (run["should close loan as (lender1/trader1)"]
     ? it
     : it.skip)("should close loan as (lender1/trader1)", function(done) {
-    bZx
+    try {
+      bZx
       .closeLoan(OrderHash_bZx_1, { from: trader1_account })
       .then(function(tx) {
         console.log(
@@ -2194,6 +2201,11 @@ contract("BZxTest", function(accounts) {
         assert.isOk(false);
         done();
       };
+    } catch (error) {
+      console.error(error);
+      assert.isOk(false);
+      done();
+    }
   });
 
   (run["should liquidate position"]
