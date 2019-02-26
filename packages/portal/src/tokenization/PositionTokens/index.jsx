@@ -135,7 +135,11 @@ export default class PositionTokens extends BZxComponent {
     console.log(`pToken contract symbol:`, tokenContractSymbol);
 
     const vaultAddress = (await this.props.bZx.getWeb3Contract(`BZxVault`))._address;
-    const faucetAddress = (await this.props.bZx.getWeb3Contract(`TestNetFaucet`))._address;
+    
+    let faucetAddress = ``;
+    if (this.props.bZx.networkId === `50`) {
+      faucetAddress = (await this.props.bZx.getWeb3Contract(`TestNetFaucet`))._address;
+    }
 
     await this.setState({ 
       iTokenContract,
@@ -161,7 +165,7 @@ export default class PositionTokens extends BZxComponent {
   };
 
   refreshTokenData = async () => {
-    const { web3, accounts } = this.props;
+    const { web3, tokens, accounts } = this.props;
     const { tokenContract, vaultAddress, faucetAddress } = this.state;
     await this.setState({ loading: true });
     
@@ -187,12 +191,23 @@ export default class PositionTokens extends BZxComponent {
 
       console.log(`loanOrderHash, tokenAddress`, loanOrderHash, tokenContract._address);
 
-      const TradeToken = await this.props.bZx.getWeb3Contract(`TestToken9`);
+      let TradeToken;
+      if (this.props.bZx.networkId === 50) { // development
+        TradeToken = await this.props.bZx.getWeb3Contract(`TestToken9`);
+      } else if (this.props.bZx.networkId == 42) { // kovan
+        TradeToken = await this.props.bZx.getWeb3Contract(`EIP20`, (await tokens.filter(t => t.symbol === `KNC`)[0]).address);
+      }
+
       const LoanedToken = await this.props.bZx.getWeb3Contract(`WETH`);
       const vaultTradeTokenBalance = await this.wrapAndRun(TradeToken.methods.balanceOf(vaultAddress).call());
       const vaultLoanedTokenBalance = await this.wrapAndRun(LoanedToken.methods.balanceOf(vaultAddress).call());
-      const faucetTradeTokenBalance = await this.wrapAndRun(TradeToken.methods.balanceOf(faucetAddress).call());
-      const faucetLoanedTokenBalance = await this.wrapAndRun(LoanedToken.methods.balanceOf(faucetAddress).call());      
+      
+      
+      let faucetTradeTokenBalance = ``, faucetLoanedTokenBalance = ``; 
+      if (this.props.bZx.networkId === `50`) {
+        faucetTradeTokenBalance = await this.wrapAndRun(TradeToken.methods.balanceOf(faucetAddress).call());
+        faucetLoanedTokenBalance = await this.wrapAndRun(LoanedToken.methods.balanceOf(faucetAddress).call());
+      }
 
       await this.setState({ 
         tokenBalance: tokenBalance,
@@ -804,6 +819,8 @@ export default class PositionTokens extends BZxComponent {
               </DataPoint>
             </DataPointContainer>
 
+            { this.props.bZx.networkId === `50` ? (
+            <Fragment>
             <br/>
 
             <DataPointContainer>
@@ -829,6 +846,8 @@ export default class PositionTokens extends BZxComponent {
                 {`WETH`}
               </DataPoint>
             </DataPointContainer>
+            </Fragment>
+            ) : ``}
 
           </ShowInfo>
         </InfoContainer>

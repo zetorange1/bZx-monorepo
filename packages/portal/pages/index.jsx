@@ -239,7 +239,11 @@ switch (domainData.subdomain) {
                 </HeaderTitle>
                 <HeaderData />
                 <TabGroup>
-                  {TOKENIZED_TABS.map(tab => (
+                  {TOKENIZED_TABS.map(tab => {
+                  if (tab.label === `Debug` && (!this.state.bZx || this.state.bZx.networkId !== 50)) {
+                    return;
+                  }
+                  return (
                     <Tab
                       key={tab.id}
                       active={this.state.activeOrderTab === tab.id}
@@ -247,7 +251,7 @@ switch (domainData.subdomain) {
                     >
                       {tab.label}
                     </Tab>
-                  ))}
+                  )})}
                 </TabGroup>
               </Fragment>
             );
@@ -474,7 +478,6 @@ switch (domainData.subdomain) {
                     currentTrader={this.state.currentTrader}
                   />
                 </ContentContainer>}
-                { process.env.NODE_ENV !== `production` ? (
                 <ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_debug`}>
                   <DebugTokenization
                     tokens={tokens}
@@ -486,7 +489,6 @@ switch (domainData.subdomain) {
                     currentTrader={this.state.currentTrader}
                   />
                 </ContentContainer>
-                ) : ``}
               </Fragment>
             );
             break; // eslint-disable-line no-unreachable

@@ -415,7 +415,7 @@ export default class Debug extends BZxComponent {
     return (
       <div>
 
-        {bZx.networkId === `50` ? ( <Fragment>
+        {bZx.networkId === 50 ? ( <Fragment>
             <p>
               concert load couple harbor equip island argue ramp clarify fence smart topic
             </p>
