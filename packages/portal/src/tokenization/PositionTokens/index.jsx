@@ -133,6 +133,15 @@ export default class PositionTokens extends BZxComponent {
 
     const tokenContractSymbol = (await this.wrapAndRun(tokenContract.methods.symbol().call())).toString();
     console.log(`pToken contract symbol:`, tokenContractSymbol);
+  
+    let tradeTokenContract;
+    if (this.props.bZx.networkId === 50) { // development
+      tradeTokenContract = await this.props.bZx.getWeb3Contract(`TestToken9`);
+    } else if (this.props.bZx.networkId == 42) { // kovan
+      tradeTokenContract = await this.props.bZx.getWeb3Contract(`EIP20`, (await this.props.tokens.filter(t => t.symbol === `KNC`)[0]).address);
+    }
+    console.log(`tradeToken Contract:`, tradeTokenContract._address);
+    const tradeTokenContractSymbol = (await this.wrapAndRun(tradeTokenContract.methods.symbol().call())).toString();
 
     const vaultAddress = (await this.props.bZx.getWeb3Contract(`BZxVault`))._address;
     
@@ -145,6 +154,8 @@ export default class PositionTokens extends BZxComponent {
       iTokenContract,
       tokenContract,
       tokenContractSymbol,
+      tradeTokenContract,
+      tradeTokenContractSymbol,
       vaultAddress,
       faucetAddress
     });
@@ -166,7 +177,7 @@ export default class PositionTokens extends BZxComponent {
 
   refreshTokenData = async () => {
     const { web3, tokens, accounts } = this.props;
-    const { tokenContract, vaultAddress, faucetAddress } = this.state;
+    const { tokenContract, tradeTokenContract, vaultAddress, faucetAddress } = this.state;
     await this.setState({ loading: true });
     
     //console.log(`Token contract:`, tokenContract._address);
@@ -191,15 +202,8 @@ export default class PositionTokens extends BZxComponent {
 
       console.log(`loanOrderHash, tokenAddress`, loanOrderHash, tokenContract._address);
 
-      let TradeToken;
-      if (this.props.bZx.networkId === 50) { // development
-        TradeToken = await this.props.bZx.getWeb3Contract(`TestToken9`);
-      } else if (this.props.bZx.networkId == 42) { // kovan
-        TradeToken = await this.props.bZx.getWeb3Contract(`EIP20`, (await tokens.filter(t => t.symbol === `KNC`)[0]).address);
-      }
-
       const LoanedToken = await this.props.bZx.getWeb3Contract(`WETH`);
-      const vaultTradeTokenBalance = await this.wrapAndRun(TradeToken.methods.balanceOf(vaultAddress).call());
+      const vaultTradeTokenBalance = await this.wrapAndRun(tradeTokenContract.methods.balanceOf(vaultAddress).call());
       const vaultLoanedTokenBalance = await this.wrapAndRun(LoanedToken.methods.balanceOf(vaultAddress).call());
       
       
@@ -589,6 +593,7 @@ export default class PositionTokens extends BZxComponent {
       marketLiquidity,
       tokenContract,
       tokenContractSymbol,
+      tradeTokenContractSymbol,
       wethBalance,
       wethBalanceContract,
       ethBalance,
@@ -803,7 +808,7 @@ export default class PositionTokens extends BZxComponent {
                   10 ** -18
                 ).toString()}
                 {` `}
-                {`TEST9`}
+                {tradeTokenContractSymbol}
               </DataPoint>
             </DataPointContainer>
 
@@ -831,7 +836,7 @@ export default class PositionTokens extends BZxComponent {
                   10 ** -18
                 ).toString()}
                 {` `}
-                {`TEST9`}
+                {tradeTokenContractSymbol}
               </DataPoint>
             </DataPointContainer>
 
