@@ -8,8 +8,6 @@ var PositionToken = artifacts.require("PositionToken");
 
 //var BZxEther = artifacts.require("BZxEther");
 
-// normally DAI
-var DAI = artifacts.require("TestToken9");
 
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -34,11 +32,19 @@ module.exports = function(deployer, network, accounts) {
     BZxOracle = artifacts.require("TestNetOracle");
   }
 
+  let tradeTokenAddress;
+  if (network == "kovan") {
+    tradeTokenAddress = "0xb2f3dd487708ca7794f633d9df57fdb9347a7aff"; // KNC (no DAI on Kovan Kyber)
+  } else {
+    let t = artifacts.require("TestToken9");
+    tradeTokenAddress = t.address;
+  }
+
   deployer.then(async function() {
     var loanOrderHash;
     var positionToken;
 
-    var loanToken = await deployer.deploy(
+    await deployer.deploy(
       LoanToken,
       BZxProxy.address,
       BZxVault.address,
@@ -49,7 +55,11 @@ module.exports = function(deployer, network, accounts) {
       "iETH"
     );
 
-    await loanToken.mintWithEther({value: web3.utils.toWei("10", "ether")});
+    let loanToken = await LoanToken.deployed();
+
+    if (network == "development") {
+      await loanToken.mintWithEther({value: web3.utils.toWei("10", "ether")});
+    }
 
     let leverageAmount;
 
@@ -70,7 +80,7 @@ module.exports = function(deployer, network, accounts) {
       BZxOracle.address,
       weth_token_address,
       weth_token_address, // loan token
-      DAI.address, // trade token
+      tradeTokenAddress, // trade token
       leverageAmount,
       loanOrderHash,
       "bZx ETH pToken 1xShort",
@@ -99,7 +109,7 @@ module.exports = function(deployer, network, accounts) {
       BZxOracle.address,
       weth_token_address,
       weth_token_address, // loan token
-      DAI.address, // trade token
+      tradeTokenAddress, // trade token
       config["addresses"][network]["KyberContractAddress"] || NULL_ADDRESS,
       leverageAmount,
       loanOrderHash,
@@ -129,7 +139,7 @@ module.exports = function(deployer, network, accounts) {
       BZxOracle.address,
       weth_token_address,
       weth_token_address, // loan token
-      DAI.address, // trade token
+      tradeTokenAddress, // trade token
       leverageAmount,
       loanOrderHash,
       "bZx ETH pToken 3xShort",
@@ -149,6 +159,24 @@ module.exports = function(deployer, network, accounts) {
         web3.utils.toWei("15", "ether") // maintenanceMarginAmount
       ]
     );
+    /*loanOrderHash = await loanToken.loanOrderHashes.call(web3.utils.toWei(leverageAmount, "ether"));
+    positionToken = await deployer.deploy(
+      PositionToken,
+      BZxProxy.address,
+      BZxVault.address,
+      BZxOracle.address,
+      weth_token_address,
+      weth_token_address, // loan token
+      tradeTokenAddress, // trade token
+      leverageAmount,
+      loanOrderHash,
+      "bZx ETH pToken 4xShort",
+      "pETH4xShort"
+    );
+    await positionToken.setLoanTokenLender(loanToken.address);
+    await loanToken.addPositionToken(
+      leverageAmount,
+      positionToken.address);*/
 
     console.log(`   > [${parseInt(path.basename(__filename))}] TokenizedLoans deploy: #done`);
   });

@@ -9,7 +9,7 @@ import "../../openzeppelin-solidity/StandardToken.sol";
 import "../../openzeppelin-solidity/DetailedERC20.sol";
 
 
-contract SplitableToken is StandardToken, DetailedERC20 {
+contract SplittableToken is StandardToken, DetailedERC20 {
     using SafeMath for uint256;
 
     uint256 internal constant MAX_UINT = 2**256 - 1;

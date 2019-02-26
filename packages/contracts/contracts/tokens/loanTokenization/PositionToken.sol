@@ -7,7 +7,7 @@ pragma solidity 0.5.3;
 //pragma experimental ABIEncoderV2;
 
 import "./LoanTokenization.sol";
-import "./SplitableToken.sol";
+import "./SplittableToken.sol";
 
 
 interface bZxInterface {
@@ -72,7 +72,7 @@ interface KyberNetworkInterface {
         returns(uint256);
 }
 
-contract PositionToken is LoanTokenization, SplitableToken {
+contract PositionToken is LoanTokenization, SplittableToken {
     using SafeMath for uint256;
 
     address public LoanTokenLender;
