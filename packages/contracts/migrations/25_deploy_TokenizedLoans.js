@@ -4,18 +4,20 @@ var BZxProxy = artifacts.require("BZxProxy");
 var BZxVault = artifacts.require("BZxVault");
 
 var LoanToken = artifacts.require("LoanToken");
-//var PositionToken = artifacts.require("PositionToken");
+var PositionToken = artifacts.require("PositionToken");
 
 //var BZxEther = artifacts.require("BZxEther");
 
 // normally DAI
-//var DAI = artifacts.require("TestToken9");
+var DAI = artifacts.require("TestToken9");
+
+const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const path = require("path");
 var config = require("../protocol-config.js");
 
 module.exports = function(deployer, network, accounts) {
-return;
+
   network = network.replace("-fork", "");
   var weth_token_address;
   if (network == "development" || network == "develop" || network == "testnet" || network == "coverage") {
@@ -46,6 +48,8 @@ return;
       "bZx ETH iToken",
       "iETH"
     );
+
+    await loanToken.mintWithEther({value: web3.utils.toWei("10", "ether")});
 
     let leverageAmount;
 
@@ -87,7 +91,7 @@ return;
         web3.utils.toWei("15", "ether") // maintenanceMarginAmount
       ]
     );
-    /*loanOrderHash = await loanToken.loanOrderHashes.call(leverageAmount);
+    loanOrderHash = await loanToken.loanOrderHashes.call(leverageAmount);
     positionToken = await deployer.deploy(
       PositionToken,
       BZxProxy.address,
@@ -96,13 +100,14 @@ return;
       weth_token_address,
       weth_token_address, // loan token
       DAI.address, // trade token
+      config["addresses"][network]["KyberContractAddress"] || NULL_ADDRESS,
       leverageAmount,
       loanOrderHash,
       "bZx ETH pToken 2xShort",
       "pETH2xShort"
     );
     await positionToken.setLoanTokenLender(loanToken.address);
-    await loanToken.addPositionToken(
+    /*await loanToken.addPositionToken(
       web3.utils.toWei("2", "ether"),
       positionToken.address);*/
 

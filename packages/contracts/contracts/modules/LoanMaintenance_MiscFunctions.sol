@@ -37,6 +37,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         targets[bytes4(keccak256("withdrawPosition(bytes32,uint256)"))] = _target;
         targets[bytes4(keccak256("depositPosition(bytes32,address,uint256)"))] = _target;
         targets[bytes4(keccak256("getPositionOffset(bytes32,address)"))] = _target;
+        targets[bytes4(keccak256("getTotalEscrow(bytes32,address)"))] = _target;
     }
 
     /// @dev Allows the trader to increase the collateral for a loan.
@@ -446,6 +447,40 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         return _getPositionOffset(
             loanOrder,
             loanPosition);
+    }
+
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param trader The trader of the position
+    /// @return netCollateralAmount The amount of collateral escrowed netted to any exceess or deficit
+    /// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender
+    /// @return loanTokenAmountBorrowed The amount of loan token borrowed for the position
+    function getTotalEscrow(
+        bytes32 loanOrderHash,
+        address trader)
+        public
+        view
+        returns (uint256 netCollateralAmount, uint256 interestDepositRemaining, uint256 loanTokenAmountBorrowed)
+    {
+        uint256 positionId = loanPositionsIds[loanOrderHash][trader];
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        LoanPosition memory loanPosition = loanPositions[positionId];
+        TraderInterest memory traderInterest = traderLoanInterest[positionId];
+
+        (bool isPositive,,,uint256 collateralOffset) = _getPositionOffset(
+            loanOrder,
+            loanPosition);
+
+        if (isPositive) {
+            netCollateralAmount = loanPosition.collateralTokenAmountFilled.add(collateralOffset);
+        } else if (loanPosition.collateralTokenAmountFilled > collateralOffset) {
+            netCollateralAmount = loanPosition.collateralTokenAmountFilled.sub(collateralOffset);
+        } else {
+            netCollateralAmount = 0;
+        }
+
+        interestDepositRemaining = loanPosition.loanEndUnixTimestampSec > block.timestamp ? loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(traderInterest.interestOwedPerDay).div(86400) : 0;
+
+        loanTokenAmountBorrowed = loanPosition.loanTokenAmountFilled;
     }
 
     /*

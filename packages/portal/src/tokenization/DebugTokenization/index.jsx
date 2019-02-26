@@ -131,6 +131,7 @@ export default class DebugTokenization extends BZxComponent {
     let orderFilledAmounts, orderCancelledAmounts;
 
     try {
+      /*
       let order = {};
       if (this.props.CurrentHash) {
         const orderKeys = [
@@ -211,7 +212,7 @@ export default class DebugTokenization extends BZxComponent {
         position[`collateralTokenAmountFilled`] = toBigNumber(position[`collateralTokenAmountFilled`], 10 ** -18).toString()+ ` (normalized)`;
         position[`positionTokenAmountFilled`] = toBigNumber(position[`positionTokenAmountFilled`], 10 ** -18).toString()+ ` (normalized)`;
       }
-
+      */
 
       const TradeToken = await this.props.bZx.getWeb3Contract(`TestToken9`);
       const LoanedToken = await this.props.bZx.getWeb3Contract(`WETH`);
@@ -226,11 +227,11 @@ export default class DebugTokenization extends BZxComponent {
       await this.setState({ 
         loading: false, 
         error: false,
-        order,
+        /*order,
         orderAux,
         position,
         orderFilledAmounts,
-        orderCancelledAmounts,
+        orderCancelledAmounts,*/
         currentRate
       });
 
@@ -286,7 +287,7 @@ export default class DebugTokenization extends BZxComponent {
               </TxHashLink>
             )
           });
-          this.setState({ showReduceDialog: false });
+          this.setState({ showRatesDialog: false });
         })
         .then(async () => {
           alert(`The txn is complete.`);
@@ -294,14 +295,69 @@ export default class DebugTokenization extends BZxComponent {
         .catch(error => {
           console.error(error.message);
           alert(`The txn did not complete.`);
-          this.setState({ showReduceDialog: false });
+          this.setState({ showRatesDialog: false });
         });
     } catch (error) {
       console.error(error.message);
       alert(`The txn did not complete.`);
-      this.setState({ showReduceDialog: false });
+      this.setState({ showRatesDialog: false });
     }
   };
+
+  halveRate = async () => {
+    const { web3, bZx, accounts } = this.props;
+
+    if (bZx.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
+
+    await this.refreshTokenData();
+
+    const oracleContract = await this.props.bZx.getWeb3Contract(`BZxOracle`);
+
+    const txOpts = {
+      to: oracleContract._address,
+      from: accounts[0],
+      gas: 2000000,
+      gasPrice: window.defaultGasPrice.toString()
+    };
+
+    const TradeToken = await this.props.bZx.getWeb3Contract(`TestToken9`);
+    const LoanedToken = await this.props.bZx.getWeb3Contract(`WETH`);
+
+    txOpts.data = web3.eth.abi.encodeFunctionSignature('setRates(address,address,uint256)') +
+      web3.eth.abi.encodeParameters(['address','address','uint256'], [TradeToken._address,LoanedToken._address,toBigNumber(this.state.currentRate, 10 ** 18).div(2).toString()]).substr(2);
+    console.log(txOpts);
+
+    try {
+      console.log(txOpts);
+      await web3.eth.sendTransaction(txOpts)
+        .once(`transactionHash`, hash => {
+          alert(`Transaction submitted, transaction hash:`, {
+            component: () => (
+              <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                {hash}
+              </TxHashLink>
+            )
+          });
+          this.setState({ showRatesDialog: false });
+        })
+        .then(async () => {
+          alert(`The txn is complete.`);
+          await this.refreshTokenData();
+        })
+        .catch(error => {
+          console.error(error.message);
+          alert(`The txn did not complete.`);
+          this.setState({ showRatesDialog: false });
+        });
+    } catch (error) {
+      console.error(error.message);
+      alert(`The txn did not complete.`);
+      this.setState({ showRatesDialog: false });
+    }
+  };
+
 
   render() {
     const { 
@@ -356,6 +412,14 @@ export default class DebugTokenization extends BZxComponent {
               >
                 Change Conversion Rate
               </Button>
+              <Button
+                variant="raised"
+                color="primary"
+                onClick={this.halveRate}
+                style={{ marginLeft: `12px` }}
+              >
+                Halve Conversion Rate
+              </Button>
             </DataPointContainer>
           </InfoContainer>
           <br/>
@@ -396,7 +460,7 @@ export default class DebugTokenization extends BZxComponent {
               ) : ``}
               
             </DataPointContainer>
-
+          {/*
             <DataPointContainer>
 
               {this.state.order ? (
@@ -432,7 +496,7 @@ export default class DebugTokenization extends BZxComponent {
               ) : ``}
             
             </DataPointContainer>
-
+          */}
           </ShowInfo>
         </InfoContainer>
         <Dialog

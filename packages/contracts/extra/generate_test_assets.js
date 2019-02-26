@@ -41,7 +41,7 @@ function proceed() {
     TestNetPriceFeed: "unknown",
     ZeroExV2Helper: "unknown",
     LoanToken: "unknown",
-    //PositionToken: "unknown",
+    PositionToken: "unknown",
   };
   var replacements = {};
 

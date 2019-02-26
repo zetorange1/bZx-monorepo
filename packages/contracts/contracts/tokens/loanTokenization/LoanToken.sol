@@ -7,6 +7,8 @@ pragma solidity 0.5.3;
 pragma experimental ABIEncoderV2;
 
 import "./LoanTokenization.sol";
+import "../UnlimitedAllowanceToken.sol";
+import "../../openzeppelin-solidity/DetailedERC20.sol";
 import "../../oracle/OracleNotifierInterface.sol";
 
 
@@ -58,13 +60,25 @@ interface bZxOracleInterface {
         returns (uint256);
 }
 
-contract LoanToken is LoanTokenization, OracleNotifierInterface {
+contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, OracleNotifierInterface {
     using SafeMath for uint256;
+
+    uint256 public maxDurationUnixTimestampSec = 2419200; // 28 days
+
+    struct LoanData {
+        bytes32 loanOrderHash;
+        uint256 leverageAmount;
+        uint256 initialMarginAmount;
+        uint256 maintenanceMarginAmount;
+    }
 
     struct TokenReserves {
         address lender;
         uint256 amount;
     }
+
+    event Mint(address indexed to, uint256 amount);
+    event Burn(address indexed burner, uint256 value);
 
     uint256 public baseRate = 2500000000000000000; // 2.5%
     uint256 public rateMultiplier = 20000000000000000000; // 20%
@@ -82,8 +96,8 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
 
     uint256 public totalAssetBorrow = 0; // current amount of loan token amount tied up in loans
 
-    uint256 internal lastSettleTime;
-    uint256 internal lastPrice = 10**18;
+    uint256 internal lastSettleTime_;
+    uint256 internal lastPrice_ = 10**18;
 
     modifier onlyOracle() {
         require(msg.sender == bZxOracle, "only Oracle allowed");
@@ -119,6 +133,734 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
     {
         require(msg.sender == wethContract, "calls to fallback not allowed");
     }
+
+
+    /* Public functions */
+
+    function mintWithEther()
+        public
+        payable
+        returns (uint256 mintAmount)
+    {
+        require (msg.value > 0, "msg.value == 0");
+        require (loanTokenAddress == wethContract, "ether is not supported");
+
+        if (burntTokenReserveList.length > 0) {
+            _claimLoanToken(burntTokenReserveList[0].lender);
+            _claimLoanToken(msg.sender);
+        } else {
+            _settleInterest();
+        }
+
+        mintAmount = msg.value.mul(10**18).div(_tokenPrice(0));
+
+        WETHInterface(wethContract).deposit.value(msg.value)();
+
+        _mint(msg.sender, mintAmount);
+    }
+
+    function mint(
+        uint256 depositAmount)
+        public
+        returns (uint256 mintAmount)
+    {
+        require (depositAmount > 0, "depositAmount == 0");
+        
+        if (burntTokenReserveList.length > 0) {
+            _claimLoanToken(burntTokenReserveList[0].lender);
+            _claimLoanToken(msg.sender);
+        } else {
+            _settleInterest();
+        }
+
+        mintAmount = depositAmount.mul(10**18).div(_tokenPrice(0));
+
+        require(ERC20(loanTokenAddress).transferFrom(
+            msg.sender,
+            address(this),
+            depositAmount
+        ), "transfer of loanToken failed");
+
+        _mint(msg.sender, mintAmount);
+    }
+
+    function burnToEther(
+        uint256 burnAmount)
+        public
+        returns (uint256 loanAmountPaid)
+    {
+        require (loanTokenAddress == wethContract, "ether is not supported");
+
+        loanAmountPaid = _burnToken(burnAmount);
+
+        if (loanAmountPaid > 0) {
+            WETHInterface(wethContract).withdraw(loanAmountPaid);
+            require(msg.sender.send(loanAmountPaid), "transfer of ETH failed");
+        }
+    }
+
+    function burn(
+        uint256 burnAmount)
+        public
+        returns (uint256 loanAmountPaid)
+    {
+        loanAmountPaid = _burnToken(burnAmount);
+
+        if (loanAmountPaid > 0) {
+            require(ERC20(loanTokenAddress).transfer(
+                msg.sender, 
+                loanAmountPaid
+            ), "transfer of loanToken failed");
+        }
+    }
+
+    // called by a borrower to open a loan, specifying amount to use for collateral and interest
+    // returns amount filled fillAmount
+    function borrowTokenFromDeposit(
+        uint256 depositAmount,
+        uint256 leverageAmount,
+        address collateralTokenAddress,
+        address tradeTokenToFillAddress,
+        bool withdrawOnOpen)
+        public
+        returns (uint256)
+    {
+        require(depositAmount > 0, "depositAmount == 0");
+
+        bytes32 loanOrderHash = loanOrderHashes[leverageAmount];
+        LoanData memory loanData = loanOrderData[loanOrderHash];
+        require(loanData.initialMarginAmount != 0, "invalid leverage amount");
+
+        _settleInterest();
+        
+        return _borrowToken(
+            loanOrderHash,
+            _getFillAmount(
+                loanData,
+                depositAmount), // fillAmount
+            collateralTokenAddress,
+            tradeTokenToFillAddress,
+            withdrawOnOpen);
+    }
+
+    // called by a borrower to open a loan
+    // the amount to be filled is specified
+    // returns fillAmount
+    function borrowToken(
+        uint256 fillAmount,
+        uint256 leverageAmount,
+        address collateralTokenAddress,
+        address tradeTokenToFillAddress,
+        bool withdrawOnOpen)
+        public
+        returns (uint256)
+    {
+        require(fillAmount > 0, "fillAmount == 0");
+
+        bytes32 loanOrderHash = loanOrderHashes[leverageAmount];
+        LoanData memory loanData = loanOrderData[loanOrderHash];
+        require(loanData.initialMarginAmount != 0, "invalid leverage amount");
+
+        _settleInterest();
+
+        return _borrowToken(
+            loanOrderHash,
+            fillAmount,
+            collateralTokenAddress,
+            tradeTokenToFillAddress,
+            withdrawOnOpen);
+    }
+
+    // Claims owned loan token for the caller
+    // Also claims for user with the longest reserves
+    // returns amount claimed for the caller
+    function claimLoanToken()
+        public
+        returns (uint256 claimedAmount)
+    {
+        claimedAmount = _claimLoanToken(msg.sender);
+
+        if (burntTokenReserveList.length > 0)
+            _claimLoanToken(burntTokenReserveList[0].lender);
+    }
+
+    function settleInterest()
+        public
+    {
+        _settleInterest();
+    }
+
+
+    /* Public View functions */
+
+    function tokenPrice()
+        public
+        view
+        returns (uint256)
+    {
+        uint256 interestUnPaid = 0;
+        if (lastSettleTime_ != block.timestamp) {
+            (,,interestUnPaid) = _getAllInterest();
+
+            interestUnPaid = interestUnPaid
+                .mul(spreadMultiplier)
+                .div(10**20);
+        }
+
+        return _tokenPrice(interestUnPaid);
+    }
+
+    function marketLiquidity()
+        public
+        view
+        returns (uint256)
+    {
+        uint256 totalSupply = totalAssetSupply();
+        if (totalSupply > totalAssetBorrow) {
+            return totalSupply.sub(totalAssetBorrow);
+        } else {
+            return 0;
+        }
+    }
+
+    function protocolBorrowInterestRate()
+        public
+        view
+        returns (uint256)
+    {
+        if (totalAssetBorrow > 0) {
+            (,uint256 interestOwedPerDay,) = _getAllInterest();
+            return interestOwedPerDay
+                .mul(10**20)
+                .div(totalAssetBorrow)
+                .mul(365);
+        } else {
+            return 0;
+        }
+    }
+
+    function protocolSupplyInterestRate()
+        public
+        view
+        returns (uint256)
+    {
+        return protocolBorrowInterestRate()
+            .mul(_getUtilizationRate())
+            .div(10**20);
+    }
+
+    function borrowInterestRate()
+        public
+        view
+        returns (uint256)
+    {
+        return _getUtilizationRate()
+            .mul(rateMultiplier)
+            .div(10**20)
+            .add(baseRate);
+    }
+
+    function supplyInterestRate()
+        public
+        view
+        returns (uint256)
+    {
+        uint256 utilizationRate = _getUtilizationRate();
+
+        uint256 borrowRate = utilizationRate
+            .mul(rateMultiplier)
+            .div(10**20)
+            .add(baseRate);
+        
+        return borrowRate
+            .mul(utilizationRate)
+            .div(10**20);
+    }
+
+    // this gets the combined total of paid and unpaid interest
+    function interestReceived()
+        public
+        view
+        returns (uint256 interestTotalAccrued)
+    {
+        (uint256 interestPaidSoFar,,uint256 interestUnPaid) = _getAllInterest();
+
+        return interestPaidSoFar
+            .add(interestUnPaid)
+            .mul(spreadMultiplier)
+            .div(10**20);
+    }
+
+    function totalAssetSupply()
+        public
+        view
+        returns (uint256)
+    {
+        uint256 interestUnPaid = 0;
+        if (lastSettleTime_ != block.timestamp) {
+            (,,interestUnPaid) = _getAllInterest();
+
+            interestUnPaid = interestUnPaid
+                .mul(spreadMultiplier)
+                .div(10**20);
+        }
+
+        return _totalAssetSupply(interestUnPaid);
+    }
+
+    function getDepositAmount(
+        uint256 fillAmount,
+        uint256 leverageAmount)
+        public
+        view
+        returns (uint256)
+    {
+        if (fillAmount == 0)
+            return 0;
+        
+        LoanData memory loanData = loanOrderData[loanOrderHashes[leverageAmount]];
+        if (loanData.initialMarginAmount == 0)
+            return 0;
+
+        return _getDepositAmount(
+            loanData,
+            fillAmount);
+    }
+
+    function getMaxDepositAmount(
+        uint256 leverageAmount)
+        public
+        view
+        returns (uint256)
+    {
+        LoanData memory loanData = loanOrderData[loanOrderHashes[leverageAmount]];
+        if (loanData.initialMarginAmount == 0)
+            return 0;
+
+        return _getDepositAmount(
+            loanData,
+            marketLiquidity());
+    }
+
+    function getFillAmount(
+        uint256 depositAmount,
+        uint256 leverageAmount)
+        public
+        view
+        returns (uint256)
+    {
+        if (depositAmount == 0)
+            return 0;
+
+        LoanData memory loanData = loanOrderData[loanOrderHashes[leverageAmount]];
+        if (loanData.initialMarginAmount == 0)
+            return 0;
+
+        return _getFillAmount(
+            loanData,
+            depositAmount);
+    }
+
+    function getLoanData(
+        uint256 levergeAmount)
+        public
+        view
+        returns (LoanData memory)
+    {
+        return loanOrderData[loanOrderHashes[levergeAmount]];
+    }
+
+    function getLoanOrderHashses()
+        public
+        view
+        returns (bytes32[] memory)
+    {
+        return loanOrderHashList;
+    }
+
+    // returns the user's balance of underlying token
+    function assetBalanceOf(
+        address _owner)
+        public
+        view
+        returns (uint256)
+    {
+        return balances[_owner].mul(tokenPrice()).div(10**18);
+    }
+
+
+    /* Internal functions */
+
+    function _mint(
+        address _to,
+        uint256 _value)
+        internal
+    {
+        require(_to != address(0), "invalid address");
+        totalSupply_ = totalSupply_.add(_value);
+        balances[_to] = balances[_to].add(_value);
+        emit Mint(_to, _value);
+        emit Transfer(address(0), _to, _value);
+    }
+
+    function _burnToken(
+        uint256 burnAmount)
+        internal
+        returns (uint256 loanAmountPaid)
+    {
+        require(burnAmount > 0, "burnAmount == 0");
+        require(burnAmount <= totalSupply_, "burnAmount > totalSupply_");
+
+        // balance is verified in the _burn function
+        // require(balances[msg.sender] >= burnAmount, "burnAmount too high");
+
+        if (burntTokenReserveList.length > 0) {
+            _claimLoanToken(burntTokenReserveList[0].lender);
+            _claimLoanToken(msg.sender);
+        } else {
+            _settleInterest();
+        }
+
+        uint256 currentPrice = _tokenPrice(0);
+
+        uint256 loanAmountOwed = burnAmount.mul(currentPrice).div(10**18);
+        uint256 loanAmountAvailableInContract = ERC20(loanTokenAddress).balanceOf(address(this));
+
+        loanAmountPaid = loanAmountOwed;
+        if (loanAmountPaid > loanAmountAvailableInContract) {
+            uint256 reserveAmount = loanAmountPaid.sub(loanAmountAvailableInContract);
+            uint256 reserveTokenAmount = reserveAmount.mul(10**18).div(currentPrice);
+
+            burntTokenReserved = burntTokenReserved.add(reserveTokenAmount);
+            if (burntTokenReserveListIndex[msg.sender].isSet) {
+                uint256 index = burntTokenReserveListIndex[msg.sender].index;
+                burntTokenReserveList[index].amount = burntTokenReserveList[index].amount.add(reserveTokenAmount);
+            } else {
+                burntTokenReserveList.push(TokenReserves({
+                    lender: msg.sender,
+                    amount: reserveTokenAmount
+                }));
+                burntTokenReserveListIndex[msg.sender] = BZxObjects.ListIndex({
+                    index: burntTokenReserveList.length-1,
+                    isSet: true
+                });
+            }
+
+            loanAmountPaid = loanAmountAvailableInContract;
+        }
+
+        _burn(msg.sender, burnAmount);
+
+        if (totalSupply_.add(burntTokenReserved) == 0)
+            lastPrice_ = currentPrice; // only store lastPrice_ if lender supply is 0
+    }
+
+    function _burn(
+        address _who, 
+        uint256 _value)
+        internal
+    {
+        require(_value <= balances[_who], "burn value exceeds balance");
+        // no need to require value <= totalSupply, since that would imply the
+        // sender's balance is greater than the totalSupply, which *should* be an assertion failure
+
+        balances[_who] = balances[_who].sub(_value);
+        totalSupply_ = totalSupply_.sub(_value);
+        emit Burn(_who, _value);
+        emit Transfer(_who, address(0), _value);
+    }
+
+    function _settleInterest()
+        internal
+    {
+        if (lastSettleTime_ != block.timestamp) {
+            (bool success,) = bZxContract.call.gas(gasleft())(
+                abi.encodeWithSignature(
+                    "payInterestForOracle(address,address)",
+                    bZxOracle,
+                    loanTokenAddress // same as interestTokenAddress
+                )
+            );
+            success;
+            lastSettleTime_ = block.timestamp;
+        }
+    }
+
+    // returns fillAmount
+    function _borrowToken(
+        bytes32 loanOrderHash,
+        uint256 fillAmount,
+        address collateralTokenAddress,
+        address tradeTokenToFillAddress,
+        bool withdrawOnOpen)
+        internal
+        returns (uint256)
+    {
+        //require(ERC20(loanTokenAddress).balanceOf(address(this)) >= fillAmount, "insufficient loan supply");
+        if (fillAmount > ERC20(loanTokenAddress).balanceOf(address(this))) {
+            fillAmount = ERC20(loanTokenAddress).balanceOf(address(this));
+        }
+
+        // re-up the BZxVault spend approval if needed
+        uint256 tempAllowance = ERC20(loanTokenAddress).allowance(address(this), bZxVault);
+        if (tempAllowance < fillAmount) {
+            if (tempAllowance > 0) {
+                // reset approval to 0
+                require(ERC20(loanTokenAddress).approve(bZxVault, 0), "approval reset of loanToken failed");
+            }
+
+            require(ERC20(loanTokenAddress).approve(bZxVault, MAX_UINT), "approval of loanToken failed");
+        }
+
+        require(bZxInterface(bZxContract).updateLoanAsLender(
+            loanOrderHash,
+            fillAmount,
+            borrowInterestRate().div(365),
+            block.timestamp+1),
+            "updateLoanAsLender failed");
+
+        require (bZxInterface(bZxContract).takeLoanOrderOnChainAsTraderByDelegate(
+            msg.sender,
+            loanOrderHash,
+            collateralTokenAddress,
+            fillAmount,
+            tradeTokenToFillAddress,
+            withdrawOnOpen) == fillAmount,
+            "takeLoanOrderOnChainAsTraderByDelegate failed");
+
+        totalAssetBorrow = totalAssetBorrow.add(fillAmount);
+
+        if (burntTokenReserveList.length > 0) {
+            _claimLoanToken(burntTokenReserveList[0].lender);
+            _claimLoanToken(msg.sender);
+        }
+
+        return fillAmount;
+    }
+
+    function _claimLoanToken(
+        address lender)
+        internal
+        returns (uint256)
+    {
+        _settleInterest();
+
+        if (!burntTokenReserveListIndex[lender].isSet)
+            return 0;
+        
+        uint256 index = burntTokenReserveListIndex[lender].index;
+
+        uint256 currentPrice = _tokenPrice(0);
+
+        uint256 claimAmount = burntTokenReserveList[index].amount.mul(currentPrice).div(10**18);
+        if (claimAmount == 0)
+            return 0;
+
+        uint256 availableAmount = ERC20(loanTokenAddress).balanceOf(address(this));
+        if (claimAmount > availableAmount) {
+            claimAmount = availableAmount;
+        }
+
+        if (claimAmount > 0) {
+            require(ERC20(loanTokenAddress).transfer(
+                lender, 
+                claimAmount
+            ), "transfer of loanToken failed");
+
+            uint256 claimTokenAmount = claimAmount.mul(10**18).div(currentPrice);
+            if (burntTokenReserveList[index].amount <= claimTokenAmount) {
+                // remove lender from burntToken list
+                if (burntTokenReserveList.length > 1) {
+                    // replace order in list with last order in array
+                    burntTokenReserveList[index] = burntTokenReserveList[burntTokenReserveList.length - 1];
+
+                    // update the position of this replacement
+                    burntTokenReserveListIndex[lender].index = index;
+                }
+
+                // trim array and clear storage
+                burntTokenReserveList.length--;
+                burntTokenReserveListIndex[lender].index = 0;
+                burntTokenReserveListIndex[lender].isSet = false;
+            } else {
+                burntTokenReserveList[index].amount = burntTokenReserveList[index].amount.sub(claimTokenAmount);
+            }
+
+            burntTokenReserved = burntTokenReserved > claimTokenAmount ?
+                burntTokenReserved.sub(claimTokenAmount) :
+                0;
+
+            if (totalSupply_.add(burntTokenReserved) == 0)
+                lastPrice_ = currentPrice; // only store lastPrice_ if lender supply is 0
+        }
+
+        return claimAmount;
+    }
+
+
+    /* Internal View functions */
+
+    function _tokenPrice(
+        uint256 interestUnPaid)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 totalTokenSupply = totalSupply_.add(burntTokenReserved);
+
+        return totalTokenSupply > 0 ?
+            _totalAssetSupply(interestUnPaid)
+            .mul(10**18)
+            .div(totalTokenSupply) : lastPrice_;
+    }
+
+    function _getAllInterest()
+        internal
+        view
+        returns (
+            uint256 interestPaidSoFar,
+            uint256 interestOwedPerDay,
+            uint256 interestUnPaid)
+    {
+        // these values don't account for any fees retained by the oracle, so we account for it elsewhere with spreadMultiplier
+        (interestPaidSoFar,,interestOwedPerDay,interestUnPaid) = bZxInterface(bZxContract).getLenderInterestForOracle(
+            address(this),
+            bZxOracle,
+            loanTokenAddress // same as interestTokenAddress
+        );
+    }
+
+    function _getFillAmount(
+        LoanData memory loanData,
+        uint256 depositAmount)
+        internal
+        view
+        returns (uint256)
+    {
+        // assumes that collateral and interest token are the same
+        return depositAmount
+            .mul(10**40)
+            .div(
+                borrowInterestRate()
+                .mul(10**20)
+                .div(31536000) // 86400 * 365
+                .mul(maxDurationUnixTimestampSec)
+                .div(loanData.initialMarginAmount)
+                .add(10**20))
+            .div(loanData.initialMarginAmount);
+    }
+
+    function _getDepositAmount(
+        LoanData memory loanData,
+        uint256 fillAmount)
+        internal
+        view
+        returns (uint256)
+    {
+        // assumes that collateral and interest token are the same
+        return fillAmount
+            .mul(loanData.initialMarginAmount)
+            .mul(
+                borrowInterestRate()
+                .mul(10**20)
+                .div(31536000) // 86400 * 365
+                .mul(maxDurationUnixTimestampSec)
+                .div(loanData.initialMarginAmount)
+                .add(10**20))
+            .div(10**40);
+    }
+
+    function _getUtilizationRate()
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 assetSupply = totalAssetSupply();
+        if (totalAssetBorrow > 0 && assetSupply > 0) {
+            // U = total_borrow / total_supply
+            return totalAssetBorrow
+                .mul(10**20)
+                .div(assetSupply);
+        } else {
+            return 0;
+        }
+    }
+
+    function _totalAssetSupply(
+        uint256 interestUnPaid)
+        internal
+        view
+        returns (uint256)
+    {
+        return ERC20(loanTokenAddress).balanceOf(address(this))
+            .add(totalAssetBorrow)
+            .add(interestUnPaid);
+    }
+
+
+    /* Oracle-Only functions */
+
+    function takeOrderNotifier(
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanOrderAux memory /* loanOrderAux */,
+        BZxObjects.LoanPosition memory /* loanPosition */,
+        address /* taker */)
+        public
+        onlyOracle
+        returns (bool)
+    {
+        return true;
+    }
+
+    function tradePositionNotifier(
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanPosition memory /* loanPosition */)
+        public
+        onlyOracle
+        returns (bool)
+    {
+        return true;
+    }
+
+    function payInterestNotifier(
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        address /* lender */,
+        uint256 /* amountPaid */)
+        public
+        onlyOracle
+        returns (bool)
+    {
+        return true;
+    }
+
+    // called only by BZxOracle when a loan is partially or fully closed
+    function closeLoanNotifier(
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory /* loanPosition */,
+        address /* loanCloser */,
+        uint256 closeAmount,
+        bool /* isLiquidation */)
+        public
+        onlyOracle
+        returns (bool)
+    {
+        if (loanOrderData[loanOrder.loanOrderHash].loanOrderHash == loanOrder.loanOrderHash && 
+            closeAmount > 0 && totalAssetBorrow >= closeAmount) {
+
+            totalAssetBorrow = totalAssetBorrow.sub(closeAmount);
+
+            if (burntTokenReserveList.length > 0) {
+                _claimLoanToken(burntTokenReserveList[0].lender);
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
+    /* Owner-Only functions */
 
     function initLeverage(
         uint256[3] memory orderParams) // leverageAmount, initialMarginAmount, maintenanceMarginAmount
@@ -186,610 +928,11 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         spreadMultiplier = SafeMath.sub(10**20, _newRate);
     }
 
-    function setBZxContract(
-        address _addr)
-        public
-        onlyOwner
-    {
-        bZxContract = _addr;
-    }
-
-    function setBZxVault(
-        address _addr)
-        public
-        onlyOwner
-    {
-        bZxVault = _addr;
-    }
-
-    function setBZxOracle(
-        address _addr)
-        public
-        onlyOwner
-    {
-        bZxOracle = _addr;
-    }
-
-    function setWETHContract(
-        address _addr)
-        public
-        onlyOwner
-    {
-        wethContract = _addr;
-    }
-
     function setMaxDuration(
         uint256 _duration)
         public
         onlyOwner
     {
         maxDurationUnixTimestampSec = _duration;
-    }
-
-    function _getAllInterest()
-        internal
-        view
-        returns (
-            uint256 interestPaidSoFar,
-            uint256 interestOwedPerDay,
-            uint256 interestUnPaid)
-    {
-        // these values don't account for any fees retained by the oracle, so we account for it elsewhere with spreadMultiplier
-        (interestPaidSoFar,,interestOwedPerDay,interestUnPaid) = bZxInterface(bZxContract).getLenderInterestForOracle(
-            address(this),
-            bZxOracle,
-            loanTokenAddress // same as interestTokenAddress
-        );
-    }
-
-    function currentBorrowInterestRate()
-        public
-        view
-        returns (uint256)
-    {
-        if (totalAssetBorrow > 0) {
-            (,uint256 interestOwedPerDay,) = _getAllInterest();
-            return interestOwedPerDay
-                .mul(10**20)
-                .div(totalAssetBorrow)
-                .mul(365);
-        } else {
-            return 0;
-        }
-    }
-
-    function currentSupplyInterestRate()
-        public
-        view
-        returns (uint256)
-    {
-        return currentBorrowInterestRate()
-            .mul(_getUtilizationRate())
-            .div(10**20);
-    }
-
-    function newBorrowInterestRate()
-        public
-        view
-        returns (uint256)
-    {
-        return _getUtilizationRate()
-            .mul(rateMultiplier)
-            .div(10**20)
-            .add(baseRate);
-    }
-
-    function newSupplyInterestRate()
-        public
-        view
-        returns (uint256)
-    {
-        uint256 utilizationRate = _getUtilizationRate();
-
-        uint256 newBorrowRate = utilizationRate
-            .mul(rateMultiplier)
-            .div(10**20)
-            .add(baseRate);
-        
-        return newBorrowRate
-            .mul(utilizationRate)
-            .div(10**20);
-    }
-
-    function _getUtilizationRate()
-        internal
-        view
-        returns (uint256)
-    {
-        uint256 assetSupply = totalAssetSupply();
-        if (totalAssetBorrow > 0 && assetSupply > 0) {
-            // U = total_borrow / total_supply
-            return totalAssetBorrow
-                .mul(10**20)
-                .div(assetSupply);
-        } else {
-            return 0;
-        }
-    }
-
-    // this gets the combined total of paid and unpaid interest
-    function interestReceived()
-        public
-        view
-        returns (uint256 interestTotalAccrued)
-    {
-        (uint256 interestPaidSoFar,,uint256 interestUnPaid) = _getAllInterest();
-
-        return interestPaidSoFar
-            .add(interestUnPaid)
-            .mul(spreadMultiplier)
-            .div(10**20);
-    }
-
-    function tokenPrice()
-        public
-        view
-        returns (uint256)
-    {
-        (,,uint256 interestUnPaid) = _getAllInterest();
-
-        interestUnPaid = interestUnPaid
-            .mul(spreadMultiplier)
-            .div(10**20);
-
-        return _tokenPrice(interestUnPaid);
-    }
-
-    function totalAssetSupply()
-        public
-        view
-        returns (uint256)
-    {
-        (,,uint256 interestUnPaid) = _getAllInterest();
-
-        interestUnPaid = interestUnPaid
-            .mul(spreadMultiplier)
-            .div(10**20);
-
-        return _totalAssetSupply(interestUnPaid);
-    }
-
-    function _tokenPrice(
-        uint256 interestUnPaid)
-        internal
-        view
-        returns (uint256)
-    {
-        uint256 totalTokenSupply = totalSupply_.add(burntTokenReserved);
-
-        return totalTokenSupply > 0 ?
-            _totalAssetSupply(interestUnPaid)
-            .mul(10**18)
-            .div(totalTokenSupply) : lastPrice;
-    }
-
-    function _totalAssetSupply(
-        uint256 interestUnPaid)
-        internal
-        view
-        returns (uint256)
-    {
-        return ERC20(loanTokenAddress).balanceOf(address(this))
-            .add(totalAssetBorrow)
-            .add(interestUnPaid);
-    }
-
-    function mintWithEther()
-        public
-        payable
-        returns (uint256 mintAmount)
-    {
-        require (loanTokenAddress == wethContract, "ether is not supported");
-
-        if (burntTokenReserveList.length > 0) {
-            _claimLoanToken(burntTokenReserveList[0].lender);
-            _claimLoanToken(msg.sender);
-        } else {
-            _settleInterest();
-        }
-
-        mintAmount = msg.value.mul(10**18).div(_tokenPrice(0));
-
-        WETHInterface(wethContract).deposit.value(msg.value)();
-
-        _mint(msg.sender, mintAmount);
-    }
-
-    function mint(
-        uint256 depositAmount)
-        public
-        returns (uint256 mintAmount)
-    {
-        if (burntTokenReserveList.length > 0) {
-            _claimLoanToken(burntTokenReserveList[0].lender);
-            _claimLoanToken(msg.sender);
-        } else {
-            _settleInterest();
-        }
-
-        mintAmount = depositAmount.mul(10**18).div(_tokenPrice(0));
-
-        require(ERC20(loanTokenAddress).transferFrom(
-            msg.sender,
-            address(this),
-            depositAmount
-        ), "transfer of loanToken failed");
-
-        _mint(msg.sender, mintAmount);
-    }
-
-    function burnToEther(
-        uint256 burnAmount)
-        public
-        returns (uint256 loanAmountPaid)
-    {
-        require (loanTokenAddress == wethContract, "ether is not supported");
-
-        loanAmountPaid = _burnToken(burnAmount);
-
-        if (loanAmountPaid > 0) {
-            WETHInterface(wethContract).withdraw(loanAmountPaid);
-            require(msg.sender.send(loanAmountPaid), "transfer of ETH failed");
-        }
-    }
-
-    function burn(
-        uint256 burnAmount)
-        public
-        returns (uint256 loanAmountPaid)
-    {
-        loanAmountPaid = _burnToken(burnAmount);
-
-        if (loanAmountPaid > 0) {
-            require(ERC20(loanTokenAddress).transfer(
-                msg.sender, 
-                loanAmountPaid
-            ), "transfer of loanToken failed");
-        }
-    }
-
-    function _burnToken(
-        uint256 burnAmount)
-        internal
-        returns (uint256 loanAmountPaid)
-    {
-        require(burnAmount > 0, "burnAmount == 0");
-
-        // balance is verified in the _burn function
-        // require(balances[msg.sender] >= burnAmount, "burnAmount too high");
-
-        if (burntTokenReserveList.length > 0) {
-            _claimLoanToken(burntTokenReserveList[0].lender);
-            _claimLoanToken(msg.sender);
-        } else {
-            _settleInterest();
-        }
-
-        uint256 currentPrice = _tokenPrice(0);
-
-        uint256 loanAmountOwed = burnAmount.mul(currentPrice).div(10**18);
-        uint256 loanTokenAvailableInContract = ERC20(loanTokenAddress).balanceOf(address(this));
-
-        loanAmountPaid = loanAmountOwed;
-        if (loanAmountPaid > loanTokenAvailableInContract) {
-            uint256 reserveAmount = loanAmountPaid.sub(loanTokenAvailableInContract);
-            uint256 reserveTokenAmount = reserveAmount.mul(10**18).div(currentPrice);
-
-            burntTokenReserved = burntTokenReserved.add(reserveTokenAmount);
-            if (burntTokenReserveListIndex[msg.sender].isSet) {
-                uint256 index = burntTokenReserveListIndex[msg.sender].index;
-                burntTokenReserveList[index].amount = burntTokenReserveList[index].amount.add(reserveTokenAmount);
-            } else {
-                burntTokenReserveList.push(TokenReserves({
-                    lender: msg.sender,
-                    amount: reserveTokenAmount
-                }));
-                burntTokenReserveListIndex[msg.sender] = BZxObjects.ListIndex({
-                    index: burntTokenReserveList.length-1,
-                    isSet: true
-                });
-            }
-
-            loanAmountPaid = loanTokenAvailableInContract;
-        }
-
-        _burn(msg.sender, burnAmount);
-
-        if (totalSupply_.add(burntTokenReserved) == 0)
-            lastPrice = currentPrice; // only store lastPrice if lender supply is 0
-    }
-
-    function getFillAmount(
-        uint256 depositAmount,
-        uint256 leverageAmount)
-        public
-        view
-        returns (uint256)
-    {
-        if (depositAmount == 0)
-            return 0;
-        
-        LoanData memory loanData = loanOrderData[loanOrderHashes[leverageAmount]];
-        if (loanData.initialMarginAmount == 0)
-            return 0;
-
-        return _getFillAmount(
-            loanData,
-            depositAmount);
-    }
-
-    function _getFillAmount(
-        LoanData memory loanData,
-        uint256 depositAmount)
-        internal
-        view
-        returns (uint256)
-    {
-        // assumes that collateral and interest token are the same
-        return depositAmount
-            .mul(10**40)
-            .div(
-                newBorrowInterestRate()
-                .mul(10**20)
-                .div(31536000) // 86400 * 365
-                .mul(maxDurationUnixTimestampSec)
-                .div(loanData.initialMarginAmount)
-                .add(10**20))
-            .div(loanData.initialMarginAmount);
-    }
-
-    // called by a borrower to open a loan
-    function borrowToken(
-        uint256 fillAmount,
-        uint256 leverageAmount,
-        address collateralTokenAddress,
-        address tradeTokenToFillAddress,
-        bool withdrawOnOpen)
-        public
-        returns (uint256)
-    {
-        require(fillAmount > 0, "fillAmount == 0");
-
-        bytes32 loanOrderHash = loanOrderHashes[leverageAmount];
-        LoanData memory loanData = loanOrderData[loanOrderHash];
-        require(loanData.initialMarginAmount != 0, "invalid leverage amount");
-
-        _settleInterest();
-
-        require(ERC20(loanTokenAddress).balanceOf(address(this)) >= fillAmount, "insufficient loan supply");
-
-        // re-up the BZxVault spend approval if needed
-        uint256 tempAllowance = ERC20(loanTokenAddress).allowance(address(this), bZxVault);
-        if (tempAllowance < fillAmount) {
-            if (tempAllowance > 0) {
-                // reset approval to 0
-                require(ERC20(loanTokenAddress).approve(bZxVault, 0), "approval reset of loanToken failed");
-            }
-
-            require(ERC20(loanTokenAddress).approve(bZxVault, MAX_UINT), "approval of loanToken failed");
-        }
-
-        require(bZxInterface(bZxContract).updateLoanAsLender(
-            loanOrderHash,
-            fillAmount,
-            newBorrowInterestRate().div(365),
-            block.timestamp+1),
-            "updateLoanAsLender failed");
-
-        require (bZxInterface(bZxContract).takeLoanOrderOnChainAsTraderByDelegate(
-            msg.sender,
-            loanOrderHash,
-            collateralTokenAddress,
-            fillAmount,
-            tradeTokenToFillAddress,
-            withdrawOnOpen) == fillAmount,
-            "takeLoanOrderOnChainAsTraderByDelegate failed");
-
-        totalAssetBorrow = totalAssetBorrow.add(fillAmount);
-
-        if (burntTokenReserveList.length > 0) {
-            _claimLoanToken(burntTokenReserveList[0].lender);
-            _claimLoanToken(msg.sender);
-        }
-
-        return fillAmount;
-    }
-
-    // Claims owned loan token for the caller
-    // Also claims for user with the longest reserves
-    // returns amount claimed for the caller
-    function claimLoanToken()
-        public
-        returns (uint256 claimedAmount)
-    {
-        claimedAmount = _claimLoanToken(msg.sender);
-
-        if (burntTokenReserveList.length > 0)
-            _claimLoanToken(burntTokenReserveList[0].lender);
-    }
-
-    function _claimLoanToken(
-        address lender)
-        internal
-        returns (uint256)
-    {
-        _settleInterest();
-
-        if (!burntTokenReserveListIndex[lender].isSet)
-            return 0;
-        
-        uint256 index = burntTokenReserveListIndex[lender].index;
-
-        uint256 currentPrice = _tokenPrice(0);
-
-        uint256 claimAmount = burntTokenReserveList[index].amount.mul(currentPrice).div(10**18);
-        if (claimAmount == 0)
-            return 0;
-
-        uint256 availableAmount = ERC20(loanTokenAddress).balanceOf(address(this));
-        if (claimAmount > availableAmount) {
-            claimAmount = availableAmount;
-        }
-
-        if (claimAmount > 0) {
-            require(ERC20(loanTokenAddress).transfer(
-                lender, 
-                claimAmount
-            ), "transfer of loanToken failed");
-
-            uint256 claimTokenAmount = claimAmount.mul(10**18).div(currentPrice);
-            if (burntTokenReserveList[index].amount <= claimTokenAmount) {
-                // remove lender from burntToken list
-                if (burntTokenReserveList.length > 1) {
-                    // replace order in list with last order in array
-                    burntTokenReserveList[index] = burntTokenReserveList[burntTokenReserveList.length - 1];
-
-                    // update the position of this replacement
-                    burntTokenReserveListIndex[lender].index = index;
-                }
-
-                // trim array and clear storage
-                burntTokenReserveList.length--;
-                burntTokenReserveListIndex[lender].index = 0;
-                burntTokenReserveListIndex[lender].isSet = false;
-            } else {
-                burntTokenReserveList[index].amount = burntTokenReserveList[index].amount.sub(claimTokenAmount);
-            }
-
-            burntTokenReserved = burntTokenReserved > claimTokenAmount ?
-                burntTokenReserved.sub(claimTokenAmount) :
-                0;
-
-            if (totalSupply_.add(burntTokenReserved) == 0)
-                lastPrice = currentPrice; // only store lastPrice if lender supply is 0
-        }
-
-        return claimAmount;
-    }
-
-    function takeOrderNotifier(
-        BZxObjects.LoanOrder memory /* loanOrder */,
-        BZxObjects.LoanOrderAux memory /* loanOrderAux */,
-        BZxObjects.LoanPosition memory /* loanPosition */,
-        address /* taker */)
-        public
-        onlyOracle
-        returns (bool)
-    {
-        return true;
-    }
-
-    function tradePositionNotifier(
-        BZxObjects.LoanOrder memory /* loanOrder */,
-        BZxObjects.LoanPosition memory /* loanPosition */)
-        public
-        onlyOracle
-        returns (bool)
-    {
-        return true;
-    }
-
-    function payInterestNotifier(
-        BZxObjects.LoanOrder memory /* loanOrder */,
-        address /* lender */,
-        uint256 /* amountPaid */)
-        public
-        onlyOracle
-        returns (bool)
-    {
-        return true;
-    }
-
-    // called only by BZxOracle when a loan is partially or fully closed
-    function closeLoanNotifier(
-        BZxObjects.LoanOrder memory loanOrder,
-        BZxObjects.LoanPosition memory /* loanPosition */,
-        address /* loanCloser */,
-        uint256 closeAmount,
-        bool /* isLiquidation */)
-        public
-        onlyOracle
-        returns (bool)
-    {
-        if (loanOrderData[loanOrder.loanOrderHash].loanOrderHash == loanOrder.loanOrderHash && 
-            closeAmount > 0 && totalAssetBorrow >= closeAmount) {
-
-            totalAssetBorrow = totalAssetBorrow.sub(closeAmount);
-
-            if (burntTokenReserveList.length > 0) {
-                _claimLoanToken(burntTokenReserveList[0].lender);
-            }
-
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    function settleInterest()
-        public
-    {
-        _settleInterest();
-    }
-
-    function _settleInterest()
-        internal
-    {
-        if (lastSettleTime != block.timestamp) {
-            (bool success,) = bZxContract.call.gas(gasleft())(
-                abi.encodeWithSignature(
-                    "payInterestForOracle(address,address)",
-                    bZxOracle,
-                    loanTokenAddress // same as interestTokenAddress
-                )
-            );
-            success;
-            lastSettleTime = block.timestamp;
-        }
-    }
-
-    function marketLiquidity()
-        public
-        view
-        returns (uint256)
-    {
-        uint256 totalSupply = totalAssetSupply();
-        if (totalSupply > totalAssetBorrow) {
-            return totalSupply.sub(totalAssetBorrow);
-        } else {
-            return 0;
-        }
-    }
-
-    function getLoanData(
-        uint256 levergeAmount)
-        public
-        view
-        returns (LoanData memory)
-    {
-        return loanOrderData[loanOrderHashes[levergeAmount]];
-    }
-
-    function getLoanOrderHashses()
-        public
-        view
-        returns (bytes32[] memory)
-    {
-        return loanOrderHashList;
-    }
-
-    // returns the user's balance of underlying token
-    function assetBalanceOf(
-        address _owner)
-        public
-        view
-        returns (uint256)
-    {
-        return balances[_owner].mul(tokenPrice()).div(10**18);
     }
 }

@@ -490,6 +490,18 @@ contract BZx is BZxStorage {
         view
         returns (bool isPositive, uint256 positionOffsetAmount, uint256 loanOffsetAmount, uint256 collateralOffsetAmount);
 
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param trader The trader of the position
+    /// @return netCollateralAmount The amount of collateral escrowed netted to any exceess or deficit
+    /// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender
+    /// @return loanTokenAmountBorrowed The amount of loan token borrowed for the position
+    function getTotalEscrow(
+        bytes32 loanOrderHash,
+        address trader)
+        public
+        view
+        returns (uint256 netCollateralAmount, uint256 interestDepositRemaining, uint256 loanTokenAmountBorrowed);
+
     /// @dev Pays the lender the total amount of interest accrued for a loan order
     /// @dev Note that this function can be safely called by anyone.
     /// @param loanOrderHash A unique hash representing the loan order

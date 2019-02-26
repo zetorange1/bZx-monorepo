@@ -88,19 +88,24 @@ export default class LoanTokens extends BZxComponent {
     showSellDialog: false,
     showSendDialog: false,
     showBorrowDialog: false,
+    showCurveDialog: false,
     recipientAddress: ``,
     sendAmount: ``,
     tokenPrice: 0,
     totalAssetBorrow: 0,
     totalAssetSupply: 0,
     marketLiquidity: 0,
-    currentBorrowInterestRate: 0,
-    currentSupplyInterestRate: 0,
-    newSupplyInterestRate: 0,
-    newBorrowInterestRate: 0,
+    protocolBorrowInterestRate: 0,
+    protocolSupplyInterestRate: 0,
+    supplyInterestRate: 0,
+    borrowInterestRate: 0,
     leverageAmount: `0`,
     leverageHashes: {},
-    loanTokenAddress: ``
+    loanTokenAddress: ``,
+    baseRateCurrent: 0,
+    rateMultiplierCurrent: 0,
+    baseRateNew: 0,
+    rateMultiplierNew: 0,
   };
 
   async componentDidMount() {
@@ -188,10 +193,10 @@ export default class LoanTokens extends BZxComponent {
       const ethBalance = await this.wrapAndRun(web3.eth.getBalance(accounts[0]));
       const contractEthBalance = await this.wrapAndRun(web3.eth.getBalance(tokenContract._address));
 
-      const currentBorrowInterestRate = await this.wrapAndRun(tokenContract.methods.currentBorrowInterestRate().call());
-      const currentSupplyInterestRate = await this.wrapAndRun(tokenContract.methods.currentSupplyInterestRate().call());
-      const newSupplyInterestRate = await this.wrapAndRun(tokenContract.methods.newSupplyInterestRate().call());
-      const newBorrowInterestRate = await this.wrapAndRun(tokenContract.methods.newBorrowInterestRate().call());
+      const protocolBorrowInterestRate = await this.wrapAndRun(tokenContract.methods.protocolBorrowInterestRate().call());
+      const protocolSupplyInterestRate = await this.wrapAndRun(tokenContract.methods.protocolSupplyInterestRate().call());
+      const supplyInterestRate = await this.wrapAndRun(tokenContract.methods.supplyInterestRate().call());
+      const borrowInterestRate = await this.wrapAndRun(tokenContract.methods.borrowInterestRate().call());
 
       const totalAssetBorrow = await this.wrapAndRun(tokenContract.methods.totalAssetBorrow().call());
       const totalAssetSupply = await this.wrapAndRun(tokenContract.methods.totalAssetSupply().call());
@@ -199,11 +204,21 @@ export default class LoanTokens extends BZxComponent {
 
       const marketLiquidity = await this.wrapAndRun(tokenContract.methods.marketLiquidity().call());
 
+      const baseRateCurrent = toBigNumber(
+        await this.wrapAndRun(tokenContract.methods.baseRate().call()),
+        10 ** -18
+      ).toString();
+      const rateMultiplierCurrent = toBigNumber(
+        await this.wrapAndRun(tokenContract.methods.rateMultiplier().call()),
+        10 ** -18
+      ).toString();
+
+
       await this.setState({ 
-        currentBorrowInterestRate: currentBorrowInterestRate,
-        currentSupplyInterestRate: currentSupplyInterestRate,
-        newSupplyInterestRate: newSupplyInterestRate,
-        newBorrowInterestRate: newBorrowInterestRate,
+        protocolBorrowInterestRate: protocolBorrowInterestRate,
+        protocolSupplyInterestRate: protocolSupplyInterestRate,
+        supplyInterestRate: supplyInterestRate,
+        borrowInterestRate: borrowInterestRate,
         tokenPrice: tokenPrice,
         tokenBalance: tokenBalance,
         burntReserveBalance: burntReserveBalance,
@@ -213,6 +228,10 @@ export default class LoanTokens extends BZxComponent {
         totalAssetBorrow: totalAssetBorrow,
         totalAssetSupply: totalAssetSupply,
         marketLiquidity: marketLiquidity,
+        baseRateCurrent,
+        rateMultiplierCurrent,
+        baseRateNew: baseRateCurrent,
+        rateMultiplierNew: rateMultiplierCurrent,
         loading: false, 
         error: false 
       });
@@ -242,6 +261,10 @@ export default class LoanTokens extends BZxComponent {
     await this.props.setCurrentLoan(this.state.leverageHashes[e.target.value], this.props.accounts[0]);
   }
 
+  setBaseRate = e => this.setState({ baseRateNew: e.target.value });
+
+  setRateMultiplier = e => this.setState({ rateMultiplierNew: e.target.value });
+
   setStateForInput = key => e => this.setState({ [key]: e.target.value });
 
   toggleBuyDialog = () =>
@@ -255,6 +278,9 @@ export default class LoanTokens extends BZxComponent {
 
   toggleBorrowDialog = () =>
     this.setState(p => ({ showBorrowDialog: !p.showBorrowDialog }));
+  
+  toggleCurveDialog = () =>
+    this.setState(p => ({ showCurveDialog: !p.showCurveDialog }));
 
   buyToken = async () => {
     const { web3, bZx, accounts } = this.props;
@@ -329,8 +355,8 @@ export default class LoanTokens extends BZxComponent {
       gasPrice: window.defaultGasPrice.toString()
     };
 
-    const txObj = await tokenContract.methods.burnToEther(
-      toBigNumber(sellAmount, 1e18).toString()
+    const txObj = await tokenContract.methods.burn(
+      toBigNumber(sellAmount, 1e18).toFixed(0)
     );
     console.log(txOpts);
 
@@ -549,8 +575,8 @@ export default class LoanTokens extends BZxComponent {
     }
 
     const txObj = await tokenContract.methods.borrowToken(
-      toBigNumber(borrowAmount, 1e18).toString(),
-      toBigNumber(leverageAmount, 1e18).toString(),
+      toBigNumber(borrowAmount, 1e18).toFixed(0),
+      toBigNumber(leverageAmount, 1e18).toFixed(0),
       collateralTokenAddress,
       `0x0000000000000000000000000000000000000000`,
       false
@@ -598,6 +624,67 @@ export default class LoanTokens extends BZxComponent {
     }
   };
 
+  setDemandCurve = async () => {
+    const { bZx, accounts } = this.props;
+    const { baseRateNew, rateMultiplierNew, tokenContract } = this.state;
+
+    if (bZx.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
+
+    const txOpts = {
+      from: accounts[0],
+      gas: 2000000,
+      gasPrice: window.defaultGasPrice.toString()
+    };
+
+    const txObj = await tokenContract.methods.setDemandCurve(
+      toBigNumber(baseRateNew, 1e18).toFixed(0),
+      toBigNumber(rateMultiplierNew, 1e18).toFixed(0)
+    );
+    console.log(txOpts);
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = window.gasValue(gas)+10000;
+          console.log(txOpts);
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+              this.setState({ showCurveDialog: false });
+            })
+            .then(async () => {
+              alert(`The txn is complete.`);
+              this.refreshTokenData();
+            })
+            .catch(error => {
+              console.error(error.message);
+              alert(`The txn did not complete.`);
+              this.setState({ showCurveDialog: false });
+            });
+        })
+        .catch(error => {
+          console.error(error.message);
+          alert(`The txn did not complete.`);
+          this.setState({ showCurveDialog: false });
+        });
+    } catch (error) {
+      console.error(error.message);
+      alert(`The txn did not complete.`);
+      this.setState({ showCurveDialog: false });
+    }
+  };
+
   render() {
     const { 
       loading,
@@ -612,15 +699,19 @@ export default class LoanTokens extends BZxComponent {
       burntReserveBalanceContract,
       ethBalance,
       contractEthBalance,
-      currentBorrowInterestRate,
-      currentSupplyInterestRate,
-      newSupplyInterestRate,
-      newBorrowInterestRate,
+      protocolBorrowInterestRate,
+      protocolSupplyInterestRate,
+      supplyInterestRate,
+      borrowInterestRate,
       totalAssetBorrow,
       totalAssetSupply,
       marketLiquidity,
       leverageAmount,
-      loanTokenAddress
+      loanTokenAddress,
+      baseRateCurrent,
+      rateMultiplierCurrent,
+      baseRateNew,
+      rateMultiplierNew
     } = this.state;
     if (error) {
       return (
@@ -703,7 +794,7 @@ export default class LoanTokens extends BZxComponent {
                   10 ** -18
                 ).toString()}
                 {` `}
-                {`ETH`}
+                {`ETH (Max Borrow)`}
               </DataPoint>
             </DataPointContainer>
 
@@ -734,10 +825,10 @@ export default class LoanTokens extends BZxComponent {
             <br/>
 
             <DataPointContainer>
-              <Label>Current Supply Interest Rate</Label>
+              <Label>Supply Interest Rate</Label>
               <DataPoint>
                 {toBigNumber(
-                  currentSupplyInterestRate,
+                  supplyInterestRate,
                   10 ** -18
                 ).toString()}
                 {`% `}
@@ -745,34 +836,10 @@ export default class LoanTokens extends BZxComponent {
             </DataPointContainer>
 
             <DataPointContainer>
-              <Label>Current Borrow Interest Rate</Label>
+              <Label>Borrow Interest Rate</Label>
               <DataPoint>
                 {toBigNumber(
-                  currentBorrowInterestRate,
-                  10 ** -18
-                ).toString()}
-                {`% `}
-              </DataPoint>
-            </DataPointContainer>
-
-            <br/>
-
-            <DataPointContainer>
-              <Label>New Supply Interest Rate</Label>
-              <DataPoint>
-                {toBigNumber(
-                  newSupplyInterestRate,
-                  10 ** -18
-                ).toString()}
-                {`% `}
-              </DataPoint>
-            </DataPointContainer>
-
-            <DataPointContainer>
-              <Label>New Borrow Interest Rate</Label>
-              <DataPoint>
-                {toBigNumber(
-                  newBorrowInterestRate,
+                  borrowInterestRate,
                   10 ** -18
                 ).toString()}
                 {`% `}
@@ -868,6 +935,14 @@ export default class LoanTokens extends BZxComponent {
               >
                 Borrow From Token
               </Button>
+              <Button
+                variant="raised"
+                color="primary"
+                onClick={this.toggleCurveDialog}
+                style={{ marginLeft: `12px` }}
+              >
+                Demand Curve
+              </Button>
             </DataPointContainer>
 
             <br/><br/>
@@ -875,6 +950,22 @@ export default class LoanTokens extends BZxComponent {
             <Label>DEBUG VALUES</Label>
 
             <br/><br/>
+
+            <DataPointContainer>
+              <Label>Base Rate</Label>
+              <DataPoint>
+                {baseRateCurrent}%
+              </DataPoint>
+            </DataPointContainer>
+
+            <DataPointContainer>
+              <Label>Rate Multiplier</Label>
+              <DataPoint>
+                {rateMultiplierCurrent}%
+              </DataPoint>
+            </DataPointContainer>
+
+            <br/>
 
             <DataPointContainer>
               <Label>My ETH Balance</Label>
@@ -897,6 +988,30 @@ export default class LoanTokens extends BZxComponent {
                 ).toString()}
                 {` `}
                 {`WETH`}
+              </DataPoint>
+            </DataPointContainer>
+
+            <br/>
+
+            <DataPointContainer>
+              <Label>Protocol Supply Interest Rate</Label>
+              <DataPoint>
+                {toBigNumber(
+                  protocolSupplyInterestRate,
+                  10 ** -18
+                ).toString()}
+                {`% `}
+              </DataPoint>
+            </DataPointContainer>
+
+            <DataPointContainer>
+              <Label>Protocol Borrow Interest Rate</Label>
+              <DataPoint>
+                {toBigNumber(
+                  protocolBorrowInterestRate,
+                  10 ** -18
+                ).toString()}
+                {`% `}
               </DataPoint>
             </DataPointContainer>
 
@@ -1091,6 +1206,47 @@ export default class LoanTokens extends BZxComponent {
               </Button>
             </DialogActions>
           </Dialog>
+          <Dialog
+            open={this.state.showCurveDialog}
+            onClose={this.toggleCurveDialog}
+          >
+            <DialogTitle>Update Demand Curve</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+              </DialogContentText>
+              <br/>
+              <FormControl fullWidth>
+                <InputLabel>Base Rate</InputLabel>
+                <Input
+                  value={this.state.baseRateNew}
+                  type="number"
+                  onChange={this.setBaseRate}
+                  endAdornment={
+                    <InputAdornment position="end">%</InputAdornment>
+                  }
+                />
+              </FormControl>
+              <br/><br/>
+              <FormControl fullWidth>
+                <InputLabel>Rate Multiplier</InputLabel>
+                <Input
+                  value={this.state.rateMultiplierNew}
+                  type="number"
+                  onChange={this.setRateMultiplier}
+                  endAdornment={
+                    <InputAdornment position="end">%</InputAdornment>
+                  }
+                />
+              </FormControl>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={this.toggleCurveDialog}>Cancel</Button>
+              <Button onClick={this.setDemandCurve} color="primary">
+                Submit
+              </Button>
+            </DialogActions>
+          </Dialog>
+
         </Fragment>) : ``}
       </div>
     );

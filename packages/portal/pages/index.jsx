@@ -20,7 +20,7 @@ import { withRouter } from 'next/router'
 import Balances from "../src/balances";
 
 import LoanTokens from "../src/tokenization/LoanTokens";
-//import PositionTokens from "../src/tokenization/PositionTokens";
+import PositionTokens from "../src/tokenization/PositionTokens";
 import DebugTokenization from "../src/tokenization/DebugTokenization";
 
 import GenerateOrder from "../src/orders/GenerateOrder";
@@ -52,7 +52,7 @@ const ORDER_TABS = [
 
 const TOKENIZED_TABS = [
   { id: `tokenizedloans_loantokens`, label: `Loan Tokens` },
-  //{ id: `tokenizedloans_positiontokens`, label: `Position Tokens` },
+  { id: `tokenizedloans_positiontokens`, label: `Position Tokens` },
   { id: `tokenizedloans_debug`, label: `Debug` }
 ];
 
@@ -463,18 +463,18 @@ switch (domainData.subdomain) {
                     currentTrader={this.state.currentTrader}
                   />
                 </ContentContainer>
-                {/*<ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_positiontokens`}>
+                {<ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_positiontokens`}>
                   <PositionTokens
                     tokens={tokens}
                     bZx={bZx}
                     accounts={accounts}
                     web3={web3}
                     oracles={oracles}
-                    //setCurrentLoan={this.setCurrentLoan}
                     currentHash={this.state.currentHash}
                     currentTrader={this.state.currentTrader}
                   />
-                </ContentContainer>*/}
+                </ContentContainer>}
+                { process.env.NODE_ENV !== `production` ? (
                 <ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_debug`}>
                   <DebugTokenization
                     tokens={tokens}
@@ -486,6 +486,7 @@ switch (domainData.subdomain) {
                     currentTrader={this.state.currentTrader}
                   />
                 </ContentContainer>
+                ) : ``}
               </Fragment>
             );
             break; // eslint-disable-line no-unreachable
