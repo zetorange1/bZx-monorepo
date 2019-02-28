@@ -182,6 +182,8 @@ export default class LoanTokens extends BZxComponent {
 
       const tokenBalance = await this.wrapAndRun(tokenContract.methods.balanceOf(accounts[0]).call());
 
+      const checkpointPrice = await this.wrapAndRun(tokenContract.methods.checkpointPrice(accounts[0]).call());
+
       const listIndex = await this.wrapAndRun(tokenContract.methods.burntTokenReserveListIndex(accounts[0]).call());
       let burntReserveBalance = toBigNumber(0);
       if (listIndex.isSet) {
@@ -232,6 +234,7 @@ export default class LoanTokens extends BZxComponent {
         rateMultiplierCurrent,
         baseRateNew: baseRateCurrent,
         rateMultiplierNew: rateMultiplierCurrent,
+        checkpointPrice: checkpointPrice,
         loading: false, 
         error: false 
       });
@@ -710,6 +713,7 @@ export default class LoanTokens extends BZxComponent {
       loanTokenAddress,
       baseRateCurrent,
       rateMultiplierCurrent,
+      checkpointPrice,
       baseRateNew,
       rateMultiplierNew
     } = this.state;
@@ -728,6 +732,8 @@ export default class LoanTokens extends BZxComponent {
 
     const tokenAddress = tokenContract ? tokenContract._address : null;
     const tokenAddressLink = `${this.props.bZx.etherscanURL}address/${tokenAddress}`;
+
+    let profitLoss = toBigNumber(tokenPrice).minus(checkpointPrice).times(tokenBalance).div(10**36);
 
     return (
       <div>
@@ -781,6 +787,17 @@ export default class LoanTokens extends BZxComponent {
                 <AddressLink href={tokenAddressLink}>
                   {tokenAddress}
                 </AddressLink>
+              </DataPoint>
+            </DataPointContainer>
+
+            <br/>
+
+            <DataPointContainer>
+              <Label>Profit (Loss)</Label>
+              <DataPoint>
+                {!profitLoss.isNaN() ? profitLoss.lt(0) ? `(`+profitLoss.toString()+`)` : profitLoss.toString() : `0`}
+                {` `}
+                {`ETH`}
               </DataPoint>
             </DataPointContainer>
 
@@ -1218,7 +1235,7 @@ export default class LoanTokens extends BZxComponent {
               <FormControl fullWidth>
                 <InputLabel>Base Rate</InputLabel>
                 <Input
-                  value={this.state.baseRateNew}
+                  value={baseRateNew}
                   type="number"
                   onChange={this.setBaseRate}
                   endAdornment={
@@ -1230,7 +1247,7 @@ export default class LoanTokens extends BZxComponent {
               <FormControl fullWidth>
                 <InputLabel>Rate Multiplier</InputLabel>
                 <Input
-                  value={this.state.rateMultiplierNew}
+                  value={rateMultiplierNew}
                   type="number"
                   onChange={this.setRateMultiplier}
                   endAdornment={

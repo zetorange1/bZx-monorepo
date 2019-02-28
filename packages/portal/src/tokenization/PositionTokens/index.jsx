@@ -189,6 +189,8 @@ export default class PositionTokens extends BZxComponent {
       //const tokenData = await this.wrapAndRun(tokensaleContract.methods.purchases(accounts[0]).call());
       //console.log(tokenData);
 
+      const checkpointPrice = await this.wrapAndRun(tokenContract.methods.checkpointPrice(accounts[0]).call());
+
       //const ethRate = await this.wrapAndRun(tokensaleContract.methods.getEthRate().call());
       //console.log(ethRate);
 
@@ -224,7 +226,8 @@ export default class PositionTokens extends BZxComponent {
         vaultTradeTokenBalance,
         vaultLoanedTokenBalance,
         faucetTradeTokenBalance,
-        faucetLoanedTokenBalance
+        faucetLoanedTokenBalance,
+        checkpointPrice
       });
 
       await this.getWETHBalance(`wethBalance`, accounts[0]);
@@ -601,7 +604,8 @@ export default class PositionTokens extends BZxComponent {
       vaultTradeTokenBalance,
       vaultLoanedTokenBalance,
       faucetTradeTokenBalance,
-      faucetLoanedTokenBalance
+      faucetLoanedTokenBalance,
+      checkpointPrice
     } = this.state;
 
     if (error) {
@@ -619,6 +623,8 @@ export default class PositionTokens extends BZxComponent {
 
     const tokenAddress = tokenContract ? tokenContract._address : null;
     const tokenAddressLink = `${this.props.bZx.etherscanURL}address/${tokenAddress}`;
+
+    let profitLoss = toBigNumber(tokenPrice).minus(checkpointPrice).times(tokenBalance).div(10**36);
 
     return (
       <div>
@@ -648,6 +654,17 @@ export default class PositionTokens extends BZxComponent {
                 <AddressLink href={tokenAddressLink}>
                   {tokenAddress}
                 </AddressLink>
+              </DataPoint>
+            </DataPointContainer>
+
+            <br/>
+
+            <DataPointContainer>
+              <Label>Profit (Loss)</Label>
+              <DataPoint>
+                {!profitLoss.isNaN() ? profitLoss.lt(0) ? `(`+profitLoss.toString()+`)` : profitLoss.toString() : `0`}
+                {` `}
+                {`ETH`}
               </DataPoint>
             </DataPointContainer>
 

@@ -29,6 +29,9 @@ contract LoanTokenization is Ownable {
 
     address public loanTokenAddress;
 
+    // price of token at last user checkpoint
+    mapping (address => uint256) internal checkpointPrices_;
+
 
     /* Owner-Only functions */
 

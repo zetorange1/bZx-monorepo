@@ -152,11 +152,14 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
             _settleInterest();
         }
 
-        mintAmount = msg.value.mul(10**18).div(_tokenPrice(0));
+        uint256 currentPrice = _tokenPrice(0);
+        mintAmount = msg.value.mul(10**18).div(currentPrice);
 
         WETHInterface(wethContract).deposit.value(msg.value)();
 
         _mint(msg.sender, mintAmount);
+
+        checkpointPrices_[msg.sender] = currentPrice;
     }
 
     function mint(
@@ -173,7 +176,8 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
             _settleInterest();
         }
 
-        mintAmount = depositAmount.mul(10**18).div(_tokenPrice(0));
+        uint256 currentPrice = _tokenPrice(0);
+        mintAmount = depositAmount.mul(10**18).div(currentPrice);
 
         require(ERC20(loanTokenAddress).transferFrom(
             msg.sender,
@@ -182,6 +186,8 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         ), "transfer of loanToken failed");
 
         _mint(msg.sender, mintAmount);
+
+        checkpointPrices_[msg.sender] = currentPrice;
     }
 
     function burnToEther(
@@ -215,7 +221,7 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
     }
 
     // called by a borrower to open a loan, specifying amount to use for collateral and interest
-    // returns amount filled fillAmount
+    // returns fillAmount
     function borrowTokenFromDeposit(
         uint256 depositAmount,
         uint256 leverageAmount,
@@ -290,6 +296,46 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         _settleInterest();
     }
 
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value)
+        public
+        returns (bool)
+    {
+        super.transferFrom(
+            _from,
+            _to,
+            _value);
+
+        if (burntTokenReserveListIndex[msg.sender].isSet || balances[msg.sender] > 0) {
+            checkpointPrices_[msg.sender] = tokenPrice();
+        } else {
+            checkpointPrices_[msg.sender] = 0;
+        }
+
+        return true;
+    }
+
+    function transfer(
+        address _to,
+        uint256 _value)
+        public 
+        returns (bool)
+    {
+        super.transfer(
+            _to,
+            _value);
+
+        if (burntTokenReserveListIndex[msg.sender].isSet || balances[msg.sender] > 0) {
+            checkpointPrices_[msg.sender] = tokenPrice();
+        } else {
+            checkpointPrices_[msg.sender] = 0;
+        }
+
+        return true;
+    }
+
 
     /* Public View functions */
 
@@ -310,6 +356,15 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         return _tokenPrice(interestUnPaid);
     }
 
+    function checkpointPrice(
+        address _user)
+        public
+        view
+        returns (uint256)
+    {
+        return checkpointPrices_[_user];
+    }
+
     function marketLiquidity()
         public
         view
@@ -321,6 +376,34 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         } else {
             return 0;
         }
+    }
+
+    function borrowInterestRate()
+        public
+        view
+        returns (uint256)
+    {
+        return _getUtilizationRate()
+            .mul(rateMultiplier)
+            .div(10**20)
+            .add(baseRate);
+    }
+
+    function supplyInterestRate()
+        public
+        view
+        returns (uint256)
+    {
+        uint256 utilizationRate = _getUtilizationRate();
+
+        uint256 borrowRate = utilizationRate
+            .mul(rateMultiplier)
+            .div(10**20)
+            .add(baseRate);
+
+        return borrowRate
+            .mul(utilizationRate)
+            .div(10**20);
     }
 
     function protocolBorrowInterestRate()
@@ -346,34 +429,6 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
     {
         return protocolBorrowInterestRate()
             .mul(_getUtilizationRate())
-            .div(10**20);
-    }
-
-    function borrowInterestRate()
-        public
-        view
-        returns (uint256)
-    {
-        return _getUtilizationRate()
-            .mul(rateMultiplier)
-            .div(10**20)
-            .add(baseRate);
-    }
-
-    function supplyInterestRate()
-        public
-        view
-        returns (uint256)
-    {
-        uint256 utilizationRate = _getUtilizationRate();
-
-        uint256 borrowRate = utilizationRate
-            .mul(rateMultiplier)
-            .div(10**20)
-            .add(baseRate);
-        
-        return borrowRate
-            .mul(utilizationRate)
             .div(10**20);
     }
 
@@ -551,6 +606,12 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
 
         _burn(msg.sender, burnAmount);
 
+        if (burntTokenReserveListIndex[msg.sender].isSet || balances[msg.sender] > 0) {
+            checkpointPrices_[msg.sender] = currentPrice;
+        } else {
+            checkpointPrices_[msg.sender] = 0;
+        }
+
         if (totalSupply_.add(burntTokenReserved) == 0)
             lastPrice_ = currentPrice; // only store lastPrice_ if lender supply is 0
     }
@@ -684,6 +745,12 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
                 burntTokenReserveListIndex[lender].isSet = false;
             } else {
                 burntTokenReserveList[index].amount = burntTokenReserveList[index].amount.sub(claimTokenAmount);
+            }
+
+            if (burntTokenReserveListIndex[msg.sender].isSet || balances[msg.sender] > 0) {
+                checkpointPrices_[msg.sender] = currentPrice;
+            } else {
+                checkpointPrices_[msg.sender] = 0;
             }
 
             burntTokenReserved = burntTokenReserved > claimTokenAmount ?

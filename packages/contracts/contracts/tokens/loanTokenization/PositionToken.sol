@@ -83,7 +83,8 @@ contract PositionToken is LoanTokenization, SplittableToken {
     bytes32 public loanOrderHash;
 
     uint256 internal constant initialPrice_ = 10**20; // starting price of 100
-    uint256 public constant splitPrice = 10**14;
+    uint256 public constant splitPrice = 10**22;
+    uint256 public constant splitPriceReverse = 10**14;
 
     uint256 internal lastPrice_;
 
@@ -226,7 +227,7 @@ contract PositionToken is LoanTokenization, SplittableToken {
         public
     {
         uint256 currentPrice = tokenPrice();
-        if (currentPrice <= splitPrice) {
+        if (currentPrice <= splitPriceReverse || currentPrice >= splitPrice) {
             splitFactor_ = initialPrice_
                 .div(currentPrice);
         }
@@ -238,6 +239,45 @@ contract PositionToken is LoanTokenization, SplittableToken {
         _triggerPosition();
     }
 
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value)
+        public
+        returns (bool)
+    {
+        super.transferFrom(
+            _from,
+            _to,
+            _value);
+
+        if (balances[msg.sender] > 0) {
+            checkpointPrices_[msg.sender] = tokenPrice().div(splitFactor_);
+        } else {
+            checkpointPrices_[msg.sender] = 0;
+        }
+
+        return true;
+    }
+
+    function transfer(
+        address _to,
+        uint256 _value)
+        public 
+        returns (bool)
+    {
+        super.transfer(
+            _to,
+            _value);
+
+        if (balances[msg.sender] > 0) {
+            checkpointPrices_[msg.sender] = tokenPrice().div(splitFactor_);
+        } else {
+            checkpointPrices_[msg.sender] = 0;
+        }
+
+        return true;
+    }
 
     /* Public View functions */
 
@@ -255,6 +295,16 @@ contract PositionToken is LoanTokenization, SplittableToken {
         }
         
         return _tokenPrice(netCollateralAmount, interestDepositRemaining);
+    }
+
+    function checkpointPrice(
+        address _user)
+        public
+        view
+        returns (uint256)
+    {
+        return checkpointPrices_[_user]
+            .mul(splitFactor_);
     }
 
     function marketLiquidity()
@@ -339,6 +389,8 @@ contract PositionToken is LoanTokenization, SplittableToken {
 
         _mint(msg.sender, mintAmount);
 
+        checkpointPrices_[msg.sender] = currentPrice.div(splitFactor_);
+
         return mintAmount;
     }
 
@@ -390,6 +442,12 @@ contract PositionToken is LoanTokenization, SplittableToken {
 
         _burn(msg.sender, burnAmount);
 
+        if (balances[msg.sender] > 0) {
+            checkpointPrices_[msg.sender] = currentPrice.div(splitFactor_);
+        } else {
+            checkpointPrices_[msg.sender] = 0;
+        }
+
         if (totalSupply_ == 0)
             lastPrice_ = currentPrice;
 
@@ -404,7 +462,7 @@ contract PositionToken is LoanTokenization, SplittableToken {
     {
         uint256 currentPrice = _tokenPrice(netCollateralAmount, interestDepositRemaining);
 
-        if (currentPrice <= splitPrice) {
+        if (currentPrice <= splitPriceReverse || currentPrice >= splitPrice) {
             splitFactor_ = initialPrice_
                 .div(currentPrice);
 
