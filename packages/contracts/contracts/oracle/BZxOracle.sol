@@ -76,9 +76,12 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
     // this is the value the Kyber portal uses when setting a very high maximum number
     uint256 internal constant MAX_FOR_KYBER = 57896044618658097711785492504343953926634992332820282019728792003956564819968;
 
+    // collateral collected to pay margin callers
+    uint256 internal collateralReserve_;
+
     mapping (address => uint256) internal decimals;
 
-    // Bounty hunters are remembursed from collateral
+    // Margin callers are remembursed from collateral
     // The oracle requires a minimum amount
     uint256 public minimumCollateralInWethAmount = 0.5 ether;
 
@@ -90,11 +93,11 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
     // This will always be between 0 and 100%
     uint256 public interestFeePercent = 10 * 10**18;
 
-    // Percentage of EMA-based gas refund paid to bounty hunters after successfully liquidating a position
-    uint256 public bountyRewardPercent = 110 * 10**18;
+    // Percentage of EMA-based gas refund paid to margin callers after successfully liquidating a position
+    uint256 public marginCallerRewardPercent = 200 * 10**18;
 
     // An upper bound estimation on the liquidation gas cost
-    uint256 public gasUpperBound = 1000000;
+    uint256 public gasUpperBound = 2000000;
 
     // A threshold of minimum initial margin for loan to be insured by the guarantee fund
     // A value of 0 indicates that no threshold exists for this parameter.
@@ -383,31 +386,6 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         updatesEMA(tx.gasprice)
         returns (bool)
     {
-        // sends gas and bounty reward to bounty hunter
-        if (isLiquidation) {
-            (uint256 refundAmount, uint256 finalGasUsed) = getGasRefund(
-                gasUsed,
-                emaValue,
-                bountyRewardPercent
-            );
-
-            if (refundAmount > 0) {
-                // refunds are paid in ETH
-                uint256 wethBalance = EIP20(wethContract).balanceOf(address(this));
-                if (refundAmount > wethBalance)
-                    refundAmount = wethBalance;
-
-                WETHInterface(wethContract).withdraw(refundAmount);
-
-                sendGasRefund(
-                    loanCloser,
-                    refundAmount,
-                    finalGasUsed,
-                    emaValue
-                );
-            }
-        }
-
         if (closeLoanNotifier[loanOrder.loanOrderHash] != address(0)) {
             OracleNotifierInterface(closeLoanNotifier[loanOrder.loanOrderHash]).closeLoanNotifier(
                 loanOrder,
@@ -416,6 +394,51 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
                 closeAmount,
                 isLiquidation
             );
+        }
+
+        // sends gas and reward to margin caller
+        if (isLiquidation) {
+            (uint256 refundAmount, uint256 finalGasUsed) = getGasRefund(
+                gasUsed.add(20000), // excess to account for gas spent after this point
+                emaValue,
+                marginCallerRewardPercent
+            );
+
+            uint256 traderRefund = 0;
+            if (collateralReserve_ > refundAmount) {
+                traderRefund = collateralReserve_-refundAmount;
+            }
+
+            if (refundAmount.add(traderRefund) > 0) {
+                // refunds are paid in ETH
+                uint256 wethBalance = EIP20(wethContract).balanceOf(address(this));
+
+                if (refundAmount >= wethBalance) {
+                    refundAmount = wethBalance;
+                    traderRefund = 0;
+                } else if (refundAmount.add(traderRefund) > wethBalance) {
+                    traderRefund = wethBalance.sub(refundAmount);
+                }
+
+                WETHInterface(wethContract).withdraw(refundAmount.add(traderRefund));
+
+                if (refundAmount > 0) {
+                    sendGasRefund(
+                        loanCloser,
+                        refundAmount,
+                        finalGasUsed,
+                        emaValue
+                    );
+                }
+
+                if (traderRefund > 0) {
+                    // allow silent fail
+                    bool result = address(uint256(loanPosition.trader)).send(traderRefund); // solhint-disable-line check-send-result
+                    result;
+                }
+            }
+
+            collateralReserve_ = 0;
         }
 
         return true;
@@ -836,13 +859,13 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         interestFeePercent = newRate;
     }
 
-    function setBountyRewardPercent(
+    function setMarginCallerPercent(
         uint256 newValue)
         public
         onlyOwner
     {
-        require(newValue != bountyRewardPercent);
-        bountyRewardPercent = newValue;
+        require(newValue != marginCallerRewardPercent);
+        marginCallerRewardPercent = newValue;
     }
 
     function setGasUpperBound(
@@ -999,14 +1022,21 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             }
         }
 
-        // trade collateral token for WETH
-        (wethAmountReceived,) = _trade(
-            collateralTokenAddress,
-            wethContract,
-            address(this), // BZxOracle receives the WETH proceeds
-            collateralTokenAmountUsable,
-            !isLiquidation ? wethAmountNeeded : wethAmountNeeded.add(gasUpperBound.mul(emaValue).mul(bountyRewardPercent).div(10**20))
-        );
+        if (isLiquidation) {
+            collateralReserve_ = gasUpperBound.mul(emaValue).mul(marginCallerRewardPercent).div(10**20);
+            wethAmountNeeded = wethAmountNeeded.add(collateralReserve_);
+        }
+
+        if (wethAmountNeeded > 0) {
+            // trade collateral token for WETH
+            (wethAmountReceived,) = _trade(
+                collateralTokenAddress,
+                wethContract,
+                address(this), // BZxOracle receives the WETH proceeds
+                collateralTokenAmountUsable,
+                wethAmountNeeded
+            );
+        }
     }
 
     function _getDecimalPrecision(

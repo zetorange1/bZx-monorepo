@@ -163,9 +163,8 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
         return true;
     }
 
-    /// @dev Allows a lender to increase the amount of token they will loan out for an order and/or set the loan order expiration to a future date
-    /// @dev The order must already be on chain
-    /// @dev Ensures the lender has enough balance and allowance
+    /// @dev Allows the lender to set optional updates to their on-chain loan order that affects future borrowers
+    /// @dev Setting a new interest rate will invalidate the off-chain bZx loan order (only the on-chain order can be taken)
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param increaseAmountForLoan Optional parameter to specify the amount of loan token increase
     /// @param newInterestRate Optional parameter to specify the amount of loan token increase
