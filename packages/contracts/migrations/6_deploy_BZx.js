@@ -29,7 +29,7 @@ module.exports = (deployer, network, accounts) => {
       bzrx_ether_address = config["addresses"][network]["BZxEther"];
     } else {
       bzrx_token_address = BZRxToken.address;
-      bzrx_ether_address = BZxEther.address;
+      bzrx_ether_address = BZRxToken.address; //BZxEther.address;
 
       await bZxProxy.setDebugMode(true);
     }

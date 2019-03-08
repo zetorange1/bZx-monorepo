@@ -110,7 +110,7 @@ module.exports = {
   },
   compilers: {
     solc: {
-      version: "../../node_modules/solc", // v0.5.2
+      version: "../../node_modules/solc_0.5.3", // v0.5.3
       settings: {
         optimizer: {
           enabled: true,

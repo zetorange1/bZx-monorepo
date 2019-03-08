@@ -112,7 +112,7 @@ export default class PositionTokens extends BZxComponent {
 
   async componentDidMount() {
 
-    let iTokenAddress;
+    let iTokenAddress, pTokenAddress;
 
     /** TEMP **/
       iTokenAddress = (await this.props.bZx.getWeb3Contract(`LoanToken`))._address;
@@ -121,14 +121,12 @@ export default class PositionTokens extends BZxComponent {
     const iTokenContract = await this.props.bZx.getWeb3Contract(`LoanToken`, iTokenAddress);
     console.log(`iToken contract:`, iTokenContract._address);
 
+    /*pTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
+      `0x2727E688B8fD40b198cd5Fe6E408e00494a06F07` :
+      `0xF26eBD03adD32c23C10042e456f269AA600EBCA0`;*/
+      pTokenAddress = (await this.props.bZx.getWeb3Contract(`PositionToken`))._address;
 
-    let tokenAddress;
-
-    /** TEMP **/
-      //tokenAddress = (await this.wrapAndRun(iTokenContract.methods.positionTokenList(1).call())).toString();
-    /** TEMP **/
-
-    const tokenContract = await this.props.bZx.getWeb3Contract(`PositionToken`);
+    const tokenContract = await this.props.bZx.getWeb3Contract(`PositionToken`, pTokenAddress);
     console.log(`pToken contract:`, tokenContract._address);
 
     const tokenContractSymbol = (await this.wrapAndRun(tokenContract.methods.symbol().call())).toString();
@@ -332,7 +330,7 @@ export default class PositionTokens extends BZxComponent {
       gasPrice: window.defaultGasPrice.toString()
     };
 
-    const txObj = await tokenContract.methods.burn(
+    const txObj = await tokenContract.methods.burnToEther(
       toBigNumber(sellAmount, 1e18).toFixed(0)
     );
     console.log(txOpts);

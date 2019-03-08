@@ -358,7 +358,7 @@ export default class LoanTokens extends BZxComponent {
       gasPrice: window.defaultGasPrice.toString()
     };
 
-    const txObj = await tokenContract.methods.burn(
+    const txObj = await tokenContract.methods.burnToEther(
       toBigNumber(sellAmount, 1e18).toFixed(0)
     );
     console.log(txOpts);

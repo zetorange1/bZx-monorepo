@@ -52,7 +52,8 @@ const ORDER_TABS = [
 
 const TOKENIZED_TABS = [
   { id: `tokenizedloans_loantokens`, label: `Loan Tokens` },
-  { id: `tokenizedloans_positiontokens`, label: `Position Tokens` },
+  { id: `tokenizedloans_positiontokens_short`, label: `Position Tokens (short)` },
+  { id: `tokenizedloans_positiontokens_long`, label: `Position Tokens (long)` },
   { id: `tokenizedloans_debug`, label: `Debug` }
 ];
 
@@ -79,7 +80,7 @@ switch (domainData.subdomain) {
   default:
     IndexExport = withRouter(withRoot(class extends React.Component {
       state = {
-        activeCard: `balances`,
+        activeCard: `tokenizedloans`,//`balances`,
         activeOrderTab: `Orders_GenOrder`,
         activeTokenizedTab: `tokenizedloans_loantokens`,
         activeOrder: null,
@@ -465,9 +466,10 @@ switch (domainData.subdomain) {
                     setCurrentLoan={this.setCurrentLoan}
                     currentHash={this.state.currentHash}
                     currentTrader={this.state.currentTrader}
+                    activeTokenizedTab={this.state.activeTokenizedTab}
                   />
                 </ContentContainer>
-                {<ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_positiontokens`}>
+                {<ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_positiontokens_short`}>
                   <PositionTokens
                     tokens={tokens}
                     bZx={bZx}
@@ -476,6 +478,19 @@ switch (domainData.subdomain) {
                     oracles={oracles}
                     currentHash={this.state.currentHash}
                     currentTrader={this.state.currentTrader}
+                    activeTokenizedTab={`tokenizedloans_positiontokens_short`}
+                  />
+                </ContentContainer>}
+                {<ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_positiontokens_long`}>
+                  <PositionTokens
+                    tokens={tokens}
+                    bZx={bZx}
+                    accounts={accounts}
+                    web3={web3}
+                    oracles={oracles}
+                    currentHash={this.state.currentHash}
+                    currentTrader={this.state.currentTrader}
+                    activeTokenizedTab={`tokenizedloans_positiontokens_long`}
                   />
                 </ContentContainer>}
                 <ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_debug`}>
