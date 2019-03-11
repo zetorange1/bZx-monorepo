@@ -157,8 +157,9 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
     /* Public functions */
 
     function mintWithEther()
-        public
+        external
         payable
+        nonReentrant
         returns (uint256 mintAmount)
     {
         require (msg.value > 0, "msg.value == 0");
@@ -183,7 +184,8 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
 
     function mint(
         uint256 depositAmount)
-        public
+        external
+        nonReentrant
         returns (uint256 mintAmount)
     {
         require (depositAmount > 0, "depositAmount == 0");
@@ -211,7 +213,8 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
 
     function burnToEther(
         uint256 burnAmount)
-        public
+        external
+        nonReentrant
         returns (uint256 loanAmountPaid)
     {
         require (loanTokenAddress == wethContract, "ether is not supported");
@@ -226,7 +229,8 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
 
     function burn(
         uint256 burnAmount)
-        public
+        external
+        nonReentrant
         returns (uint256 loanAmountPaid)
     {
         loanAmountPaid = _burnToken(burnAmount);
@@ -247,7 +251,8 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         address collateralTokenAddress,
         address tradeTokenToFillAddress,
         bool withdrawOnOpen)
-        public
+        external
+        nonReentrant
         returns (uint256)
     {
         require(depositAmount > 0, "depositAmount == 0");
@@ -277,7 +282,8 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         address collateralTokenAddress,
         address tradeTokenToFillAddress,
         bool withdrawOnOpen)
-        public
+        external
+        nonReentrant
         returns (uint256)
     {
         require(fillAmount > 0, "fillAmount == 0");
@@ -300,7 +306,8 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
     // Also claims for user with the longest reserves
     // returns amount claimed for the caller
     function claimLoanToken()
-        public
+        external
+        nonReentrant
         returns (uint256 claimedAmount)
     {
         claimedAmount = _claimLoanToken(msg.sender);
@@ -310,7 +317,8 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
     }
 
     function settleInterest()
-        public
+        external
+        nonReentrant
     {
         _settleInterest();
     }

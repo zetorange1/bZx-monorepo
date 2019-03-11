@@ -134,8 +134,9 @@ contract PositionToken is LoanTokenization, SplittableToken {
 
     // returns the amount of token minted
     function mintWithEther()
-        public
+        external
         payable
+        nonReentrant
         returns (uint256)
     {
         require (msg.value > 0, "msg.value == 0");
@@ -162,7 +163,8 @@ contract PositionToken is LoanTokenization, SplittableToken {
     function mintWithToken(
         address depositTokenAddress,
         uint256 depositAmount)
-        public
+        external
+        nonReentrant
         returns (uint256)
     {
         require (depositAmount > 0, "depositAmount == 0");
@@ -191,7 +193,8 @@ contract PositionToken is LoanTokenization, SplittableToken {
     
     function burnToEther(
         uint256 burnAmount)
-        public
+        external
+        nonReentrant
         returns (uint256)
     {
         require (loanTokenAddress == wethContract, "ether is not supported");
@@ -208,7 +211,8 @@ contract PositionToken is LoanTokenization, SplittableToken {
     function burnToToken(
         address burnTokenAddress,
         uint256 burnAmount)
-        public
+        external
+        nonReentrant
         returns (uint256)
     {
         uint256 loanAmountOwed = _burnToken(burnAmount);
@@ -258,7 +262,8 @@ contract PositionToken is LoanTokenization, SplittableToken {
     }
 
     function handleSplit()
-        public
+        external
+        nonReentrant
     {
         uint256 currentPrice = tokenPrice();
         if (currentPrice <= splitPriceReverse || currentPrice >= splitPrice) {
@@ -268,7 +273,8 @@ contract PositionToken is LoanTokenization, SplittableToken {
     }
 
     function triggerPosition() 
-        public
+        external
+        nonReentrant
     {
         _triggerPosition();
     }

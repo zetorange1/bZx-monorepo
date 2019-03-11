@@ -5,6 +5,7 @@
  
 pragma solidity 0.5.5;
 
+import "./openzeppelin-solidity/ReentrancyGuard.sol";
 import "./openzeppelin-solidity/Ownable.sol";
 import "./WETHInterface.sol";
 
@@ -18,7 +19,7 @@ interface IOracle {
         returns (uint256 sourceToDestRate, uint256 destTokenAmount);
 }
 
-contract LoanTokenization is Ownable {
+contract LoanTokenization is ReentrancyGuard, Ownable {
 
     uint256 internal constant MAX_UINT = 2**256 - 1;
 
