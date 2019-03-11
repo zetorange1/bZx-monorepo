@@ -77,8 +77,27 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         uint256 amount;
     }
 
-    event Mint(address indexed to, uint256 amount);
-    event Burn(address indexed burner, uint256 value);
+    event Mint(
+        address indexed to,
+        uint256 tokenAmount,
+        uint256 assetAmount,
+        uint256 price
+    );
+    
+    event Burn(
+        address indexed burner,
+        uint256 tokenAmount,
+        uint256 assetAmount,
+        uint256 price
+    );
+
+    event Claim(
+        address indexed claimant,
+        uint256 tokenAmount,
+        uint256 assetAmount,
+        uint256 remainingTokenAmount,
+        uint256 price
+    );
 
     uint256 public baseRate = 2500000000000000000; // 2.5%
     uint256 public rateMultiplier = 20000000000000000000; // 20%
@@ -157,7 +176,7 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
 
         WETHInterface(wethContract).deposit.value(msg.value)();
 
-        _mint(msg.sender, mintAmount);
+        _mint(msg.sender, mintAmount, msg.value, currentPrice);
 
         checkpointPrices_[msg.sender] = currentPrice;
     }
@@ -185,7 +204,7 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
             depositAmount
         ), "transfer of loanToken failed");
 
-        _mint(msg.sender, mintAmount);
+        _mint(msg.sender, mintAmount, depositAmount, currentPrice);
 
         checkpointPrices_[msg.sender] = currentPrice;
     }
@@ -549,14 +568,16 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
 
     function _mint(
         address _to,
-        uint256 _value)
+        uint256 _tokenAmount,
+        uint256 _assetAmount,
+        uint256 _price)
         internal
     {
         require(_to != address(0), "invalid address");
-        totalSupply_ = totalSupply_.add(_value);
-        balances[_to] = balances[_to].add(_value);
-        emit Mint(_to, _value);
-        emit Transfer(address(0), _to, _value);
+        totalSupply_ = totalSupply_.add(_tokenAmount);
+        balances[_to] = balances[_to].add(_tokenAmount);
+        emit Mint(_to, _tokenAmount, _assetAmount, _price);
+        emit Transfer(address(0), _to, _tokenAmount);
     }
 
     function _burnToken(
@@ -605,7 +626,7 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
             loanAmountPaid = loanAmountAvailableInContract;
         }
 
-        _burn(msg.sender, burnAmount);
+        _burn(msg.sender, burnAmount, loanAmountPaid, currentPrice);
 
         if (burntTokenReserveListIndex[msg.sender].isSet || balances[msg.sender] > 0) {
             checkpointPrices_[msg.sender] = currentPrice;
@@ -619,17 +640,19 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
 
     function _burn(
         address _who, 
-        uint256 _value)
+        uint256 _tokenAmount,
+        uint256 _assetAmount,
+        uint256 _price)
         internal
     {
-        require(_value <= balances[_who], "burn value exceeds balance");
+        require(_tokenAmount <= balances[_who], "burn value exceeds balance");
         // no need to require value <= totalSupply, since that would imply the
         // sender's balance is greater than the totalSupply, which *should* be an assertion failure
 
-        balances[_who] = balances[_who].sub(_value);
-        totalSupply_ = totalSupply_.sub(_value);
-        emit Burn(_who, _value);
-        emit Transfer(_who, address(0), _value);
+        balances[_who] = balances[_who].sub(_tokenAmount);
+        totalSupply_ = totalSupply_.sub(_tokenAmount);
+        emit Burn(_who, _tokenAmount, _assetAmount, _price);
+        emit Transfer(_who, address(0), _tokenAmount);
     }
 
     function _settleInterest()
@@ -725,25 +748,18 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
 
         uint256 claimTokenAmount;
         if (claimAmount <= availableAmount) {
-            // remove lender from burntToken list
-            if (burntTokenReserveList.length > 1) {
-                // replace item in list with last item in array
-                burntTokenReserveList[index] = burntTokenReserveList[burntTokenReserveList.length - 1];
-
-                // update the position of this replacement
-                burntTokenReserveListIndex[burntTokenReserveList[index].lender].index = index;
-            }
-
-            // trim array and clear storage
-            burntTokenReserveList.length--;
-            burntTokenReserveListIndex[lender].index = 0;
-            burntTokenReserveListIndex[lender].isSet = false;
-
-            claimTokenAmount = claimAmount.mul(10**18).div(currentPrice);
+            claimTokenAmount = burntTokenReserveList[index].amount;
+            _removeFromList(lender, index);
         } else {
             claimAmount = availableAmount;
             claimTokenAmount = claimAmount.mul(10**18).div(currentPrice);
-            burntTokenReserveList[index].amount = burntTokenReserveList[index].amount.sub(claimTokenAmount);
+            
+            // prevents less than 10 being left in burntTokenReserveList[index].amount
+            if (claimTokenAmount.add(10) < burntTokenReserveList[index].amount) {
+                burntTokenReserveList[index].amount = burntTokenReserveList[index].amount.sub(claimTokenAmount);
+            } else {
+                _removeFromList(lender, index);
+            }
         }
 
         require(ERC20(loanTokenAddress).transfer(
@@ -751,10 +767,10 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
             claimAmount
         ), "transfer of loanToken failed");
 
-        if (burntTokenReserveListIndex[msg.sender].isSet || balances[msg.sender] > 0) {
-            checkpointPrices_[msg.sender] = currentPrice;
+        if (burntTokenReserveListIndex[lender].isSet || balances[lender] > 0) {
+            checkpointPrices_[lender] = currentPrice;
         } else {
-            checkpointPrices_[msg.sender] = 0;
+            checkpointPrices_[lender] = 0;
         }
 
         burntTokenReserved = burntTokenReserved > claimTokenAmount ?
@@ -764,7 +780,37 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         if (totalSupply_.add(burntTokenReserved) == 0)
             lastPrice_ = currentPrice; // only store lastPrice_ if lender supply is 0
 
+        emit Claim(
+            lender,
+            claimTokenAmount,
+            claimAmount,
+            burntTokenReserveListIndex[lender].isSet ?
+                burntTokenReserveList[burntTokenReserveListIndex[lender].index].amount :
+                0,
+            currentPrice
+        );
+
         return claimAmount;
+    }
+
+    function _removeFromList(
+        address lender,
+        uint256 index)
+        internal
+    {
+        // remove lender from burntToken list
+        if (burntTokenReserveList.length > 1) {
+            // replace item in list with last item in array
+            burntTokenReserveList[index] = burntTokenReserveList[burntTokenReserveList.length - 1];
+
+            // update the position of this replacement
+            burntTokenReserveListIndex[burntTokenReserveList[index].lender].index = index;
+        }
+
+        // trim array and clear storage
+        burntTokenReserveList.length--;
+        burntTokenReserveListIndex[lender].index = 0;
+        burntTokenReserveListIndex[lender].isSet = false;
     }
 
 

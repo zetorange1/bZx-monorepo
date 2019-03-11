@@ -205,17 +205,53 @@ contract PositionToken is LoanTokenization, SplittableToken {
         return loanAmountOwed;
     }
 
-    function burn(
+    function burnToToken(
+        address burnTokenAddress,
         uint256 burnAmount)
         public
         returns (uint256)
     {
         uint256 loanAmountOwed = _burnToken(burnAmount);
         if (loanAmountOwed > 0) {
-            require(ERC20(loanTokenAddress).transfer(
-                msg.sender, 
-                loanAmountOwed
-            ), "transfer of loanToken failed");
+            if (burnTokenAddress != loanTokenAddress) {
+                // re-up the Kyber spend approval if needed
+                uint256 tempAllowance = ERC20(loanTokenAddress).allowance(address(this), kyberContract);
+                if (tempAllowance < loanAmountOwed) {
+                    if (tempAllowance > 0) {
+                        // reset approval to 0
+                        require(ERC20(loanTokenAddress).approve(kyberContract, 0), "token approval reset failed");
+                    }
+
+                    require(ERC20(loanTokenAddress).approve(kyberContract, MAX_UINT), "token approval failed");
+                }
+
+                uint256 loanAmountOwedBefore = ERC20(loanTokenAddress).balanceOf(address(this));
+
+                uint256 destTokenAmountReceived = KyberNetworkInterface(kyberContract).trade(
+                    loanTokenAddress,
+                    loanAmountOwed,
+                    burnTokenAddress,
+                    msg.sender, // receiver
+                    MAX_UINT,
+                    0, // no min coversation rate
+                    bZxOracle
+                );
+
+                uint256 loanAmountOwedUsed = loanAmountOwedBefore.sub(ERC20(loanTokenAddress).balanceOf(address(this)));
+                if (loanAmountOwed > loanAmountOwedUsed) {
+                    require(ERC20(loanTokenAddress).transfer(
+                        msg.sender, 
+                        loanAmountOwed-loanAmountOwedUsed
+                    ), "transfer of token failed");
+                }
+
+                loanAmountOwed = destTokenAmountReceived;
+            } else {
+                require(ERC20(loanTokenAddress).transfer(
+                    msg.sender, 
+                    loanAmountOwed
+                ), "transfer of loanToken failed");
+            }
         }
 
         return loanAmountOwed;
@@ -325,6 +361,8 @@ contract PositionToken is LoanTokenization, SplittableToken {
         returns (uint256)
     {
         uint256 liquidity = marketLiquidity();
+        require(liquidity > 0, "marketLiquidity == 0");
+
         uint256 refundAmount;
         if (depositTokenAddress != loanTokenAddress) {
             // re-up the Kyber spend approval if needed
@@ -344,7 +382,7 @@ contract PositionToken is LoanTokenization, SplittableToken {
                 depositTokenAddress,
                 depositAmount,
                 loanTokenAddress,
-                address(this), // BZxVault receives the trade proceeds
+                address(this), // receiver
                 liquidity, // maxDestAmount shouldn't exceed the market liquidity for the pToken
                 0, // no min coversation rate
                 bZxOracle
@@ -376,7 +414,7 @@ contract PositionToken is LoanTokenization, SplittableToken {
                 WETHInterface(wethContract).withdraw(refundAmount);
                 require(msg.sender.send(refundAmount), "transfer of ETH failed");
             }
-            depositAmount = depositAmount.sub(refundAmount);
+            depositAmount = liquidity;
         }
 
         _triggerPosition();
@@ -385,7 +423,7 @@ contract PositionToken is LoanTokenization, SplittableToken {
             .mul(10**18)
            .div(currentPrice);
 
-        _mint(msg.sender, mintAmount);
+        _mint(msg.sender, mintAmount, depositAmount, currentPrice);
 
         checkpointPrices_[msg.sender] = currentPrice.div(splitFactor_);
 
@@ -407,12 +445,12 @@ contract PositionToken is LoanTokenization, SplittableToken {
             loanOrderHash,
             address(this));
         (uint256 currentPrice, bool withSplit) = _priceWithSplit(netCollateralAmount, interestDepositRemaining);
-        
+
         if (withSplit) {
             burnAmount = burnAmount
                 .div(splitFactor_);
         }
-        
+
         uint256 loanAmountOwed = burnAmount
             .mul(currentPrice)
             .div(10**18);
@@ -441,7 +479,7 @@ contract PositionToken is LoanTokenization, SplittableToken {
             loanAmountOwed = ERC20(loanTokenAddress).balanceOf(address(this));
         }
 
-        _burn(msg.sender, burnAmount);
+        _burn(msg.sender, burnAmount, loanAmountOwed, currentPrice);
 
         if (balances[msg.sender] > 0) {
             checkpointPrices_[msg.sender] = currentPrice.div(splitFactor_);

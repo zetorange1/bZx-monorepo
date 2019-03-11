@@ -5,8 +5,10 @@
  
 pragma solidity 0.5.5;
 
+import "./openzeppelin-solidity/ERC20.sol";
 
-interface WETHInterface {
+
+contract WETHInterface is ERC20 {
     function deposit() external payable;
     function withdraw(uint256 wad) external;
 }

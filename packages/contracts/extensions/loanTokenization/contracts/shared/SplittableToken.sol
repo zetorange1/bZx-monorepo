@@ -16,8 +16,19 @@ contract SplittableToken is StandardToken, DetailedERC20 {
 
     uint256 public splitFactor_ = 1;
 
-    event Mint(address indexed to, uint256 amount);
-    event Burn(address indexed burner, uint256 value);
+    event Mint(
+        address indexed to,
+        uint256 tokenAmount,
+        uint256 assetAmount,
+        uint256 price
+    );
+    
+    event Burn(
+        address indexed burner,
+        uint256 tokenAmount,
+        uint256 assetAmount,
+        uint256 price
+    );
 
     function totalSupply()
         public
@@ -129,30 +140,34 @@ contract SplittableToken is StandardToken, DetailedERC20 {
 
     function _mint(
         address _to,
-        uint256 _value)
+        uint256 _tokenAmount,
+        uint256 _assetAmount,
+        uint256 _price)
         internal
     {
-        uint256 normalizedValue = _value.mul(splitFactor_);
+        uint256 normalizedValue = _tokenAmount.mul(splitFactor_);
         require(_to != address(0), "invalid address");
         totalSupply_ = totalSupply_.add(normalizedValue);
         balances[_to] = balances[_to].add(normalizedValue);
-        emit Mint(_to, _value);
-        emit Transfer(address(0), _to, _value);
+        emit Mint(_to, _tokenAmount, _assetAmount, _price);
+        emit Transfer(address(0), _to, _tokenAmount);
     }
 
     function _burn(
         address _who, 
-        uint256 _value)
+        uint256 _tokenAmount,
+        uint256 _assetAmount,
+        uint256 _price)
         internal
     {
-        uint256 normalizedValue = _value.mul(splitFactor_);
+        uint256 normalizedValue = _tokenAmount.mul(splitFactor_);
         require(normalizedValue <= balances[_who], "burn value exceeds balance");
         // no need to require value <= totalSupply, since that would imply the
         // sender's balance is greater than the totalSupply, which *should* be an assertion failure
 
         balances[_who] = balances[_who].sub(normalizedValue);
         totalSupply_ = totalSupply_.sub(normalizedValue);
-        emit Burn(_who, _value);
-        emit Transfer(_who, address(0), _value);
+        emit Burn(_who, _tokenAmount, _assetAmount, _price);
+        emit Transfer(_who, address(0), _tokenAmount);
     }
 }

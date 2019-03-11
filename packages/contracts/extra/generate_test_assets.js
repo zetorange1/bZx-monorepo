@@ -34,7 +34,6 @@ function proceed() {
     BZxOracle: "unknown",
     BZRxToken: "unknown",
     BZRxTokenConvert: "unknown",
-	  BZxEther: "unknown",
     TokenRegistry: "unknown",
     OracleRegistry: "unknown",
     TestNetFaucet: "unknown",

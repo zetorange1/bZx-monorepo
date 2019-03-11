@@ -76,6 +76,7 @@
     "network:run": "ganache-cli --networkId 50 -p 8545 --db ./test_network -m \"concert load couple harbor equip island argue ramp clarify fence smart topic\"",
     "network:run-coverage": "./node_modules/.bin/testrpc-sc --networkId 55 -p 8555 --gasLimit 500000000 --db ./test_network -m \"concert load couple harbor equip island argue ramp clarify fence smart topic\"",
     "test": "truffle test",
+    "tokens": "cpy ./build/contracts ./extensions/loanTokenization/build/contracts",
     "lint-contracts": "solhint contracts/**/*.sol",
     "coverage": "./node_modules/.bin/solidity-coverage",
     "t": "truffle compile && truffle exec ./wrapper_test.js"
