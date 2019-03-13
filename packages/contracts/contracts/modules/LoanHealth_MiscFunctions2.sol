@@ -245,15 +245,20 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
         uint256 positionId = loanPositionsIds[loanOrderHash][trader];
         TraderInterest memory traderInterest = traderLoanInterest[positionId];
 
+        uint256 interestTime = block.timestamp;
+        if (interestTime > loanPositions[positionId].loanEndUnixTimestampSec) {
+            interestTime = loanPositions[positionId].loanEndUnixTimestampSec;
+        }
+
         return (
             orders[loanOrderHash].interestTokenAddress,
             traderInterest.interestOwedPerDay,
             traderInterest.interestUpdatedDate > 0 && traderInterest.interestOwedPerDay > 0 ?
                 traderInterest.interestPaid.add(
-                    block.timestamp.sub(traderInterest.interestUpdatedDate).mul(traderInterest.interestOwedPerDay).div(86400)
+                    interestTime.sub(traderInterest.interestUpdatedDate).mul(traderInterest.interestOwedPerDay).div(86400)
                 ) : traderInterest.interestPaid,
             traderInterest.interestDepositTotal,
-            loanPositions[positionId].loanEndUnixTimestampSec > block.timestamp ? loanPositions[positionId].loanEndUnixTimestampSec.sub(block.timestamp).mul(traderInterest.interestOwedPerDay).div(86400) : 0
+            loanPositions[positionId].loanEndUnixTimestampSec > interestTime ? loanPositions[positionId].loanEndUnixTimestampSec.sub(interestTime).mul(traderInterest.interestOwedPerDay).div(86400) : 0
         );
     }
 

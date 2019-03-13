@@ -125,18 +125,8 @@ contract TestNetOracle is BZxOracle {
                 if (!_transferToken(
                     destTokenAddress,
                     receiverAddress,
-                    destTokenAmountReceived)) {
+                    sourceTokenAmount)) {
                     revert("TestNetOracle::_trade: _transferToken failed");
-                }
-
-                if (sourceTokenAmountUsed < sourceTokenAmount) {
-                    // send unused source token back
-                    if (!_transferToken(
-                        sourceTokenAddress,
-                        receiverAddress,
-                        sourceTokenAmount-sourceTokenAmountUsed)) {
-                        revert("TestNetOracle::_trade: _transferToken failed");
-                    }
                 }
             }
         } else {
