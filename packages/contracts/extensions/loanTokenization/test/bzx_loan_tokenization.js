@@ -385,7 +385,7 @@ contract("BZxTest: loan tokenization", function(accounts) {
     let wethAmountRedeemed = wethBalance2.sub(wethBalance1);
     let burntTokenReserved1 = await iToken.burntTokenReserved.call();
     assert.equal(burntTokenReserved1.toString(), "0", "burntTokenReserved1 == 0");
-    assert.isTrue(claimedAsset1.add(wethAmountRedeemed).gt(utils.toWei("10", "ether")), "total claimed assets > 10 ETH");
+    assert.isTrue(claimedAsset1.add(wethAmountRedeemed).gte(utils.toWei("10", "ether")), "total claimed assets >= 10 ETH");
 
     await reverter.revert();
   });

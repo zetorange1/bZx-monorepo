@@ -14,7 +14,7 @@ contract SplittableToken is StandardToken, DetailedERC20 {
 
     uint256 internal constant MAX_UINT = 2**256 - 1;
 
-    uint256 public splitFactor_ = 1;
+    uint256 public splitFactor_ = 10**18;
 
     event Mint(
         address indexed to,
@@ -35,8 +35,7 @@ contract SplittableToken is StandardToken, DetailedERC20 {
         view
         returns (uint256)
     {
-        return totalSupply_
-            .div(splitFactor_);
+        return denormalize(totalSupply_);
     }
 
     function balanceOf(
@@ -45,8 +44,7 @@ contract SplittableToken is StandardToken, DetailedERC20 {
         view
         returns (uint256)
     {
-        return balances[_owner]
-            .div(splitFactor_);
+        return denormalize(balances[_owner]);
     }
 
     function allowance(
@@ -56,8 +54,7 @@ contract SplittableToken is StandardToken, DetailedERC20 {
         view
         returns (uint256)
     {
-        return allowed[_owner][_spender]
-            .div(splitFactor_);
+        return denormalize(allowed[_owner][_spender]);
     }
 
     function transferFrom(
@@ -67,7 +64,7 @@ contract SplittableToken is StandardToken, DetailedERC20 {
         public
         returns (bool)
     {
-        uint256 normalizedValue = _value.mul(splitFactor_);
+        uint256 normalizedValue = normalize(_value);
         uint256 allowanceAmount = allowed[_from][msg.sender];
         require(normalizedValue <= balances[_from], "insufficient balance");
         require(normalizedValue <= allowanceAmount, "insufficient allowance");
@@ -88,7 +85,7 @@ contract SplittableToken is StandardToken, DetailedERC20 {
         public 
         returns (bool)
     {
-        uint256 normalizedValue = _value.mul(splitFactor_);
+        uint256 normalizedValue = normalize(_value);
         require(normalizedValue <= balances[msg.sender], "insufficient balance");
         require(_to != address(0), "invalid address");
 
@@ -104,7 +101,7 @@ contract SplittableToken is StandardToken, DetailedERC20 {
         public
         returns (bool)
     {
-        allowed[msg.sender][_spender] = _value.mul(splitFactor_);
+        allowed[msg.sender][_spender] = normalize(_value);
         emit Approval(msg.sender, _spender, _value);
         return true;
     }
@@ -115,9 +112,9 @@ contract SplittableToken is StandardToken, DetailedERC20 {
         public
         returns (bool)
     {
-        uint256 normalizedValue = _addedValue.mul(splitFactor_);
+        uint256 normalizedValue = normalize(_addedValue);
         allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(normalizedValue);
-        emit Approval(msg.sender, _spender, allowed[msg.sender][_spender].div(splitFactor_));
+        emit Approval(msg.sender, _spender, denormalize(allowed[msg.sender][_spender]));
         return true;
     }
 
@@ -127,15 +124,37 @@ contract SplittableToken is StandardToken, DetailedERC20 {
         public
         returns (bool)
     {
-        uint256 normalizedValue = _subtractedValue.mul(splitFactor_);
+        uint256 normalizedValue = normalize(_subtractedValue);
         uint256 oldValue = allowed[msg.sender][_spender];
         if (normalizedValue >= oldValue) {
             allowed[msg.sender][_spender] = 0;
         } else {
             allowed[msg.sender][_spender] = oldValue.sub(normalizedValue);
         }
-        emit Approval(msg.sender, _spender, allowed[msg.sender][_spender].div(splitFactor_));
+        emit Approval(msg.sender, _spender, denormalize(allowed[msg.sender][_spender]));
         return true;
+    }
+
+    function normalize(
+        uint256 _value)
+        internal
+        view
+        returns (uint256)
+    {
+        return _value
+            .mul(splitFactor_)
+            .div(10**18);
+    }
+
+    function denormalize(
+        uint256 _value)
+        internal
+        view
+        returns (uint256)
+    {
+        return _value
+            .mul(10**18)
+            .div(splitFactor_);
     }
 
     function _mint(
@@ -145,7 +164,7 @@ contract SplittableToken is StandardToken, DetailedERC20 {
         uint256 _price)
         internal
     {
-        uint256 normalizedValue = _tokenAmount.mul(splitFactor_);
+        uint256 normalizedValue = normalize(_tokenAmount);
         require(_to != address(0), "invalid address");
         totalSupply_ = totalSupply_.add(normalizedValue);
         balances[_to] = balances[_to].add(normalizedValue);
@@ -160,7 +179,7 @@ contract SplittableToken is StandardToken, DetailedERC20 {
         uint256 _price)
         internal
     {
-        uint256 normalizedValue = _tokenAmount.mul(splitFactor_);
+        uint256 normalizedValue = normalize(_tokenAmount);
         require(normalizedValue <= balances[_who], "burn value exceeds balance");
         // no need to require value <= totalSupply, since that would imply the
         // sender's balance is greater than the totalSupply, which *should* be an assertion failure

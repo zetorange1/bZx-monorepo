@@ -44,6 +44,11 @@ function proceed() {
   };
   var replacements = {};
 
+  var loanTokenization = new Array(
+    "LoanToken",
+    "PositionToken",
+  );
+
   var network = "development";
   if (process.argv.length >= 3) {
     network = process.argv[2];
@@ -118,11 +123,20 @@ function proceed() {
 
   var jsonContents = {};
   Object.keys(addresses).forEach(function(item, index) {
-    var contents = fs.readFileSync(
-      "./build/contracts/" +
-        (replacements[item] !== undefined ? replacements[item] : item) +
-        ".json"
-    );
+    var contents;
+    if (loanTokenization.includes(item)) {
+      contents = fs.readFileSync(
+        "./extensions/loanTokenization/build/contracts/" +
+          (replacements[item] !== undefined ? replacements[item] : item) +
+          ".json"
+      );
+    } else {
+      contents = fs.readFileSync(
+        "./build/contracts/" +
+          (replacements[item] !== undefined ? replacements[item] : item) +
+          ".json"
+      );
+    }
     var jsonContent = JSON.parse(contents);
 
     try {

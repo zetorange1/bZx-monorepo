@@ -6,7 +6,6 @@
 pragma solidity 0.5.5;
 
 import "./shared/LoanTokenization.sol";
-import "./shared/SplittableToken.sol";
 
 
 interface bZxInterface {
@@ -30,8 +29,8 @@ interface bZxInterface {
 }
 
 interface ILoanToken {
-    function borrowTokenFromDeposit(
-        uint256 depositAmount,
+    function borrowToken(
+        uint256 escrowAmount,
         uint256 leverageAmount,
         address collateralTokenAddress,
         address tradeTokenToFillAddress,
@@ -71,7 +70,7 @@ interface KyberNetworkInterface {
         returns(uint256);
 }
 
-contract PositionToken is LoanTokenization, SplittableToken {
+contract PositionToken is LoanTokenization {
     using SafeMath for uint256;
 
     address public LoanTokenLender;
@@ -268,6 +267,7 @@ contract PositionToken is LoanTokenization, SplittableToken {
         uint256 currentPrice = tokenPrice();
         if (currentPrice <= splitPriceReverse || currentPrice >= splitPrice) {
             splitFactor_ = initialPrice_
+                .mul(10**18)
                 .div(currentPrice);
         }
     }
@@ -292,7 +292,7 @@ contract PositionToken is LoanTokenization, SplittableToken {
             _value);
 
         if (balances[msg.sender] > 0) {
-            checkpointPrices_[msg.sender] = tokenPrice().div(splitFactor_);
+            checkpointPrices_[msg.sender] = denormalize(tokenPrice());
         } else {
             checkpointPrices_[msg.sender] = 0;
         }
@@ -311,7 +311,7 @@ contract PositionToken is LoanTokenization, SplittableToken {
             _value);
 
         if (balances[msg.sender] > 0) {
-            checkpointPrices_[msg.sender] = tokenPrice().div(splitFactor_);
+            checkpointPrices_[msg.sender] = denormalize(tokenPrice());
         } else {
             checkpointPrices_[msg.sender] = 0;
         }
@@ -343,8 +343,7 @@ contract PositionToken is LoanTokenization, SplittableToken {
         view
         returns (uint256)
     {
-        return checkpointPrices_[_user]
-            .mul(splitFactor_);
+        return normalize(checkpointPrices_[_user]);
     }
 
     function marketLiquidity()
@@ -353,6 +352,18 @@ contract PositionToken is LoanTokenization, SplittableToken {
         returns (uint256)
     {
         return ILoanToken(LoanTokenLender).getMaxDepositAmount(leverageAmount);
+    }
+
+    // returns the user's balance of underlying token
+    function assetBalanceOf(
+        address _owner)
+        public
+        view
+        returns (uint256)
+    {
+        return balanceOf(_owner)
+            .mul(tokenPrice())
+            .div(10**18);
     }
 
 
@@ -431,7 +442,7 @@ contract PositionToken is LoanTokenization, SplittableToken {
 
         _mint(msg.sender, mintAmount, depositAmount, currentPrice);
 
-        checkpointPrices_[msg.sender] = currentPrice.div(splitFactor_);
+        checkpointPrices_[msg.sender] = denormalize(currentPrice);
 
         return mintAmount;
     }
@@ -453,8 +464,7 @@ contract PositionToken is LoanTokenization, SplittableToken {
         (uint256 currentPrice, bool withSplit) = _priceWithSplit(netCollateralAmount, interestDepositRemaining);
 
         if (withSplit) {
-            burnAmount = burnAmount
-                .div(splitFactor_);
+            burnAmount = denormalize(burnAmount);
         }
 
         uint256 loanAmountOwed = burnAmount
@@ -488,7 +498,7 @@ contract PositionToken is LoanTokenization, SplittableToken {
         _burn(msg.sender, burnAmount, loanAmountOwed, currentPrice);
 
         if (balances[msg.sender] > 0) {
-            checkpointPrices_[msg.sender] = currentPrice.div(splitFactor_);
+            checkpointPrices_[msg.sender] = denormalize(currentPrice);
         } else {
             checkpointPrices_[msg.sender] = 0;
         }
@@ -509,6 +519,7 @@ contract PositionToken is LoanTokenization, SplittableToken {
 
         if (currentPrice <= splitPriceReverse || currentPrice >= splitPrice) {
             splitFactor_ = initialPrice_
+                .mul(10**18)
                 .div(currentPrice);
 
             return (initialPrice_, true);
@@ -531,7 +542,7 @@ contract PositionToken is LoanTokenization, SplittableToken {
 
                 require(ERC20(loanTokenAddress).approve(bZxVault, MAX_UINT), "token approval failed");
             }
-            ILoanToken(LoanTokenLender).borrowTokenFromDeposit(
+            ILoanToken(LoanTokenLender).borrowToken(
                 fullBalance,
                 leverageAmount,
                 loanTokenAddress,
@@ -550,16 +561,14 @@ contract PositionToken is LoanTokenization, SplittableToken {
         view
         returns (uint256)
     {
-        if (totalSupply_ > 0) {
-            return ERC20(loanTokenAddress).balanceOf(address(this))
+        return totalSupply_ > 0 ?
+            normalize(
+                ERC20(loanTokenAddress).balanceOf(address(this))
                 .add(netCollateralAmount)
                 .add(interestDepositRemaining)
                 .mul(10**18)
                 .div(totalSupply_)
-                .mul(splitFactor_);
-        } else {
-            return lastPrice_;
-        }
+            ) : lastPrice_;
     }
 
 

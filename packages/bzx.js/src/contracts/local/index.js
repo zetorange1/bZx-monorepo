@@ -3,7 +3,6 @@ import BZxOracle from "../../../../contracts/test_network/deployed/BZxOracle.jso
 import BZxTo0x from "../../../../contracts/test_network/deployed/BZxTo0x.json";
 import BZxToken from "../../../../contracts/test_network/deployed/BZRxToken.json";
 import BZRxTokenConvert from "../../../../contracts/test_network/deployed/BZRxTokenConvert.json";
-import BZxEther from "../../../../contracts/test_network/deployed/BZxEther.json";
 import BZxVault from "../../../../contracts/test_network/deployed/BZxVault.json";
 import EIP20 from "../../../../contracts/test_network/deployed/EIP20.json";
 import OracleRegistry from "../../../../contracts/test_network/deployed/OracleRegistry.json";
@@ -33,7 +32,6 @@ export default {
   BZxTo0x,
   BZxToken,
   BZRxTokenConvert,
-  BZxEther,
   BZxVault,
   EIP20,
   OracleRegistry,

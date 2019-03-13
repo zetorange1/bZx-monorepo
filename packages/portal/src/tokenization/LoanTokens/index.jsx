@@ -75,7 +75,7 @@ export default class LoanTokens extends BZxComponent {
     tokenBalance: 0,
     tokenContract: null,
     tokenContractSymbol: ``,
-    borrowAmount: 0,
+    escrowAmount: 0,
     buyAmount: 0,
     sellAmount: 0,
     wethBalance: 0,
@@ -95,8 +95,6 @@ export default class LoanTokens extends BZxComponent {
     totalAssetBorrow: 0,
     totalAssetSupply: 0,
     marketLiquidity: 0,
-    protocolBorrowInterestRate: 0,
-    protocolSupplyInterestRate: 0,
     supplyInterestRate: 0,
     borrowInterestRate: 0,
     leverageAmount: `0`,
@@ -195,8 +193,6 @@ export default class LoanTokens extends BZxComponent {
       const ethBalance = await this.wrapAndRun(web3.eth.getBalance(accounts[0]));
       const contractEthBalance = await this.wrapAndRun(web3.eth.getBalance(tokenContract._address));
 
-      const protocolBorrowInterestRate = await this.wrapAndRun(tokenContract.methods.protocolBorrowInterestRate().call());
-      const protocolSupplyInterestRate = await this.wrapAndRun(tokenContract.methods.protocolSupplyInterestRate().call());
       const supplyInterestRate = await this.wrapAndRun(tokenContract.methods.supplyInterestRate().call());
       const borrowInterestRate = await this.wrapAndRun(tokenContract.methods.borrowInterestRate().call());
 
@@ -216,9 +212,7 @@ export default class LoanTokens extends BZxComponent {
       ).toString();
 
 
-      await this.setState({ 
-        protocolBorrowInterestRate: protocolBorrowInterestRate,
-        protocolSupplyInterestRate: protocolSupplyInterestRate,
+      await this.setState({
         supplyInterestRate: supplyInterestRate,
         borrowInterestRate: borrowInterestRate,
         tokenPrice: tokenPrice,
@@ -257,7 +251,7 @@ export default class LoanTokens extends BZxComponent {
 
   setSellAmount = e => this.setState({ sellAmount: e.target.value });
 
-  setBorrowAmount = e => this.setState({ borrowAmount: e.target.value });
+  setEscrowAmount = e => this.setState({ escrowAmount: e.target.value });
 
   setLeverageAmount = async e => {
     await this.setState({ leverageAmount: e.target.value });
@@ -553,7 +547,7 @@ export default class LoanTokens extends BZxComponent {
 
   borrowToken = async () => {
     const { web3, bZx, tokens, accounts } = this.props;
-    const { borrowAmount, leverageAmount, tokenContract } = this.state;
+    const { escrowAmount, leverageAmount, tokenContract } = this.state;
 
     const collateralTokenAddress = await tokens.filter(t => t.symbol === `WETH`)[0].address;
 
@@ -578,7 +572,7 @@ export default class LoanTokens extends BZxComponent {
     }
 
     const txObj = await tokenContract.methods.borrowToken(
-      toBigNumber(borrowAmount, 1e18).toFixed(0),
+      toBigNumber(escrowAmount, 1e18).toFixed(0),
       toBigNumber(leverageAmount, 1e18).toFixed(0),
       collateralTokenAddress,
       `0x0000000000000000000000000000000000000000`,
@@ -603,7 +597,7 @@ export default class LoanTokens extends BZxComponent {
                   </TxHashLink>
                 )
               });
-              this.setState({ borrowAmount: ``, showBorrowDialog: false });
+              this.setState({ escrowAmount: ``, showBorrowDialog: false });
             })
             .then(async () => {
               alert(`Your loan is open. You can manage it from the BORROWING tab.`);
@@ -612,18 +606,18 @@ export default class LoanTokens extends BZxComponent {
             .catch(error => {
               console.error(error.message);
               alert(`Could not open loan. Please try again.`);
-              this.setState({ borrowAmount: ``, showBorrowDialog: false });
+              this.setState({ escrowAmount: ``, showBorrowDialog: false });
             });
         })
         .catch(error => {
           console.error(error.message);
           alert(`Could not open loan. Please try again.`);
-          this.setState({ borrowAmount: ``, showBorrowDialog: false });
+          this.setState({ escrowAmount: ``, showBorrowDialog: false });
         });
     } catch (error) {
       console.error(error.message);
       alert(`Could not open loan. Please try again.`);
-      this.setState({ borrowAmount: ``, showBorrowDialog: false });
+      this.setState({ escrowAmount: ``, showBorrowDialog: false });
     }
   };
 
@@ -702,8 +696,6 @@ export default class LoanTokens extends BZxComponent {
       burntReserveBalanceContract,
       ethBalance,
       contractEthBalance,
-      protocolBorrowInterestRate,
-      protocolSupplyInterestRate,
       supplyInterestRate,
       borrowInterestRate,
       totalAssetBorrow,
@@ -1011,30 +1003,6 @@ export default class LoanTokens extends BZxComponent {
             <br/>
 
             <DataPointContainer>
-              <Label>Protocol Supply Interest Rate</Label>
-              <DataPoint>
-                {toBigNumber(
-                  protocolSupplyInterestRate,
-                  10 ** -18
-                ).toString()}
-                {`% `}
-              </DataPoint>
-            </DataPointContainer>
-
-            <DataPointContainer>
-              <Label>Protocol Borrow Interest Rate</Label>
-              <DataPoint>
-                {toBigNumber(
-                  protocolBorrowInterestRate,
-                  10 ** -18
-                ).toString()}
-                {`% `}
-              </DataPoint>
-            </DataPointContainer>
-
-            <br/>
-
-            <DataPointContainer>
               <Label>iToken ETH Balance (debug only)</Label>
               <DataPoint>
                 {toBigNumber(
@@ -1205,11 +1173,11 @@ export default class LoanTokens extends BZxComponent {
               </FormControl>
               <br/><br/><br/>
               <FormControl fullWidth>
-                <InputLabel>ETH to Borrow</InputLabel>
+                <InputLabel>ETH to Escrow</InputLabel>
                 <Input
-                  value={this.state.borrowAmount}
+                  value={this.state.escrowAmount}
                   type="number"
-                  onChange={this.setBorrowAmount}
+                  onChange={this.setEscrowAmount}
                   endAdornment={
                     <InputAdornment position="end">ETH</InputAdornment>
                   }

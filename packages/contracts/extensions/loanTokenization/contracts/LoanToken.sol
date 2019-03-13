@@ -7,9 +7,7 @@ pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
 import "./shared/LoanTokenization.sol";
-import "./shared/UnlimitedAllowanceToken.sol";
 import "./shared/OracleNotifierInterface.sol";
-import "./shared/openzeppelin-solidity/DetailedERC20.sol";
 
 
 interface bZxInterface {
@@ -60,7 +58,7 @@ interface bZxOracleInterface {
         returns (uint256);
 }
 
-contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, OracleNotifierInterface {
+contract LoanToken is LoanTokenization, OracleNotifierInterface {
     using SafeMath for uint256;
 
     uint256 public maxDurationUnixTimestampSec = 2419200; // 28 days
@@ -76,20 +74,6 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         address lender;
         uint256 amount;
     }
-
-    event Mint(
-        address indexed to,
-        uint256 tokenAmount,
-        uint256 assetAmount,
-        uint256 price
-    );
-    
-    event Burn(
-        address indexed burner,
-        uint256 tokenAmount,
-        uint256 assetAmount,
-        uint256 price
-    );
 
     event Claim(
         address indexed claimant,
@@ -115,8 +99,12 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
 
     uint256 public totalAssetBorrow = 0; // current amount of loan token amount tied up in loans
 
+    uint256 internal lastUtilizationRate_;
+
     uint256 internal lastSettleTime_;
-    uint256 internal lastPrice_ = 10**18;
+
+    uint256 internal constant initialPrice_ = 10**18; // starting price of 1
+    uint256 internal lastPrice_;
 
     modifier onlyOracle() {
         require(msg.sender == bZxOracle, "only Oracle allowed");
@@ -144,6 +132,8 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         loanTokenAddress = _loanTokenAddress;
 
         spreadMultiplier = SafeMath.sub(10**20, bZxOracleInterface(_bZxOracle).interestFeePercent());
+
+        lastPrice_ = initialPrice_;
     }
 
     function()  
@@ -179,7 +169,7 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
 
         _mint(msg.sender, mintAmount, msg.value, currentPrice);
 
-        checkpointPrices_[msg.sender] = currentPrice;
+        checkpointPrices_[msg.sender] = denormalize(currentPrice);
     }
 
     function mint(
@@ -208,7 +198,7 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
 
         _mint(msg.sender, mintAmount, depositAmount, currentPrice);
 
-        checkpointPrices_[msg.sender] = currentPrice;
+        checkpointPrices_[msg.sender] = denormalize(currentPrice);
     }
 
     function burnToEther(
@@ -243,41 +233,11 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         }
     }
 
-    // called by a borrower to open a loan, specifying amount to use for collateral and interest
-    // returns fillAmount
-    function borrowTokenFromDeposit(
-        uint256 depositAmount,
-        uint256 leverageAmount,
-        address collateralTokenAddress,
-        address tradeTokenToFillAddress,
-        bool withdrawOnOpen)
-        external
-        nonReentrant
-        returns (uint256)
-    {
-        require(depositAmount > 0, "depositAmount == 0");
-
-        bytes32 loanOrderHash = loanOrderHashes[leverageAmount];
-        LoanData memory loanData = loanOrderData[loanOrderHash];
-        require(loanData.initialMarginAmount != 0, "invalid leverage amount");
-
-        _settleInterest();
-        
-        return _borrowToken(
-            loanOrderHash,
-            _getFillAmount(
-                loanData,
-                depositAmount), // fillAmount
-            collateralTokenAddress,
-            tradeTokenToFillAddress,
-            withdrawOnOpen);
-    }
-
     // called by a borrower to open a loan
-    // the amount to be filled is specified
+    // escrowAmount == total collateral + interest available to back the loan
     // returns fillAmount
     function borrowToken(
-        uint256 fillAmount,
+        uint256 escrowAmount,
         uint256 leverageAmount,
         address collateralTokenAddress,
         address tradeTokenToFillAddress,
@@ -286,7 +246,7 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         nonReentrant
         returns (uint256)
     {
-        require(fillAmount > 0, "fillAmount == 0");
+        require(escrowAmount > 0, "escrowAmount == 0");
 
         bytes32 loanOrderHash = loanOrderHashes[leverageAmount];
         LoanData memory loanData = loanOrderData[loanOrderHash];
@@ -294,12 +254,59 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
 
         _settleInterest();
 
-        return _borrowToken(
+        uint256 interestRate = _nextLoanInterestRate(
+            loanData.initialMarginAmount,
+            escrowAmount);
+
+        uint256 fillAmount = _getFillAmount(
+            loanData,
+            escrowAmount,
+            interestRate);
+        
+        //require(ERC20(loanTokenAddress).balanceOf(address(this)) >= fillAmount, "insufficient loan supply");
+        if (fillAmount > ERC20(loanTokenAddress).balanceOf(address(this))) {
+            fillAmount = ERC20(loanTokenAddress).balanceOf(address(this));
+        }
+
+        // re-up the BZxVault spend approval if needed
+        uint256 tempAllowance = ERC20(loanTokenAddress).allowance(address(this), bZxVault);
+        if (tempAllowance < fillAmount) {
+            if (tempAllowance > 0) {
+                // reset approval to 0
+                require(ERC20(loanTokenAddress).approve(bZxVault, 0), "approval reset of loanToken failed");
+            }
+
+            require(ERC20(loanTokenAddress).approve(bZxVault, MAX_UINT), "approval of loanToken failed");
+        }
+
+        require(bZxInterface(bZxContract).updateLoanAsLender(
             loanOrderHash,
             fillAmount,
+            interestRate.div(365),
+            block.timestamp+1),
+            "updateLoanAsLender failed");
+
+        require (bZxInterface(bZxContract).takeLoanOrderOnChainAsTraderByDelegate(
+            msg.sender,
+            loanOrderHash,
             collateralTokenAddress,
+            fillAmount,
             tradeTokenToFillAddress,
-            withdrawOnOpen);
+            withdrawOnOpen) == fillAmount,
+            "takeLoanOrderOnChainAsTraderByDelegate failed");
+
+        // update total borrowed amount outstanding in loans
+        totalAssetBorrow = totalAssetBorrow.add(fillAmount);
+
+        // update utilization rate at this point in time
+        lastUtilizationRate_ = _getUtilizationRate(_totalAssetSupply(0));
+
+        if (burntTokenReserveList.length > 0) {
+            _claimLoanToken(burntTokenReserveList[0].lender);
+            _claimLoanToken(msg.sender);
+        }
+
+        return fillAmount;
     }
 
     // Claims owned loan token for the caller
@@ -336,7 +343,7 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
             _value);
 
         if (burntTokenReserveListIndex[msg.sender].isSet || balances[msg.sender] > 0) {
-            checkpointPrices_[msg.sender] = tokenPrice();
+            checkpointPrices_[msg.sender] = denormalize(tokenPrice());
         } else {
             checkpointPrices_[msg.sender] = 0;
         }
@@ -355,7 +362,7 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
             _value);
 
         if (burntTokenReserveListIndex[msg.sender].isSet || balances[msg.sender] > 0) {
-            checkpointPrices_[msg.sender] = tokenPrice();
+            checkpointPrices_[msg.sender] = denormalize(tokenPrice());
         } else {
             checkpointPrices_[msg.sender] = 0;
         }
@@ -389,7 +396,7 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         view
         returns (uint256)
     {
-        return checkpointPrices_[_user];
+        return normalize(checkpointPrices_[_user]);
     }
 
     function marketLiquidity()
@@ -405,57 +412,49 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         }
     }
 
+    // interest that borrowers are currently paying for open loans
     function borrowInterestRate()
         public
         view
         returns (uint256)
     {
-        return _getUtilizationRate()
-            .mul(rateMultiplier)
-            .div(10**20)
-            .add(baseRate);
+        if (totalAssetBorrow > 0) {
+            return _borrowInterestRate(totalAssetSupply());
+        } else {
+            return baseRate;
+        }
     }
 
-    function supplyInterestRate()
-        public
-        view
-        returns (uint256)
-    {
-        uint256 utilizationRate = _getUtilizationRate();
-
-        uint256 borrowRate = utilizationRate
-            .mul(rateMultiplier)
-            .div(10**20)
-            .add(baseRate);
-
-        return borrowRate
-            .mul(utilizationRate)
-            .div(10**20);
-    }
-
-    function protocolBorrowInterestRate()
-        public
+    function _borrowInterestRate(
+        uint256 assetSupply)
+        internal
         view
         returns (uint256)
     {
         if (totalAssetBorrow > 0) {
             (,uint256 interestOwedPerDay,) = _getAllInterest();
-            return interestOwedPerDay
+            return normalize(
+                interestOwedPerDay
                 .mul(10**20)
                 .div(totalAssetBorrow)
-                .mul(365);
+                .mul(365)
+                .mul(_getUtilizationRate(assetSupply))
+                .div(lastUtilizationRate_)
+            );
         } else {
-            return 0;
+            return baseRate;
         }
     }
 
-    function protocolSupplyInterestRate()
+    // interest that lenders are currently receiving for open loans
+    function supplyInterestRate()
         public
         view
         returns (uint256)
     {
-        return protocolBorrowInterestRate()
-            .mul(_getUtilizationRate())
+        uint256 assetSupply = totalAssetSupply();
+        return _borrowInterestRate(assetSupply)
+            .mul(_getUtilizationRate(assetSupply))
             .mul(spreadMultiplier)
             .div(10**40);
     }
@@ -491,25 +490,6 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         return _totalAssetSupply(interestUnPaid);
     }
 
-    function getDepositAmount(
-        uint256 fillAmount,
-        uint256 leverageAmount)
-        public
-        view
-        returns (uint256)
-    {
-        if (fillAmount == 0)
-            return 0;
-        
-        LoanData memory loanData = loanOrderData[loanOrderHashes[leverageAmount]];
-        if (loanData.initialMarginAmount == 0)
-            return 0;
-
-        return _getDepositAmount(
-            loanData,
-            fillAmount);
-    }
-
     function getMaxDepositAmount(
         uint256 leverageAmount)
         public
@@ -520,19 +500,26 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         if (loanData.initialMarginAmount == 0)
             return 0;
 
-        return _getDepositAmount(
-            loanData,
-            marketLiquidity());
+        return marketLiquidity()
+            .mul(loanData.initialMarginAmount)
+            .mul(
+                _nextLoanInterestRate(0, 0)
+                .mul(10**20)
+                .div(31536000) // 86400 * 365
+                .mul(maxDurationUnixTimestampSec)
+                .div(loanData.initialMarginAmount)
+                .add(10**20))
+            .div(10**40);
     }
 
     function getFillAmount(
-        uint256 depositAmount,
+        uint256 escrowAmount,
         uint256 leverageAmount)
         public
         view
         returns (uint256)
     {
-        if (depositAmount == 0)
+        if (escrowAmount == 0)
             return 0;
 
         LoanData memory loanData = loanOrderData[loanOrderHashes[leverageAmount]];
@@ -541,7 +528,9 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
 
         return _getFillAmount(
             loanData,
-            depositAmount);
+            escrowAmount,
+            _nextLoanInterestRate(loanData.initialMarginAmount, escrowAmount)
+        );
     }
 
     function getLoanData(
@@ -568,25 +557,13 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         view
         returns (uint256)
     {
-        return balances[_owner].mul(tokenPrice()).div(10**18);
+        return balanceOf(_owner)
+            .mul(tokenPrice())
+            .div(10**18);
     }
 
 
     /* Internal functions */
-
-    function _mint(
-        address _to,
-        uint256 _tokenAmount,
-        uint256 _assetAmount,
-        uint256 _price)
-        internal
-    {
-        require(_to != address(0), "invalid address");
-        totalSupply_ = totalSupply_.add(_tokenAmount);
-        balances[_to] = balances[_to].add(_tokenAmount);
-        emit Mint(_to, _tokenAmount, _assetAmount, _price);
-        emit Transfer(address(0), _to, _tokenAmount);
-    }
 
     function _burnToken(
         uint256 burnAmount)
@@ -614,7 +591,7 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         loanAmountPaid = loanAmountOwed;
         if (loanAmountPaid > loanAmountAvailableInContract) {
             uint256 reserveAmount = loanAmountPaid.sub(loanAmountAvailableInContract);
-            uint256 reserveTokenAmount = reserveAmount.mul(10**18).div(currentPrice);
+            uint256 reserveTokenAmount = normalize(reserveAmount.mul(10**18).div(currentPrice));
 
             burntTokenReserved = burntTokenReserved.add(reserveTokenAmount);
             if (burntTokenReserveListIndex[msg.sender].isSet) {
@@ -637,30 +614,13 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         _burn(msg.sender, burnAmount, loanAmountPaid, currentPrice);
 
         if (burntTokenReserveListIndex[msg.sender].isSet || balances[msg.sender] > 0) {
-            checkpointPrices_[msg.sender] = currentPrice;
+            checkpointPrices_[msg.sender] = denormalize(currentPrice);
         } else {
             checkpointPrices_[msg.sender] = 0;
         }
 
         if (totalSupply_.add(burntTokenReserved) == 0)
             lastPrice_ = currentPrice; // only store lastPrice_ if lender supply is 0
-    }
-
-    function _burn(
-        address _who, 
-        uint256 _tokenAmount,
-        uint256 _assetAmount,
-        uint256 _price)
-        internal
-    {
-        require(_tokenAmount <= balances[_who], "burn value exceeds balance");
-        // no need to require value <= totalSupply, since that would imply the
-        // sender's balance is greater than the totalSupply, which *should* be an assertion failure
-
-        balances[_who] = balances[_who].sub(_tokenAmount);
-        totalSupply_ = totalSupply_.sub(_tokenAmount);
-        emit Burn(_who, _tokenAmount, _assetAmount, _price);
-        emit Transfer(_who, address(0), _tokenAmount);
     }
 
     function _settleInterest()
@@ -679,58 +639,6 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         }
     }
 
-    // returns fillAmount
-    function _borrowToken(
-        bytes32 loanOrderHash,
-        uint256 fillAmount,
-        address collateralTokenAddress,
-        address tradeTokenToFillAddress,
-        bool withdrawOnOpen)
-        internal
-        returns (uint256)
-    {
-        //require(ERC20(loanTokenAddress).balanceOf(address(this)) >= fillAmount, "insufficient loan supply");
-        if (fillAmount > ERC20(loanTokenAddress).balanceOf(address(this))) {
-            fillAmount = ERC20(loanTokenAddress).balanceOf(address(this));
-        }
-
-        // re-up the BZxVault spend approval if needed
-        uint256 tempAllowance = ERC20(loanTokenAddress).allowance(address(this), bZxVault);
-        if (tempAllowance < fillAmount) {
-            if (tempAllowance > 0) {
-                // reset approval to 0
-                require(ERC20(loanTokenAddress).approve(bZxVault, 0), "approval reset of loanToken failed");
-            }
-
-            require(ERC20(loanTokenAddress).approve(bZxVault, MAX_UINT), "approval of loanToken failed");
-        }
-
-        require(bZxInterface(bZxContract).updateLoanAsLender(
-            loanOrderHash,
-            fillAmount,
-            borrowInterestRate().div(365),
-            block.timestamp+1),
-            "updateLoanAsLender failed");
-
-        require (bZxInterface(bZxContract).takeLoanOrderOnChainAsTraderByDelegate(
-            msg.sender,
-            loanOrderHash,
-            collateralTokenAddress,
-            fillAmount,
-            tradeTokenToFillAddress,
-            withdrawOnOpen) == fillAmount,
-            "takeLoanOrderOnChainAsTraderByDelegate failed");
-
-        totalAssetBorrow = totalAssetBorrow.add(fillAmount);
-
-        if (burntTokenReserveList.length > 0) {
-            _claimLoanToken(burntTokenReserveList[0].lender);
-            _claimLoanToken(msg.sender);
-        }
-
-        return fillAmount;
-    }
-
     function _claimLoanToken(
         address lender)
         internal
@@ -745,7 +653,7 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
 
         uint256 currentPrice = _tokenPrice(0);
 
-        uint256 claimAmount = burntTokenReserveList[index].amount.mul(currentPrice).div(10**18);
+        uint256 claimAmount = denormalize(burntTokenReserveList[index].amount.mul(currentPrice).div(10**18));
         if (claimAmount == 0)
             return 0;
 
@@ -760,7 +668,7 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
             _removeFromList(lender, index);
         } else {
             claimAmount = availableAmount;
-            claimTokenAmount = claimAmount.mul(10**18).div(currentPrice);
+            claimTokenAmount = normalize(claimAmount.mul(10**18).div(currentPrice));
             
             // prevents less than 10 being left in burntTokenReserveList[index].amount
             if (claimTokenAmount.add(10) < burntTokenReserveList[index].amount) {
@@ -776,7 +684,7 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         ), "transfer of loanToken failed");
 
         if (burntTokenReserveListIndex[lender].isSet || balances[lender] > 0) {
-            checkpointPrices_[lender] = currentPrice;
+            checkpointPrices_[lender] = denormalize(currentPrice);
         } else {
             checkpointPrices_[lender] = 0;
         }
@@ -793,7 +701,7 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
             claimTokenAmount,
             claimAmount,
             burntTokenReserveListIndex[lender].isSet ?
-                burntTokenReserveList[burntTokenReserveListIndex[lender].index].amount :
+                denormalize(burntTokenReserveList[burntTokenReserveListIndex[lender].index].amount) :
                 0,
             currentPrice
         );
@@ -833,9 +741,37 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         uint256 totalTokenSupply = totalSupply_.add(burntTokenReserved);
 
         return totalTokenSupply > 0 ?
-            _totalAssetSupply(interestUnPaid)
-            .mul(10**18)
-            .div(totalTokenSupply) : lastPrice_;
+            normalize(
+                _totalAssetSupply(interestUnPaid)
+                .mul(10**18)
+                .div(totalTokenSupply)
+            ) : lastPrice_;
+    }
+
+    // next loan interest adjustment
+    function _nextLoanInterestRate(
+        uint256 initialMarginAmount,
+        uint256 futureEscrowAmount)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 assetSupply = totalAssetSupply();
+        uint escrowUtilization = 0;
+        if (futureEscrowAmount > 0 && initialMarginAmount > 0) {
+            escrowUtilization = futureEscrowAmount
+                .mul(10**40)
+                .div(initialMarginAmount)
+                .div(assetSupply);
+        }
+
+        return normalize(
+            _getUtilizationRate(assetSupply)
+            .add(escrowUtilization)
+            .mul(rateMultiplier)
+            .div(10**20)
+            .add(baseRate)
+        );
     }
 
     function _getAllInterest()
@@ -856,16 +792,17 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
 
     function _getFillAmount(
         LoanData memory loanData,
-        uint256 depositAmount)
+        uint256 escrowAmount,
+        uint256 interestRate)
         internal
         view
         returns (uint256)
     {
         // assumes that collateral and interest token are the same
-        return depositAmount
+        return escrowAmount
             .mul(10**40)
             .div(
-                borrowInterestRate()
+                interestRate
                 .mul(10**20)
                 .div(31536000) // 86400 * 365
                 .mul(maxDurationUnixTimestampSec)
@@ -874,32 +811,12 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
             .div(loanData.initialMarginAmount);
     }
 
-    function _getDepositAmount(
-        LoanData memory loanData,
-        uint256 fillAmount)
+    function _getUtilizationRate(
+        uint256 assetSupply)
         internal
         view
         returns (uint256)
     {
-        // assumes that collateral and interest token are the same
-        return fillAmount
-            .mul(loanData.initialMarginAmount)
-            .mul(
-                borrowInterestRate()
-                .mul(10**20)
-                .div(31536000) // 86400 * 365
-                .mul(maxDurationUnixTimestampSec)
-                .div(loanData.initialMarginAmount)
-                .add(10**20))
-            .div(10**40);
-    }
-
-    function _getUtilizationRate()
-        internal
-        view
-        returns (uint256)
-    {
-        uint256 assetSupply = totalAssetSupply();
         if (totalAssetBorrow > 0 && assetSupply > 0) {
             // U = total_borrow / total_supply
             return totalAssetBorrow
@@ -968,13 +885,23 @@ contract LoanToken is LoanTokenization, UnlimitedAllowanceToken, DetailedERC20, 
         onlyOracle
         returns (bool)
     {
-        if (loanOrderData[loanOrder.loanOrderHash].loanOrderHash == loanOrder.loanOrderHash && 
-            closeAmount > 0 && totalAssetBorrow >= closeAmount) {
+        if (loanOrderData[loanOrder.loanOrderHash].loanOrderHash == loanOrder.loanOrderHash) {
 
-            totalAssetBorrow = totalAssetBorrow.sub(closeAmount);
+            if (closeAmount > 0 && totalAssetBorrow >= closeAmount) {
+                totalAssetBorrow = totalAssetBorrow.sub(closeAmount);
+            }
 
             if (burntTokenReserveList.length > 0) {
                 _claimLoanToken(burntTokenReserveList[0].lender);
+            } else {
+                _settleInterest();
+            }
+
+            uint256 currentPrice = _tokenPrice(0);
+            if (currentPrice < initialPrice_) {
+                splitFactor_ = initialPrice_
+                    .mul(10**18)
+                    .div(currentPrice);
             }
 
             return true;
