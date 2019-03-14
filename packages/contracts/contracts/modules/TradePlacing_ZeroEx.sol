@@ -127,6 +127,15 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
             revert("BZxTradePlacing::tradePositionWith0x: tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled");
         }
 
+        if (tradeTokenAddress == loanPosition.positionTokenAddressFilled) {
+            revert("BZxTradePlacing::tradePositionWith0x: tradeTokenAddress == loanPosition.positionTokenAddressFilled");
+        }
+
+        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec && tradeTokenAddress != loanOrder.loanTokenAddress) {
+            // if a loan has ended, only a swap back to loanToken is permissible
+            revert("BZxTradePlacing::tradePositionWith0x: block.timestamp >= loanPosition.loanEndUnixTimestampSec");
+        }
+
         emit LogPositionTraded(
             loanOrderHash,
             loanPosition.trader,
@@ -141,11 +150,13 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
         loanPosition.positionTokenAddressFilled = tradeTokenAddress;
         loanPosition.positionTokenAmountFilled = tradeTokenAmount;
 
-        // trade can't trigger liquidation
-        if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
-                loanOrder,
-                loanPosition)) {
-            revert("BZxTradePlacing::tradePositionWith0x: trade triggers liquidation");
+        if (block.timestamp < loanPosition.loanEndUnixTimestampSec) {
+            // trade can't trigger liquidation for open loan
+            if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
+                    loanOrder,
+                    loanPosition)) {
+                revert("BZxTradePlacing::tradePositionWith0x: trade triggers liquidation");
+            }
         }
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
@@ -205,6 +216,15 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
             revert("BZxTradePlacing::tradePositionWith0x: tradeTokenAmount == 0 || positionTokenUsedAmount != loanPosition.positionTokenAmountFilled");
         }
 
+        if (tradeTokenAddress == loanPosition.positionTokenAddressFilled) {
+            revert("BZxTradePlacing::tradePositionWith0x: tradeTokenAddress == loanPosition.positionTokenAddressFilled");
+        }
+
+        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec && tradeTokenAddress != loanOrder.loanTokenAddress) {
+            // if a loan has ended, only a swap back to loanToken is permissible
+            revert("BZxTradePlacing::tradePositionWith0x: block.timestamp >= loanPosition.loanEndUnixTimestampSec");
+        }
+
         emit LogPositionTraded(
             loanOrderHash,
             loanPosition.trader,
@@ -219,11 +239,13 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
         loanPosition.positionTokenAddressFilled = tradeTokenAddress;
         loanPosition.positionTokenAmountFilled = tradeTokenAmount;
 
-        // trade can't trigger liquidation
-        if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
-                loanOrder,
-                loanPosition)) {
-            revert("BZxTradePlacing::tradePositionWith0x: trade triggers liquidation");
+        if (block.timestamp < loanPosition.loanEndUnixTimestampSec) {
+            // trade can't trigger liquidation for open loan
+            if (OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(
+                    loanOrder,
+                    loanPosition)) {
+                revert("BZxTradePlacing::tradePositionWith0x: trade triggers liquidation");
+            }
         }
 
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(

@@ -62,13 +62,18 @@ contract TradePlacing_Oracle is BZxStorage, BZxProxiable, MiscFunctions {
             revert("BZxTradePlacing::tradePositionWithOracle: tradeTokenAddress == loanPosition.positionTokenAddressFilled");
         }
 
+        // if a loan has ended, only a swap back to loanToken is permissible
+        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec && tradeTokenAddress != loanOrder.loanTokenAddress) {
+            revert("BZxTradePlacing::tradePositionWithOracle: block.timestamp >= loanPosition.loanEndUnixTimestampSec");
+        }
+
         (uint256 tradeTokenAmount, uint256 positionTokenAmountUsed) = _tradePositionWithOracle(
             loanOrder,
             loanPosition,
             tradeTokenAddress,
             MAX_UINT,
             false, // isLiquidation
-            true // ensureHealthy
+            block.timestamp < loanPosition.loanEndUnixTimestampSec // ensureHealthy
         );
 
         if (positionTokenAmountUsed < loanPosition.positionTokenAmountFilled) {

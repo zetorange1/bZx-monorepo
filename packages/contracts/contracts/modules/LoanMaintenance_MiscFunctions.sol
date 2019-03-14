@@ -56,7 +56,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         returns (bool)
     {
         require(depositAmount > 0, "BZxLoanHealth::depositCollateral: depositAmount too low");
-        
+
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
             revert("BZxLoanHealth::depositCollateral: loanOrder.loanTokenAddress == address(0)");
@@ -67,9 +67,8 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             revert("BZxLoanHealth::depositCollateral: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
 
-        if (depositTokenAddress != loanPosition.collateralTokenAddressFilled) {
-            revert("BZxLoanHealth::depositCollateral: depositTokenAddress != loanPosition.collateralTokenAddressFilled");
-        }
+        // for now we allow a collateral deposit prior to loan liquidation
+        // require(block.timestamp < loanPosition.loanEndUnixTimestampSec);
 
         uint256 collateralTokenAmountReceived;
         if (depositTokenAddress != loanPosition.collateralTokenAddressFilled) {
@@ -155,6 +154,11 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             return 0;
         }
 
+        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
+            // if a loan has ended, a loan close function should be called to recover collateral
+            return 0;
+        }
+
         // Withdraw withdrawAmount or amountWithdrawn, whichever is lessor
         amountWithdrawn = Math.min256(withdrawAmount, amountWithdrawn);
 
@@ -210,6 +214,11 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             revert("BZxLoanHealth::changeCollateral: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+        }
+
+        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
+            // if a loan has ended, changing collateral is not permitted
+            revert("BZxLoanHealth::changeCollateral: block.timestamp >= loanPosition.loanEndUnixTimestampSec");
         }
 
         if (collateralTokenFilled == address(0) || collateralTokenFilled == loanPosition.collateralTokenAddressFilled) {
@@ -297,6 +306,9 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             revert("BZxLoanHealth::depositPosition: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
 
+        // for now we allow a position deposit prior to loan liquidation
+        // require(block.timestamp < loanPosition.loanEndUnixTimestampSec);
+
         uint256 positionTokenAmountReceived;
         if (depositTokenAddress != loanPosition.positionTokenAddressFilled) {
             // send deposit token directly to the oracle to trade it
@@ -378,6 +390,11 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             loanOrder,
             loanPosition);
         if (amountWithdrawn == 0 || !isPositive) {
+            return 0;
+        }
+
+        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
+            // if a loan has ended, a loan close function should be called
             return 0;
         }
 
