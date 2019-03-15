@@ -1,7 +1,4 @@
 
-//const provider = new web3.providers.HttpProvider("http://localhost:8545");
-const trufflecontract = require("truffle-contract");
-
 let BZxOracle = artifacts.require("TestNetOracle");
 
 let BZxVault = artifacts.require("BZxVault");
