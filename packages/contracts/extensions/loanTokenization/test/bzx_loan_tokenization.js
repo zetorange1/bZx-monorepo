@@ -139,6 +139,41 @@ contract("BZxTest: loan tokenization", function(accounts) {
     await reverter.revert();
   });
 
+  it("iToken should mint using fallback and burn with WETH", async () => {
+    
+    let balance = await iToken.balanceOf(lender1);
+    let currentPrice = await iToken.tokenPrice();
+    
+    let sendAmount = utils.toWei("1", "ether");
+    await iToken.sendTransaction(
+      { value: sendAmount, from: lender1 }
+    );
+    let amountMinted = (await iToken.balanceOf(lender1)).sub(balance);
+
+    let expectedAmount = sendAmount.mul(PRECISION).div(currentPrice);
+
+    assert.isTrue((await iToken.balanceOf(lender1)).gt(balance), "(await iToken.balanceOf(lender1)).gt(balance)");
+    assert.equal(amountMinted.toString(), expectedAmount.toString(), "amountMinted == expectedAmount");
+
+    
+    let burnAmount = utils.toWei("0.4", "ether");
+    let amountPaidOut = await iToken.burnToEther.call(
+      burnAmount,
+      { from: lender1 }
+    );
+    await iToken.burn(
+      burnAmount,
+      { from: lender1 }
+    );
+
+    expectedAmount = burnAmount.mul(currentPrice).div(PRECISION);
+
+    assert.equal((await iToken.balanceOf(lender1)).toString(), utils.toWei("0.6", "ether").toString(), "await iToken.balanceOf(lender1) == utils.toWei(\"0.6\", \"ether\")");
+    assert.equal(amountPaidOut.toString(), expectedAmount.toString(), "amountPaidOut == expectedAmount");
+
+    await reverter.revert();
+  });
+
   it("iToken should mint and burn with WETH", async () => {
     
     let balance = await iToken.balanceOf(lender1);
@@ -324,6 +359,30 @@ contract("BZxTest: loan tokenization", function(accounts) {
     //console.log("final balance",balance.toString());
 
     assert.equal(balance.toString(), "0", "balance == 0");
+
+    await reverter.revert();
+  });
+
+  it("pToken should mint with fallback", async () => {
+    
+    // add liquidity to the pToken lending pool (iToken)
+    await iToken.mintWithEther(
+      { value: utils.toWei("10", "ether"), from: lender1 }
+    );
+
+    let balance = await pToken.balanceOf(trader1);
+
+    // buy some pToken
+    let currentPrice = await pToken.tokenPrice();
+    //console.log("currentPrice",currentPrice.toString());
+    let sendAmount = utils.toWei("1", "ether");
+    await pToken.sendTransaction(
+      { value: sendAmount, from: trader1 }
+    );
+    let amountMinted = (await pToken.balanceOf(trader1)).sub(balance);
+
+    let expectedAmount = sendAmount.mul(PRECISION).div(currentPrice);
+    assert.equal(amountMinted.toString(), expectedAmount.toString(), "amountMinted == expectedAmount (ETH buy)");
 
     await reverter.revert();
   });

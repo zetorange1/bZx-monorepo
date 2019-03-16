@@ -140,7 +140,8 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         external
         payable 
     {
-        require(msg.sender == wethContract, "calls to fallback not allowed");
+        if (msg.sender != wethContract)
+            _mintWithEther();
     }
 
 
@@ -149,27 +150,9 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
     function mintWithEther()
         external
         payable
-        nonReentrant
         returns (uint256 mintAmount)
     {
-        require (msg.value > 0, "msg.value == 0");
-        require (loanTokenAddress == wethContract, "ether is not supported");
-
-        if (burntTokenReserveList.length > 0) {
-            _claimLoanToken(burntTokenReserveList[0].lender);
-            _claimLoanToken(msg.sender);
-        } else {
-            _settleInterest();
-        }
-
-        uint256 currentPrice = _tokenPrice(0);
-        mintAmount = msg.value.mul(10**18).div(currentPrice);
-
-        WETHInterface(wethContract).deposit.value(msg.value)();
-
-        _mint(msg.sender, mintAmount, msg.value, currentPrice);
-
-        checkpointPrices_[msg.sender] = denormalize(currentPrice);
+        mintAmount = _mintWithEther();
     }
 
     function mint(
@@ -425,27 +408,6 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         }
     }
 
-    function _borrowInterestRate(
-        uint256 assetSupply)
-        internal
-        view
-        returns (uint256)
-    {
-        if (totalAssetBorrow > 0) {
-            (,uint256 interestOwedPerDay,) = _getAllInterest();
-            return normalize(
-                interestOwedPerDay
-                .mul(10**20)
-                .div(totalAssetBorrow)
-                .mul(365)
-                .mul(_getUtilizationRate(assetSupply))
-                .div(lastUtilizationRate_)
-            );
-        } else {
-            return baseRate;
-        }
-    }
-
     // interest that lenders are currently receiving for open loans
     function supplyInterestRate()
         public
@@ -564,6 +526,31 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
 
 
     /* Internal functions */
+
+    function _mintWithEther()
+        internal
+        nonReentrant
+        returns (uint256 mintAmount)
+    {
+        require (msg.value > 0, "msg.value == 0");
+        require (loanTokenAddress == wethContract, "ether is not supported");
+
+        if (burntTokenReserveList.length > 0) {
+            _claimLoanToken(burntTokenReserveList[0].lender);
+            _claimLoanToken(msg.sender);
+        } else {
+            _settleInterest();
+        }
+
+        uint256 currentPrice = _tokenPrice(0);
+        mintAmount = msg.value.mul(10**18).div(currentPrice);
+
+        WETHInterface(wethContract).deposit.value(msg.value)();
+
+        _mint(msg.sender, mintAmount, msg.value, currentPrice);
+
+        checkpointPrices_[msg.sender] = denormalize(currentPrice);
+    }
 
     function _burnToken(
         uint256 burnAmount)
@@ -746,6 +733,27 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
                 .mul(10**18)
                 .div(totalTokenSupply)
             ) : lastPrice_;
+    }
+
+    function _borrowInterestRate(
+        uint256 assetSupply)
+        internal
+        view
+        returns (uint256)
+    {
+        if (totalAssetBorrow > 0) {
+            (,uint256 interestOwedPerDay,) = _getAllInterest();
+            return normalize(
+                interestOwedPerDay
+                .mul(10**20)
+                .div(totalAssetBorrow)
+                .mul(365)
+                .mul(_getUtilizationRate(assetSupply))
+                .div(lastUtilizationRate_)
+            );
+        } else {
+            return baseRate;
+        }
     }
 
     // next loan interest adjustment

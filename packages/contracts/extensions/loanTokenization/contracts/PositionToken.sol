@@ -125,7 +125,8 @@ contract PositionToken is LoanTokenization {
         external
         payable 
     {
-        require(msg.sender == wethContract, "calls to fallback not allowed");
+        if (msg.sender != wethContract)
+            _mintWithEther();
     }
 
 
@@ -135,27 +136,9 @@ contract PositionToken is LoanTokenization {
     function mintWithEther()
         external
         payable
-        nonReentrant
         returns (uint256)
     {
-        require (msg.value > 0, "msg.value == 0");
-
-        uint256 netCollateralAmount = 0;
-        uint256 interestDepositRemaining = 0;
-        if (totalSupply_ > 0) {
-            (netCollateralAmount, interestDepositRemaining,) = bZxInterface(bZxContract).getTotalEscrow(
-                loanOrderHash,
-                address(this));
-        }
-        (uint256 currentPrice,) = _priceWithSplit(netCollateralAmount, interestDepositRemaining);
-
-        WETHInterface(wethContract).deposit.value(msg.value)();
-
-        return _mintWithToken(
-            wethContract,
-            msg.value,
-            currentPrice
-        );
+        return _mintWithEther();
     }
 
     // returns the amount of token minted
@@ -368,6 +351,32 @@ contract PositionToken is LoanTokenization {
 
 
     /* Internal functions */
+
+    // returns the amount of token minted
+    function _mintWithEther()
+        internal
+        nonReentrant
+        returns (uint256)
+    {
+        require (msg.value > 0, "msg.value == 0");
+
+        uint256 netCollateralAmount = 0;
+        uint256 interestDepositRemaining = 0;
+        if (totalSupply_ > 0) {
+            (netCollateralAmount, interestDepositRemaining,) = bZxInterface(bZxContract).getTotalEscrow(
+                loanOrderHash,
+                address(this));
+        }
+        (uint256 currentPrice,) = _priceWithSplit(netCollateralAmount, interestDepositRemaining);
+
+        WETHInterface(wethContract).deposit.value(msg.value)();
+
+        return _mintWithToken(
+            wethContract,
+            msg.value,
+            currentPrice
+        );
+    }
 
     // returns the amount of token minted
     function _mintWithToken(
