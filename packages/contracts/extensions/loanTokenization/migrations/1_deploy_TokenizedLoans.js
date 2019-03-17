@@ -64,7 +64,7 @@ module.exports = function(deployer, network, accounts) {
     let loanToken = await LoanToken.deployed();
 
     if (network == "development") {
-      await loanToken.mintWithEther({value: web3.utils.toWei("10", "ether")});
+      await loanToken.mintWithEther(accounts[0], {value: web3.utils.toWei("10", "ether")});
     }
 
     let leverageAmount;

@@ -141,21 +141,23 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         payable 
     {
         if (msg.sender != wethContract)
-            _mintWithEther();
+            _mintWithEther(msg.sender);
     }
 
 
     /* Public functions */
 
-    function mintWithEther()
+    function mintWithEther(
+        address receiver)
         external
         payable
         returns (uint256 mintAmount)
     {
-        mintAmount = _mintWithEther();
+        mintAmount = _mintWithEther(receiver);
     }
 
     function mint(
+        address receiver,
         uint256 depositAmount)
         external
         nonReentrant
@@ -165,7 +167,9 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         
         if (burntTokenReserveList.length > 0) {
             _claimLoanToken(burntTokenReserveList[0].lender);
-            _claimLoanToken(msg.sender);
+            _claimLoanToken(receiver);
+            if (msg.sender != receiver)
+                _claimLoanToken(msg.sender);
         } else {
             _settleInterest();
         }
@@ -179,12 +183,13 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
             depositAmount
         ), "transfer of loanToken failed");
 
-        _mint(msg.sender, mintAmount, depositAmount, currentPrice);
+        _mint(receiver, mintAmount, depositAmount, currentPrice);
 
-        checkpointPrices_[msg.sender] = denormalize(currentPrice);
+        checkpointPrices_[receiver] = denormalize(currentPrice);
     }
 
     function burnToEther(
+        address payable receiver,
         uint256 burnAmount)
         external
         nonReentrant
@@ -192,25 +197,32 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
     {
         require (loanTokenAddress == wethContract, "ether is not supported");
 
-        loanAmountPaid = _burnToken(burnAmount);
+        loanAmountPaid = _burnToken(
+            receiver,
+            burnAmount
+        );
 
         if (loanAmountPaid > 0) {
             WETHInterface(wethContract).withdraw(loanAmountPaid);
-            require(msg.sender.send(loanAmountPaid), "transfer of ETH failed");
+            require(receiver.send(loanAmountPaid), "transfer of ETH failed");
         }
     }
 
     function burn(
+        address receiver,
         uint256 burnAmount)
         external
         nonReentrant
         returns (uint256 loanAmountPaid)
     {
-        loanAmountPaid = _burnToken(burnAmount);
+        loanAmountPaid = _burnToken(
+            receiver,
+            burnAmount
+        );
 
         if (loanAmountPaid > 0) {
             require(ERC20(loanTokenAddress).transfer(
-                msg.sender, 
+                receiver, 
                 loanAmountPaid
             ), "transfer of loanToken failed");
         }
@@ -325,10 +337,16 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
             _to,
             _value);
 
-        if (burntTokenReserveListIndex[msg.sender].isSet || balances[msg.sender] > 0) {
-            checkpointPrices_[msg.sender] = denormalize(tokenPrice());
+        uint256 currentPrice = denormalize(tokenPrice());
+        if (burntTokenReserveListIndex[_from].isSet || balances[_from] > 0) {
+            checkpointPrices_[_from] = currentPrice;
         } else {
-            checkpointPrices_[msg.sender] = 0;
+            checkpointPrices_[_from] = 0;
+        }
+        if (burntTokenReserveListIndex[_to].isSet || balances[_to] > 0) {
+            checkpointPrices_[_to] = currentPrice;
+        } else {
+            checkpointPrices_[_to] = 0;
         }
 
         return true;
@@ -344,10 +362,16 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
             _to,
             _value);
 
+        uint256 currentPrice = denormalize(tokenPrice());
         if (burntTokenReserveListIndex[msg.sender].isSet || balances[msg.sender] > 0) {
-            checkpointPrices_[msg.sender] = denormalize(tokenPrice());
+            checkpointPrices_[msg.sender] = currentPrice;
         } else {
             checkpointPrices_[msg.sender] = 0;
+        }
+        if (burntTokenReserveListIndex[_to].isSet || balances[_to] > 0) {
+            checkpointPrices_[_to] = currentPrice;
+        } else {
+            checkpointPrices_[_to] = 0;
         }
 
         return true;
@@ -527,7 +551,8 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
 
     /* Internal functions */
 
-    function _mintWithEther()
+    function _mintWithEther(
+        address receiver)
         internal
         nonReentrant
         returns (uint256 mintAmount)
@@ -537,7 +562,9 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
 
         if (burntTokenReserveList.length > 0) {
             _claimLoanToken(burntTokenReserveList[0].lender);
-            _claimLoanToken(msg.sender);
+            _claimLoanToken(receiver);
+            if (msg.sender != receiver)
+                _claimLoanToken(msg.sender);
         } else {
             _settleInterest();
         }
@@ -547,12 +574,13 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
 
         WETHInterface(wethContract).deposit.value(msg.value)();
 
-        _mint(msg.sender, mintAmount, msg.value, currentPrice);
+        _mint(receiver, mintAmount, msg.value, currentPrice);
 
-        checkpointPrices_[msg.sender] = denormalize(currentPrice);
+        checkpointPrices_[receiver] = denormalize(currentPrice);
     }
 
     function _burnToken(
+        address receiver,
         uint256 burnAmount)
         internal
         returns (uint256 loanAmountPaid)
@@ -565,7 +593,9 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
 
         if (burntTokenReserveList.length > 0) {
             _claimLoanToken(burntTokenReserveList[0].lender);
-            _claimLoanToken(msg.sender);
+            _claimLoanToken(receiver);
+            if (msg.sender != receiver)
+                _claimLoanToken(msg.sender);
         } else {
             _settleInterest();
         }
@@ -581,15 +611,15 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
             uint256 reserveTokenAmount = normalize(reserveAmount.mul(10**18).div(currentPrice));
 
             burntTokenReserved = burntTokenReserved.add(reserveTokenAmount);
-            if (burntTokenReserveListIndex[msg.sender].isSet) {
-                uint256 index = burntTokenReserveListIndex[msg.sender].index;
+            if (burntTokenReserveListIndex[receiver].isSet) {
+                uint256 index = burntTokenReserveListIndex[receiver].index;
                 burntTokenReserveList[index].amount = burntTokenReserveList[index].amount.add(reserveTokenAmount);
             } else {
                 burntTokenReserveList.push(TokenReserves({
-                    lender: msg.sender,
+                    lender: receiver,
                     amount: reserveTokenAmount
                 }));
-                burntTokenReserveListIndex[msg.sender] = BZxObjects.ListIndex({
+                burntTokenReserveListIndex[receiver] = BZxObjects.ListIndex({
                     index: burntTokenReserveList.length-1,
                     isSet: true
                 });

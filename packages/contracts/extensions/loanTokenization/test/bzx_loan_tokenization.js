@@ -109,9 +109,11 @@ contract("BZxTest: loan tokenization", function(accounts) {
     
     let sendAmount = utils.toWei("1", "ether");
     let amountMinted = await iToken.mintWithEther.call(
+      lender1,
       { value: sendAmount, from: lender1 }
     );
     await iToken.mintWithEther(
+      lender1,
       { value: sendAmount, from: lender1 }
     );
 
@@ -123,10 +125,12 @@ contract("BZxTest: loan tokenization", function(accounts) {
     
     let burnAmount = utils.toWei("0.4", "ether");
     let amountPaidOut = await iToken.burnToEther.call(
+      lender1,
       burnAmount,
       { from: lender1 }
     );
     await iToken.burnToEther(
+      lender1,
       burnAmount,
       { from: lender1 }
     );
@@ -158,10 +162,12 @@ contract("BZxTest: loan tokenization", function(accounts) {
     
     let burnAmount = utils.toWei("0.4", "ether");
     let amountPaidOut = await iToken.burnToEther.call(
+      lender1,
       burnAmount,
       { from: lender1 }
     );
     await iToken.burn(
+      lender1,
       burnAmount,
       { from: lender1 }
     );
@@ -184,10 +190,12 @@ contract("BZxTest: loan tokenization", function(accounts) {
     await weth.approve(iToken.address, sendAmount, { from: lender1 });
 
     let amountMinted = await iToken.mint.call(
+      lender1,
       sendAmount,
       { from: lender1 }
     );
     await iToken.mint(
+      lender1,
       sendAmount,
       { from: lender1 }
     );
@@ -200,10 +208,12 @@ contract("BZxTest: loan tokenization", function(accounts) {
     
     let burnAmount = utils.toWei("0.2", "ether");
     let amountPaidOut = await iToken.burn.call(
+      lender1,
       burnAmount,
       { from: lender1 }
     );
     await iToken.burn(
+      lender1,
       burnAmount,
       { from: lender1 }
     );
@@ -222,6 +232,7 @@ contract("BZxTest: loan tokenization", function(accounts) {
 
     let sendAmount = utils.toWei("1", "ether");
     await iToken.mintWithEther(
+      lender1,
       { value: sendAmount, from: lender1 }
     );
 
@@ -284,6 +295,7 @@ contract("BZxTest: loan tokenization", function(accounts) {
     
     // add liquidity to the pToken lending pool (iToken)
     await iToken.mintWithEther(
+      lender1,
       { value: utils.toWei("10", "ether"), from: lender1 }
     );
 
@@ -292,9 +304,11 @@ contract("BZxTest: loan tokenization", function(accounts) {
     //console.log("currentPrice",currentPrice.toString());
     let sendAmount = utils.toWei("1", "ether");
     let amountMinted = await pToken.mintWithEther.call(
+      trader1,
       { value: sendAmount, from: trader1 }
     );
     await pToken.mintWithEther(
+      trader1,
       { value: sendAmount, from: trader1 }
     );
 
@@ -310,10 +324,10 @@ contract("BZxTest: loan tokenization", function(accounts) {
     await weth.approve(pToken.address, sendAmount, { from: trader1 });
 
     amountMinted = await pToken.mintWithToken.call(
-      weth.address, sendAmount, { from: trader1 }
+      trader1, weth.address, sendAmount, { from: trader1 }
     );
     await pToken.mintWithToken(
-      weth.address, sendAmount, { from: trader1 }
+      trader1, weth.address, sendAmount, { from: trader1 }
     );
 
     //expectedAmount = sendAmount.mul(PRECISION).div(currentPrice);
@@ -324,10 +338,12 @@ contract("BZxTest: loan tokenization", function(accounts) {
     //console.log("currentPrice",currentPrice.toString());
     let burnAmount = utils.toWei("0.001", "ether");
     let amountPaidOut = await pToken.burnToEther.call(
+      trader1,
       burnAmount,
       { from: trader1 }
     );
     await pToken.burnToEther(
+      trader1,
       burnAmount,
       { from: trader1 }
     );
@@ -340,11 +356,13 @@ contract("BZxTest: loan tokenization", function(accounts) {
     //console.log("currentPrice",currentPrice.toString());
     burnAmount = await pToken.balanceOf(trader1);
     amountPaidOut = await pToken.burnToToken.call(
+      trader1,
       weth.address,
       burnAmount,
       { from: trader1 }
     );
     await pToken.burnToToken(
+      trader1,
       weth.address,
       burnAmount,
       { from: trader1 }
@@ -367,7 +385,7 @@ contract("BZxTest: loan tokenization", function(accounts) {
     
     // add liquidity to the pToken lending pool (iToken)
     await iToken.mintWithEther(
-      { value: utils.toWei("10", "ether"), from: lender1 }
+      lender1, { value: utils.toWei("10", "ether"), from: lender1 }
     );
 
     let balance = await pToken.balanceOf(trader1);
@@ -391,20 +409,21 @@ contract("BZxTest: loan tokenization", function(accounts) {
 
     // add liquidity to the pToken lending pool (iToken)
     await iToken.mintWithEther(
-      { value: utils.toWei("10", "ether"), from: lender1 }
+      lender1, { value: utils.toWei("10", "ether"), from: lender1 }
     );
 
     let tokenBalance = await iToken.balanceOf(lender1);
 
     // buy some pToken
     await pToken.mintWithEther(
-      { value: utils.toWei("5", "ether"), from: trader1 }
+      trader1, { value: utils.toWei("5", "ether"), from: trader1 }
     );
 
     let ethBalance1 = new BN(await web3.eth.getBalance(lender1));
 
     // burn full amount of iToken
     let tx = await iToken.burnToEther(
+      lender1,
       utils.toWei("10", "ether"),
       { from: lender1 }
     );
@@ -431,6 +450,7 @@ contract("BZxTest: loan tokenization", function(accounts) {
 
     // this burn will free up ETH to return to the lender automatically
     tx = await pToken.burnToEther(
+      trader1,
       utils.toWei("10", "ether"),
       { from: trader1 }
     );

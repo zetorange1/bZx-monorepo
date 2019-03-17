@@ -126,23 +126,25 @@ contract PositionToken is LoanTokenization {
         payable 
     {
         if (msg.sender != wethContract)
-            _mintWithEther();
+            _mintWithEther(msg.sender);
     }
 
 
     /* Public functions */
 
     // returns the amount of token minted
-    function mintWithEther()
+    function mintWithEther(
+        address receiver)
         external
         payable
         returns (uint256)
     {
-        return _mintWithEther();
+        return _mintWithEther(receiver);
     }
 
     // returns the amount of token minted
     function mintWithToken(
+        address receiver,
         address depositTokenAddress,
         uint256 depositAmount)
         external
@@ -167,6 +169,7 @@ contract PositionToken is LoanTokenization {
         ), "transfer of token failed");
 
         return _mintWithToken(
+            receiver,
             depositTokenAddress,
             depositAmount,
             currentPrice
@@ -174,6 +177,7 @@ contract PositionToken is LoanTokenization {
     }
     
     function burnToEther(
+        address payable receiver,
         uint256 burnAmount)
         external
         nonReentrant
@@ -184,13 +188,14 @@ contract PositionToken is LoanTokenization {
         uint256 loanAmountOwed = _burnToken(burnAmount);
         if (loanAmountOwed > 0) {
             WETHInterface(wethContract).withdraw(loanAmountOwed);
-            require(msg.sender.send(loanAmountOwed), "transfer of ETH failed");
+            require(receiver.send(loanAmountOwed), "transfer of ETH failed");
         }
 
         return loanAmountOwed;
     }
 
     function burnToToken(
+        address receiver,
         address burnTokenAddress,
         uint256 burnAmount)
         external
@@ -217,7 +222,7 @@ contract PositionToken is LoanTokenization {
                     loanTokenAddress,
                     loanAmountOwed,
                     burnTokenAddress,
-                    msg.sender, // receiver
+                    receiver, // receiver
                     MAX_UINT,
                     0, // no min coversation rate
                     bZxOracle
@@ -226,7 +231,7 @@ contract PositionToken is LoanTokenization {
                 uint256 loanAmountOwedUsed = loanAmountOwedBefore.sub(ERC20(loanTokenAddress).balanceOf(address(this)));
                 if (loanAmountOwed > loanAmountOwedUsed) {
                     require(ERC20(loanTokenAddress).transfer(
-                        msg.sender, 
+                        receiver, 
                         loanAmountOwed-loanAmountOwedUsed
                     ), "transfer of token failed");
                 }
@@ -234,7 +239,7 @@ contract PositionToken is LoanTokenization {
                 loanAmountOwed = destTokenAmountReceived;
             } else {
                 require(ERC20(loanTokenAddress).transfer(
-                    msg.sender, 
+                    receiver, 
                     loanAmountOwed
                 ), "transfer of loanToken failed");
             }
@@ -274,10 +279,16 @@ contract PositionToken is LoanTokenization {
             _to,
             _value);
 
-        if (balances[msg.sender] > 0) {
-            checkpointPrices_[msg.sender] = denormalize(tokenPrice());
+        uint256 currentPrice = denormalize(tokenPrice());
+        if (balances[_from] > 0) {
+            checkpointPrices_[_from] = currentPrice;
         } else {
-            checkpointPrices_[msg.sender] = 0;
+            checkpointPrices_[_from] = 0;
+        }
+        if (balances[_to] > 0) {
+            checkpointPrices_[_to] = currentPrice;
+        } else {
+            checkpointPrices_[_to] = 0;
         }
 
         return true;
@@ -293,10 +304,16 @@ contract PositionToken is LoanTokenization {
             _to,
             _value);
 
+        uint256 currentPrice = denormalize(tokenPrice());
         if (balances[msg.sender] > 0) {
-            checkpointPrices_[msg.sender] = denormalize(tokenPrice());
+            checkpointPrices_[msg.sender] = currentPrice;
         } else {
             checkpointPrices_[msg.sender] = 0;
+        }
+        if (balances[_to] > 0) {
+            checkpointPrices_[_to] = currentPrice;
+        } else {
+            checkpointPrices_[_to] = 0;
         }
 
         return true;
@@ -353,7 +370,8 @@ contract PositionToken is LoanTokenization {
     /* Internal functions */
 
     // returns the amount of token minted
-    function _mintWithEther()
+    function _mintWithEther(
+        address receiver)
         internal
         nonReentrant
         returns (uint256)
@@ -372,6 +390,7 @@ contract PositionToken is LoanTokenization {
         WETHInterface(wethContract).deposit.value(msg.value)();
 
         return _mintWithToken(
+            receiver,
             wethContract,
             msg.value,
             currentPrice
@@ -380,6 +399,7 @@ contract PositionToken is LoanTokenization {
 
     // returns the amount of token minted
     function _mintWithToken(
+        address receiver,
         address depositTokenAddress,
         uint256 depositAmount,
         uint256 currentPrice)
@@ -408,7 +428,7 @@ contract PositionToken is LoanTokenization {
                 depositTokenAddress,
                 depositAmount,
                 loanTokenAddress,
-                address(this), // receiver
+                address(this),
                 liquidity, // maxDestAmount shouldn't exceed the market liquidity for the pToken
                 0, // no min coversation rate
                 bZxOracle
@@ -449,9 +469,9 @@ contract PositionToken is LoanTokenization {
             .mul(10**18)
            .div(currentPrice);
 
-        _mint(msg.sender, mintAmount, depositAmount, currentPrice);
+        _mint(receiver, mintAmount, depositAmount, currentPrice);
 
-        checkpointPrices_[msg.sender] = denormalize(currentPrice);
+        checkpointPrices_[receiver] = denormalize(currentPrice);
 
         return mintAmount;
     }

@@ -272,7 +272,7 @@ export default class PositionTokens extends BZxComponent {
       value: toBigNumber(buyAmount, 1e18)
     };
 
-    const txObj = await tokenContract.methods.mintWithEther();
+    const txObj = await tokenContract.methods.mintWithEther(accounts[0]);
     console.log(txOpts);
 
     try {
@@ -331,6 +331,7 @@ export default class PositionTokens extends BZxComponent {
     };
 
     const txObj = await tokenContract.methods.burnToEther(
+      accounts[0],
       toBigNumber(sellAmount, 1e18).toFixed(0)
     );
     console.log(txOpts);
