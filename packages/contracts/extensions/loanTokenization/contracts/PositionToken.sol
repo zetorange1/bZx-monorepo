@@ -183,12 +183,45 @@ contract PositionToken is LoanTokenization {
         nonReentrant
         returns (uint256)
     {
-        require (loanTokenAddress == wethContract, "ether is not supported");
-
         uint256 loanAmountOwed = _burnToken(burnAmount);
         if (loanAmountOwed > 0) {
-            WETHInterface(wethContract).withdraw(loanAmountOwed);
-            require(receiver.send(loanAmountOwed), "transfer of ETH failed");
+            if (wethContract != loanTokenAddress) {
+                // re-up the Kyber spend approval if needed
+                uint256 tempAllowance = ERC20(loanTokenAddress).allowance(address(this), kyberContract);
+                if (tempAllowance < loanAmountOwed) {
+                    if (tempAllowance > 0) {
+                        // reset approval to 0
+                        require(ERC20(loanTokenAddress).approve(kyberContract, 0), "token approval reset failed");
+                    }
+
+                    require(ERC20(loanTokenAddress).approve(kyberContract, MAX_UINT), "token approval failed");
+                }
+
+                uint256 loanAmountOwedBefore = ERC20(loanTokenAddress).balanceOf(address(this));
+
+                uint256 destTokenAmountReceived = KyberNetworkInterface(kyberContract).trade(
+                    loanTokenAddress,
+                    loanAmountOwed,
+                    address(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee), // Kyber ETH designation
+                    receiver, // receiver
+                    MAX_UINT,
+                    0, // no min coversation rate
+                    bZxOracle
+                );
+
+                uint256 loanAmountOwedUsed = loanAmountOwedBefore.sub(ERC20(loanTokenAddress).balanceOf(address(this)));
+                if (loanAmountOwed > loanAmountOwedUsed) {
+                    require(ERC20(loanTokenAddress).transfer(
+                        receiver,
+                        loanAmountOwed-loanAmountOwedUsed
+                    ), "transfer of token failed");
+                }
+
+                loanAmountOwed = destTokenAmountReceived;
+            } else {
+                WETHInterface(wethContract).withdraw(loanAmountOwed);
+                require(receiver.send(loanAmountOwed), "transfer of ETH failed");
+            }
         }
 
         return loanAmountOwed;
