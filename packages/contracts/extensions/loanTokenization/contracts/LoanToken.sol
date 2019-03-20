@@ -83,8 +83,8 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         uint256 price
     );
 
-    uint256 public baseRate = 2500000000000000000; // 2.5%
-    uint256 public rateMultiplier = 20000000000000000000; // 20%
+    uint256 public baseRate = 1000000000000000000; // 1.0%
+    uint256 public rateMultiplier = 39000000000000000000; // 39%
 
     // "fee percentage retained by the oracle" = SafeMath.sub(10**20, spreadMultiplier);
     uint256 public spreadMultiplier;
@@ -99,7 +99,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
 
     uint256 public totalAssetBorrow = 0; // current amount of loan token amount tied up in loans
 
-    uint256 internal lastUtilizationRate_;
+    uint256 internal checkpointUtilizationRate_;
 
     uint256 internal lastSettleTime_;
 
@@ -174,7 +174,8 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
             _settleInterest();
         }
 
-        uint256 currentPrice = _tokenPrice(0);
+        uint256 assetSupply = _totalAssetSupply(0);
+        uint256 currentPrice = _tokenPrice(assetSupply);
         mintAmount = depositAmount.mul(10**18).div(currentPrice);
 
         require(ERC20(loanTokenAddress).transferFrom(
@@ -186,6 +187,8 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         _mint(receiver, mintAmount, depositAmount, currentPrice);
 
         checkpointPrices_[receiver] = denormalize(currentPrice);
+
+        checkpointUtilizationRate_ = _getUtilizationRate(assetSupply);
     }
 
     function burnToEther(
@@ -206,6 +209,8 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
             WETHInterface(wethContract).withdraw(loanAmountPaid);
             require(receiver.send(loanAmountPaid), "transfer of ETH failed");
         }
+
+        checkpointUtilizationRate_ = _getUtilizationRate(_totalAssetSupply(0));
     }
 
     function burn(
@@ -226,12 +231,46 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
                 loanAmountPaid
             ), "transfer of loanToken failed");
         }
+
+        checkpointUtilizationRate_ = _getUtilizationRate(_totalAssetSupply(0));
+    }
+
+    // called by a borrower to open a loan
+    // returns borrowAmount
+    function borrowToken(
+        uint256 borrowAmount,
+        uint256 leverageAmount,
+        address collateralTokenAddress,
+        address tradeTokenToFillAddress,
+        bool withdrawOnOpen)
+        external
+        nonReentrant
+        returns (uint256)
+    {
+        require(borrowAmount > 0, "borrowAmount == 0");
+
+        bytes32 loanOrderHash = loanOrderHashes[leverageAmount];
+        LoanData memory loanData = loanOrderData[loanOrderHash];
+        require(loanData.initialMarginAmount != 0, "invalid leverage amount");
+
+        _settleInterest();
+
+        uint256 interestRate = _nextLoanInterestRate(borrowAmount);
+
+        return _borrowToken(
+            loanOrderHash,
+            borrowAmount,
+            interestRate,
+            collateralTokenAddress,
+            tradeTokenToFillAddress,
+            withdrawOnOpen
+        );
     }
 
     // called by a borrower to open a loan
     // escrowAmount == total collateral + interest available to back the loan
-    // returns fillAmount
-    function borrowToken(
+    // returns borrowAmount
+    function borrowTokenFromEscrow(
         uint256 escrowAmount,
         uint256 leverageAmount,
         address collateralTokenAddress,
@@ -250,58 +289,24 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         _settleInterest();
 
         uint256 interestRate = _nextLoanInterestRate(
-            loanData.initialMarginAmount,
-            escrowAmount);
+            escrowAmount
+                .mul(10**20)
+                .div(loanData.initialMarginAmount)
+        );
 
-        uint256 fillAmount = _getFillAmount(
+        uint256 borrowAmount = _getBorrowAmount(
             loanData,
             escrowAmount,
             interestRate);
-        
-        //require(ERC20(loanTokenAddress).balanceOf(address(this)) >= fillAmount, "insufficient loan supply");
-        if (fillAmount > ERC20(loanTokenAddress).balanceOf(address(this))) {
-            fillAmount = ERC20(loanTokenAddress).balanceOf(address(this));
-        }
 
-        // re-up the BZxVault spend approval if needed
-        uint256 tempAllowance = ERC20(loanTokenAddress).allowance(address(this), bZxVault);
-        if (tempAllowance < fillAmount) {
-            if (tempAllowance > 0) {
-                // reset approval to 0
-                require(ERC20(loanTokenAddress).approve(bZxVault, 0), "approval reset of loanToken failed");
-            }
-
-            require(ERC20(loanTokenAddress).approve(bZxVault, MAX_UINT), "approval of loanToken failed");
-        }
-
-        require(bZxInterface(bZxContract).updateLoanAsLender(
+        return _borrowToken(
             loanOrderHash,
-            fillAmount,
-            interestRate.div(365),
-            block.timestamp+1),
-            "updateLoanAsLender failed");
-
-        require (bZxInterface(bZxContract).takeLoanOrderOnChainAsTraderByDelegate(
-            msg.sender,
-            loanOrderHash,
+            borrowAmount,
+            interestRate,
             collateralTokenAddress,
-            fillAmount,
             tradeTokenToFillAddress,
-            withdrawOnOpen) == fillAmount,
-            "takeLoanOrderOnChainAsTraderByDelegate failed");
-
-        // update total borrowed amount outstanding in loans
-        totalAssetBorrow = totalAssetBorrow.add(fillAmount);
-
-        // update utilization rate at this point in time
-        lastUtilizationRate_ = _getUtilizationRate(_totalAssetSupply(0));
-
-        if (burntTokenReserveList.length > 0) {
-            _claimLoanToken(burntTokenReserveList[0].lender);
-            _claimLoanToken(msg.sender);
-        }
-
-        return fillAmount;
+            withdrawOnOpen
+        );
     }
 
     // Claims owned loan token for the caller
@@ -316,6 +321,8 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
 
         if (burntTokenReserveList.length > 0)
             _claimLoanToken(burntTokenReserveList[0].lender);
+
+        checkpointUtilizationRate_ = _getUtilizationRate(totalAssetSupply());
     }
 
     function settleInterest()
@@ -394,7 +401,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
                 .div(10**20);
         }
 
-        return _tokenPrice(interestUnPaid);
+        return _tokenPrice(_totalAssetSupply(interestUnPaid));
     }
 
     function checkpointPrice(
@@ -445,6 +452,32 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
             .div(10**40);
     }
 
+    // the rate the next base protocol borrower will receive based on the amount being borrowed
+    function nextLoanInterestRate(
+        uint256 borrowAmount)
+        public
+        view
+        returns (uint256)
+    {
+        if (borrowAmount > 0) {
+            uint256 interestUnPaid = 0;
+            if (lastSettleTime_ != block.timestamp) {
+                (,,interestUnPaid) = _getAllInterest();
+
+                interestUnPaid = interestUnPaid
+                    .mul(spreadMultiplier)
+                    .div(10**20);
+            }
+
+            uint256 balance = ERC20(loanTokenAddress).balanceOf(address(this)).add(interestUnPaid);
+            if (borrowAmount > balance) {
+                borrowAmount = balance;
+            }
+        }
+
+        return _nextLoanInterestRate(borrowAmount);
+    }
+
     // this gets the combined total of paid and unpaid interest
     function interestReceived()
         public
@@ -489,7 +522,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         return marketLiquidity()
             .mul(loanData.initialMarginAmount)
             .mul(
-                _nextLoanInterestRate(0, 0)
+                nextLoanInterestRate(0)
                 .mul(10**20)
                 .div(31536000) // 86400 * 365
                 .mul(maxDurationUnixTimestampSec)
@@ -498,7 +531,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
             .div(10**40);
     }
 
-    function getFillAmount(
+    function getBorrowAmount(
         uint256 escrowAmount,
         uint256 leverageAmount)
         public
@@ -512,10 +545,14 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         if (loanData.initialMarginAmount == 0)
             return 0;
 
-        return _getFillAmount(
+        return _getBorrowAmount(
             loanData,
             escrowAmount,
-            _nextLoanInterestRate(loanData.initialMarginAmount, escrowAmount)
+            nextLoanInterestRate(
+                escrowAmount
+                    .mul(10**20)
+                    .div(loanData.initialMarginAmount)
+            )
         );
     }
 
@@ -569,7 +606,8 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
             _settleInterest();
         }
 
-        uint256 currentPrice = _tokenPrice(0);
+        uint256 assetSupply = _totalAssetSupply(0);
+        uint256 currentPrice = _tokenPrice(assetSupply);
         mintAmount = msg.value.mul(10**18).div(currentPrice);
 
         WETHInterface(wethContract).deposit.value(msg.value)();
@@ -577,6 +615,8 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         _mint(receiver, mintAmount, msg.value, currentPrice);
 
         checkpointPrices_[receiver] = denormalize(currentPrice);
+
+        checkpointUtilizationRate_ = _getUtilizationRate(assetSupply);
     }
 
     function _burnToken(
@@ -600,7 +640,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
             _settleInterest();
         }
 
-        uint256 currentPrice = _tokenPrice(0);
+        uint256 currentPrice = _tokenPrice(_totalAssetSupply(0));
 
         uint256 loanAmountOwed = burnAmount.mul(currentPrice).div(10**18);
         uint256 loanAmountAvailableInContract = ERC20(loanTokenAddress).balanceOf(address(this));
@@ -668,7 +708,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         
         uint256 index = burntTokenReserveListIndex[lender].index;
 
-        uint256 currentPrice = _tokenPrice(0);
+        uint256 currentPrice = _tokenPrice(_totalAssetSupply(0));
 
         uint256 claimAmount = denormalize(burntTokenReserveList[index].amount.mul(currentPrice).div(10**18));
         if (claimAmount == 0)
@@ -726,6 +766,62 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         return claimAmount;
     }
 
+    // returns borrowAmount
+    function _borrowToken(
+        bytes32 loanOrderHash,
+        uint256 borrowAmount,
+        uint256 interestRate,
+        address collateralTokenAddress,
+        address tradeTokenToFillAddress,
+        bool withdrawOnOpen)
+        internal
+        returns (uint256)
+    {
+        //require(ERC20(loanTokenAddress).balanceOf(address(this)) >= borrowAmount, "insufficient loan supply");
+        if (borrowAmount > ERC20(loanTokenAddress).balanceOf(address(this))) {
+            borrowAmount = ERC20(loanTokenAddress).balanceOf(address(this));
+        }
+
+        // re-up the BZxVault spend approval if needed
+        uint256 tempAllowance = ERC20(loanTokenAddress).allowance(address(this), bZxVault);
+        if (tempAllowance < borrowAmount) {
+            if (tempAllowance > 0) {
+                // reset approval to 0
+                require(ERC20(loanTokenAddress).approve(bZxVault, 0), "approval reset of loanToken failed");
+            }
+
+            require(ERC20(loanTokenAddress).approve(bZxVault, MAX_UINT), "approval of loanToken failed");
+        }
+
+        require(bZxInterface(bZxContract).updateLoanAsLender(
+            loanOrderHash,
+            borrowAmount,
+            interestRate.div(365),
+            block.timestamp+1),
+            "updateLoanAsLender failed");
+
+        require (bZxInterface(bZxContract).takeLoanOrderOnChainAsTraderByDelegate(
+            msg.sender,
+            loanOrderHash,
+            collateralTokenAddress,
+            borrowAmount,
+            tradeTokenToFillAddress,
+            withdrawOnOpen) == borrowAmount,
+            "takeLoanOrderOnChainAsTraderByDelegate failed");
+
+        // update total borrowed amount outstanding in loans
+        totalAssetBorrow = totalAssetBorrow.add(borrowAmount);
+
+        if (burntTokenReserveList.length > 0) {
+            _claimLoanToken(burntTokenReserveList[0].lender);
+            _claimLoanToken(msg.sender);
+        }
+
+        checkpointUtilizationRate_ = _getUtilizationRate(_totalAssetSupply(0));
+
+        return borrowAmount;
+    }
+
     function _removeFromList(
         address lender,
         uint256 index)
@@ -750,7 +846,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
     /* Internal View functions */
 
     function _tokenPrice(
-        uint256 interestUnPaid)
+        uint256 totalAssetSupply)
         internal
         view
         returns (uint256)
@@ -759,7 +855,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
 
         return totalTokenSupply > 0 ?
             normalize(
-                _totalAssetSupply(interestUnPaid)
+                totalAssetSupply
                 .mul(10**18)
                 .div(totalTokenSupply)
             ) : lastPrice_;
@@ -779,7 +875,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
                 .div(totalAssetBorrow)
                 .mul(365)
                 .mul(_getUtilizationRate(assetSupply))
-                .div(lastUtilizationRate_)
+                .div(checkpointUtilizationRate_)
             );
         } else {
             return baseRate;
@@ -788,28 +884,35 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
 
     // next loan interest adjustment
     function _nextLoanInterestRate(
-        uint256 initialMarginAmount,
-        uint256 futureEscrowAmount)
+        uint256 borrowAmount)
         internal
         view
         returns (uint256)
     {
         uint256 assetSupply = totalAssetSupply();
-        uint escrowUtilization = 0;
-        if (futureEscrowAmount > 0 && initialMarginAmount > 0) {
-            escrowUtilization = futureEscrowAmount
-                .mul(10**40)
-                .div(initialMarginAmount)
-                .div(assetSupply);
-        }
+        
+        uint256 newUtilization = borrowAmount > 0 ? 
+            borrowAmount
+                .mul(10**20)
+                .div(assetSupply) : 0;
 
-        return normalize(
+        uint256 nextRate = normalize(
             _getUtilizationRate(assetSupply)
-            .add(escrowUtilization)
+            .add(newUtilization)
             .mul(rateMultiplier)
             .div(10**20)
             .add(baseRate)
         );
+
+        uint256 minRate = baseRate;
+        uint256 maxRate = rateMultiplier.add(baseRate);
+
+        if (nextRate < minRate)
+            nextRate = minRate;
+        else if (nextRate > maxRate)
+            nextRate = maxRate;
+
+        return nextRate;
     }
 
     function _getAllInterest()
@@ -828,7 +931,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
         );
     }
 
-    function _getFillAmount(
+    function _getBorrowAmount(
         LoanData memory loanData,
         uint256 escrowAmount,
         uint256 interestRate)
@@ -925,9 +1028,8 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
     {
         if (loanOrderData[loanOrder.loanOrderHash].loanOrderHash == loanOrder.loanOrderHash) {
 
-            if (closeAmount > 0 && totalAssetBorrow >= closeAmount) {
-                totalAssetBorrow = totalAssetBorrow.sub(closeAmount);
-            }
+            totalAssetBorrow = totalAssetBorrow > closeAmount ? 
+                totalAssetBorrow.sub(closeAmount) : 0;
 
             if (burntTokenReserveList.length > 0) {
                 _claimLoanToken(burntTokenReserveList[0].lender);
@@ -935,7 +1037,11 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
                 _settleInterest();
             }
 
-            uint256 currentPrice = _tokenPrice(0);
+            uint256 assetSupply = _totalAssetSupply(0);
+
+            checkpointUtilizationRate_ = _getUtilizationRate(assetSupply);
+
+            uint256 currentPrice = _tokenPrice(assetSupply);
             if (currentPrice < initialPrice_) {
                 splitFactor_ = initialPrice_
                     .mul(10**18)

@@ -102,7 +102,9 @@ export default class Debug extends BZxComponent {
     console.log(`bzx contract:`, bzxContract._address);
 
     await this.setState({ 
-      bzxContract
+      bzxContract,
+      newHash: this.props.currentHash,
+      newTrader: this.props.currentTrader
     });
 
     await this.refreshLoanData();
@@ -111,19 +113,18 @@ export default class Debug extends BZxComponent {
   async componentWillReceiveProps(nextProps) {
     console.log(`nextProps`,nextProps);
     if (nextProps.currentHash !== this.props.currentHash || nextProps.currentTrader !== this.props.currentTrader)
+      await this.setState({ 
+        newHash: this.props.currentHash, 
+        newTrader: this.props.currentTrader
+      });
       await this.refreshLoanData();
   }
 
   refreshLoanData = async () => {
-    const { web3, accounts, currentHash, currentTrader } = this.props;
-    const { bzxContract } = this.state;
+    const { web3, accounts } = this.props;
+    const { bzxContract, newHash, newTrader } = this.state;
 
-    await this.setState({ 
-      newHash: this.props.currentHash, 
-      newTrader: this.props.currentTrader
-    });
-
-    if (!currentHash) {
+    if (!newHash) {
       return;
     }
 
@@ -135,7 +136,7 @@ export default class Debug extends BZxComponent {
 
     try {
       let order = {};
-      if (currentHash) {
+      if (newHash) {
         const orderKeys = [
           `loanTokenAddress`,
           `interestTokenAddress`,
@@ -148,7 +149,7 @@ export default class Debug extends BZxComponent {
           `maxDurationUnixTimestampSec`,
           `loanOrderHash`,
         ]
-        const orderArr = await this.wrapAndRun(bzxContract.methods.getLoanOrder(currentHash).call());
+        const orderArr = await this.wrapAndRun(bzxContract.methods.getLoanOrder(newHash).call());
 
         for(var i=0; i < orderKeys.length; i++) {
           order[orderKeys[i]] = orderArr[i];
@@ -157,12 +158,12 @@ export default class Debug extends BZxComponent {
         order[`loanTokenAmount`] = toBigNumber(order[`loanTokenAmount`], 10 ** -18).toString() + ` (normalized)`;
         order[`interestAmount`] = toBigNumber(order[`interestAmount`], 10 ** -18).toString()+ ` (normalized)`;
 
-        orderFilledAmounts = await this.wrapAndRun(bzxContract.methods.orderFilledAmounts(currentHash).call());
-        orderCancelledAmounts = await this.wrapAndRun(bzxContract.methods.orderCancelledAmounts(currentHash).call());
+        orderFilledAmounts = await this.wrapAndRun(bzxContract.methods.orderFilledAmounts(newHash).call());
+        orderCancelledAmounts = await this.wrapAndRun(bzxContract.methods.orderCancelledAmounts(newHash).call());
       }
 
       let orderAux = {};
-      if (currentHash) {
+      if (newHash) {
         const orderAuxKeys = [
           `makerAddress`,
           `takerAddress`,
@@ -175,7 +176,7 @@ export default class Debug extends BZxComponent {
           `withdrawOnOpen`,
           `description`,
         ]
-        const orderAuxArr = await this.wrapAndRun(bzxContract.methods.getLoanOrderAux(currentHash).call());
+        const orderAuxArr = await this.wrapAndRun(bzxContract.methods.getLoanOrderAux(newHash).call());
 
         for(var i=0; i < orderAuxKeys.length; i++) {
           orderAux[orderAuxKeys[i]] = orderAuxArr[i];
@@ -186,7 +187,7 @@ export default class Debug extends BZxComponent {
       }
 
       let position = {};
-      if (currentHash && currentTrader) {
+      if (newHash && newTrader) {
         const positionKeys = [
           `trader`,
           `collateralTokenAddressFilled`,
@@ -201,7 +202,7 @@ export default class Debug extends BZxComponent {
           `positionId`,
         ]
         const positionArr = await this.wrapAndRun(bzxContract.methods.getLoanPosition(
-          await this.wrapAndRun(bzxContract.methods.loanPositionsIds(currentHash, currentTrader).call())
+          await this.wrapAndRun(bzxContract.methods.loanPositionsIds(newHash, newTrader).call())
         ).call());
 
         for(var i=0; i < positionKeys.length; i++) {
@@ -214,7 +215,7 @@ export default class Debug extends BZxComponent {
       
       
         lenderInterestForOrder = await this.wrapAndRun(bzxContract.methods.getLenderInterestForOrder(
-          currentHash
+          newHash
         ).call());
         lenderInterestForOrder = {
           lender: lenderInterestForOrder[0],
@@ -238,7 +239,7 @@ export default class Debug extends BZxComponent {
         };
 
         traderInterestForLoan = await this.wrapAndRun(bzxContract.methods.getTraderInterestForLoan(
-          currentHash,
+          newHash,
           position[`trader`]
         ).call());
         traderInterestForLoan = {
@@ -570,7 +571,7 @@ export default class Debug extends BZxComponent {
             <FormControl fullWidth>
               <InputLabel>currentHash</InputLabel>
               <Input
-                value={this.props.currentHash}
+                value={this.state.newHash}
                 //type="number"
                 onChange={this.setStateForInput(`newHash`)}
               />
@@ -578,7 +579,7 @@ export default class Debug extends BZxComponent {
             <FormControl fullWidth>
               <InputLabel>Trader Address</InputLabel>
               <Input
-                value={this.props.currentTrader}
+                value={this.state.newTrader}
                 //type="number"
                 onChange={this.setStateForInput(`newTrader`)}
               />

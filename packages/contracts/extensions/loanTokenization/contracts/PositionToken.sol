@@ -29,7 +29,7 @@ interface bZxInterface {
 }
 
 interface ILoanToken {
-    function borrowToken(
+    function borrowTokenFromEscrow(
         uint256 escrowAmount,
         uint256 leverageAmount,
         address collateralTokenAddress,
@@ -439,8 +439,8 @@ contract PositionToken is LoanTokenization {
         internal
         returns (uint256)
     {
-        uint256 liquidity = marketLiquidity();
-        require(liquidity > 0, "marketLiquidity == 0");
+        uint256 liquidityAmount = marketLiquidity();
+        require(liquidityAmount > 0, "marketLiquidity == 0");
 
         uint256 refundAmount;
         if (depositTokenAddress != loanTokenAddress) {
@@ -462,7 +462,7 @@ contract PositionToken is LoanTokenization {
                 depositAmount,
                 loanTokenAddress,
                 address(this),
-                liquidity, // maxDestAmount shouldn't exceed the market liquidity for the pToken
+                liquidityAmount, // maxDestAmount shouldn't exceed the market liquidity for the pToken
                 0, // no min coversation rate
                 bZxOracle
             );
@@ -472,7 +472,7 @@ contract PositionToken is LoanTokenization {
                 refundAmount = depositAmount-depositAmountUsed;
                 if (msg.value == 0) {
                     require(ERC20(depositTokenAddress).transfer(
-                        msg.sender, 
+                        msg.sender,
                         refundAmount
                     ), "transfer of token failed");
                 } else {
@@ -482,8 +482,8 @@ contract PositionToken is LoanTokenization {
             }
 
             depositAmount = destTokenAmountReceived;
-        } else if (depositAmount > liquidity) {
-            refundAmount = depositAmount-liquidity;
+        } else if (depositAmount > liquidityAmount) {
+            refundAmount = depositAmount-liquidityAmount;
             if (msg.value == 0) {
                 require(ERC20(loanTokenAddress).transfer(
                     msg.sender, 
@@ -493,7 +493,7 @@ contract PositionToken is LoanTokenization {
                 WETHInterface(wethContract).withdraw(refundAmount);
                 require(msg.sender.send(refundAmount), "transfer of ETH failed");
             }
-            depositAmount = liquidity;
+            depositAmount = liquidityAmount;
         }
 
         _triggerPosition();
@@ -536,7 +536,7 @@ contract PositionToken is LoanTokenization {
         uint256 loanAmountAvailableInContract = ERC20(loanTokenAddress).balanceOf(address(this));
         if (loanAmountAvailableInContract < loanAmountOwed) {
             // loan is open
-            uint closeAmount;
+            uint256 closeAmount;
             if (burnAmount < totalSupply()) {
                 closeAmount = loanAmountOwed
                     .sub(loanAmountAvailableInContract)
@@ -604,7 +604,7 @@ contract PositionToken is LoanTokenization {
 
                 require(ERC20(loanTokenAddress).approve(bZxVault, MAX_UINT), "token approval failed");
             }
-            ILoanToken(LoanTokenLender).borrowToken(
+            ILoanToken(LoanTokenLender).borrowTokenFromEscrow(
                 fullBalance,
                 leverageAmount,
                 loanTokenAddress,

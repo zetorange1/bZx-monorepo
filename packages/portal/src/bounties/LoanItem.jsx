@@ -300,7 +300,7 @@ export default class LoanItem extends BZxComponent {
               style={{ marginTop: `12px` }}
               variant="raised"
               onClick={this.liquidate}
-              disabled={!isExpired && !isUnSafe}
+              disabled={bZx.networkId !== 50 && !isExpired && !isUnSafe}
             >
               Liquidate
             </Button>

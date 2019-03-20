@@ -483,6 +483,10 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         LoanPosition memory loanPosition = loanPositions[positionId];
         TraderInterest memory traderInterest = traderLoanInterest[positionId];
 
+        if (loanOrder.loanTokenAddress == address(0) || loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
+            return (0,0,0);
+        }
+
         (bool isPositive,,,uint256 collateralOffset) = _getPositionOffset(
             loanOrder,
             loanPosition);
@@ -510,11 +514,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         view
         returns (bool isPositive, uint256 positionOffsetAmount, uint256 loanOffsetAmount, uint256 collateralOffsetAmount)
     {
-        if (loanOrder.loanTokenAddress == address(0)) {
-            return (false,0,0,0);
-        }
-
-        if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
+        if (loanOrder.loanTokenAddress == address(0) || loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
             return (false,0,0,0);
         }
 

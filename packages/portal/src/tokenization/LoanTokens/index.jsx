@@ -75,7 +75,7 @@ export default class LoanTokens extends BZxComponent {
     tokenBalance: 0,
     tokenContract: null,
     tokenContractSymbol: ``,
-    escrowAmount: 0,
+    borrowAmount: 0,
     buyAmount: 0,
     sellAmount: 0,
     wethBalance: 0,
@@ -251,7 +251,7 @@ export default class LoanTokens extends BZxComponent {
 
   setSellAmount = e => this.setState({ sellAmount: e.target.value });
 
-  setEscrowAmount = e => this.setState({ escrowAmount: e.target.value });
+  setborrowAmount = e => this.setState({ borrowAmount: e.target.value });
 
   setLeverageAmount = async e => {
     await this.setState({ leverageAmount: e.target.value });
@@ -548,7 +548,7 @@ export default class LoanTokens extends BZxComponent {
 
   borrowToken = async () => {
     const { web3, bZx, tokens, accounts } = this.props;
-    const { escrowAmount, leverageAmount, tokenContract } = this.state;
+    const { borrowAmount, leverageAmount, tokenContract } = this.state;
 
     const collateralTokenAddress = await tokens.filter(t => t.symbol === `WETH`)[0].address;
 
@@ -573,7 +573,7 @@ export default class LoanTokens extends BZxComponent {
     }
 
     const txObj = await tokenContract.methods.borrowToken(
-      toBigNumber(escrowAmount, 1e18).toFixed(0),
+      toBigNumber(borrowAmount, 1e18).toFixed(0),
       toBigNumber(leverageAmount, 1e18).toFixed(0),
       collateralTokenAddress,
       `0x0000000000000000000000000000000000000000`,
@@ -598,7 +598,7 @@ export default class LoanTokens extends BZxComponent {
                   </TxHashLink>
                 )
               });
-              this.setState({ escrowAmount: ``, showBorrowDialog: false });
+              this.setState({ borrowAmount: ``, showBorrowDialog: false });
             })
             .then(async () => {
               alert(`Your loan is open. You can manage it from the BORROWING tab.`);
@@ -607,18 +607,18 @@ export default class LoanTokens extends BZxComponent {
             .catch(error => {
               console.error(error.message);
               alert(`Could not open loan. Please try again.`);
-              this.setState({ escrowAmount: ``, showBorrowDialog: false });
+              this.setState({ borrowAmount: ``, showBorrowDialog: false });
             });
         })
         .catch(error => {
           console.error(error.message);
           alert(`Could not open loan. Please try again.`);
-          this.setState({ escrowAmount: ``, showBorrowDialog: false });
+          this.setState({ borrowAmount: ``, showBorrowDialog: false });
         });
     } catch (error) {
       console.error(error.message);
       alert(`Could not open loan. Please try again.`);
-      this.setState({ escrowAmount: ``, showBorrowDialog: false });
+      this.setState({ borrowAmount: ``, showBorrowDialog: false });
     }
   };
 
@@ -1174,11 +1174,11 @@ export default class LoanTokens extends BZxComponent {
               </FormControl>
               <br/><br/><br/>
               <FormControl fullWidth>
-                <InputLabel>ETH to Escrow</InputLabel>
+                <InputLabel>ETH to Borrow</InputLabel>
                 <Input
-                  value={this.state.escrowAmount}
+                  value={this.state.borrowAmount}
                   type="number"
-                  onChange={this.setEscrowAmount}
+                  onChange={this.setborrowAmount}
                   endAdornment={
                     <InputAdornment position="end">ETH</InputAdornment>
                   }

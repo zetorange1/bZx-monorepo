@@ -14,6 +14,12 @@ if (!secrets["assets_path"] || !fs.existsSync(secrets["assets_path"])) {
   process.exit();
 }
 
+let bzx_assets_path = "../../../../../packages/bzx.js/src/contracts/"
+if (!secrets["assets_path"] || !fs.existsSync(secrets["assets_path"])) {
+  console.log(secrets["assets_path"]+" not found");
+  process.exit();
+}
+
 const BN = require("bn.js");
 const mkdirp = require("mkdirp");
 const rimraf = require("rimraf");
@@ -208,6 +214,17 @@ function processArtifacts(contract, tokenSymbol) {
       abi: abi
     };
 
+    fs.writeFileSync(
+      secrets["assets_path"]+network+"/" + tokenSymbol + ".json",
+      JSON.stringify(jsonAsset),
+      function(err) {
+        if (err) {
+          console.log(tokenSymbol + ".json Error: " + err);
+        }
+      }
+    );
+
+    if (update)
     fs.writeFileSync(
       secrets["assets_path"]+network+"/" + tokenSymbol + ".json",
       JSON.stringify(jsonAsset),
