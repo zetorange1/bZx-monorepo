@@ -846,7 +846,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
     /* Internal View functions */
 
     function _tokenPrice(
-        uint256 totalAssetSupply)
+        uint256 assetSupply)
         internal
         view
         returns (uint256)
@@ -855,7 +855,7 @@ contract LoanToken is LoanTokenization, OracleNotifierInterface {
 
         return totalTokenSupply > 0 ?
             normalize(
-                totalAssetSupply
+                assetSupply
                 .mul(10**18)
                 .div(totalTokenSupply)
             ) : lastPrice_;
