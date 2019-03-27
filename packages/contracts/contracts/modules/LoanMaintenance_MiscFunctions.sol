@@ -456,7 +456,11 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         address trader)
         public
         view
-        returns (bool isPositive, uint256 positionOffsetAmount, uint256 loanOffsetAmount, uint256 collateralOffsetAmount)
+        returns (
+            bool isPositive,
+            uint256 positionOffsetAmount,
+            uint256 loanOffsetAmount,
+            uint256 collateralOffsetAmount)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
@@ -476,7 +480,10 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         address trader)
         public
         view
-        returns (uint256 netCollateralAmount, uint256 interestDepositRemaining, uint256 loanTokenAmountBorrowed)
+        returns (
+            uint256 netCollateralAmount,
+            uint256 interestDepositRemaining,
+            uint256 loanTokenAmountBorrowed)
     {
         uint256 positionId = loanPositionsIds[loanOrderHash][trader];
         LoanOrder memory loanOrder = orders[loanOrderHash];

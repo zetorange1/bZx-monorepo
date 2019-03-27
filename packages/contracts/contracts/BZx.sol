@@ -487,7 +487,11 @@ contract BZx is BZxStorage {
         address trader)
         public
         view
-        returns (bool isPositive, uint256 positionOffsetAmount, uint256 loanOffsetAmount, uint256 collateralOffsetAmount);
+        returns (
+            bool isPositive,
+            uint256 positionOffsetAmount,
+            uint256 loanOffsetAmount,
+            uint256 collateralOffsetAmount);
 
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position
@@ -499,7 +503,10 @@ contract BZx is BZxStorage {
         address trader)
         public
         view
-        returns (uint256 netCollateralAmount, uint256 interestDepositRemaining, uint256 loanTokenAmountBorrowed);
+        returns (
+            uint256 netCollateralAmount,
+            uint256 interestDepositRemaining,
+            uint256 loanTokenAmountBorrowed);
 
     /// @dev Pays the lender the total amount of interest accrued for a loan order
     /// @dev Note that this function can be safely called by anyone.
@@ -581,7 +588,10 @@ contract BZx is BZxStorage {
         address trader)
         public
         view
-        returns (uint256, uint256, uint256);
+        returns (
+            uint256 initialMarginAmount,
+            uint256 maintenanceMarginAmount,
+            uint256 currentMarginAmount);
 
     /// @dev Gets current lender interest data totals for all loans with a specific oracle and interest token
     /// @param lender The lender address
@@ -598,10 +608,10 @@ contract BZx is BZxStorage {
         public
         view
         returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256);
+            uint256 interestPaid,
+            uint256 interestPaidDate,
+            uint256 interestOwedPerDay,
+            uint256 interestUnPaid);
 
     /// @dev Gets current lender interest data for the loan
     /// @param loanOrderHash A unique hash representing the loan
@@ -616,12 +626,12 @@ contract BZx is BZxStorage {
         public
         view
         returns (
-            address,
-            address,
-            uint256,
-            uint256,
-            uint256,
-            uint256);
+            address lender,
+            address interestTokenAddress,
+            uint256 interestPaid,
+            uint256 interestPaidDate,
+            uint256 interestOwedPerDay,
+            uint256 interestUnPaid);
 
     /// @dev Gets current trader interest data for the loan
     /// @param loanOrderHash A unique hash representing the loan
@@ -637,11 +647,11 @@ contract BZx is BZxStorage {
         public
         view
         returns (
-            address,
-            uint256,
-            uint256,
-            uint256,
-            uint256);
+            address interestTokenAddress,
+            uint256 interestOwedPerDay,
+            uint256 interestPaidTotal,
+            uint256 interestDepositTotal,
+            uint256 interestDepositRemaining);
 
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position

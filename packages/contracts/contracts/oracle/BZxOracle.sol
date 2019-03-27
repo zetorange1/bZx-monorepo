@@ -105,7 +105,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
 
     // A threshold of minimum maintenance margin for loan to be insured by the guarantee fund
     // A value of 0 indicates that no threshold exists for this parameter.
-    uint256 public minMaintenanceMarginAmount = 25 * 10**18;
+    uint256 public minMaintenanceMarginAmount = 15 * 10**18;
 
 /* solhint-disable var-name-mixedcase */
     address public vaultContract;
@@ -158,10 +158,10 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
     }
 
     function didTakeOrder(
-        BZxObjects.LoanOrder memory loanOrder,
-        BZxObjects.LoanOrderAux memory loanOrderAux,
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanOrderAux memory /* loanOrderAux */,
         BZxObjects.LoanPosition memory loanPosition,
-        address taker,
+        address /* taker */,
         uint256 /* gasUsed */)
         public
         onlyBZx
@@ -183,21 +183,21 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         require(!enforceMinimum || collateralInWethAmount >= minimumCollateralInWethAmount, "collateral below minimum for BZxOracle");
         collateralInWethAmounts[loanPosition.positionId] = collateralInWethAmount;
 
-        if (takeOrderNotifier[loanOrder.loanOrderHash] != address(0)) {
+        /*if (takeOrderNotifier[loanOrder.loanOrderHash] != address(0)) {
             OracleNotifierInterface(takeOrderNotifier[loanOrder.loanOrderHash]).takeOrderNotifier(
                 loanOrder,
                 loanOrderAux,
                 loanPosition,
                 taker
             );
-        }
+        }*/
 
         return true;
     }
 
     function didTradePosition(
-        BZxObjects.LoanOrder memory loanOrder,
-        BZxObjects.LoanPosition memory loanPosition,
+        BZxObjects.LoanOrder memory /* loanOrder */,
+        BZxObjects.LoanPosition memory /* loanPosition */,
         uint256 /* gasUsed */)
         public
         onlyBZx
@@ -218,12 +218,12 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         );
         */
 
-        if (tradePositionNotifier[loanOrder.loanOrderHash] != address(0)) {
+        /*if (tradePositionNotifier[loanOrder.loanOrderHash] != address(0)) {
             OracleNotifierInterface(tradePositionNotifier[loanOrder.loanOrderHash]).tradePositionNotifier(
                 loanOrder,
                 loanPosition
             );
-        }
+        }*/
 
         return true;
     }
@@ -262,13 +262,13 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             );
         }
 
-        if (payInterestNotifier[loanOrder.loanOrderHash] != address(0)) {
+        /*if (payInterestNotifier[loanOrder.loanOrderHash] != address(0)) {
             OracleNotifierInterface(payInterestNotifier[loanOrder.loanOrderHash]).payInterestNotifier(
                 loanOrder,
                 lender,
                 amountPaid
             );
-        }
+        }*/
 
         return true;
     }
@@ -387,13 +387,18 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         returns (bool)
     {
         if (closeLoanNotifier[loanOrder.loanOrderHash] != address(0)) {
-            OracleNotifierInterface(closeLoanNotifier[loanOrder.loanOrderHash]).closeLoanNotifier(
-                loanOrder,
-                loanPosition,
-                loanCloser,
-                closeAmount,
-                isLiquidation
+            // allow silent fail
+            (bool result,) = closeLoanNotifier[loanOrder.loanOrderHash].call(
+                abi.encodeWithSignature(
+                    "closeLoanNotifier((address,address,address,address,uint256,uint256,uint256,uint256,uint256,bytes32),(address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bool,uint256),address,uint256,bool)",
+                    loanOrder,
+                    loanPosition,
+                    loanCloser,
+                    closeAmount,
+                    isLiquidation
+                )
             );
+            result;
         }
 
         // sends gas and reward to margin caller

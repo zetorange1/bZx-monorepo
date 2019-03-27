@@ -123,7 +123,10 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
         address trader)
         public
         view
-        returns (uint256, uint256, uint256)
+        returns (
+            uint256 initialMarginAmount,
+            uint256 maintenanceMarginAmount,
+            uint256 currentMarginAmount)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
@@ -155,14 +158,14 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
         public
         view
         returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256)
+            uint256 interestPaid,
+            uint256 interestPaidDate,
+            uint256 interestOwedPerDay,
+            uint256 interestUnPaid)
     {
         LenderInterest memory oracleInterest = lenderOracleInterest[lender][oracleAddress][interestTokenAddress];
 
-        uint256 interestUnPaid = block.timestamp.sub(oracleInterest.interestPaidDate).mul(oracleInterest.interestOwedPerDay).div(86400);
+        interestUnPaid = block.timestamp.sub(oracleInterest.interestPaidDate).mul(oracleInterest.interestOwedPerDay).div(86400);
         if (interestUnPaid > tokenInterestOwed[lender][interestTokenAddress])
             interestUnPaid = tokenInterestOwed[lender][interestTokenAddress];
 
@@ -187,28 +190,28 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
         public
         view
         returns (
-            address,
-            address,
-            uint256,
-            uint256,
-            uint256,
-            uint256)
+            address lender,
+            address interestTokenAddress,
+            uint256 interestPaid,
+            uint256 interestPaidDate,
+            uint256 interestOwedPerDay,
+            uint256 interestUnPaid)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        address lender = orderLender[loanOrderHash];
+        lender = orderLender[loanOrderHash];
         address oracleAddress = loanOrder.oracleAddress;
-        address interestTokenAddress = loanOrder.interestTokenAddress;
+        interestTokenAddress = loanOrder.interestTokenAddress;
 
         LenderInterest memory lenderInterest = lenderOrderInterest[loanOrderHash];
         LenderInterest memory oracleInterest = lenderOracleInterest[lender][oracleAddress][interestTokenAddress];
 
-        uint256 interestPaid = lenderInterest.interestPaid;
-        uint256 interestPaidDate = oracleInterest.interestPaidDate; // oracleInterest always >= lenderInterest
+        interestPaid = lenderInterest.interestPaid;
+        interestPaidDate = oracleInterest.interestPaidDate; // oracleInterest always >= lenderInterest
         if (oracleInterest.interestPaidDate > lenderInterest.interestPaidDate) {
             interestPaid = interestPaid.add(oracleInterest.interestPaidDate.sub(lenderInterest.interestPaidDate).mul(lenderInterest.interestOwedPerDay).div(86400));
         }
 
-        uint256 interestUnPaid = block.timestamp.sub(interestPaidDate).mul(lenderInterest.interestOwedPerDay).div(86400);
+        interestUnPaid = block.timestamp.sub(interestPaidDate).mul(lenderInterest.interestOwedPerDay).div(86400);
         if (interestUnPaid > tokenInterestOwed[lender][interestTokenAddress])
             interestUnPaid = tokenInterestOwed[lender][interestTokenAddress];
 
@@ -236,11 +239,11 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
         public
         view
         returns (
-            address,
-            uint256,
-            uint256,
-            uint256,
-            uint256)
+            address interestTokenAddress,
+            uint256 interestOwedPerDay,
+            uint256 interestPaidTotal,
+            uint256 interestDepositTotal,
+            uint256 interestDepositRemaining)
     {
         uint256 positionId = loanPositionsIds[loanOrderHash][trader];
         TraderInterest memory traderInterest = traderLoanInterest[positionId];

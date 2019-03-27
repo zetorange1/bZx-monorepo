@@ -248,6 +248,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
             loanPosition.positionId
         );
 
+        reentrancyLock = REENTRANCY_GUARD_FREE; // reentrancy safe at this point
         require(OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didCloseLoan(
             loanOrder,
             loanPosition,
@@ -408,11 +409,16 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
 
             loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(closeAmount);
         }
-        
-        (,,uint256 loanToCollateralTokenAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
-            loanOrder.loanTokenAddress,
-            loanPosition.collateralTokenAddressFilled,
-            closeAmount);
+
+        uint256 loanToCollateralTokenAmount;
+        if (loanOrder.loanTokenAddress == loanPosition.collateralTokenAddressFilled) {
+            loanToCollateralTokenAmount = closeAmount;
+        } else {
+            (,,loanToCollateralTokenAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+                loanOrder.loanTokenAddress,
+                loanPosition.collateralTokenAddressFilled,
+                closeAmount);
+        }
         uint256 collateralCloseAmount = loanToCollateralTokenAmount.mul(marginAmountBeforeClose).div(10**20);
         if (collateralCloseAmount > 0) {
             // send excess collateral token back to the trader
@@ -453,6 +459,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
             }
         }
 
+        reentrancyLock = REENTRANCY_GUARD_FREE; // reentrancy safe at this point
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didCloseLoan(
             loanOrder,
             loanPosition,
@@ -655,6 +662,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
             loanPosition.positionId
         );
 
+        reentrancyLock = REENTRANCY_GUARD_FREE; // reentrancy safe at this point
         if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didCloseLoan(
             loanOrder,
             loanPosition,

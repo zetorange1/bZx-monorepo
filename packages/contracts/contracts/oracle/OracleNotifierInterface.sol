@@ -11,7 +11,7 @@ import "../storage/BZxObjects.sol";
 
 contract OracleNotifierInterface {
 
-    function takeOrderNotifier(
+    /*function takeOrderNotifier(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanOrderAux memory loanOrderAux,
         BZxObjects.LoanPosition memory loanPosition,
@@ -30,7 +30,7 @@ contract OracleNotifierInterface {
         address lender,
         uint256 amountPaid)
         public
-        returns (bool);
+        returns (bool);*/
 
     function closeLoanNotifier(
         BZxObjects.LoanOrder memory loanOrder,
