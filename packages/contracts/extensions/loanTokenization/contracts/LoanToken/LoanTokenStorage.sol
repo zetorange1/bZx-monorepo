@@ -1,0 +1,93 @@
+/**
+ * Copyright 2017-2019, bZeroX, LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
+ 
+pragma solidity 0.5.7;
+
+import "../shared/LoanTokenization.sol";
+
+
+contract LoanTokenStorage is LoanTokenization {
+
+    struct ListIndex {
+        uint256 index;
+        bool isSet;
+    }
+
+    struct LoanData {
+        bytes32 loanOrderHash;
+        uint256 leverageAmount;
+        uint256 initialMarginAmount;
+        uint256 maintenanceMarginAmount;
+    }
+
+    struct PositionData {
+        address tradeTokenAddress;
+        bool isSet;
+    }
+
+    struct TokenReserves {
+        address lender;
+        uint256 amount;
+    }
+
+    event Borrow(
+        address indexed borrower,
+        uint256 borrowAmount,
+        uint256 interestRate,
+        address collateralTokenAddress,
+        address tradeTokenToFillAddress,
+        bool withdrawOnOpen
+    );
+
+    event Claim(
+        address indexed claimant,
+        uint256 tokenAmount,
+        uint256 assetAmount,
+        uint256 remainingTokenAmount,
+        uint256 price
+    );
+
+    bool internal isInitialized_ = false;
+
+    uint256 public maxDurationUnixTimestampSec = 2419200; // 28 days
+
+    uint256 public baseRate = 1000000000000000000; // 1.0%
+    uint256 public rateMultiplier = 39000000000000000000; // 39%
+
+    // "fee percentage retained by the oracle" = SafeMath.sub(10**20, spreadMultiplier);
+    uint256 public spreadMultiplier;
+
+    mapping (uint256 => bytes32) public loanOrderHashes;  // mapping of levergeAmount to loanOrderHash
+    mapping (bytes32 => LoanData) public loanOrderData; // mapping of loanOrderHash to LoanOrder
+    bytes32[] public loanOrderHashList;
+
+    TokenReserves[] public burntTokenReserveList; // array of TokenReserves
+    mapping (address => ListIndex) public burntTokenReserveListIndex; // mapping of lender address to ListIndex objects
+    uint256 public burntTokenReserved; // total outstanding burnt token amount
+    address internal nextOwedLender_;
+
+    uint256 public totalAssetBorrow = 0; // current amount of loan token amount tied up in loans
+
+    uint256 internal checkpointSupply_;
+
+    uint256 internal lastSettleTime_;
+
+    uint256 internal constant initialPrice_ = 10**18; // starting price of 1
+    uint256 internal lastPrice_;
+
+    mapping (address => PositionData) public positionTokens;
+
+    // General Purpose
+    mapping (bytes => uint256) internal dbUint256;
+    mapping (bytes => uint256[]) internal dbUint256Array;
+    mapping (bytes => address) internal dbAddress;
+    mapping (bytes => address[]) internal dbAddressArray;
+    mapping (bytes => bool) internal dbBool;
+    mapping (bytes => bool[]) internal dbBoolArray;
+    mapping (bytes => bytes32) internal dbBytes32;
+    mapping (bytes => bytes32[]) internal dbBytes32Array;
+    mapping (bytes => bytes) internal dbBytes;
+    mapping (bytes => bytes[]) internal dbBytesArray;
+}

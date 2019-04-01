@@ -39,12 +39,16 @@ function proceed() {
     TestNetFaucet: "unknown",
     TestNetPriceFeed: "unknown",
     ZeroExV2Helper: "unknown",
+    EtherLoanTokenLogic: "unknown",
+    PositionTokenLogic: "unknown",
     LoanToken: "unknown",
     PositionToken: "unknown",
   };
   var replacements = {};
 
   var loanTokenization = new Array(
+    "EtherLoanTokenLogic",
+    "PositionTokenLogic",
     "LoanToken",
     "PositionToken",
   );
@@ -153,7 +157,34 @@ function proceed() {
         }
         jsonContents["BZx"]["abi"] = jsonContent["abi"];
         return;
+      } else if (item == "LoanToken") {
+        if (!jsonContents["LoanToken"]) {
+          jsonContents["LoanToken"] = {};
+        }
+        jsonContents["LoanToken"]["networks"] = jsonContent["networks"];
+        return;
+      } else if (item == "EtherLoanTokenLogic") {
+        if (!jsonContents["LoanToken"]) {
+          jsonContents["LoanToken"] = {};
+        }
+        jsonContents["LoanToken"]["abi"] = jsonContent["abi"];
+        delete addresses[item];
+        return;
+      } else if (item == "PositionToken") {
+        if (!jsonContents["PositionToken"]) {
+          jsonContents["PositionToken"] = {};
+        }
+        jsonContents["PositionToken"]["networks"] = jsonContent["networks"];
+        return;
+      } else if (item == "PositionTokenLogic") {
+        if (!jsonContents["PositionToken"]) {
+          jsonContents["PositionToken"] = {};
+        }
+        jsonContents["PositionToken"]["abi"] = jsonContent["abi"];
+        delete addresses[item];
+        return;
       }
+
 
       jsonContents[item] = jsonContent;
     } catch (err) {

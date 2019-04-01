@@ -41,13 +41,11 @@ if (network == "mainnet" || network == "ropsten" || network == "kovan") {
   BZxOracle = artifacts.require("TestNetOracle");
 }
 
-let dai_token_address, kyber_address;
+let dai_token_address;
 if (network == "development") {
   dai_token_address = artifacts.require("TestToken9").address;
-  kyber_address = NULL_ADDRESS;
 } else {
   dai_token_address = config["addresses"][network]["DAITokenAddress"];
-  kyber_address = config["addresses"][network]["KyberContractAddress"];
 }
 
 let weth_token_address = config["addresses"][network]["ZeroEx"]["WETH9"];
@@ -127,7 +125,6 @@ module.exports = async function(callback) {
     weth_token_address,
     weth_token_address, // loan token
     dai_token_address, // trade token
-    kyber_address,
     leverageAmount,
     loanOrderHash,
     tokenName,
@@ -157,7 +154,6 @@ module.exports = async function(callback) {
     weth_token_address,
     weth_token_address, // loan token
     dai_token_address, // trade token
-    kyber_address,
     leverageAmount,
     loanOrderHash,
     tokenName,
@@ -189,7 +185,6 @@ module.exports = async function(callback) {
     weth_token_address,
     weth_token_address, // loan token
     dai_token_address, // trade token
-    kyber_address,
     leverageAmount,
     loanOrderHash,
     tokenName,

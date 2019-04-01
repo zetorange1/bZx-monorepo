@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.5.6;
+pragma solidity 0.5.7;
 
 import "./openzeppelin-solidity/ERC20.sol";
 

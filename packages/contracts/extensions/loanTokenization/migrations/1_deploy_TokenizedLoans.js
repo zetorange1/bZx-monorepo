@@ -12,11 +12,23 @@ BZxVault.setNetwork(50);
 var LoanToken = artifacts.require("LoanToken");
 var PositionToken = artifacts.require("PositionToken");
 
+var LoanTokenLogic = artifacts.require("LoanTokenLogic");
+var EtherLoanTokenLogic = artifacts.require("EtherLoanTokenLogic");
+var PositionTokenLogic = artifacts.require("PositionTokenLogic");
+
+var ERC20 = artifacts.require("ERC20");
+
+const BN = require("bn.js");
+const MAX_UINT = (new BN(2)).pow(new BN(256)).sub(new BN(1));
 
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const path = require("path");
 var config = require("../../../protocol-config.js");
+
+let pTokenListAddresses = [];
+let pTokenListTradeTokens = [];
+let pTokenListToggles = [];
 
 module.exports = function(deployer, network, accounts) {
 
@@ -47,21 +59,27 @@ module.exports = function(deployer, network, accounts) {
   }
 
   deployer.then(async function() {
-    var loanOrderHash;
-    var positionToken;
+    let loanOrderHash;
+    let loanToken, positionToken;
+    let loanTokenLogic, loanTokenProxy, positionTokenLogic, positionTokenProxy;
 
-    await deployer.deploy(
+    // Deploy iETH
+    loanTokenLogic = await deployer.deploy(
+      EtherLoanTokenLogic
+    );
+    loanTokenProxy = await deployer.deploy(
       LoanToken,
+      loanTokenLogic.address
+    );
+    loanToken = await EtherLoanTokenLogic.at(loanTokenProxy.address);
+    await loanToken.initialize(
       BZxProxy.address,
       BZxVault.address,
       BZxOracle.address,
-      weth_token_address,
       weth_token_address, // loan token
       "bZx ETH iToken",
       "iETH"
     );
-
-    let loanToken = await LoanToken.deployed();
 
     if (network == "development") {
       await loanToken.mintWithEther(accounts[0], {value: web3.utils.toWei("10", "ether")});
@@ -69,36 +87,9 @@ module.exports = function(deployer, network, accounts) {
 
     let leverageAmount;
 
-    // 1x leverage
-    leverageAmount = web3.utils.toWei("1", "ether");
-    await loanToken.initLeverage(
-      [
-        leverageAmount, // 1x leverage
-        web3.utils.toWei("100", "ether"), // initialMarginAmount
-        web3.utils.toWei("15", "ether") // maintenanceMarginAmount
-      ]
-    );
-    /*loanOrderHash = await loanToken.loanOrderHashes.call(leverageAmount);
-    positionToken = await deployer.deploy(
-      PositionToken,
-      BZxProxy.address,
-      BZxVault.address,
-      BZxOracle.address,
-      weth_token_address,
-      weth_token_address, // loan token
-      tradeTokenAddress, // trade token
-      leverageAmount,
-      loanOrderHash,
-      "bZx Perpetual Short ETH",
-      "psETH"
-    );
-    await positionToken.setLoanTokenLender(loanToken.address);
-    await loanToken.addPositionToken(
-      web3.utils.toWei("1", "ether"),
-      positionToken.address);*/
+    // 100/15, 50/15, 33.333333333333333333/15, 25/15
 
-
-    // 2x leverage
+    // 2x leverage (ETH Short)
     leverageAmount = web3.utils.toWei("2", "ether");
     await loanToken.initLeverage(
       [
@@ -108,86 +99,57 @@ module.exports = function(deployer, network, accounts) {
       ]
     );
     loanOrderHash = await loanToken.loanOrderHashes.call(leverageAmount);
-    positionToken = await deployer.deploy(
+    positionTokenLogic = await deployer.deploy(
+      PositionTokenLogic
+    );
+    positionTokenProxy = await deployer.deploy(
       PositionToken,
+      positionTokenLogic.address
+    );
+    positionToken = await PositionTokenLogic.at(positionTokenProxy.address);
+    await positionToken.initialize(
       BZxProxy.address,
       BZxVault.address,
       BZxOracle.address,
       weth_token_address,
       weth_token_address, // loan token
       tradeTokenAddress, // trade token
-      config["addresses"][network]["KyberContractAddress"] || NULL_ADDRESS,
       leverageAmount,
       loanOrderHash,
-      "Perpetual Short ETH 2x",
+      "bZx Perpetual Short ETH 2x",
       "psETH2x"
     );
+    addPToken(positionToken.address, tradeTokenAddress);
     await positionToken.setLoanTokenLender(loanToken.address);
-    /*await loanToken.addPositionToken(
-      web3.utils.toWei("2", "ether"),
-      positionToken.address);*/
 
+    await loanToken.setPositionTokens(pTokenListAddresses, pTokenListTradeTokens, pTokenListToggles);
 
-    // 3x leverage
-    leverageAmount = web3.utils.toWei("3", "ether");
-    await loanToken.initLeverage(
-      [
-        leverageAmount, // 3x leverage
-        web3.utils.toWei("33.333333333333333333", "ether"), // initialMarginAmount
-        web3.utils.toWei("15", "ether") // maintenanceMarginAmount
-      ]
+/*
+    // Deploy iDAI
+    
+    loanTokenLogic = await deployer.deploy(
+      LoanTokenLogic
     );
-    /*loanOrderHash = await loanToken.loanOrderHashes.call(web3.utils.toWei(leverageAmount, "ether"));
-    positionToken = await deployer.deploy(
-      PositionToken,
+    loanTokenProxy = await deployer.deploy(
+      LoanToken,
+      loanTokenLogic.address
+    );
+    loanToken = await LoanTokenLogic.at(loanTokenProxy.address);
+    await loanToken.initialize(
       BZxProxy.address,
       BZxVault.address,
       BZxOracle.address,
-      weth_token_address,
-      weth_token_address, // loan token
-      tradeTokenAddress, // trade token
-      leverageAmount,
-      loanOrderHash,
-      "Perpetual Short ETH 3x",
-      "psETH3x"
+      tradeTokenAddress, // loan token
+      "bZx DAI iToken",
+      "iDAI"
     );
-    await positionToken.setLoanTokenLender(loanToken.address);
-    await loanToken.addPositionToken(
-      leverageAmount,
-      positionToken.address);*/
 
-    // 4x leverage
-    leverageAmount = web3.utils.toWei("4", "ether");
-    await loanToken.initLeverage(
-      [
-        leverageAmount, // 4x leverage
-        web3.utils.toWei("25", "ether"), // initialMarginAmount
-        web3.utils.toWei("15", "ether") // maintenanceMarginAmount
-      ]
-    );
-    /*loanOrderHash = await loanToken.loanOrderHashes.call(web3.utils.toWei(leverageAmount, "ether"));
-    positionToken = await deployer.deploy(
-      PositionToken,
-      BZxProxy.address,
-      BZxVault.address,
-      BZxOracle.address,
-      weth_token_address,
-      weth_token_address, // loan token
-      tradeTokenAddress, // trade token
-      leverageAmount,
-      loanOrderHash,
-      "Perpetual Short ETH 4x",
-      "psETH4x"
-    );
-    await positionToken.setLoanTokenLender(loanToken.address);
-    await loanToken.addPositionToken(
-      leverageAmount,
-      positionToken.address);*/
+    if (network == "development") {
+      await (await ERC20.at(tradeTokenAddress)).approve(loanToken.address, MAX_UINT);
+      await loanToken.mint(accounts[0], web3.utils.toWei("10", "ether"));
+    }
 
-
-    /*
     // 2x leverage (Long ETH)
-    //TODO: deploy another loanToken for DAI (iDAI) for this
     leverageAmount = web3.utils.toWei("2", "ether");
     await loanToken.initLeverage(
       [
@@ -197,24 +159,39 @@ module.exports = function(deployer, network, accounts) {
       ]
     );
     loanOrderHash = await loanToken.loanOrderHashes.call(leverageAmount);
-    positionToken = await deployer.deploy(
+    positionTokenLogic = await deployer.deploy(
+      PositionTokenLogic
+    );
+    positionTokenProxy = await deployer.deploy(
       PositionToken,
+      positionTokenLogic.address
+    );
+    positionToken = await PositionTokenLogic.at(positionTokenProxy.address);
+    await positionToken.initialize(
       BZxProxy.address,
       BZxVault.address,
       BZxOracle.address,
       weth_token_address,
       tradeTokenAddress, // loan token
       weth_token_address, // trade token
-      config["addresses"][network]["KyberContractAddress"] || NULL_ADDRESS,
       leverageAmount,
       loanOrderHash,
       "Perpetual Long ETH 2x",
       "plETH2x"
     );
+    addPToken(positionToken.address, tradeTokenAddress);
     await positionToken.setLoanTokenLender(loanToken.address);
-    */
 
+    //await loanToken.setPositionTokens(pTokenListAddresses, pTokenListTradeTokens, pTokenListToggles);
+*/
 
     console.log(`   > [${parseInt(path.basename(__filename))}] TokenizedLoans deploy: #done`);
   });
 };
+
+function addPToken(address, loanToken)
+{
+  pTokenListAddresses.push(address);
+  pTokenListTradeTokens.push(loanToken);
+  pTokenListToggles.push(true);
+}
