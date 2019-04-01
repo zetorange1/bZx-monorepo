@@ -97,6 +97,7 @@ export default class LoanTokens extends BZxComponent {
     marketLiquidity: 0,
     supplyInterestRate: 0,
     borrowInterestRate: 0,
+    nextLoanInterestRate: 0,
     leverageAmount: `0`,
     leverageHashes: {},
     loanTokenAddress: ``,
@@ -195,6 +196,7 @@ export default class LoanTokens extends BZxComponent {
 
       const supplyInterestRate = await this.wrapAndRun(tokenContract.methods.supplyInterestRate().call());
       const borrowInterestRate = await this.wrapAndRun(tokenContract.methods.borrowInterestRate().call());
+      const nextLoanInterestRate = toBigNumber(0);//await this.wrapAndRun(tokenContract.methods.nextLoanInterestRate("0").call());
 
       const totalAssetBorrow = await this.wrapAndRun(tokenContract.methods.totalAssetBorrow().call());
       const totalAssetSupply = await this.wrapAndRun(tokenContract.methods.totalAssetSupply().call());
@@ -215,6 +217,7 @@ export default class LoanTokens extends BZxComponent {
       await this.setState({
         supplyInterestRate: supplyInterestRate,
         borrowInterestRate: borrowInterestRate,
+        nextLoanInterestRate: nextLoanInterestRate,
         tokenPrice: tokenPrice,
         tokenBalance: tokenBalance,
         burntReserveBalance: burntReserveBalance,
@@ -468,9 +471,9 @@ export default class LoanTokens extends BZxComponent {
     };
 
     const txObj = await bZx.transferToken({
-      tokenAddress: tokenContract.address,
+      tokenAddress: tokenContract._address,
       to: recipientAddress.toLowerCase(),
-      amount: toBigNumber(sendAmount, 10 ** tokenContract.decimals),
+      amount: toBigNumber(sendAmount, 10**18).toString(),
       getObject: true,
       txOpts
     });
@@ -496,7 +499,7 @@ export default class LoanTokens extends BZxComponent {
             })
             .then(() => {
               alert(`The tokens have been sent.`);
-              updateTrackedTokens(true);
+              this.refreshTokenData();
             })
             .catch(error => {
               console.error(error.message);
@@ -699,6 +702,7 @@ export default class LoanTokens extends BZxComponent {
       contractEthBalance,
       supplyInterestRate,
       borrowInterestRate,
+      nextLoanInterestRate,
       totalAssetBorrow,
       totalAssetSupply,
       marketLiquidity,
@@ -855,6 +859,17 @@ export default class LoanTokens extends BZxComponent {
                 {`% `}
               </DataPoint>
             </DataPointContainer>
+
+            {/*<DataPointContainer>
+              <Label>Next Borrow Interest Rate</Label>
+              <DataPoint>
+                {toBigNumber(
+                  nextLoanInterestRate,
+                  10 ** -18
+                ).toString()}
+                {`% `}
+              </DataPoint>
+            </DataPointContainer>*/}
 
             <br/>
 

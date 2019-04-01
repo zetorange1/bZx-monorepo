@@ -304,7 +304,7 @@ export default class DebugTokenization extends BZxComponent {
     }
   };
 
-  halveRate = async () => {
+  liquidationRate = async () => {
     const { web3, bZx, accounts } = this.props;
 
     if (bZx.portalProviderName !== `MetaMask`) {
@@ -326,7 +326,61 @@ export default class DebugTokenization extends BZxComponent {
     const LoanedToken = await this.props.bZx.getWeb3Contract(`WETH`);
 
     txOpts.data = web3.eth.abi.encodeFunctionSignature('setRates(address,address,uint256)') +
-      web3.eth.abi.encodeParameters(['address','address','uint256'], [TradeToken._address,LoanedToken._address,toBigNumber(this.state.currentRate, 10 ** 18).div(2).toString()]).substr(2);
+      web3.eth.abi.encodeParameters(['address','address','uint256'], [TradeToken._address,LoanedToken._address,toBigNumber(this.state.currentRate, 10 ** 18).times(0.65).toString()]).substr(2);
+    console.log(txOpts);
+
+    try {
+      console.log(txOpts);
+      await web3.eth.sendTransaction(txOpts)
+        .once(`transactionHash`, hash => {
+          alert(`Transaction submitted, transaction hash:`, {
+            component: () => (
+              <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                {hash}
+              </TxHashLink>
+            )
+          });
+          this.setState({ showRatesDialog: false });
+        })
+        .then(async () => {
+          alert(`The txn is complete.`);
+          await this.refreshTokenData();
+        })
+        .catch(error => {
+          console.error(error.message);
+          alert(`The txn did not complete.`);
+          this.setState({ showRatesDialog: false });
+        });
+    } catch (error) {
+      console.error(error.message);
+      alert(`The txn did not complete.`);
+      this.setState({ showRatesDialog: false });
+    }
+  };
+
+  zeroRate = async () => {
+    const { web3, bZx, accounts } = this.props;
+
+    if (bZx.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
+
+    await this.refreshTokenData();
+
+    const oracleContract = await this.props.bZx.getWeb3Contract(`BZxOracle`);
+
+    const txOpts = {
+      to: oracleContract._address,
+      from: accounts[0],
+      gas: 2000000,
+      gasPrice: window.defaultGasPrice.toString()
+    };
+
+    const TradeToken = await this.props.bZx.getWeb3Contract(`TestToken9`);
+    const LoanedToken = await this.props.bZx.getWeb3Contract(`WETH`);
+
+    txOpts.data = web3.eth.abi.encodeFunctionSignature('setRates(address,address,uint256)') +
+      web3.eth.abi.encodeParameters(['address','address','uint256'], [TradeToken._address,LoanedToken._address,toBigNumber(this.state.currentRate, 10 ** 18).times(0.5).toString()]).substr(2);
     console.log(txOpts);
 
     try {
@@ -415,10 +469,18 @@ export default class DebugTokenization extends BZxComponent {
               <Button
                 variant="raised"
                 color="primary"
-                onClick={this.halveRate}
+                onClick={this.liquidationRate}
                 style={{ marginLeft: `12px` }}
               >
-                Halve Conversion Rate
+                15% Margin
+              </Button>
+              <Button
+                variant="raised"
+                color="primary"
+                onClick={this.zeroRate}
+                style={{ marginLeft: `12px` }}
+              >
+                0% Margin
               </Button>
             </DataPointContainer>
           </InfoContainer>

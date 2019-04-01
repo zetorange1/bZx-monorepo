@@ -140,6 +140,8 @@ export default class LoanItem extends BZxComponent {
       alert(`Please confirm this transaction on your device.`);
     }
 
+    console.log(txOpts);
+
     const txObj = bZx.liquidateLoan({
       loanOrderHash,
       trader,

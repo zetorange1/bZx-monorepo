@@ -83,7 +83,9 @@ export default class PositionTokens extends BZxComponent {
     error: false,
     tokenBalance: 0,
     tokenPrice: 0,
-    marketLiquidity: 0,
+    liquidationPrice: 0,
+    marketLiquidityForAsset: 0,
+    marketLiquidityForToken: 0,
     //totalTokens: 0,
     //totalTokenBonus: 0,
     //ethRate: 0,
@@ -144,7 +146,7 @@ export default class PositionTokens extends BZxComponent {
     const vaultAddress = (await this.props.bZx.getWeb3Contract(`BZxVault`))._address;
     
     let faucetAddress = ``;
-    if (this.props.bZx.networkId === `50`) {
+    if (this.props.bZx.networkId === 50) {
       faucetAddress = (await this.props.bZx.getWeb3Contract(`TestNetFaucet`))._address;
     }
 
@@ -183,7 +185,9 @@ export default class PositionTokens extends BZxComponent {
     try {
       const tokenBalance = await this.wrapAndRun(tokenContract.methods.balanceOf(accounts[0]).call());
       const tokenPrice = await this.wrapAndRun(tokenContract.methods.tokenPrice().call());
-      const marketLiquidity = await this.wrapAndRun(tokenContract.methods.marketLiquidity().call());
+      const liquidationPrice = await this.wrapAndRun(tokenContract.methods.liquidationPrice().call());
+      const marketLiquidityForAsset = await this.wrapAndRun(tokenContract.methods.marketLiquidityForAsset().call());
+      const marketLiquidityForToken = await this.wrapAndRun(tokenContract.methods.marketLiquidityForToken().call());
       //const tokenData = await this.wrapAndRun(tokensaleContract.methods.purchases(accounts[0]).call());
       //console.log(tokenData);
 
@@ -208,15 +212,17 @@ export default class PositionTokens extends BZxComponent {
       
       
       let faucetTradeTokenBalance = ``, faucetLoanedTokenBalance = ``; 
-      if (this.props.bZx.networkId === `50`) {
-        faucetTradeTokenBalance = await this.wrapAndRun(TradeToken.methods.balanceOf(faucetAddress).call());
+      if (this.props.bZx.networkId === 50) {
+        faucetTradeTokenBalance = await this.wrapAndRun(tradeTokenContract.methods.balanceOf(faucetAddress).call());
         faucetLoanedTokenBalance = await this.wrapAndRun(LoanedToken.methods.balanceOf(faucetAddress).call());
       }
 
       await this.setState({ 
         tokenBalance: tokenBalance,
         tokenPrice: tokenPrice,
-        marketLiquidity: marketLiquidity,
+        liquidationPrice: liquidationPrice,
+        marketLiquidityForAsset: marketLiquidityForAsset,
+        marketLiquidityForToken: marketLiquidityForToken,
         ethBalance: ethBalance,
         contractEthBalance: contractEthBalance,
         loading: false, 
@@ -392,9 +398,9 @@ export default class PositionTokens extends BZxComponent {
     };
 
     const txObj = await bZx.transferToken({
-      tokenAddress: tokenContract.address,
+      tokenAddress: tokenContract._address,
       to: recipientAddress.toLowerCase(),
-      amount: toBigNumber(sendAmount, 10 ** tokenContract.decimals),
+      amount: toBigNumber(sendAmount, 10**18).toString(),
       getObject: true,
       txOpts
     });
@@ -420,7 +426,7 @@ export default class PositionTokens extends BZxComponent {
             })
             .then(() => {
               alert(`The tokens have been sent.`);
-              updateTrackedTokens(true);
+              this.refreshTokenData();
             })
             .catch(error => {
               console.error(error.message);
@@ -592,7 +598,9 @@ export default class PositionTokens extends BZxComponent {
       error,
       tokenBalance,
       tokenPrice,
-      marketLiquidity,
+      liquidationPrice,
+      marketLiquidityForAsset,
+      marketLiquidityForToken,
       tokenContract,
       tokenContractSymbol,
       tradeTokenContractSymbol,
@@ -623,6 +631,9 @@ export default class PositionTokens extends BZxComponent {
     const tokenAddress = tokenContract ? tokenContract._address : null;
     const tokenAddressLink = `${this.props.bZx.etherscanURL}address/${tokenAddress}`;
 
+    console.log(`tokenPrice`,tokenPrice);
+    console.log(`checkpointPrice`,checkpointPrice);
+    console.log(`tokenBalance`,tokenBalance);
     let profitLoss = toBigNumber(tokenPrice).minus(checkpointPrice).times(tokenBalance).div(10**36);
 
     return (
@@ -670,14 +681,27 @@ export default class PositionTokens extends BZxComponent {
             <br/>
 
             <DataPointContainer>
-              <Label>Market Liquidity</Label>
+              <Label>Market Liquidity (Asset)</Label>
               <DataPoint>
                 {toBigNumber(
-                  marketLiquidity,
+                  marketLiquidityForAsset,
                   10 ** -18
                 ).toString()}
                 {` `}
                 {`ETH (Max Deposit)`}
+              </DataPoint>
+            </DataPointContainer>
+
+            <DataPointContainer>
+              <Label>Market Liquidity (Token)</Label>
+              <DataPoint>
+                {toBigNumber(
+                  marketLiquidityForToken,
+                  10 ** -18
+                ).toString()}
+                {` `}
+                {tokenContractSymbol}
+                {` (Max Buy)`}
               </DataPoint>
             </DataPointContainer>
 
@@ -703,6 +727,18 @@ export default class PositionTokens extends BZxComponent {
               <DataPoint>
                 {toBigNumber(
                   tokenPrice,
+                  10 ** -18
+                ).toString()}
+                {` `}
+                {tokenContractSymbol}/ETH
+              </DataPoint>
+            </DataPointContainer>
+
+            <DataPointContainer>
+              <Label>Liquidation Price</Label>
+              <DataPoint>
+                {toBigNumber(
+                  liquidationPrice,
                   10 ** -18
                 ).toString()}
                 {` `}
@@ -840,7 +876,7 @@ export default class PositionTokens extends BZxComponent {
               </DataPoint>
             </DataPointContainer>
 
-            { this.props.bZx.networkId === `50` ? (
+            { this.props.bZx.networkId === 50 ? (
             <Fragment>
             <br/>
 
