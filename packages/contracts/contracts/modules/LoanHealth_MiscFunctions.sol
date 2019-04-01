@@ -596,13 +596,38 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
         }
 
         if (loanPosition.collateralTokenAmountFilled > 0) {
-            // send remaining collateral token back to the trader
-            if (! BZxVault(vaultContract).withdrawToken(
-                loanPosition.collateralTokenAddressFilled,
-                loanPosition.trader,
-                loanPosition.collateralTokenAmountFilled
-            )) {
-                revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken collateral failed");
+            if (loanPosition.positionTokenAmountFilled < loanPosition.loanTokenAmountFilled) {
+                // in case we couldn't cover the full loanTokenAmount yet,
+                // reemburse the lender in collateralToken as last resort
+                uint256 reimburseAmount = loanPosition.loanTokenAmountFilled - loanPosition.positionTokenAmountFilled;
+                if (loanPosition.collateralTokenAddressFilled != loanPosition.positionTokenAddressFilled) {
+                    (uint256 loanToCollateralRate,uint256 loanToCollateralPrecision,) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+                        loanOrder.loanTokenAddress,
+                        loanPosition.collateralTokenAddressFilled,
+                        0);
+                    reimburseAmount = reimburseAmount.mul(loanToCollateralRate).div(loanToCollateralPrecision);
+                }
+                if (reimburseAmount <= loanPosition.collateralTokenAmountFilled) {
+                    if (! BZxVault(vaultContract).withdrawToken(
+                        loanPosition.collateralTokenAddressFilled,
+                        orderLender[loanOrder.loanOrderHash],
+                        reimburseAmount
+                    )) {
+                        revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken collateral failed");
+                    }
+                    loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(reimburseAmount);
+                }
+            }
+
+            if (loanPosition.collateralTokenAmountFilled > 0) {
+                // send remaining collateral token back to the trader
+                if (! BZxVault(vaultContract).withdrawToken(
+                    loanPosition.collateralTokenAddressFilled,
+                    loanPosition.trader,
+                    loanPosition.collateralTokenAmountFilled
+                )) {
+                    revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken collateral failed");
+                }
             }
         }
 

@@ -104,11 +104,16 @@ contract TestNetOracle is BZxOracle {
         address sourceTokenAddress,
         address destTokenAddress,
         address receiverAddress,
+        address returnToSenderAddress,
         uint256 sourceTokenAmount,
         uint256 maxDestTokenAmount)
         internal
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
+        if (sourceTokenAmount == 0 || maxDestTokenAmount == 0) {
+            return (0,0);
+        }
+
         if (maxDestTokenAmount > MAX_FOR_KYBER)
             maxDestTokenAmount = MAX_FOR_KYBER;
         
@@ -121,13 +126,33 @@ contract TestNetOracle is BZxOracle {
                 sourceTokenAmountUsed = sourceTokenAmount;
             }
 
-            if (receiverAddress != address(this)) {
-                if (!_transferToken(
-                    destTokenAddress,
-                    receiverAddress,
-                    sourceTokenAmount)) {
-                    revert("TestNetOracle::_trade: _transferToken failed");
-                }
+            if (receiverAddress == returnToSenderAddress) {
+                if (receiverAddress != address(this))
+                    if (!_transferToken(
+                        destTokenAddress,
+                        receiverAddress,
+                        sourceTokenAmount)) {
+                        revert("BZxOracle::_trade: _transferToken failed");
+                    }
+            } else {
+                if (receiverAddress != address(this))
+                    if (!_transferToken(
+                        destTokenAddress,
+                        receiverAddress,
+                        destTokenAmountReceived)) {
+                        revert("BZxOracle::_trade: _transferToken failed");
+                    }
+
+                if (returnToSenderAddress != address(this))
+                    if (sourceTokenAmountUsed < sourceTokenAmount) {
+                        // send unused source token back
+                        if (!_transferToken(
+                            sourceTokenAddress,
+                            returnToSenderAddress,
+                            sourceTokenAmount-sourceTokenAmountUsed)) {
+                            revert("BZxOracle::_trade: _transferToken failed");
+                        }
+                    }
             }
         } else {
             (uint256 tradeRate, uint256 precision,) = getTradeData(sourceTokenAddress, destTokenAddress, 0);
@@ -140,21 +165,26 @@ contract TestNetOracle is BZxOracle {
                 sourceTokenAmountUsed = sourceTokenAmount;
             }
 
-            _transferToken(
-                sourceTokenAddress,
-                faucetContract,
-                sourceTokenAmountUsed);
-            require(Faucet(faucetContract).oracleExchange(
-                destTokenAddress,
-                receiverAddress,
-                destTokenAmountReceived), "TestNetOracle::_trade: trade failed");
+            if (sourceTokenAmountUsed == 0 || destTokenAmountReceived == 0) {
+                sourceTokenAmountUsed = 0;
+                destTokenAmountReceived = 0;
+            } else {
+                _transferToken(
+                    sourceTokenAddress,
+                    faucetContract,
+                    sourceTokenAmountUsed);
+                require(Faucet(faucetContract).oracleExchange(
+                    destTokenAddress,
+                    receiverAddress,
+                    destTokenAmountReceived), "TestNetOracle::_trade: trade failed");
+            }
 
-            if (receiverAddress != address(this)) {
+            if (returnToSenderAddress != address(this)) {
                 if (sourceTokenAmountUsed < sourceTokenAmount) {
                     // send unused source token back
                     if (!_transferToken(
                         sourceTokenAddress,
-                        receiverAddress,
+                        returnToSenderAddress,
                         sourceTokenAmount-sourceTokenAmountUsed)) {
                         revert("TestNetOracle::_trade: _transferToken failed");
                     }
