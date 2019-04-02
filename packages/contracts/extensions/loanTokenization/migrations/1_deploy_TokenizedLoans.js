@@ -1,5 +1,7 @@
 
 const contract = require("truffle-contract");
+const fs = require('fs').promises;
+
 
 let BZxOracle;
 
@@ -16,6 +18,8 @@ var LoanTokenLogic = artifacts.require("LoanTokenLogic");
 var EtherLoanTokenLogic = artifacts.require("EtherLoanTokenLogic");
 var PositionTokenLogic = artifacts.require("PositionTokenLogic");
 
+var TokenizedRegistry = artifacts.require("TokenizedRegistry");
+
 var ERC20 = artifacts.require("ERC20");
 
 const BN = require("bn.js");
@@ -25,10 +29,6 @@ const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const path = require("path");
 var config = require("../../../protocol-config.js");
-
-let pTokenListAddresses = [];
-let pTokenListTradeTokens = [];
-let pTokenListToggles = [];
 
 module.exports = function(deployer, network, accounts) {
 
@@ -61,7 +61,17 @@ module.exports = function(deployer, network, accounts) {
   deployer.then(async function() {
     let loanOrderHash;
     let loanToken, positionToken;
-    let loanTokenLogic, loanTokenProxy, positionTokenLogic, positionTokenProxy;
+    let tokenizedRegistry, loanTokenLogic, loanTokenProxy, positionTokenLogic, positionTokenProxy, name, symbol;
+
+    await fs.appendFile('TokenizedLoans_deployed.log', "-------\n");
+
+    // Deploy TokenizedRegistry
+    await deployer.deploy(
+      TokenizedRegistry
+    );
+    await fs.appendFile('TokenizedLoans_deployed.log', "TokenizedRegistry\t"+TokenizedRegistry.address+"\n");
+
+    tokenizedRegistry = await TokenizedRegistry.deployed();
 
     // Deploy iETH
     loanTokenLogic = await deployer.deploy(
@@ -72,14 +82,18 @@ module.exports = function(deployer, network, accounts) {
       loanTokenLogic.address
     );
     loanToken = await EtherLoanTokenLogic.at(loanTokenProxy.address);
+    name = "bZx ETH iToken";
+    symbol = "iETH";
     await loanToken.initialize(
       BZxProxy.address,
       BZxVault.address,
       BZxOracle.address,
       weth_token_address, // loan token
-      "bZx ETH iToken",
-      "iETH"
+      tokenizedRegistry.address,
+      name,
+      symbol
     );
+    await fs.appendFile('TokenizedLoans_deployed.log', "LoanToken\t"+loanToken.address+"\t"+weth_token_address+"\t"+name+"\t"+symbol+"\t"+"1"+"\n");
 
     if (network == "development") {
       await loanToken.mintWithEther(accounts[0], {value: web3.utils.toWei("10", "ether")});
@@ -107,6 +121,8 @@ module.exports = function(deployer, network, accounts) {
       positionTokenLogic.address
     );
     positionToken = await PositionTokenLogic.at(positionTokenProxy.address);
+    name = "bZx Perpetual Short ETH 2x";
+    symbol = "psETH2x";
     await positionToken.initialize(
       BZxProxy.address,
       BZxVault.address,
@@ -116,13 +132,13 @@ module.exports = function(deployer, network, accounts) {
       tradeTokenAddress, // trade token
       leverageAmount,
       loanOrderHash,
-      "bZx Perpetual Short ETH 2x",
-      "psETH2x"
+      name,
+      symbol
     );
-    addPToken(positionToken.address, tradeTokenAddress);
+    await fs.appendFile('TokenizedLoans_deployed.log', "PositionToken\t"+positionToken.address+"\t"+tradeTokenAddress+"\t"+name+"\t"+symbol+"\t"+"2"+"\n");
     await positionToken.setLoanTokenLender(loanToken.address);
 
-    await loanToken.setPositionTokens(pTokenListAddresses, pTokenListTradeTokens, pTokenListToggles);
+    //await loanToken.setPositionTokens(pTokenListAddresses, pTokenListTradeTokens, pTokenListToggles);
 
 /*
     // Deploy iDAI
@@ -135,14 +151,18 @@ module.exports = function(deployer, network, accounts) {
       loanTokenLogic.address
     );
     loanToken = await LoanTokenLogic.at(loanTokenProxy.address);
+    name = "bZx DAI iToken";
+    symbol = "iDAI";
     await loanToken.initialize(
       BZxProxy.address,
       BZxVault.address,
       BZxOracle.address,
       tradeTokenAddress, // loan token
-      "bZx DAI iToken",
-      "iDAI"
+      tokenizedRegistry.address,
+      name,
+      symbol
     );
+    await fs.appendFile('TokenizedLoans_deployed.log', "LoanToken\t"+loanToken.address+"\t"+tradeTokenAddress+"\t"+name+"\t"+symbol+"\t"+"1"+"\n");
 
     if (network == "development") {
       await (await ERC20.at(tradeTokenAddress)).approve(loanToken.address, MAX_UINT);
@@ -167,6 +187,8 @@ module.exports = function(deployer, network, accounts) {
       positionTokenLogic.address
     );
     positionToken = await PositionTokenLogic.at(positionTokenProxy.address);
+    name = "Perpetual Long ETH 2x";
+    symbol = "plETH2x";
     await positionToken.initialize(
       BZxProxy.address,
       BZxVault.address,
@@ -176,9 +198,10 @@ module.exports = function(deployer, network, accounts) {
       weth_token_address, // trade token
       leverageAmount,
       loanOrderHash,
-      "Perpetual Long ETH 2x",
-      "plETH2x"
+      name,
+      symbol
     );
+    await fs.appendFile('TokenizedLoans_deployed.log', "PositionToken\t"+positionToken.address+"\t"+tradeTokenAddress+"\t"+name+"\t"+symbol+"\t"+"2"+"\n");
     addPToken(positionToken.address, tradeTokenAddress);
     await positionToken.setLoanTokenLender(loanToken.address);
 
@@ -189,9 +212,3 @@ module.exports = function(deployer, network, accounts) {
   });
 };
 
-function addPToken(address, loanToken)
-{
-  pTokenListAddresses.push(address);
-  pTokenListTradeTokens.push(loanToken);
-  pTokenListToggles.push(true);
-}

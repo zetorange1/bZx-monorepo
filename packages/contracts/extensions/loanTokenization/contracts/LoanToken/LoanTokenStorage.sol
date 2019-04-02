@@ -51,6 +51,8 @@ contract LoanTokenStorage is LoanTokenization {
 
     bool internal isInitialized_ = false;
 
+    address public tokenizedRegistry;
+
     uint256 public maxDurationUnixTimestampSec = 2419200; // 28 days
 
     uint256 public baseRate = 1000000000000000000; // 1.0%
@@ -76,8 +78,6 @@ contract LoanTokenStorage is LoanTokenization {
 
     uint256 internal constant initialPrice_ = 10**18; // starting price of 1
     uint256 internal lastPrice_;
-
-    mapping (address => PositionData) public positionTokens;
 
     // General Purpose
     mapping (bytes => uint256) internal dbUint256;

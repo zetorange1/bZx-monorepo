@@ -11,6 +11,14 @@ import "../shared/OracleNotifierInterface.sol";
 import "../shared/IBZx.sol";
 import "../shared/IBZxOracle.sol";
 
+interface iTokenizedRegistry {
+    function getTokenAsset(
+        address _token,
+        uint256 _tokenType)
+        external
+        view
+        returns (address);
+}
 
 contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
     using SafeMath for uint256;
@@ -713,7 +721,8 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
             borrowAmount,
             interestRate.div(365),
             block.timestamp+1),
-            "updateLoanAsLender failed");
+            "updateLoanAsLender failed"
+        );
 
         require (IBZx(bZxContract).takeLoanOrderOnChainAsTraderByDelegate(
             msgsender,
@@ -722,40 +731,8 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
             borrowAmount,
             tradeTokenToFillAddress,
             withdrawOnOpen) == borrowAmount,
-            "takeLoanOrderOnChainAsTraderByDelegate failed");
-
-        /*(bool success,) = bZxContract.call.gas(gasleft())(
-            abi.encodeWithSignature(
-                "updateLoanAsLender(bytes32,uint256,uint256,uint256)",
-                loanOrderHash,
-                borrowAmount,
-                interestRate.div(365),
-                block.timestamp+1
-            )
+            "takeLoanOrderOnChainAsTraderByDelegate failed"
         );
-        if (!success) {
-            return 0;
-        }
-
-        bytes memory data;
-        (success, data) = bZxContract.call.gas(gasleft())(
-            abi.encodeWithSignature(
-                "takeLoanOrderOnChainAsTraderByDelegate(address,bytes32,address,uint256,address,bool)",
-                msgsender,
-                loanOrderHash,
-                collateralTokenAddress,
-                borrowAmount,
-                tradeTokenToFillAddress,
-                withdrawOnOpen
-            )
-        );
-        if (success) {
-            assembly {
-                borrowAmount := mload(add(data, 32))
-            }
-        } else {
-            return 0;
-        }*/
 
         // update total borrowed amount outstanding in loans
         totalAssetBorrow = totalAssetBorrow.add(borrowAmount);
@@ -975,8 +952,12 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
 
             if (loanCloser != loanPosition.trader) {
 
-                PositionData memory positionToken = positionTokens[loanPosition.trader];
-                if (positionToken.isSet) {
+                address tradeTokenAddress = iTokenizedRegistry(tokenizedRegistry).getTokenAsset(
+                    loanPosition.trader,
+                    2 // tokenType=pToken
+                );
+
+                if (tradeTokenAddress != address(0)) {
 
                     uint256 escrowAmount = ERC20(loanTokenAddress).balanceOf(loanPosition.trader);
 
@@ -988,7 +969,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
                                 loanOrder.loanOrderHash,
                                 loanData.initialMarginAmount,
                                 escrowAmount,
-                                positionToken.tradeTokenAddress
+                                tradeTokenAddress
                             )
                         );
                         success;
@@ -1055,24 +1036,6 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         loanOrderHashes[orderParams[0]] = loanOrderHash;
     }
 
-    function setPositionTokens(
-        address[] memory _positionTokens,
-        address[] memory _tradeTokenAddresses,
-        bool[] memory _toggles)
-        public
-        onlyOwner
-    {
-        require(_positionTokens.length == _toggles.length 
-            && _positionTokens.length == _tradeTokenAddresses.length, "array counts mismatch");
-
-        for(uint256 i=0; i < _positionTokens.length; i++) {
-            positionTokens[_positionTokens[i]] = PositionData({
-                tradeTokenAddress: _tradeTokenAddresses[i],
-                isSet: _toggles[i]
-            });
-        }
-    }
-
     // these params should be percentages represented like so: 5% = 5000000000000000000
     function setDemandCurve(
         uint256 _baseRate,
@@ -1125,11 +1088,20 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         bZxOracle = _addr;
     }
 
+    function setTokenizedRegistry(
+        address _addr)
+        public
+        onlyOwner
+    {
+        tokenizedRegistry = _addr;
+    }
+
     function initialize(
         address _bZxContract,
         address _bZxVault,
         address _bZxOracle,
         address _loanTokenAddress,
+        address _tokenizedRegistry,
         string memory _name,
         string memory _symbol)
         public
@@ -1145,6 +1117,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         bZxVault = _bZxVault;
         bZxOracle = _bZxOracle;
         loanTokenAddress = _loanTokenAddress;
+        tokenizedRegistry = _tokenizedRegistry;
 
         spreadMultiplier = SafeMath.sub(10**20, IBZxOracle(_bZxOracle).interestFeePercent());
 

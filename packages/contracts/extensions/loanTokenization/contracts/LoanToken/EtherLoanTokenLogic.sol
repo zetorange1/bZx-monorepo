@@ -94,6 +94,7 @@ contract EtherLoanTokenLogic is LoanTokenLogic {
         address _bZxVault,
         address _bZxOracle,
         address _loanTokenAddress,
+        address _tokenizedRegistry,
         string memory _name,
         string memory _symbol)
         public
@@ -106,6 +107,7 @@ contract EtherLoanTokenLogic is LoanTokenLogic {
             _bZxVault,
             _bZxOracle,
             _loanTokenAddress,
+            _tokenizedRegistry,
             _name,
             _symbol
         );
