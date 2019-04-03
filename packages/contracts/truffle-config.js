@@ -13,7 +13,7 @@ var secrets = "",
   alchemyApikey = "",
   mainnetPrivKey = "";
 try {
-  secrets = require("../../config/secrets.js");
+  secrets = require("../../../config/secrets.js");
   (ropstenMnemonic = secrets["mnemonic"]["ropsten"]),
     (kovanMnemonic = secrets["mnemonic"]["kovan"]),
     (rinkebyMnemonic = secrets["mnemonic"]["rinkeby"]),
@@ -72,7 +72,7 @@ module.exports = {
       ),
       network_id: 42,
       gas: 8000000,
-      gasPrice: 1000000000,
+      gasPrice: 20000000000,
       confirmations: 0,
       timeoutBlocks: 200,
       skipDryRun: true
@@ -85,7 +85,7 @@ module.exports = {
       ),
       network_id: 4,
       gas: 6721975,
-      gasPrice: 1000000000,
+      gasPrice: 8000000000,
       confirmations: 0,
       timeoutBlocks: 200,
       skipDryRun: true
