@@ -12,7 +12,8 @@ import "../shared/IBZxOracle.sol";
 
 
 interface ILoanToken {
-    function borrowInterestRate()
+    function nextLoanInterestRate(
+        uint256 borrowAmount)
         external
         view
         returns (uint256);
@@ -288,12 +289,13 @@ contract PositionTokenLogic is SplittableToken {
         return normalize(checkpointPrices_[_user]);
     }
 
-    function interestRate()
+    function interestRate(
+        uint256 borrowAmount)
         public
         view
         returns (uint256)
     {
-        return ILoanToken(loanTokenLender).borrowInterestRate();
+        return ILoanToken(loanTokenLender).nextLoanInterestRate(borrowAmount);
     }
 
     function marketLiquidityForAsset()
@@ -311,7 +313,7 @@ contract PositionTokenLogic is SplittableToken {
     {
         return ILoanToken(loanTokenLender).getMaxDepositAmount(leverageAmount)
             .mul(10**18)
-           .div(tokenPrice());
+            .div(tokenPrice());
     }
 
     // returns the user's balance of underlying token
@@ -465,7 +467,7 @@ contract PositionTokenLogic is SplittableToken {
                 closeAmount = MAX_UINT;
             }
 
-            uint256 actualCloseAmount = IBZx(bZxContract).closeLoanPartially(
+            IBZx(bZxContract).closeLoanPartially(
                 loanOrderHash,
                 closeAmount
             );
