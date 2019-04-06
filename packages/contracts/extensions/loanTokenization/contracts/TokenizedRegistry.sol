@@ -19,7 +19,7 @@ contract TokenizedRegistry is Ownable {
 
     struct TokenMetadata {
         address token;
-        address asset;
+        address asset; // iToken -> loanToken, pToken -> tradeToken
         string name;
         string symbol;
         uint256 tokenType; // 0=no type set, 1=iToken, 2=pToken

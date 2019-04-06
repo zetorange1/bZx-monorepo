@@ -1,16 +1,21 @@
 
 
-const doDeploy = false;
+const doDeploy = true;
 
 const fs = require('fs').promises;
 const path = require("path");
 
-var TokenizedRegistry = artifacts.require("TokenizedRegistry");
+let TokenizedRegistry = artifacts.require("TokenizedRegistry");
 
 module.exports = function(deployer, network, accounts) {
 
   if (!doDeploy)
     return;
+
+  network = network.replace("-fork", "");
+  if (network == "development" || network == "develop" || network == "testnet" || network == "coverage") {
+    network = "development";
+  }
 
   deployer.then(async function() {
 
@@ -20,7 +25,7 @@ module.exports = function(deployer, network, accounts) {
     let names = [];
     let symbols = [];
 
-    const file = await fs.readFile('TokenizedLoans_deployed.log');
+    const file = await fs.readFile("TokenizedLoans_"+network+".log");
     let lines = file.toString().split("\n");
     for(i in lines) {
       let items = lines[i].replace(/\r?\n|\r/g,"").split("\t");
