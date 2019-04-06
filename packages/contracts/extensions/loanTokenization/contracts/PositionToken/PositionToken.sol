@@ -5,10 +5,10 @@
  
 pragma solidity 0.5.7;
 
-import "./PositionTokenStorage.sol";
+import "./SplittableTokenStorage.sol";
 
 
-contract PositionToken is PositionTokenStorage {
+contract PositionToken is SplittableTokenStorage {
 
     address internal target_;
 

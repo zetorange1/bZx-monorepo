@@ -5,10 +5,10 @@
  
 pragma solidity 0.5.7;
 
-import "./LoanTokenStorage.sol";
+import "./AdvancedTokenStorage.sol";
 
 
-contract LoanToken is LoanTokenStorage {
+contract LoanToken is AdvancedTokenStorage {
 
     address internal target_;
 

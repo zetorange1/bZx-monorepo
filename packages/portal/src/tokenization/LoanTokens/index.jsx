@@ -136,14 +136,12 @@ export default class LoanTokens extends BZxComponent {
     const tokenContractSymbol = (await this.wrapAndRun(tokenContract.methods.symbol().call())).toString();
     console.log(`iToken contract symbol:`, tokenContractSymbol);
 
-    const hashList = await this.wrapAndRun(tokenContract.methods.getLoanOrderHashses().call());
+    const leverageList = await this.wrapAndRun(tokenContract.methods.getLeverageList().call());
 
-    let leverage, leverageHashes = {};
-    for(let i=0; i < hashList.length; i++) {
-      let leverage = toBigNumber(
-        (await this.wrapAndRun(tokenContract.methods.loanOrderData(hashList[i]).call())).leverageAmount.toString()
-        , 1e-18).toString();
-      leverageHashes[leverage] = hashList[i];
+    let leverageHashes = {};
+    for(let i=0; i < leverageList.length; i++) {
+      let leverage = toBigNumber(leverageList[i].toString(), 1e-18).toString();
+      leverageHashes[leverage] = await this.wrapAndRun(tokenContract.methods.loanOrderHashes(leverageList[i]).call())
     }
 
     await this.props.setCurrentLoan(leverageHashes[2], this.props.accounts[0]);
@@ -196,7 +194,7 @@ export default class LoanTokens extends BZxComponent {
 
       const supplyInterestRate = await this.wrapAndRun(tokenContract.methods.supplyInterestRate().call());
       const borrowInterestRate = await this.wrapAndRun(tokenContract.methods.borrowInterestRate().call());
-      const nextLoanInterestRate = toBigNumber(0);//await this.wrapAndRun(tokenContract.methods.nextLoanInterestRate("0").call());
+      const nextLoanInterestRate = await this.wrapAndRun(tokenContract.methods.nextLoanInterestRate("0").call());
 
       const totalAssetBorrow = await this.wrapAndRun(tokenContract.methods.totalAssetBorrow().call());
       const totalAssetSupply = await this.wrapAndRun(tokenContract.methods.totalAssetSupply().call());
@@ -860,7 +858,7 @@ export default class LoanTokens extends BZxComponent {
               </DataPoint>
             </DataPointContainer>
 
-            {/*<DataPointContainer>
+            <DataPointContainer>
               <Label>Next Borrow Interest Rate</Label>
               <DataPoint>
                 {toBigNumber(
@@ -869,7 +867,7 @@ export default class LoanTokens extends BZxComponent {
                 ).toString()}
                 {`% `}
               </DataPoint>
-            </DataPointContainer>*/}
+            </DataPointContainer>
 
             <br/>
 

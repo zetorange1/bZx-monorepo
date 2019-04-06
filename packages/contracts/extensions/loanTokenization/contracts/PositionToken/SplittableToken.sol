@@ -5,38 +5,11 @@
  
 pragma solidity 0.5.7;
 
-import "./PositionTokenStorage.sol";
+import "./SplittableTokenStorage.sol";
 
 
-contract SplittableToken is PositionTokenStorage {
+contract SplittableToken is SplittableTokenStorage {
     using SafeMath for uint256;
-
-    function totalSupply()
-        public
-        view
-        returns (uint256)
-    {
-        return denormalize(totalSupply_);
-    }
-
-    function balanceOf(
-        address _owner)
-        public
-        view
-        returns (uint256)
-    {
-        return denormalize(balances[_owner]);
-    }
-
-    function allowance(
-        address _owner,
-        address _spender)
-        public
-        view
-        returns (uint256)
-    {
-        return denormalize(allowed[_owner][_spender]);
-    }
 
     function transferFrom(
         address _from,
@@ -45,16 +18,23 @@ contract SplittableToken is PositionTokenStorage {
         public
         returns (bool)
     {
-        uint256 normalizedValue = normalize(_value);
-        uint256 allowanceAmount = allowed[_from][msg.sender];
-        require(normalizedValue <= balances[_from], "insufficient balance");
-        require(normalizedValue <= allowanceAmount, "insufficient allowance");
+        uint256 allowanceAmount = denormalize(allowed[_from][msg.sender]);
+        uint256 fromBalance = denormalize(balances[_from]);
+        require(_value <= fromBalance, "insufficient balance");
+        require(_value <= allowanceAmount, "insufficient allowance");
         require(_to != address(0), "invalid address");
 
-        balances[_from] = balances[_from].sub(normalizedValue);
-        balances[_to] = balances[_to].add(normalizedValue);
+        balances[_from] = normalize(fromBalance.sub(_value));
+        if (balanceOf(_from) == 0) {
+            balances[_from] = 0;
+        }
+
+        balances[_to] = normalize(denormalize(balances[_to]).add(_value));
         if (allowanceAmount < MAX_UINT) {
-            allowed[_from][msg.sender] = allowanceAmount.sub(normalizedValue);
+            allowed[_from][msg.sender] = normalize(allowanceAmount.sub(_value));
+            if (allowance(_from, msg.sender) == 0) {
+                allowed[_from][msg.sender] = 0;
+            }
         }
         emit Transfer(_from, _to, _value);
         return true;
@@ -66,12 +46,16 @@ contract SplittableToken is PositionTokenStorage {
         public 
         returns (bool)
     {
-        uint256 normalizedValue = normalize(_value);
-        require(normalizedValue <= balances[msg.sender], "insufficient balance");
+        uint256 fromBalance = denormalize(balances[msg.sender]);
+        require(_value <= fromBalance, "insufficient balance");
         require(_to != address(0), "invalid address");
 
-        balances[msg.sender] = balances[msg.sender].sub(normalizedValue);
-        balances[_to] = balances[_to].add(normalizedValue);
+        balances[msg.sender] = normalize(fromBalance.sub(_value));
+        if (balanceOf(msg.sender) == 0) {
+            balances[msg.sender] = 0;
+        }
+
+        balances[_to] = normalize(denormalize(balances[_to]).add(_value));
         emit Transfer(msg.sender, _to, _value);
         return true;
     }
@@ -82,7 +66,11 @@ contract SplittableToken is PositionTokenStorage {
         public
         returns (bool)
     {
-        allowed[msg.sender][_spender] = normalize(_value);
+        allowed[msg.sender][_spender] = _value;
+        if (allowance(msg.sender, _spender) == 0) {
+            allowed[msg.sender][_spender] = 0;
+        }
+
         emit Approval(msg.sender, _spender, _value);
         return true;
     }
@@ -93,8 +81,7 @@ contract SplittableToken is PositionTokenStorage {
         public
         returns (bool)
     {
-        uint256 normalizedValue = normalize(_addedValue);
-        allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(normalizedValue);
+        allowed[msg.sender][_spender] = normalize(denormalize(allowed[msg.sender][_spender]).add(_addedValue));
         emit Approval(msg.sender, _spender, denormalize(allowed[msg.sender][_spender]));
         return true;
     }
@@ -105,12 +92,14 @@ contract SplittableToken is PositionTokenStorage {
         public
         returns (bool)
     {
-        uint256 normalizedValue = normalize(_subtractedValue);
-        uint256 oldValue = allowed[msg.sender][_spender];
-        if (normalizedValue >= oldValue) {
+        uint256 oldValue = denormalize(allowed[msg.sender][_spender]);
+        if (_subtractedValue >= oldValue) {
             allowed[msg.sender][_spender] = 0;
         } else {
-            allowed[msg.sender][_spender] = oldValue.sub(normalizedValue);
+            allowed[msg.sender][_spender] = normalize(oldValue.sub(_subtractedValue));
+            if (allowance(msg.sender, _spender) == 0) {
+                allowed[msg.sender][_spender] = 0;
+            }
         }
         emit Approval(msg.sender, _spender, denormalize(allowed[msg.sender][_spender]));
         return true;
@@ -123,10 +112,9 @@ contract SplittableToken is PositionTokenStorage {
         uint256 _price)
         internal
     {
-        uint256 normalizedValue = normalize(_tokenAmount);
         require(_to != address(0), "invalid address");
-        totalSupply_ = totalSupply_.add(normalizedValue);
-        balances[_to] = balances[_to].add(normalizedValue);
+        totalSupply_ = normalize(denormalize(totalSupply_).add(_tokenAmount));
+        balances[_to] = normalize(denormalize(balances[_to]).add(_tokenAmount));
         emit Mint(_to, _tokenAmount, _assetAmount, _price);
         emit Transfer(address(0), _to, _tokenAmount);
     }
@@ -138,36 +126,22 @@ contract SplittableToken is PositionTokenStorage {
         uint256 _price)
         internal
     {
-        uint256 normalizedValue = normalize(_tokenAmount);
-        require(normalizedValue <= balances[_who], "burn value exceeds balance");
+        uint256 whoBalance = denormalize(balances[_who]);
+        require(_tokenAmount <= whoBalance, "burn value exceeds balance");
         // no need to require value <= totalSupply, since that would imply the
         // sender's balance is greater than the totalSupply, which *should* be an assertion failure
 
-        balances[_who] = balances[_who].sub(normalizedValue);
-        totalSupply_ = totalSupply_.sub(normalizedValue);
+        balances[_who] = normalize(whoBalance.sub(_tokenAmount));
+        if (balanceOf(_who) == 0) {
+            balances[_who] = 0;
+        }
+
+        totalSupply_ = normalize(denormalize(totalSupply_).sub(_tokenAmount));
+        if (totalSupply() == 0) {
+            totalSupply_ = 0;
+        }
+
         emit Burn(_who, _tokenAmount, _assetAmount, _price);
         emit Transfer(_who, address(0), _tokenAmount);
-    }
-
-    function normalize(
-        uint256 _value)
-        internal
-        view
-        returns (uint256)
-    {
-        return _value
-            .mul(splitFactor_)
-            .div(10**18);
-    }
-
-    function denormalize(
-        uint256 _value)
-        internal
-        view
-        returns (uint256)
-    {
-        return _value
-            .mul(10**18)
-            .div(splitFactor_);
     }
 }

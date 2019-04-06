@@ -541,12 +541,12 @@ contract BZx is BZxStorage {
     /// @dev Called by the trader to close part of their loan early.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param closeAmount The amount of the loan token to return to the lender
-    /// @return True on success
+    /// @return The actual amount closed. Greater than closeAmount means the loan needed liquidation.
     function closeLoanPartially(
         bytes32 loanOrderHash,
         uint256 closeAmount)
         external
-        returns (bool);
+        returns (uint256 actualCloseAmount);
 
     /// @dev Called by the trader to close their loan early.
     /// @param loanOrderHash A unique hash representing the loan order

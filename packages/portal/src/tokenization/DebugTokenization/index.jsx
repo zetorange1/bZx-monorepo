@@ -273,7 +273,7 @@ export default class DebugTokenization extends BZxComponent {
     const LoanedToken = await this.props.bZx.getWeb3Contract(`WETH`);
 
     txOpts.data = web3.eth.abi.encodeFunctionSignature('setRates(address,address,uint256)') +
-      web3.eth.abi.encodeParameters(['address','address','uint256'], [TradeToken._address,LoanedToken._address,toBigNumber(rates, 10 ** 18).toString()]).substr(2);
+      web3.eth.abi.encodeParameters(['address','address','uint256'], [TradeToken._address,LoanedToken._address,toBigNumber(rates, 10 ** 18).toFixed(0)]).substr(2);
     console.log(txOpts);
 
     try {

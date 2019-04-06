@@ -133,19 +133,19 @@ contract MiscFunctions is BZxStorage, MathFunctions {
                 loanPosition.positionTokenAmountFilled)) {
                 revert("MiscFunctions::_tradePositionWithOracle: BZxVault.withdrawToken failed");
             }
-        }
 
-        if (isLiquidation && block.timestamp < loanPosition.loanEndUnixTimestampSec) { // checks for non-expired loan
-            (destTokenAmountReceived, positionTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).verifyAndLiquidate(
-                loanOrder,
-                loanPosition);
-        } else {
-            (destTokenAmountReceived, positionTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).tradePosition(
-                loanOrder,
-                loanPosition,
-                destTokenAddress,
-                maxDestTokenAmount,
-                ensureHealthy);
+            if (isLiquidation && block.timestamp < loanPosition.loanEndUnixTimestampSec) { // checks for non-expired loan
+                (destTokenAmountReceived, positionTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).verifyAndLiquidate(
+                    loanOrder,
+                    loanPosition);
+            } else {
+                (destTokenAmountReceived, positionTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).tradePosition(
+                    loanOrder,
+                    loanPosition,
+                    destTokenAddress,
+                    maxDestTokenAmount,
+                    ensureHealthy);
+            }
         }
     }
 

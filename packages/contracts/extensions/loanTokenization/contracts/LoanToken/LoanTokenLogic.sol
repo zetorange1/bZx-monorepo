@@ -455,7 +455,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         return marketLiquidity()
             .mul(loanData.initialMarginAmount)
             .mul(
-                nextLoanInterestRate(0)
+                rateMultiplier.add(baseRate) // maximum possible interest rate
                 .mul(10**20)
                 .div(31536000) // 86400 * 365
                 .mul(maxDurationUnixTimestampSec)
@@ -500,12 +500,12 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         return loanOrderData[loanOrderHashes[levergeAmount]];
     }
 
-    function getLoanOrderHashses()
+    function getLeverageList()
         public
         view
-        returns (bytes32[] memory)
+        returns (uint256[] memory)
     {
-        return loanOrderHashList;
+        return leverageList;
     }
 
     // returns the user's balance of underlying token
@@ -579,9 +579,6 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         } else {
             checkpointPrices_[msg.sender] = 0;
         }
-
-        if (totalSupply_.add(burntTokenReserved) == 0)
-            lastPrice_ = currentPrice; // only store lastPrice_ if lender supply is 0
     }
 
     function _settleInterest()
@@ -667,9 +664,6 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         burntTokenReserved = burntTokenReserved > claimTokenAmount ?
             burntTokenReserved.sub(claimTokenAmount) :
             0;
-
-        if (totalSupply_.add(burntTokenReserved) == 0)
-            lastPrice_ = currentPrice; // only store lastPrice_ if lender supply is 0
 
         emit Claim(
             lender,
@@ -795,7 +789,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         return totalTokenSupply > 0 ?
             assetSupply
                 .mul(10**18)
-                .div(totalTokenSupply) : lastPrice_;
+                .div(totalTokenSupply) : initialPrice;
     }
 
     function _protocolInterestRate(
@@ -916,9 +910,10 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         view
         returns (uint256)
     {
-        return ERC20(loanTokenAddress).balanceOf(address(this))
-            .add(totalAssetBorrow)
-            .add(interestUnPaid);
+        return totalSupply_.add(burntTokenReserved) > 0 ?
+            ERC20(loanTokenAddress).balanceOf(address(this))
+                .add(totalAssetBorrow)
+                .add(interestUnPaid) : 0;
     }
 
 
@@ -991,6 +986,8 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         public
         onlyOwner
     {
+        require(loanOrderHashes[orderParams[0]] == 0, "leverageAmount already defined");
+
         address[8] memory orderAddresses = [
             address(this), // makerAddress
             loanTokenAddress, // loanTokenAddress
@@ -1030,10 +1027,30 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
             loanOrderHash: loanOrderHash,
             leverageAmount: orderParams[0],
             initialMarginAmount: orderParams[1],
-            maintenanceMarginAmount: orderParams[2]
+            maintenanceMarginAmount: orderParams[2],
+            index: leverageList.length
         });
-        loanOrderHashList.push(loanOrderHash);
         loanOrderHashes[orderParams[0]] = loanOrderHash;
+        leverageList.push(orderParams[0]);
+    }
+
+    function removeLeverage(
+        uint256 leverageAmount)
+        public
+        onlyOwner
+    {
+        bytes32 loanOrderHash = loanOrderHashes[leverageAmount];
+        require(loanOrderHash != 0, "leverageAmount not defined");
+
+        if (leverageList.length > 1) {
+            uint256 index = loanOrderData[loanOrderHash].index;
+            leverageList[index] = leverageList[leverageList.length - 1];
+            loanOrderData[loanOrderHashes[leverageList[index]]].index = index;
+        }
+        leverageList.length--;
+
+        delete loanOrderHashes[leverageAmount];
+        delete loanOrderData[loanOrderHash];
     }
 
     // these params should be percentages represented like so: 5% = 5000000000000000000
@@ -1096,6 +1113,15 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         tokenizedRegistry = _addr;
     }
 
+    function setInitialPrice(
+        uint256 _value)
+        public
+        onlyOwner
+    {
+        require(_value > 0, "value can't be 0");
+        initialPrice = _value;
+    }
+
     function initialize(
         address _bZxContract,
         address _bZxVault,
@@ -1121,7 +1147,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
 
         spreadMultiplier = SafeMath.sub(10**20, IBZxOracle(_bZxOracle).interestFeePercent());
 
-        lastPrice_ = initialPrice_;
+        initialPrice = 10**18; // starting price of 1
 
         isInitialized_ = true;
     }

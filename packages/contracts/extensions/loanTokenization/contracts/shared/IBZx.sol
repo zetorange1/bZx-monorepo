@@ -60,7 +60,7 @@ interface IBZx {
         bytes32 loanOrderHash,
         uint256 closeAmount)
         external
-        returns (bool);
+        returns (uint256 actualCloseAmount);
 
     function getMarginLevels(
         bytes32 loanOrderHash,
@@ -81,4 +81,11 @@ interface IBZx {
             uint256 netCollateralAmount,
             uint256 interestDepositRemaining,
             uint256 loanTokenAmountBorrowed);
+
+    function shouldLiquidate(
+        bytes32 loanOrderHash,
+        address trader)
+        external
+        view
+        returns (bool);
 }

@@ -18,14 +18,8 @@ contract PositionTokenStorage is LoanTokenization {
     uint256 public leverageAmount;
     bytes32 public loanOrderHash;
 
-    uint256 internal constant initialPrice_ = 10**21; // starting price of 1,000
-    uint256 public constant splitPrice = 10**24; // 1,000,000
-    uint256 public constant splitPriceReverse = 10**11; // 0.0000001
-
-    uint256 internal lastPrice_;
+    uint256 public initialPrice;
     
-    uint256 internal splitFactor_ = 10**18;
-
     // General Purpose
     mapping (bytes => uint256) internal dbUint256;
     mapping (bytes => uint256[]) internal dbUint256Array;

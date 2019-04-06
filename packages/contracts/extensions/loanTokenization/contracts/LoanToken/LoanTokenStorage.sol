@@ -20,6 +20,7 @@ contract LoanTokenStorage is LoanTokenization {
         uint256 leverageAmount;
         uint256 initialMarginAmount;
         uint256 maintenanceMarginAmount;
+        uint256 index;
     }
 
     struct PositionData {
@@ -63,7 +64,7 @@ contract LoanTokenStorage is LoanTokenization {
 
     mapping (uint256 => bytes32) public loanOrderHashes;  // mapping of levergeAmount to loanOrderHash
     mapping (bytes32 => LoanData) public loanOrderData; // mapping of loanOrderHash to LoanOrder
-    bytes32[] public loanOrderHashList;
+    uint256[] public leverageList;
 
     TokenReserves[] public burntTokenReserveList; // array of TokenReserves
     mapping (address => ListIndex) public burntTokenReserveListIndex; // mapping of lender address to ListIndex objects
@@ -76,8 +77,7 @@ contract LoanTokenStorage is LoanTokenization {
 
     uint256 internal lastSettleTime_;
 
-    uint256 internal constant initialPrice_ = 10**18; // starting price of 1
-    uint256 internal lastPrice_;
+    uint256 public initialPrice;
 
     // General Purpose
     mapping (bytes => uint256) internal dbUint256;

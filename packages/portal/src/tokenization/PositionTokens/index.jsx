@@ -109,7 +109,8 @@ export default class PositionTokens extends BZxComponent {
     vaultTradeTokenBalance: 0,
     vaultLoanedTokenBalance: 0,
     faucetTradeTokenBalance: 0,
-    faucetLoanedTokenBalance: 0
+    faucetLoanedTokenBalance: 0,
+    splitFactor: 0
   };
 
   async componentDidMount() {
@@ -193,6 +194,8 @@ export default class PositionTokens extends BZxComponent {
 
       const checkpointPrice = await this.wrapAndRun(tokenContract.methods.checkpointPrice(accounts[0]).call());
 
+      const splitFactor = await this.wrapAndRun(tokenContract.methods.splitFactor().call());
+
       //const ethRate = await this.wrapAndRun(tokensaleContract.methods.getEthRate().call());
       //console.log(ethRate);
 
@@ -231,7 +234,8 @@ export default class PositionTokens extends BZxComponent {
         vaultLoanedTokenBalance,
         faucetTradeTokenBalance,
         faucetLoanedTokenBalance,
-        checkpointPrice
+        checkpointPrice,
+        splitFactor
       });
 
       await this.getWETHBalance(`wethBalance`, accounts[0]);
@@ -612,7 +616,8 @@ export default class PositionTokens extends BZxComponent {
       vaultLoanedTokenBalance,
       faucetTradeTokenBalance,
       faucetLoanedTokenBalance,
-      checkpointPrice
+      checkpointPrice,
+      splitFactor
     } = this.state;
 
     if (error) {
@@ -743,6 +748,18 @@ export default class PositionTokens extends BZxComponent {
                 ).toString()}
                 {` `}
                 {tokenContractSymbol}/ETH
+              </DataPoint>
+            </DataPointContainer>
+
+            <br/>
+
+            <DataPointContainer>
+              <Label>Split Factor</Label>
+              <DataPoint>
+                {toBigNumber(
+                  splitFactor,
+                  10 ** -18
+                ).toString()}
               </DataPoint>
             </DataPointContainer>
 

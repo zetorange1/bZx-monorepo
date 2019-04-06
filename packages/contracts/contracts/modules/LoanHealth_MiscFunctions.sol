@@ -117,14 +117,14 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
     /// @dev Called by the trader to close part of their loan early.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param closeAmount The amount of the loan token to return to the lender
-    /// @return True on success
+    /// @return The actual amount closed. Greater than closeAmount means the loan needed liquidation.
     function closeLoanPartially(
         bytes32 loanOrderHash,
         uint256 closeAmount)
         external
         nonReentrant
         tracksGas
-        returns (bool)
+        returns (uint256 actualCloseAmount)
     { 
         return _closeLoanPartially(
             loanOrderHash,
@@ -304,10 +304,10 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
         uint256 closeAmount,
         uint256 gasUsed)
         internal
-        returns (bool)
+        returns (uint256)
     {
         if (closeAmount == 0) {
-            return false;
+            return 0;
         }
         
         uint256 positionId = loanPositionsIds[loanOrderHash][msg.sender];
@@ -316,16 +316,18 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
             revert("BZxLoanHealth::_closeLoanPartially: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
         }
 
-        if (closeAmount >= loanPosition.loanTokenAmountFilled) {
-            return _closeLoan(
-                loanOrderHash,
-                gasUsed // initial used gas, collected in modifier
-            );
-        }
-
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
             revert("BZxLoanHealth::_closeLoanPartially: loanOrder.loanTokenAddress == address(0)");
+        }
+
+        if (closeAmount >= loanPosition.loanTokenAmountFilled
+            || OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(loanOrder, loanPosition)) {
+            closeAmount = loanPosition.loanTokenAmountFilled; // save before storage update
+            return _closeLoan(
+                loanOrderHash,
+                gasUsed // initial used gas, collected in modifier
+            ) ? closeAmount : 0;
         }
 
         // pay lender interest so far, and do partial interest refund to trader
@@ -471,7 +473,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
             revert("BZxLoanHealth::_closeLoanPartially: OracleInterface.didCloseLoan failed");
         }
 
-        return true;
+        return closeAmount;
     }
 
     function _closeLoan(

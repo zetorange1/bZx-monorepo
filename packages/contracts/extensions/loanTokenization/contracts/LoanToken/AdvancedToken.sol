@@ -5,10 +5,10 @@
 
 pragma solidity 0.5.7;
 
-import "./LoanTokenStorage.sol";
+import "./AdvancedTokenStorage.sol";
 
 
-contract AdvancedToken is LoanTokenStorage {
+contract AdvancedToken is AdvancedTokenStorage {
     using SafeMath for uint256;
 
     function totalSupply()
