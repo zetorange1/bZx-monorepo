@@ -92,6 +92,8 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
     }
 
     // called by a borrower to open a loan
+    // loan can be collateralized using any supported token (collateralTokenAddress)
+    // interest collected is denominated the same as loanToken
     // returns borrowAmount
     function borrowToken(
         uint256 borrowAmount,
@@ -128,11 +130,11 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
 
     // called by a borrower to open a loan
     // escrowAmount == total collateral + interest available to back the loan
+    // escrowAmount is denominated the same as loanToken
     // returns borrowAmount
     function borrowTokenFromEscrow(
         uint256 escrowAmount,
         uint256 leverageAmount,
-        address collateralTokenAddress,
         address tradeTokenToFillAddress,
         bool withdrawOnOpen)
         external
@@ -165,7 +167,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
             loanOrderHash,
             borrowAmount,
             interestRate,
-            collateralTokenAddress,
+            loanTokenAddress, // collateralTokenAddress
             tradeTokenToFillAddress,
             withdrawOnOpen
         );

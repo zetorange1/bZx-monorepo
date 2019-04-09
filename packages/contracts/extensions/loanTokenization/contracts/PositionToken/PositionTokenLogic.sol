@@ -12,12 +12,6 @@ import "../shared/IBZxOracle.sol";
 
 
 interface ILoanToken {
-    function nextLoanInterestRate(
-        uint256 borrowAmount)
-        external
-        view
-        returns (uint256);
-
     function getMaxDepositAmount(
         uint256 leverageAmount)
         external
@@ -270,9 +264,7 @@ contract PositionTokenLogic is SplittableToken {
             loanOrderHash,
             address(this));
 
-        if (maintenanceMarginAmount == 0)
-            return 0;
-        else if (currentMarginAmount == 0)
+        if (currentMarginAmount <= maintenanceMarginAmount)
             return tokenPrice();
 
         return tokenPrice()
@@ -289,13 +281,19 @@ contract PositionTokenLogic is SplittableToken {
         return normalize(checkpointPrices_[_user]);
     }
 
-    function interestRate(
-        uint256 borrowAmount)
+    function currentLeverage()
         public
         view
-        returns (uint256)
+        returns (uint256 leverage)
     {
-        return ILoanToken(loanTokenLender).nextLoanInterestRate(borrowAmount);
+        (,,uint256 currentMarginAmount) = IBZx(bZxContract).getMarginLevels(
+            loanOrderHash,
+            address(this));
+
+        if (currentMarginAmount == 0)
+            return 0;
+
+        return SafeMath.div(10**38, currentMarginAmount);
     }
 
     function marketLiquidityForAsset()
@@ -512,10 +510,9 @@ contract PositionTokenLogic is SplittableToken {
 
             (bool result,) = loanTokenLender.call(
                 abi.encodeWithSignature(
-                    "borrowTokenFromEscrow(uint256,uint256,address,address,bool)",
+                    "borrowTokenFromEscrow(uint256,uint256,address,bool)",
                     assetBalance,
                     leverageAmount,
-                    loanTokenAddress,
                     tradeTokenAddress,
                     false
                 )

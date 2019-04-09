@@ -25,6 +25,7 @@ import WETH from "../../../../contracts/test_network/deployed/WETH.json";
 
 import LoanToken from "../../../../contracts/test_network/deployed/LoanToken.json";
 import PositionToken from "../../../../contracts/test_network/deployed/PositionToken.json";
+import TokenizedRegistry from "../../../../contracts/test_network/deployed/TokenizedRegistry.json";
 
 export default {
   BZx,
@@ -52,5 +53,6 @@ export default {
   TestNetFaucet,
 
   LoanToken,
-  PositionToken
+  PositionToken,
+  TokenizedRegistry
 };

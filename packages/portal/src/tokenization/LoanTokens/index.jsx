@@ -105,17 +105,18 @@ export default class LoanTokens extends BZxComponent {
     rateMultiplierCurrent: 0,
     baseRateNew: 0,
     rateMultiplierNew: 0,
+    tokenList: null
   };
 
   async componentDidMount() {
 
-    let loanTokenAddress;
+    //let loanTokenAddress;
 
     /** TEMP **/
-    loanTokenAddress = (await this.props.bZx.getWeb3Contract(`LoanToken`))._address;
+    //loanTokenAddress = (await this.props.bZx.getWeb3Contract(`LoanToken`))._address;
     /** TEMP **/
 
-    switch (this.props.bZx.networkId) {
+    /*switch (this.props.bZx.networkId) {
       case 1: {
         //tokenAddress = `0x1c74cFF0376FB4031Cd7492cD6dB2D66c3f2c6B9`;
         break;
@@ -128,32 +129,14 @@ export default class LoanTokens extends BZxComponent {
         //tokenAddress = await this.wrapAndRun(tokensaleContract.methods.bZRxTokenContractAddress().call());
         break;
       }
-    }
+    }*/
 
-    const tokenContract = await this.props.bZx.getWeb3Contract(`LoanToken`, loanTokenAddress);
-    console.log(`Token contract:`, tokenContract._address);
-
-    const tokenContractSymbol = (await this.wrapAndRun(tokenContract.methods.symbol().call())).toString();
-    console.log(`iToken contract symbol:`, tokenContractSymbol);
-
-    const leverageList = await this.wrapAndRun(tokenContract.methods.getLeverageList().call());
-
-    let leverageHashes = {};
-    for(let i=0; i < leverageList.length; i++) {
-      let leverage = toBigNumber(leverageList[i].toString(), 1e-18).toString();
-      leverageHashes[leverage] = await this.wrapAndRun(tokenContract.methods.loanOrderHashes(leverageList[i]).call())
-    }
-
-    await this.props.setCurrentLoan(leverageHashes[2], this.props.accounts[0]);
+    let tokenizedRegistry = await this.props.bZx.getWeb3Contract(`TokenizedRegistry`);
+    const tokenList = await this.wrapAndRun(tokenizedRegistry.methods.getTokens(0, 10, 1).call());
 
     await this.setState({ 
-      tokenContract,
-      tokenContractSymbol,
-      loanTokenAddress,
-      leverageHashes
+      tokenList
     });
-
-    await this.refreshTokenData();
   }
 
   getWETHBalance = async (stateVar, who) => {
@@ -246,6 +229,43 @@ export default class LoanTokens extends BZxComponent {
       });
     }
 
+  }
+
+  updateLoanToken = async (loanTokenAddress) => {
+    try {
+
+      const tokenContract = await this.props.bZx.getWeb3Contract(`LoanToken`, loanTokenAddress);
+      console.log(`Token contract:`, tokenContract._address);
+  
+      const tokenContractSymbol = (await this.wrapAndRun(tokenContract.methods.symbol().call())).toString();
+      console.log(`iToken contract symbol:`, tokenContractSymbol);
+  
+      const leverageList = await this.wrapAndRun(tokenContract.methods.getLeverageList().call());
+  
+      let leverageHashes = {};
+      for(let i=0; i < leverageList.length; i++) {
+        let leverage = toBigNumber(leverageList[i].toString(), 1e-18).toString();
+        leverageHashes[leverage] = await this.wrapAndRun(tokenContract.methods.loanOrderHashes(leverageList[i]).call())
+      }
+  
+      await this.props.setCurrentLoan(leverageHashes[2], this.props.accounts[0]);
+  
+      await this.setState({ 
+        tokenContract,
+        tokenContractSymbol,
+        loanTokenAddress,
+        leverageHashes
+      });
+  
+      await this.refreshTokenData();
+
+    } catch(e) {
+      console.log(e);
+    }
+  }
+
+  setLoanToken = async e => {
+    await this.updateLoanToken(e.target.value);
   }
 
   setBuyAmount = e => this.setState({ buyAmount: e.target.value });
@@ -710,7 +730,8 @@ export default class LoanTokens extends BZxComponent {
       rateMultiplierCurrent,
       checkpointPrice,
       baseRateNew,
-      rateMultiplierNew
+      rateMultiplierNew,
+      tokenList
     } = this.state;
     if (error) {
       return (
@@ -738,10 +759,16 @@ export default class LoanTokens extends BZxComponent {
             <InputLabel>Loan Token</InputLabel>
             <Select 
               value={loanTokenAddress} 
-              onChange={this.setStateForInput(`loanTokenAddress`)}
+              onChange={this.setLoanToken}
             >
-              {/*<MenuItem value={``}><em>Please choose</em></MenuItem>*/}
-              <MenuItem value={tokenContract ? tokenContract._address : ``}>iETH</MenuItem>
+              <MenuItem value={``}><em>Please choose</em></MenuItem>
+              {tokenList && tokenList.map(token => (
+                <MenuItem 
+                  key={token.symbol}
+                  value={token.token}>{token.symbol}
+                </MenuItem>
+              ))}
+              {/*<MenuItem value={tokenContract ? tokenContract._address : ``}>iETH</MenuItem>*/}
             </Select>
             {/*<FormHelperTextWithDetail component="div">
               <Tooltip
@@ -760,7 +787,7 @@ export default class LoanTokens extends BZxComponent {
 
         <br/>
 
-        {leverageAmount !== 0 ? (
+        {loanTokenAddress ? (
           <Fragment>
 
           <Button

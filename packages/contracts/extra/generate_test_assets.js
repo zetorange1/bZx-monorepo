@@ -39,18 +39,17 @@ function proceed() {
     TestNetFaucet: "unknown",
     TestNetPriceFeed: "unknown",
     ZeroExV2Helper: "unknown",
+
     EtherLoanTokenLogic: "unknown",
     PositionTokenLogic: "unknown",
-    LoanToken: "unknown",
-    PositionToken: "unknown",
+    TokenizedRegistry: "unknown",
   };
   var replacements = {};
 
   var loanTokenization = new Array(
     "EtherLoanTokenLogic",
     "PositionTokenLogic",
-    "LoanToken",
-    "PositionToken",
+    "TokenizedRegistry"
   );
 
   var network = "development";
@@ -157,24 +156,13 @@ function proceed() {
         }
         jsonContents["BZx"]["abi"] = jsonContent["abi"];
         return;
-      } else if (item == "LoanToken") {
-        if (!jsonContents["LoanToken"]) {
-          jsonContents["LoanToken"] = {};
-        }
-        jsonContents["LoanToken"]["networks"] = jsonContent["networks"];
-        return;
       } else if (item == "EtherLoanTokenLogic") {
         if (!jsonContents["LoanToken"]) {
           jsonContents["LoanToken"] = {};
         }
         jsonContents["LoanToken"]["abi"] = jsonContent["abi"];
         delete addresses[item];
-        return;
-      } else if (item == "PositionToken") {
-        if (!jsonContents["PositionToken"]) {
-          jsonContents["PositionToken"] = {};
-        }
-        jsonContents["PositionToken"]["networks"] = jsonContent["networks"];
+        addresses["LoanToken"] = "unknown";
         return;
       } else if (item == "PositionTokenLogic") {
         if (!jsonContents["PositionToken"]) {
@@ -182,6 +170,7 @@ function proceed() {
         }
         jsonContents["PositionToken"]["abi"] = jsonContent["abi"];
         delete addresses[item];
+        addresses["PositionToken"] = "unknown";
         return;
       }
 
@@ -206,7 +195,7 @@ function proceed() {
     var abi = "[]";
     try {
       if (addresses[item] == "unknown") addresses[item] = "";
-      if (jsonContent["networks"][networkId])
+      if (jsonContent["networks"] && jsonContent["networks"][networkId])
         addresses[item] = web3utils.toChecksumAddress(
           jsonContent["networks"][networkId]["address"]
         );

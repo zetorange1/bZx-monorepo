@@ -110,7 +110,8 @@ export default class PositionTokens extends BZxComponent {
     vaultLoanedTokenBalance: 0,
     faucetTradeTokenBalance: 0,
     faucetLoanedTokenBalance: 0,
-    splitFactor: 0
+    splitFactor: 0,
+    currentLeverage: 0
   };
 
   async componentDidMount() {
@@ -118,7 +119,7 @@ export default class PositionTokens extends BZxComponent {
     let iTokenAddress, pTokenAddress;
 
     /** TEMP **/
-      iTokenAddress = (await this.props.bZx.getWeb3Contract(`LoanToken`))._address;
+      iTokenAddress = "0xF26eBD03adD32c23C10042e456f269AA600EBCA0";//(await this.props.bZx.getWeb3Contract(`LoanToken`))._address;
     /** TEMP **/
 
     const iTokenContract = await this.props.bZx.getWeb3Contract(`LoanToken`, iTokenAddress);
@@ -127,7 +128,7 @@ export default class PositionTokens extends BZxComponent {
     /*pTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
       `0x2727E688B8fD40b198cd5Fe6E408e00494a06F07` :
       `0xF26eBD03adD32c23C10042e456f269AA600EBCA0`;*/
-      pTokenAddress = (await this.props.bZx.getWeb3Contract(`PositionToken`))._address;
+      pTokenAddress = "0x9213FabaaF1b51FC0E3F23D4C18703CF91B12393";//(await this.props.bZx.getWeb3Contract(`PositionToken`))._address;
 
     const tokenContract = await this.props.bZx.getWeb3Contract(`PositionToken`, pTokenAddress);
     console.log(`pToken contract:`, tokenContract._address);
@@ -213,6 +214,7 @@ export default class PositionTokens extends BZxComponent {
       const vaultTradeTokenBalance = await this.wrapAndRun(tradeTokenContract.methods.balanceOf(vaultAddress).call());
       const vaultLoanedTokenBalance = await this.wrapAndRun(LoanedToken.methods.balanceOf(vaultAddress).call());
       
+      const currentLeverage = await this.wrapAndRun(tokenContract.methods.currentLeverage().call());
       
       let faucetTradeTokenBalance = ``, faucetLoanedTokenBalance = ``; 
       if (this.props.bZx.networkId === 50) {
@@ -235,7 +237,8 @@ export default class PositionTokens extends BZxComponent {
         faucetTradeTokenBalance,
         faucetLoanedTokenBalance,
         checkpointPrice,
-        splitFactor
+        splitFactor,
+        currentLeverage
       });
 
       await this.getWETHBalance(`wethBalance`, accounts[0]);
@@ -617,7 +620,8 @@ export default class PositionTokens extends BZxComponent {
       faucetTradeTokenBalance,
       faucetLoanedTokenBalance,
       checkpointPrice,
-      splitFactor
+      splitFactor,
+      currentLeverage
     } = this.state;
 
     if (error) {
@@ -751,6 +755,19 @@ export default class PositionTokens extends BZxComponent {
               </DataPoint>
             </DataPointContainer>
 
+            <br/>
+
+            <DataPointContainer>
+              <Label>Current Leverage</Label>
+              <DataPoint>
+                {toBigNumber(
+                  currentLeverage,
+                  10 ** -18
+                ).toString()}
+                {`x`}
+              </DataPoint>
+            </DataPointContainer>
+ 
             <br/>
 
             <DataPointContainer>
