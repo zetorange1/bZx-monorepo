@@ -12,7 +12,7 @@ import "../shared/IBZxOracle.sol";
 
 
 interface ILoanToken {
-    function getMaxDepositAmount(
+    function getMaxEscrowAmount(
         uint256 leverageAmount)
         external
         view
@@ -264,7 +264,9 @@ contract PositionTokenLogic is SplittableToken {
             loanOrderHash,
             address(this));
 
-        if (currentMarginAmount <= maintenanceMarginAmount)
+        if (maintenanceMarginAmount == 0)
+            return 0;
+        else if (currentMarginAmount <= maintenanceMarginAmount)
             return tokenPrice();
 
         return tokenPrice()
@@ -301,7 +303,7 @@ contract PositionTokenLogic is SplittableToken {
         view
         returns (uint256)
     {
-        return ILoanToken(loanTokenLender).getMaxDepositAmount(leverageAmount);
+        return ILoanToken(loanTokenLender).getMaxEscrowAmount(leverageAmount);
     }
 
     function marketLiquidityForToken()
@@ -309,7 +311,7 @@ contract PositionTokenLogic is SplittableToken {
         view
         returns (uint256)
     {
-        return ILoanToken(loanTokenLender).getMaxDepositAmount(leverageAmount)
+        return ILoanToken(loanTokenLender).getMaxEscrowAmount(leverageAmount)
             .mul(10**18)
             .div(tokenPrice());
     }

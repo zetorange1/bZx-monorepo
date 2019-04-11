@@ -23,11 +23,6 @@ contract LoanTokenStorage is LoanTokenization {
         uint256 index;
     }
 
-    struct PositionData {
-        address tradeTokenAddress;
-        bool isSet;
-    }
-
     struct TokenReserves {
         address lender;
         uint256 amount;

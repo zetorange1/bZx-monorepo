@@ -11,33 +11,6 @@ import "./AdvancedTokenStorage.sol";
 contract AdvancedToken is AdvancedTokenStorage {
     using SafeMath for uint256;
 
-    function totalSupply()
-        public
-        view
-        returns (uint256)
-    {
-        return totalSupply_;
-    }
-
-    function balanceOf(
-        address _owner)
-        public
-        view
-        returns (uint256)
-    {
-        return balances[_owner];
-    }
-
-    function allowance(
-        address _owner,
-        address _spender)
-        public
-        view
-        returns (uint256)
-    {
-        return allowed[_owner][_spender];
-    }
-
     /// @dev ERC20 transferFrom, modified such that an allowance of MAX_UINT represents an unlimited allowance, and to add revert reasons.
     /// @param _from Address to transfer from.
     /// @param _to Address to transfer to.

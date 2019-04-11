@@ -344,12 +344,27 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         return checkpointPrices_[_user];
     }
 
+    function totalReservedSupply()
+        public
+        view
+        returns (uint256)
+    {
+        return burntTokenReserved.mul(tokenPrice()).div(10**18);
+    }
+
     function marketLiquidity()
         public
         view
         returns (uint256)
     {
         uint256 totalSupply = totalAssetSupply();
+        uint256 reservedSupply = totalReservedSupply();
+        if (totalSupply > reservedSupply) {
+            totalSupply = totalSupply.sub(reservedSupply);
+        } else {
+            return 0;
+        }
+
         if (totalSupply > totalAssetBorrow) {
             return totalSupply.sub(totalAssetBorrow);
         } else {
@@ -413,7 +428,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         return _nextLoanInterestRate(borrowAmount);
     }
 
-    // this gets the combined total of paid and unpaid interest
+    // returns the total amount of interest earned for all active loans
     function interestReceived()
         public
         view
@@ -444,7 +459,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         return _totalAssetSupply(interestUnPaid);
     }
 
-    function getMaxDepositAmount(
+    function getMaxEscrowAmount(
         uint256 leverageAmount)
         public
         view
@@ -623,9 +638,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
             return 0;
         
         uint256 index = burntTokenReserveListIndex[lender].index;
-
-        uint256 assetSupply = _totalAssetSupply(0);
-        uint256 currentPrice = _tokenPrice(assetSupply);
+        uint256 currentPrice = _tokenPrice(_totalAssetSupply(0));
 
         uint256 claimAmount = burntTokenReserveList[index].amount.mul(currentPrice).div(10**18);
         if (claimAmount == 0)
@@ -695,10 +708,21 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         if (borrowAmount == 0) {
             return 0;
         }
-        
+
         //require(ERC20(loanTokenAddress).balanceOf(address(this)) >= borrowAmount, "insufficient loan supply");
-        if (borrowAmount > ERC20(loanTokenAddress).balanceOf(address(this))) {
-            borrowAmount = ERC20(loanTokenAddress).balanceOf(address(this));
+        uint256 availableToBorrow = ERC20(loanTokenAddress).balanceOf(address(this));
+        if (availableToBorrow == 0)
+            return 0;
+
+        uint256 reservedSupply = totalReservedSupply();
+        if (availableToBorrow > reservedSupply) {
+            availableToBorrow = availableToBorrow.sub(reservedSupply);
+        } else {
+            return 0;
+        }
+
+        if (borrowAmount > availableToBorrow) {
+            borrowAmount = availableToBorrow;
         }
 
         // re-up the BZxVault spend approval if needed
