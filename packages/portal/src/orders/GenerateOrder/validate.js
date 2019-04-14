@@ -199,13 +199,13 @@ export default async (bZx, accounts, state, tokens, web3) => {
     return false;
   }
 
-  const relayFeesOk = await checkRelaysFees(bZx, accounts, tokens, state);
+  /*const relayFeesOk = await checkRelaysFees(bZx, accounts, tokens, state);
   if (!relayFeesOk) {
     alert(
       `Please ensure you have enough BZRX to pay relay fees.`
     );
     return false;
-  }
+  }*/
 
   if (role === `trader`) {
     const interestTokenBalance = await getTokenBalance(bZx, interestTokenAddress, accounts);

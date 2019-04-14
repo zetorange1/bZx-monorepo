@@ -362,13 +362,13 @@ export const validateFillOrder = async (
       return false;
     }
 
-    const relayFeesOk = await checkRelaysFees(bZx, accounts, tokens, order);
+    /*const relayFeesOk = await checkRelaysFees(bZx, accounts, tokens, order);
     if (!relayFeesOk) {
       alert(
         `Please ensure you have enough BZRX to pay relay fees.`
       );
       return false;
-    }
+    }*/
 
     console.log(`validateFillOrder`);
     console.log(order, fillOrderAmount, collateralTokenAddress);
