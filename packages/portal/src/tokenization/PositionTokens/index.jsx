@@ -165,6 +165,42 @@ export default class PositionTokens extends BZxComponent {
     await this.refreshTokenData();
   }
 
+  checkAllowance = async (tokenAddress) => {
+    const { accounts, bZx } = this.props;
+    const allowance = await bZx.getAllowance({
+      tokenAddress,
+      ownerAddress: accounts[0].toLowerCase()
+    });
+    return allowance.toNumber() !== 0;
+  };
+  
+  silentAllowance = async (tokenAddress) => {
+    const { accounts, bZx } = this.props;
+    const txOpts = {
+      from: accounts[0],
+      // gas: 1000000,
+      gasPrice: window.defaultGasPrice.toString()
+    };
+
+    const txObj = await bZx.setAllowanceUnlimited({
+      tokenAddress: tokenAddress,
+      ownerAddress: accounts[0].toLowerCase(),
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      let gas = await txObj.estimateGas(txOpts);
+      console.log(gas);
+      txOpts.gas = window.gasValue(gas);
+      await txObj.send(txOpts);
+      return true;
+    } catch (error) {
+      console.error(error.message);
+      return false;
+    }
+  }
+
   getWETHBalance = async (stateVar, who) => {
     const { bZx, tokens, accounts } = this.props;
     const token = await tokens.filter(t => t.symbol === `WETH`)[0];
@@ -261,31 +297,59 @@ export default class PositionTokens extends BZxComponent {
 
   setStateForInput = key => e => this.setState({ [key]: e.target.value });
 
-  toggleBuyDialog = () =>
-    this.setState(p => ({ showBuyDialog: !p.showBuyDialog }));
+  toggleBuyDialog = useToken => e =>
+    this.setState(p => ({ showBuyDialog: !p.showBuyDialog, useToken }));
 
-  toggleSellDialog = () =>
-    this.setState(p => ({ showSellDialog: !p.showSellDialog }));
+  toggleSellDialog = useToken => e =>
+    this.setState(p => ({ showSellDialog: !p.showSellDialog, useToken }));
 
   toggleSendDialog = () =>
     this.setState(p => ({ showSendDialog: !p.showSendDialog }));
 
   buyToken = async () => {
-    const { web3, bZx, accounts } = this.props;
-    const { buyAmount, tokenContract } = this.state;
+    const { web3, bZx, accounts, tokens } = this.props;
+    const { buyAmount, tokenContract, useToken } = this.state;
 
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
 
+    /*try {
+      const a = await this.checkAllowance(collateralToken.address);
+      if (!a) {
+        if (!(await this.silentAllowance(collateralToken.address))) {
+          alert(`Please go to the Balances page and approve `+collateralToken.symbol+`.`);
+          this.props.onClose();
+          await this.setState({ isSubmitted: false });
+          return;
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      alert(`Please go to the Balances page and approve `+collateralToken.symbol+`.`);
+      this.props.onClose();
+      await this.setState({ isSubmitted: false });
+      return;
+    }*/
+
     const txOpts = {
       from: accounts[0],
       gas: 2000000,
       gasPrice: window.defaultGasPrice.toString(),
-      value: toBigNumber(buyAmount, 1e18)
+      value: useToken ? "0" : toBigNumber(buyAmount, 1e18)
     };
 
-    const txObj = await tokenContract.methods.mintWithEther(accounts[0]);
+    const weth = await tokens.filter(t => t.symbol === `WETH`)[0];
+
+    let txObj;
+    if (useToken) {
+      txObj = await tokenContract.methods.mintWithToken(
+        accounts[0],
+        weth.address,
+        toBigNumber(buyAmount, 1e18).toString());
+    } else {
+      txObj = await tokenContract.methods.mintWithEther(accounts[0]);
+    }
     console.log(txOpts);
 
     try {
@@ -331,7 +395,7 @@ export default class PositionTokens extends BZxComponent {
 
   sellToken = async () => {
     const { web3, bZx, accounts } = this.props;
-    const { sellAmount, tokenContract } = this.state;
+    const { sellAmount, tokenContract, useToken } = this.state;
 
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
@@ -343,10 +407,18 @@ export default class PositionTokens extends BZxComponent {
       gasPrice: window.defaultGasPrice.toString()
     };
 
-    const txObj = await tokenContract.methods.burnToEther(
-      accounts[0],
-      toBigNumber(sellAmount, 1e18).toFixed(0)
-    );
+    let txObj;
+    if (useToken) {
+      txObj = await tokenContract.methods.burnToToken(
+        accounts[0],
+        toBigNumber(sellAmount, 1e18).toFixed(0)
+      );
+    } else {
+      txObj = await tokenContract.methods.burnToEther(
+        accounts[0],
+        toBigNumber(sellAmount, 1e18).toFixed(0)
+      );
+    }
     console.log(txOpts);
 
     try {
@@ -621,7 +693,8 @@ export default class PositionTokens extends BZxComponent {
       faucetLoanedTokenBalance,
       checkpointPrice,
       splitFactor,
-      currentLeverage
+      currentLeverage,
+      useToken
     } = this.state;
 
     if (error) {
@@ -786,20 +859,38 @@ export default class PositionTokens extends BZxComponent {
               <Button
                 variant="raised"
                 color="primary"
-                onClick={this.toggleBuyDialog}
+                onClick={this.toggleBuyDialog(false)}
                 disabled={!IsSaleLive}
                 style={{ marginLeft: `12px` }}
               >
-                Buy Token
+                Buy Token (ether)
               </Button>
               <Button
                 variant="raised"
                 color="primary"
-                onClick={this.toggleSellDialog}
+                onClick={this.toggleSellDialog(false)}
                 disabled={!IsSaleLive}
                 style={{ marginLeft: `12px` }}
               >
-                Sell Token
+                Sell Token (ether)
+              </Button>
+              <Button
+                variant="raised"
+                color="primary"
+                onClick={this.toggleBuyDialog(true)}
+                disabled={!IsSaleLive}
+                style={{ marginLeft: `12px` }}
+              >
+                Buy Token (token)
+              </Button>
+              <Button
+                variant="raised"
+                color="primary"
+                onClick={this.toggleSellDialog(true)}
+                disabled={!IsSaleLive}
+                style={{ marginLeft: `12px` }}
+              >
+                Sell Token (token)
               </Button>
               <Button
                 variant="raised"
@@ -807,7 +898,7 @@ export default class PositionTokens extends BZxComponent {
                 onClick={this.toggleSendDialog}
                 style={{ marginLeft: `12px` }}
               >
-                Send
+                Send Token
               </Button>
               <Button
                 variant="raised"
@@ -944,9 +1035,9 @@ export default class PositionTokens extends BZxComponent {
         </InfoContainer>
         <Dialog
             open={this.state.showBuyDialog}
-            onClose={this.toggleBuyDialog}
+            onClose={this.toggleBuyDialog(false)}
           >
-            <DialogTitle>Buy Position Token (pToken)</DialogTitle>
+            <DialogTitle>Buy Position Token ({useToken ? `with token` : `with ETH`})</DialogTitle>
             <DialogContent>
               <DialogContentText>
                 {/*BZRX tokens cost 0.000073 ETH each. Please specify the amount of Ether you want
@@ -954,19 +1045,19 @@ export default class PositionTokens extends BZxComponent {
               </DialogContentText>
               <br/>
               <FormControl fullWidth>
-                <InputLabel>ETH to Send</InputLabel>
+                <InputLabel>{useToken ? `Token` : `ETH`} to Send</InputLabel>
                 <Input
                   value={this.state.buyAmount}
                   type="number"
                   onChange={this.setBuyAmount}
                   endAdornment={
-                    <InputAdornment position="end">ETH</InputAdornment>
+                    <InputAdornment position="end">{useToken ? `WETH` : `ETH`}</InputAdornment>
                   }
                 />
               </FormControl>
             </DialogContent>
             <DialogActions>
-              <Button onClick={this.toggleBuyDialog}>Cancel</Button>
+              <Button onClick={this.toggleBuyDialog(false)}>Cancel</Button>
               <Button onClick={this.buyToken} color="primary">
                 Buy
               </Button>
@@ -974,9 +1065,9 @@ export default class PositionTokens extends BZxComponent {
           </Dialog>
         <Dialog
             open={this.state.showSellDialog}
-            onClose={this.toggleSellDialog}
+            onClose={this.toggleSellDialog(false)}
           >
-            <DialogTitle>Sell Position Token ({tokenContractSymbol})</DialogTitle>
+            <DialogTitle>Sell Position Token ({useToken ? `to token` : `to ETH`})</DialogTitle>
             <DialogContent>
               <DialogContentText>
                 Sell Token (burn)
@@ -995,7 +1086,7 @@ export default class PositionTokens extends BZxComponent {
               </FormControl>
             </DialogContent>
             <DialogActions>
-              <Button onClick={this.toggleSellDialog}>Cancel</Button>
+              <Button onClick={this.toggleSellDialog(false)}>Cancel</Button>
               <Button onClick={this.sellToken} color="primary">
                 Sell
               </Button>

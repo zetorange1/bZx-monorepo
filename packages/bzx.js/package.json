@@ -1,6 +1,6 @@
 {
   "name": "@bzxnetwork/bzx.js",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "JavaScript library for interacting with the bZx protocol smart contracts",
   "keywords": [],
   "author": "",

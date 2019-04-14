@@ -302,7 +302,7 @@ export default class LoanTokens extends BZxComponent {
 
   buyToken = async () => {
     const { web3, bZx, accounts } = this.props;
-    const { buyAmount, tokenContract } = this.state;
+    const { buyAmount, tokenContract, useToken } = this.state;
 
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
@@ -312,10 +312,15 @@ export default class LoanTokens extends BZxComponent {
       from: accounts[0],
       gas: 2000000,
       gasPrice: window.defaultGasPrice.toString(),
-      value: toBigNumber(buyAmount, 1e18)
+      value: useToken ? "0" : toBigNumber(buyAmount, 1e18)
     };
 
-    const txObj = await tokenContract.methods.mintWithEther(accounts[0]);
+    let txObj;
+    if (useToken) {
+      txObj = await tokenContract.methods.mint(accounts[0]);
+    } else {
+      txObj = await tokenContract.methods.mintWithEther(accounts[0]);
+    }
     console.log(txOpts);
 
     try {
@@ -361,7 +366,7 @@ export default class LoanTokens extends BZxComponent {
 
   sellToken = async () => {
     const { web3, bZx, accounts } = this.props;
-    const { sellAmount, tokenContract } = this.state;
+    const { sellAmount, tokenContract, useToken } = this.state;
 
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
@@ -373,10 +378,18 @@ export default class LoanTokens extends BZxComponent {
       gasPrice: window.defaultGasPrice.toString()
     };
 
-    const txObj = await tokenContract.methods.burnToEther(
-      accounts[0],
-      toBigNumber(sellAmount, 1e18).toFixed(0)
-    );
+    let txObj;
+    if (useToken) {
+      txObj = await tokenContract.methods.burn(
+        accounts[0],
+        toBigNumber(sellAmount, 1e18).toFixed(0)
+      );
+    } else {
+      txObj = await tokenContract.methods.burnToEther(
+        accounts[0],
+        toBigNumber(sellAmount, 1e18).toFixed(0)
+      );
+    }
     console.log(txOpts);
 
     try {

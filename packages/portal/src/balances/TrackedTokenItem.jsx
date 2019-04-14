@@ -99,12 +99,17 @@ export default class TrackedTokenItem extends BZxComponent {
     sendAmount: ``,
     approved: null,
     balance: null,
-    approvalLoading: false
+    approvalLoading: false,
+    approvedFees: null,
+    approvalLoadingFees: false,
   };
 
   async componentDidMount() {
     this.checkAllowance();
     this.getBalance();
+
+    if (this.props.token.symbol === `WETH`)
+      this.checkAllowanceFees();
   }
 
   setStateForInput = key => e => this.setState({ [key]: e.target.value });
@@ -134,6 +139,22 @@ export default class TrackedTokenItem extends BZxComponent {
     this.setState({
       approved: allowance.toNumber() !== 0,
       approvalLoading: false
+    });
+  };
+
+  checkAllowanceFees = async () => {
+    const { bZx, token, accounts } = this.props;
+    console.log(`checking fees allowance`);
+    console.log(token.name, token.address);
+    const allowance = await window.pqueueTokens.add(() => this.wrapAndRun(bZx.getAllowance({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase(),
+      spenderAddress: "0xb052f48db50d71a46697ff3e7cc91a28bc70584e" // mainnet only
+    })));
+    console.log(`Fees Allowance:`, allowance.toNumber());
+    this.setState({
+      approvedFees: allowance.toNumber() !== 0,
+      approvalLoadingFees: false
     });
   };
 
@@ -504,6 +525,179 @@ export default class TrackedTokenItem extends BZxComponent {
     }
   };
 
+  approveFees = async () => {
+    const { bZx, token, web3, accounts } = this.props;
+    console.log(`approving fees allowance`);
+    console.log(token.name, token.address);
+    this.setState({ approvalLoadingFees: true });
+
+    if (bZx.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
+
+    const txOpts = {
+      from: accounts[0],
+      // gas: 1000000,
+      gasPrice: window.defaultGasPrice.toString()
+    };
+
+    const txObj = await bZx.setAllowanceUnlimited({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase(),
+      spenderAddress: "0xb052f48db50d71a46697ff3e7cc91a28bc70584e", // mainnet only
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = window.gasValue(gas);
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+            })
+            .then(() => {
+              alert(`Your token is approved.`);
+              this.checkAllowanceFees();
+            })
+            .catch(error => {
+              console.error(error.message);
+              if (
+                error.message.includes(`denied transaction signature`) ||
+                error.message.includes(`Condition of use not satisfied`) ||
+                error.message.includes(`Invalid status`)
+              ) {
+                alert();
+              } else {
+                alert(`The transaction is failing. Please try again later.`);
+              }
+              this.setState({ approvalLoadingFees: false });
+            });
+        })
+        .catch(error => {
+          console.error(error.message);
+          if (
+            error.message.includes(`denied transaction signature`) ||
+            error.message.includes(`Condition of use not satisfied`) ||
+            error.message.includes(`Invalid status`)
+          ) {
+            alert();
+          } else {
+            alert(`The transaction is failing. Please try again later.`);
+          }
+          this.setState({ approvalLoadingFees: false });
+        });
+    } catch (error) {
+      console.error(error.message);
+      if (
+        error.message.includes(`denied transaction signature`) ||
+        error.message.includes(`Condition of use not satisfied`) ||
+        error.message.includes(`Invalid status`)
+      ) {
+        alert();
+      } else {
+        alert(`The transaction is failing. Please try again later.`);
+      }
+      this.setState({ approvalLoadingFees: false });
+    }
+  };
+
+  unapproveFees = async () => {
+    const { bZx, token, web3, accounts } = this.props;
+    console.log(`unapproving fees allowance`);
+    console.log(token.name, token.address);
+    this.setState({ approvalLoadingFees: true });
+
+    if (bZx.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
+
+    const txOpts = {
+      from: accounts[0],
+      // gas: 1000000,
+      gasPrice: window.defaultGasPrice.toString()
+    };
+
+    const txObj = await bZx.resetAllowance({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase(),
+      spenderAddress: "0xb052f48db50d71a46697ff3e7cc91a28bc70584e", // mainnet only
+      getObject: true
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = window.gasValue(gas);
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+            })
+            .then(() => {
+              alert(`Your token is un-approved.`);
+              this.checkAllowanceFees();
+            })
+            .catch(error => {
+              console.error(error.message);
+              if (
+                error.message.includes(`denied transaction signature`) ||
+                error.message.includes(`Condition of use not satisfied`) ||
+                error.message.includes(`Invalid status`)
+              ) {
+                alert();
+              } else {
+                alert(`The transaction is failing. Please try again later.`);
+              }
+              this.setState({ approvalLoadingFees: false });
+            });
+        })
+        .catch(error => {
+          console.error(error.message);
+          if (
+            error.message.includes(`denied transaction signature`) ||
+            error.message.includes(`Condition of use not satisfied`) ||
+            error.message.includes(`Invalid status`)
+          ) {
+            alert();
+          } else {
+            alert(`The transaction is failing. Please try again later.`);
+          }
+          this.setState({ approvalLoadingFees: false });
+        });
+    } catch (error) {
+      console.error(error.message);
+      if (
+        error.message.includes(`denied transaction signature`) ||
+        error.message.includes(`Condition of use not satisfied`) ||
+        error.message.includes(`Invalid status`)
+      ) {
+        alert();
+      } else {
+        alert(`The transaction is failing. Please try again later.`);
+      }
+      this.setState({ approvalLoadingFees: false });
+    }
+  };
+
   renderAllowance = () => {
     const { approved, approvalLoading } = this.state;
     if (approved === null) {
@@ -515,6 +709,7 @@ export default class TrackedTokenItem extends BZxComponent {
           variant="raised"
           onClick={this.unapprove}
           disabled={approvalLoading}
+          style={{ marginLeft: `12px` }}
         >
           Un-approve
         </Button>
@@ -525,8 +720,36 @@ export default class TrackedTokenItem extends BZxComponent {
         variant="raised"
         onClick={this.approve}
         disabled={approvalLoading}
+        style={{ marginLeft: `12px` }}
       >
         Approve
+      </Button>
+    );
+  };
+
+  renderAllowanceFees = () => {
+    const { approvedFees, approvalLoadingFees } = this.state;
+    if (approvedFees === null) {
+      return <div>Checking</div>;
+    }
+    if (approvedFees === true) {
+      return (
+        <Button
+          variant="raised"
+          onClick={this.unapproveFees}
+          disabled={approvalLoadingFees}
+        >
+          Un-approve Fees
+        </Button>
+      );
+    }
+    return (
+      <Button
+        variant="raised"
+        onClick={this.approveFees}
+        disabled={approvalLoadingFees}
+      >
+        Approve Fees
       </Button>
     );
   };
@@ -575,6 +798,7 @@ export default class TrackedTokenItem extends BZxComponent {
           >
             Request
           </Button>
+          {symbol === `WETH` ? this.renderAllowanceFees() : ``}
           {this.renderAllowance()}
           <Button
             variant="raised"

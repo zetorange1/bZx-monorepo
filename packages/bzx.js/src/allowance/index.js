@@ -11,12 +11,15 @@ export const setAllowance = (
   {
     tokenAddress,
     ownerAddress,
-    spenderAddress = Addresses.getAddresses(networkId).BZxVault,
+    spenderAddress,
     amountInBaseUnits,
     getObject,
     txOpts
   }
 ) => {
+  if (!spenderAddress)
+    spenderAddress = Addresses.getAddresses(networkId).BZxVault;
+  
   assert.isETHAddressHex("ownerAddress", ownerAddress);
   assert.isETHAddressHex("spenderAddress", spenderAddress);
   assert.isETHAddressHex("tokenAddress", tokenAddress);
@@ -44,9 +47,12 @@ export const getAllowance = async (
   {
     tokenAddress,
     ownerAddress,
-    spenderAddress = Addresses.getAddresses(networkId).BZxVault
+    spenderAddress
   }
 ) => {
+  if (!spenderAddress)
+    spenderAddress = Addresses.getAddresses(networkId).BZxVault;
+
   assert.isETHAddressHex("ownerAddress", ownerAddress);
   assert.isETHAddressHex("spenderAddress", spenderAddress);
   assert.isETHAddressHex("tokenAddress", tokenAddress);

@@ -80,7 +80,7 @@ switch (domainData.subdomain) {
   default:
     IndexExport = withRouter(withRoot(class extends React.Component {
       state = {
-        activeCard: `tokenizedloans`,//`balances`,
+        activeCard: ``,
         activeOrderTab: `Orders_GenOrder`,
         activeTokenizedTab: `tokenizedloans_loantokens`,
         activeOrder: null,
@@ -138,7 +138,9 @@ switch (domainData.subdomain) {
       changeTokenizedTab = (tabId, order) =>
         this.setState({ activeTokenizedTab: tabId, activeOrder: order });
     
-      web3Received = (bZx) => this.setState({ bZx, getWeb3: false, web3IsReceived: true });
+      web3Received = (bZx) => {
+        this.setState({ bZx, getWeb3: false, web3IsReceived: true, activeCard: bZx.networkId === 50 ? `tokenizedloans` : `balances` });
+      }
     
       clearProvider = () => {
         this.setProvider(null);
