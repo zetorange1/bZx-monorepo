@@ -278,7 +278,7 @@ contract PositionTokenLogic is SplittableToken {
         address _user)
         public
         view
-        returns (uint256)
+        returns (uint256 price)
     {
         return normalize(checkpointPrices_[_user]);
     }

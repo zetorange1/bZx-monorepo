@@ -321,7 +321,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
     function tokenPrice()
         public
         view
-        returns (uint256)
+        returns (uint256 price)
     {
         uint256 interestUnPaid = 0;
         if (lastSettleTime_ != block.timestamp) {
@@ -339,7 +339,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         address _user)
         public
         view
-        returns (uint256)
+        returns (uint256 price)
     {
         return checkpointPrices_[_user];
     }
