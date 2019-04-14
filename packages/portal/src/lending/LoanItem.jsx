@@ -135,7 +135,6 @@ export default class LoanItem extends BZxComponent {
       collateralTokenAddressFilled,
       interestTokenAddress,
       loanTokenAddress,
-      loanTokenAmountFilled,
       positionTokenAddressFilled,
       positionTokenAmountFilled,
       loanOrderHash,
@@ -256,7 +255,7 @@ export default class LoanItem extends BZxComponent {
           <DataPointContainer>
             <Label>Borrowed</Label>
             <DataPoint>
-              {fromBigNumber(loanTokenAmountFilled, 10 ** loanTokenDecimals)}
+              {fromBigNumber(positionTokenAmountFilled, 10 ** loanTokenDecimals)}
               {` `}
               {loanTokenSymbol}
             </DataPoint>
