@@ -32,7 +32,6 @@ contract TradePlacing_Oracle is BZxStorage, BZxProxiable, MiscFunctions {
         public
         onlyOwner
     {
-        
         targets[bytes4(keccak256("tradePositionWithOracle(bytes32,address)"))] = _target;
     }
 
