@@ -14,10 +14,14 @@ const Submission = ({ onSubmit, setPushOnChainCheckbox, pushOnChain, sendToRelay
     <div>
       <FormControlLabel
         control={
-          <Checkbox checked={pushOnChain} onChange={setPushOnChainCheckbox} disabled={sendToRelayExchange} />
+          <Checkbox 
+            checked={pushOnChain}
+            onChange={setPushOnChainCheckbox}
+          />
         }
         label="Push order on chain"
       />
+      {/*disabled={sendToRelayExchange}*/}
     </div>
     <Button variant="raised" color="primary" onClick={onSubmit}>
       {pushOnChain ? `Push On Chain` : `Sign Order`}

@@ -199,8 +199,16 @@ export default class GenerateOrder extends React.Component {
 
   setRelayCheckbox = (e, value) => {
     if (!value || !this.props.web3.utils.isAddress(this.state.feeRecipientAddress))
-      this.setState({ feeRecipientAddress: `0x0000000000000000000000000000000000000000` });
-    this.setState(p => ({ sendToRelayExchange: value, pushOnChain: value ? !value : p.pushOnChain }));
+      this.setState({ 
+        feeRecipientAddress: `0x0000000000000000000000000000000000000000`,
+        takerAddress: `0x0000000000000000000000000000000000000000`,
+        lenderRelayFee: 0,
+        traderRelayFee: 0
+      });
+    this.setState(p => ({ 
+      sendToRelayExchange: value,
+      /*pushOnChain: value ? !value : p.pushOnChain */
+    }));
   }
 
   setwithdrawOnOpenCheckbox = async (e, value) => {
@@ -208,7 +216,11 @@ export default class GenerateOrder extends React.Component {
     await this.refreshCollateralAmount();
   }
 
-  setPushOnChainCheckbox = (e, value) => this.setState(p => ({ pushOnChain: value, sendToRelayExchange: value ? !value : p.sendToRelayExchange }));
+  setPushOnChainCheckbox = (e, value) => 
+    this.setState(p => ({ 
+      pushOnChain: value, 
+      /*sendToRelayExchange: value ? !value : p.sendToRelayExchange */
+    }));
 
   refreshCollateralAmount = async () => {
     if (this.state.role === `trader` && this.state.loanTokenAmount) {
@@ -403,6 +415,7 @@ export default class GenerateOrder extends React.Component {
           // form states
           sendToRelayExchange={this.state.sendToRelayExchange}
           feeRecipientAddress={this.state.feeRecipientAddress}
+          takerAddress={this.state.takerAddress}
           pushOnChain={this.state.pushOnChain}
           lenderRelayFee={this.state.lenderRelayFee}
           traderRelayFee={this.state.traderRelayFee}

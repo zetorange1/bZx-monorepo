@@ -18,23 +18,35 @@ export default ({
   setRelayCheckbox,
   setStateForInput,
   feeRecipientAddress,
+  takerAddress,
   lenderRelayFee,
   traderRelayFee
 }) => (
   <Section>
-    <SectionLabel>Relay/Exchange Settings (optional)</SectionLabel>
+    <SectionLabel>Advanced Settings</SectionLabel>
 
     <div>
       <FormControlLabel
         control={
-          <Checkbox checked={sendToRelayExchange} onChange={setRelayCheckbox} disabled={pushOnChain} />
+          <Checkbox 
+            checked={sendToRelayExchange}
+            onChange={setRelayCheckbox}  
+          />
         }
-        label="Set relay/exchange fees"
+        label="Enable advanced settings"
       />
+      {/*disabled={pushOnChain}*/}
     </div>
 
     {sendToRelayExchange && (
       <Fragment>
+        <AddressTextField
+          value={takerAddress}
+          onChange={setStateForInput(`takerAddress`)}
+          label="Taker Address"
+          margin="normal"
+          fullWidth
+        />
         <AddressTextField
           value={feeRecipientAddress}
           onChange={setStateForInput(`feeRecipientAddress`)}
