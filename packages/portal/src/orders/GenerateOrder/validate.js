@@ -163,8 +163,8 @@ export default async (bZx, accounts, state, tokens, web3) => {
   }
 
   try {
-    validRange(40000000000000000000, 100000000000000000000, initialMarginAmount);
-    validRange(20000000000000000000, 90000000000000000000, maintenanceMarginAmount);
+    validRange(25000000000000000000, 100000000000000000000, initialMarginAmount);
+    validRange(15000000000000000000, 90000000000000000000, maintenanceMarginAmount);
     if (maintenanceMarginAmount > initialMarginAmount) {
       throw Error(`The maintenance margin amount cannot be larger than initial margin amount.`);
     }

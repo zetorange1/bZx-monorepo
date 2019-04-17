@@ -23,7 +23,7 @@ export const compileObject = async (web3, state, account, bZx, tokens) => {
     makerAddress: account.toLowerCase(),
     makerRole: (state.role === `lender` ? 0 : 1).toString(),
 
-    takerAddress: state.takerAddress,
+    takerAddress: state.takerAddress.toLowerCase(),
     
     withdrawOnOpen: (state.role === `trader` && state.withdrawOnOpen ? 1 : 0).toString(),
 
