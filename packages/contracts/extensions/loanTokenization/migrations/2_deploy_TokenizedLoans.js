@@ -45,9 +45,9 @@ module.exports = function(deployer, network, accounts) {
   BZxVault.setNetwork(networkIds[network]);
   BZxOracle.setNetwork(networkIds[network]);
 
-  let dai_token_address;
-  if (network == "kovan") {
-    dai_token_address = "0xb2f3dd487708ca7794f633d9df57fdb9347a7aff"; // KNC (no DAI on Kovan Kyber)
+  var dai_token_address;
+  if (network == "mainnet" || network == "ropsten" || network == "kovan" || network == "rinkeby") {
+    dai_token_address = config["addresses"][network]["DAITokenAddress"];
   } else {
     let t = contract(require("../../../build/contracts/TestToken9.json"));
     t.setNetwork(networkIds[network]);

@@ -70,7 +70,7 @@ module.exports = {
       BZRXToken: "0xb70ce29af9de22e28509cdcf3e0368b5a550548a",
       BZxEther: "0xc778417e063141139fce010982780140aa0cd5ab",
       MultiSig: "",
-      DAITokenAddress: "",
+      DAITokenAddress: "0x55080ac40700bde5725d8a87f48a01e192f660af", // KNC (no DAI on Kovan Rinkeby)
     },
     mainnet: {
       ZeroEx: {
