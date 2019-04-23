@@ -1,6 +1,6 @@
 
 
-const doDeploy = false;
+const doDeploy = true;
 
 const fs = require('fs').promises;
 const path = require("path");

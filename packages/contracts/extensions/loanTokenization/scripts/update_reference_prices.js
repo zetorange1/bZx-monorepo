@@ -14,14 +14,16 @@ if (network === "development") {
 
 let priceFeedContract = {
   mainnet: "",
-  ropsten: "",
+  ropsten: "0x207056a6acB2727F834C9Bc987722B08628e5943",
   rinkeby: "",
   kovan: "0x325946B0ed8c5993E36BfCA1f218E22c2b10adf9",
 };
 
 let assets = {
   mainnet: [],
-  ropsten: [],
+  ropsten: [
+    "0xc778417e063141139fce010982780140aa0cd5ab", // WETH
+  ],
   rinkeby: [],
   kovan: [
     "0xd0a1e359811322d97991e03f863a0c30c2cf029c", // WETH

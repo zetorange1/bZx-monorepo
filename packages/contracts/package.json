@@ -79,6 +79,6 @@
     "lint-contracts": "solhint contracts/**/*.sol",
     "coverage": "./node_modules/.bin/solidity-coverage",
     "t": "truffle compile && truffle exec ./wrapper_test.js",
-    "pricefeed:kovan": "cd ./extensions/loanTokenization && truffle exec scripts/update_reference_prices.js --network kovan"
+    "pricefeed": "cd ./extensions/loanTokenization && truffle exec scripts/update_reference_prices.js --network"
   }
 }

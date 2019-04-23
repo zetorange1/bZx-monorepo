@@ -1,6 +1,6 @@
 
 
-const doDeploy = false;
+const doDeploy = true;
 const useFakeData = false;
 
 const contract = require("truffle-contract");
