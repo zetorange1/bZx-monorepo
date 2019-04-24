@@ -379,8 +379,8 @@ contract PositionTokenLogic is SplittableToken {
             (uint256 destTokenAmountReceived, uint256 depositAmountUsed) = IBZxOracle(bZxOracle).tradeUserAsset(
                 depositTokenAddress,
                 loanTokenAddress,
-                msg.sender, // receiverAddress
-                msg.sender, // returnToSenderAddress
+                address(this), // receiverAddress
+                address(this), // returnToSenderAddress
                 depositAmount,
                 liquidityAmount // maxDestAmount shouldn't exceed the market liquidity for the pToken
             );
