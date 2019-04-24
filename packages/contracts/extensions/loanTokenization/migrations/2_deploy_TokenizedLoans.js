@@ -61,14 +61,14 @@ module.exports = function(deployer, network, accounts) {
     await fs.appendFile("TokenizedLoans_"+network+".log", "-------\n");
 
     let iDAI = await deployIToken(
-      "bZx DAI iToken",
+      "Fulcrum DAI iToken",
       "iDAI",
       dai_token_address
     );
     // let iDAI = LoanTokenLogic.at(idai_token_address);
 
     let iETH = await deployIToken(
-      "bZx ETH iToken",
+      "Fulcrum ETH iToken",
       "iETH",
       weth_token_address
     );
@@ -186,15 +186,15 @@ module.exports = function(deployer, network, accounts) {
         if (leverageAmount == 1) {
           return;
         } else {
-          name = "bZx Perpetual Long "+assetSymbol+" "+leverageAmount+"x";
+          name = "Fulcrum Perpetual Long "+assetSymbol+" "+leverageAmount+"x";
           symbol = "pl"+assetSymbol+leverageAmount+"x";
         }
       } else { // type == "short"
         if (leverageAmount == 1) {
-          name = "bZx Perpetual Short "+assetSymbol;
+          name = "Fulcrum Perpetual Short "+assetSymbol;
           symbol = "ps"+assetSymbol;
         } else {
-          name = "bZx Perpetual Short "+assetSymbol+" "+leverageAmount+"x";
+          name = "Fulcrum Perpetual Short "+assetSymbol+" "+leverageAmount+"x";
           symbol = "ps"+assetSymbol+leverageAmount+"x";
         }
       }
