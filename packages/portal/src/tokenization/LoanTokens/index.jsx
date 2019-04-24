@@ -105,7 +105,8 @@ export default class LoanTokens extends BZxComponent {
     rateMultiplierCurrent: 0,
     baseRateNew: 0,
     rateMultiplierNew: 0,
-    tokenList: null
+    tokenList: null,
+    assetAddress: null,
   };
 
   async componentDidMount() {
@@ -160,6 +161,8 @@ export default class LoanTokens extends BZxComponent {
 
     try {
 
+      const assetAddress = await this.wrapAndRun(tokenContract.methods.loanTokenAddress().call());
+
       const tokenBalance = await this.wrapAndRun(tokenContract.methods.balanceOf(accounts[0]).call());
 
       const checkpointPrice = await this.wrapAndRun(tokenContract.methods.checkpointPrice(accounts[0]).call());
@@ -213,6 +216,7 @@ export default class LoanTokens extends BZxComponent {
         baseRateNew: baseRateCurrent,
         rateMultiplierNew: rateMultiplierCurrent,
         checkpointPrice: checkpointPrice,
+        assetAddress: assetAddress,
         loading: false, 
         error: false 
       });
@@ -274,6 +278,44 @@ export default class LoanTokens extends BZxComponent {
     }
   }
 
+  checkAllowance = async (tokenAddress) => {
+    const { accounts, bZx } = this.props;
+    const allowance = await bZx.getAllowance({
+      tokenAddress,
+      ownerAddress: accounts[0].toLowerCase(),
+      spenderAddress: this.state.tokenContract._address
+    });
+    return allowance.toNumber() !== 0;
+  };
+  
+  silentAllowance = async (tokenAddress) => {
+    const { accounts, bZx } = this.props;
+    const txOpts = {
+      from: accounts[0],
+      // gas: 1000000,
+      gasPrice: window.defaultGasPrice.toString()
+    };
+
+    const txObj = await bZx.setAllowanceUnlimited({
+      tokenAddress: tokenAddress,
+      ownerAddress: accounts[0].toLowerCase(),
+      spenderAddress: this.state.tokenContract._address,
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      let gas = await txObj.estimateGas(txOpts);
+      console.log(gas);
+      txOpts.gas = window.gasValue(gas);
+      await txObj.send(txOpts);
+      return true;
+    } catch (error) {
+      console.error(error.message);
+      return false;
+    }
+  }
+
   setLoanToken = async e => {
     await this.updateLoanToken(e.target.value);
   }
@@ -295,11 +337,11 @@ export default class LoanTokens extends BZxComponent {
 
   setStateForInput = key => e => this.setState({ [key]: e.target.value });
 
-  toggleBuyDialog = () =>
-    this.setState(p => ({ showBuyDialog: !p.showBuyDialog }));
+  toggleBuyDialog = useToken => e =>
+    this.setState(p => ({ showBuyDialog: !p.showBuyDialog, useToken }));
 
-  toggleSellDialog = () =>
-    this.setState(p => ({ showSellDialog: !p.showSellDialog }));
+  toggleSellDialog = useToken => e =>
+    this.setState(p => ({ showSellDialog: !p.showSellDialog, useToken }));
 
   toggleSendDialog = () =>
     this.setState(p => ({ showSendDialog: !p.showSendDialog }));
@@ -311,11 +353,27 @@ export default class LoanTokens extends BZxComponent {
     this.setState(p => ({ showCurveDialog: !p.showCurveDialog }));
 
   buyToken = async () => {
-    const { web3, bZx, accounts } = this.props;
-    const { buyAmount, tokenContract, useToken } = this.state;
+    const { web3, bZx, accounts, tokens } = this.props;
+    const { buyAmount, tokenContract, useToken, assetAddress } = this.state;
 
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
+    }
+
+    if (useToken) {
+      try {
+        const a = await this.checkAllowance(assetAddress);
+        if (!a) {
+          if (!(await this.silentAllowance(assetAddress))) {
+            alert(`Unable to set approval!`);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error(error);
+        alert(`Unable to set approval!`);
+        return;
+      }
     }
 
     const txOpts = {
@@ -327,7 +385,10 @@ export default class LoanTokens extends BZxComponent {
 
     let txObj;
     if (useToken) {
-      txObj = await tokenContract.methods.mint(accounts[0]);
+      txObj = await tokenContract.methods.mint(
+        accounts[0],
+        toBigNumber(buyAmount, 1e18).toString()
+      );
     } else {
       txObj = await tokenContract.methods.mintWithEther(accounts[0]);
     }
@@ -754,7 +815,8 @@ export default class LoanTokens extends BZxComponent {
       checkpointPrice,
       baseRateNew,
       rateMultiplierNew,
-      tokenList
+      tokenList,
+      useToken
     } = this.state;
     if (error) {
       return (
@@ -971,18 +1033,34 @@ export default class LoanTokens extends BZxComponent {
               <Button
                 variant="raised"
                 color="primary"
-                onClick={this.toggleBuyDialog}
+                onClick={this.toggleBuyDialog(false)}
                 style={{ marginLeft: `12px` }}
               >
-                Buy Token
+                Buy Token (ether)
               </Button>
               <Button
                 variant="raised"
                 color="primary"
-                onClick={this.toggleSellDialog}
+                onClick={this.toggleSellDialog(false)}
                 style={{ marginLeft: `12px` }}
               >
-                Sell Token
+                Sell Token (ether)
+              </Button>
+              <Button
+                variant="raised"
+                color="primary"
+                onClick={this.toggleBuyDialog(true)}
+                style={{ marginLeft: `12px` }}
+              >
+                Buy Token (token)
+              </Button>
+              <Button
+                variant="raised"
+                color="primary"
+                onClick={this.toggleSellDialog(true)}
+                style={{ marginLeft: `12px` }}
+              >
+                Sell Token (token)
               </Button>
               <Button
                 variant="raised"
@@ -990,7 +1068,7 @@ export default class LoanTokens extends BZxComponent {
                 onClick={this.toggleSendDialog}
                 style={{ marginLeft: `12px` }}
               >
-                Send
+                Send Token
               </Button>
               <Button
                 variant="raised"
@@ -1106,9 +1184,9 @@ export default class LoanTokens extends BZxComponent {
         </InfoContainer>
         <Dialog
             open={this.state.showBuyDialog}
-            onClose={this.toggleBuyDialog}
+            onClose={this.toggleBuyDialog(false)}
           >
-            <DialogTitle>Buy Loan Token ({tokenContractSymbol})</DialogTitle>
+            <DialogTitle>Buy Loan Token ({useToken ? `with token` : `with ETH`})</DialogTitle>
             <DialogContent>
               <DialogContentText>
                 {/*BZRX tokens cost 0.000073 ETH each. Please specify the amount of Ether you want
@@ -1116,19 +1194,19 @@ export default class LoanTokens extends BZxComponent {
               </DialogContentText>
               <br/>
               <FormControl fullWidth>
-                <InputLabel>ETH to Send</InputLabel>
+                <InputLabel>{useToken ? `Token` : `ETH`} to Send</InputLabel>
                 <Input
                   value={this.state.buyAmount}
                   type="number"
                   onChange={this.setBuyAmount}
                   endAdornment={
-                    <InputAdornment position="end">ETH</InputAdornment>
+                    <InputAdornment position="end">{useToken ? `Token` : `ETH`}</InputAdornment>
                   }
                 />
               </FormControl>
             </DialogContent>
             <DialogActions>
-              <Button onClick={this.toggleBuyDialog}>Cancel</Button>
+              <Button onClick={this.toggleBuyDialog(false)}>Cancel</Button>
               <Button onClick={this.buyToken} color="primary">
                 Buy
               </Button>
@@ -1136,9 +1214,9 @@ export default class LoanTokens extends BZxComponent {
         </Dialog>
         <Dialog
             open={this.state.showSellDialog}
-            onClose={this.toggleSellDialog}
+            onClose={this.toggleSellDialog(false)}
           >
-            <DialogTitle>Sell Loan Token ({tokenContractSymbol})</DialogTitle>
+            <DialogTitle>Sell Loan Token ({useToken ? `to token` : `to ETH`})</DialogTitle>
             <DialogContent>
               <DialogContentText>
                 Sell Token (burn)
@@ -1157,7 +1235,7 @@ export default class LoanTokens extends BZxComponent {
               </FormControl>
             </DialogContent>
             <DialogActions>
-              <Button onClick={this.toggleSellDialog}>Cancel</Button>
+              <Button onClick={this.toggleSellDialog(false)}>Cancel</Button>
               <Button onClick={this.sellToken} color="primary">
                 Sell
               </Button>

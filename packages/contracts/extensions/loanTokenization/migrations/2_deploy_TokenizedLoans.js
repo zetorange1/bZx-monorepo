@@ -21,6 +21,8 @@ let EtherLoanTokenLogic = artifacts.require("EtherLoanTokenLogic");
 let PositionTokenLogic = artifacts.require("PositionTokenLogic");
 let TokenizedRegistry = artifacts.require("TokenizedRegistry");
 
+let etherLoanTokenLogic, loanTokenLogic, positionTokenLogic;
+
 const path = require("path");
 let config = require("../../../protocol-config.js");
 
@@ -99,18 +101,26 @@ module.exports = function(deployer, network, accounts) {
       loanTokenAddress
     ) 
     {
-      let contract;
-      if (symbol == "iETH")
-        contract = EtherLoanTokenLogic;
-      else 
-        contract = LoanTokenLogic;
+      let logicContract;
+      if (symbol == "iETH") {
+        if (!etherLoanTokenLogic) {
+          etherLoanTokenLogic = await deployer.deploy(
+            EtherLoanTokenLogic
+          );
+        }
+        logicContract = etherLoanTokenLogic;
+      } else {
+        if (!loanTokenLogic) {
+          loanTokenLogic = await deployer.deploy(
+            LoanTokenLogic
+          );
+        }
+        logicContract = loanTokenLogic;
+      }
 
-      let loanTokenLogic = await deployer.deploy(
-        contract
-      );
       let loanTokenProxy = await deployer.deploy(
         LoanToken,
-        loanTokenLogic.address
+        logicContract.address
       );
       let loanToken = await EtherLoanTokenLogic.at(loanTokenProxy.address);
       await loanToken.initialize(
@@ -191,9 +201,11 @@ module.exports = function(deployer, network, accounts) {
 
       let leverageAmountWei = web3.utils.toWei(leverageAmount.toString(), "ether");
       let loanOrderHash = await loanTokenDeployed.loanOrderHashes.call(leverageAmountWei);
-      let positionTokenLogic = await deployer.deploy(
-        PositionTokenLogic
-      );
+      if (!positionTokenLogic) {
+        positionTokenLogic = await deployer.deploy(
+          PositionTokenLogic
+        );
+      }
       let positionTokenProxy = await deployer.deploy(
         PositionToken,
         positionTokenLogic.address
@@ -219,14 +231,6 @@ module.exports = function(deployer, network, accounts) {
 
       return positionToken;
     }
-
-
-
-
-
-
-
-
 
     console.log(`   > [${parseInt(path.basename(__filename))}] TokenizedLoans deploy: #done`);
   });

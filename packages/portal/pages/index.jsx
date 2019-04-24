@@ -53,7 +53,7 @@ const ORDER_TABS = [
 const TOKENIZED_TABS = [
   { id: `tokenizedloans_loantokens`, label: `Loan Tokens` },
   { id: `tokenizedloans_positiontokens_short`, label: `Position Tokens (short)` },
-  //{ id: `tokenizedloans_positiontokens_long`, label: `Position Tokens (long)` },
+  { id: `tokenizedloans_positiontokens_long`, label: `Position Tokens (long)` },
   { id: `tokenizedloans_debug`, label: `Debug` }
 ];
 
@@ -483,7 +483,7 @@ switch (domainData.subdomain) {
                     activeTokenizedTab={`tokenizedloans_positiontokens_short`}
                   />
                 </ContentContainer>}
-                {/*<ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_positiontokens_long`}>
+                <ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_positiontokens_long`}>
                   <PositionTokens
                     tokens={tokens}
                     bZx={bZx}
@@ -494,7 +494,7 @@ switch (domainData.subdomain) {
                     currentTrader={this.state.currentTrader}
                     activeTokenizedTab={`tokenizedloans_positiontokens_long`}
                   />
-                </ContentContainer>*/}
+                </ContentContainer>
                 <ContentContainer show={this.state.activeTokenizedTab === `tokenizedloans_debug`}>
                   <DebugTokenization
                     tokens={tokens}

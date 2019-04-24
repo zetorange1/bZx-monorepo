@@ -111,28 +111,36 @@ export default class PositionTokens extends BZxComponent {
     faucetTradeTokenBalance: 0,
     faucetLoanedTokenBalance: 0,
     splitFactor: 0,
-    currentLeverage: 0
+    currentLeverage: 0,
+    assetAddress: null
   };
 
   async componentDidMount() {
 
-    let iTokenAddress, pTokenAddress;
+    let iTokenAddress, pTokenAddress, tradeTokenContract;
 
     /** TEMP **/
       iTokenAddress = "0xF26eBD03adD32c23C10042e456f269AA600EBCA0";//(await this.props.bZx.getWeb3Contract(`LoanToken`))._address;
 
       if (this.props.bZx.networkId === 50) { // development
         iTokenAddress = (await this.props.bZx.getWeb3Contract(`LoanToken`))._address;
-      /*pTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
-        `0x2727E688B8fD40b198cd5Fe6E408e00494a06F07` :
-        `0xF26eBD03adD32c23C10042e456f269AA600EBCA0`;*/
         pTokenAddress = (await this.props.bZx.getWeb3Contract(`PositionToken`))._address;
-      } else if (this.props.bZx.networkId == 42) { // kovan
+        tradeTokenContract = await this.props.bZx.getWeb3Contract(`TestToken9`);
+      }/* else if (this.props.bZx.networkId == 42) { // kovan
         iTokenAddress = "0xF26eBD03adD32c23C10042e456f269AA600EBCA0";
         pTokenAddress = "0x9213FabaaF1b51FC0E3F23D4C18703CF91B12393";
-      } else if (this.props.bZx.networkId == 3) { // ropsten
-        iTokenAddress = "0x10fE1ED475E0Fd3b3F52dCc63aA92c0F761e6360";
-        pTokenAddress = "0x48c5c8a842991338d65764b24a71b1A9c21D609a";
+      }*/ else if (this.props.bZx.networkId == 3) { // ropsten
+        iTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
+          `0x10fE1ED475E0Fd3b3F52dCc63aA92c0F761e6360` :
+          `0xFCE3aEeEC8EB39304ED423c0d23c0A978DA9E934`;
+
+        pTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
+          `0x48c5c8a842991338d65764b24a71b1A9c21D609a` :
+          `0x73608D4275A3c700CC4E0BEa0b1A72098E837050`;
+
+        tradeTokenContract = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
+          await this.props.bZx.getWeb3Contract(`EIP20`, (await this.props.tokens.filter(t => t.symbol === `DAI`)[0]).address) : 
+          await this.props.bZx.getWeb3Contract(`EIP20`, (await this.props.tokens.filter(t => t.symbol === `WETH`)[0]).address)
       }
     /** TEMP **/
 
@@ -145,14 +153,6 @@ export default class PositionTokens extends BZxComponent {
     const tokenContractSymbol = (await this.wrapAndRun(tokenContract.methods.symbol().call())).toString();
     console.log(`pToken contract symbol:`, tokenContractSymbol);
   
-    let tradeTokenContract;
-    if (this.props.bZx.networkId === 50) { // development
-      tradeTokenContract = await this.props.bZx.getWeb3Contract(`TestToken9`);
-    } else if (this.props.bZx.networkId == 42) { // kovan
-      tradeTokenContract = await this.props.bZx.getWeb3Contract(`EIP20`, (await this.props.tokens.filter(t => t.symbol === `KNC`)[0]).address);
-    } else if (this.props.bZx.networkId == 3) { // ropsten
-      tradeTokenContract = await this.props.bZx.getWeb3Contract(`EIP20`, (await this.props.tokens.filter(t => t.symbol === `DAI`)[0]).address);
-    }
     console.log(`tradeToken Contract:`, tradeTokenContract._address);
     const tradeTokenContractSymbol = (await this.wrapAndRun(tradeTokenContract.methods.symbol().call())).toString();
 
@@ -180,7 +180,8 @@ export default class PositionTokens extends BZxComponent {
     const { accounts, bZx } = this.props;
     const allowance = await bZx.getAllowance({
       tokenAddress,
-      ownerAddress: accounts[0].toLowerCase()
+      ownerAddress: accounts[0].toLowerCase(),
+      spenderAddress: this.state.tokenContract._address
     });
     return allowance.toNumber() !== 0;
   };
@@ -196,6 +197,7 @@ export default class PositionTokens extends BZxComponent {
     const txObj = await bZx.setAllowanceUnlimited({
       tokenAddress: tokenAddress,
       ownerAddress: accounts[0].toLowerCase(),
+      spenderAddress: this.state.tokenContract._address,
       getObject: true,
       txOpts
     });
@@ -232,6 +234,8 @@ export default class PositionTokens extends BZxComponent {
     //console.log(`Token contract:`, tokenContract._address);
 
     try {
+      const assetAddress = await this.wrapAndRun(tokenContract.methods.loanTokenAddress().call());
+
       const tokenBalance = await this.wrapAndRun(tokenContract.methods.balanceOf(accounts[0]).call());
       const tokenPrice = await this.wrapAndRun(tokenContract.methods.tokenPrice().call());
       const liquidationPrice = await this.wrapAndRun(tokenContract.methods.liquidationPrice().call());
@@ -285,7 +289,8 @@ export default class PositionTokens extends BZxComponent {
         faucetLoanedTokenBalance,
         checkpointPrice,
         splitFactor,
-        currentLeverage
+        currentLeverage,
+        assetAddress
       });
 
       await this.getWETHBalance(`wethBalance`, accounts[0]);
@@ -318,30 +323,30 @@ export default class PositionTokens extends BZxComponent {
     this.setState(p => ({ showSendDialog: !p.showSendDialog }));
 
   buyToken = async () => {
-    const { web3, bZx, accounts, tokens } = this.props;
+    const { web3, bZx, accounts } = this.props;
     const { buyAmount, tokenContract, useToken } = this.state;
 
     if (bZx.portalProviderName !== `MetaMask`) {
       alert(`Please confirm this transaction on your device.`);
     }
-
-    /*try {
-      const a = await this.checkAllowance(collateralToken.address);
-      if (!a) {
-        if (!(await this.silentAllowance(collateralToken.address))) {
-          alert(`Please go to the Balances page and approve `+collateralToken.symbol+`.`);
-          this.props.onClose();
-          await this.setState({ isSubmitted: false });
-          return;
+    
+    let assetAddress = this.state.tradeTokenContract._address;
+    
+    if (useToken) {
+      try {
+        const a = await this.checkAllowance(assetAddress);
+        if (!a) {
+          if (!(await this.silentAllowance(assetAddress))) {
+            alert(`Unable to set approval!`);
+            return;
+          }
         }
+      } catch (error) {
+        console.error(error);
+        alert(`Unable to set approval!`);
+        return;
       }
-    } catch (error) {
-      console.error(error);
-      alert(`Please go to the Balances page and approve `+collateralToken.symbol+`.`);
-      this.props.onClose();
-      await this.setState({ isSubmitted: false });
-      return;
-    }*/
+    }
 
     const txOpts = {
       from: accounts[0],
@@ -350,14 +355,13 @@ export default class PositionTokens extends BZxComponent {
       value: useToken ? "0" : toBigNumber(buyAmount, 1e18)
     };
 
-    const weth = await tokens.filter(t => t.symbol === `WETH`)[0];
-
     let txObj;
     if (useToken) {
       txObj = await tokenContract.methods.mintWithToken(
         accounts[0],
-        weth.address,
-        toBigNumber(buyAmount, 1e18).toString());
+        assetAddress,
+        toBigNumber(buyAmount, 1e18).toString()
+      );
     } else {
       txObj = await tokenContract.methods.mintWithEther(accounts[0]);
     }
@@ -418,10 +422,12 @@ export default class PositionTokens extends BZxComponent {
       gasPrice: window.defaultGasPrice.toString()
     };
 
+    let assetAddress = this.state.tradeTokenContract._address;
     let txObj;
     if (useToken) {
       txObj = await tokenContract.methods.burnToToken(
         accounts[0],
+        assetAddress,
         toBigNumber(sellAmount, 1e18).toFixed(0)
       );
     } else {
@@ -767,7 +773,7 @@ export default class PositionTokens extends BZxComponent {
               <DataPoint>
                 {!profitLoss.isNaN() ? profitLoss.lt(0) ? `(`+profitLoss.toString()+`)` : profitLoss.toString() : `0`}
                 {` `}
-                {`ETH`}
+                {`Token`}
               </DataPoint>
             </DataPointContainer>
 
@@ -781,7 +787,7 @@ export default class PositionTokens extends BZxComponent {
                   10 ** -18
                 ).toString()}
                 {` `}
-                {`ETH (Max Deposit)`}
+                {`Token (Max Deposit)`}
               </DataPoint>
             </DataPointContainer>
 
@@ -823,7 +829,7 @@ export default class PositionTokens extends BZxComponent {
                   10 ** -18
                 ).toString()}
                 {` `}
-                {tokenContractSymbol}/ETH
+                {tokenContractSymbol}/Token
               </DataPoint>
             </DataPointContainer>
 
@@ -835,7 +841,7 @@ export default class PositionTokens extends BZxComponent {
                   10 ** -18
                 ).toString()}
                 {` `}
-                {tokenContractSymbol}/ETH
+                {tokenContractSymbol}/Token
               </DataPoint>
             </DataPointContainer>
 
@@ -1056,13 +1062,13 @@ export default class PositionTokens extends BZxComponent {
               </DialogContentText>
               <br/>
               <FormControl fullWidth>
-                <InputLabel>{useToken ? `Token` : `ETH`} to Send</InputLabel>
+                <InputLabel>{useToken ? `tradeToken` : `ETH`} to Send</InputLabel>
                 <Input
                   value={this.state.buyAmount}
                   type="number"
                   onChange={this.setBuyAmount}
                   endAdornment={
-                    <InputAdornment position="end">{useToken ? `WETH` : `ETH`}</InputAdornment>
+                    <InputAdornment position="end">{useToken ? `tradeToken` : `ETH`}</InputAdornment>
                   }
                 />
               </FormControl>
@@ -1078,7 +1084,7 @@ export default class PositionTokens extends BZxComponent {
             open={this.state.showSellDialog}
             onClose={this.toggleSellDialog(false)}
           >
-            <DialogTitle>Sell Position Token ({useToken ? `to token` : `to ETH`})</DialogTitle>
+            <DialogTitle>Sell Position Token ({useToken ? `to tradeToken` : `to ETH`})</DialogTitle>
             <DialogContent>
               <DialogContentText>
                 Sell Token (burn)
