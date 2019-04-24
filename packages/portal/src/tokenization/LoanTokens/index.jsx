@@ -232,6 +232,16 @@ export default class LoanTokens extends BZxComponent {
   }
 
   updateLoanToken = async (loanTokenAddress) => {
+    if (!loanTokenAddress) {
+      await this.setState({ 
+        tokenContract: null,
+        tokenContractSymbol: null,
+        loanTokenAddress,
+        leverageHashes: null
+      });
+      return;
+    }
+    
     try {
 
       const tokenContract = await this.props.bZx.getWeb3Contract(`LoanToken`, loanTokenAddress);

@@ -120,15 +120,24 @@ export default class PositionTokens extends BZxComponent {
 
     /** TEMP **/
       iTokenAddress = "0xF26eBD03adD32c23C10042e456f269AA600EBCA0";//(await this.props.bZx.getWeb3Contract(`LoanToken`))._address;
+
+      if (this.props.bZx.networkId === 50) { // development
+        iTokenAddress = (await this.props.bZx.getWeb3Contract(`LoanToken`))._address;
+      /*pTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
+        `0x2727E688B8fD40b198cd5Fe6E408e00494a06F07` :
+        `0xF26eBD03adD32c23C10042e456f269AA600EBCA0`;*/
+        pTokenAddress = (await this.props.bZx.getWeb3Contract(`PositionToken`))._address;
+      } else if (this.props.bZx.networkId == 42) { // kovan
+        iTokenAddress = "0xF26eBD03adD32c23C10042e456f269AA600EBCA0";
+        pTokenAddress = "0x9213FabaaF1b51FC0E3F23D4C18703CF91B12393";
+      } else if (this.props.bZx.networkId == 3) { // ropsten
+        iTokenAddress = "0x10fE1ED475E0Fd3b3F52dCc63aA92c0F761e6360";
+        pTokenAddress = "0x48c5c8a842991338d65764b24a71b1A9c21D609a";
+      }
     /** TEMP **/
 
     const iTokenContract = await this.props.bZx.getWeb3Contract(`LoanToken`, iTokenAddress);
     console.log(`iToken contract:`, iTokenContract._address);
-
-    /*pTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
-      `0x2727E688B8fD40b198cd5Fe6E408e00494a06F07` :
-      `0xF26eBD03adD32c23C10042e456f269AA600EBCA0`;*/
-      pTokenAddress = "0x9213FabaaF1b51FC0E3F23D4C18703CF91B12393";//(await this.props.bZx.getWeb3Contract(`PositionToken`))._address;
 
     const tokenContract = await this.props.bZx.getWeb3Contract(`PositionToken`, pTokenAddress);
     console.log(`pToken contract:`, tokenContract._address);
@@ -141,6 +150,8 @@ export default class PositionTokens extends BZxComponent {
       tradeTokenContract = await this.props.bZx.getWeb3Contract(`TestToken9`);
     } else if (this.props.bZx.networkId == 42) { // kovan
       tradeTokenContract = await this.props.bZx.getWeb3Contract(`EIP20`, (await this.props.tokens.filter(t => t.symbol === `KNC`)[0]).address);
+    } else if (this.props.bZx.networkId == 3) { // ropsten
+      tradeTokenContract = await this.props.bZx.getWeb3Contract(`EIP20`, (await this.props.tokens.filter(t => t.symbol === `DAI`)[0]).address);
     }
     console.log(`tradeToken Contract:`, tradeTokenContract._address);
     const tradeTokenContractSymbol = (await this.wrapAndRun(tradeTokenContract.methods.symbol().call())).toString();

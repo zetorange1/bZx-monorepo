@@ -9,6 +9,9 @@ import OracleRegistry from "./OracleRegistry.json";
 import TokenRegistry from "./TokenRegistry.json";
 import OracleInterface from "./OracleInterface.json";
 import TestNetFaucet from "./TestNetFaucet.json";
+import LoanToken from "./LoanToken.json";
+import PositionToken from "./PositionToken.json";
+import TokenizedRegistry from "./TokenizedRegistry.json";
 
 import ZRXToken from "./ZRXToken.json";
 import WETH from "./WETH.json";
@@ -34,5 +37,8 @@ export default {
   WETH,
   TokenTransferProxy,
   OracleInterface,
-  TestNetFaucet
+  TestNetFaucet,
+  LoanToken,
+  PositionToken,
+  TokenizedRegistry
 };
