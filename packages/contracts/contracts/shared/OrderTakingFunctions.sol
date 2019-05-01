@@ -618,7 +618,6 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
             loanPosition,
             tradeTokenToFillAddress,
             MAX_UINT,
-            false, // isLiquidation
             true // ensureHealthy
         );
 
@@ -658,11 +657,13 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
 
             // update lender interest
             _payInterestForOrder(loanOrder, oracleInterest, lenderInterest, true);
+
             uint256 owedPerDay = _safeGetPartialAmountFloor(
                 loanTokenAmountFilled,
                 loanOrder.loanTokenAmount,
                 loanOrder.interestAmount
             );
+
             lenderInterest.interestOwedPerDay = lenderInterest.interestOwedPerDay.add(owedPerDay);
             oracleInterest.interestOwedPerDay = oracleInterest.interestOwedPerDay.add(owedPerDay);
 
@@ -671,13 +672,22 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
             if (interestTime > loanPosition.loanEndUnixTimestampSec) {
                 interestTime = loanPosition.loanEndUnixTimestampSec;
             }
-            uint256 totalInterestToCollect = loanPosition.loanEndUnixTimestampSec.sub(interestTime).mul(owedPerDay).div(86400);
-            if (traderInterest.interestUpdatedDate > 0 && traderInterest.interestOwedPerDay > 0) {
-                traderInterest.interestPaid = traderInterest.interestPaid.add(
-                    interestTime.sub(traderInterest.interestUpdatedDate).mul(traderInterest.interestOwedPerDay).div(86400)
-                );
-            }
+
             traderInterest.interestUpdatedDate = interestTime;
+
+            if (traderInterest.interestUpdatedDate > 0 && traderInterest.interestOwedPerDay > 0) {
+                traderInterest.interestPaid = interestTime
+                    .sub(traderInterest.interestUpdatedDate)
+                    .mul(traderInterest.interestOwedPerDay)
+                    .div(86400)
+                    .add(traderInterest.interestPaid);
+            }
+
+            uint256 totalInterestToCollect = loanPosition.loanEndUnixTimestampSec
+                .sub(interestTime)
+                .mul(owedPerDay)
+                .div(86400);
+
             traderInterest.interestOwedPerDay = traderInterest.interestOwedPerDay.add(owedPerDay);
             traderInterest.interestDepositTotal = traderInterest.interestDepositTotal.add(totalInterestToCollect);
 

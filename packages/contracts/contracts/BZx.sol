@@ -531,10 +531,13 @@ contract BZx is BZxStorage {
     /// @dev Checks that a position meets the conditions for liquidation, then closes the position and loan.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position
+    /// @param maxCloseAmount The maximum amount of loan principal to liquidate
+    /// @dev A maxCloseAmount exceeding loanTokenAmountFilled or a maxCloseAmount of 0, will set the maximum to loanTokenAmountFilled.
     /// @return True on success
     function liquidatePosition(
         bytes32 loanOrderHash,
-        address trader)
+        address trader,
+        uint256 maxCloseAmount)
         external
         returns (bool);
 

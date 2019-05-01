@@ -253,7 +253,7 @@ contract OracleInterface {
         uint256 sourceTokenAmount,
         uint256 maxDestTokenAmount)
         public
-        returns (uint256, uint256);
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
 
     /// @dev Places an automatic on-chain trade with a liquidity provider
     /// @param loanOrder The loanOrder object
@@ -269,18 +269,19 @@ contract OracleInterface {
         uint256 maxDestTokenAmount,
         bool ensureHealthy)
         public
-        returns (uint256, uint256);
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
 
-    /// @dev Verifies a position has fallen below margin maintenance
-    /// @dev then liquidates the position on-chain
+    /// @dev Liquidates the position (swaps positionToken to loanToken)
     /// @param loanOrder The loanOrder object
     /// @param loanPosition The loanPosition object
+    /// @param maxDestTokenAmount The desired amount of token to buy
     /// @return The amount of destToken bought and the amount of source token used
-    function verifyAndLiquidate(
+    function liquidatePosition(
         BZxObjects.LoanOrder memory loanOrder,
-        BZxObjects.LoanPosition memory loanPosition)
+        BZxObjects.LoanPosition memory loanPosition,
+        uint256 maxDestTokenAmount)
         public
-        returns (uint256, uint256);
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
 
     /// @dev Liquidates collateral to cover loan losses and does any other processing required by the oracle
     /// @param loanOrder The loanOrder object

@@ -43,7 +43,7 @@ contract MiscFunctions is BZxStorage, MathFunctions {
                         oracleAddresses[loanOrder.oracleAddress],
                         interestOwedNow
                     )) {
-                        revert("_payInterest: BZxVault.withdrawToken failed");
+                        revert("_payInterest: BZxVault.withdrawToken interest failed");
                     }
 
                     // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
@@ -54,6 +54,14 @@ contract MiscFunctions is BZxStorage, MathFunctions {
                         gasUsed // initial used gas, collected in modifier
                     )) {
                         revert("_payInterest: OracleInterface.didPayInterest failed");
+                    }
+                } else {
+                    if (! BZxVault(vaultContract).withdrawToken(
+                        loanOrder.interestTokenAddress,
+                        lender,
+                        interestOwedNow
+                    )) {
+                        revert("_payInterest: BZxVault.withdrawToken interest failed");
                     }
                 }
 
@@ -120,7 +128,6 @@ contract MiscFunctions is BZxStorage, MathFunctions {
         LoanPosition memory loanPosition,
         address destTokenAddress,
         uint256 maxDestTokenAmount,
-        bool isLiquidation,
         bool ensureHealthy)
         internal
         returns (uint256 destTokenAmountReceived, uint256 positionTokenAmountUsed)
@@ -134,18 +141,13 @@ contract MiscFunctions is BZxStorage, MathFunctions {
                 revert("MiscFunctions::_tradePositionWithOracle: BZxVault.withdrawToken failed");
             }
 
-            if (isLiquidation && block.timestamp < loanPosition.loanEndUnixTimestampSec) { // checks for non-expired loan
-                (destTokenAmountReceived, positionTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).verifyAndLiquidate(
-                    loanOrder,
-                    loanPosition);
-            } else {
-                (destTokenAmountReceived, positionTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).tradePosition(
-                    loanOrder,
-                    loanPosition,
-                    destTokenAddress,
-                    maxDestTokenAmount,
-                    ensureHealthy);
-            }
+            (destTokenAmountReceived, positionTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).tradePosition(
+                loanOrder,
+                loanPosition,
+                destTokenAddress,
+                maxDestTokenAmount,
+                ensureHealthy
+            );
         }
     }
 

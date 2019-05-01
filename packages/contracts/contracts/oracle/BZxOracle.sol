@@ -68,6 +68,26 @@ interface KyberNetworkInterface {
         external
         view
         returns (address);
+
+    function reservesPerTokenSrc(
+        address addy)
+        external
+        view
+        returns (address[] memory);
+
+    function reservesPerTokenDest(
+        address addy)
+        external
+        view
+        returns (address[] memory);
+
+    function reserveType(
+        address addy)
+        external
+        view
+        returns (ReserveType);
+
+    enum ReserveType {NONE, PERMISSIONED, PERMISSIONLESS}
 }
 
 contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
@@ -107,9 +127,17 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
     // A value of 0 indicates that no threshold exists for this parameter.
     uint256 public minMaintenanceMarginAmount = 15 * 10**18;
 
+    // If set, ensures that token swaps only happen if priced from at least one Permissioned Kyber reserve
+    bool public requirePermissionedReserve = false;
+
+    // Percentage of maximum slippage allowed for Kyber swap when liquidating
+    // This will always be between 0 and 100%
+    uint256 public maxSlippagePercent = 10 * 10**18;
+
 /* solhint-disable var-name-mixedcase */
     address public vaultContract;
     address public kyberContract;
+    address public kyberNetworkContract;
     address public wethContract;
     address public bZRxTokenContract;
 /* solhint-enable var-name-mixedcase */
@@ -128,6 +156,10 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         kyberContract = _kyberContract;
         wethContract = _wethContract;
         bZRxTokenContract = _bZRxTokenContract;
+
+        if (_kyberContract != address(0)) {
+            kyberNetworkContract = KyberNetworkInterface(_kyberContract).kyberNetworkContract();
+        }
 
         // settings for EMACollector
         emaValue = 8 * 10**9 wei; // set an initial price average for gas (8 gwei)
@@ -259,7 +291,8 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
                 address(this), // BZxOracle receives the WETH proceeds
                 address(this),
                 interestFee,
-                MAX_FOR_KYBER // no limit on the dest amount
+                MAX_FOR_KYBER, // no limit on the dest amount
+                0 // minConversionRate
             );
         }
 
@@ -305,7 +338,8 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
                 address(this), // BZxOracle receives the WETH proceeds
                 address(this),
                 interestFee,
-                MAX_FOR_KYBER // no limit on the dest amount
+                MAX_FOR_KYBER, // no limit on the dest amount
+                0 // minConversionRate
             );
         }
 
@@ -509,7 +543,9 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             vaultContract,
             vaultContract,
             sourceTokenAmount,
-            maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER);
+            maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER,
+            0 // minConversionRate
+        );
         require(destTokenAmountReceived > 0, "destTokenAmountReceived == 0");
     }
 
@@ -529,7 +565,9 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             vaultContract,
             vaultContract,
             loanPosition.positionTokenAmountFilled,
-            maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER);
+            maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER,
+            0 // minConversionRate
+        );
         require(destTokenAmountReceived > 0, "destTokenAmountReceived == 0");
 
         if (ensureHealthy) {
@@ -545,14 +583,15 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         }
     }
 
-    function verifyAndLiquidate(
+    function liquidatePosition(
         BZxObjects.LoanOrder memory loanOrder,
-        BZxObjects.LoanPosition memory loanPosition)
+        BZxObjects.LoanPosition memory loanPosition,
+        uint256 maxDestTokenAmount)
         public
         onlyBZx
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
-        if (!shouldLiquidate(
+        /*if (ensureValid && !shouldLiquidate(
             loanOrder,
             loanPosition)) {
 
@@ -561,10 +600,26 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
                 loanPosition.positionTokenAddressFilled,
                 vaultContract,
                 loanPosition.positionTokenAmountFilled)) {
-                revert("BZxOracle::verifyAndLiquidate: _transferToken failed");
+                revert("BZxOracle::liquidatePosition: _transferToken failed");
             }
 
             return (0,0);
+        }*/
+
+        if (requirePermissionedReserve) {
+            _checkReserveCount(
+                loanOrder,
+                loanPosition
+            );
+        }
+
+        uint256 minConversionRate = 0;
+        if (maxSlippagePercent != 100 ether) {
+            minConversionRate = _getMinConversionRate(
+                loanOrder,
+                loanPosition,
+                maxDestTokenAmount
+            );
         }
 
         (destTokenAmountReceived, sourceTokenAmountUsed) = _trade(
@@ -573,7 +628,9 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             vaultContract,
             vaultContract,
             loanPosition.positionTokenAmountFilled,
-            MAX_FOR_KYBER); // no limit on the dest amount
+            maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER,
+            minConversionRate
+        );
         require(destTokenAmountReceived > 0, "destTokenAmountReceived == 0");
     }
 
@@ -615,7 +672,8 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
                     vaultContract,
                     address(this),
                     wethBalance, // maximum usable amount
-                    loanTokenAmountNeeded
+                    loanTokenAmountNeeded,
+                    0 // minConversionRate
                 );
             } else {
                 // cover losses with just collateral proceeds
@@ -625,7 +683,8 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
                     vaultContract,
                     address(this),
                     wethAmountReceived > wethBalance ? wethBalance : wethAmountReceived, // maximum usable amount
-                    loanTokenAmountNeeded
+                    loanTokenAmountNeeded,
+                    0 // minConversionRate
                 );
             }
         }
@@ -834,7 +893,6 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
     function claimFees()
         public
     {
-        address kyberNetworkContract = KyberNetworkInterface(kyberContract).kyberNetworkContract();
         address[] memory reserves = KyberNetworkInterface(kyberNetworkContract).getReserves();
         address feeBurnerAddress = KyberNetworkInterface(kyberNetworkContract).feeBurnerContract();
         for(uint256 i=0; i < reserves.length; i++) {
@@ -855,7 +913,8 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         address receiverAddress,
         address returnToSenderAddress,
         uint256 sourceTokenAmount,
-        uint256 maxDestTokenAmount)
+        uint256 maxDestTokenAmount,
+        uint256 minConversionRate)
         public
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
@@ -875,7 +934,9 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             receiverAddress,
             returnToSenderAddress,
             sourceTokenAmount,
-            maxDestTokenAmount);
+            maxDestTokenAmount,
+            minConversionRate
+        );
         require(destTokenAmountReceived > 0, "destTokenAmountReceived == 0");
     }
 
@@ -934,6 +995,24 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         minMaintenanceMarginAmount = newMaintenanceMargin;
     }
 
+    function setRequirePermissionedReserve(
+        bool newValue)
+        public
+        onlyOwner
+    {
+        require(newValue != requirePermissionedReserve);
+        requirePermissionedReserve = newValue;
+    }
+
+    function setMaxSlippagePercent(
+        uint256 newAmount)
+        public
+        onlyOwner
+    {
+        require(newAmount != maxSlippagePercent && newAmount <= 10**20);
+        maxSlippagePercent = newAmount;
+    }
+
     function setVaultContractAddress(
         address newAddress)
         public
@@ -950,6 +1029,13 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
     {
         require(newAddress != kyberContract && newAddress != address(0));
         kyberContract = newAddress;
+    }
+
+    function setKyberNetworkContractAddress()
+        public
+        onlyOwner
+    {
+        kyberNetworkContract = KyberNetworkInterface(kyberContract).kyberNetworkContract();
     }
 
     function setWethContractAddress(
@@ -1026,7 +1112,8 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
     function tradeOwnedAsset(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint256 sourceTokenAmount)
+        uint256 sourceTokenAmount,
+        uint256 minConversionRate)
         public
         onlyOwner
         returns (uint256 destTokenAmountReceived)
@@ -1037,7 +1124,9 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             address(this),
             address(this),
             sourceTokenAmount,
-            MAX_FOR_KYBER);
+            MAX_FOR_KYBER,
+            minConversionRate
+        );
         require(destTokenAmountReceived > 0, "destTokenAmountReceived == 0");
     }
 
@@ -1082,30 +1171,98 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
                 address(this), // BZxOracle receives the WETH proceeds
                 address(this),
                 collateralTokenAmountUsable,
-                wethAmountNeeded
+                wethAmountNeeded,
+                0 // minConversionRate
             );
         }
     }
 
+    function _checkReserveCount(
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition)
+        internal
+        view
+    {
+        KyberNetworkInterface kyber = KyberNetworkInterface(kyberNetworkContract);
+
+        address[] memory reserveArrSrc = kyber.reservesPerTokenSrc(loanPosition.positionTokenAddressFilled);
+        require(reserveArrSrc.length > 0, "BZxOracle::_checkReserveCount: no reserves for this trade");
+
+        address[] memory reserveArrDest = kyber.reservesPerTokenDest(loanOrder.loanTokenAddress);
+        require(reserveArrDest.length > 0, "BZxOracle::_checkReserveCount: no reserves for this trade");
+
+        uint256 reserveCount = 0;
+        for (uint i = 0; i < reserveArrSrc.length; i++) {
+            if (kyber.reserveType(reserveArrSrc[i]) == KyberNetworkInterface.ReserveType.PERMISSIONED) {
+                reserveCount++;
+                break; // one reserve is all that is needed
+            }
+        }
+        require (reserveCount == 1, "BZxOracle::_checkReserveCount: no reserves for this trade");
+
+        reserveCount = 0;
+        for (uint i = 0; i < reserveArrDest.length; i++) {
+            if (kyber.reserveType(reserveArrDest[i]) == KyberNetworkInterface.ReserveType.PERMISSIONED) {
+                reserveCount++;
+                break; // one reserve is all that is needed
+            }
+        }
+        require (reserveCount == 1, "BZxOracle::_checkReserveCount: no reserves for this trade");
+    }
+
+    function _getMinConversionRate(
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
+        uint256 maxDestTokenAmount)
+        internal
+        view
+        returns (uint256)
+    {
+        (uint256 goodRate,) = _getExpectedRate(
+            loanPosition.positionTokenAddressFilled,
+            loanOrder.loanTokenAddress,
+            1 ether
+        );
+
+        uint256 srcAmount = maxDestTokenAmount < MAX_FOR_KYBER ? 
+            maxDestTokenAmount
+                .mul(_getDecimalPrecision(loanPosition.positionTokenAddressFilled, loanOrder.loanTokenAddress))
+                .div(goodRate) : 
+            loanPosition.positionTokenAmountFilled;
+
+        if (srcAmount <= 1 ether) {
+            return goodRate;
+        } else {
+            return goodRate
+                .sub(goodRate
+                    .mul(maxSlippagePercent)
+                    .div(10**20));
+        }
+    }
+
     function _getDecimalPrecision(
-        address sourceToken,
-        address destToken)
+        address sourceTokenAddress,
+        address destTokenAddress)
         internal
         view
         returns(uint256)
     {
-        uint256 sourceTokenDecimals = decimals[sourceToken];
-        if (sourceTokenDecimals == 0)
-            sourceTokenDecimals = EIP20(sourceToken).decimals();
+        if (sourceTokenAddress == destTokenAddress) {
+            return 10**18;
+        } else {
+            uint256 sourceTokenDecimals = decimals[sourceTokenAddress];
+            if (sourceTokenDecimals == 0)
+                sourceTokenDecimals = EIP20(sourceTokenAddress).decimals();
 
-        uint256 destTokenDecimals = decimals[destToken];
-        if (destTokenDecimals == 0)
-            destTokenDecimals = EIP20(destToken).decimals();
+            uint256 destTokenDecimals = decimals[destTokenAddress];
+            if (destTokenDecimals == 0)
+                destTokenDecimals = EIP20(destTokenAddress).decimals();
 
-        if (destTokenDecimals >= sourceTokenDecimals)
-            return 10**(SafeMath.sub(18, destTokenDecimals-sourceTokenDecimals));
-        else
-            return 10**(SafeMath.add(18, sourceTokenDecimals-destTokenDecimals));
+            if (destTokenDecimals >= sourceTokenDecimals)
+                return 10**(SafeMath.sub(18, destTokenDecimals-sourceTokenDecimals));
+            else
+                return 10**(SafeMath.add(18, sourceTokenDecimals-destTokenDecimals));
+        }
     }
 
     // ref: https://github.com/KyberNetwork/smart-contracts/blob/master/integration.md#rate-query
@@ -1135,7 +1292,8 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         address receiverAddress,
         address returnToSenderAddress,
         uint256 sourceTokenAmount,
-        uint256 maxDestTokenAmount)
+        uint256 maxDestTokenAmount,
+        uint256 minConversionRate)
         internal
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
@@ -1213,7 +1371,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
                     destTokenAddress,
                     receiverAddress,
                     maxDestTokenAmount,
-                    0, // no min coversation rate
+                    minConversionRate,
                     address(this)
                 )
             );

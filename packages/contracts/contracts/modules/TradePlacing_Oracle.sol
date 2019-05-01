@@ -71,7 +71,6 @@ contract TradePlacing_Oracle is BZxStorage, BZxProxiable, MiscFunctions {
             loanPosition,
             tradeTokenAddress,
             MAX_UINT,
-            false, // isLiquidation
             block.timestamp < loanPosition.loanEndUnixTimestampSec // ensureHealthy
         );
 

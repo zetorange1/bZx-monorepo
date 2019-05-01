@@ -42,6 +42,25 @@ contract TestNetOracle is BZxOracle {
 
     function() external payable {} // solhint-disable-line no-empty-blocks
 
+    function liquidatePosition(
+        BZxObjects.LoanOrder memory loanOrder,
+        BZxObjects.LoanPosition memory loanPosition,
+        uint256 maxDestTokenAmount)
+        public
+        onlyBZx
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
+    {
+        (destTokenAmountReceived, sourceTokenAmountUsed) = _trade(
+            loanPosition.positionTokenAddressFilled,
+            loanOrder.loanTokenAddress,
+            vaultContract,
+            vaultContract,
+            loanPosition.positionTokenAmountFilled,
+            maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER,
+            0); // minConversionRate
+        require(destTokenAmountReceived > 0, "destTokenAmountReceived == 0");
+    }
+
     /*
     * Owner functions
     */
@@ -106,7 +125,8 @@ contract TestNetOracle is BZxOracle {
         address receiverAddress,
         address returnToSenderAddress,
         uint256 sourceTokenAmount,
-        uint256 maxDestTokenAmount)
+        uint256 maxDestTokenAmount,
+        uint256 /* minConversionRate */)
         internal
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
