@@ -97,7 +97,8 @@ contract PositionTokenLogic is SplittableToken {
                     receiver, // receiverAddress
                     receiver, // returnToSenderAddress
                     loanAmountOwed,
-                    MAX_UINT
+                    MAX_UINT,
+                    0 // minConversionRate
                 );
 
                 loanAmountOwed = destTokenAmountReceived;
@@ -137,7 +138,8 @@ contract PositionTokenLogic is SplittableToken {
                     receiver, // receiverAddress
                     receiver, // returnToSenderAddress
                     loanAmountOwed,
-                    MAX_UINT
+                    MAX_UINT,
+                    0 // minConversionRate
                 );
 
                 loanAmountOwed = destTokenAmountReceived;
@@ -382,7 +384,8 @@ contract PositionTokenLogic is SplittableToken {
                 address(this), // receiverAddress
                 address(this), // returnToSenderAddress
                 depositAmount,
-                liquidityAmount // maxDestAmount shouldn't exceed the market liquidity for the pToken
+                liquidityAmount, // maxDestAmount shouldn't exceed the market liquidity for the pToken
+                0 // minConversionRate
             );
 
             if (depositAmount > depositAmountUsed) {

@@ -187,15 +187,15 @@ module.exports = function(deployer, network, accounts) {
           return;
         } else {
           name = "Fulcrum Perpetual Long "+assetSymbol+" "+leverageAmount+"x";
-          symbol = "pl"+assetSymbol+leverageAmount+"x";
+          symbol = "pL"+assetSymbol+leverageAmount+"x";
         }
       } else { // type == "short"
         if (leverageAmount == 1) {
           name = "Fulcrum Perpetual Short "+assetSymbol;
-          symbol = "ps"+assetSymbol;
+          symbol = "pS"+assetSymbol;
         } else {
           name = "Fulcrum Perpetual Short "+assetSymbol+" "+leverageAmount+"x";
-          symbol = "ps"+assetSymbol+leverageAmount+"x";
+          symbol = "pS"+assetSymbol+leverageAmount+"x";
         }
       }
 

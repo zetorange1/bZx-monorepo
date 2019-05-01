@@ -959,14 +959,17 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         LoanData memory loanData = loanOrderData[loanOrder.loanOrderHash];
         if (loanData.loanOrderHash == loanOrder.loanOrderHash) {
 
-            totalAssetBorrow = totalAssetBorrow > closeAmount ? 
-                totalAssetBorrow.sub(closeAmount) : 0;
-
             if (burntTokenReserveList.length > 0) {
                 _claimLoanToken(_getNextOwed());
             } else {
                 _settleInterest();
             }
+
+            if (closeAmount == 0)
+                return true;
+
+            totalAssetBorrow = totalAssetBorrow > closeAmount ? 
+                totalAssetBorrow.sub(closeAmount) : 0;
 
             // checkpoint supply since the base protocol borrow stats have changed
             checkpointSupply_ = _totalAssetSupply(0);

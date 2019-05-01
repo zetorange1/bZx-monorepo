@@ -13,7 +13,8 @@ interface IBZxOracle {
         address receiverAddress,
         address returnToSenderAddress,
         uint256 sourceTokenAmount,
-        uint256 maxDestTokenAmount)
+        uint256 maxDestTokenAmount,
+        uint256 minConversionRate)
         external
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
 
