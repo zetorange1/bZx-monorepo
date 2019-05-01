@@ -36,7 +36,7 @@ export const getMarginLevels = async (
 
 export const liquidateLoan = (
   { web3, networkId, addresses },
-  { loanOrderHash, trader, getObject, txOpts }
+  { loanOrderHash, trader, liquidateAmount, getObject, txOpts }
 ) => {
   const bZxContract = CoreUtils.getContractInstance(
     web3,
@@ -44,7 +44,11 @@ export const liquidateLoan = (
     addresses.BZx
   );
 
-  const txObj = bZxContract.methods.liquidatePosition(loanOrderHash, trader);
+  const txObj = bZxContract.methods.liquidatePosition(
+    loanOrderHash,
+    trader,
+    liquidateAmount ? liquidateAmount : "0"
+  );
 
   if (getObject) {
     return txObj;
