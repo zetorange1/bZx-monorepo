@@ -261,7 +261,7 @@ export default class LoanItem extends BZxComponent {
             </DataPoint>
           </DataPointContainer>
 
-          <DataPointContainer>
+          {/*<DataPointContainer>
             <Label>Trade Amount</Label>
             <DataPoint>
               {fromBigNumber(
@@ -271,7 +271,7 @@ export default class LoanItem extends BZxComponent {
               {` `}
               {positionTokenSymbol}
             </DataPoint>
-          </DataPointContainer>
+            </DataPointContainer>*/}
 
           {active ? (
             <Fragment>

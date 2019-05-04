@@ -134,6 +134,7 @@ export default class LoanTokens extends BZxComponent {
 
     let tokenizedRegistry = await this.props.bZx.getWeb3Contract(`TokenizedRegistry`);
     const tokenList = await this.wrapAndRun(tokenizedRegistry.methods.getTokens(0, 10, 1).call());
+    console.log(`tokenList`,tokenList);
 
     await this.setState({ 
       tokenList

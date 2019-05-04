@@ -123,8 +123,17 @@ export default class PositionTokens extends BZxComponent {
       iTokenAddress = "0xF26eBD03adD32c23C10042e456f269AA600EBCA0";//(await this.props.bZx.getWeb3Contract(`LoanToken`))._address;
 
       if (this.props.bZx.networkId === 50) { // development
-        iTokenAddress = (await this.props.bZx.getWeb3Contract(`LoanToken`))._address;
-        pTokenAddress = (await this.props.bZx.getWeb3Contract(`PositionToken`))._address;
+        //iTokenAddress = (await this.props.bZx.getWeb3Contract(`LoanToken`))._address;
+        //pTokenAddress = (await this.props.bZx.getWeb3Contract(`PositionToken`))._address;
+
+        iTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
+          `0xF26eBD03adD32c23C10042e456f269AA600EBCA0` :
+          `0x3E809c563c15a295E832e37053798DdC8d6C8dab`;
+
+        pTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
+          `0x9213FabaaF1b51FC0E3F23D4C18703CF91B12393` :
+          `0x39c3Fc9F4D8430af2713306CE80C584752d9e1C7`;
+
         tradeTokenContract = await this.props.bZx.getWeb3Contract(`TestToken9`);
       }/* else if (this.props.bZx.networkId == 42) { // kovan
         iTokenAddress = "0xF26eBD03adD32c23C10042e456f269AA600EBCA0";

@@ -145,6 +145,7 @@ export default class LoanItem extends BZxComponent {
     const txObj = bZx.liquidateLoan({
       loanOrderHash,
       trader,
+      liquidateAmount: "000000000000000000",
       getObject: true
     });
 

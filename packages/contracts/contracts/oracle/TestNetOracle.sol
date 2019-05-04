@@ -152,7 +152,7 @@ contract TestNetOracle is BZxOracle {
                         destTokenAddress,
                         receiverAddress,
                         sourceTokenAmount)) {
-                        revert("BZxOracle::_trade: _transferToken failed");
+                        revert("TestNetOracle::_trade: _transferToken failed");
                     }
             } else {
                 if (receiverAddress != address(this))
@@ -160,7 +160,7 @@ contract TestNetOracle is BZxOracle {
                         destTokenAddress,
                         receiverAddress,
                         destTokenAmountReceived)) {
-                        revert("BZxOracle::_trade: _transferToken failed");
+                        revert("TestNetOracle::_trade: _transferToken failed");
                     }
 
                 if (returnToSenderAddress != address(this))
@@ -170,7 +170,7 @@ contract TestNetOracle is BZxOracle {
                             sourceTokenAddress,
                             returnToSenderAddress,
                             sourceTokenAmount-sourceTokenAmountUsed)) {
-                            revert("BZxOracle::_trade: _transferToken failed");
+                            revert("TestNetOracle::_trade: _transferToken failed");
                         }
                     }
             }

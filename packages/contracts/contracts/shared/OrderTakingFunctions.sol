@@ -673,8 +673,6 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
                 interestTime = loanPosition.loanEndUnixTimestampSec;
             }
 
-            traderInterest.interestUpdatedDate = interestTime;
-
             if (traderInterest.interestUpdatedDate > 0 && traderInterest.interestOwedPerDay > 0) {
                 traderInterest.interestPaid = interestTime
                     .sub(traderInterest.interestUpdatedDate)
@@ -688,6 +686,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
                 .mul(owedPerDay)
                 .div(86400);
 
+            traderInterest.interestUpdatedDate = interestTime;
             traderInterest.interestOwedPerDay = traderInterest.interestOwedPerDay.add(owedPerDay);
             traderInterest.interestDepositTotal = traderInterest.interestDepositTotal.add(totalInterestToCollect);
 
