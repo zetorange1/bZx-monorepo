@@ -13,4 +13,4 @@ This repository is a monorepo including the bZx protocol smart contracts and num
 | contracts | BZx smart contracts ecosystem. |
 | portal | Frontend portal for the bZx network. |
 
-Documentation page: [https://bzx.network/docs/](https://bzx.network/docs/)
+Developer Docs: [https://docs.bzx.network](https://docs.bzx.network)
