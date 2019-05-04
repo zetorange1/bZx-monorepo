@@ -27,7 +27,7 @@
     "lodash": "^4.17.5",
     "solc_0.5.3": "npm:solc@0.5.3",
     "solc_0.5.7": "npm:solc@0.5.7",
-    "truffle": "5.0.4",
+    "truffle": "^5.0.15",
     "truffle-privatekey-provider": "https://github.com/bZxNetwork/truffle-privatekey-provider",
     "web3-utils": "1.0.0-beta.34"
   },
