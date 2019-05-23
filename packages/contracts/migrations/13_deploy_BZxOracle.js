@@ -6,7 +6,7 @@ var BZxProxy = artifacts.require("BZxProxy");
 var BZxProxySettings = artifacts.require("BZxProxySettings");
 var OracleRegistry = artifacts.require("OracleRegistry");
 
-var WETH = artifacts.require("WETHInterface");
+//var WETH = artifacts.require("WETHInterface");
 var BZxEther = artifacts.require("BZxEther");
 
 const path = require("path");
@@ -100,6 +100,10 @@ module.exports = (deployer, network, accounts) => {
           var oldWETHBalance = await weth.balanceOf(bZxOracleOld.address);
           if (oldWETHBalance.toString() !== "0") {
             await bZxOracleOld.transferToken(weth.address, oracleAddress, oldWETHBalance);
+
+            /*await bZxOracleOld.transferToken("0xdd974d5c2e2928dea5f71b9825b8b646686bd200", oracleAddress, "0");
+            await bZxOracleOld.transferToken("0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359", oracleAddress, "0");
+            console.log("Done with transfers");*/
           }
 
           await oracleRegistry.removeOracle(CURRENT_OLD_ORACLE_ADDRESS, 0);
