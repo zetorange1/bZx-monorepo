@@ -41,7 +41,7 @@ interface KyberNetworkInterface {
         uint256 maxDestAmount,
         uint256 minConversionRate,
         address walletId,
-        bytes hint
+        bytes calldata hint
     )
         external
         payable
@@ -142,7 +142,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
     bool public requirePermissionedReserve = false;
 
     // Liquidation swaps must be priced from at least this amount of Permissioned Kyber reserves.
-    bool public minPermissionedReserveCount = 0;
+    uint256 public minPermissionedReserveCount = 0;
 
     // Percentage of maximum slippage allowed for Kyber swap when liquidating
     // This will always be between 0 and 100%
