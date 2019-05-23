@@ -31,22 +31,33 @@ interface KyberNetworkInterface {
     /// @param maxDestAmount A limit on the amount of dest tokens
     /// @param minConversionRate The minimal conversion rate. If actual rate is lower, trade is canceled.
     /// @param walletId is the wallet ID to send part of the fees
+    /// @param hint for filtering permissionless reserves
     /// @return amount of actual dest tokens
-    function trade(
+    /*function tradeWithHint(
         address src,
         uint256 srcAmount,
         address dest,
         address destAddress,
         uint256 maxDestAmount,
         uint256 minConversionRate,
-        address walletId
+        address walletId,
+        bytes hint
     )
         external
         payable
-        returns(uint256);
+        returns(uint256);*/
 
     /// @notice use token address ETH_TOKEN_ADDRESS for ether
     function getExpectedRate(
+        address src,
+        address dest,
+        uint256 srcQty)
+        external
+        view
+        returns (uint256 expectedRate, uint256 slippageRate);
+
+    /// @notice use token address ETH_TOKEN_ADDRESS for ether
+    function getExpectedRateOnlyPermission(
         address src,
         address dest,
         uint256 srcQty)
@@ -127,12 +138,15 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
     // A value of 0 indicates that no threshold exists for this parameter.
     uint256 public minMaintenanceMarginAmount = 15 * 10**18;
 
-    // If set, ensures that token swaps only happen if priced from at least one Permissioned Kyber reserve
+    // If set, ensures that token swaps only happen if priced from Permissioned Kyber reserves
     bool public requirePermissionedReserve = false;
+
+    // Liquidation swaps must be priced from at least this amount of Permissioned Kyber reserves.
+    bool public minPermissionedReserveCount = 0;
 
     // Percentage of maximum slippage allowed for Kyber swap when liquidating
     // This will always be between 0 and 100%
-    uint256 public maxSlippagePercent = 10 * 10**18;
+    uint256 public maxSlippagePercent = 100 ether;//10 * 10**18;
 
 /* solhint-disable var-name-mixedcase */
     address public vaultContract;
@@ -606,7 +620,7 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             return (0,0);
         }*/
 
-        if (requirePermissionedReserve) {
+        if (minPermissionedReserveCount > 0) {
             _checkReserveCount(
                 loanOrder,
                 loanPosition
@@ -1004,6 +1018,15 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         requirePermissionedReserve = newValue;
     }
 
+    function setMinPermissionedReserveCount(
+        uint256 newValue)
+        public
+        onlyOwner
+    {
+        require(newValue != minPermissionedReserveCount);
+        minPermissionedReserveCount = newValue;
+    }
+
     function setMaxSlippagePercent(
         uint256 newAmount)
         public
@@ -1183,6 +1206,9 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         internal
         view
     {
+        if (minPermissionedReserveCount == 0)
+            return;
+
         KyberNetworkInterface kyber = KyberNetworkInterface(kyberNetworkContract);
 
         address[] memory reserveArrSrc = kyber.reservesPerTokenSrc(loanPosition.positionTokenAddressFilled);
@@ -1195,19 +1221,21 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
         for (uint i = 0; i < reserveArrSrc.length; i++) {
             if (kyber.reserveType(reserveArrSrc[i]) == KyberNetworkInterface.ReserveType.PERMISSIONED) {
                 reserveCount++;
-                break; // one reserve is all that is needed
+                if (reserveCount == minPermissionedReserveCount)
+                    break;
             }
         }
-        require (reserveCount == 1, "BZxOracle::_checkReserveCount: no reserves for this trade");
+        require (reserveCount == minPermissionedReserveCount, "BZxOracle::_checkReserveCount: too few reserves for this trade");
 
         reserveCount = 0;
         for (uint i = 0; i < reserveArrDest.length; i++) {
             if (kyber.reserveType(reserveArrDest[i]) == KyberNetworkInterface.ReserveType.PERMISSIONED) {
                 reserveCount++;
-                break; // one reserve is all that is needed
+                if (reserveCount == minPermissionedReserveCount)
+                    break;
             }
         }
-        require (reserveCount == 1, "BZxOracle::_checkReserveCount: no reserves for this trade");
+        require (reserveCount == minPermissionedReserveCount, "BZxOracle::_checkReserveCount: too few reserves for this trade");
     }
 
     function _getMinConversionRate(
@@ -1278,11 +1306,20 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
             expectedRate = 10**18;
             slippageRate = 10**18;
         } else {
-            (expectedRate, slippageRate) = KyberNetworkInterface(kyberContract).getExpectedRate(
-                sourceTokenAddress,
-                destTokenAddress,
-                sourceTokenAmount
-            );
+            if (requirePermissionedReserve) {
+                (expectedRate, slippageRate) = KyberNetworkInterface(kyberContract).getExpectedRateOnlyPermission(
+                    sourceTokenAddress,
+                    destTokenAddress,
+                    sourceTokenAmount
+                );
+            } else {
+                (expectedRate, slippageRate) = KyberNetworkInterface(kyberContract).getExpectedRate(
+                    sourceTokenAddress,
+                    destTokenAddress,
+                    sourceTokenAmount
+                );
+            }
+
         }
     }
 
@@ -1365,14 +1402,15 @@ contract BZxOracle is OracleInterface, OracleNotifier, EIP20Wrapper, EMACollecto
 
             (bool result, bytes memory data) = kyberContract.call.gas(gasleft())(
                 abi.encodeWithSignature(
-                    "trade(address,uint256,address,address,uint256,uint256,address)",
+                    "tradeWithHint(address,uint256,address,address,uint256,uint256,address,bytes)",
                     sourceTokenAddress,
                     sourceTokenAmount,
                     destTokenAddress,
                     receiverAddress,
                     maxDestTokenAmount,
                     minConversionRate,
-                    address(this)
+                    address(this),
+                    requirePermissionedReserve ? "PERM" : "" // hint
                 )
             );
 
