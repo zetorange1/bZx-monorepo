@@ -152,6 +152,14 @@ contract BZx is BZxStorage {
         bool isApproved)
         external;
 
+    /// @dev Toggles approval of a protocol deletate that can fill orders on behalf of another user when requested by that user
+    /// @param delegate The delegate address
+    /// @param isApproved If true, the delegate is approved. If false, the delegate is not approved
+    function toggleProtocolDelegateApproved(
+        address delegate,
+        bool isApproved)
+        external;
+
     /// @dev Cancels remaining (untaken) loan
     /// @param orderAddresses Array of order's makerAddress, loanTokenAddress, interestTokenAddress, collateralTokenAddress, feeRecipientAddress, oracleAddress, takerAddress, tradeTokenToFillAddress.
     /// @param orderValues Array of order's loanTokenAmount, interestAmount, initialMarginAmount, maintenanceMarginAmount, lenderRelayFee, traderRelayFee, maxDurationUnixTimestampSec, expirationUnixTimestampSec, makerRole (0=lender, 1=trader), withdrawOnOpen, and salt.
@@ -493,18 +501,21 @@ contract BZx is BZxStorage {
             uint256 loanOffsetAmount,
             uint256 collateralOffsetAmount);
 
+    /// @dev Get the current profit/loss data of a position versus the amount borrowed
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position
-    /// @return netCollateralAmount The amount of collateral escrowed netted to any exceess or deficit
+    /// @return isProfit False it there's a loss, True otherwise
+    /// @return profitOrLoss The amount of profit or amount of loss (denominated in loanToken)
     /// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender
     /// @return loanTokenAmountBorrowed The amount of loan token borrowed for the position
-    function getTotalEscrow(
+    function getProfitOrLoss(
         bytes32 loanOrderHash,
         address trader)
         public
         view
         returns (
-            uint256 netCollateralAmount,
+            bool isProfit,
+            uint profitOrLoss,
             uint256 interestDepositRemaining,
             uint256 loanTokenAmountBorrowed);
 
@@ -566,7 +577,7 @@ contract BZx is BZxStorage {
     function forceCloseLoan(
         bytes32 loanOrderHash,
         address trader)
-        public
+        external
         returns (bool);
 
     /// @dev Checks the conditions for liquidation with the oracle

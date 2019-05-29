@@ -6,6 +6,7 @@
 pragma solidity 0.5.3;
 pragma experimental ABIEncoderV2;
 
+import "../modifiers/BZxOwnable.sol";
 import "./OracleNotifierInterface.sol";
 
 
@@ -14,7 +15,7 @@ import "./OracleNotifierInterface.sol";
     Gas cost considerations should also be taken into account.
 */
 
-contract OracleNotifier {
+contract OracleNotifier is BZxOwnable {
 
     /*
     TODO: For future use.
@@ -24,10 +25,12 @@ contract OracleNotifier {
     */
     mapping (bytes32 => address) public closeLoanNotifier; // external contract that is called when part or all of a loan is closed
 
-    function _setNotifications(
+
+    function setNotifications(
         bytes32 notifyHash,
         bytes memory oracleData)
-        internal
+        public
+        onlyBZx
     {
         address notifier;
         if (oracleData.length >= 20) {

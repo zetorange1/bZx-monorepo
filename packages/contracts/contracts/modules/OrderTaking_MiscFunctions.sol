@@ -34,6 +34,7 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
         targets[bytes4(keccak256("preSign(address,address[8],uint256[11],bytes,bytes)"))] = _target;
         targets[bytes4(keccak256("preSignWithHash(address,bytes32,bytes)"))] = _target;
         targets[bytes4(keccak256("toggleDelegateApproved(address,bool)"))] = _target;
+        targets[bytes4(keccak256("toggleProtocolDelegateApproved(address,bool)"))] = _target;
         targets[bytes4(keccak256("getLoanTokenFillable(bytes32)"))] = _target;
         targets[bytes4(keccak256("getLoanOrderHash(address[8],uint256[11],bytes)"))] = _target;
         targets[bytes4(keccak256("isValidSignature(address,bytes32,bytes)"))] = _target;
@@ -229,6 +230,18 @@ contract OrderTaking_MiscFunctions is BZxStorage, BZxProxiable, OrderTakingFunct
         external
     {
         allowedValidators[msg.sender][delegate] = isApproved;
+    }
+
+    /// @dev Toggles approval of a protocol deletate that can fill orders on behalf of another user when requested by that user
+    /// @param delegate The delegate address
+    /// @param isApproved If true, the delegate is approved. If false, the delegate is not approved
+    function toggleProtocolDelegateApproved(
+        address delegate,
+        bool isApproved)
+        external
+        onlyOwner
+    {
+        allowedValidators[address(0)][delegate] = isApproved;
     }
 
     /// @dev Returns the amount of fillable loan token for an order

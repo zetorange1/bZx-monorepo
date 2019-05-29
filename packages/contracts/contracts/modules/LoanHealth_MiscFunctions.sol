@@ -218,7 +218,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
     function forceCloseLoan(
         bytes32 loanOrderHash,
         address trader)
-        public
+        external
         onlyOwner
         tracksGas
         returns (bool)

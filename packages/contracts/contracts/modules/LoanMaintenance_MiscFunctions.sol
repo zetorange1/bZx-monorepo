@@ -37,7 +37,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         targets[bytes4(keccak256("withdrawPosition(bytes32,uint256)"))] = _target;
         targets[bytes4(keccak256("depositPosition(bytes32,address,uint256)"))] = _target;
         targets[bytes4(keccak256("getPositionOffset(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("getTotalEscrow(bytes32,address)"))] = _target;
+        targets[bytes4(keccak256("getProfitOrLoss(bytes32,address)"))] = _target;
     }
 
     /// @dev Allows the trader to increase the collateral for a loan.
@@ -154,10 +154,11 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             return 0;
         }
 
-        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
+        // for now we allow excess collateral withdrawals 
+        /*if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
             // if a loan has ended, a loan close function should be called to recover collateral
             return 0;
-        }
+        }*/
 
         // Withdraw withdrawAmount or amountWithdrawn, whichever is lessor
         amountWithdrawn = Math.min256(withdrawAmount, amountWithdrawn);
@@ -470,18 +471,14 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             loanPosition);
     }
 
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @param trader The trader of the position
-    /// @return netCollateralAmount The amount of collateral escrowed netted to any exceess or deficit
-    /// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender
-    /// @return loanTokenAmountBorrowed The amount of loan token borrowed for the position
-    function getTotalEscrow(
+    function getProfitOrLoss(
         bytes32 loanOrderHash,
         address trader)
         public
         view
         returns (
-            uint256 netCollateralAmount,
+            bool isProfit,
+            uint profitOrLoss,
             uint256 interestDepositRemaining,
             uint256 loanTokenAmountBorrowed)
     {
@@ -490,20 +487,23 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         LoanPosition memory loanPosition = loanPositions[positionId];
         TraderInterest memory traderInterest = traderLoanInterest[positionId];
 
-        if (loanOrder.loanTokenAddress == address(0) || loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return (0,0,0);
+        uint positionToLoanAmount;
+        if (loanPosition.positionTokenAddressFilled == loanOrder.loanTokenAddress) {
+            positionToLoanAmount = loanPosition.positionTokenAmountFilled;
+        } else {
+            (,,positionToLoanAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+                loanPosition.positionTokenAddressFilled,
+                loanOrder.loanTokenAddress,
+                loanPosition.positionTokenAmountFilled
+            );
         }
 
-        (bool isPositive,,,uint256 collateralOffset) = _getPositionOffset(
-            loanOrder,
-            loanPosition);
-
-        if (isPositive) {
-            netCollateralAmount = loanPosition.collateralTokenAmountFilled.add(collateralOffset);
-        } else if (loanPosition.collateralTokenAmountFilled > collateralOffset) {
-            netCollateralAmount = loanPosition.collateralTokenAmountFilled.sub(collateralOffset);
+        if (positionToLoanAmount > loanPosition.loanTokenAmountFilled) {
+            isProfit = true;
+            profitOrLoss = positionToLoanAmount - loanPosition.loanTokenAmountFilled;
         } else {
-            netCollateralAmount = 0;
+            isProfit = false;
+            profitOrLoss = loanPosition.loanTokenAmountFilled - positionToLoanAmount;
         }
 
         interestDepositRemaining = loanPosition.loanEndUnixTimestampSec > block.timestamp ? loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(traderInterest.interestOwedPerDay).div(86400) : 0;

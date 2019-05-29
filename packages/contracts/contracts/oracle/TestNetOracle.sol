@@ -30,13 +30,15 @@ contract TestNetOracle is BZxOracle {
         address _vaultContract,
         address _kyberContract,
         address _wethContract,
-        address _bZRxTokenContract)
+        address _bZRxTokenContract,
+        address _oracleNotifier)
         public
         BZxOracle(
             _vaultContract,
             _kyberContract,
             _wethContract,
-            _bZRxTokenContract)
+            _bZRxTokenContract,
+            _oracleNotifier)
         payable
     {}
 
