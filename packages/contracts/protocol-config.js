@@ -92,6 +92,7 @@ module.exports = {
       BZxEther: "0x96CCe310096755f69594212d5D5fB5485577E7d1",
       MultiSig: "",
       DAITokenAddress: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359",
+      USDCTokenAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
     }
   }
 };
