@@ -108,7 +108,7 @@ contract AdvancedToken is AdvancedTokenStorage {
     }
 
     function _burn(
-        address _who, 
+        address _who,
         uint256 _tokenAmount,
         uint256 _assetAmount,
         uint256 _price)
@@ -119,6 +119,10 @@ contract AdvancedToken is AdvancedTokenStorage {
         // sender's balance is greater than the totalSupply, which *should* be an assertion failure
 
         balances[_who] = balances[_who].sub(_tokenAmount);
+        if (balances[_who] <= 10) { // we can't leave such small balance quantities
+            balances[_who] = 0;
+        }
+
         totalSupply_ = totalSupply_.sub(_tokenAmount);
         emit Burn(_who, _tokenAmount, _assetAmount, _price);
         emit Transfer(_who, address(0), _tokenAmount);

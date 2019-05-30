@@ -962,7 +962,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     * Owner functions
     */
 
-    function setminCollateralInWethAmount(
+    function setMinCollateralInWethAmount(
         uint256 newValue,
         bool enforce)
         public
@@ -1108,6 +1108,15 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     {
         require(_newEMAPeriods > 1 && _newEMAPeriods != emaPeriods);
         emaPeriods = _newEMAPeriods;
+    }
+
+    function wrapEther()
+        public
+        onlyOwner
+    {
+        if (address(this).balance > 0) {
+            WETHInterface(wethContract).deposit.value(address(this).balance)();
+        }
     }
 
     function transferEther(

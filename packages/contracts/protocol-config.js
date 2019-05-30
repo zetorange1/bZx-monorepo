@@ -33,6 +33,7 @@ module.exports = {
       BZxEther: "0xa3eBDf66e0292F1d5FD82Ae3fcd92551Ac9dB081",
       MultiSig: "0x35b94649Bd03D13eF08e999127351Cc52286473C",
       DAITokenAddress: "0xad6d458402f60fd3bd25163575031acdce07538d", // Kyber DAI
+      USDCTokenAddress: "0x95cc8d8f29d0f7fcc425e8708893e759d1599c97" // Kyber ENG
     },
     kovan: {
       ZeroEx: {

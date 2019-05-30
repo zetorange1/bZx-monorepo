@@ -77,6 +77,7 @@ module.exports = function(deployer, network, accounts) {
 
     await fs.appendFile("TokenizedLoans_"+network+".log", "-------\n");
 
+    console.log("Deploying bZx ETH iToken.");
     let iETH = await deployIToken(
       "bZx ETH iToken",
       "iETH",
@@ -84,6 +85,7 @@ module.exports = function(deployer, network, accounts) {
     );
     //let iETH = await LoanTokenLogic.at("0x10fE1ED475E0Fd3b3F52dCc63aA92c0F761e6360");
 
+    console.log("Deploying bZx DAI iToken.");
     let iDAI = await deployIToken(
       "bZx DAI iToken",
       "iDAI",
@@ -91,6 +93,7 @@ module.exports = function(deployer, network, accounts) {
     );
     //let iDAI = await LoanTokenLogic.at("0xFCE3aEeEC8EB39304ED423c0d23c0A978DA9E934");
 
+    console.log("Deploying bZx USDC iToken.");
     let iUSDC = await deployIToken(
       "bZx USDC iToken",
       "iUSDC",
@@ -98,7 +101,8 @@ module.exports = function(deployer, network, accounts) {
     );
     //let iUSDC = await LoanTokenLogic.at("0xFCE3aEeEC8EB39304ED423c0d23c0A978DA9E934");
 
-    if (network != "development") {
+    if (network == "mainnet") {
+      console.log("Deploying bZx WBTC iToken.");
       let iWBTC = await deployIToken(
         "bZx WBTC iToken",
         "iWBTC",
@@ -106,6 +110,7 @@ module.exports = function(deployer, network, accounts) {
       );
       //let iWBTC = await LoanTokenLogic.at("0xFCE3aEeEC8EB39304ED423c0d23c0A978DA9E934");
 
+      console.log("Deploying bZx BAT iToken.");
       let iBAT = await deployIToken(
         "bZx BAT iToken",
         "iBAT",
@@ -113,6 +118,7 @@ module.exports = function(deployer, network, accounts) {
       );
       //let iBAT = await LoanTokenLogic.at("0xFCE3aEeEC8EB39304ED423c0d23c0A978DA9E934");
 
+      console.log("Deploying bZx KNC iToken.");
       let iKNC = await deployIToken(
         "bZx KNC iToken",
         "iKNC",
@@ -120,6 +126,7 @@ module.exports = function(deployer, network, accounts) {
       );
       //let iKNC = await LoanTokenLogic.at("0xFCE3aEeEC8EB39304ED423c0d23c0A978DA9E934");
 
+      console.log("Deploying bZx REP iToken.");
       let iREP = await deployIToken(
         "bZx REP iToken",
         "iREP",
@@ -127,6 +134,7 @@ module.exports = function(deployer, network, accounts) {
       );
       //let iREP = await LoanTokenLogic.at("0xFCE3aEeEC8EB39304ED423c0d23c0A978DA9E934");
 
+      console.log("Deploying bZx ZRX iToken.");
       let iZRX = await deployIToken(
         "bZx ZRX iToken",
         "iZRX",
@@ -137,8 +145,8 @@ module.exports = function(deployer, network, accounts) {
 
 
     for (let leverageAmount=1; leverageAmount <= 4; leverageAmount++) {
-      //if (leverageAmount != 2)
-      //  continue;
+      if (leverageAmount != 2)
+        continue;
 
       await deployPToken(
         leverageAmount,      
@@ -170,6 +178,7 @@ module.exports = function(deployer, network, accounts) {
       let logicContract;
       if (symbol == "iETH") {
         if (!etherLoanTokenLogic) {
+          console.log(" Deploying EtherLoanTokenLogic.");
           etherLoanTokenLogic = await deployer.deploy(
             EtherLoanTokenLogic
           );
@@ -177,6 +186,7 @@ module.exports = function(deployer, network, accounts) {
         logicContract = etherLoanTokenLogic;
       } else {
         if (!loanTokenLogic) {
+          console.log(" Deploying LoanTokenLogic.");
           loanTokenLogic = await deployer.deploy(
             LoanTokenLogic
           );
@@ -184,11 +194,13 @@ module.exports = function(deployer, network, accounts) {
         logicContract = loanTokenLogic;
       }
 
+      console.log(" Deploying LoanToken.");
       let loanTokenProxy = await deployer.deploy(
         LoanToken,
         logicContract.address
       );
       let loanToken = await EtherLoanTokenLogic.at(loanTokenProxy.address);
+      console.log(" Initialize.");
       await loanToken.initialize(
         BZxProxy.address,
         BZxVault.address,
@@ -199,6 +211,7 @@ module.exports = function(deployer, network, accounts) {
         symbol
       );
 
+      console.log(" toggleProtocolDelegateApproved.");
       await web3.eth.sendTransaction({
         from: accounts[0],
         to: BZxProxy.address,
@@ -224,6 +237,7 @@ module.exports = function(deployer, network, accounts) {
             process.exit();
           }                
         
+        console.log(" initLeverage "+leverageAmount.toString());
         await loanToken.initLeverage(
           [
             web3.utils.toWei(leverageAmount.toString(), "ether"),
@@ -237,6 +251,7 @@ module.exports = function(deployer, network, accounts) {
       await fs.appendFile("TokenizedLoans_"+network+".log", "LoanToken\t"+loanToken.address+"\t"+loanTokenAddress+"\t"+name+"\t"+symbol+"\n");
 
       if (network == "development" && symbol == "iETH") {
+        console.log(" mintWithEther.");
         await loanToken.mintWithEther(accounts[0], {value: web3.utils.toWei("10", "ether")});
       }
 
@@ -282,19 +297,23 @@ module.exports = function(deployer, network, accounts) {
         }
       }
 
+      console.log("Deploying "+name+".");
       let leverageAmountWei = web3.utils.toWei(leverageAmount.toString(), "ether");
       let loanOrderHash = await loanTokenDeployed.loanOrderHashes.call(leverageAmountWei);
       if (!positionTokenLogic) {
+        console.log(" Deploying PositionTokenLogic.");
         positionTokenLogic = await deployer.deploy(
           PositionTokenLogic
         );
         //positionTokenLogic = await PositionTokenLogic.at("0x9d83e642e4F09822B7551f108ceB30c5fAE6FE9C");
       }
+      console.log(" Deploying PositionToken.");
       let positionTokenProxy = await deployer.deploy(
         PositionToken,
         positionTokenLogic.address
       );
       let positionToken = await PositionTokenLogic.at(positionTokenProxy.address);
+      console.log(" Initialize.");
       await positionToken.initialize(
         BZxProxy.address,
         BZxVault.address,

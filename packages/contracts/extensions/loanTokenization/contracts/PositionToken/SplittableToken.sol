@@ -120,7 +120,7 @@ contract SplittableToken is SplittableTokenStorage {
     }
 
     function _burn(
-        address _who, 
+        address _who,
         uint256 _tokenAmount,
         uint256 _assetAmount,
         uint256 _price)
@@ -132,7 +132,7 @@ contract SplittableToken is SplittableTokenStorage {
         // sender's balance is greater than the totalSupply, which *should* be an assertion failure
 
         balances[_who] = normalize(whoBalance.sub(_tokenAmount));
-        if (balanceOf(_who) == 0) {
+        if (balances[_who] <= 10 || balanceOf(_who) <= 10) { // we can't leave such small balance quantities
             balances[_who] = 0;
         }
 

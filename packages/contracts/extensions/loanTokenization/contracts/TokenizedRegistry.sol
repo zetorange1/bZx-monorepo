@@ -60,8 +60,8 @@ contract TokenizedRegistry is Ownable {
         public
         onlyOwner
     {
-        require(_tokens.length == _assets.length 
-                && _assets.length == _names.length 
+        require(_tokens.length == _assets.length
+                && _assets.length == _names.length
                 && _names.length == _symbols.length
                 && _symbols.length == _types.length, "array length mismatch");
 
@@ -176,9 +176,9 @@ contract TokenizedRegistry is Ownable {
     /// @dev Provides a registered token's address when given the token symbol.
     /// @param _symbol Symbol of registered token.
     /// @return Token's address.
-    function getTokenAddressBySymbol(string memory _symbol) 
+    function getTokenAddressBySymbol(string memory _symbol)
         public
-        view 
+        view
         returns (address)
     {
         return tokenBySymbol[_symbol];
@@ -187,7 +187,7 @@ contract TokenizedRegistry is Ownable {
     /// @dev Provides a registered token's address when given the token name.
     /// @param _name Name of registered token.
     /// @return Token's address.
-    function getTokenAddressByName(string memory _name) 
+    function getTokenAddressByName(string memory _name)
         public
         view
         returns (address)
@@ -331,9 +331,9 @@ contract TokenizedRegistry is Ownable {
         returns (bool valid, TokenMetadata memory token)
     {
         token = tokens[_token];
-        if (token.token != address(0) 
+        if (token.token != address(0)
             && token.token == _token
-            && (_tokenType == 0 
+            && (_tokenType == 0
                 || token.tokenType == _tokenType))
         {
             valid = true;
