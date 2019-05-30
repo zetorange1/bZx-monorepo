@@ -1,5 +1,5 @@
 /**
- * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2019, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
  
@@ -29,12 +29,10 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
     }
 
 
-    function()  
+    function()
         external
         payable
-    {
-        revert();
-    }
+    {}
 
 
     /* Public functions */
@@ -159,6 +157,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
             loanData.initialMarginAmount,
             escrowAmount,
             interestRate,
+            loanData.maxDurationUnixTimestampSec,
             withdrawOnOpen
         );
 
@@ -180,6 +179,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         bytes32 loanOrderHash,
         uint256 initialMarginAmount,
         uint256 escrowAmount,
+        uint256 maxDuration,
         address tradeTokenToFillAddress)
         external
         returns (uint256)
@@ -196,6 +196,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
             initialMarginAmount,
             escrowAmount,
             interestRate,
+            maxDuration,
             false // withdrawOnOpen
         );
 
@@ -237,6 +238,14 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         _settleInterest();
     }
 
+    function wrapEther()
+        public
+    {
+        if (address(this).balance > 0) {
+            WETHInterface(wethContract).deposit.value(address(this).balance)();
+        }
+    }
+
     // Sends non-LoanToken assets to the Oracle fund
     // These are assets that would otherwise be "stuck" due to a user accidently sending them to the contract
     function donateAsset(
@@ -252,11 +261,11 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
             return false;
 
         require(ERC20(tokenAddress).transfer(
-            bZxOracle, 
+            bZxOracle,
             balance
         ), "transfer of token balance failed");
 
-        return true; 
+        return true;
     }
 
     function transferFrom(
@@ -471,14 +480,10 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
 
         return marketLiquidity()
             .mul(loanData.initialMarginAmount)
-            .mul(
-                rateMultiplier.add(baseRate) // maximum possible interest rate
-                .mul(10**20)
-                .div(31536000) // 86400 * 365
-                .mul(maxDurationUnixTimestampSec)
-                .div(loanData.initialMarginAmount)
-                .add(10**20))
-            .div(10**40);
+            .div(_adjustValue(
+                10**20, // maximum possible interest (100%)
+                loanData.maxDurationUnixTimestampSec,
+                loanData.initialMarginAmount));
     }
 
     function getBorrowAmount(
@@ -504,6 +509,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
                     .mul(10**20)
                     .div(loanData.initialMarginAmount)
             ),
+            loanData.maxDurationUnixTimestampSec,
             withdrawOnOpen
         );
     }
@@ -636,7 +642,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
 
         if (!burntTokenReserveListIndex[lender].isSet)
             return 0;
-        
+
         uint256 index = burntTokenReserveListIndex[lender].index;
         uint256 currentPrice = _tokenPrice(_totalAssetSupply(0));
 
@@ -656,7 +662,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         } else {
             claimAmount = availableAmount;
             claimTokenAmount = claimAmount.mul(10**18).div(currentPrice);
-            
+
             // prevents less than 10 being left in burntTokenReserveList[index].amount
             if (claimTokenAmount.add(10) < burntTokenReserveList[index].amount) {
                 burntTokenReserveList[index].amount = burntTokenReserveList[index].amount.sub(claimTokenAmount);
@@ -845,28 +851,45 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         uint256 newBorrowAmount)
         internal
         view
-        returns (uint256)
+        returns (uint256 nextRate)
     {
         uint256 assetSupply = totalAssetSupply();
 
-        uint256 newUtilization = newBorrowAmount > 0 ? 
-            newBorrowAmount
+        uint256 utilizationRate = _getUtilizationRate(assetSupply)
+            .add(newBorrowAmount > 0 ?
+                newBorrowAmount
                 .mul(10**20)
-                .div(assetSupply) : 0;
-
-        uint256 nextRate =  _getUtilizationRate(assetSupply)
-            .add(newUtilization)
-            .mul(rateMultiplier)
-            .div(10**20)
-            .add(baseRate);
+                .div(assetSupply) : 0);
 
         uint256 minRate = baseRate;
         uint256 maxRate = rateMultiplier.add(baseRate);
 
-        if (nextRate < minRate)
-            nextRate = minRate;
-        else if (nextRate > maxRate)
-            nextRate = maxRate;
+        if (utilizationRate > 90 ether) {
+            // scale rate proportionally up to 100%
+
+            utilizationRate = utilizationRate.sub(90 ether);
+            if (utilizationRate > 10 ether)
+                utilizationRate = 10 ether;
+
+            maxRate = maxRate
+                .mul(90)
+                .div(100);
+
+            nextRate = utilizationRate
+                .mul(SafeMath.sub(100 ether, maxRate))
+                .div(10 ether)
+                .add(maxRate);
+        } else {
+            nextRate = utilizationRate
+                .mul(rateMultiplier)
+                .div(10**20)
+                .add(baseRate);
+
+            if (nextRate < minRate)
+                nextRate = minRate;
+            else if (nextRate > maxRate)
+                nextRate = maxRate;
+        }
 
         return nextRate;
     }
@@ -891,27 +914,43 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         uint256 marginAmount,
         uint256 escrowAmount,
         uint256 interestRate,
+        uint256 maxDuration,
         bool withdrawOnOpen)
         internal
-        view
+        pure
         returns (uint256)
     {
         if (withdrawOnOpen) {
-            // adjust for over-collateralized loan
+            // adjust for over-collateralized loan (initial margin + 100% margin)
             marginAmount = marginAmount.add(10**20);
         }
-        
+
         // assumes that loan, collateral, and interest token are the same
         return escrowAmount
             .mul(10**40)
-            .div(
-                interestRate
+            .div(_adjustValue(
+                interestRate,
+                maxDuration,
+                marginAmount))
+            .div(marginAmount);
+    }
+
+    function _adjustValue(
+        uint256 interestRate,
+        uint256 maxDuration,
+        uint256 marginAmount)
+        internal
+        pure
+        returns (uint256)
+    {
+        return maxDuration > 0 ?
+            interestRate
                 .mul(10**20)
                 .div(31536000) // 86400 * 365
-                .mul(maxDurationUnixTimestampSec)
+                .mul(maxDuration)
                 .div(marginAmount)
-                .add(10**20))
-            .div(marginAmount);
+                .add(10**20) :
+            10**20;
     }
 
     function _getUtilizationRate(
@@ -959,6 +998,9 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         LoanData memory loanData = loanOrderData[loanOrder.loanOrderHash];
         if (loanData.loanOrderHash == loanOrder.loanOrderHash) {
 
+            totalAssetBorrow = totalAssetBorrow > closeAmount ?
+                totalAssetBorrow.sub(closeAmount) : 0;
+
             if (burntTokenReserveList.length > 0) {
                 _claimLoanToken(_getNextOwed());
             } else {
@@ -967,9 +1009,6 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
 
             if (closeAmount == 0)
                 return true;
-
-            totalAssetBorrow = totalAssetBorrow > closeAmount ? 
-                totalAssetBorrow.sub(closeAmount) : 0;
 
             // checkpoint supply since the base protocol borrow stats have changed
             checkpointSupply_ = _totalAssetSupply(0);
@@ -988,11 +1027,12 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
                     if (escrowAmount > 0) {
                         (bool success,) = address(this).call.gas(gasleft())(
                             abi.encodeWithSignature(
-                                "rolloverPosition(address,bytes32,uint256,uint256,address)",
+                                "rolloverPosition(address,bytes32,uint256,uint256,uint256,address)",
                                 loanPosition.trader,
                                 loanOrder.loanOrderHash,
                                 loanData.initialMarginAmount,
                                 escrowAmount,
+                                loanData.maxDurationUnixTimestampSec,
                                 tradeTokenAddress
                             )
                         );
@@ -1011,7 +1051,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
     /* Owner-Only functions */
 
     function initLeverage(
-        uint256[3] memory orderParams) // leverageAmount, initialMarginAmount, maintenanceMarginAmount
+        uint256[4] memory orderParams) // leverageAmount, initialMarginAmount, maintenanceMarginAmount, maxDurationUnixTimestampSec
         public
         onlyOwner
     {
@@ -1035,7 +1075,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
             orderParams[2], // maintenanceMarginAmount,
             0, // lenderRelayFee
             0, // traderRelayFee
-            maxDurationUnixTimestampSec,
+            orderParams[3], // maxDurationUnixTimestampSec,
             0, // expirationUnixTimestampSec
             0, // makerRole (0 = lender)
             0, // withdrawOnOpen
@@ -1057,6 +1097,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
             leverageAmount: orderParams[0],
             initialMarginAmount: orderParams[1],
             maintenanceMarginAmount: orderParams[2],
+            maxDurationUnixTimestampSec: orderParams[3],
             index: leverageList.length
         });
         loanOrderHashes[orderParams[0]] = loanOrderHash;
@@ -1082,13 +1123,15 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         delete loanOrderData[loanOrderHash];
     }
 
-    // these params should be percentages represented like so: 5% = 5000000000000000000
+    // These params should be percentages represented like so: 5% = 5000000000000000000
+    // rateMultiplier + baseRate can't exceed 100%
     function setDemandCurve(
         uint256 _baseRate,
         uint256 _rateMultiplier)
         public
         onlyOwner
     {
+        require(rateMultiplier.add(baseRate) <= 10**20);
         baseRate = _baseRate;
         rateMultiplier = _rateMultiplier;
     }
@@ -1100,14 +1143,6 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
     {
         require(_newRate <= 10**20);
         spreadMultiplier = SafeMath.sub(10**20, _newRate);
-    }
-
-    function setMaxDuration(
-        uint256 _duration)
-        public
-        onlyOwner
-    {
-        maxDurationUnixTimestampSec = _duration;
     }
 
     function setBZxContract(

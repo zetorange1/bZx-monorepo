@@ -501,21 +501,18 @@ contract BZx is BZxStorage {
             uint256 loanOffsetAmount,
             uint256 collateralOffsetAmount);
 
-    /// @dev Get the current profit/loss data of a position versus the amount borrowed
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position
-    /// @return isProfit False it there's a loss, True otherwise
-    /// @return profitOrLoss The amount of profit or amount of loss (denominated in loanToken)
+    /// @return netCollateralAmount The amount of collateral escrowed netted to any exceess or deficit from gains and losses
     /// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender
     /// @return loanTokenAmountBorrowed The amount of loan token borrowed for the position
-    function getProfitOrLoss(
+    function getTotalEscrow(
         bytes32 loanOrderHash,
         address trader)
         public
         view
         returns (
-            bool isProfit,
-            uint profitOrLoss,
+            uint256 netCollateralAmount,
             uint256 interestDepositRemaining,
             uint256 loanTokenAmountBorrowed);
 

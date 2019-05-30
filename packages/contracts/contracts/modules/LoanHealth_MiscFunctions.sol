@@ -80,7 +80,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
 
         uint256 closeAmount;
 
-        if ((!DEBUG_MODE && block.timestamp < loanPosition.loanEndUnixTimestampSec) || 
+        if ((!DEBUG_MODE && block.timestamp < loanPosition.loanEndUnixTimestampSec) ||
             (DEBUG_MODE && currentMargin <= loanOrder.maintenanceMarginAmount)) {
             // loan hasn't ended
 
@@ -119,7 +119,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
 
         uint256 closeAmountUsable;
 
-        // If the position token is not the loan token, then we need to buy back the loan token 
+        // If the position token is not the loan token, then we need to buy back the loan token
         // prior to closing the loan. Liquidation checks will be run in _tradePositionWithOracle.
         if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
             // transfer the current position token to the Oracle contract
@@ -204,7 +204,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
         nonReentrant
         tracksGas
         returns (bool)
-    { 
+    {
         return _closeLoan(
             loanOrderHash,
             gasUsed // initial used gas, collected in modifier
@@ -257,7 +257,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
         }
 
         uint256 closeAmount = loanPosition.loanTokenAmountFilled;
-        
+
         loanPosition.positionTokenAmountFilled = closeAmount; // for historical reference
         loanPosition.loanTokenAmountFilled = 0;
         //loanPosition.loanTokenAmountUsed = 0; <- not used yet
@@ -336,7 +336,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
         if (closeAmount == 0) {
             return 0;
         }
-        
+
         uint256 positionId = loanPositionsIds[loanOrderHash][msg.sender];
         LoanPosition storage loanPosition = loanPositions[positionId];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
@@ -348,8 +348,8 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
             revert("BZxLoanHealth::_closeLoanPartially: loanOrder.loanTokenAddress == address(0)");
         }
 
-        if (closeAmount >= loanPosition.loanTokenAmountFilled
-            || OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(loanOrder, loanPosition)) {
+        if (closeAmount >= loanPosition.loanTokenAmountFilled ||
+            OracleInterface(oracleAddresses[loanOrder.oracleAddress]).shouldLiquidate(loanOrder, loanPosition)) {
             closeAmount = loanPosition.loanTokenAmountFilled; // save before storage update
             return _closeLoan(
                 loanOrderHash,

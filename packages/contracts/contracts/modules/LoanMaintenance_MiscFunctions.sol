@@ -37,7 +37,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         targets[bytes4(keccak256("withdrawPosition(bytes32,uint256)"))] = _target;
         targets[bytes4(keccak256("depositPosition(bytes32,address,uint256)"))] = _target;
         targets[bytes4(keccak256("getPositionOffset(bytes32,address)"))] = _target;
-        targets[bytes4(keccak256("getProfitOrLoss(bytes32,address)"))] = _target;
+        targets[bytes4(keccak256("getTotalEscrow(bytes32,address)"))] = _target;
     }
 
     /// @dev Allows the trader to increase the collateral for a loan.
@@ -471,14 +471,18 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             loanPosition);
     }
 
-    function getProfitOrLoss(
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param trader The trader of the position
+    /// @return netCollateralAmount The amount of collateral escrowed netted to any exceess or deficit from gains and losses
+    /// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender
+    /// @return loanTokenAmountBorrowed The amount of loan token borrowed for the position
+    function getTotalEscrow(
         bytes32 loanOrderHash,
         address trader)
         public
         view
         returns (
-            bool isProfit,
-            uint profitOrLoss,
+            uint256 netCollateralAmount,
             uint256 interestDepositRemaining,
             uint256 loanTokenAmountBorrowed)
     {
@@ -487,23 +491,43 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         LoanPosition memory loanPosition = loanPositions[positionId];
         TraderInterest memory traderInterest = traderLoanInterest[positionId];
 
-        uint positionToLoanAmount;
-        if (loanPosition.positionTokenAddressFilled == loanOrder.loanTokenAddress) {
-            positionToLoanAmount = loanPosition.positionTokenAmountFilled;
+        if (loanOrder.loanTokenAddress == address(0) || loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
+            return (0,0,0);
+        }
+
+        uint positionToCollateralAmount;
+        if (loanPosition.positionTokenAddressFilled == loanPosition.collateralTokenAddressFilled) {
+            positionToCollateralAmount = loanPosition.positionTokenAmountFilled;
         } else {
-            (,,positionToLoanAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+            (,,positionToCollateralAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
                 loanPosition.positionTokenAddressFilled,
-                loanOrder.loanTokenAddress,
+                loanPosition.collateralTokenAddressFilled,
                 loanPosition.positionTokenAmountFilled
             );
         }
 
-        if (positionToLoanAmount > loanPosition.loanTokenAmountFilled) {
-            isProfit = true;
-            profitOrLoss = positionToLoanAmount - loanPosition.loanTokenAmountFilled;
+        uint loanToCollateralAmount;
+        if (loanOrder.loanTokenAddress == loanPosition.collateralTokenAddressFilled) {
+            loanToCollateralAmount = loanPosition.loanTokenAmountFilled;
         } else {
-            isProfit = false;
-            profitOrLoss = loanPosition.loanTokenAmountFilled - positionToLoanAmount;
+            (,,loanToCollateralAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+                loanOrder.loanTokenAddress,
+                loanPosition.collateralTokenAddressFilled,
+                loanPosition.loanTokenAmountFilled
+            );
+        }
+
+        uint profitOrLoss;
+        if (positionToCollateralAmount > loanToCollateralAmount) {
+            profitOrLoss = positionToCollateralAmount - loanToCollateralAmount;
+            netCollateralAmount = loanPosition.collateralTokenAmountFilled.add(profitOrLoss);
+        } else {
+            profitOrLoss = loanToCollateralAmount - positionToCollateralAmount;
+            if (loanPosition.collateralTokenAmountFilled > profitOrLoss) {
+                netCollateralAmount = loanPosition.collateralTokenAmountFilled.sub(profitOrLoss);
+            } else {
+                netCollateralAmount = 0;
+            }
         }
 
         interestDepositRemaining = loanPosition.loanEndUnixTimestampSec > block.timestamp ? loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(traderInterest.interestOwedPerDay).div(86400) : 0;

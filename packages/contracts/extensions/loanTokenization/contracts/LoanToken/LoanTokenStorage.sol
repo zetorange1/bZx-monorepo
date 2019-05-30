@@ -20,6 +20,7 @@ contract LoanTokenStorage is LoanTokenization {
         uint256 leverageAmount;
         uint256 initialMarginAmount;
         uint256 maintenanceMarginAmount;
+        uint256 maxDurationUnixTimestampSec;
         uint256 index;
     }
 
@@ -49,8 +50,6 @@ contract LoanTokenStorage is LoanTokenization {
 
     address public tokenizedRegistry;
 
-    uint256 public maxDurationUnixTimestampSec = 2419200; // 28 days
-
     uint256 public baseRate = 1000000000000000000; // 1.0%
     uint256 public rateMultiplier = 39000000000000000000; // 39%
 
@@ -73,16 +72,4 @@ contract LoanTokenStorage is LoanTokenization {
     uint256 internal lastSettleTime_;
 
     uint256 public initialPrice;
-
-    // General Purpose
-    mapping (bytes => uint256) internal dbUint256;
-    mapping (bytes => uint256[]) internal dbUint256Array;
-    mapping (bytes => address) internal dbAddress;
-    mapping (bytes => address[]) internal dbAddressArray;
-    mapping (bytes => bool) internal dbBool;
-    mapping (bytes => bool[]) internal dbBoolArray;
-    mapping (bytes => bytes32) internal dbBytes32;
-    mapping (bytes => bytes32[]) internal dbBytes32Array;
-    mapping (bytes => bytes) internal dbBytes;
-    mapping (bytes => bytes[]) internal dbBytesArray;
 }

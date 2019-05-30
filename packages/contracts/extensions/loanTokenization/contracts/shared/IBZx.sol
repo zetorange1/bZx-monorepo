@@ -51,10 +51,11 @@ interface IBZx {
             uint256,    // interestOwedPerDay
             uint256);   // interestUnPaid
 
-    function toggleDelegateApproved(
-        address delegate,
-        bool isApproved)
-        external;
+    function withdrawCollateral(
+        bytes32 loanOrderHash,
+        uint256 withdrawAmount)
+        external
+        returns (uint256 amountWithdrawn);
 
     function closeLoanPartially(
         bytes32 loanOrderHash,

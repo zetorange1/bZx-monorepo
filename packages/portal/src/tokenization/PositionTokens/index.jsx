@@ -120,33 +120,20 @@ export default class PositionTokens extends BZxComponent {
     let iTokenAddress, pTokenAddress, tradeTokenContract;
 
     /** TEMP **/
-      iTokenAddress = "0xF26eBD03adD32c23C10042e456f269AA600EBCA0";//(await this.props.bZx.getWeb3Contract(`LoanToken`))._address;
+      let tokenizedRegistry = await this.props.bZx.getWeb3Contract(`TokenizedRegistry`);
+      const tokenList = await this.wrapAndRun(tokenizedRegistry.methods.getTokens(0, 10, 0).call());
+
+      iTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
+        (await tokenList.filter(t => t.symbol === `iETH`)[0]).token :
+        (await tokenList.filter(t => t.symbol === `iDAI`)[0]).token;
+
+      pTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
+        (await tokenList.filter(t => t.symbol === `dsETH2x`)[0]).token :
+        (await tokenList.filter(t => t.symbol === `dLETH2x`)[0]).token;
 
       if (this.props.bZx.networkId === 50) { // development
-        //iTokenAddress = (await this.props.bZx.getWeb3Contract(`LoanToken`))._address;
-        //pTokenAddress = (await this.props.bZx.getWeb3Contract(`PositionToken`))._address;
-
-        iTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
-          `0xF26eBD03adD32c23C10042e456f269AA600EBCA0` :
-          `0x3E809c563c15a295E832e37053798DdC8d6C8dab`;
-
-        pTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
-          `0x9213FabaaF1b51FC0E3F23D4C18703CF91B12393` :
-          `0x39c3Fc9F4D8430af2713306CE80C584752d9e1C7`;
-
         tradeTokenContract = await this.props.bZx.getWeb3Contract(`TestToken9`);
-      }/* else if (this.props.bZx.networkId == 42) { // kovan
-        iTokenAddress = "0xF26eBD03adD32c23C10042e456f269AA600EBCA0";
-        pTokenAddress = "0x9213FabaaF1b51FC0E3F23D4C18703CF91B12393";
-      }*/ else if (this.props.bZx.networkId == 3) { // ropsten
-        iTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
-          `0x10fE1ED475E0Fd3b3F52dCc63aA92c0F761e6360` :
-          `0xFCE3aEeEC8EB39304ED423c0d23c0A978DA9E934`;
-
-        pTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
-          `0x48c5c8a842991338d65764b24a71b1A9c21D609a` :
-          `0x73608D4275A3c700CC4E0BEa0b1A72098E837050`;
-
+      } else if (this.props.bZx.networkId == 3) { // ropsten
         tradeTokenContract = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
           await this.props.bZx.getWeb3Contract(`EIP20`, (await this.props.tokens.filter(t => t.symbol === `DAI`)[0]).address) : 
           await this.props.bZx.getWeb3Contract(`EIP20`, (await this.props.tokens.filter(t => t.symbol === `WETH`)[0]).address)

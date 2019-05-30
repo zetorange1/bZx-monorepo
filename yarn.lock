@@ -19964,10 +19964,10 @@ solc@0.5.0:
     tmp "0.0.33"
     yargs "^11.0.0"
 
-"solc_0.5.7@npm:solc@0.5.7":
-  version "0.5.7"
-  resolved "https://registry.yarnpkg.com/solc/-/solc-0.5.7.tgz#d84697ac5cc63d9b2139bfb349cec64b64861cdc"
-  integrity sha512-DaYFzB3AAYjzPtgUl9LenPY2xjI3wG9k8U8T8YE/sXHVIoCirCY5MB6mhcFPgk/VyUtaWZPUCWiYS1E6RSiiqw==
+"solc_0.5.9@npm:solc@0.5.9":
+  version "0.5.9"
+  resolved "https://registry.yarnpkg.com/solc/-/solc-0.5.9.tgz#ec513bbbbb8b46b4b4d1a6a2764c50f34877fffc"
+  integrity sha512-IyCEXnSbpb3ii8FkgNu0QDtCtnvyGCtYNQejOaIZi6/9/CLJ2ozDHN2oNG26HfGZ8op9yDgqC+5SHziFvkRZuA==
   dependencies:
     command-exists "^1.2.8"
     fs-extra "^0.30.0"

@@ -92,7 +92,13 @@ module.exports = {
       BZxEther: "0x96CCe310096755f69594212d5D5fB5485577E7d1",
       MultiSig: "",
       DAITokenAddress: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359",
-      USDCTokenAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+      USDCTokenAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+      WBTCTokenAddress: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+      BATTokenAddress: "0x0d8775f648430679a709e98d2b0cb6250d2887ef",
+      KNCTokenAddress: "0xdd974d5c2e2928dea5f71b9825b8b646686bd200",
+      MKRTokenAddress: "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2",
+      REPTokenAddress: "0x1985365e9f78359a9b6ad760e32412f4a445e862",
+      ZRXTokenAddress: "0xe41d2489571d322189246dafa5ebde1f4699f498"
     }
   }
 };

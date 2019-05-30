@@ -1,5 +1,5 @@
 /**
- * Copyright 2017–2018, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2019, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
  
@@ -13,13 +13,10 @@ contract EtherLoanTokenLogic is LoanTokenLogic {
     using SafeMath for uint256;
 
 
-    function()  
+    function()
         external
         payable
-    {
-        if (msg.sender != wethContract)
-            _mintWithEther(msg.sender);
-    }
+    {}
 
 
     /* Public functions */
@@ -28,36 +25,6 @@ contract EtherLoanTokenLogic is LoanTokenLogic {
         address receiver)
         external
         payable
-        returns (uint256 mintAmount)
-    {
-        mintAmount = _mintWithEther(receiver);
-    }
-
-    function burnToEther(
-        address payable receiver,
-        uint256 burnAmount)
-        external
-        nonReentrant
-        returns (uint256 loanAmountPaid)
-    {
-        loanAmountPaid = _burnToken(
-            receiver,
-            burnAmount
-        );
-
-        if (loanAmountPaid > 0) {
-            WETHInterface(wethContract).withdraw(loanAmountPaid);
-            require(receiver.send(loanAmountPaid), "transfer of ETH failed");
-        }
-    }
-
-
-    /* Internal functions */
-
-    function _mintWithEther(
-        address receiver)
-        internal
-        nonReentrant
         returns (uint256 mintAmount)
     {
         require (msg.value > 0, "msg.value == 0");
@@ -80,6 +47,27 @@ contract EtherLoanTokenLogic is LoanTokenLogic {
 
         checkpointPrices_[receiver] = currentPrice;
     }
+
+    function burnToEther(
+        address payable receiver,
+        uint256 burnAmount)
+        external
+        nonReentrant
+        returns (uint256 loanAmountPaid)
+    {
+        loanAmountPaid = _burnToken(
+            receiver,
+            burnAmount
+        );
+
+        if (loanAmountPaid > 0) {
+            WETHInterface(wethContract).withdraw(loanAmountPaid);
+            require(receiver.send(loanAmountPaid), "transfer of ETH failed");
+        }
+    }
+
+
+    /* Internal functions */
 
     function setWETHContract(
         address _addr)

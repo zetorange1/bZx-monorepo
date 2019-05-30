@@ -25,11 +25,8 @@ contract PositionTokenLogic is SplittableToken {
 
     function()
         external
-        payable 
-    {
-        if (msg.sender != wethContract)
-            _mintWithEther(msg.sender);
-    }
+        payable
+    {}
 
 
     /* Public functions */
@@ -41,7 +38,18 @@ contract PositionTokenLogic is SplittableToken {
         payable
         returns (uint256)
     {
-        return _mintWithEther(receiver);
+        require (msg.value > 0, "msg.value == 0");
+
+        uint256 currentPrice = tokenPrice();
+
+        WETHInterface(wethContract).deposit.value(msg.value)();
+
+        return _mintWithToken(
+            receiver,
+            wethContract,
+            msg.value,
+            currentPrice
+        );
     }
 
     // returns the amount of token minted
@@ -145,7 +153,7 @@ contract PositionTokenLogic is SplittableToken {
                 loanAmountOwed = destTokenAmountReceived;
             } else {
                 require(ERC20(loanTokenAddress).transfer(
-                    receiver, 
+                    receiver,
                     loanAmountOwed
                 ), "transfer of loanToken failed");
             }
@@ -159,6 +167,14 @@ contract PositionTokenLogic is SplittableToken {
         nonReentrant
     {
         require(_triggerPosition(), "triggerPosition failed");
+    }
+
+    function wrapEther()
+        public
+    {
+        if (address(this).balance > 0) {
+            WETHInterface(wethContract).deposit.value(address(this).balance)();
+        }
     }
 
     // Sends non-LoanToken assets to the Oracle fund
@@ -176,11 +192,11 @@ contract PositionTokenLogic is SplittableToken {
             return false;
 
         require(ERC20(tokenAddress).transfer(
-            bZxOracle, 
+            bZxOracle,
             balance
         ), "transfer of token balance failed");
 
-        return true; 
+        return true;
     }
 
     function transferFrom(
@@ -253,7 +269,7 @@ contract PositionTokenLogic is SplittableToken {
                 loanOrderHash,
                 address(this));
         }
-        
+
         return _tokenPrice(netCollateralAmount, interestDepositRemaining);
     }
 
@@ -334,27 +350,6 @@ contract PositionTokenLogic is SplittableToken {
     /* Internal functions */
 
     // returns the amount of token minted
-    function _mintWithEther(
-        address receiver)
-        internal
-        nonReentrant
-        returns (uint256)
-    {
-        require (msg.value > 0, "msg.value == 0");
-
-        uint256 currentPrice = tokenPrice();
-
-        WETHInterface(wethContract).deposit.value(msg.value)();
-
-        return _mintWithToken(
-            receiver,
-            wethContract,
-            msg.value,
-            currentPrice
-        );
-    }
-
-    // returns the amount of token minted
     function _mintWithToken(
         address receiver,
         address depositTokenAddress,
@@ -406,7 +401,7 @@ contract PositionTokenLogic is SplittableToken {
             refundAmount = depositAmount-liquidityAmount;
             if (msg.value == 0) {
                 require(ERC20(loanTokenAddress).transfer(
-                    msg.sender, 
+                    msg.sender,
                     refundAmount
                 ), "transfer of token failed");
             } else {
@@ -450,14 +445,20 @@ contract PositionTokenLogic is SplittableToken {
             .div(10**18);
 
         uint256 loanAmountAvailableInContract = ERC20(loanTokenAddress).balanceOf(address(this));
+
         if (loanAmountAvailableInContract < loanAmountOwed) {
-            // loan is open
+            loanAmountAvailableInContract = loanAmountAvailableInContract.add(
+                IBZx(bZxContract).withdrawCollateral(
+                    loanOrderHash,
+                    loanAmountOwed.sub(loanAmountAvailableInContract)
+                )
+            );
+        }
 
-            require(! IBZx(bZxContract).shouldLiquidate(
+        if (loanAmountAvailableInContract < loanAmountOwed && !IBZx(bZxContract).shouldLiquidate(
                 loanOrderHash,
-                address(this)
-            ), "position should be liquidated first");
-
+                address(this)))
+        {
             uint256 closeAmount;
             if (burnAmount < totalSupply()) {
                 closeAmount = loanAmountOwed
@@ -476,9 +477,15 @@ contract PositionTokenLogic is SplittableToken {
             );
 
             loanAmountAvailableInContract = ERC20(loanTokenAddress).balanceOf(address(this));
-            if (loanAmountAvailableInContract < loanAmountOwed) {
-                loanAmountOwed = loanAmountAvailableInContract;
-            }
+        }
+
+        if (loanAmountAvailableInContract < loanAmountOwed) {
+            loanAmountOwed = loanAmountAvailableInContract;
+
+            // update to available burn amount
+            burnAmount = loanAmountOwed
+                .mul(10**18)
+                .div(currentPrice);
         }
 
         _burn(msg.sender, burnAmount, loanAmountOwed, currentPrice);
@@ -551,29 +558,11 @@ contract PositionTokenLogic is SplittableToken {
     /* Owner-Only functions */
 
     function setLoanTokenLender(
-        address _lender) 
-        public 
+        address _lender)
+        public
         onlyOwner
     {
-        if (_lender != loanTokenLender) {
-            if (loanTokenLender != address(0)) {
-                // disable old delegate
-                IBZx(bZxContract).toggleDelegateApproved(
-                    loanTokenLender,
-                    false
-                );
-            }
-
-            if (_lender != address(0)) {
-                // enable new delegate
-                IBZx(bZxContract).toggleDelegateApproved(
-                    _lender,
-                    true
-                );
-            }
-
-            loanTokenLender = _lender;
-        }
+        loanTokenLender = _lender;
     }
 
     function setBZxContract(
@@ -655,6 +644,7 @@ contract PositionTokenLogic is SplittableToken {
         address _wethContract,
         address _loanTokenAddress,
         address _tradeTokenAddress,
+        address _lender,
         uint256 _leverageAmount,
         bytes32 _loanOrderHash,
         string memory _name,
@@ -674,6 +664,7 @@ contract PositionTokenLogic is SplittableToken {
         wethContract = _wethContract;
         loanTokenAddress = _loanTokenAddress;
         tradeTokenAddress = _tradeTokenAddress;
+        loanTokenLender = _lender;
 
         loanOrderHash = _loanOrderHash;
         leverageAmount = _leverageAmount;

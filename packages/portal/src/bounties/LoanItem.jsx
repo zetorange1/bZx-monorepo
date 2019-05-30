@@ -132,7 +132,7 @@ export default class LoanItem extends BZxComponent {
 
     const txOpts = {
       from: accounts[0],
-      gas: 2000000,
+      gas: 3000000,
       gasPrice: window.defaultGasPrice.toString()
     };
 
@@ -145,7 +145,7 @@ export default class LoanItem extends BZxComponent {
     const txObj = bZx.liquidateLoan({
       loanOrderHash,
       trader,
-      liquidateAmount: "000000000000000000",
+      liquidateAmount: "0", // full position
       getObject: true
     });
 

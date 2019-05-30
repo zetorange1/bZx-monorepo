@@ -181,7 +181,7 @@ export default class LoanTokens extends BZxComponent {
 
       const supplyInterestRate = await this.wrapAndRun(tokenContract.methods.supplyInterestRate().call());
       const borrowInterestRate = await this.wrapAndRun(tokenContract.methods.borrowInterestRate().call());
-      const nextLoanInterestRate = await this.wrapAndRun(tokenContract.methods.nextLoanInterestRate("0").call());
+      const nextLoanInterestRate = await this.wrapAndRun(tokenContract.methods.nextLoanInterestRate("10000000000000000").call());
 
       const totalAssetBorrow = await this.wrapAndRun(tokenContract.methods.totalAssetBorrow().call());
       const totalAssetSupply = await this.wrapAndRun(tokenContract.methods.totalAssetSupply().call());
@@ -668,7 +668,7 @@ export default class LoanTokens extends BZxComponent {
       gasPrice: window.defaultGasPrice.toString()
     };
 
-    const bZxContract = await this.props.bZx.getWeb3Contract(`BZx`);
+    /*const bZxContract = await this.props.bZx.getWeb3Contract(`BZx`);
     const isApproved = await this.wrapAndRun(bZxContract.methods.allowedValidators(accounts[0], tokenContract._address).call());
     if (!isApproved) {
       alert(`Please submit an approval transaction in MetaMask. This is only required the first time you open a loan from this token. Once confirmed, you will be asked to submit the loan transaction.`);
@@ -676,7 +676,7 @@ export default class LoanTokens extends BZxComponent {
         tokenContract._address,
         true
       ).send(txOpts);
-    }
+    }*/
 
     const txObj = await tokenContract.methods.borrowToken(
       toBigNumber(borrowAmount, 1e18).toFixed(0),
@@ -972,7 +972,7 @@ export default class LoanTokens extends BZxComponent {
             </DataPointContainer>
 
             <DataPointContainer>
-              <Label>Next Borrow Interest Rate</Label>
+              <Label>Next Borrow Interest Rate (0.01)</Label>
               <DataPoint>
                 {toBigNumber(
                   nextLoanInterestRate,
