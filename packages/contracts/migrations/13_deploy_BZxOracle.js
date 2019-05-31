@@ -1,6 +1,6 @@
 
 
-const deployNotifier = true;
+const deployNotifier = false;
 
 var BZxOracle;
 var BZRxToken = artifacts.require("BZRxToken");
