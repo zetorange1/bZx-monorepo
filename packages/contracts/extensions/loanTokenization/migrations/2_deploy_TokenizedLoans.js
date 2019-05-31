@@ -76,7 +76,7 @@ module.exports = function(deployer, network, accounts) {
   deployer.then(async function() {
 
     await fs.appendFile("TokenizedLoans_"+network+".log", "-------\n");
-
+/*
     console.log("Deploying bZx ETH iToken.");
     let iETH = await deployIToken(
       "bZx ETH iToken",
@@ -92,7 +92,7 @@ module.exports = function(deployer, network, accounts) {
       dai_token_address
     );
     //let iDAI = await LoanTokenLogic.at("0xFCE3aEeEC8EB39304ED423c0d23c0A978DA9E934");
-
+*/
     console.log("Deploying bZx USDC iToken.");
     let iUSDC = await deployIToken(
       "bZx USDC iToken",
@@ -100,7 +100,7 @@ module.exports = function(deployer, network, accounts) {
       usdc_token_address
     );
     //let iUSDC = await LoanTokenLogic.at("0xFCE3aEeEC8EB39304ED423c0d23c0A978DA9E934");
-
+      return;
     if (network == "mainnet") {
       console.log("Deploying bZx WBTC iToken.");
       let iWBTC = await deployIToken(

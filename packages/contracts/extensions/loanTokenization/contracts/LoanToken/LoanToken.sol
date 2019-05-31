@@ -18,10 +18,10 @@ contract LoanToken is AdvancedTokenStorage {
     {
         _setTarget(_newTarget);
     }
-    
-    function() 
+
+    function()
         external
-        payable 
+        payable
     {
         address target = target_;
         bytes memory data = msg.data;
