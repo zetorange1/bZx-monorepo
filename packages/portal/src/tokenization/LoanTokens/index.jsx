@@ -75,6 +75,7 @@ export default class LoanTokens extends BZxComponent {
     tokenBalance: 0,
     tokenContract: null,
     tokenContractSymbol: ``,
+    tokenContractDecimals: 0,
     borrowAmount: 0,
     buyAmount: 0,
     sellAmount: 0,
@@ -132,7 +133,13 @@ export default class LoanTokens extends BZxComponent {
       }
     }*/
 
-    let tokenizedRegistry = await this.props.bZx.getWeb3Contract(`TokenizedRegistry`);
+    let TokenizedRegistry_addr;
+    if (this.props.bZx.networkId === 1) {
+      TokenizedRegistry_addr = "0xd8dc30d298ccf40042991cb4b96a540d8affe73a";
+    } else if (this.props.bZx.networkId === 3) {
+      TokenizedRegistry_addr = "0xAA5C713387972841995553c9690459596336800b";
+    }
+    let tokenizedRegistry = await this.props.bZx.getWeb3Contract(`TokenizedRegistry`,TokenizedRegistry_addr);
     const tokenList = await this.wrapAndRun(tokenizedRegistry.methods.getTokens(0, 10, 1).call());
     console.log(`tokenList`,tokenList);
 
@@ -187,7 +194,7 @@ export default class LoanTokens extends BZxComponent {
       const totalAssetSupply = await this.wrapAndRun(tokenContract.methods.totalAssetSupply().call());
       const tokenPrice = await this.wrapAndRun(tokenContract.methods.tokenPrice().call());
 
-      const marketLiquidity = await this.wrapAndRun(tokenContract.methods.marketLiquidity().call());
+      const marketLiquidity = (await this.wrapAndRun(tokenContract.methods.marketLiquidity().call())).times(10**(18-this.state.tokenContractDecimals));
 
       const baseRateCurrent = toBigNumber(
         await this.wrapAndRun(tokenContract.methods.baseRate().call()),
@@ -254,6 +261,9 @@ export default class LoanTokens extends BZxComponent {
   
       const tokenContractSymbol = (await this.wrapAndRun(tokenContract.methods.symbol().call())).toString();
       console.log(`iToken contract symbol:`, tokenContractSymbol);
+
+      const tokenContractDecimals = await this.wrapAndRun(tokenContract.methods.decimals().call());
+      console.log(`iToken contract decimals:`, tokenContractDecimals);
   
       const leverageList = await this.wrapAndRun(tokenContract.methods.getLeverageList().call());
   
@@ -268,6 +278,7 @@ export default class LoanTokens extends BZxComponent {
       await this.setState({ 
         tokenContract,
         tokenContractSymbol,
+        tokenContractDecimals,
         loanTokenAddress,
         leverageHashes
       });

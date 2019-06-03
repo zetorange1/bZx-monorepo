@@ -120,20 +120,27 @@ export default class PositionTokens extends BZxComponent {
     let iTokenAddress, pTokenAddress, tradeTokenContract;
 
     /** TEMP **/
-      let tokenizedRegistry = await this.props.bZx.getWeb3Contract(`TokenizedRegistry`);
+      let TokenizedRegistry_addr;
+      if (this.props.bZx.networkId === 1) {
+        TokenizedRegistry_addr = "0xd8dc30d298ccf40042991cb4b96a540d8affe73a";
+      } else if (this.props.bZx.networkId === 3) {
+        TokenizedRegistry_addr = "0xAA5C713387972841995553c9690459596336800b";
+      }
+      let tokenizedRegistry = await this.props.bZx.getWeb3Contract(`TokenizedRegistry`,TokenizedRegistry_addr);
       const tokenList = await this.wrapAndRun(tokenizedRegistry.methods.getTokens(0, 10, 0).call());
+      console.log(`tokenList`,tokenList);
 
       iTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
         (await tokenList.filter(t => t.symbol === `iETH`)[0]).token :
         (await tokenList.filter(t => t.symbol === `iDAI`)[0]).token;
 
       pTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
-        (await tokenList.filter(t => t.symbol === `dsETH2x`)[0]).token :
-        (await tokenList.filter(t => t.symbol === `dLETH2x`)[0]).token;
+        (await tokenList.filter(t => t.symbol === `usETH2x`)[0]).token :
+        (await tokenList.filter(t => t.symbol === `uLETH2x`)[0]).token;
 
       if (this.props.bZx.networkId === 50) { // development
         tradeTokenContract = await this.props.bZx.getWeb3Contract(`TestToken9`);
-      } else if (this.props.bZx.networkId == 3) { // ropsten
+      } else if (this.props.bZx.networkId == 3 || this.props.bZx.networkId == 1) { // ropsten or mainnet
         tradeTokenContract = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
           await this.props.bZx.getWeb3Contract(`EIP20`, (await this.props.tokens.filter(t => t.symbol === `DAI`)[0]).address) : 
           await this.props.bZx.getWeb3Contract(`EIP20`, (await this.props.tokens.filter(t => t.symbol === `WETH`)[0]).address)

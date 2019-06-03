@@ -139,7 +139,7 @@ switch (domainData.subdomain) {
         this.setState({ activeTokenizedTab: tabId, activeOrder: order });
     
       web3Received = (bZx) => {
-        this.setState({ bZx, getWeb3: false, web3IsReceived: true, activeCard: bZx.networkId === 50 ? `tokenizedloans` : `balances` });
+        this.setState({ bZx, getWeb3: false, web3IsReceived: true, activeCard: bZx.networkId === 50 || process.env.NODE_ENV !== `production` ? `tokenizedloans` : `balances` });
       }
     
       clearProvider = () => {

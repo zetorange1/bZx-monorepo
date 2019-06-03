@@ -155,8 +155,8 @@ export default class Debug extends BZxComponent {
           order[orderKeys[i]] = orderArr[i];
         }
 
-        order[`loanTokenAmount`] = toBigNumber(order[`loanTokenAmount`], 10 ** -18).toString() + ` (normalized)`;
-        order[`interestAmount`] = toBigNumber(order[`interestAmount`], 10 ** -18).toString()+ ` (normalized)`;
+        //order[`loanTokenAmount`] = toBigNumber(order[`loanTokenAmount`], 10 ** -18).toString() + ` (normalized)`;
+        //order[`interestAmount`] = toBigNumber(order[`interestAmount`], 10 ** -18).toString()+ ` (normalized)`;
 
         orderFilledAmounts = await this.wrapAndRun(bzxContract.methods.orderFilledAmounts(newHash).call());
         orderCancelledAmounts = await this.wrapAndRun(bzxContract.methods.orderCancelledAmounts(newHash).call());
@@ -209,9 +209,9 @@ export default class Debug extends BZxComponent {
           position[positionKeys[i]] = positionArr[i];
         }
 
-        position[`loanTokenAmountFilled`] = toBigNumber(position[`loanTokenAmountFilled`], 10 ** -18).toString()+ ` (normalized)`;
-        position[`collateralTokenAmountFilled`] = toBigNumber(position[`collateralTokenAmountFilled`], 10 ** -18).toString()+ ` (normalized)`;
-        position[`positionTokenAmountFilled`] = toBigNumber(position[`positionTokenAmountFilled`], 10 ** -18).toString()+ ` (normalized)`;
+        //position[`loanTokenAmountFilled`] = toBigNumber(position[`loanTokenAmountFilled`], 10 ** -18).toString()+ ` (normalized)`;
+        //position[`collateralTokenAmountFilled`] = toBigNumber(position[`collateralTokenAmountFilled`], 10 ** -18).toString()+ ` (normalized)`;
+        //position[`positionTokenAmountFilled`] = toBigNumber(position[`positionTokenAmountFilled`], 10 ** -18).toString()+ ` (normalized)`;
       
       
         lenderInterestForOrder = await this.wrapAndRun(bzxContract.methods.getLenderInterestForOrder(

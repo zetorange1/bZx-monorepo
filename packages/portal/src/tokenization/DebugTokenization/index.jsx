@@ -214,15 +214,20 @@ export default class DebugTokenization extends BZxComponent {
       }
       */
 
-      const TradeToken = await this.props.bZx.getWeb3Contract(`TestToken9`);
-      const LoanedToken = await this.props.bZx.getWeb3Contract(`WETH`);
-      const oracleContract = await this.props.bZx.getWeb3Contract(`BZxOracle`);
-      const currentRateObj = await this.wrapAndRun(oracleContract.methods.getTradeData(
-        TradeToken._address,
-        LoanedToken._address,
-        toBigNumber(1, 1e18).toString()
-      ).call());
-      const currentRate = await toBigNumber(currentRateObj.sourceToDestRate, 10 ** -18).toString();
+      let currentRate;
+        if (this.props.bZx.networkId === 50) {
+        const TradeToken = await this.props.bZx.getWeb3Contract(`TestToken9`);
+        const LoanedToken = await this.props.bZx.getWeb3Contract(`WETH`);
+        const oracleContract = await this.props.bZx.getWeb3Contract(`BZxOracle`);
+        const currentRateObj = await this.wrapAndRun(oracleContract.methods.getTradeData(
+          TradeToken._address,
+          LoanedToken._address,
+          toBigNumber(1, 1e18).toString()
+        ).call());
+        currentRate = await toBigNumber(currentRateObj.sourceToDestRate, 10 ** -18).toString();
+      } else {
+        currentRate = await toBigNumber(0).toString();
+      }
 
       await this.setState({ 
         loading: false, 
