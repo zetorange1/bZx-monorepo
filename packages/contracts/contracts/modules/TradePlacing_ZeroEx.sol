@@ -76,6 +76,7 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
     function initialize(
         address _target)
         public
+        onlyOwner
     {
         targets[bytes4(keccak256("tradePositionWith0x(bytes32,bytes,bytes)"))] = _target;
         targets[bytes4(keccak256("tradePositionWith0xV2(bytes32,(address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bytes,bytes)[],bytes[])"))] = _target;

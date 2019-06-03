@@ -495,7 +495,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             return (0,0,0);
         }
 
-        uint positionToCollateralAmount;
+        uint256 positionToCollateralAmount;
         if (loanPosition.positionTokenAddressFilled == loanPosition.collateralTokenAddressFilled) {
             positionToCollateralAmount = loanPosition.positionTokenAmountFilled;
         } else {
@@ -506,7 +506,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             );
         }
 
-        uint loanToCollateralAmount;
+        uint256 loanToCollateralAmount;
         if (loanOrder.loanTokenAddress == loanPosition.collateralTokenAddressFilled) {
             loanToCollateralAmount = loanPosition.loanTokenAmountFilled;
         } else {
@@ -517,7 +517,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             );
         }
 
-        uint profitOrLoss;
+        uint256 profitOrLoss;
         if (positionToCollateralAmount > loanToCollateralAmount) {
             profitOrLoss = positionToCollateralAmount - loanToCollateralAmount;
             netCollateralAmount = loanPosition.collateralTokenAmountFilled.add(profitOrLoss);

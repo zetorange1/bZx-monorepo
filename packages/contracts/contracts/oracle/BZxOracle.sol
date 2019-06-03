@@ -1240,7 +1240,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         require(reserveArrDest.length > 0, "BZxOracle::_checkReserveCount: no reserves for this trade");
 
         uint256 reserveCount = 0;
-        for (uint i = 0; i < reserveArrSrc.length; i++) {
+        for (uint256 i = 0; i < reserveArrSrc.length; i++) {
             if (kyber.reserveType(reserveArrSrc[i]) == KyberNetworkInterface.ReserveType.PERMISSIONED) {
                 reserveCount++;
                 if (reserveCount == minPermissionedReserveCount)
@@ -1250,7 +1250,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         require (reserveCount == minPermissionedReserveCount, "BZxOracle::_checkReserveCount: too few reserves for this trade");
 
         reserveCount = 0;
-        for (uint i = 0; i < reserveArrDest.length; i++) {
+        for (uint256 i = 0; i < reserveArrDest.length; i++) {
             if (kyber.reserveType(reserveArrDest[i]) == KyberNetworkInterface.ReserveType.PERMISSIONED) {
                 reserveCount++;
                 if (reserveCount == minPermissionedReserveCount)
@@ -1274,10 +1274,10 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             1 ether
         );
 
-        uint256 srcAmount = maxDestTokenAmount < MAX_FOR_KYBER ? 
+        uint256 srcAmount = maxDestTokenAmount < MAX_FOR_KYBER ?
             maxDestTokenAmount
                 .mul(_getDecimalPrecision(loanPosition.positionTokenAddressFilled, loanOrder.loanTokenAddress))
-                .div(goodRate) : 
+                .div(goodRate) :
             loanPosition.positionTokenAmountFilled;
 
         if (srcAmount <= 1 ether) {
