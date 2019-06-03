@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.5.9;
+pragma solidity 0.5.8;
 pragma experimental ABIEncoderV2;
 
 import "./SplittableToken.sol";
@@ -66,8 +66,8 @@ contract PositionTokenLogic is SplittableToken {
         uint256 currentPrice = tokenPrice();
 
         require(ERC20(depositTokenAddress).transferFrom(
-            msg.sender, 
-            address(this), 
+            msg.sender,
+            address(this),
             depositAmount
         ), "transfer of token failed");
 
@@ -78,7 +78,7 @@ contract PositionTokenLogic is SplittableToken {
             currentPrice
         );
     }
-    
+
     function burnToEther(
         address payable receiver,
         uint256 burnAmount)
@@ -231,7 +231,7 @@ contract PositionTokenLogic is SplittableToken {
     function transfer(
         address _to,
         uint256 _value)
-        public 
+        public
         returns (bool)
     {
         super.transfer(
@@ -490,7 +490,7 @@ contract PositionTokenLogic is SplittableToken {
 
         _burn(msg.sender, burnAmount, loanAmountOwed, currentPrice);
 
-        if (totalSupply() == 0) {
+        if (totalSupply() == 0 || tokenPrice() == 0) {
             splitFactor = 10**18;
             currentPrice = initialPrice;
         }
@@ -654,10 +654,6 @@ contract PositionTokenLogic is SplittableToken {
     {
         require (!isInitialized_, "already initialized");
 
-        name = _name;
-        symbol = _symbol;
-        decimals = 18;
-
         bZxContract = _bZxContract;
         bZxVault = _bZxVault;
         bZxOracle = _bZxOracle;
@@ -668,6 +664,10 @@ contract PositionTokenLogic is SplittableToken {
 
         loanOrderHash = _loanOrderHash;
         leverageAmount = _leverageAmount;
+
+        name = _name;
+        symbol = _symbol;
+        decimals = EIP20(loanTokenAddress).decimals();
 
         initialPrice = 10**21; // starting price of 1,000
 

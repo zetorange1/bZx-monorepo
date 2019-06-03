@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.5.9;
+pragma solidity 0.5.8;
 
 import "./SplittableTokenStorage.sol";
 
@@ -43,7 +43,7 @@ contract SplittableToken is SplittableTokenStorage {
     function transfer(
         address _to,
         uint256 _value)
-        public 
+        public
         returns (bool)
     {
         uint256 fromBalance = denormalize(balances[msg.sender]);
@@ -133,12 +133,14 @@ contract SplittableToken is SplittableTokenStorage {
 
         balances[_who] = normalize(whoBalance.sub(_tokenAmount));
         if (balances[_who] <= 10 || balanceOf(_who) <= 10) { // we can't leave such small balance quantities
+            _tokenAmount = _tokenAmount.add(balances[_who]);
             balances[_who] = 0;
         }
 
         totalSupply_ = normalize(denormalize(totalSupply_).sub(_tokenAmount));
         if (totalSupply() == 0) {
             totalSupply_ = 0;
+            balances[_who] = 0;
         }
 
         emit Burn(_who, _tokenAmount, _assetAmount, _price);

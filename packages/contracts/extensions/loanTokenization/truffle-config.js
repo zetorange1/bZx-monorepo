@@ -112,7 +112,7 @@ module.exports = {
       ),*/
       network_id: 1,
       gas: 6721975,
-      gasPrice: 10000000000,
+      gasPrice: 12000000000,
       confirmations: 0,
       timeoutBlocks: 200,
       skipDryRun: true
@@ -120,7 +120,7 @@ module.exports = {
   },
   compilers: {
     solc: {
-      version: "../../../../node_modules/solc_0.5.9", // v0.5.9
+      version: "../../../../node_modules/solc_0.5.8", // v0.5.8
       settings: {
         optimizer: {
           enabled: true,

@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.5.9;
+pragma solidity 0.5.8;
 
 import "./AdvancedTokenStorage.sol";
 
@@ -120,6 +120,7 @@ contract AdvancedToken is AdvancedTokenStorage {
 
         balances[_who] = balances[_who].sub(_tokenAmount);
         if (balances[_who] <= 10) { // we can't leave such small balance quantities
+            _tokenAmount = _tokenAmount.add(balances[_who]);
             balances[_who] = 0;
         }
 

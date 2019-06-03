@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.5.9;
+pragma solidity 0.5.8;
 pragma experimental ABIEncoderV2;
 
 import "./shared/openzeppelin-solidity/Ownable.sol";

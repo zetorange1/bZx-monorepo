@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.5.9;
+pragma solidity 0.5.8;
 
 import "./SplittableTokenStorage.sol";
 
@@ -18,10 +18,10 @@ contract PositionToken is SplittableTokenStorage {
     {
         _setTarget(_newTarget);
     }
-    
-    function() 
+
+    function()
         external
-        payable 
+        payable
     {
         address target = target_;
         bytes memory data = msg.data;

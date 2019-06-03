@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.5.9;
+pragma solidity 0.5.8;
 pragma experimental ABIEncoderV2;
 
 import "./AdvancedToken.sol";
@@ -45,7 +45,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         returns (uint256 mintAmount)
     {
         require (depositAmount > 0, "depositAmount == 0");
-        
+
         if (burntTokenReserveList.length > 0) {
             _claimLoanToken(_getNextOwed());
             _claimLoanToken(receiver);
@@ -83,7 +83,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
 
         if (loanAmountPaid > 0) {
             require(ERC20(loanTokenAddress).transfer(
-                receiver, 
+                receiver,
                 loanAmountPaid
             ), "transfer of loanToken failed");
         }
@@ -300,7 +300,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
     function transfer(
         address _to,
         uint256 _value)
-        public 
+        public
         returns (bool)
     {
         super.transfer(
@@ -1199,15 +1199,15 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
     {
         require (!isInitialized_, "already initialized");
 
-        name = _name;
-        symbol = _symbol;
-        decimals = 18;
-
         bZxContract = _bZxContract;
         bZxVault = _bZxVault;
         bZxOracle = _bZxOracle;
         loanTokenAddress = _loanTokenAddress;
         tokenizedRegistry = _tokenizedRegistry;
+
+        name = _name;
+        symbol = _symbol;
+        decimals = EIP20(loanTokenAddress).decimals();
 
         spreadMultiplier = SafeMath.sub(10**20, IBZxOracle(_bZxOracle).interestFeePercent());
 

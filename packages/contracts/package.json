@@ -26,7 +26,7 @@
     "ganache-cli": "^6.4.1",
     "lodash": "^4.17.5",
     "solc_0.5.3": "npm:solc@0.5.3",
-    "solc_0.5.9": "npm:solc@0.5.9",
+    "solc_0.5.8": "npm:solc@0.5.8",
     "truffle": "5.0.4",
     "truffle-privatekey-provider": "https://github.com/bZxNetwork/truffle-privatekey-provider",
     "web3-utils": "1.0.0-beta.34"

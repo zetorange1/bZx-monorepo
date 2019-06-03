@@ -22,16 +22,24 @@ let EtherLoanTokenLogic = artifacts.require("EtherLoanTokenLogic");
 let PositionTokenLogic = artifacts.require("PositionTokenLogic");
 let TokenizedRegistry = artifacts.require("TokenizedRegistry");
 
-let etherLoanTokenLogic, loanTokenLogic, positionTokenLogic;
+let tokenized_registry_address, etherLoanTokenLogic, loanTokenLogic, positionTokenLogic;
 
 const path = require("path");
 let config = require("../../../protocol-config.js");
 
 module.exports = function(deployer, network, accounts) {
 
+  return;
+
   network = network.replace("-fork", "");
   if (network == "development" || network == "develop" || network == "testnet" || network == "coverage") {
     network = "development";
+  }
+
+  if (network == "mainnet" || network == "ropsten") {
+    tokenized_registry_address = config["addresses"][network]["TokenizedRegistry"];
+  } else {
+    tokenized_registry_address = TokenizedRegistry.address;
   }
 
   if (network == "mainnet" || network == "ropsten" || network == "kovan") {
@@ -73,34 +81,56 @@ module.exports = function(deployer, network, accounts) {
     usdc_token_address = t.address;
   }
 
+
   deployer.then(async function() {
 
     await fs.appendFile("TokenizedLoans_"+network+".log", "-------\n");
-/*
-    console.log("Deploying bZx ETH iToken.");
-    let iETH = await deployIToken(
+
+    //console.log("Deploying bZx ETH iToken.");
+    /*let iETH = await deployIToken(
       "bZx ETH iToken",
       "iETH",
       weth_token_address
-    );
-    //let iETH = await LoanTokenLogic.at("0x10fE1ED475E0Fd3b3F52dCc63aA92c0F761e6360");
+    );*/
+    //let iETH = await EtherLoanTokenLogic.at("0x77f973fcaf871459aa58cd81881ce453759281bc");
 
     console.log("Deploying bZx DAI iToken.");
-    let iDAI = await deployIToken(
+    /*let iDAI = await deployIToken(
       "bZx DAI iToken",
       "iDAI",
       dai_token_address
-    );
-    //let iDAI = await LoanTokenLogic.at("0xFCE3aEeEC8EB39304ED423c0d23c0A978DA9E934");
-*/
-    console.log("Deploying bZx USDC iToken.");
-    let iUSDC = await deployIToken(
+    );*/
+    let iDAI = await LoanTokenLogic.at("0x14094949152eddbfcd073717200da82fed8dc960");
+
+
+    //console.log("Deploying bZx USDC iToken.");
+    /*let iUSDC = await deployIToken(
       "bZx USDC iToken",
       "iUSDC",
       usdc_token_address
-    );
-    //let iUSDC = await LoanTokenLogic.at("0xFCE3aEeEC8EB39304ED423c0d23c0A978DA9E934");
-      return;
+    );*/
+    //let iUSDC = await LoanTokenLogic.at("0xF013406A0B1d544238083DF0B93ad0d2cBE0f65f");
+
+
+    console.log("Deploying bZx ETH iToken.");
+    let iETH = await EtherLoanTokenLogic.at("0x77f973fcaf871459aa58cd81881ce453759281bc");
+
+    console.log("Deploying bZx WBTC iToken.");
+    let iWBTC = await LoanTokenLogic.at("0xba9262578efef8b3aff7f60cd629d6cc8859c8b5");
+
+    console.log("Deploying bZx ZRX iToken.");
+    let iZRX = await LoanTokenLogic.at("0xa7eb2bc82df18013ecc2a6c533fc29446442edee");
+
+    console.log("Deploying bZx BAT iToken.");
+    let iBAT = await LoanTokenLogic.at("0xa8b65249de7f85494bc1fe75f525f568aa7dfa39");
+
+    console.log("Deploying bZx KNC iToken.");
+    let iKNC = await LoanTokenLogic.at("0x1cc9567ea2eb740824a45f8026ccf8e46973234d");
+
+    console.log("Deploying bZx REP iToken.");
+    let iREP = await LoanTokenLogic.at("0xbd56e9477fc6997609cf45f84795efbdac642ff1");
+
+    /*
     if (network == "mainnet") {
       console.log("Deploying bZx WBTC iToken.");
       let iWBTC = await deployIToken(
@@ -108,7 +138,7 @@ module.exports = function(deployer, network, accounts) {
         "iWBTC",
         wbtc_token_address
       );
-      //let iWBTC = await LoanTokenLogic.at("0xFCE3aEeEC8EB39304ED423c0d23c0A978DA9E934");
+      //let iWBTC = await LoanTokenLogic.at("0xba9262578efef8b3aff7f60cd629d6cc8859c8b5");
 
       console.log("Deploying bZx BAT iToken.");
       let iBAT = await deployIToken(
@@ -142,30 +172,155 @@ module.exports = function(deployer, network, accounts) {
       );
       //let iZRX = await LoanTokenLogic.at("0xFCE3aEeEC8EB39304ED423c0d23c0A978DA9E934");
     }
+    */
 
-
-    for (let leverageAmount=1; leverageAmount <= 4; leverageAmount++) {
-      if (leverageAmount != 2)
-        continue;
+    /*for (let leverageAmount=1; leverageAmount <= 4; leverageAmount++) {
+      //if (leverageAmount <= 2)
+      //  continue;
 
       await deployPToken(
-        leverageAmount,      
-        "ETH",
-        "short",
+        leverageAmount,
+        "ETH", // assetSymbol
+        "short", // type
         weth_token_address, // baseTokenAddress
         dai_token_address, // unitOfAccountTokenAddress
         "DAI", // unitOfAccountToken
-        iETH // loanTokenDeployed
+        iETH // loanTokenDeployed <-- should be same as assetSymbol
       );
 
       await deployPToken(
-        leverageAmount,      
-        "ETH",
-        "long",
+        leverageAmount,
+        "ETH", // assetSymbol
+        "long", // type
         weth_token_address, // baseTokenAddress
         dai_token_address, // unitOfAccountTokenAddress
         "DAI", // unitOfAccountToken
-        iDAI // loanTokenDeployed
+        iDAI // loanTokenDeployed <-- should be same as unitOfAccountToken
+      );
+    }*/
+
+    /*for (let leverageAmount=1; leverageAmount <= 4; leverageAmount++) {
+      //if (leverageAmount <= 2)
+      //  continue;
+
+      await deployPToken(
+        leverageAmount,
+        "WBTC", // assetSymbol
+        "short", // type
+        wbtc_token_address, // baseTokenAddress
+        dai_token_address, // unitOfAccountTokenAddress
+        "DAI", // unitOfAccountToken
+        iWBTC // loanTokenDeployed <-- should be same as assetSymbol
+      );
+
+      await deployPToken(
+        leverageAmount,
+        "WBTC", // assetSymbol
+        "long", // type
+        wbtc_token_address, // baseTokenAddress
+        dai_token_address, // unitOfAccountTokenAddress
+        "DAI", // unitOfAccountToken
+        iDAI // loanTokenDeployed <-- should be same as unitOfAccountToken
+      );
+    }*/
+
+    /*for (let leverageAmount=1; leverageAmount <= 4; leverageAmount++) {
+      //if (leverageAmount <= 2)
+      //  continue;
+
+      await deployPToken(
+        leverageAmount,
+        "ZRX", // assetSymbol
+        "short", // type
+        zrx_token_address, // baseTokenAddress
+        dai_token_address, // unitOfAccountTokenAddress
+        "DAI", // unitOfAccountToken
+        iZRX // loanTokenDeployed <-- should be same as assetSymbol
+      );
+
+      await deployPToken(
+        leverageAmount,
+        "ZRX", // assetSymbol
+        "long", // type
+        zrx_token_address, // baseTokenAddress
+        dai_token_address, // unitOfAccountTokenAddress
+        "DAI", // unitOfAccountToken
+        iDAI // loanTokenDeployed <-- should be same as unitOfAccountToken
+      );
+    }*/
+
+    /*for (let leverageAmount=1; leverageAmount <= 4; leverageAmount++) {
+      //if (leverageAmount <= 2)
+      //  continue;
+
+      await deployPToken(
+        leverageAmount,
+        "BAT", // assetSymbol
+        "short", // type
+        bat_token_address, // baseTokenAddress
+        dai_token_address, // unitOfAccountTokenAddress
+        "DAI", // unitOfAccountToken
+        iBAT // loanTokenDeployed <-- should be same as assetSymbol
+      );
+
+      await deployPToken(
+        leverageAmount,
+        "BAT", // assetSymbol
+        "long", // type
+        bat_token_address, // baseTokenAddress
+        dai_token_address, // unitOfAccountTokenAddress
+        "DAI", // unitOfAccountToken
+        iDAI // loanTokenDeployed <-- should be same as unitOfAccountToken
+      );
+    }*/
+
+    for (let leverageAmount=1; leverageAmount <= 4; leverageAmount++) {
+      //if (leverageAmount <= 3)
+      //  continue;
+
+      await deployPToken(
+        leverageAmount,
+        "KNC", // assetSymbol
+        "short", // type
+        knc_token_address, // baseTokenAddress
+        dai_token_address, // unitOfAccountTokenAddress
+        "DAI", // unitOfAccountToken
+        iKNC // loanTokenDeployed <-- should be same as assetSymbol
+      );
+
+      await deployPToken(
+        leverageAmount,
+        "KNC", // assetSymbol
+        "long", // type
+        knc_token_address, // baseTokenAddress
+        dai_token_address, // unitOfAccountTokenAddress
+        "DAI", // unitOfAccountToken
+        iDAI // loanTokenDeployed <-- should be same as unitOfAccountToken
+      );
+    }
+
+    for (let leverageAmount=1; leverageAmount <= 4; leverageAmount++) {
+      //if (leverageAmount <= 2)
+      //  continue;
+
+      await deployPToken(
+        leverageAmount,
+        "REP", // assetSymbol
+        "short", // type
+        rep_token_address, // baseTokenAddress
+        dai_token_address, // unitOfAccountTokenAddress
+        "DAI", // unitOfAccountToken
+        iREP // loanTokenDeployed <-- should be same as assetSymbol
+      );
+
+      await deployPToken(
+        leverageAmount,
+        "REP", // assetSymbol
+        "long", // type
+        rep_token_address, // baseTokenAddress
+        dai_token_address, // unitOfAccountTokenAddress
+        "DAI", // unitOfAccountToken
+        iDAI // loanTokenDeployed <-- should be same as unitOfAccountToken
       );
     }
 
@@ -179,17 +334,19 @@ module.exports = function(deployer, network, accounts) {
       if (symbol == "iETH") {
         if (!etherLoanTokenLogic) {
           console.log(" Deploying EtherLoanTokenLogic.");
-          etherLoanTokenLogic = await deployer.deploy(
+          /*etherLoanTokenLogic = await deployer.deploy(
             EtherLoanTokenLogic
-          );
+          );*/
+          etherLoanTokenLogic = await EtherLoanTokenLogic.at("0x6bb082db72be6292291c26956f58e3c988a3e986");
         }
         logicContract = etherLoanTokenLogic;
       } else {
         if (!loanTokenLogic) {
           console.log(" Deploying LoanTokenLogic.");
-          loanTokenLogic = await deployer.deploy(
+          /*loanTokenLogic = await deployer.deploy(
             LoanTokenLogic
-          );
+          );*/
+          loanTokenLogic = await LoanTokenLogic.at("0x47108548ccf9f9d06d20bb34af8deca5d4ad2ab6");
         }
         logicContract = loanTokenLogic;
       }
@@ -206,7 +363,7 @@ module.exports = function(deployer, network, accounts) {
         BZxVault.address,
         BZxOracle.address,
         loanTokenAddress,
-        TokenizedRegistry.address,
+        tokenized_registry_address,
         name,
         symbol
       );
@@ -297,22 +454,27 @@ module.exports = function(deployer, network, accounts) {
         }
       }
 
-      console.log("Deploying "+name+".");
+      console.log("Deploying "+name+" ("+unitOfAccountToken+").");
       let leverageAmountWei = web3.utils.toWei(leverageAmount.toString(), "ether");
       let loanOrderHash = await loanTokenDeployed.loanOrderHashes.call(leverageAmountWei);
       if (!positionTokenLogic) {
         console.log(" Deploying PositionTokenLogic.");
-        positionTokenLogic = await deployer.deploy(
+        /*positionTokenLogic = await deployer.deploy(
           PositionTokenLogic
-        );
-        //positionTokenLogic = await PositionTokenLogic.at("0x9d83e642e4F09822B7551f108ceB30c5fAE6FE9C");
+        );*/
+        positionTokenLogic = await PositionTokenLogic.at("0x6f692acc7f77a8de59d25e75e535bc82a21c18f1");
       }
       console.log(" Deploying PositionToken.");
-      let positionTokenProxy = await deployer.deploy(
-        PositionToken,
-        positionTokenLogic.address
-      );
-      let positionToken = await PositionTokenLogic.at(positionTokenProxy.address);
+      let positionToken;
+      //if (name == "bZx Perpetual Long KNC 2x") {
+      //  positionToken = await PositionTokenLogic.at("0x5c24f19f91f4ea8a3f95cb21ebbea053446d8632");
+      //} else {
+        let positionTokenProxy = await deployer.deploy(
+          PositionToken,
+          positionTokenLogic.address
+        );
+        positionToken = await PositionTokenLogic.at(positionTokenProxy.address);
+      //}
       console.log(" Initialize.");
       await positionToken.initialize(
         BZxProxy.address,

@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
  
-pragma solidity 0.5.9;
+pragma solidity 0.5.8;
 
 import "../shared/LoanTokenization.sol";
 
@@ -56,7 +56,7 @@ contract LoanTokenStorage is LoanTokenization {
     // "fee percentage retained by the oracle" = SafeMath.sub(10**20, spreadMultiplier);
     uint256 public spreadMultiplier;
 
-    mapping (uint256 => bytes32) public loanOrderHashes;  // mapping of levergeAmount to loanOrderHash
+    mapping (uint256 => bytes32) public loanOrderHashes; // mapping of levergeAmount to loanOrderHash
     mapping (bytes32 => LoanData) public loanOrderData; // mapping of loanOrderHash to LoanOrder
     uint256[] public leverageList;
 

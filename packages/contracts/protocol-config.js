@@ -32,6 +32,7 @@ module.exports = {
       BZRXTokenSale: "0x450e617b88366fde63c18880acbdeb35a5812eee",
       BZxEther: "0xa3eBDf66e0292F1d5FD82Ae3fcd92551Ac9dB081",
       MultiSig: "0x35b94649Bd03D13eF08e999127351Cc52286473C",
+      TokenizedRegistry: "0xaa5c713387972841995553c9690459596336800b",
       DAITokenAddress: "0xad6d458402f60fd3bd25163575031acdce07538d", // Kyber DAI
       USDCTokenAddress: "0x95cc8d8f29d0f7fcc425e8708893e759d1599c97" // Kyber ENG
     },
@@ -92,6 +93,7 @@ module.exports = {
       BZRXTokenSale: "0x0b12cf7964731f7190b74600fcdad9ba4cac870c",
       BZxEther: "0x96CCe310096755f69594212d5D5fB5485577E7d1",
       MultiSig: "",
+      TokenizedRegistry: "0xd8dc30d298ccf40042991cb4b96a540d8affe73a",
       DAITokenAddress: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359",
       USDCTokenAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
       WBTCTokenAddress: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
