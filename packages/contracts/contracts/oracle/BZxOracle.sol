@@ -297,7 +297,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             revert("BZxOracle::didPayInterest: _transferToken failed");
         }
 
-        if (loanOrder.interestTokenAddress != wethContract && loanOrder.interestTokenAddress != bZRxTokenContract) {
+        /*if (loanOrder.interestTokenAddress != wethContract && loanOrder.interestTokenAddress != bZRxTokenContract) {
             // interest paid in WETH or BZRX is retained as is, other tokens are sold for WETH
             _trade(
                 loanOrder.interestTokenAddress,
@@ -308,7 +308,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 MAX_FOR_KYBER, // no limit on the dest amount
                 0 // minConversionRate
             );
-        }
+        }*/
 
         /*
         address notifier = OracleNotifier(oracleNotifier).payInterestNotifier(loanOrder.loanOrderHash);
@@ -347,7 +347,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             revert("BZxOracle::didPayInterestByLender: _transferToken failed");
         }
 
-        if (interestTokenAddress != wethContract && interestTokenAddress != bZRxTokenContract) {
+        /*if (interestTokenAddress != wethContract && interestTokenAddress != bZRxTokenContract) {
             // interest paid in WETH or BZRX is retained as is, other tokens are sold for WETH
             _trade(
                 interestTokenAddress,
@@ -358,7 +358,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 MAX_FOR_KYBER, // no limit on the dest amount
                 0 // minConversionRate
             );
-        }
+        }*/
 
         return true;
     }
@@ -1354,7 +1354,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 sourceTokenAddress,
                 maxDestTokenAmount
             );
-            maxSourceTokenAmount = Math.min256(sourceTokenAmount, maxSourceTokenAmount);
+            maxSourceTokenAmount = Math.min256(sourceTokenAmount, maxSourceTokenAmount.mul(11).div(10)); // extra padding for slippage
         }
 
         return abi.encodeWithSignature(

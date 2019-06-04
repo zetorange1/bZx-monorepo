@@ -187,7 +187,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
         nonReentrant
         tracksGas
         returns (uint256 actualCloseAmount)
-    { 
+    {
         return _closeLoanPartially(
             loanOrderHash,
             closeAmount,
@@ -357,16 +357,6 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
             ) ? closeAmount : 0;
         }
 
-        // pay lender interest so far, and do partial interest refund to trader
-        if (loanOrder.interestAmount > 0) {
-            _settleInterest(
-                loanOrder,
-                loanPosition,
-                closeAmount,
-                true // sendToOracle
-            );
-        }
-
         uint256 marginAmountBeforeClose = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getCurrentMarginAmount(
             loanOrder.loanTokenAddress,
             loanPosition.positionTokenAddressFilled,
@@ -384,14 +374,13 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
                 false // ensureHealthy
             );
 
-            if (loanTokenAmountClosed < closeAmount) {
-                revert("BZxLoanHealth::_closeLoanPartially: loanTokenAmountClosed < closeAmount");
-            }
-
             if (loanPosition.positionTokenAmountFilled < positionTokenAmountUsed) {
                 revert("BZxLoanHealth::_closeLoanPartially: positionTokenAmountFilled < positionTokenAmountUsed");
             }
 
+            if (loanTokenAmountClosed < closeAmount) {
+                closeAmount = loanTokenAmountClosed;
+            }
             loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(positionTokenAmountUsed);
         } else {
             if (loanPosition.positionTokenAmountFilled < closeAmount) {
@@ -399,6 +388,16 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
             }
 
             loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(closeAmount);
+        }
+
+        // pay lender interest so far, and do partial interest refund to trader
+        if (loanOrder.interestAmount > 0) {
+            _settleInterest(
+                loanOrder,
+                loanPosition,
+                closeAmount,
+                true // sendToOracle
+            );
         }
 
         uint256 loanToCollateralTokenAmount;
@@ -421,7 +420,11 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
                 revert("BZxLoanHealth::_closeLoanPartially: BZxVault.withdrawToken collateral failed");
             }
 
-            loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(collateralCloseAmount);
+            if (loanPosition.collateralTokenAmountFilled > collateralCloseAmount) {
+                loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(collateralCloseAmount);
+            } else {
+                loanPosition.collateralTokenAmountFilled = 0;
+            }
         }
 
         // send closed token back to the lender
