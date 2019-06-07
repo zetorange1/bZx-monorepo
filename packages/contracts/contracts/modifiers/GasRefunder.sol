@@ -87,7 +87,7 @@ contract GasRefunder {
         if (percentMultiplier == 0) // 0 percentMultiplier not allowed
             percentMultiplier = 100 * 10**18;
 
-        finalGasUsed = gasUsed - gasleft();
+        finalGasUsed = gasUsed.sub(gasleft());
 
         refundAmount = finalGasUsed.mul(gasPrice).mul(percentMultiplier).div(10**20);
     }

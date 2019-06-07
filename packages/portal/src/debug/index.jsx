@@ -220,10 +220,10 @@ export default class Debug extends BZxComponent {
         lenderInterestForOrder = {
           lender: lenderInterestForOrder[0],
           interestTokenAddress: lenderInterestForOrder[1],
-          interestPaid: toBigNumber(lenderInterestForOrder[2], 10 ** -18).toString()+ ` (normalized)`,
+          interestPaid: lenderInterestForOrder[2],//toBigNumber(lenderInterestForOrder[2], 10 ** -18).toString()+ ` (normalized)`,
           interestPaidDate: lenderInterestForOrder[3],
-          interestOwedPerDay: toBigNumber(lenderInterestForOrder[4], 10 ** -18).toString()+ ` (normalized)`,
-          interestUnPaid: toBigNumber(lenderInterestForOrder[5], 10 ** -18).toString()+ ` (normalized)`
+          interestOwedPerDay: lenderInterestForOrder[4],//toBigNumber(lenderInterestForOrder[4], 10 ** -18).toString()+ ` (normalized)`,
+          interestUnPaid: lenderInterestForOrder[5]//,toBigNumber(lenderInterestForOrder[5], 10 ** -18).toString()+ ` (normalized)`
         };
 
         lenderInterestForOracle = await this.wrapAndRun(bzxContract.methods.getLenderInterestForOracle(
@@ -232,10 +232,10 @@ export default class Debug extends BZxComponent {
           order[`interestTokenAddress`]
         ).call());
         lenderInterestForOracle = {
-          interestPaid: toBigNumber(lenderInterestForOracle[0], 10 ** -18).toString()+ ` (normalized)`,
+          interestPaid: lenderInterestForOracle[0],//toBigNumber(lenderInterestForOracle[0], 10 ** -18).toString()+ ` (normalized)`,
           interestPaidDate: lenderInterestForOracle[1],
-          interestOwedPerDay: toBigNumber(lenderInterestForOracle[2], 10 ** -18).toString()+ ` (normalized)`,
-          interestUnPaid: toBigNumber(lenderInterestForOracle[3], 10 ** -18).toString()+ ` (normalized)`
+          interestOwedPerDay: lenderInterestForOracle[2],//toBigNumber(lenderInterestForOracle[2], 10 ** -18).toString()+ ` (normalized)`,
+          interestUnPaid: lenderInterestForOracle[3],//toBigNumber(lenderInterestForOracle[3], 10 ** -18).toString()+ ` (normalized)`
         };
 
         traderInterestForLoan = await this.wrapAndRun(bzxContract.methods.getTraderInterestForLoan(
@@ -244,10 +244,10 @@ export default class Debug extends BZxComponent {
         ).call());
         traderInterestForLoan = {
           interestTokenAddress: traderInterestForLoan[0],
-          interestOwedPerDay: toBigNumber(traderInterestForLoan[1], 10 ** -18).toString()+ ` (normalized)`,
-          interestPaidTotal: toBigNumber(traderInterestForLoan[2], 10 ** -18).toString()+ ` (normalized)`,
-          interestDepositTotal: toBigNumber(traderInterestForLoan[3], 10 ** -18).toString()+ ` (normalized)`,
-          interestDepositRemaining: toBigNumber(traderInterestForLoan[4], 10 ** -18).toString()+ ` (normalized)`
+          interestOwedPerDay: traderInterestForLoan[1],//toBigNumber(traderInterestForLoan[1], 10 ** -18).toString()+ ` (normalized)`,
+          interestPaidTotal: traderInterestForLoan[2],//toBigNumber(traderInterestForLoan[2], 10 ** -18).toString()+ ` (normalized)`,
+          interestDepositTotal: traderInterestForLoan[3],//toBigNumber(traderInterestForLoan[3], 10 ** -18).toString()+ ` (normalized)`,
+          interestDepositRemaining: traderInterestForLoan[4],//toBigNumber(traderInterestForLoan[4], 10 ** -18).toString()+ ` (normalized)`
         };
       }
 
@@ -508,12 +508,12 @@ export default class Debug extends BZxComponent {
                     {JSON.stringify({ 
                       "orderFilledAmount": toBigNumber(
                         orderFilledAmounts,
-                        10 ** -18
-                      ).toString()+` (normalized)`,
+                        10 ** 0//10 ** -18
+                      ).toString(),//+` (normalized)`,
                       "orderCancelledAmount": toBigNumber(
                         orderCancelledAmounts,
-                        10 ** -18
-                      ).toString()+` (normalized)`
+                        10 ** 0//10 ** -18
+                      ).toString()//+` (normalized)`
                     }, null, '  ')}
                   </pre>
                 </Fragment>

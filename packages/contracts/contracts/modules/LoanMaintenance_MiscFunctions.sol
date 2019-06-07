@@ -244,6 +244,10 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
                 collateralTokenFilled,
                 collateralTokenAmountFilled);
 
+            if (collateralTokenAmountFilled == 0) {
+                revert("BZxLoanHealth::changeCollateral: BZxVault.depositToken new collateral == 0");
+            }
+
             // transfer the new collateral token from the trader to the vault
             if (! BZxVault(vaultContract).depositToken(
                 collateralTokenFilled,
@@ -495,26 +499,30 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             return (0,0,0);
         }
 
-        uint256 positionToCollateralAmount;
+        uint256 positionToCollateralAmount = 0;
         if (loanPosition.positionTokenAddressFilled == loanPosition.collateralTokenAddressFilled) {
             positionToCollateralAmount = loanPosition.positionTokenAmountFilled;
         } else {
-            (,,positionToCollateralAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
-                loanPosition.positionTokenAddressFilled,
-                loanPosition.collateralTokenAddressFilled,
-                loanPosition.positionTokenAmountFilled
-            );
+            if (loanPosition.positionTokenAmountFilled > 0) {
+                (,,positionToCollateralAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+                    loanPosition.positionTokenAddressFilled,
+                    loanPosition.collateralTokenAddressFilled,
+                    loanPosition.positionTokenAmountFilled
+                );
+            }
         }
 
-        uint256 loanToCollateralAmount;
+        uint256 loanToCollateralAmount = 0;
         if (loanOrder.loanTokenAddress == loanPosition.collateralTokenAddressFilled) {
             loanToCollateralAmount = loanPosition.loanTokenAmountFilled;
         } else {
-            (,,loanToCollateralAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
-                loanOrder.loanTokenAddress,
-                loanPosition.collateralTokenAddressFilled,
-                loanPosition.loanTokenAmountFilled
-            );
+            if (loanPosition.loanTokenAmountFilled > 0) {
+                (,,loanToCollateralAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+                    loanOrder.loanTokenAddress,
+                    loanPosition.collateralTokenAddressFilled,
+                    loanPosition.loanTokenAmountFilled
+                );
+            }
         }
 
         uint256 profitOrLoss;

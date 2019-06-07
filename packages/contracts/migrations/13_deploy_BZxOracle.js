@@ -19,10 +19,11 @@ const config = require("../protocol-config.js");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const OLD_ORACLE_ADDRESS = "";
+//const OLD_ORACLE_ADDRESS = "0xc1d91943248bf2e627ca2c52860a04cdb80903a4"; // mainnet
 
 module.exports = (deployer, network, accounts) => {
 
-  var weth_token_address;
+  let weth_token_address;
 
   if (network == "development" || network == "develop" || network == "testnet" || network == "coverage") {
     network = "development";
@@ -42,6 +43,13 @@ module.exports = (deployer, network, accounts) => {
     bzrx_token_address = config["addresses"][network]["BZRXToken"];
   } else {
     bzrx_token_address = BZRxToken.address;
+  }
+
+  let FULCRUM_ORACLE = "";
+  if (network == "mainnet") {
+    FULCRUM_ORACLE = "0xf257246627f7cb036ae40aa6cfe8d8ce5f0eba63";
+  } else if (network == "ropsten") {
+    FULCRUM_ORACLE = "0xd5f66f2ac36b6d765a1cfdacbb7a8868c2d91a9d";
   }
 
   if (bzrx_token_address) {
@@ -75,13 +83,14 @@ module.exports = (deployer, network, accounts) => {
         { from: accounts[0] }
       );
 
-      var oracle = await BZxOracle.deployed();
+      const oracle = await BZxOracle.deployed();
+      const oracleAddress = oracle.address;
 
-      await oracleNotifier.transferBZxOwnership(oracle.address);
+      await oracleNotifier.transferBZxOwnership(oracleAddress);
 
       if (network == "mainnet") {
         let txData = web3.eth.abi.encodeFunctionSignature('registerWallet(address)') +
-          web3.eth.abi.encodeParameters(['address'], [oracle.address]).substr(2);
+          web3.eth.abi.encodeParameters(['address'], [oracleAddress]).substr(2);
 
         await web3.eth.sendTransaction({
           from: accounts[0],
@@ -94,18 +103,21 @@ module.exports = (deployer, network, accounts) => {
       var weth = await BZxEther.at(weth_token_address);
       if (!OLD_ORACLE_ADDRESS) {
         await weth.deposit({ value: valueAmount });
-        await weth.transfer(oracle.address, valueAmount);
+        await weth.transfer(oracleAddress, valueAmount);
       }
 
       var bZxProxy = await BZxProxySettings.at(BZxProxy.address);
       await oracle.transferBZxOwnership(BZxProxy.address);
-      await bZxProxy.setOracleReference(BZxOracle.address, BZxOracle.address);
+      await bZxProxy.setOracleReference(oracleAddress, oracleAddress);
+
+      if (FULCRUM_ORACLE) {
+        await bZxProxy.setOracleReference(FULCRUM_ORACLE, oracleAddress);
+      }
 
       /*if (network != "mainnet" && network != "ropsten" && network != "kovan" && network != "rinkeby") {
       await oracle.setDebugMode(true);
     }*/
 
-      var oracleAddress = BZxOracle.address;
       var oracleRegistry = await OracleRegistry.deployed();
 
       if (OLD_ORACLE_ADDRESS) {
@@ -116,18 +128,47 @@ module.exports = (deployer, network, accounts) => {
           oracleAddress,
           web3.utils.toWei(10000000, "ether")
         );*/
-        var oldWETHBalance = await weth.balanceOf(bZxOracleOld.address);
-        if (oldWETHBalance.toString() !== "0") {
-          await bZxOracleOld.transferToken(weth.address, oracleAddress, oldWETHBalance);
 
-          /*await bZxOracleOld.transferToken("0xdd974d5c2e2928dea5f71b9825b8b646686bd200", oracleAddress, "0");
-          await bZxOracleOld.transferToken("0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359", oracleAddress, "0");
-          console.log("Done with transfers");*/
+        let tokenBalance;
+
+        tokenBalance = await weth.balanceOf(bZxOracleOld.address);
+        if (tokenBalance.toString() !== "0") {
+          await bZxOracleOld.transferToken(weth.address, oracleAddress, tokenBalance);
+          console.log("Done with WETH transfer.");
+        }
+
+        if (network == "mainnet") {
+          let otherToken;
+
+          // KNC Transfer
+          otherToken = await BZxEther.at("0xdd974d5c2e2928dea5f71b9825b8b646686bd200");
+          tokenBalance = await otherToken.balanceOf(bZxOracleOld.address);
+          if (tokenBalance.toString() !== "0") {
+            await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
+          }
+
+          // DAI Transfer
+          otherToken = await BZxEther.at("0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359");
+          tokenBalance = await otherToken.balanceOf(bZxOracleOld.address);
+          if (tokenBalance.toString() !== "0") {
+            await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
+          }
+
+          // USDC Transfer
+          otherToken = await BZxEther.at("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48");
+          tokenBalance = await otherToken.balanceOf(bZxOracleOld.address);
+          if (tokenBalance.toString() !== "0") {
+            await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
+          }
+
+          console.log("Done with other token transfers.");
         }
 
         await oracleRegistry.removeOracle(CURRENT_OLD_ORACLE_ADDRESS, 0);
 
-        await bZxProxy.setOracleReference(OLD_ORACLE_ADDRESS, oracleAddress);
+        if (FULCRUM_ORACLE && FULCRUM_ORACLE !== OLD_ORACLE_ADDRESS) {
+          await bZxProxy.setOracleReference(OLD_ORACLE_ADDRESS, oracleAddress);
+        }
 
         /*if (CURRENT_OLD_ORACLE_ADDRESS.toLowerCase() != OLD_ORACLE_ADDRESS.toLowerCase()) {
           await bZxProxy.setOracleReference(CURRENT_OLD_ORACLE_ADDRESS, oracleAddress);
@@ -152,7 +193,7 @@ module.exports = (deployer, network, accounts) => {
           let TestNetFaucet = artifacts.require("TestNetFaucet");
           let testNetFaucet = await TestNetFaucet.deployed();
           await oracle.setFaucetContractAddress(testNetFaucet.address);
-          await testNetFaucet.setOracleContractAddress(oracle.address);
+          await testNetFaucet.setOracleContractAddress(oracleAddress);
         }
       }
 

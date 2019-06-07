@@ -132,7 +132,7 @@ export default class LoanItem extends BZxComponent {
 
     const txOpts = {
       from: accounts[0],
-      gas: 3000000,
+      gas: 4000000,
       gasPrice: window.defaultGasPrice.toString()
     };
 
@@ -289,15 +289,13 @@ export default class LoanItem extends BZxComponent {
           )}
 
           <DataPointContainer>
-            { process.env.NODE_ENV !== `production` ? (
             <Button
               style={{ marginTop: `12px`, marginRight: `12px` }}
               variant="raised"
               onClick={this.debugLoan}
             >
-              Debug
+              Advanced
             </Button>
-            ) : ``}
             
             <Button
               style={{ marginTop: `12px` }}
