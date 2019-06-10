@@ -119,7 +119,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     uint256 public marginCallerRewardPercent = 110 * 10**18;
 
     // An upper bound estimation on the liquidation gas cost
-    uint256 public gasUpperBound = 2000000;
+    uint256 public gasUpperBound = 4000000;
 
     // A threshold of minimum initial margin for loan to be insured by the guarantee fund
     // A value of 0 indicates that no threshold exists for this parameter.
@@ -203,7 +203,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     function didTakeOrder(
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanOrderAux memory /* loanOrderAux */,
-        BZxObjects.LoanPosition memory loanPosition,
+        BZxObjects.LoanPosition memory /* loanPosition */,
         address /* taker */,
         uint256 /* gasUsed */)
         public
@@ -471,6 +471,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             uint256 traderRefund = 0;
             if (collateralReserve_ > refundAmount) {
                 traderRefund = collateralReserve_-refundAmount;
+            } else if (collateralReserve_ < refundAmount) {
+                revert("BZxOracle::didCloseLoan: gas refund too high");
             }
 
             if (refundAmount.add(traderRefund) > 0) {
@@ -509,7 +511,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
         return true;
     }
-    
+
     function didChangeTraderOwnership(
         BZxObjects.LoanOrder memory /* loanOrder */,
         BZxObjects.LoanPosition memory /* loanPosition */,
@@ -1220,6 +1222,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                 wethAmountNeeded,
                 0 // minConversionRate
             );
+            require(!isLiquidation || wethAmountReceived >= collateralReserve_, "BZxOracle::didCloseLoan: gas refund too high");
         }
     }
 

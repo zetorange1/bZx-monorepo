@@ -54,7 +54,7 @@ contract OrderTaking_takeLoanOrderOnChainAsTraderByDelegate is BZxStorage, BZxPr
         returns (uint256)
     {
         require(allowedValidators[address(0)][msg.sender] || allowedValidators[trader][msg.sender], "takeLoanOrderOnChainAsTraderByDelegate: not authorized");
-        
+
         LoanOrder memory loanOrder = _takeLoanOrder(
             trader,
             loanOrderHash,

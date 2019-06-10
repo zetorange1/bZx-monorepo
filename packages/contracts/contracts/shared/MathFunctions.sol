@@ -43,7 +43,7 @@ contract MathFunctions {
             ),
             "ROUNDING_ERROR"
         );
-        
+
         partialAmount = SafeMath.div(
             SafeMath.mul(numerator, target),
             denominator
@@ -70,7 +70,7 @@ contract MathFunctions {
             denominator > 0,
             "DIVISION_BY_ZERO"
         );
-        
+
         // The absolute rounding error is the difference between the rounded
         // value and the ideal value. The relative rounding error is the
         // absolute rounding error divided by the absolute value of the
@@ -83,11 +83,11 @@ contract MathFunctions {
         // When the ideal value is zero, we require the absolute error to
         // be zero. Fortunately, this is always the case. The ideal value is
         // zero iff `numerator == 0` and/or `target == 0`. In this case the
-        // remainder and absolute error are also zero. 
+        // remainder and absolute error are also zero.
         if (target == 0 || numerator == 0) {
             return false;
         }
-        
+
         // Otherwise, we want the relative rounding error to be strictly
         // less than 0.1%.
         // The relative error is `remainder / (numerator * target)`.

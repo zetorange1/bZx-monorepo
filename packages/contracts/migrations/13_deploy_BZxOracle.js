@@ -84,6 +84,8 @@ module.exports = (deployer, network, accounts) => {
       );
 
       const oracle = await BZxOracle.deployed();
+      //const oracle = await BZxOracle.at("...");
+
       const oracleAddress = oracle.address;
 
       await oracleNotifier.transferBZxOwnership(oracleAddress);
