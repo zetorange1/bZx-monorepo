@@ -101,7 +101,8 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     // collateral collected to pay margin callers
     uint256 internal collateralReserve_;
 
-    mapping (address => uint256) internal decimals;
+    // decimals of supported tokens
+    mapping (address => uint256) public decimals;
 
     // Margin callers are remembursed from collateral
     // The oracle requires a minimum amount
@@ -777,16 +778,36 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         view
         returns (uint256 sourceToDestRate, uint256 sourceToDestPrecision, uint256 destTokenAmount)
     {
-        (sourceToDestRate,) = _getExpectedRate(
-            sourceTokenAddress,
-            destTokenAddress,
-            sourceTokenAmount);
+        if (sourceTokenAmount < MAX_FOR_KYBER) {
+            (sourceToDestRate,) = _getExpectedRate(
+                sourceTokenAddress,
+                destTokenAddress,
+                sourceTokenAmount
+            );
 
-        sourceToDestPrecision = _getDecimalPrecision(sourceTokenAddress, destTokenAddress);
+            sourceToDestPrecision = _getDecimalPrecision(sourceTokenAddress, destTokenAddress);
 
-        destTokenAmount = sourceTokenAmount
-                            .mul(sourceToDestRate)
-                            .div(sourceToDestPrecision);
+            destTokenAmount = sourceTokenAmount
+                                .mul(sourceToDestRate)
+                                .div(sourceToDestPrecision);
+        } else {
+            uint256 sourceTokenDecimals = decimals[sourceTokenAddress];
+            if (sourceTokenDecimals == 0)
+                sourceTokenDecimals = EIP20(sourceTokenAddress).decimals();
+
+            (sourceToDestRate,) = _getExpectedRate(
+                sourceTokenAddress,
+                destTokenAddress,
+                10**(sourceTokenDecimals >= 2 ?
+                    sourceTokenDecimals-2 :
+                    sourceTokenDecimals
+                )
+            );
+
+            sourceToDestPrecision = _getDecimalPrecision(sourceTokenAddress, destTokenAddress);
+
+            destTokenAmount = 0;
+        }
     }
 
     function getPositionOffset(
@@ -1274,10 +1295,16 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     {
         uint256 precision = _getDecimalPrecision(loanPosition.positionTokenAddressFilled, loanOrder.loanTokenAddress);
 
+        uint256 sourceTokenDecimals = decimals[loanPosition.positionTokenAddressFilled];
+        if (sourceTokenDecimals == 0)
+            sourceTokenDecimals = EIP20(loanPosition.positionTokenAddressFilled).decimals();
         (uint256 goodRate,) = _getExpectedRate(
             loanPosition.positionTokenAddressFilled,
             loanOrder.loanTokenAddress,
-            SafeMath.div(10**36, precision)
+            10**(sourceTokenDecimals >= 2 ?
+                sourceTokenDecimals-2 :
+                sourceTokenDecimals
+            )
         );
 
         require(goodRate > 0, "can't find good rate");

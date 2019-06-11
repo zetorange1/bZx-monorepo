@@ -194,7 +194,7 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
         uint256 totalNewFillableAmount = loanOrder.loanTokenAmount.sub(_getUnavailableLoanTokenAmount(loanOrderHash));
         if (increaseAmountForLoan > 0) {
             totalNewFillableAmount = totalNewFillableAmount.add(increaseAmountForLoan);
-        
+
             // ensure adequate token balance
             require (EIP20(loanOrder.loanTokenAddress).balanceOf(msg.sender) >= totalNewFillableAmount, "BZxOrderTaking::updateLoanAsLender: lender balance is insufficient");
 
@@ -224,10 +224,13 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
             if (loanOrder.interestTokenAddress == loanOrder.loanTokenAddress) {
                 loanToInterestAmount = loanOrder.loanTokenAmount;
             } else {
-                (,,loanToInterestAmount) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+                (uint256 sourceToDestRate, uint256 sourceToDestPrecision,) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
                     loanOrder.loanTokenAddress,
                     loanOrder.interestTokenAddress,
-                    loanOrder.loanTokenAmount);
+                    MAX_UINT // get best rate
+                );
+                loanToInterestAmount = loanOrder.loanTokenAmount.mul(sourceToDestRate).div(sourceToDestPrecision);
+
                 require(loanToInterestAmount > 0, "BZxOrderTaking::updateLoanAsLender: loanToInterestAmount == 0");
             }
 

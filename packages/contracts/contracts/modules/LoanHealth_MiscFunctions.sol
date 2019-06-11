@@ -344,7 +344,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
         uint256 positionId = loanPositionsIds[loanOrderHash][msg.sender];
         LoanPosition storage loanPosition = loanPositions[positionId];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            revert("BZxLoanHealth::_closeLoanPartially: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+            return 0;
         }
 
         if (loanPosition.positionTokenAmountFilled == 0) {
@@ -501,7 +501,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
     {
         LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            revert("BZxLoanHealth::_closeLoan: loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active");
+            return false;
         }
 
         LoanOrder memory loanOrder = orders[loanOrderHash];

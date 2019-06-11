@@ -201,6 +201,11 @@ module.exports = (deployer, network, accounts) => {
 
       await oracleRegistry.addOracle(oracleAddress, "bZxOracle");
 
+      if (network == "mainnet") {
+        await oracle.setDecimalsBatch(["0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2","0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48","0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359","0x2260fac5e5542a773aa44fbcfedf7c193bc2c599","0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2","0xdd974d5c2e2928dea5f71b9825b8b646686bd200","0x1985365e9f78359a9b6ad760e32412f4a445e862","0x0d8775f648430679a709e98d2b0cb6250d2887ef","0xe41d2489571d322189246dafa5ebde1f4699f498"]);
+        // WETH,USDC,DAI,WBTC,MKR,KNC,REP,BAT,ZRX
+      }
+
       console.log(`   > [${parseInt(path.basename(__filename))}] BZxOracle deploy: #done`);
     });
   }

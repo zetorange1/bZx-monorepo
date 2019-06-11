@@ -108,16 +108,17 @@ contract MiscFunctions is BZxStorage, MathFunctions {
         if (loanTokenAddress == collateralTokenAddress) {
             collateralTokenAmount = loanTokenAmountFilled;
         } else {
-            (,,collateralTokenAmount) = OracleInterface(oracleAddresses[oracleAddress]).getTradeData(
+            (uint256 sourceToDestRate, uint256 sourceToDestPrecision,) = OracleInterface(oracleAddresses[oracleAddress]).getTradeData(
                 loanTokenAddress,
                 collateralTokenAddress,
-                loanTokenAmountFilled
+                MAX_UINT // get best rate
             );
+            collateralTokenAmount = loanTokenAmountFilled.mul(sourceToDestRate).div(sourceToDestPrecision);
         }
         if (collateralTokenAmount == 0) {
             revert("_getCollateralRequired: collateralTokenAmount == 0");
         }
-        
+
         collateralTokenAmount = collateralTokenAmount
                                     .mul(marginAmount)
                                     .div(10**20);

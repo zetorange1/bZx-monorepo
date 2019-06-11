@@ -154,7 +154,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             return 0;
         }
 
-        // for now we allow excess collateral withdrawals 
+        // for now we allow excess collateral withdrawals
         /*if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
             // if a loan has ended, a loan close function should be called to recover collateral
             return 0;
@@ -236,13 +236,15 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         } else {
             collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.add(collateralOffset);
         }
-        
+
         if (collateralTokenAmountFilled > 0) {
-            // get conversion from old collateral token to new 
-            (,,collateralTokenAmountFilled) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+            // get conversion from old collateral token to new
+            (uint256 sourceToDestRate, uint256 sourceToDestPrecision,) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
                 loanPosition.collateralTokenAddressFilled,
                 collateralTokenFilled,
-                collateralTokenAmountFilled);
+                MAX_UINT // get best rate
+            );
+            collateralTokenAmountFilled = collateralTokenAmountFilled.mul(sourceToDestRate).div(sourceToDestPrecision);
 
             if (collateralTokenAmountFilled == 0) {
                 revert("BZxLoanHealth::changeCollateral: BZxVault.depositToken new collateral == 0");
@@ -300,7 +302,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         returns (bool)
     {
         require(depositAmount > 0, "BZxLoanHealth::depositPosition: depositAmount too low");
-        
+
         LoanOrder memory loanOrder = orders[loanOrderHash];
         if (loanOrder.loanTokenAddress == address(0)) {
             revert("BZxLoanHealth::depositPosition: loanOrder.loanTokenAddress == address(0)");
