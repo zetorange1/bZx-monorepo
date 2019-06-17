@@ -88,9 +88,11 @@ module.exports = (deployer, network, accounts) => {
 
       const oracleAddress = oracle.address;
 
-      await oracleNotifier.transferBZxOwnership(oracleAddress);
-
       if (network == "mainnet") {
+        await oracle.setDecimalsBatch(["0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2","0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48","0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359","0x2260fac5e5542a773aa44fbcfedf7c193bc2c599","0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2","0xdd974d5c2e2928dea5f71b9825b8b646686bd200","0x1985365e9f78359a9b6ad760e32412f4a445e862","0x0d8775f648430679a709e98d2b0cb6250d2887ef","0xe41d2489571d322189246dafa5ebde1f4699f498"]);
+        // WETH,USDC,DAI,WBTC,MKR,KNC,REP,BAT,ZRX
+
+
         let txData = web3.eth.abi.encodeFunctionSignature('registerWallet(address)') +
           web3.eth.abi.encodeParameters(['address'], [oracleAddress]).substr(2);
 
@@ -98,7 +100,7 @@ module.exports = (deployer, network, accounts) => {
           from: accounts[0],
           to: config["addresses"][network]["KyberRegisterWallet"],
           data: txData,
-          gasPrice: 10000000000
+          gasPrice: 12000000000
         });
       }
 
@@ -107,6 +109,8 @@ module.exports = (deployer, network, accounts) => {
         await weth.deposit({ value: valueAmount });
         await weth.transfer(oracleAddress, valueAmount);
       }
+
+      await oracleNotifier.transferBZxOwnership(oracleAddress);
 
       var bZxProxy = await BZxProxySettings.at(BZxProxy.address);
       await oracle.transferBZxOwnership(BZxProxy.address);
@@ -125,6 +129,17 @@ module.exports = (deployer, network, accounts) => {
       if (OLD_ORACLE_ADDRESS) {
         var CURRENT_OLD_ORACLE_ADDRESS = await oracleRegistry.oracleAddresses(0);
         var bZxOracleOld = await BZxOracle.at(CURRENT_OLD_ORACLE_ADDRESS);
+
+        await oracleRegistry.removeOracle(CURRENT_OLD_ORACLE_ADDRESS, 0);
+        await oracleRegistry.addOracle(oracleAddress, "bZxOracle");
+
+        if (FULCRUM_ORACLE && FULCRUM_ORACLE !== OLD_ORACLE_ADDRESS) {
+          await bZxProxy.setOracleReference(OLD_ORACLE_ADDRESS, oracleAddress);
+        }
+
+        /*if (CURRENT_OLD_ORACLE_ADDRESS.toLowerCase() != OLD_ORACLE_ADDRESS.toLowerCase()) {
+          await bZxProxy.setOracleReference(CURRENT_OLD_ORACLE_ADDRESS, oracleAddress);
+        }*/
 
         /*await bZxOracleOld.transferEther(
           oracleAddress,
@@ -163,18 +178,22 @@ module.exports = (deployer, network, accounts) => {
             await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
           }
 
+          // WBTC Transfer
+          otherToken = await BZxEther.at("0x2260fac5e5542a773aa44fbcfedf7c193bc2c599");
+          tokenBalance = await otherToken.balanceOf(bZxOracleOld.address);
+          if (tokenBalance.toString() !== "0") {
+            await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
+          }
+
+          // ZRX Transfer
+          otherToken = await BZxEther.at("0xe41d2489571d322189246dafa5ebde1f4699f498");
+          tokenBalance = await otherToken.balanceOf(bZxOracleOld.address);
+          if (tokenBalance.toString() !== "0") {
+            await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
+          }
+
           console.log("Done with other token transfers.");
         }
-
-        await oracleRegistry.removeOracle(CURRENT_OLD_ORACLE_ADDRESS, 0);
-
-        if (FULCRUM_ORACLE && FULCRUM_ORACLE !== OLD_ORACLE_ADDRESS) {
-          await bZxProxy.setOracleReference(OLD_ORACLE_ADDRESS, oracleAddress);
-        }
-
-        /*if (CURRENT_OLD_ORACLE_ADDRESS.toLowerCase() != OLD_ORACLE_ADDRESS.toLowerCase()) {
-          await bZxProxy.setOracleReference(CURRENT_OLD_ORACLE_ADDRESS, oracleAddress);
-        }*/
 
         if (network == "development") {
           for(let i=0; i <= 9; i++) {
@@ -197,13 +216,8 @@ module.exports = (deployer, network, accounts) => {
           await oracle.setFaucetContractAddress(testNetFaucet.address);
           await testNetFaucet.setOracleContractAddress(oracleAddress);
         }
-      }
-
-      await oracleRegistry.addOracle(oracleAddress, "bZxOracle");
-
-      if (network == "mainnet") {
-        await oracle.setDecimalsBatch(["0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2","0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48","0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359","0x2260fac5e5542a773aa44fbcfedf7c193bc2c599","0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2","0xdd974d5c2e2928dea5f71b9825b8b646686bd200","0x1985365e9f78359a9b6ad760e32412f4a445e862","0x0d8775f648430679a709e98d2b0cb6250d2887ef","0xe41d2489571d322189246dafa5ebde1f4699f498"]);
-        // WETH,USDC,DAI,WBTC,MKR,KNC,REP,BAT,ZRX
+      } else {
+        await oracleRegistry.addOracle(oracleAddress, "bZxOracle");
       }
 
       console.log(`   > [${parseInt(path.basename(__filename))}] BZxOracle deploy: #done`);

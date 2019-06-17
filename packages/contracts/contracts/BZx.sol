@@ -503,12 +503,14 @@ contract BZx is BZxStorage {
 
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position
+    /// @param actualized If true we get actual rate, false we get best rate
     /// @return netCollateralAmount The amount of collateral escrowed netted to any exceess or deficit from gains and losses
     /// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender
     /// @return loanTokenAmountBorrowed The amount of loan token borrowed for the position
     function getTotalEscrow(
         bytes32 loanOrderHash,
-        address trader)
+        address trader,
+        bool actualized)
         public
         view
         returns (
@@ -554,6 +556,17 @@ contract BZx is BZxStorage {
     /// @param closeAmount The amount of the loan token to return to the lender
     /// @return The actual amount closed. Greater than closeAmount means the loan needed liquidation.
     function closeLoanPartially(
+        bytes32 loanOrderHash,
+        uint256 closeAmount)
+        external
+        returns (uint256 actualCloseAmount);
+
+    /// @dev Called by the trader to close part of their loan early.
+    /// @dev Contract will revert if the position is unhealthy and the full position is not being closed.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param closeAmount The amount of the loan token to return to the lender
+    /// @return The actual amount closed. Greater than closeAmount means the loan needed liquidation.
+    function closeLoanPartiallyIfHealthy(
         bytes32 loanOrderHash,
         uint256 closeAmount)
         external

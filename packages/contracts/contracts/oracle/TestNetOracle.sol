@@ -98,7 +98,7 @@ contract TestNetOracle is BZxOracle {
         address destTokenAddress,
         uint256 /* sourceTokenAmount */)
         internal
-        view 
+        view
         returns (uint256 expectedRate, uint256 slippageRate)
     {
         if (sourceTokenAddress == destTokenAddress) {

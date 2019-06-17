@@ -33,6 +33,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
     {
         targets[bytes4(keccak256("liquidatePosition(bytes32,address,uint256)"))] = _target;
         targets[bytes4(keccak256("closeLoanPartially(bytes32,uint256)"))] = _target;
+        targets[bytes4(keccak256("closeLoanPartiallyIfHealthy(bytes32,uint256)"))] = _target;
         targets[bytes4(keccak256("closeLoan(bytes32)"))] = _target;
         targets[bytes4(keccak256("forceCloseLoan(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("shouldLiquidate(bytes32,address)"))] = _target;
@@ -195,6 +196,28 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
         return _closeLoanPartially(
             loanOrderHash,
             closeAmount,
+            false, // ensureHealthy
+            gasUsed // initial used gas, collected in modifier
+        );
+    }
+
+    /// @dev Called by the trader to close part of their loan early.
+    /// @dev Contract will revert if the position is unhealthy and the full position is not being closed.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param closeAmount The amount of the loan token to return to the lender
+    /// @return The actual amount closed. Greater than closeAmount means the loan needed liquidation.
+    function closeLoanPartiallyIfHealthy(
+        bytes32 loanOrderHash,
+        uint256 closeAmount)
+        external
+        nonReentrant
+        tracksGas
+        returns (uint256 actualCloseAmount)
+    {
+        return _closeLoanPartially(
+            loanOrderHash,
+            closeAmount,
+            true, // ensureHealthy
             gasUsed // initial used gas, collected in modifier
         );
     }
@@ -333,6 +356,7 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
     function _closeLoanPartially(
         bytes32 loanOrderHash,
         uint256 closeAmount,
+        bool ensureHealthy,
         uint256 gasUsed)
         internal
         returns (uint256)
@@ -374,6 +398,9 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
             loanPosition.positionTokenAmountFilled,
             loanPosition.collateralTokenAmountFilled
         );
+        if (ensureHealthy && marginAmountBeforeClose <= loanOrder.maintenanceMarginAmount) {
+            revert("BZxLoanHealth::_closeLoanPartially: unhealthy position");
+        }
 
         if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
             (uint256 loanTokenAmountClosed, uint256 positionTokenAmountUsed) = _tradePositionWithOracle(
