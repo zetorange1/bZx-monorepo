@@ -26,8 +26,12 @@ if (useFile) {
     console.log(processVmTrace(jsonText));
 } else {
 
-    request.post('https://eth-mainnet.alchemyapi.io/jsonrpc/'+secrets["alchemy_apikey"], {
-        json: JSON.parse('{"method":"trace_replayTransaction","params":["'+txnHash+'",["vmTrace"]],"id":1,"jsonrpc":"2.0"}')
+    request.post({
+        url: 'https://eth-mainnet.alchemyapi.io/jsonrpc/'+secrets["alchemy_apikey"],
+        headers: {
+            "Content-Type": "text/plain"
+        },
+        body: '{"method":"trace_replayTransaction","params":["'+txnHash+'",["vmTrace"]],"id":1,"jsonrpc":"2.0"}',
     }, (error, res, body) => {
         if (error) {
             console.error(error);
@@ -38,10 +42,9 @@ if (useFile) {
             return;
         }
 
-        jsonText = JSON.stringify(body);
-        //fs.writeFileSync("output.log", jsonText+"\n");
+        //fs.writeFileSync("output.log", body+"\n");
 
-        console.log(processVmTrace(jsonText));
+        console.log(processVmTrace(body));
     });
 }
 
