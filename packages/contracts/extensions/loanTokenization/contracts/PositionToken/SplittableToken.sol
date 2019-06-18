@@ -115,6 +115,7 @@ contract SplittableToken is SplittableTokenStorage {
         require(_to != address(0), "invalid address");
         totalSupply_ = normalize(denormalize(totalSupply_).add(_tokenAmount));
         balances[_to] = normalize(denormalize(balances[_to]).add(_tokenAmount));
+
         emit Mint(_to, _tokenAmount, _assetAmount, _price);
         emit Transfer(address(0), _to, _tokenAmount);
     }
@@ -131,16 +132,33 @@ contract SplittableToken is SplittableTokenStorage {
         // no need to require value <= totalSupply, since that would imply the
         // sender's balance is greater than the totalSupply, which *should* be an assertion failure
 
+        uint256 offsetAmount;
         balances[_who] = normalize(whoBalance.sub(_tokenAmount));
         if (balances[_who] <= 10 || balanceOf(_who) <= 10) { // we can't leave such small balance quantities
-            _tokenAmount = _tokenAmount.add(balances[_who]);
+            offsetAmount = balances[_who];
             balances[_who] = 0;
         }
 
-        totalSupply_ = normalize(denormalize(totalSupply_).sub(_tokenAmount));
-        if (totalSupply() == 0) {
-            totalSupply_ = 0;
+        uint256 normSupply = denormalize(totalSupply_);
+        if (normSupply > _tokenAmount) {
+            totalSupply_ = normalize(normSupply.sub(_tokenAmount));
+
+            if (totalSupply() == 0) {
+                totalSupply_ = 0;
+                balances[_who] = 0;
+            }
+        } else {
             balances[_who] = 0;
+            totalSupply_ = 0;
+        }
+
+        if (offsetAmount > 0) {
+            _tokenAmount = _tokenAmount.add(denormalize(offsetAmount));
+            if (totalSupply_ > offsetAmount)
+                totalSupply_ = totalSupply_.sub(offsetAmount);
+            else {
+                totalSupply_ = 0;
+            }
         }
 
         emit Burn(_who, _tokenAmount, _assetAmount, _price);

@@ -22,7 +22,7 @@ const web3utils = require("web3-utils");
 
 const TokenizedRegistry = artifacts.require("TokenizedRegistry");
 
-const EtherLoanTokenLogic = artifacts.require("EtherLoanTokenLogic"); // includes LoanTokenLogic
+const LoanTokenLogic = artifacts.require("LoanTokenLogic");
 const PositionTokenLogic = artifacts.require("PositionTokenLogic");
 
 module.exports = async function(callback) {
@@ -46,7 +46,7 @@ module.exports = async function(callback) {
   await processArtifacts("TokenizedRegistry", TokenizedRegistry.address, TokenizedRegistry.abi);
 
   // process iToken
-  await processArtifacts("iToken", "", EtherLoanTokenLogic.abi);
+  await processArtifacts("iToken", "", LoanTokenLogic.abi);
 
   // process pToken
   await processArtifacts("pToken", "", PositionTokenLogic.abi);

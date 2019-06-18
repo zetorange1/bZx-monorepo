@@ -11,50 +11,6 @@ import "./AdvancedTokenStorage.sol";
 contract AdvancedToken is AdvancedTokenStorage {
     using SafeMath for uint256;
 
-    /// @dev ERC20 transferFrom, modified such that an allowance of MAX_UINT represents an unlimited allowance, and to add revert reasons.
-    /// @param _from Address to transfer from.
-    /// @param _to Address to transfer to.
-    /// @param _value Amount to transfer.
-    /// @return Success of transfer.
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value)
-        public
-        returns (bool)
-    {
-        uint256 allowanceAmount = allowed[_from][msg.sender];
-        require(_value <= balances[_from], "insufficient balance");
-        require(_value <= allowanceAmount, "insufficient allowance");
-        require(_to != address(0), "token burn not allowed");
-
-        balances[_from] = balances[_from].sub(_value);
-        balances[_to] = balances[_to].add(_value);
-        if (allowanceAmount < MAX_UINT) {
-            allowed[_from][msg.sender] = allowanceAmount.sub(_value);
-        }
-        emit Transfer(_from, _to, _value);
-        return true;
-    }
-
-    /// @dev Transfer token for a specified address, modified to add revert reasons.
-    /// @param _to The address to transfer to.
-    /// @param _value The amount to be transferred.
-    function transfer(
-        address _to,
-        uint256 _value)
-        public 
-        returns (bool)
-    {
-        require(_value <= balances[msg.sender], "insufficient balance");
-        require(_to != address(0), "token burn not allowed");
-
-        balances[msg.sender] = balances[msg.sender].sub(_value);
-        balances[_to] = balances[_to].add(_value);
-        emit Transfer(msg.sender, _to, _value);
-        return true;
-    }
-
     function approve(
         address _spender,
         uint256 _value)
@@ -103,6 +59,7 @@ contract AdvancedToken is AdvancedTokenStorage {
         require(_to != address(0), "invalid address");
         totalSupply_ = totalSupply_.add(_tokenAmount);
         balances[_to] = balances[_to].add(_tokenAmount);
+
         emit Mint(_to, _tokenAmount, _assetAmount, _price);
         emit Transfer(address(0), _to, _tokenAmount);
     }
@@ -125,6 +82,7 @@ contract AdvancedToken is AdvancedTokenStorage {
         }
 
         totalSupply_ = totalSupply_.sub(_tokenAmount);
+
         emit Burn(_who, _tokenAmount, _assetAmount, _price);
         emit Transfer(_who, address(0), _tokenAmount);
     }
