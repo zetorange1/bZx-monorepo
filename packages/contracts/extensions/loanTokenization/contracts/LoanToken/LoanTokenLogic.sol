@@ -447,7 +447,7 @@ contract LoanTokenLogic is AdvancedToken, OracleNotifierInterface {
         if (totalAssetBorrow > 0) {
             return _protocolInterestRate(assetSupply)
                 .mul(_getUtilizationRate(assetSupply))
-                .div(10**40);
+                .div(10**20);
         } else {
             return 0;
         }
