@@ -143,6 +143,9 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     // This will always be between 0 and 100%
     uint256 public maxSlippagePercent = 100 ether;//10 * 10**18;
 
+    // wallet address to send part of the fees to
+    address public feeWallet = address(this);
+
 /* solhint-disable var-name-mixedcase */
     address public vaultContract;
     address public kyberContract;
@@ -1115,7 +1118,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         oracleNotifier = newAddress;
     }
 
-    function setEMAValue (
+    function setEMAValue(
         uint256 _newEMAValue)
         public
         onlyOwner
@@ -1124,7 +1127,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         emaValue = _newEMAValue;
     }
 
-    function setEMAPeriods (
+    function setEMAPeriods(
         uint256 _newEMAPeriods)
         public
         onlyOwner
@@ -1132,6 +1135,19 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         require(_newEMAPeriods > 1 && _newEMAPeriods != emaPeriods);
         emaPeriods = _newEMAPeriods;
     }
+
+    function setFeeWallet(
+        address _wallet)
+        public
+        onlyOwner
+    {
+        if (_wallet == address(0)) {
+            feeWallet = address(this);
+        } else {
+            feeWallet = _wallet;
+        }
+    }
+
 
     function wrapEther()
         public
@@ -1423,9 +1439,9 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             maxSourceTokenAmount,
             destTokenAddress,
             receiverAddress,
-            MAX_FOR_KYBER, // allow "unlimited" maxDestTokenAmount since we calculated maxSourceTokenAmount above
+            maxDestTokenAmount,
             minConversionRate,
-            address(this),
+            feeWallet,
             requirePermissionedReserveForSwap ? "PERM" : "" // hint
         );
     }
