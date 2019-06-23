@@ -11,6 +11,6 @@ This repository is a monorepo including the bZx protocol smart contracts and num
 | bzx.js | Javascript library for bZx. Allows for interaction with bZx smart contracts on the Ethereum blockchain. |
 | bounty_hunters | Contains scripts that bounty hunters can run to monitor the health of open bZx loans. |
 | contracts | BZx smart contracts ecosystem. |
-| portal | Frontend portal for the bZx network. |
+| portal | Frontend OTC portal |
 
 Developer Docs: [https://docs.bzx.network](https://docs.bzx.network)
