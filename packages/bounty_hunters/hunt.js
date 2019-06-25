@@ -10,7 +10,7 @@ const winston = require("winston");
 const os = require("os");
 
 // importing secrets
-const secrets = require("../../config/secrets.js");
+const secrets = require("../../../config/secrets.js");
 
 // the wallet type to use
 // mnemonic or private_key must be defined in the secrets.js file the given network
@@ -25,7 +25,7 @@ let trackBlocks = false;
 
 // the number of seconds to wait between rechecking each loan
 // if trackBlocks = true, this is ignored
-const checkIntervalSecs = 10;
+const checkIntervalSecs = 120; // 2 minutes
 
 // the number of seconds to wait between rechecking hashrate
 const pingIntervalSecs = 30;
@@ -70,10 +70,10 @@ function initWeb3(network) {
     if (walletType === "mnemonic") {
       const HDWalletProvider = require("truffle-hdwallet-provider");
       const infuraAuth = secrets.infura_apikey ? `${secrets.infura_apikey}/` : "";
-      provider = new HDWalletProvider(secrets.mnemonic[network], `https://${network}.infura.io/${infuraAuth}`);
+      provider = new HDWalletProvider(secrets.mnemonic[network], `https://${network}.infura.io/v3/${infuraAuth}`);
       // https://github.com/ethereum/web3.js/issues/1559
       // but web3@1.0.0-beta.36 is not yet available
-      providerWS = new Web3.providers.WebsocketProvider(`wss://${network}.infura.io/ws`);
+      providerWS = new Web3.providers.WebsocketProvider(`wss://${network}.infura.io/ws/v3/${infuraAuth}`);
     } else if (walletType === "ledger") {
       // TODO: ledger code
       process.exit();
@@ -85,8 +85,8 @@ function initWeb3(network) {
       const PrivateKeyProvider = require("truffle-privatekey-provider");
       const infuraAuth = secrets.infura_apikey ? `${secrets.infura_apikey}/` : "";
       const privateKey = secrets.private_key[network];
-      provider = new PrivateKeyProvider(privateKey, `https://${network}.infura.io/${infuraAuth}`);
-      providerWS = new Web3.providers.WebsocketProvider(`wss://${network}.infura.io/ws`);
+      provider = new PrivateKeyProvider(privateKey, `https://${network}.infura.io/v3/${infuraAuth}`);
+      providerWS = new Web3.providers.WebsocketProvider(`wss://${network}.infura.io/ws/v3/${infuraAuth}`);
     } else {
       process.exit();
     }
