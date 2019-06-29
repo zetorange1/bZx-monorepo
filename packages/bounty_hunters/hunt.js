@@ -16,8 +16,8 @@ const secrets = require("../../../config/secrets.js");
 // mnemonic or private_key must be defined in the secrets.js file the given network
 const walletType = "private_key"; // or private_key or ledger
 
-// the gas price to use for liquidation transactions
-const defaultGasPrice = BigNumber(12).times(10 ** 9);
+// the default gas price to use for liquidation transactions if we can't get suggested price
+const defaultGasPrice = BigNumber(8).times(10 ** 9);
 
 // if true, recheck loans on each now block
 // if false, check on an interval set by checkIntervalSecs
@@ -31,7 +31,7 @@ const checkIntervalSecs = 120; // 2 minutes
 const pingIntervalSecs = 30;
 
 // max number of active loans returned in a batch
-const batchSize = 10;
+const batchSize = 50;
 
 const logger = winston.createLogger({
   format: winston.format.combine(
@@ -69,10 +69,8 @@ function initWeb3(network) {
   if (network !== "development") {
     if (walletType === "mnemonic") {
       const HDWalletProvider = require("truffle-hdwallet-provider");
-      const infuraAuth = secrets.infura_apikey ? `${secrets.infura_apikey}/` : "";
+      const infuraAuth = secrets.infura_apikey ? `${secrets.infura_apikey}` : "";
       provider = new HDWalletProvider(secrets.mnemonic[network], `https://${network}.infura.io/v3/${infuraAuth}`);
-      // https://github.com/ethereum/web3.js/issues/1559
-      // but web3@1.0.0-beta.36 is not yet available
       providerWS = new Web3.providers.WebsocketProvider(`wss://${network}.infura.io/ws/v3/${infuraAuth}`);
     } else if (walletType === "ledger") {
       // TODO: ledger code
@@ -83,7 +81,7 @@ function initWeb3(network) {
         process.exit();
       }
       const PrivateKeyProvider = require("truffle-privatekey-provider");
-      const infuraAuth = secrets.infura_apikey ? `${secrets.infura_apikey}/` : "";
+      const infuraAuth = secrets.infura_apikey ? `${secrets.infura_apikey}` : "";
       const privateKey = secrets.private_key[network];
       provider = new PrivateKeyProvider(privateKey, `https://${network}.infura.io/v3/${infuraAuth}`);
       providerWS = new Web3.providers.WebsocketProvider(`wss://${network}.infura.io/ws/v3/${infuraAuth}`);
@@ -144,9 +142,7 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
 
         const txOpts = {
           from: sender,
-          // gas: 1000000, // gas estimated in bzx.js
-          // gasPrice: web3.utils.toWei(`5`, `gwei`).toString()
-          gasPrice: defaultGasPrice
+          gasPrice: await gasPrice()
         };
 
         const txObj = await bzx.liquidateLoan({
@@ -287,6 +283,32 @@ async function startPingWS(web3WS) {
 
     await snooze(pingIntervalSecs * 1000);
   }
+}
+
+async function gasPrice() {
+  let result = new BigNumber(20).multipliedBy(10 ** 9); // upper limit 20 gwei
+
+  const url = `https://ethgasstation.info/json/ethgasAPI.json`;
+  try {
+    const response = await fetch(url);
+    const jsonData = await response.json();
+    // console.log(jsonData);
+    if (jsonData.average) {
+      // ethgasstation values need divide by 10 to get gwei
+      const gasPriceAvg = new BigNumber(jsonData.average).multipliedBy(10**8);
+      const gasPriceSafeLow = new BigNumber(jsonData.safeLow).multipliedBy(10**8);
+      if (gasPriceAvg.lt(result)) {
+        result = gasPriceAvg;
+      } else if (gasPriceSafeLow.lt(result)) {
+        result = gasPriceSafeLow;
+      }
+    }
+  } catch (error) {
+    // console.log(error);
+    result = defaultGasPrice;
+  }
+
+  return result;
 }
 
 async function main(web3, web3WS, bzx) {
