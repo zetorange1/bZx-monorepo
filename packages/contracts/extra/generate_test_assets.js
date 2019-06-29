@@ -40,12 +40,14 @@ function proceed() {
     TestNetPriceFeed: "unknown",
     ZeroExV2Helper: "unknown",
 
+    LoanTokenLogic: "unknown",
     PositionTokenLogic: "unknown",
     TokenizedRegistry: "unknown",
   };
   var replacements = {};
 
   var loanTokenization = new Array(
+    "LoanTokenLogic",
     "PositionTokenLogic",
     "TokenizedRegistry"
   );
