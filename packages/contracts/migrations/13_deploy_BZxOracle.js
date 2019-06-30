@@ -102,6 +102,8 @@ module.exports = (deployer, network, accounts) => {
           data: txData,
           gasPrice: 12000000000
         });
+
+        await oracle.setFeeWallet("0x13ddac8d492e463073934e2a101e419481970299");
       }
 
       var weth = await BZxEther.at(weth_token_address);
@@ -121,8 +123,8 @@ module.exports = (deployer, network, accounts) => {
       }
 
       /*if (network != "mainnet" && network != "ropsten" && network != "kovan" && network != "rinkeby") {
-      await oracle.setDebugMode(true);
-    }*/
+        await oracle.setDebugMode(true);
+      }*/
 
       var oracleRegistry = await OracleRegistry.deployed();
 

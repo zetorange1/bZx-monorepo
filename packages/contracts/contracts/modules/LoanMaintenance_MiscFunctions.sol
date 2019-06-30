@@ -163,8 +163,48 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         // Withdraw withdrawAmount or amountWithdrawn, whichever is lessor
         amountWithdrawn = Math.min256(withdrawAmount, amountWithdrawn);
 
-        if (amountWithdrawn > loanPosition.collateralTokenAmountFilled)
-            amountWithdrawn = loanPosition.collateralTokenAmountFilled;
+        if (amountWithdrawn > loanPosition.collateralTokenAmountFilled) {
+            // try to recover collateral from position
+            if (loanPosition.positionTokenAmountFilled > 0) {
+                uint256 collateralAmountNeeded = amountWithdrawn - loanPosition.collateralTokenAmountFilled;
+                if (loanPosition.positionTokenAddressFilled != loanPosition.collateralTokenAddressFilled) {
+                    if (!BZxVault(vaultContract).withdrawToken(
+                        loanPosition.positionTokenAddressFilled,
+                        oracleAddresses[loanOrder.oracleAddress],
+                        loanPosition.positionTokenAmountFilled
+                    )) {
+                        revert("BZxLoanHealth::withdrawCollateral: BZxVault.withdrawToken (position) failed");
+                    }
+
+                    (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).trade(
+                        loanPosition.positionTokenAddressFilled,
+                        loanPosition.collateralTokenAddressFilled,
+                        loanPosition.positionTokenAmountFilled,
+                        collateralAmountNeeded // maxDestTokenAmount
+                    );
+
+                    if (loanPosition.positionTokenAmountFilled < sourceTokenAmountUsed) {
+                        revert("BZxLoanHealth::withdrawCollateral: positionTokenAmountFilled < sourceTokenAmountUsed");
+                    }
+
+                    if (destTokenAmountReceived == 0 && sourceTokenAmountUsed > 0) {
+                        revert("BZxLoanHealth::withdrawCollateral: invalid trade");
+                    }
+
+                    loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(sourceTokenAmountUsed);
+                    loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.add(destTokenAmountReceived);
+                } else {
+                    loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(collateralAmountNeeded);
+                    loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.add(collateralAmountNeeded);
+                }
+
+                if (amountWithdrawn > loanPosition.collateralTokenAmountFilled) {
+                    amountWithdrawn = loanPosition.collateralTokenAmountFilled;
+                }
+            } else {
+                amountWithdrawn = loanPosition.collateralTokenAmountFilled;
+            }
+        }
 
         if (amountWithdrawn == 0) {
             return 0;

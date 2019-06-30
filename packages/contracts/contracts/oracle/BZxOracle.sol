@@ -96,7 +96,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     using SafeMath for uint256;
 
     // this is the value the Kyber portal uses when setting a very high maximum number
-    uint256 internal constant MAX_FOR_KYBER = 57896044618658097711785492504343953926634992332820282019728792003956564819968;
+    uint256 constant internal MAX_FOR_KYBER = 10**28;
 
     // collateral collected to pay margin callers
     uint256 internal collateralReserve_;
@@ -1419,18 +1419,27 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         view
         returns (bytes memory)
     {
-        uint256 maxSourceTokenAmount = sourceTokenAmount;
+        uint256 maxSourceTokenAmount;
         if (maxDestTokenAmount < MAX_FOR_KYBER) {
-            (,,maxSourceTokenAmount) = getTradeData(
-                destTokenAddress,
+            (uint256 slippageRate,) = _getExpectedRate(
                 sourceTokenAddress,
-                maxDestTokenAmount
+                destTokenAddress,
+                sourceTokenAmount
             );
-            if (maxSourceTokenAmount == 0) {
-                maxSourceTokenAmount = sourceTokenAmount;
-            } else {
-                maxSourceTokenAmount = Math.min256(sourceTokenAmount, maxSourceTokenAmount.mul(11).div(10)); // extra padding for slippage
+            if (slippageRate == 0) {
+                return "";
             }
+
+            uint256 sourceToDestPrecision = _getDecimalPrecision(sourceTokenAddress, destTokenAddress);
+
+            maxSourceTokenAmount = maxDestTokenAmount.mul(sourceToDestPrecision).div(slippageRate);
+
+            // max can't exceed what we sent in
+            if (maxSourceTokenAmount > sourceTokenAmount) {
+                maxSourceTokenAmount = sourceTokenAmount;
+            }
+        } else {
+            maxSourceTokenAmount = sourceTokenAmount;
         }
 
         return abi.encodeWithSignature(
@@ -1499,50 +1508,51 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
                     }
             }
         } else {
-            // re-up the Kyber spend approval if needed
-            uint256 tempAllowance = EIP20(sourceTokenAddress).allowance(address(this), kyberContract);
-            if (tempAllowance < sourceTokenAmount) {
-                if (tempAllowance > 0) {
-                    // reset approval to 0
+            bytes memory txnData = _getTradeTxnData(
+                sourceTokenAddress,
+                destTokenAddress,
+                receiverAddress,
+                sourceTokenAmount,
+                maxDestTokenAmount,
+                minConversionRate
+            );
+
+            if (txnData.length > 0) {
+                // re-up the Kyber spend approval if needed
+                uint256 tempAllowance = EIP20(sourceTokenAddress).allowance(address(this), kyberContract);
+                if (tempAllowance < sourceTokenAmount) {
+                    if (tempAllowance > 0) {
+                        // reset approval to 0
+                        eip20Approve(
+                            sourceTokenAddress,
+                            kyberContract,
+                            0);
+                    }
+
                     eip20Approve(
                         sourceTokenAddress,
                         kyberContract,
-                        0);
+                        MAX_FOR_KYBER);
                 }
 
-                eip20Approve(
-                    sourceTokenAddress,
-                    kyberContract,
-                    MAX_FOR_KYBER);
+                uint256 sourceBalanceBefore = EIP20(sourceTokenAddress).balanceOf(address(this));
+
+                /* the following code is to allow the Kyber trade to fail silently and not revert if it does, preventing a "bubble up" */
+                (bool result, bytes memory data) = kyberContract.call.gas(gasleft())(txnData);
+
+                assembly {
+                    switch result
+                    case 0 {
+                        destTokenAmountReceived := 0
+                    }
+                    default {
+                        destTokenAmountReceived := mload(add(data, 32))
+                    }
+                }
+
+                sourceTokenAmountUsed = sourceBalanceBefore.sub(EIP20(sourceTokenAddress).balanceOf(address(this)));
+                require(sourceTokenAmountUsed <= sourceTokenAmount, "too much sourceToken used");
             }
-
-            uint256 sourceBalanceBefore = EIP20(sourceTokenAddress).balanceOf(address(this));
-
-            /* the following code is to allow the Kyber trade to fail silently and not revert if it does, preventing a "bubble up" */
-
-            (bool result, bytes memory data) = kyberContract.call.gas(gasleft())(
-                _getTradeTxnData(
-                    sourceTokenAddress,
-                    destTokenAddress,
-                    receiverAddress,
-                    sourceTokenAmount,
-                    maxDestTokenAmount,
-                    minConversionRate
-                )
-            );
-
-            assembly {
-                switch result
-                case 0 {
-                    destTokenAmountReceived := 0
-                }
-                default {
-                    destTokenAmountReceived := mload(add(data, 32))
-                }
-            }
-
-            sourceTokenAmountUsed = sourceBalanceBefore.sub(EIP20(sourceTokenAddress).balanceOf(address(this)));
-            require(sourceTokenAmountUsed <= sourceTokenAmount, "too much sourceToken used");
 
             if (returnToSenderAddress != address(this)) {
                 if (sourceTokenAmountUsed < sourceTokenAmount) {

@@ -42,7 +42,7 @@ if (useFile) {
             return;
         }
 
-        //fs.writeFileSync("output.log", body+"\n");
+        fs.writeFileSync("output.log", body+"\n");
 
         console.log(processVmTrace(body));
     });

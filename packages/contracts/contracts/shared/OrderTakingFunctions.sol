@@ -660,10 +660,9 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
             // update lender interest
             _payInterestForOrder(loanOrder, oracleInterest, lenderInterest, true);
 
-            uint256 owedPerDay = _safeGetPartialAmountFloor(
-                loanTokenAmountFilled,
-                loanOrder.loanTokenAmount,
-                loanOrder.interestAmount
+            uint256 owedPerDay = SafeMath.div(
+                SafeMath.mul(loanTokenAmountFilled, loanOrder.interestAmount),
+                loanOrder.loanTokenAmount
             );
 
             lenderInterest.interestOwedPerDay = lenderInterest.interestOwedPerDay.add(owedPerDay);

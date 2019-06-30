@@ -17,10 +17,10 @@ contract GasRefunder {
     bool public throwOnGasRefundFail = false;
 
     event GasRefund(
-        address indexed payer, 
-        uint256 gasUsed, 
-        uint256 currentGasPrice, 
-        uint256 refundAmount, 
+        address indexed payer,
+        uint256 gasUsed,
+        uint256 currentGasPrice,
+        uint256 refundAmount,
         bool refundSuccess
     );
 
