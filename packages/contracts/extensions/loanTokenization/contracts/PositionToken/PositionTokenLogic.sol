@@ -561,7 +561,7 @@ contract PositionTokenLogic is SplittableToken {
             burnAmount = balanceOf(msg.sender);
         }
 
-        (uint256 netCollateralAmount, uint256 interestDepositRemaining,) = IBZx(bZxContract).getTotalEscrow(
+        (uint256 netCollateralAmount, uint256 interestDepositRemaining, uint256 loanTokenAmountBorrowed) = IBZx(bZxContract).getTotalEscrow(
             loanOrderHash,
             address(this),
             false // actualized
@@ -585,25 +585,10 @@ contract PositionTokenLogic is SplittableToken {
             .add(netCollateralAmount)
             .add(interestDepositRemaining);
 
-        if (loanAmountAvailableInContract < loanAmountOwed) {
-            loanAmountAvailableInContract = loanAmountAvailableInContract.add(
-                IBZx(bZxContract).withdrawCollateral(
-                    loanOrderHash,
-                    loanAmountOwed.sub(loanAmountAvailableInContract)
-                )
-            );
-        }
-
+        bool didCallWithdraw;
         if (loanAmountAvailableInContract < loanAmountOwed) {
             uint256 closeAmount;
             if (burnAmount < totalSupply()) {
-                uint256 loanTokenAmountBorrowed;
-                (netCollateralAmount, interestDepositRemaining, loanTokenAmountBorrowed) = IBZx(bZxContract).getTotalEscrow(
-                    loanOrderHash,
-                    address(this),
-                    true // actualized
-                );
-
                 closeAmount = loanAmountOwed
                     .sub(loanAmountAvailableInContract)
                     .mul(loanTokenAmountBorrowed)
@@ -621,34 +606,51 @@ contract PositionTokenLogic is SplittableToken {
             );
 
             loanAmountAvailableInContract = ERC20(loanTokenAddress).balanceOf(address(this));
+            didCallWithdraw = true;
+        }
+
+        if (loanAmountAvailableInContract < loanAmountOwed) {
+            uint256 collateralWithdrawn = IBZx(bZxContract).withdrawCollateral(
+                loanOrderHash,
+                loanAmountOwed.sub(loanAmountAvailableInContract)
+            );
+            if (collateralWithdrawn > 0) {
+                loanAmountAvailableInContract = loanAmountAvailableInContract.add(collateralWithdrawn);
+                didCallWithdraw = true;
+            }
+        }
+
+        if (didCallWithdraw) {
+            (netCollateralAmount, interestDepositRemaining,) = IBZx(bZxContract).getTotalEscrow(
+                loanOrderHash,
+                address(this),
+                false // actualized
+            );
+            uint256 postCloseEscrow = loanAmountAvailableInContract
+                .add(netCollateralAmount)
+                .add(interestDepositRemaining);
+
+            if (postCloseEscrow < preCloseEscrow) {
+                uint256 slippageLoss = preCloseEscrow - postCloseEscrow;
+
+                require(loanAmountOwed > slippageLoss, "slippage too great");
+                loanAmountOwed = loanAmountOwed - slippageLoss;
+            } else {
+                loanAmountOwed = loanAmountOwed.add(postCloseEscrow - preCloseEscrow);
+            }
 
             if (loanAmountOwed > loanAmountAvailableInContract) {
-                // allow at most 1% loss during this step
+                // allow at most 5% loss here
                 require(
                     loanAmountOwed
                     .sub(loanAmountAvailableInContract)
                     .mul(10**20)
-                    .div(loanAmountOwed) <= 10**18,
-                    "slippage too great"
+                    .div(loanAmountOwed) <= (5 * 10**18),
+                    "contract value too low"
                 );
                 loanAmountOwed = loanAmountAvailableInContract;
             }
         }
-
-        (netCollateralAmount, interestDepositRemaining,) = IBZx(bZxContract).getTotalEscrow(
-            loanOrderHash,
-            address(this),
-            false // actualized
-        );
-        uint256 postCloseEscrow = loanAmountAvailableInContract
-            .add(netCollateralAmount)
-            .add(interestDepositRemaining);
-        require(postCloseEscrow <= preCloseEscrow, "escrow added");
-
-        uint256 slippageLoss = preCloseEscrow - postCloseEscrow;
-
-        require(loanAmountOwed > slippageLoss, "slippage too great");
-        loanAmountOwed = loanAmountOwed - slippageLoss;
 
         // unless burning the full balance, loanAmountOwed must be >= 0.001 loanToken units
         require(burnAmount == balanceOf(msg.sender) || loanAmountOwed >= (10**15 * 10**uint256(decimals) / 10**18), "burnAmount too low");
