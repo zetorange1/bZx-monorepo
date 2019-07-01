@@ -31,7 +31,7 @@ const checkIntervalSecs = 120; // 2 minutes
 const pingIntervalSecs = 30;
 
 // max number of active loans returned in a batch
-const batchSize = 50;
+const batchSize = 100;
 
 const logger = winston.createLogger({
   format: winston.format.combine(
@@ -118,18 +118,12 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
 	  }
 
       const idx = position + i;
-      logger.log("info", `${idx} :: loanOrderHash: ${loanOrderHash}`);
-      logger.log("info", `${idx} :: trader: ${trader}`);
-      logger.log("info", `${idx} :: loanEndUnixTimestampSec: ${loanEndUnixTimestampSec}`);
       const marginData = await bzx.getMarginLevels({
         loanOrderHash,
         trader
       });
       // logger.log("info",  marginData);
       const {initialMarginAmount, maintenanceMarginAmount, currentMarginAmount} = marginData;
-      logger.log("info", `${idx} :: initialMarginAmount: ${initialMarginAmount}`);
-      logger.log("info", `${idx} :: maintenanceMarginAmount: ${maintenanceMarginAmount}`);
-      logger.log("info", `${idx} :: currentMarginAmount: ${currentMarginAmount}`);
 
       const isUnSafe = !BigNumber(currentMarginAmount)
         .gt(maintenanceMarginAmount);
@@ -138,6 +132,14 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
       const isExpired = moment(moment().utc()).isAfter(expireDate);
 
       if (isExpired || isUnSafe) {
+        logger.log("info", `${idx} :: loanOrderHash: ${loanOrderHash}`);
+        logger.log("info", `${idx} :: trader: ${trader}`);
+        logger.log("info", `${idx} :: loanEndUnixTimestampSec: ${loanEndUnixTimestampSec}`);
+
+        logger.log("info", `${idx} :: initialMarginAmount: ${initialMarginAmount}`);
+        logger.log("info", `${idx} :: maintenanceMarginAmount: ${maintenanceMarginAmount}`);
+        logger.log("info", `${idx} :: currentMarginAmount: ${currentMarginAmount}`);
+
         logger.log("info", `${idx} :: Loan is UNSAFE! Attempting to liquidate...`);
 
         const txOpts = {
@@ -184,7 +186,7 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
 		  delete txnsInProgress[loanOrderHash+trader];
         }
       } else {
-        logger.log("info", `${idx} :: Loan is safe.\n`);
+        //logger.log("info", `${idx} :: Loan is safe.\n`);
       }
     }
     catch(error) {
@@ -192,6 +194,7 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
       logger.log("error", error);
     }
   }
+  logger.log("info", "Done checking loans. Count: "+loansObjArray.length);
 
   return loansObjArray.length;
 }
