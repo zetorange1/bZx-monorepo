@@ -132,7 +132,7 @@ export default class LoanItem extends BZxComponent {
 
     const txOpts = {
       from: accounts[0],
-      gas: 4000000,
+      gas: 6000000,
       gasPrice: window.defaultGasPrice.toString()
     };
 
