@@ -189,7 +189,7 @@ export default class LoanItem extends BZxComponent {
   };
 
   render() {
-    const { data, tokens, bZx, accounts } = this.props;
+    const { data, tokens, bZx, accounts, showAll } = this.props;
     const {
       loadingMargins,
       error,
@@ -203,7 +203,7 @@ export default class LoanItem extends BZxComponent {
     const dateStr = date.format(`MMMM Do YYYY, h:mm a UTC`);
     const isExpired = moment(moment().utc()).isAfter(date);
     return (
-      <Card>
+      <Card style={{ display: !showAll && !loadingMargins && !error && !isExpired && !isUnSafe ? `none` : `` }}>
         <CardContent>
           <DataPointContainer>
             <Label>Order # </Label>

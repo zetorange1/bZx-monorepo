@@ -1,6 +1,9 @@
 import styled from "styled-components";
 import MuiButton from "@material-ui/core/Button";
 
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Checkbox from "@material-ui/core/Checkbox";
+
 import Section, { SectionLabel } from "../common/FormSection";
 import LoanItem from "./LoanItem";
 
@@ -21,11 +24,16 @@ const Button = styled(MuiButton)`
 `;
 
 export default class Bounties extends BZxComponent {
-  state = { loans: [], loading: false, error: false, count: 10 };
+  state = { loans: [], loading: false, error: false, count: 50, showAll: false };
 
   componentDidMount() {
     this.getLoans();
   }
+
+  setShowAllCheckbox = (e, value) => 
+    this.setState(p => ({ 
+      showAll: value
+    }));
 
   getLoans = async () => {
     const { bZx } = this.props;
@@ -49,7 +57,7 @@ export default class Bounties extends BZxComponent {
 
   render() {
     const { bZx, tokens, accounts, web3, setCurrentLoan, changeCard } = this.props;
-    const { loans, loading, error, count } = this.state;
+    const { loans, loading, error, count, showAll } = this.state;
     if (error) {
       return (
         <div>
@@ -79,6 +87,15 @@ export default class Bounties extends BZxComponent {
           <ShowCount>
             Showing last {count} loans ({loans.length} loans found).
           </ShowCount>
+          <FormControlLabel
+            control={
+              <Checkbox 
+                checked={showAll}
+                onChange={this.setShowAllCheckbox}
+              />
+            }
+            label="Show All"
+          />
           <Button onClick={this.increaseCount} variant="raised" color="primary">
             Show more
           </Button>
@@ -99,6 +116,7 @@ export default class Bounties extends BZxComponent {
               web3={web3}
               setCurrentLoan={setCurrentLoan}
               changeCard={changeCard}
+              showAll={showAll}
             />
           ))}
         </Section>
