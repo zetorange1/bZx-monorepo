@@ -144,7 +144,8 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
 
         const txOpts = {
           from: sender,
-          gasPrice: await gasPrice()
+          gas: 6000000,
+          gasPrice: await gasPrice(),
         };
 
         const txObj = await bzx.liquidateLoan({
@@ -163,15 +164,15 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
                 .send(txOpts)
                 .once("transactionHash", hash => {
                   logger.log("info", `\n${idx} :: Transaction submitted. Tx hash: ${hash}`);
-				  txnsInProgress[loanOrderHash+trader] = true;
+                  txnsInProgress[loanOrderHash+trader] = true;
                 })
                 .then(() => {
                   logger.log("info", `\n${idx} :: Liquidation complete!`);
-				  delete txnsInProgress[loanOrderHash+trader];
+                  delete txnsInProgress[loanOrderHash+trader];
                 })
                 .catch(error => {
                   logger.log("error", `\n${idx} :: Liquidation error -> ${error.message}`);
-				  delete txnsInProgress[loanOrderHash+trader];
+                  delete txnsInProgress[loanOrderHash+trader];
                 });
             })
             .catch(error => {
@@ -179,11 +180,11 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
                 "error",
                 `\n${idx} :: The transaction is failing. This loan cannot be liquidated at this time -> ${error.message}`
               );
-			  delete txnsInProgress[loanOrderHash+trader];
+              delete txnsInProgress[loanOrderHash+trader];
             });
         } catch (error) {
           logger.log("error", `\n${idx} :: Liquidation error! -> ${error.message}`);
-		  delete txnsInProgress[loanOrderHash+trader];
+          delete txnsInProgress[loanOrderHash+trader];
         }
       } else {
         //logger.log("info", `${idx} :: Loan is safe.\n`);
