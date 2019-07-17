@@ -117,6 +117,10 @@ async function processBatchOrders(web3, bzx, sender, loansObjArray, position) {
 		  continue;
 	  }
 
+	  if (secrets.exclusion_addresses.includes(trader.toLowerCase())) {
+		continue;
+	  }
+
       const idx = position + i;
       const marginData = await bzx.getMarginLevels({
         loanOrderHash,
@@ -204,7 +208,7 @@ async function processBlockOrders(web3, bzx, sender) {
   let position = 0;
   while (true) {
     try {
-      logger.log("info", `Current Block: ${await web3.eth.getBlockNumber()}`);
+      //logger.log("info", `Checking New Block`);
       
       const loansObjArray = await bzx.getActiveLoans({
         start: position, // starting item

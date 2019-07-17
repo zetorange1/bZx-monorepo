@@ -16,5 +16,7 @@ module.exports = {
     kovan: "",
     rinkeby: "",
     mainnet: ""
-  }
+  },
+  exclusion_addresses: [
+  ]
 };
