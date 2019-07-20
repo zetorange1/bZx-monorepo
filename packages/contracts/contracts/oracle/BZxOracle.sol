@@ -117,7 +117,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
     uint256 public interestFeePercent = 10 * 10**18;
 
     // Percentage of EMA-based gas refund paid to margin callers after successfully liquidating a position
-    uint256 public marginCallerRewardPercent = 110 * 10**18;
+    uint256 public marginCallerRewardPercent = 200 * 10**18;
 
     // An upper bound estimation on the liquidation gas cost
     uint256 public gasUpperBound = 4000000;
@@ -178,7 +178,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
 
         // settings for EMACollector
         emaValue = 20 * 10**9; // set an initial price average for gas
-        emaPeriods = 10; // set periods to use for EMA calculation
+        emaPeriods = 30; // set periods to use for EMA calculation
     }
 
     // The contract needs to be able to receive Ether from Kyber trades
@@ -883,26 +883,35 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
         view
         returns (uint256)
     {
+        uint256 sourceToDestRate;
+        uint256 sourceToDestPrecision;
+
         uint256 collateralToLoanAmount;
         if (collateralTokenAddress == loanTokenAddress) {
             collateralToLoanAmount = collateralTokenAmount;
         } else {
-            (,,collateralToLoanAmount) = getTradeData(
+            (sourceToDestRate,sourceToDestPrecision,) = getTradeData(
                 collateralTokenAddress,
                 loanTokenAddress,
-                collateralTokenAmount
+                MAX_FOR_KYBER // collateralTokenAmount
             );
+            collateralToLoanAmount = collateralTokenAmount
+                .mul(sourceToDestRate)
+                .div(sourceToDestPrecision);
         }
 
         uint256 positionToLoanAmount;
         if (positionTokenAddress == loanTokenAddress) {
             positionToLoanAmount = positionTokenAmount;
         } else {
-            (,,positionToLoanAmount) = getTradeData(
+            (sourceToDestRate,sourceToDestPrecision,) = getTradeData(
                 positionTokenAddress,
                 loanTokenAddress,
-                positionTokenAmount
+                MAX_FOR_KYBER // positionTokenAmount
             );
+            positionToLoanAmount = positionTokenAmount
+                .mul(sourceToDestRate)
+                .div(sourceToDestPrecision);
         }
 
         if (positionToLoanAmount >= loanTokenAmount) {
@@ -1324,7 +1333,7 @@ contract BZxOracle is OracleInterface, EIP20Wrapper, EMACollector, GasRefunder, 
             )
         );
 
-        require(goodRate > 0, "can't find good rate");
+        require(goodRate != 0, "can't find good rate");
 
         uint256 srcAmount = maxDestTokenAmount < MAX_FOR_KYBER ?
             maxDestTokenAmount

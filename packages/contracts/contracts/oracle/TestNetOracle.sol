@@ -63,6 +63,49 @@ contract TestNetOracle is BZxOracle {
         require(destTokenAmountReceived > 0, "destTokenAmountReceived == 0");
     }
 
+    function getTradeData(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint256 sourceTokenAmount)
+        public
+        view
+        returns (uint256 sourceToDestRate, uint256 sourceToDestPrecision, uint256 destTokenAmount)
+    {
+        uint256 sourceTokenDecimals = decimals[sourceTokenAddress];
+        if (sourceTokenDecimals == 0)
+            sourceTokenDecimals = EIP20(sourceTokenAddress).decimals();
+        sourceTokenDecimals = sourceTokenDecimals >= 2 ?
+            sourceTokenDecimals-2 :
+            sourceTokenDecimals;
+
+        if (sourceTokenAmount < MAX_FOR_KYBER) {
+            (sourceToDestRate,) = _getExpectedRate(
+                sourceTokenAddress,
+                destTokenAddress,
+                sourceTokenAmount
+            );
+
+            if (sourceTokenAmount > 10**sourceTokenDecimals) {
+                // simulate 3% slippage
+                sourceToDestRate = sourceToDestRate.mul(97 ether).div(100 ether);
+            }
+
+            sourceToDestPrecision = _getDecimalPrecision(sourceTokenAddress, destTokenAddress);
+
+            destTokenAmount = sourceTokenAmount
+                                .mul(sourceToDestRate)
+                                .div(sourceToDestPrecision);
+        } else {
+            (sourceToDestRate,) = _getExpectedRate(
+                sourceTokenAddress,
+                destTokenAddress,
+                10**sourceTokenDecimals
+            );
+
+            sourceToDestPrecision = _getDecimalPrecision(sourceTokenAddress, destTokenAddress);
+        }
+    }
+
     /*
     * Owner functions
     */
