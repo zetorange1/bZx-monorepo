@@ -51,7 +51,7 @@ contract LoanTokenStorage is LoanTokenization {
     address public tokenizedRegistry;
 
     uint256 public baseRate = 1000000000000000000; // 1.0%
-    uint256 public rateMultiplier = 39000000000000000000; // 39%
+    uint256 public rateMultiplier = 22000000000000000000; // 22%
 
     // "fee percentage retained by the oracle" = SafeMath.sub(10**20, spreadMultiplier);
     uint256 public spreadMultiplier;
@@ -65,9 +65,9 @@ contract LoanTokenStorage is LoanTokenization {
     uint256 public burntTokenReserved; // total outstanding burnt token amount
     address internal nextOwedLender_;
 
-    uint256 public totalAssetBorrow = 0; // current amount of loan token amount tied up in loans
+    uint256 public totalAssetBorrow; // current amount of loan token amount tied up in loans
 
-    uint256 internal checkpointSupply_;
+    uint256 public checkpointSupply;
 
     uint256 internal lastSettleTime_;
 
