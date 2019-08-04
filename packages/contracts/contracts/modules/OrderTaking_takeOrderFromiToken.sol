@@ -358,7 +358,15 @@ contract OrderTaking_takeOrderFromiToken is BZxStorage, BZxProxiable {
 
         if (loanOrder.loanTokenAddress != loanPosition.positionTokenAddressFilled) { // withdrawOnOpen == false
 
-            //require(loanTokenUsable >= newLoanAmount, "can't fill position");
+            require(loanTokenUsable >= newLoanAmount, "can't fill position");
+
+            if (loanPosition.collateralTokenAddressFilled == loanOrder.loanTokenAddress) {
+                if (loanTokenUsable > newLoanAmount) {
+                    collateralTokenUsable = collateralTokenUsable
+                        .add(loanTokenUsable - newLoanAmount);
+                    loanTokenUsable = newLoanAmount;
+                }
+            }
 
             if (loanTokenUsable != 0) {
                 if (!BZxVault(vaultContract).withdrawToken(
