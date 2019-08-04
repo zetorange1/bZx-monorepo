@@ -76,7 +76,7 @@ contract TradePlacing_Oracle is BZxStorage, BZxProxiable, MiscFunctions {
 
         if (positionTokenAmountUsed < loanPosition.positionTokenAmountFilled) {
             // untradeable position token is withdrawn to the trader for manual handling
-            if (! BZxVault(vaultContract).withdrawToken(
+            if (!BZxVault(vaultContract).withdrawToken(
                 loanPosition.positionTokenAddressFilled,
                 loanPosition.trader,
                 loanPosition.positionTokenAmountFilled.sub(positionTokenAmountUsed)
@@ -103,7 +103,7 @@ contract TradePlacing_Oracle is BZxStorage, BZxProxiable, MiscFunctions {
         loanPosition.positionTokenAddressFilled = tradeTokenAddress;
         loanPosition.positionTokenAmountFilled = tradeTokenAmount;
 
-        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
+        if (!OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
             loanOrder,
             loanPosition,
             gasUsed // initial used gas, collected in modifier

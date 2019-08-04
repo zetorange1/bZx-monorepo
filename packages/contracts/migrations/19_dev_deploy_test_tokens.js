@@ -24,11 +24,19 @@ module.exports = (deployer, network, accounts) => {
         await deployer.deploy(t);
         await tokens.push(t);
 
-        await oracle.setRates(
-          t.address,
-          config["addresses"][network]["ZeroEx"]["WETH9"],
-          web3.utils.toWei(((Math.floor(Math.random() * 100) + 2)/1000).toString(), "ether")
-        );
+        if (i == 9) {
+          await oracle.setRates(
+            t.address,
+            config["addresses"][network]["ZeroEx"]["WETH9"],
+            web3.utils.toWei("1", "ether")
+          );
+        } else {
+          await oracle.setRates(
+            t.address,
+            config["addresses"][network]["ZeroEx"]["WETH9"],
+            web3.utils.toWei(((Math.floor(Math.random() * 100) + 2)/1000).toString(), "ether")
+          );
+        }
       }
 
       var registry = await TokenRegistry.deployed();

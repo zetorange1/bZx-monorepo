@@ -31,26 +31,10 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
         public
         onlyOwner
     {
-        targets[bytes4(keccak256("payInterestForOrder(bytes32)"))] = _target;
         targets[bytes4(keccak256("payInterestForOracle(address,address)"))] = _target;
         targets[bytes4(keccak256("getMarginLevels(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("getLenderInterestForOracle(address,address,address)"))] = _target;
-        targets[bytes4(keccak256("getLenderInterestForOrder(bytes32)"))] = _target;
         targets[bytes4(keccak256("getTraderInterestForLoan(bytes32,address)"))] = _target;
-    }
-
-    /// @dev Pays the lender the total amount of interest accrued for a loan order
-    /// @dev Note that this function can be safely called by anyone.
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @return The amount of interest paid out
-    function payInterestForOrder(
-        bytes32 loanOrderHash)
-        external
-        nonReentrant
-        returns (uint256)
-    {
-        LoanOrder memory loanOrder = orders[loanOrderHash];
-        return _payInterestForOrder(loanOrder, lenderOracleInterest[orderLender[loanOrderHash]][loanOrder.oracleAddress][loanOrder.interestTokenAddress], lenderOrderInterest[loanOrderHash], true);
     }
 
     /// @dev Pays the lender the total amount of interest for open loans using a particular oracle and interest token
@@ -65,51 +49,13 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
         nonReentrant
         returns (uint256)
     {
-        address oracleRef = oracleAddresses[oracleAddress];
-        LenderInterest storage oracleInterest = lenderOracleInterest[msg.sender][oracleAddress][interestTokenAddress];
-
-        uint256 interestOwedNow = 0;
-        if (oracleInterest.interestOwedPerDay > 0 && oracleInterest.interestPaidDate > 0 && interestTokenAddress != address(0)) {
-            interestOwedNow = block.timestamp.sub(oracleInterest.interestPaidDate).mul(oracleInterest.interestOwedPerDay).div(86400);
-            if (interestOwedNow > tokenInterestOwed[msg.sender][interestTokenAddress])
-                interestOwedNow = tokenInterestOwed[msg.sender][interestTokenAddress];
-
-            if (interestOwedNow > 0) {
-                oracleInterest.interestPaid = oracleInterest.interestPaid.add(interestOwedNow);
-                tokenInterestOwed[msg.sender][interestTokenAddress] = tokenInterestOwed[msg.sender][interestTokenAddress].sub(interestOwedNow);
-
-                // send the interest to the oracle for further processing
-                if (! BZxVault(vaultContract).withdrawToken(
-                    interestTokenAddress,
-                    oracleRef,
-                    interestOwedNow
-                )) {
-                    revert("payInterestForOracle: BZxVault.withdrawToken failed");
-                }
-
-                // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
-                if (! OracleInterface(oracleRef).didPayInterestByLender(
-                    msg.sender,
-                    interestTokenAddress,
-                    interestOwedNow,
-                    gasUsed // initial used gas, collected in modifier
-                )) {
-                    revert("payInterestForOracle: OracleInterface.didPayInterestByLender failed");
-                }
-
-                emit LogPayInterestForOracle(
-                    msg.sender,
-                    oracleRef,
-                    interestTokenAddress,
-                    interestOwedNow,
-                    oracleInterest.interestPaid
-                );
-            }
-        }
-
-        oracleInterest.interestPaidDate = block.timestamp;
-
-        return interestOwedNow;
+        return _payInterestForOracle(
+            lenderOracleInterest[msg.sender][oracleAddress][interestTokenAddress],
+            msg.sender, // lender
+            oracleAddress,
+            interestTokenAddress,
+            true // sendToOracle
+        );
     }
 
     /// @dev Gets current margin data for the loan
@@ -166,62 +112,12 @@ contract LoanHealth_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctions {
         LenderInterest memory oracleInterest = lenderOracleInterest[lender][oracleAddress][interestTokenAddress];
 
         interestUnPaid = block.timestamp.sub(oracleInterest.interestPaidDate).mul(oracleInterest.interestOwedPerDay).div(86400);
-        if (interestUnPaid > tokenInterestOwed[lender][interestTokenAddress])
-            interestUnPaid = tokenInterestOwed[lender][interestTokenAddress];
 
         return (
             oracleInterest.interestPaid,
             oracleInterest.interestPaid > 0 ? oracleInterest.interestPaidDate : 0,
             oracleInterest.interestOwedPerDay,
             oracleInterest.interestPaidDate > 0 ? interestUnPaid : 0
-        );
-    }
-
-    /// @dev Gets current lender interest data for the loan
-    /// @param loanOrderHash A unique hash representing the loan
-    /// @return lender The lender in this loan
-    /// @return interestTokenAddress The interest token used in this loan
-    /// @return interestPaid The total amount of interest that has been paid to a lender so far
-    /// @return interestPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet
-    /// @return interestOwedPerDay The amount of interest the lender is earning per day
-    /// @return interestUnPaid The total amount of interest the lender is owned and not yet withdrawn
-    function getLenderInterestForOrder(
-        bytes32 loanOrderHash)
-        public
-        view
-        returns (
-            address lender,
-            address interestTokenAddress,
-            uint256 interestPaid,
-            uint256 interestPaidDate,
-            uint256 interestOwedPerDay,
-            uint256 interestUnPaid)
-    {
-        LoanOrder memory loanOrder = orders[loanOrderHash];
-        lender = orderLender[loanOrderHash];
-        address oracleAddress = loanOrder.oracleAddress;
-        interestTokenAddress = loanOrder.interestTokenAddress;
-
-        LenderInterest memory lenderInterest = lenderOrderInterest[loanOrderHash];
-        LenderInterest memory oracleInterest = lenderOracleInterest[lender][oracleAddress][interestTokenAddress];
-
-        interestPaid = lenderInterest.interestPaid;
-        interestPaidDate = oracleInterest.interestPaidDate; // oracleInterest always >= lenderInterest
-        if (oracleInterest.interestPaidDate > lenderInterest.interestPaidDate) {
-            interestPaid = interestPaid.add(oracleInterest.interestPaidDate.sub(lenderInterest.interestPaidDate).mul(lenderInterest.interestOwedPerDay).div(86400));
-        }
-
-        interestUnPaid = block.timestamp.sub(interestPaidDate).mul(lenderInterest.interestOwedPerDay).div(86400);
-        if (interestUnPaid > tokenInterestOwed[lender][interestTokenAddress])
-            interestUnPaid = tokenInterestOwed[lender][interestTokenAddress];
-
-        return (
-            lender,
-            interestTokenAddress,
-            interestPaid,
-            interestPaid > 0 ? interestPaidDate : 0,
-            lenderInterest.interestOwedPerDay,
-            interestPaidDate > 0 ? interestUnPaid : 0
         );
     }
 

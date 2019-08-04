@@ -160,7 +160,7 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
             }
         }
 
-        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
+        if (!OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
             loanOrder,
             loanPosition,
             gasUsed // initial used gas, collected in modifier
@@ -249,7 +249,7 @@ contract TradePlacing_ZeroEx is BZxStorage, BZxProxiable {
             }
         }
 
-        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
+        if (!OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTradePosition(
             loanOrder,
             loanPosition,
             gasUsed // initial used gas, collected in modifier

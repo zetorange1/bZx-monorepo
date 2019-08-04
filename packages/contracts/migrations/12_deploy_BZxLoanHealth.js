@@ -3,6 +3,7 @@ var BZxProxySettings = artifacts.require("BZxProxySettings");
 
 var LoanHealth_MiscFunctions = artifacts.require("LoanHealth_MiscFunctions");
 var LoanHealth_MiscFunctions2 = artifacts.require("LoanHealth_MiscFunctions2");
+var LoanHealth_MiscFunctions3 = artifacts.require("LoanHealth_MiscFunctions3");
 
 const path = require("path");
 
@@ -16,6 +17,9 @@ module.exports = (deployer, network, accounts) => {
 
     await deployer.deploy(LoanHealth_MiscFunctions2);
     await bZxProxy.replaceContract(LoanHealth_MiscFunctions2.address);
+
+    await deployer.deploy(LoanHealth_MiscFunctions3);
+    await bZxProxy.replaceContract(LoanHealth_MiscFunctions3.address);
 
     console.log(`   > [${parseInt(path.basename(__filename))}] BZxLoanHealth deploy: #done`);
   });

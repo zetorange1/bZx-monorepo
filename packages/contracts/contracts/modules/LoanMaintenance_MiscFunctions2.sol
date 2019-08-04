@@ -87,7 +87,7 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
             isSet: true
         });
 
-        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didChangeTraderOwnership(
+        if (!OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didChangeTraderOwnership(
             loanOrder,
             loanPosition,
             msg.sender, // old owner
@@ -145,7 +145,7 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
             isSet: true
         });
 
-        if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didChangeLenderOwnership(
+        if (!OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didChangeLenderOwnership(
             loanOrder,
             msg.sender, // old owner
             newOwner,
@@ -196,10 +196,10 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
             totalNewFillableAmount = totalNewFillableAmount.add(increaseAmountForLoan);
 
             // ensure adequate token balance
-            require (EIP20(loanOrder.loanTokenAddress).balanceOf(msg.sender) >= totalNewFillableAmount, "BZxOrderTaking::updateLoanAsLender: lender balance is insufficient");
+            //require (EIP20(loanOrder.loanTokenAddress).balanceOf(msg.sender) >= totalNewFillableAmount, "BZxOrderTaking::updateLoanAsLender: lender balance is insufficient");
 
             // ensure adequate token allowance
-            require (EIP20(loanOrder.loanTokenAddress).allowance(msg.sender, vaultContract) >= totalNewFillableAmount, "BZxOrderTaking::updateLoanAsLender: lender allowance is insufficient");
+            //require (EIP20(loanOrder.loanTokenAddress).allowance(msg.sender, vaultContract) >= totalNewFillableAmount, "BZxOrderTaking::updateLoanAsLender: lender allowance is insufficient");
 
             uint256 newLoanTokenAmount = loanOrder.loanTokenAmount.add(increaseAmountForLoan);
 
@@ -253,7 +253,7 @@ contract LoanMaintenance_MiscFunctions2 is BZxStorage, BZxProxiable, MiscFunctio
                 orderAux[loanOrderHash].expirationUnixTimestampSec
             );
 
-            if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didUpdateLoanAsLender(
+            if (!OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didUpdateLoanAsLender(
                 loanOrder,
                 msg.sender,
                 increaseAmountForLoan,

@@ -57,7 +57,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
                 v,
                 r,
                 s
-            );            
+            );
 
         // Signed using web3.eth_sign
         } else if (signatureType == SignatureType.EthSign) {
@@ -67,7 +67,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
                 r,
                 s
             );
-        
+
         // Signer signed hash previously using the preSign function.
         } else if (signatureType == SignatureType.PreSigned) {
             return preSigned[hash][signer];
@@ -185,10 +185,10 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
             )) {
                 revert("loan verification failed");
             }
-            
+
             orders[loanOrderHash] = loanOrder;
             orderAux[loanOrderHash] = loanOrderAux;
-            
+
             emit LogLoanAdded (
                 loanOrderHash,
                 msgsender,
@@ -200,7 +200,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
                 loanOrderAux.makerRole
             );
 
-            if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didAddOrder(
+            if (!OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didAddOrder(
                 loanOrder,
                 loanOrderAux,
                 oracleData,
@@ -282,7 +282,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
         if (collateralTokenFilled == address(0)) {
             revert("collateralTokenFilled == address(0)");
         }
-        
+
         if (loanOrderAux.expirationUnixTimestampSec > 0 && block.timestamp >= loanOrderAux.expirationUnixTimestampSec) {
             revert("block.timestamp >= loanOrderAux.expirationUnixTimestampSec");
         }
@@ -370,7 +370,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
         );
 
         /*if (loanPosition.collateralTokenAmountFilled > 0) {
-            if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTakeOrder(
+            if (!OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didTakeOrder(
                 loanOrder,
                 loanOrderAux,
                 loanPosition,
@@ -415,7 +415,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
             collateralTokenAmountFilled = collateralTokenAmountFilled.add(collateralTokenAmountFilled.mul(10**20).div(loanOrder.initialMarginAmount));
 
             // send loan token to the trader
-            if (! BZxVault(vaultContract).transferTokenFrom(
+            if (!BZxVault(vaultContract).transferTokenFrom(
                 loanOrder.loanTokenAddress,
                 lender,
                 trader,
@@ -425,7 +425,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
             }
         } else {
             // deposit loan token
-            if (! BZxVault(vaultContract).depositToken(
+            if (!BZxVault(vaultContract).depositToken(
                 loanOrder.loanTokenAddress,
                 lender,
                 loanTokenAmountFilled
@@ -436,7 +436,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
 
         if (collateralTokenAmountFilled > 0) {
             // deposit collateral token
-            if (! BZxVault(vaultContract).depositToken(
+            if (!BZxVault(vaultContract).depositToken(
                 collateralTokenFilled,
                 trader,
                 collateralTokenAmountFilled
@@ -447,7 +447,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
 
         if (loanOrderAux.feeRecipientAddress != address(0)) {
             if (loanOrderAux.traderRelayFee > 0) {
-                if (! BZxVault(vaultContract).transferTokenFrom(
+                if (!BZxVault(vaultContract).transferTokenFrom(
                     bZRxTokenContract,
                     trader,
                     loanOrderAux.feeRecipientAddress,
@@ -457,7 +457,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
                 }
             }
             if (loanOrderAux.lenderRelayFee > 0) {
-                if (! BZxVault(vaultContract).transferTokenFrom(
+                if (!BZxVault(vaultContract).transferTokenFrom(
                     bZRxTokenContract,
                     lender,
                     loanOrderAux.feeRecipientAddress,
@@ -625,7 +625,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
 
         if (positionTokenAmountUsed < loanPosition.positionTokenAmountFilled) {
             // untradeable position token is withdrawn to the trader for manual handling
-            if (! BZxVault(vaultContract).withdrawToken(
+            if (!BZxVault(vaultContract).withdrawToken(
                 loanPosition.positionTokenAddressFilled,
                 loanPosition.trader,
                 loanPosition.positionTokenAmountFilled.sub(positionTokenAmountUsed)
@@ -653,19 +653,24 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
     {
         // interest-free loan is permitted
         if (loanOrder.interestAmount > 0) {
-            LenderInterest storage oracleInterest = lenderOracleInterest[orderLender[loanOrder.loanOrderHash]][loanOrder.oracleAddress][loanOrder.interestTokenAddress];
-            LenderInterest storage lenderInterest = lenderOrderInterest[loanOrder.loanOrderHash];
+            address lender = orderLender[loanOrder.loanOrderHash];
+            LenderInterest storage oracleInterest = lenderOracleInterest[lender][loanOrder.oracleAddress][loanOrder.interestTokenAddress];
             TraderInterest storage traderInterest = traderLoanInterest[loanPosition.positionId];
 
             // update lender interest
-            _payInterestForOrder(loanOrder, oracleInterest, lenderInterest, true);
+            _payInterestForOracle(
+                oracleInterest,
+                lender,
+                loanOrder.oracleAddress,
+                loanOrder.interestTokenAddress,
+                true // sendToOracle
+            );
 
             uint256 owedPerDay = SafeMath.div(
                 SafeMath.mul(loanTokenAmountFilled, loanOrder.interestAmount),
                 loanOrder.loanTokenAmount
             );
 
-            lenderInterest.interestOwedPerDay = lenderInterest.interestOwedPerDay.add(owedPerDay);
             oracleInterest.interestOwedPerDay = oracleInterest.interestOwedPerDay.add(owedPerDay);
 
             // update trader interest
@@ -693,15 +698,13 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
 
             if (totalInterestToCollect > 0) {
                 // deposit interest token
-                if (! BZxVault(vaultContract).depositToken(
+                if (!BZxVault(vaultContract).depositToken(
                     loanOrder.interestTokenAddress,
                     loanPosition.trader,
                     totalInterestToCollect
                 )) {
                     revert("BZxVault.depositToken interest failed");
                 }
-
-                tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress] = tokenInterestOwed[orderLender[loanOrder.loanOrderHash]][loanOrder.interestTokenAddress].add(totalInterestToCollect);
             }
         }
     }

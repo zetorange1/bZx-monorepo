@@ -16,68 +16,57 @@ import "./MathFunctions.sol";
 contract MiscFunctions is BZxStorage, MathFunctions {
     using SafeMath for uint256;
 
-    function _payInterestForOrder(
-        LoanOrder memory loanOrder,
-        LenderInterest storage oracleInterest,
-        LenderInterest storage lenderInterest,
+    function _payInterestForOracle(
+        LenderInterest memory oracleInterest,
+        address lender,
+        address oracleAddress,
+        address interestTokenAddress,
         bool sendToOracle)
         internal
         returns (uint256)
     {
+        address oracleRef = oracleAddresses[oracleAddress];
+
         uint256 interestOwedNow = 0;
-        if (oracleInterest.interestOwedPerDay > 0 && oracleInterest.interestPaidDate > 0 && loanOrder.interestTokenAddress != address(0)) {
-            address lender = orderLender[loanOrder.loanOrderHash];
+        if (oracleInterest.interestOwedPerDay > 0 && oracleInterest.interestPaidDate > 0 && interestTokenAddress != address(0)) {
             interestOwedNow = block.timestamp.sub(oracleInterest.interestPaidDate).mul(oracleInterest.interestOwedPerDay).div(86400);
-            if (interestOwedNow > tokenInterestOwed[lender][loanOrder.interestTokenAddress])
-                interestOwedNow = tokenInterestOwed[lender][loanOrder.interestTokenAddress];
 
             if (interestOwedNow > 0) {
-                lenderInterest.interestPaid = lenderInterest.interestPaid.add(interestOwedNow);
                 oracleInterest.interestPaid = oracleInterest.interestPaid.add(interestOwedNow);
-                tokenInterestOwed[lender][loanOrder.interestTokenAddress] = tokenInterestOwed[lender][loanOrder.interestTokenAddress].sub(interestOwedNow);
 
                 if (sendToOracle) {
                     // send the interest to the oracle for further processing
-                    if (! BZxVault(vaultContract).withdrawToken(
-                        loanOrder.interestTokenAddress,
-                        oracleAddresses[loanOrder.oracleAddress],
+                    if (!BZxVault(vaultContract).withdrawToken(
+                        interestTokenAddress,
+                        oracleRef,
                         interestOwedNow
                     )) {
-                        revert("_payInterest: BZxVault.withdrawToken interest failed");
+                        revert("_payInterestForOracle: BZxVault.withdrawToken failed");
                     }
 
                     // calls the oracle to signal processing of the interest (ie: paying the lender, retaining fees)
-                    if (! OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didPayInterest(
-                        loanOrder,
+                    if (!OracleInterface(oracleRef).didPayInterestByLender(
                         lender,
+                        interestTokenAddress,
                         interestOwedNow,
                         gasUsed // initial used gas, collected in modifier
                     )) {
-                        revert("_payInterest: OracleInterface.didPayInterest failed");
+                        revert("_payInterestForOracle: OracleInterface.didPayInterestByLender failed");
                     }
                 } else {
-                    if (! BZxVault(vaultContract).withdrawToken(
-                        loanOrder.interestTokenAddress,
+                    if (!BZxVault(vaultContract).withdrawToken(
+                        interestTokenAddress,
                         lender,
                         interestOwedNow
                     )) {
-                        revert("_payInterest: BZxVault.withdrawToken interest failed");
+                        revert("_payInterestForOracle: BZxVault.withdrawToken interest failed");
                     }
                 }
-
-                emit LogPayInterestForOrder(
-                    loanOrder.loanOrderHash,
-                    lender,
-                    loanOrder.interestTokenAddress,
-                    interestOwedNow,
-                    lenderInterest.interestPaid,
-                    orderPositionList[loanOrder.loanOrderHash].length
-                );
             }
         }
 
-        lenderInterest.interestPaidDate = block.timestamp;
         oracleInterest.interestPaidDate = block.timestamp;
+        lenderOracleInterest[lender][oracleAddress][interestTokenAddress] = oracleInterest;
 
         return interestOwedNow;
     }
@@ -106,22 +95,24 @@ contract MiscFunctions is BZxStorage, MathFunctions {
         returns (uint256 collateralTokenAmount)
     {
         if (loanTokenAddress == collateralTokenAddress) {
-            collateralTokenAmount = loanTokenAmountFilled;
+            collateralTokenAmount = loanTokenAmountFilled
+                .mul(marginAmount)
+                .div(10**20);
         } else {
             (uint256 sourceToDestRate, uint256 sourceToDestPrecision,) = OracleInterface(oracleAddresses[oracleAddress]).getTradeData(
-                loanTokenAddress,
                 collateralTokenAddress,
+                loanTokenAddress,
                 MAX_UINT // get best rate
             );
-            collateralTokenAmount = loanTokenAmountFilled.mul(sourceToDestRate).div(sourceToDestPrecision);
+            collateralTokenAmount = loanTokenAmountFilled
+                .mul(sourceToDestPrecision)
+                .div(sourceToDestRate)
+                .mul(marginAmount)
+                .div(10**20);
         }
         if (collateralTokenAmount == 0) {
             revert("_getCollateralRequired: collateralTokenAmount == 0");
         }
-
-        collateralTokenAmount = collateralTokenAmount
-                                    .mul(marginAmount)
-                                    .div(10**20);
     }
 
     function _tradePositionWithOracle(
@@ -149,6 +140,39 @@ contract MiscFunctions is BZxStorage, MathFunctions {
                 maxDestTokenAmount,
                 ensureHealthy
             );
+        }
+    }
+
+    function _tradeWithOracle(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        address oracleAddress,
+        uint256 sourceTokenAmount,
+        uint256 maxDestTokenAmount)
+        internal
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
+    {
+        if (!BZxVault(vaultContract).withdrawToken(
+            sourceTokenAddress,
+            oracleAddress,
+            sourceTokenAmount
+        )) {
+            revert("oracletrade: withdrawToken (sourceToken) failed");
+        }
+
+        (destTokenAmountReceived, sourceTokenAmountUsed) = OracleInterface(oracleAddress).trade(
+            sourceTokenAddress,
+            destTokenAddress,
+            sourceTokenAmount,
+            maxDestTokenAmount
+        );
+
+        if (sourceTokenAmount < sourceTokenAmountUsed) {
+            revert("oracletrade: sourceTokenAmount < sourceTokenAmountUsed");
+        }
+
+        if (destTokenAmountReceived == 0 && sourceTokenAmountUsed > 0) {
+            revert("oracletrade: invalid trade");
         }
     }
 

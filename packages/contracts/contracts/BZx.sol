@@ -391,6 +391,21 @@ contract BZx is BZxStorage {
         external
         returns (bool);
 
+    /// @dev Allows the trader to increase the collateral for a loan.
+    /// @dev If depositTokenAddress is not the correct token, it will be traded to the correct token using the oracle.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param borrower The borrower whose loan to deposit collateral to (for margin trades, this has to equal the sender)
+    /// @param depositTokenAddress The address of the collateral token used.
+    /// @param depositAmount The amount of additional collateral token to deposit.
+    /// @return True on success
+    function depositCollateralForBorrower(
+        bytes32 loanOrderHash,
+        address borrower,
+        address depositTokenAddress,
+        uint256 depositAmount)
+        external
+        returns (bool);
+
     /// @dev Allows the trader to withdraw excess collateral for a loan.
     /// @dev Excess collateral is any amount above the initial margin.
     /// @param loanOrderHash A unique hash representing the loan order
@@ -431,8 +446,24 @@ contract BZx is BZxStorage {
     /// @param depositTokenAddress The address of the position token being returned
     /// @param depositAmount The amount of position token to deposit.
     /// @return True on success
-    function depositPosition(
+    function depositPositionForBorrower(
         bytes32 loanOrderHash,
+        address depositTokenAddress,
+        uint256 depositAmount)
+        external
+        returns (bool);
+
+    /// @dev Allows the trader to return the position/loan token to increase their escrowed balance
+    /// @dev This should be used by the trader if they've withdraw an overcollateralized loan
+    /// @dev If depositTokenAddress is not the correct token, it will be traded to the correct token using the oracle.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param borrower The borrower whose loan to deposit position token to (for margin trades, this has to equal the sender)
+    /// @param depositTokenAddress The address of the position token being returned
+    /// @param depositAmount The amount of position token to deposit.
+    /// @return True on success
+    function depositPositionForBorrower(
+        bytes32 loanOrderHash,
+        address borrower,
         address depositTokenAddress,
         uint256 depositAmount)
         external
@@ -503,29 +534,18 @@ contract BZx is BZxStorage {
 
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position
-    /// @param actualized If true we get actual rate, false we get best rate
     /// @return netCollateralAmount The amount of collateral escrowed netted to any exceess or deficit from gains and losses
     /// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender
     /// @return loanTokenAmountBorrowed The amount of loan token borrowed for the position
     function getTotalEscrow(
         bytes32 loanOrderHash,
-        address trader,
-        bool actualized)
+        address trader)
         public
         view
         returns (
             uint256 netCollateralAmount,
             uint256 interestDepositRemaining,
             uint256 loanTokenAmountBorrowed);
-
-    /// @dev Pays the lender the total amount of interest accrued for a loan order
-    /// @dev Note that this function can be safely called by anyone.
-    /// @param loanOrderHash A unique hash representing the loan order
-    /// @return The amount of interest paid out
-    function payInterestForOrder(
-        bytes32 loanOrderHash)
-        external
-        returns (uint256);
 
     /// @dev Pays the lender the total amount of interest for open loans using a particular oracle and interest token
     /// @dev Note that this function can be only be called by a lender for their loans.
@@ -572,11 +592,32 @@ contract BZx is BZxStorage {
         external
         returns (uint256 actualCloseAmount);
 
-    /// @dev Called by the trader to close their loan early.
+    /// @dev Called by the trader to close part of their loan early.
+    /// @dev Contract will revert if the position is unhealthy and the full position is not being closed.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param closeAmount The amount of collateral token to close out. Loan amount to close will be calculated based on current margin.
+    /// @return The actual amount of loan token closed. Greater than closeAmount means the loan needed liquidation.
+    function closeLoanPartiallyFromCollateral(
+        bytes32 loanOrderHash,
+        uint256 closeAmount)
+        external
+        returns (uint256 actualCloseAmount);
+
+    /// @dev Called to close a loan in full
     /// @param loanOrderHash A unique hash representing the loan order
     /// @return True on success
     function closeLoan(
         bytes32 loanOrderHash)
+        external
+        returns (bool);
+
+    /// @dev Called to close a loan in full for someone else
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param borrower The borrower whose loan to close in full (for margin trades, this has to equal the sender)
+    /// @return True on success
+    function closeLoanForBorrower(
+        bytes32 loanOrderHash,
+        address borrower)
         external
         returns (bool);
 
@@ -632,26 +673,6 @@ contract BZx is BZxStorage {
         public
         view
         returns (
-            uint256 interestPaid,
-            uint256 interestPaidDate,
-            uint256 interestOwedPerDay,
-            uint256 interestUnPaid);
-
-    /// @dev Gets current lender interest data for the loan
-    /// @param loanOrderHash A unique hash representing the loan
-    /// @return lender The lender in this loan
-    /// @return interestTokenAddress The interest token used in this loan
-    /// @return interestPaid The total amount of interest that has been paid to a lender so far
-    /// @return interestPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet
-    /// @return interestOwedPerDay The amount of interest the lender is earning per day
-    /// @return interestUnPaid The total amount of interest the lender is owned and not yet withdrawn
-    function getLenderInterestForOrder(
-        bytes32 loanOrderHash)
-        public
-        view
-        returns (
-            address lender,
-            address interestTokenAddress,
             uint256 interestPaid,
             uint256 interestPaidDate,
             uint256 interestOwedPerDay,

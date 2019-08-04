@@ -26,6 +26,8 @@ contract TestNetOracle is BZxOracle {
 
     mapping (address => mapping (address => uint256)) public rates;
 
+    uint256 public slippageMultiplier = 100 ether;
+
     constructor(
         address _vaultContract,
         address _kyberContract,
@@ -86,8 +88,8 @@ contract TestNetOracle is BZxOracle {
             );
 
             if (sourceTokenAmount > 10**sourceTokenDecimals) {
-                // simulate 3% slippage
-                sourceToDestRate = sourceToDestRate.mul(97 ether).div(100 ether);
+                // simulate slippage (slippage percent: 100 ether-slippageMultiplier)
+                sourceToDestRate = sourceToDestRate.mul(slippageMultiplier).div(100 ether);
             }
 
             sourceToDestPrecision = _getDecimalPrecision(sourceTokenAddress, destTokenAddress);
@@ -121,6 +123,15 @@ contract TestNetOracle is BZxOracle {
             rates[sourceTokenAddress][destTokenAddress] = rate;
             rates[destTokenAddress][sourceTokenAddress] = SafeMath.div(10**36, rate);
         }
+    }
+
+    function setSlippageMultiplier(
+        uint256 _slippageMultiplier)
+        public
+        onlyOwner
+    {
+        require (slippageMultiplier != _slippageMultiplier && _slippageMultiplier <= 100 ether);
+        slippageMultiplier = _slippageMultiplier;
     }
 
     function setFaucetContractAddress(

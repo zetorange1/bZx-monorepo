@@ -19,7 +19,8 @@ const config = require("../protocol-config.js");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const OLD_ORACLE_ADDRESS = "";
-//const OLD_ORACLE_ADDRESS = "0xc1d91943248bf2e627ca2c52860a04cdb80903a4"; // mainnet
+//const OLD_ORACLE_ADDRESS = "0xf20dab577269dc26429079d5796f204c2f90229e"; // mainnet
+//const OLD_ORACLE_ADDRESS = "0x208ec15dbb52b417343887ed8a5523d3c4d23e55"; // ropsten
 
 module.exports = (deployer, network, accounts) => {
 
@@ -50,6 +51,13 @@ module.exports = (deployer, network, accounts) => {
     FULCRUM_ORACLE = "0xf257246627f7cb036ae40aa6cfe8d8ce5f0eba63";
   } else if (network == "ropsten") {
     FULCRUM_ORACLE = "0xd5f66f2ac36b6d765a1cfdacbb7a8868c2d91a9d";
+  }
+
+  let FULCRUM_ORACLE2 = "";
+  if (network == "mainnet") {
+    FULCRUM_ORACLE2 = "0x4c1974e5ff413c6e061ae217040795aaa1748e8b";
+  } else if (network == "ropsten") {
+    FULCRUM_ORACLE2 = "";
   }
 
   if (bzrx_token_address) {
@@ -121,6 +129,9 @@ module.exports = (deployer, network, accounts) => {
       if (FULCRUM_ORACLE) {
         await bZxProxy.setOracleReference(FULCRUM_ORACLE, oracleAddress);
       }
+      if (FULCRUM_ORACLE2) {
+        await bZxProxy.setOracleReference(FULCRUM_ORACLE2, oracleAddress);
+      }
 
       /*if (network != "mainnet" && network != "ropsten" && network != "kovan" && network != "rinkeby") {
         await oracle.setDebugMode(true);
@@ -135,7 +146,7 @@ module.exports = (deployer, network, accounts) => {
         await oracleRegistry.removeOracle(CURRENT_OLD_ORACLE_ADDRESS, 0);
         await oracleRegistry.addOracle(oracleAddress, "bZxOracle");
 
-        if (FULCRUM_ORACLE && FULCRUM_ORACLE !== OLD_ORACLE_ADDRESS) {
+        if (FULCRUM_ORACLE !== OLD_ORACLE_ADDRESS && FULCRUM_ORACLE2 !== OLD_ORACLE_ADDRESS) {
           await bZxProxy.setOracleReference(OLD_ORACLE_ADDRESS, oracleAddress);
         }
 
@@ -173,6 +184,13 @@ module.exports = (deployer, network, accounts) => {
             await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
           }
 
+          // REP Transfer
+          otherToken = await BZxEther.at("0x1985365e9f78359a9B6AD760e32412f4a445E862");
+          tokenBalance = await otherToken.balanceOf(bZxOracleOld.address);
+          if (tokenBalance.toString() !== "0") {
+            await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
+          }
+
           // USDC Transfer
           otherToken = await BZxEther.at("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48");
           tokenBalance = await otherToken.balanceOf(bZxOracleOld.address);
@@ -198,6 +216,8 @@ module.exports = (deployer, network, accounts) => {
         }
 
         if (network == "development") {
+          await oracle.slippageMultiplier(web3.utils.toWei("97", "ether")); // 3% slippage
+
           for(let i=0; i <= 9; i++) {
             let t = await artifacts.require("TestToken"+i);
 

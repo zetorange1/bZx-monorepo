@@ -44,7 +44,10 @@ function proceed() {
     PositionTokenLogic: "unknown",
     TokenizedRegistry: "unknown",
   };
-  var replacements = {};
+  var replacements = {
+    LoanTokenLogic: "LoanTokenLogicV2",
+    PositionTokenLogic: "PositionTokenLogicV2"
+  };
 
   var loanTokenization = new Array(
     "LoanTokenLogic",

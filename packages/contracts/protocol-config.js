@@ -33,7 +33,7 @@ module.exports = {
       BZRXTokenSale: "0x450e617b88366fde63c18880acbdeb35a5812eee",
       BZxEther: "0xa3eBDf66e0292F1d5FD82Ae3fcd92551Ac9dB081",
       MultiSig: "0x35b94649Bd03D13eF08e999127351Cc52286473C",
-      TokenizedRegistry: "0xaa5c713387972841995553c9690459596336800b",
+      TokenizedRegistry: "0xd03eea21041a19672e451bcbb413ce8be72d0381", // old: "0xaa5c713387972841995553c9690459596336800b",
       DAITokenAddress: "0xad6d458402f60fd3bd25163575031acdce07538d", // Kyber DAI
       WBTCTokenAddress: "0x95cc8d8f29d0f7fcc425e8708893e759d1599c97" // Kyber ENG
     },
@@ -83,10 +83,10 @@ module.exports = {
         TokenRegistry: "0x926a74c5c36adf004c87399e65f75628b0f98d2c",
         TokenTransferProxy: "0x8da0d80f5007ef1e431dd2127178d224e32c2ef4",
         WETH9: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-        ExchangeV2: "0x4f833a24e1f95d70f028921e27040ca56e09ab0b",
-        ERC20Proxy: "0x2240dab907db71e64d3e0dba4800c83b5c502d4e",
-        ERC721Proxy: "0x208e41fb445f1bb1b6780d58356e81405f3e6127",
-        AssetProxyOwner: "0x17992e4ffb22730138e4b62aaa6367fa9d3699a6"
+        ExchangeV2: "0x080bf510fcbf18b91105470639e9561022937712",
+        ERC20Proxy: "0x95e6f48254609a6ee006f7d493c8e5fb97094cef",
+        ERC721Proxy: "0xefc70a1b18c432bdc64b596838b4d138f6bc6cad",
+        AssetProxyOwner: "0xdffe798c7172dd6deb32baee68af322e8f495ce0"
       },
       OracleNotifier: "0x6d20ea6fe6d67363684e22f1485712cfdccf177a",
       KyberContractAddress: "0x818e6fecd516ecc3849daf6845e3ec868087b755", // Mainnet (https://kyber.network/swap)
@@ -103,7 +103,8 @@ module.exports = {
       KNCTokenAddress: "0xdd974d5c2e2928dea5f71b9825b8b646686bd200",
       MKRTokenAddress: "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2",
       REPTokenAddress: "0x1985365e9f78359a9b6ad760e32412f4a445e862",
-      ZRXTokenAddress: "0xe41d2489571d322189246dafa5ebde1f4699f498"
+      ZRXTokenAddress: "0xe41d2489571d322189246dafa5ebde1f4699f498",
+      LINKTokenAddress: "0x514910771af9ca656af840dff83e8264ecf986ca"
     }
   }
 };

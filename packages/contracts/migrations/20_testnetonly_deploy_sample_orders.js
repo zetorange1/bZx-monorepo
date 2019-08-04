@@ -69,6 +69,7 @@ module.exports = (deployer, network, accounts) => {
     var interestToken2;
     var tradeToken1;
     var maker0xToken1;
+    var sampleToken1;
 
     var OrderParams_bZx_1;
     var ECSignature_raw_1;
@@ -101,6 +102,7 @@ module.exports = (deployer, network, accounts) => {
       interestToken2 = test_tokens[0];
       tradeToken1 = test_tokens[7];
       maker0xToken1 = test_tokens[5];
+      sampleToken1 = test_tokens[9];
 
       await Promise.all([
         await bzrx_token.mint(lender1_account, toWei(10000, "ether"), { from: owner_account }),
@@ -190,6 +192,12 @@ module.exports = (deployer, network, accounts) => {
         await maker0xToken1.transfer(makerOf0xOrder_account, toWei(10000, "ether"), { from: owner_account }),
         await maker0xToken1.approve(config["addresses"]["development"]["ZeroEx"]["TokenTransferProxy"], MAX_UINT, {
           from: makerOf0xOrder_account
+        }),
+
+        // accounts[1]
+        await sampleToken1.transfer(trader2_account, toWei(1000000, "ether"), { from: owner_account }),
+        await sampleToken1.approve(vault.address, MAX_UINT, {
+          from: trader2_account
         })
       ]);
 
