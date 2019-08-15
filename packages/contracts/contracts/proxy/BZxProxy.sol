@@ -11,16 +11,16 @@ import "./BZxProxiable.sol";
 contract BZxProxy is BZxStorage, BZxProxiable {
     
     constructor(
-        address _settings) 
+        address _settings)
         public
     {
         (bool result,) = _settings.delegatecall.gas(gasleft())(abi.encodeWithSignature("initialize(address)", _settings));
         require(result, "BZxProxy::constructor: failed");
     }
     
-    function() 
+    function()
         external
-        payable 
+        payable
     {
         require(!targetIsPaused[msg.sig], "BZxProxy::Function temporarily paused");
 

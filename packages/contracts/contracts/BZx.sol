@@ -446,7 +446,7 @@ contract BZx is BZxStorage {
     /// @param depositTokenAddress The address of the position token being returned
     /// @param depositAmount The amount of position token to deposit.
     /// @return True on success
-    function depositPositionForBorrower(
+    function depositPosition(
         bytes32 loanOrderHash,
         address depositTokenAddress,
         uint256 depositAmount)

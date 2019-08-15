@@ -40,6 +40,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         targets[bytes4(keccak256("depositPositionForBorrower(bytes32,address,address,uint256)"))] = _target;
         targets[bytes4(keccak256("getPositionOffset(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("getTotalEscrow(bytes32,address)"))] = _target;
+        targets[bytes4(keccak256("getTotalEscrowWithRate(bytes32,address,uint256,uint256)"))] = _target;
     }
 
     /// @dev Allows the trader to increase the collateral for a loan.
@@ -454,6 +455,73 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             uint256 netCollateralAmount,
             uint256 interestDepositRemaining,
             uint256 loanToCollateralAmount)
+        {
+            uint256[5] memory vals = _getTotalEscrowWithRate(
+                loanOrderHash,
+                trader,
+                0,
+                0
+            );
+
+            return (
+                vals[0],
+                vals[1],
+                vals[2]
+            );
+        }
+
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param trader The trader of the position
+    /// @param toCollateralRate Rate of exposure token to collateral token
+    /// @param toCollateralPrecision Precision of exposure token to collateral token
+    /// @return netCollateralAmount The amount of collateral escrowed netted to any exceess or deficit from gains and losses
+    /// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender. This is denominated in collateral token.
+    /// @return loanTokenAmountBorrowed The amount of loan token borrowed for the position
+    /// @return toCollateralRate Rate of exposure token to collateral token
+    /// @return toCollateralPrecision Precision of exposure token to collateral token
+    function getTotalEscrowWithRate(
+        bytes32 loanOrderHash,
+        address trader,
+        uint256 inToCollateralRate,
+        uint256 inToCollateralPrecision)
+        public
+        view
+        returns (
+            uint256 netCollateralAmount,
+            uint256 interestDepositRemaining,
+            uint256 loanToCollateralAmount,
+            uint256 toCollateralRate,
+            uint256 toCollateralPrecision)
+        {
+            uint256[5] memory vals = _getTotalEscrowWithRate(
+                loanOrderHash,
+                trader,
+                inToCollateralRate,
+                inToCollateralPrecision
+            );
+
+            return (
+                vals[0],
+                vals[1],
+                vals[2],
+                vals[3],
+                vals[4]
+            );
+        }
+
+    function _getTotalEscrowWithRate(
+        bytes32 loanOrderHash,
+        address trader,
+        uint256 toCollateralRate,
+        uint256 toCollateralPrecision)
+        internal
+        view
+        returns (uint256[5] memory vals)
+            // netCollateralAmount
+            // interestDepositRemaining
+            // loanToCollateralAmount
+            // toCollateralRate
+            // toCollateralPrecision
     {
         uint256 positionId = loanPositionsIds[loanOrderHash][trader];
         LoanOrder memory loanOrder = orders[loanOrderHash];
@@ -461,10 +529,10 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         TraderInterest memory traderInterest = traderLoanInterest[positionId];
 
         if (loanOrder.loanTokenAddress == address(0) || loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return (0,0,0);
+            return (vals);
         }
 
-        interestDepositRemaining = loanPosition.loanEndUnixTimestampSec > block.timestamp ? loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(traderInterest.interestOwedPerDay).div(86400) : 0;
+        vals[1] = loanPosition.loanEndUnixTimestampSec > block.timestamp ? loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(traderInterest.interestOwedPerDay).div(86400) : 0;
         bool didConvertInterest;
         if (loanOrder.interestTokenAddress == loanPosition.collateralTokenAddressFilled) {
             didConvertInterest = true;
@@ -478,35 +546,47 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             positionToCollateralAmount = loanPosition.positionTokenAmountFilled;
         } else {
             if (loanPosition.positionTokenAmountFilled != 0) {
-                (sourceToDestRate, sourceToDestPrecision,) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
-                    loanPosition.positionTokenAddressFilled,
-                    loanPosition.collateralTokenAddressFilled,
-                    MAX_UINT // get best rate
-                );
-                positionToCollateralAmount = loanPosition.positionTokenAmountFilled.mul(sourceToDestRate).div(sourceToDestPrecision);
+                if (toCollateralRate == 0) {
+                    (sourceToDestRate, sourceToDestPrecision,) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+                        loanPosition.positionTokenAddressFilled,
+                        loanPosition.collateralTokenAddressFilled,
+                        MAX_UINT // get best rate
+                    );
+                    toCollateralRate = sourceToDestRate;
+                    toCollateralPrecision = sourceToDestPrecision;
+                }
+
+                positionToCollateralAmount = loanPosition.positionTokenAmountFilled.mul(toCollateralRate);
+                positionToCollateralAmount = positionToCollateralAmount.div(toCollateralPrecision);
 
                 if (!didConvertInterest && loanOrder.interestTokenAddress == loanPosition.positionTokenAddressFilled) {
-                    interestDepositRemaining = interestDepositRemaining.mul(sourceToDestRate).div(sourceToDestPrecision);
+                    vals[1] = vals[1].mul(toCollateralRate);
+                    vals[1] = vals[1].div(toCollateralPrecision);
                     didConvertInterest = true;
                 }
             }
         }
 
         if (loanOrder.loanTokenAddress == loanPosition.collateralTokenAddressFilled) {
-            loanToCollateralAmount = loanPosition.loanTokenAmountFilled;
+            vals[2] = loanPosition.loanTokenAmountFilled;
         } else {
             if (loanPosition.loanTokenAmountFilled != 0) {
-                if (sourceToDestRate == 0 || loanOrder.loanTokenAddress != loanPosition.positionTokenAddressFilled) { // only lookup rate needed
+                if (toCollateralRate == 0 || loanOrder.loanTokenAddress != loanPosition.positionTokenAddressFilled) { // only lookup rate needed
                     (sourceToDestRate, sourceToDestPrecision,) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
                         loanOrder.loanTokenAddress,
                         loanPosition.collateralTokenAddressFilled,
                         MAX_UINT // get best rate
                     );
+                    toCollateralRate = sourceToDestRate;
+                    toCollateralPrecision = sourceToDestPrecision;
                 }
-                loanToCollateralAmount = loanPosition.loanTokenAmountFilled.mul(sourceToDestRate).div(sourceToDestPrecision);
+
+                vals[2] = loanPosition.loanTokenAmountFilled.mul(toCollateralRate);
+                vals[2] = vals[2].div(toCollateralPrecision);
 
                 if (!didConvertInterest && loanOrder.interestTokenAddress == loanOrder.loanTokenAddress) {
-                    interestDepositRemaining = interestDepositRemaining.mul(sourceToDestRate).div(sourceToDestPrecision);
+                    vals[1] = vals[1].mul(toCollateralRate);
+                    vals[1] = vals[1].div(toCollateralPrecision);
                     didConvertInterest = true;
                 }
             }
@@ -518,21 +598,27 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
                 loanPosition.collateralTokenAddressFilled,
                 MAX_UINT // get best rate
             );
-            interestDepositRemaining = interestDepositRemaining.mul(sourceToDestRate).div(sourceToDestPrecision);
+            vals[1] = vals[1].mul(sourceToDestRate);
+            vals[1] = vals[1].div(sourceToDestPrecision);
         }
 
         uint256 profitOrLoss;
-        if (positionToCollateralAmount > loanToCollateralAmount) {
-            profitOrLoss = positionToCollateralAmount - loanToCollateralAmount;
-            netCollateralAmount = loanPosition.collateralTokenAmountFilled.add(profitOrLoss);
+        if (positionToCollateralAmount > vals[2]) {
+            profitOrLoss = positionToCollateralAmount - vals[2];
+            vals[0] = loanPosition.collateralTokenAmountFilled.add(profitOrLoss);
         } else {
-            profitOrLoss = loanToCollateralAmount - positionToCollateralAmount;
+            profitOrLoss = vals[2] - positionToCollateralAmount;
             if (loanPosition.collateralTokenAmountFilled > profitOrLoss) {
-                netCollateralAmount = loanPosition.collateralTokenAmountFilled.sub(profitOrLoss);
+                vals[0] = loanPosition.collateralTokenAmountFilled.sub(profitOrLoss);
             } else {
-                netCollateralAmount = 0;
+                vals[0] = 0;
             }
         }
+
+        vals[3] = toCollateralRate;
+        vals[4] = toCollateralPrecision;
+
+        return (vals);
     }
 
 

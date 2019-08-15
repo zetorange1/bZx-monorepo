@@ -12,7 +12,7 @@ var secrets = "",
   infuraApikey = "",
   alchemyApikey = "";
 try {
-  secrets = require("../../config/secrets.js");
+  secrets = require("../../../config/secrets.js");
     (ropstenPrivKey = secrets["private_key"]["ropsten"]),
     (kovanPrivKey = secrets["private_key"]["kovan"]),
     (rinkebyPrivKey = secrets["private_key"]["rinkeby"]),

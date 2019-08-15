@@ -10,7 +10,6 @@ import "../openzeppelin-solidity/SafeMath.sol";
 
 import "../storage/BZxStorage.sol";
 import "../BZxVault.sol";
-import "../oracle/OracleRegistry.sol";
 import "../oracle/OracleInterface.sol";
 import "./MiscFunctions.sol";
 
@@ -83,7 +82,12 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
 
             // position token is now equal to loan token
             loanPosition.positionTokenAddressFilled = loanOrder.loanTokenAddress;
-            loanPosition.positionTokenAmountFilled = loanTokenAmount.add(loanAmountBought);
+            loanPosition.positionTokenAmountFilled = loanTokenAmount;
+        }
+
+        if (loanAmountBought != 0) {
+            loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled
+                .add(loanAmountBought);
         }
 
         return _finalizeLoan(
@@ -275,8 +279,11 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
             owedPerDayRefund = traderInterest.interestOwedPerDay;
         }
 
+        address lender = orderLender[loanOrder.loanOrderHash];
+
         _settleInterestForLender(
             loanOrder,
+            lender,
             sendToOracle,
             owedPerDayRefund
         );
@@ -317,53 +324,62 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
         }
 
         if (totalInterestToRefund != 0) {
+            tokenInterestOwed[lender][loanOrder.interestTokenAddress] = totalInterestToRefund < tokenInterestOwed[lender][loanOrder.interestTokenAddress] ?
+                tokenInterestOwed[lender][loanOrder.interestTokenAddress].sub(totalInterestToRefund) :
+                0;
+
             if (refundToCollateral &&
-                loanOrder.interestTokenAddress == loanOrder.loanTokenAddress &&
-                loanOrder.interestTokenAddress != loanPosition.collateralTokenAddressFilled) {
-                // we will attempt to pay the trader back in collateral token
+                loanOrder.interestTokenAddress == loanOrder.loanTokenAddress) {
 
-                if (loanPosition.positionTokenAmountFilled != 0 &&
-                    loanPosition.collateralTokenAddressFilled == loanPosition.positionTokenAddressFilled) {
+                if (loanOrder.loanTokenAddress == loanPosition.positionTokenAddressFilled) {
+                    // payback part of the loan using the interest
+                    loanAmountBought = totalInterestToRefund;
+                    totalInterestToRefund = 0;
+                } else if (loanOrder.interestTokenAddress != loanPosition.collateralTokenAddressFilled) {
+                    // we will attempt to pay the trader back in collateral token
+                    if (loanPosition.positionTokenAmountFilled != 0 &&
+                        loanPosition.collateralTokenAddressFilled == loanPosition.positionTokenAddressFilled) {
 
-                    (uint256 sourceToDestRate, uint256 sourceToDestPrecision,) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
-                        loanOrder.interestTokenAddress,
-                        loanPosition.collateralTokenAddressFilled,
-                        MAX_UINT // get best rate
-                    );
-                    positionAmountSold = totalInterestToRefund
-                        .mul(sourceToDestRate);
-                    positionAmountSold = positionAmountSold
-                        .div(sourceToDestPrecision);
-
-                    if (positionAmountSold != 0) {
-                        if (loanPosition.positionTokenAmountFilled >= positionAmountSold) {
-                            loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled
-                                .sub(positionAmountSold);
-
-                            // closeAmount always >= totalInterestToRefund at this point, so set used amount
-                            loanAmountBought = totalInterestToRefund;
-                            totalInterestToRefund = 0;
-                        } else {
-                            loanAmountBought = loanPosition.positionTokenAmountFilled
-                                .mul(sourceToDestPrecision);
-                            loanAmountBought = loanAmountBought
-                                .div(sourceToDestRate);
-
-                            if (loanAmountBought > totalInterestToRefund)
-                                loanAmountBought = totalInterestToRefund;
-
-                            positionAmountSold = loanPosition.positionTokenAmountFilled;
-                            totalInterestToRefund = totalInterestToRefund.sub(loanAmountBought);
-                            loanPosition.positionTokenAmountFilled = 0;
-                        }
+                        (uint256 sourceToDestRate, uint256 sourceToDestPrecision,) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).getTradeData(
+                            loanOrder.interestTokenAddress,
+                            loanPosition.collateralTokenAddressFilled,
+                            MAX_UINT // get best rate
+                        );
+                        positionAmountSold = totalInterestToRefund
+                            .mul(sourceToDestRate);
+                        positionAmountSold = positionAmountSold
+                            .div(sourceToDestPrecision);
 
                         if (positionAmountSold != 0) {
-                            if (!BZxVault(vaultContract).withdrawToken(
-                                loanPosition.collateralTokenAddressFilled,
-                                loanPosition.trader,
-                                positionAmountSold
-                            )) {
-                                revert("_settleInterest: BZxVault.withdrawToken interest failed");
+                            if (loanPosition.positionTokenAmountFilled >= positionAmountSold) {
+                                loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled
+                                    .sub(positionAmountSold);
+
+                                // closeAmount always >= totalInterestToRefund at this point, so set used amount
+                                loanAmountBought = totalInterestToRefund;
+                                totalInterestToRefund = 0;
+                            } else {
+                                loanAmountBought = loanPosition.positionTokenAmountFilled
+                                    .mul(sourceToDestPrecision);
+                                loanAmountBought = loanAmountBought
+                                    .div(sourceToDestRate);
+
+                                if (loanAmountBought > totalInterestToRefund)
+                                    loanAmountBought = totalInterestToRefund;
+
+                                positionAmountSold = loanPosition.positionTokenAmountFilled;
+                                totalInterestToRefund = totalInterestToRefund.sub(loanAmountBought);
+                                loanPosition.positionTokenAmountFilled = 0;
+                            }
+
+                            if (positionAmountSold != 0) {
+                                if (!BZxVault(vaultContract).withdrawToken(
+                                    loanPosition.collateralTokenAddressFilled,
+                                    loanPosition.trader,
+                                    positionAmountSold
+                                )) {
+                                    revert("_settleInterest: BZxVault.withdrawToken interest failed");
+                                }
                             }
                         }
                     }
@@ -385,11 +401,11 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
 
     function _settleInterestForLender(
         LoanOrder memory loanOrder,
+        address lender,
         bool sendToOracle,
         uint256 owedPerDayRefund)
         internal
     {
-        address lender = orderLender[loanOrder.loanOrderHash];
         LenderInterest storage oracleInterest = lenderOracleInterest[lender][loanOrder.oracleAddress][loanOrder.interestTokenAddress];
 
         // update lender interest
@@ -416,10 +432,10 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
             if (positionList.length > 1) {
                 // get positionList index
                 uint256 index = positionListIndex[positionId].index;
-                
+
                 // replace loan in list with last loan in array
                 positionList[index] = positionList[positionList.length - 1];
-                
+
                 // update the position of this replacement
                 positionListIndex[positionList[index].positionId].index = index;
             }

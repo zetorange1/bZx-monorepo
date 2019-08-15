@@ -50,11 +50,15 @@ module.exports = {
         ERC721Proxy: "0x2a9127c745688a165106c11cd4d647d2220af821",
         AssetProxyOwner: "0x2c824d2882baa668e0d5202b1e7f2922278703f8"
       },
-      KyberContractAddress: "0x7e6b8b9510D71BF8EF0f893902EbB9C865eEF4Df", // Kovan
-      BZRXToken: "0xE31C829Fc92A6408376818Eb10cEd1c4Fd2D11f0",
+      OracleNotifier: "0xc406f51A23F28D6559e311010d3EcD8A07696a45",
+      KyberContractAddress: "0x692f391bCc85cefCe8C237C01e1f636BbD70EA4D", // Kovan
+      BZRXToken: "0xe3e682A8Fc7EFec410E4099cc09EfCC0743C634a",
       BZxEther: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
       MultiSig: "",
-      DAITokenAddress: "0xb2f3dd487708ca7794f633d9df57fdb9347a7aff", // KNC (no DAI on Kovan Kyber)
+      TokenizedRegistry: "0xF1C87dD61BF8a4e21978487e2705D52AA687F97E",
+      LoanTokenSettings: "0xEC3b8f6bFDB78D69AF2A2989Dc843712c27d4231",
+      DAITokenAddress: "0xC4375B7De8af5a38a93548eb8453a498222C4fF2",
+      KNCTokenAddress: "0xad67cB4d63C9da94AcA37fDF2761AaDF780ff4a2",
     },
     rinkeby: {
       ZeroEx: {
@@ -96,6 +100,7 @@ module.exports = {
       BZxEther: "0x96CCe310096755f69594212d5D5fB5485577E7d1",
       MultiSig: "",
       TokenizedRegistry: "0xd8dc30d298ccf40042991cb4b96a540d8affe73a",
+      LoanTokenSettings: "0x7d3164E0B64Ff2D9e068523dcB25DC48a64B8FB6",
       DAITokenAddress: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359",
       USDCTokenAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
       WBTCTokenAddress: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",

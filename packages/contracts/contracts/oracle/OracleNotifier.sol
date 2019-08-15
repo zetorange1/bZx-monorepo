@@ -10,7 +10,7 @@ import "../modifiers/BZxOwnable.sol";
 import "./OracleNotifierInterface.sol";
 
 
-/* 
+/*
     Only vetted external contracts should be used with notifications.
     Gas cost considerations should also be taken into account.
 */

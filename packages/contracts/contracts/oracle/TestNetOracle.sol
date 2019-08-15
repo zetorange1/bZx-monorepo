@@ -44,7 +44,20 @@ contract TestNetOracle is BZxOracle {
         payable
     {}
 
-    function() external payable {} // solhint-disable-line no-empty-blocks
+    function()
+        external
+        payable
+    {
+        if (msg.sender == bZxContractAddress) {
+            updateEMA(tx.gasprice);
+        }
+
+        // always returns true
+        assembly {
+            mstore(0, 1)
+            return(0, 32)
+        }
+    }
 
     function liquidatePosition(
         BZxObjects.LoanOrder memory loanOrder,

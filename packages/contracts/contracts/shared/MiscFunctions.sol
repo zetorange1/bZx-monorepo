@@ -27,12 +27,15 @@ contract MiscFunctions is BZxStorage, MathFunctions {
     {
         address oracleRef = oracleAddresses[oracleAddress];
 
-        uint256 interestOwedNow = 0;
+        uint256 interestOwedNow;
         if (oracleInterest.interestOwedPerDay > 0 && oracleInterest.interestPaidDate > 0 && interestTokenAddress != address(0)) {
             interestOwedNow = block.timestamp.sub(oracleInterest.interestPaidDate).mul(oracleInterest.interestOwedPerDay).div(86400);
+            if (interestOwedNow > tokenInterestOwed[lender][interestTokenAddress])
+                interestOwedNow = tokenInterestOwed[lender][interestTokenAddress];
 
-            if (interestOwedNow > 0) {
+            if (interestOwedNow != 0) {
                 oracleInterest.interestPaid = oracleInterest.interestPaid.add(interestOwedNow);
+                tokenInterestOwed[lender][interestTokenAddress] = tokenInterestOwed[lender][interestTokenAddress].sub(interestOwedNow);
 
                 if (sendToOracle) {
                     // send the interest to the oracle for further processing

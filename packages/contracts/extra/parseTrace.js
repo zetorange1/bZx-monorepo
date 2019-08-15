@@ -1,8 +1,11 @@
 
-var txnHash = "";
-if (process.argv.length >= 3) {
-    txnHash = process.argv[2];
+if (process.argv.length < 4) {
+    console.log("Please specify network_name and txn hash!")
+    process.exit();
 }
+
+let network = process.argv[2];
+let txnHash = process.argv[3];
 
 if (!txnHash) {
     console.log("No txn hash supplied!");
@@ -27,7 +30,7 @@ if (useFile) {
 } else {
 
     request.post({
-        url: 'https://eth-mainnet.alchemyapi.io/jsonrpc/'+secrets["alchemy_apikey"],
+        url: 'https://eth-'+network+'.alchemyapi.io/jsonrpc/'+secrets["alchemy_apikey"],
         headers: {
             "Content-Type": "text/plain"
         },
@@ -44,7 +47,11 @@ if (useFile) {
 
         fs.writeFileSync("output.log", body+"\n");
 
-        console.log(processVmTrace(body));
+        try {
+            console.log(processVmTrace(body));
+        } catch (e) {
+            console.log(e);
+        }
     });
 }
 

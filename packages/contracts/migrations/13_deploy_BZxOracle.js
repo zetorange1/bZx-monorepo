@@ -19,8 +19,9 @@ const config = require("../protocol-config.js");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const OLD_ORACLE_ADDRESS = "";
-//const OLD_ORACLE_ADDRESS = "0xf20dab577269dc26429079d5796f204c2f90229e"; // mainnet
+//const OLD_ORACLE_ADDRESS = "0x4c1974e5ff413c6e061ae217040795aaa1748e8b"; // mainnet
 //const OLD_ORACLE_ADDRESS = "0x208ec15dbb52b417343887ed8a5523d3c4d23e55"; // ropsten
+//const OLD_ORACLE_ADDRESS = "0x5d940c359165a8d4647cc8a237dcef8b0c6b60de"; // kovan
 
 module.exports = (deployer, network, accounts) => {
 
@@ -97,8 +98,8 @@ module.exports = (deployer, network, accounts) => {
       const oracleAddress = oracle.address;
 
       if (network == "mainnet") {
-        await oracle.setDecimalsBatch(["0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2","0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48","0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359","0x2260fac5e5542a773aa44fbcfedf7c193bc2c599","0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2","0xdd974d5c2e2928dea5f71b9825b8b646686bd200","0x1985365e9f78359a9b6ad760e32412f4a445e862","0x0d8775f648430679a709e98d2b0cb6250d2887ef","0xe41d2489571d322189246dafa5ebde1f4699f498"]);
-        // WETH,USDC,DAI,WBTC,MKR,KNC,REP,BAT,ZRX
+        await oracle.setDecimalsBatch(["0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2","0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48","0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359","0x2260fac5e5542a773aa44fbcfedf7c193bc2c599","0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2","0xdd974d5c2e2928dea5f71b9825b8b646686bd200","0x1985365e9f78359a9b6ad760e32412f4a445e862","0x0d8775f648430679a709e98d2b0cb6250d2887ef","0xe41d2489571d322189246dafa5ebde1f4699f498","0x514910771af9ca656af840dff83e8264ecf986ca"]);
+        // WETH,USDC,DAI,WBTC,MKR,KNC,REP,BAT,ZRX,LINK
 
 
         let txData = web3.eth.abi.encodeFunctionSignature('registerWallet(address)') +
@@ -159,6 +160,13 @@ module.exports = (deployer, network, accounts) => {
           web3.utils.toWei(10000000, "ether")
         );*/
 
+
+        let ethBalance = await web3.eth.getBalance(bZxOracleOld.address);
+        if (ethBalance.toString() !== "0") {
+          await bZxOracleOld.wrapEther();
+          console.log("Done wrapping ETH to WETH.");
+        }
+
         let tokenBalance;
 
         tokenBalance = await weth.balanceOf(bZxOracleOld.address);
@@ -175,6 +183,7 @@ module.exports = (deployer, network, accounts) => {
           tokenBalance = await otherToken.balanceOf(bZxOracleOld.address);
           if (tokenBalance.toString() !== "0") {
             await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
+            console.log("Done with KNC transfer.");
           }
 
           // DAI Transfer
@@ -182,6 +191,7 @@ module.exports = (deployer, network, accounts) => {
           tokenBalance = await otherToken.balanceOf(bZxOracleOld.address);
           if (tokenBalance.toString() !== "0") {
             await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
+            console.log("Done with DAI transfer.");
           }
 
           // REP Transfer
@@ -189,6 +199,7 @@ module.exports = (deployer, network, accounts) => {
           tokenBalance = await otherToken.balanceOf(bZxOracleOld.address);
           if (tokenBalance.toString() !== "0") {
             await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
+            console.log("Done with REP transfer.");
           }
 
           // USDC Transfer
@@ -196,6 +207,7 @@ module.exports = (deployer, network, accounts) => {
           tokenBalance = await otherToken.balanceOf(bZxOracleOld.address);
           if (tokenBalance.toString() !== "0") {
             await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
+            console.log("Done with USDC transfer.");
           }
 
           // WBTC Transfer
@@ -203,6 +215,7 @@ module.exports = (deployer, network, accounts) => {
           tokenBalance = await otherToken.balanceOf(bZxOracleOld.address);
           if (tokenBalance.toString() !== "0") {
             await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
+            console.log("Done with WBTC transfer.");
           }
 
           // ZRX Transfer
@@ -210,6 +223,23 @@ module.exports = (deployer, network, accounts) => {
           tokenBalance = await otherToken.balanceOf(bZxOracleOld.address);
           if (tokenBalance.toString() !== "0") {
             await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
+            console.log("Done with ZRX transfer.");
+          }
+
+          // BAT Transfer
+          otherToken = await BZxEther.at("0x0d8775f648430679a709e98d2b0cb6250d2887ef");
+          tokenBalance = await otherToken.balanceOf(bZxOracleOld.address);
+          if (tokenBalance.toString() !== "0") {
+            await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
+            console.log("Done with BAT transfer.");
+          }
+
+          // LINK Transfer
+          otherToken = await BZxEther.at("0x514910771af9ca656af840dff83e8264ecf986ca");
+          tokenBalance = await otherToken.balanceOf(bZxOracleOld.address);
+          if (tokenBalance.toString() !== "0") {
+            await bZxOracleOld.transferToken(otherToken.address, oracleAddress, tokenBalance);
+            console.log("Done with LINK transfer.");
           }
 
           console.log("Done with other token transfers.");
