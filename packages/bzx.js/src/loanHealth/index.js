@@ -130,24 +130,6 @@ export const getPositionOffset = async (
   };
 };
 
-export const payInterestForOrder = (
-  { web3, networkId, addresses },
-  { loanOrderHash, getObject, txOpts }
-) => {
-  const bZxContract = CoreUtils.getContractInstance(
-    web3,
-    getContracts(networkId).BZx.abi,
-    addresses.BZx
-  );
-
-  const txObj = bZxContract.methods.payInterestForOrder(loanOrderHash);
-
-  if (getObject) {
-    return txObj;
-  }
-  return txObj.send(txOpts);
-};
-
 export const payInterestForOracle = (
   { web3, networkId, addresses },
   { oracleAddress, interestTokenAddress, getObject, txOpts }
@@ -158,7 +140,7 @@ export const payInterestForOracle = (
     addresses.BZx
   );
 
-  const txObj = bZxContract.methods.payInterestForOrder(oracleAddress, interestTokenAddress);
+  const txObj = bZxContract.methods.payInterestForOracle(oracleAddress, interestTokenAddress);
 
   if (getObject) {
     return txObj;
@@ -176,35 +158,13 @@ export const getLenderInterestForOracle = async (
     addresses.BZx
   );
   const data = await bZxContract.methods
-    .getLenderInterestForToken(lender, oracleAddress, interestTokenAddress)
+    .getLenderInterestForOracle(lender, oracleAddress, interestTokenAddress)
     .call();
   return {
     interestPaid: data[0],
     interestPaidDate: data[1],
     interestOwedPerDay: data[2],
     interestUnPaid: data[3]
-  };
-};
-
-export const getLenderInterestForOrder = async (
-  { web3, networkId, addresses },
-  { loanOrderHash }
-) => {
-  const bZxContract = CoreUtils.getContractInstance(
-    web3,
-    getContracts(networkId).BZx.abi,
-    addresses.BZx
-  );
-  const data = await bZxContract.methods
-    .getLenderInterestForOrder(loanOrderHash)
-    .call();
-  return {
-    lender: data[0],
-    interestTokenAddress: data[1],
-    interestPaid: data[2],
-    interestPaidDate: data[3],
-    interestOwedPerDay: data[4],
-    interestUnPaid: data[5]
   };
 };
 
