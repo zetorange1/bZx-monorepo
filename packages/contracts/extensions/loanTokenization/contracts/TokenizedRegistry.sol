@@ -130,8 +130,8 @@ contract TokenizedRegistry is Ownable {
         require(tokenAddresses[_index] == _token, "invalid index");
 
         tokenAddresses[_index] = tokenAddresses[tokenAddresses.length - 1];
-        tokenAddresses.length -= 1;
         tokens[tokenAddresses[_index]].index = _index;
+        tokenAddresses.length -= 1;
 
         TokenMetadata memory token = tokens[_token];
         delete tokenBySymbol[token.symbol];
@@ -273,7 +273,7 @@ contract TokenizedRegistry is Ownable {
             actualSize++;
             tokenDataComplete[i] = token;
         }
-        
+
         if (tokenDataComplete.length == actualSize) {
             return tokenDataComplete;
         } else {

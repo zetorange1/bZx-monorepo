@@ -11,20 +11,6 @@ import "../shared/OracleNotifierInterface.sol";
 
 
 interface IBZx {
-    function pushLoanOrderOnChain(
-        address[8] calldata orderAddresses,
-        uint256[11] calldata orderValues,
-        bytes calldata oracleData,
-        bytes calldata signature)
-        external
-        returns (bytes32); // loanOrderHash
-
-    function setLoanOrderDesc(
-        bytes32 loanOrderHash,
-        string calldata desc)
-        external
-        returns (bool);
-
     function takeOrderFromiToken(
         bytes32 loanOrderHash,              // existing loan order hash
         address trader,                     // borrower/trader
@@ -32,11 +18,12 @@ interface IBZx {
         address tradeTokenAddress,          // trade token
         uint256 newInterestRate,            // new loan interest rate
         uint256 newLoanAmount,              // new loan size
-        uint256[4] calldata sentAmounts)
+        uint256[5] calldata sentAmounts)
             // interestInitialAmount: interestAmount sent to determine initial loan length (this is included in one of the below)
             // loanTokenSent: loanTokenAmount + interestAmount + any extra
             // collateralTokenSent: collateralAmountRequired + any extra
             // tradeTokenSent: tradeTokenAmount (optional)
+            // withdrawalAmount: Actual amount sent to borrower (can't exceed newLoanAmount)
         external
         returns (uint256);
 
@@ -57,6 +44,26 @@ interface IBZx {
         external
         view
         returns (address);
+
+    function getRequiredCollateral(
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        address oracleAddress,
+        uint256 newLoanAmount,
+        uint256 marginAmount)
+        external
+        view
+        returns (uint256 collateralTokenAmount);
+
+    function getBorrowAmount(
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        address oracleAddress,
+        uint256 collateralTokenAmount,
+        uint256 marginAmount)
+        external
+        view
+        returns (uint256 borrowAmount);
 }
 
 interface IBZxOracle {
@@ -67,11 +74,6 @@ interface IBZxOracle {
         external
         view
         returns (uint256 sourceToDestRate, uint256 sourceToDestPrecision, uint256 destTokenAmount);
-
-    function interestFeePercent()
-        external
-        view
-        returns (uint256);
 }
 
 interface iTokenizedRegistry {
@@ -86,8 +88,10 @@ interface iTokenizedRegistry {
 contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
     using SafeMath for uint256;
 
+    address internal target_;
+
     modifier onlyOracle() {
-        require(msg.sender == IBZx(bZxContract).oracleAddresses(bZxOracle), "unauthorized");
+        require(msg.sender == IBZx(bZxContract).oracleAddresses(bZxOracle), "1");
         _;
     }
 
@@ -107,7 +111,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         nonReentrant
         returns (uint256 mintAmount)
     {
-        require(loanTokenAddress == wethContract, "no ether");
+        require(loanTokenAddress == wethContract, "2");
         return _mintToken(
             receiver,
             msg.value
@@ -134,7 +138,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         nonReentrant
         returns (uint256 loanAmountPaid)
     {
-        require(loanTokenAddress == wethContract, "no ether");
+        require(loanTokenAddress == wethContract, "3");
         loanAmountPaid = _burnToken(
             receiver,
             burnAmount
@@ -142,7 +146,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
 
         if (loanAmountPaid != 0) {
             WETHInterface(wethContract).withdraw(loanAmountPaid);
-            require(receiver.send(loanAmountPaid), "transfer failed");
+            require(receiver.send(loanAmountPaid), "4");
         }
     }
 
@@ -162,8 +166,70 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
             require(ERC20(loanTokenAddress).transfer(
                 receiver,
                 loanAmountPaid
-            ), "transfer failed");
+            ), "5");
         }
+    }
+
+    function borrowTokenFromDeposit(
+        uint256 borrowAmount,
+        uint256 leverageAmount,
+        uint256 initialLoanDuration, // duration in seconds
+        uint256 collateralTokenSent, // set to 0 if sending ETH
+        address borrower,
+        address collateralTokenAddress) // address(0) means ETH and ETH must be sent with the call
+        public
+        payable
+        nonReentrant
+        returns (bytes32 loanOrderHash)
+    {
+        require(
+            borrowAmount != 0 &&
+            ((msg.value == 0 && collateralTokenAddress != address(0) && collateralTokenSent != 0) ||
+            (msg.value != 0 && (collateralTokenAddress == address(0) || collateralTokenAddress == wethContract) && collateralTokenSent == 0)),
+            "6"
+        );
+
+        loanOrderHash = loanOrderHashes[leverageAmount];
+        require(loanOrderHash != 0, "7");
+
+        _settleInterest();
+
+        uint256 assetSupply = totalAssetSupply();
+        uint256 interestRate = _nextBorrowInterestRate(
+            borrowAmount,
+            assetSupply
+        );
+
+        // initial interestInitialAmount
+        uint256 interestInitialAmount = borrowAmount
+            .mul(interestRate)
+            .mul(initialLoanDuration)
+            .div(31536000 * 10**20); // 365 * 86400 * 10**20
+
+        uint256 withdrawalAmount = borrowAmount;
+        borrowAmount = borrowAmount.add(interestInitialAmount);
+
+        // final interestRate
+        interestRate = _nextBorrowInterestRate(
+            borrowAmount,
+            assetSupply
+        );
+
+        require(_borrowTokenAndUseFinal(
+            loanOrderHash,
+            borrowAmount,
+            interestRate, // interestRate
+            [
+                interestInitialAmount, // interestInitialAmount
+                0, // loanTokenSent
+                msg.value == 0 ? collateralTokenSent : msg.value, // collateralTokenSent
+                0, // tradeTokenSent
+                withdrawalAmount
+            ],
+            borrower,
+            msg.value == 0 ? collateralTokenAddress : wethContract,
+            address(0) // tradeTokenAddress
+        ) == borrowAmount, "8");
     }
 
     // Called to borrow token for withdrawal or trade
@@ -183,7 +249,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
     // tradeTokenAddress: The borrowed token will be swap for this token to start a leveraged trade
     //    If the borrower wished to instead withdraw the borrowed token to their wallet, set this to address(0)
     //    If set to address(0), initial collateral required will equal initial margin percent + 100%
-    // returns amount borrowed
+    // returns loanOrderHash for the base protocol loan
     function borrowTokenAndUse(
         uint256 borrowAmount,
         uint256 leverageAmount,
@@ -196,37 +262,36 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         address tradeTokenAddress)
         public
         nonReentrant
-        returns (uint256)
+        returns (bytes32 loanOrderHash)
     {
         require(collateralTokenAddress != address(0) &&
             (tradeTokenAddress == address(0) ||
                 tradeTokenAddress != loanTokenAddress),
-            "invalid addresses"
+            "9"
         );
 
-        uint256 actualAmount = _borrowTokenAndUse(
+        loanOrderHash = _borrowTokenAndUse(
             borrowAmount,
             leverageAmount,
             [
                 interestInitialAmount,
                 loanTokenSent,
                 collateralTokenSent,
-                tradeTokenSent
+                tradeTokenSent,
+                borrowAmount
             ],
             borrower,
             collateralTokenAddress,
             tradeTokenAddress,
             false // amountIsADeposit
         );
-        require(actualAmount != 0, "can't borrow");
-        return actualAmount;
     }
 
     // Called by pTokens to borrow and immediately get into a positions
     // Other traders can call this, but it's recommended to instead use borrowTokenAndUse(...) instead
     // assumption: depositAmount is collateral + interest deposit and will be denominated in deposit token
     // assumption: loan token and interest token are the same
-    // returns borrowAmount
+    // returns loanOrderHash for the base protocol loan
     function marginTradeFromDeposit(
         uint256 depositAmount,
         uint256 leverageAmount,
@@ -239,11 +304,11 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         address tradeTokenAddress)
         public
         nonReentrant
-        returns (uint256)
+        returns (bytes32 loanOrderHash)
     {
         require(tradeTokenAddress != address(0) &&
             tradeTokenAddress != loanTokenAddress,
-            "invalid tradeTokenAddress"
+            "10"
         );
 
         uint256 amount = depositAmount;
@@ -256,25 +321,24 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
             );
         } else if (depositTokenAddress != loanTokenAddress) {
             // depositTokenAddress can only be tradeTokenAddress or loanTokenAddress
-            revert("invalid deposit token");
+            revert("11");
         }
 
-        uint256 borrowAmount = _borrowTokenAndUse(
+        loanOrderHash = _borrowTokenAndUse(
             amount,                     // amount of deposit
             leverageAmount,
             [
                 0,                      // interestInitialAmount (interest is calculated based on fixed-term loan)
                 loanTokenSent,
                 collateralTokenSent,
-                tradeTokenSent
+                tradeTokenSent,
+                0
             ],
             trader,
             collateralTokenAddress,     // collateralTokenAddress
             tradeTokenAddress,          // tradeTokenAddress
             true                        // amountIsADeposit
         );
-        require(borrowAmount != 0, "can't borrow");
-        return borrowAmount;
     }
 
 
@@ -323,7 +387,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         require(ERC20(tokenAddress).transfer(
             IBZx(bZxContract).oracleAddresses(bZxOracle),
             balance
-        ), "transfer failed");
+        ), "12");
 
         return true;
     }
@@ -335,7 +399,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         returns (bool)
     {
         require(_value <= balances[msg.sender], "insufficient balance");
-        require(_to != address(0), "no burn");
+        require(_to != address(0), "13");
 
         balances[msg.sender] = balances[msg.sender].sub(_value);
         balances[_to] = balances[_to].add(_value);
@@ -365,9 +429,9 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         returns (bool)
     {
         uint256 allowanceAmount = allowed[_from][msg.sender];
-        require(_value <= balances[_from], "insufficient balance");
-        require(_value <= allowanceAmount, "insufficient allowance");
-        require(_to != address(0), "no burn");
+        require(_value <= balances[_from], "14");
+        require(_value <= allowanceAmount, "15");
+        require(_to != address(0), "16");
 
         balances[_from] = balances[_from].sub(_value);
         balances[_to] = balances[_to].add(_value);
@@ -496,7 +560,10 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
             }
         }
 
-        return _nextBorrowInterestRate(borrowAmount);
+        return _nextBorrowInterestRate(
+            borrowAmount,
+            totalAssetSupply()
+        );
     }
 
     // kept for backwards compatability
@@ -575,6 +642,96 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
             .div(10**18);
     }
 
+    function getDepositAmountForBorrow(
+        uint256 borrowAmount,
+        uint256 leverageAmount,             // use 2000000000000000000 for 150% initial margin
+        uint256 initialLoanDuration,        // duration in seconds
+        address collateralTokenAddress)     // address(0) means ETH
+        public
+        view
+        returns (uint256 depositAmount)
+    {
+        // interestInitialAmount
+        uint256 value = _getInterestInitialAmount(
+            borrowAmount,
+            initialLoanDuration
+        );
+
+        borrowAmount = borrowAmount
+            .add(value);
+        borrowAmount = _verifyBorrowAmount(borrowAmount);
+
+        value = loanOrderData[loanOrderHashes[leverageAmount]].initialMarginAmount
+            .add(10**20); // adjust for over-collateralized loan
+
+        if (borrowAmount != 0) {
+            return IBZx(bZxContract).getRequiredCollateral(
+                loanTokenAddress,
+                collateralTokenAddress != address(0) ? collateralTokenAddress : wethContract,
+                bZxOracle,
+                borrowAmount,
+                value // marginAmount
+            );
+        } else {
+            return 0;
+        }
+    }
+
+    function getBorrowAmountForDeposit(
+        uint256 depositAmount,
+        uint256 leverageAmount,             // use 2000000000000000000 for 150% initial margin
+        uint256 initialLoanDuration,        // duration in seconds
+        address collateralTokenAddress)     // address(0) means ETH
+        public
+        view
+        returns (uint256 borrowAmount)
+    {
+        uint256 value = loanOrderData[loanOrderHashes[leverageAmount]].initialMarginAmount
+            .add(10**20); // adjust for over-collateralized loan
+
+        borrowAmount = IBZx(bZxContract).getBorrowAmount(
+            loanTokenAddress,
+            collateralTokenAddress != address(0) ? collateralTokenAddress : wethContract,
+            bZxOracle,
+            depositAmount,
+            value // marginAmount
+        );
+
+        // interestInitialAmount
+        value = _getInterestInitialAmount(
+            borrowAmount,
+            initialLoanDuration
+        );
+
+        if (borrowAmount > value) {
+            borrowAmount = borrowAmount
+                .sub(value);
+            return _verifyBorrowAmount(borrowAmount);
+        } else {
+            return 0;
+        }
+    }
+
+    function _getInterestInitialAmount(
+        uint256 borrowAmount,
+        uint256 initialLoanDuration)
+        public
+        view
+        returns (uint256 interestAmount)
+    {
+        uint256 assetSupply = totalAssetSupply();
+        uint256 interestRate = _nextBorrowInterestRate(
+            borrowAmount,
+            assetSupply
+        );
+
+        // initial interestInitialAmount
+        return borrowAmount
+            .mul(interestRate)
+            .mul(initialLoanDuration)
+            .div(31536000 * 10**20); // 365 * 86400 * 10**20
+    }
+
 
     /* Internal functions */
 
@@ -584,7 +741,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         internal
         returns (uint256 mintAmount)
     {
-        require (depositAmount != 0, "amount == 0");
+        require (depositAmount != 0, "17");
 
         if (burntTokenReserveList.length != 0) {
             _claimLoanToken(address(0));
@@ -603,7 +760,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
                 msg.sender,
                 address(this),
                 depositAmount
-            ), "transfer failed");
+            ), "18");
         } else {
             WETHInterface(wethContract).deposit.value(depositAmount)();
         }
@@ -619,7 +776,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         internal
         returns (uint256 loanAmountPaid)
     {
-        require(burnAmount != 0, "amount == 0");
+        require(burnAmount != 0, "19");
 
         if (burnAmount > balanceOf(msg.sender)) {
             burnAmount = balanceOf(msg.sender);
@@ -744,7 +901,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         require(ERC20(loanTokenAddress).transfer(
             lender,
             claimAmount
-        ), "transfer failed");
+        ), "20");
 
         if (burntTokenReserveListIndex[lender].isSet || balances[lender] != 0) {
             checkpointPrices_[lender] = currentPrice;
@@ -772,20 +929,18 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
     function _borrowTokenAndUse(
         uint256 amount,
         uint256 leverageAmount,
-        uint256[4] memory sentAmounts,
+        uint256[5] memory sentAmounts,
         address borrower,
         address collateralTokenAddress,
         address tradeTokenAddress,
         bool amountIsADeposit)
         internal
-        returns (uint256)
+        returns (bytes32 loanOrderHash)
     {
-        if (amount == 0) {
-            return 0;
-        }
+        require(amount != 0, "21");
 
-        bytes32 loanOrderHash = loanOrderHashes[leverageAmount];
-        require(loanOrderHash != 0, "invalid leverage");
+        loanOrderHash = loanOrderHashes[leverageAmount];
+        require(loanOrderHash != 0, "22");
 
         _settleInterest();
 
@@ -795,9 +950,15 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
                 loanOrderHash,
                 amount
             );
+
+            // update for borrowAmount
+            sentAmounts[4] = amount;
         } else {
             // amount is borrow amount
-            interestRate = _nextBorrowInterestRate(amount);
+            interestRate = _nextBorrowInterestRate(
+                amount,
+                totalAssetSupply()
+            );
         }
 
         if (tradeTokenAddress == address(0)) {
@@ -805,7 +966,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
             sentAmounts[3] = 0;
         }
 
-        return _borrowTokenAndUseFinal(
+        uint256 borrowAmount = _borrowTokenAndUseFinal(
             loanOrderHash,
             amount, // borrowAmount
             interestRate,
@@ -814,6 +975,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
             collateralTokenAddress,
             tradeTokenAddress
         );
+        require(borrowAmount == amount, "23");
     }
 
     // returns borrowAmount
@@ -821,7 +983,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         bytes32 loanOrderHash,
         uint256 borrowAmount,
         uint256 interestRate,
-        uint256[4] memory sentAmounts,
+        uint256[5] memory sentAmounts,
         address borrower,
         address collateralTokenAddress,
         address tradeTokenAddress)
@@ -829,23 +991,22 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         returns (uint256)
     {
         borrowAmount = _verifyBorrowAmount(borrowAmount);
-        require (borrowAmount != 0, "borrow failed");
+        require (borrowAmount != 0, "24");
 
         // handle transfers prior to adding borrowAmount to loanTokenSent
         _verifyTransfers(
             borrower,
             collateralTokenAddress,
             tradeTokenAddress,
-            borrowAmount,
             sentAmounts[1], // loanTokenSent
             sentAmounts[2], // collateralTokenSent
-            sentAmounts[3]  // tradeTokenSent
+            sentAmounts[3], // tradeTokenSent
+            sentAmounts[4]  // withdrawalAmount
         );
 
         // adding the loan token amount from the lender to loanTokenSent
         sentAmounts[1] = sentAmounts[1].add(borrowAmount);
 
-        // borrowAmount returned might be less if it was adjusted down
         borrowAmount = IBZx(bZxContract).takeOrderFromiToken(
             loanOrderHash,
             borrower,
@@ -855,7 +1016,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
             borrowAmount,
             sentAmounts
         );
-        require (borrowAmount != 0, "borrow failed");
+        require (borrowAmount != 0, "25");
 
         // update total borrowed amount outstanding in loans
         totalAssetBorrow = totalAssetBorrow.add(borrowAmount);
@@ -909,35 +1070,47 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         address borrower,
         address collateralTokenAddress,
         address tradeTokenAddress,
-        uint256 borrowAmount,
         uint256 loanTokenSent,
         uint256 collateralTokenSent,
-        uint256 tradeTokenSent)
+        uint256 tradeTokenSent,
+        uint256 withdrawalAmount)
         internal
     {
         if (tradeTokenAddress == address(0)) { // withdrawOnOpen == true
             require(ERC20(loanTokenAddress).transfer(
                 borrower,
-                borrowAmount
-            ), "withdraw failed");
+                withdrawalAmount
+            ), "26");
         } else {
             require(ERC20(loanTokenAddress).transfer(
                 bZxVault,
-                borrowAmount
-            ), "transfer failed");
+                withdrawalAmount
+            ), "27");
         }
 
         if (collateralTokenSent != 0) {
-            if (collateralTokenAddress == loanTokenAddress) {
-                loanTokenSent = loanTokenSent.add(collateralTokenSent);
-            } else if (collateralTokenAddress == tradeTokenAddress) {
-                tradeTokenSent = tradeTokenSent.add(collateralTokenSent);
-            } else {
-                require(ERC20(collateralTokenAddress).transferFrom(
-                    msg.sender,
+            if (msg.value != 0) {
+                require(collateralTokenAddress == wethContract &&
+                    collateralTokenSent == msg.value, "28");
+
+                WETHInterface(wethContract).deposit.value(collateralTokenSent)();
+
+                require(ERC20(collateralTokenAddress).transfer(
                     bZxVault,
                     collateralTokenSent
-                ), "transfer failed");
+                ), "29");
+            } else {
+                if (collateralTokenAddress == loanTokenAddress) {
+                    loanTokenSent = loanTokenSent.add(collateralTokenSent);
+                } else if (collateralTokenAddress == tradeTokenAddress) {
+                    tradeTokenSent = tradeTokenSent.add(collateralTokenSent);
+                } else {
+                    require(ERC20(collateralTokenAddress).transferFrom(
+                        msg.sender,
+                        bZxVault,
+                        collateralTokenSent
+                    ), "30");
+                }
             }
         }
 
@@ -949,7 +1122,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
                     msg.sender,
                     bZxVault,
                     loanTokenSent
-                ), "transfer failed");
+                ), "31");
             }
         }
 
@@ -958,7 +1131,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
                 msg.sender,
                 bZxVault,
                 tradeTokenSent
-            ), "transfer failed");
+            ), "32");
         }
     }
 
@@ -1034,7 +1207,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
     {
         if (totalAssetBorrow != 0) {
             return _protocolInterestRate(assetSupply)
-                .mul(_getUtilizationRate(assetSupply))
+                .mul(_utilizationRate(assetSupply))
                 .div(10**20);
         } else {
             return 0;
@@ -1043,14 +1216,13 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
 
     // next borrow interest adjustment
     function _nextBorrowInterestRate(
-        uint256 newBorrowAmount)
+        uint256 newBorrowAmount,
+        uint256 assetSupply)
         internal
         view
         returns (uint256 nextRate)
     {
-        uint256 assetSupply = totalAssetSupply();
-
-        uint256 utilizationRate = _getUtilizationRate(assetSupply)
+        uint256 utilRate = _utilizationRate(assetSupply)
             .add(newBorrowAmount != 0 ?
                 newBorrowAmount
                 .mul(10**20)
@@ -1059,23 +1231,23 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         uint256 minRate = baseRate;
         uint256 maxRate = rateMultiplier.add(baseRate);
 
-        if (utilizationRate > 90 ether) {
+        if (utilRate > 90 ether) {
             // scale rate proportionally up to 100%
 
-            utilizationRate = utilizationRate.sub(90 ether);
-            if (utilizationRate > 10 ether)
-                utilizationRate = 10 ether;
+            utilRate = utilRate.sub(90 ether);
+            if (utilRate > 10 ether)
+                utilRate = 10 ether;
 
             maxRate = maxRate
                 .mul(90)
                 .div(100);
 
-            nextRate = utilizationRate
+            nextRate = utilRate
                 .mul(SafeMath.sub(100 ether, maxRate))
                 .div(10 ether)
                 .add(maxRate);
         } else {
-            nextRate = utilizationRate
+            nextRate = utilRate
                 .mul(rateMultiplier)
                 .div(10**20)
                 .add(baseRate);
@@ -1113,12 +1285,13 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         returns (uint256 borrowAmount, uint256 interestRate)
     {
         LoanData memory loanData = loanOrderData[loanOrderHash];
-        require(loanData.initialMarginAmount != 0, "invalid leverage");
+        require(loanData.initialMarginAmount != 0, "33");
 
         interestRate = _nextBorrowInterestRate(
             depositAmount
                 .mul(10**20)
-                .div(loanData.initialMarginAmount)
+                .div(loanData.initialMarginAmount),
+            totalAssetSupply()
         );
 
         // assumes that loan, collateral, and interest token are the same
@@ -1149,7 +1322,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
             10**20;
     }
 
-    function _getUtilizationRate(
+    function _utilizationRate(
         uint256 assetSupply)
         internal
         view
@@ -1233,164 +1406,30 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
 
     /* Owner-Only functions */
 
-    function initLeverage(
-        uint256[4] memory orderParams) // leverageAmount, initialMarginAmount, maintenanceMarginAmount, maxDurationUnixTimestampSec
+    function updateSettings(
+        address settingsTarget,
+        bytes memory txnData)
         public
         onlyOwner
     {
-        require(loanOrderHashes[orderParams[0]] == 0);
+        address currentTarget = target_;
+        target_ = settingsTarget;
 
-        address[8] memory orderAddresses = [
-            address(this), // makerAddress
-            loanTokenAddress, // loanTokenAddress
-            loanTokenAddress, // interestTokenAddress (same as loanToken)
-            address(0), // collateralTokenAddress
-            address(0), // feeRecipientAddress
-            bZxOracle, // (leave as original value)
-            address(0), // takerAddress
-            address(0) // tradeTokenAddress
-        ];
+        (bool result,) = address(this).call(txnData);
 
-        uint256[11] memory orderValues = [
-            0, // loanTokenAmount
-            0, // interestAmountPerDay
-            orderParams[1], // initialMarginAmount,
-            orderParams[2], // maintenanceMarginAmount,
-            0, // lenderRelayFee
-            0, // traderRelayFee
-            orderParams[3], // maxDurationUnixTimestampSec,
-            0, // expirationUnixTimestampSec
-            0, // makerRole (0 = lender)
-            0, // withdrawOnOpen
-            uint(keccak256(abi.encodePacked(msg.sender, block.timestamp))) // salt
-        ];
-
-        bytes32 loanOrderHash = IBZx(bZxContract).pushLoanOrderOnChain(
-            orderAddresses,
-            orderValues,
-            abi.encodePacked(address(this)), // oracleData -> closeLoanNotifier
-            ""
-        );
-        IBZx(bZxContract).setLoanOrderDesc(
-            loanOrderHash,
-            name
-        );
-        loanOrderData[loanOrderHash] = LoanData({
-            loanOrderHash: loanOrderHash,
-            leverageAmount: orderParams[0],
-            initialMarginAmount: orderParams[1],
-            maintenanceMarginAmount: orderParams[2],
-            maxDurationUnixTimestampSec: orderParams[3],
-            index: leverageList.length
-        });
-        loanOrderHashes[orderParams[0]] = loanOrderHash;
-        leverageList.push(orderParams[0]);
-    }
-
-    function removeLeverage(
-        uint256 leverageAmount)
-        public
-        onlyOwner
-    {
-        bytes32 loanOrderHash = loanOrderHashes[leverageAmount];
-        require(loanOrderHash != 0);
-
-        if (leverageList.length > 1) {
-            uint256 index = loanOrderData[loanOrderHash].index;
-            leverageList[index] = leverageList[leverageList.length - 1];
-            loanOrderData[loanOrderHashes[leverageList[index]]].index = index;
+        uint256 size;
+        uint256 ptr;
+        assembly {
+            size := returndatasize
+            ptr := mload(0x40)
+            returndatacopy(ptr, 0, size)
+            if eq(result, 0) { revert(ptr, size) }
         }
-        leverageList.length--;
 
-        delete loanOrderHashes[leverageAmount];
-        delete loanOrderData[loanOrderHash];
-    }
+        target_ = currentTarget;
 
-    function migrateLeverage(
-        uint256 oldLeverageValue,
-        uint256 newLeverageValue)
-        public
-        onlyOwner
-    {
-        require(oldLeverageValue != newLeverageValue);
-        bytes32 loanOrderHash = loanOrderHashes[oldLeverageValue];
-        LoanData storage loanData = loanOrderData[loanOrderHash];
-        require(loanData.initialMarginAmount != 0);
-
-        delete loanOrderHashes[oldLeverageValue];
-
-        leverageList[loanData.index] = newLeverageValue;
-        loanData.leverageAmount = newLeverageValue;
-        loanOrderHashes[newLeverageValue] = loanOrderHash;
-    }
-
-    // These params should be percentages represented like so: 5% = 5000000000000000000
-    // rateMultiplier + baseRate can't exceed 100%
-    function setDemandCurve(
-        uint256 _baseRate,
-        uint256 _rateMultiplier)
-        public
-        onlyOwner
-    {
-        require(rateMultiplier.add(baseRate) <= 10**20);
-        baseRate = _baseRate;
-        rateMultiplier = _rateMultiplier;
-    }
-
-    function setInterestFeePercent(
-        uint256 _newRate)
-        public
-        onlyOwner
-    {
-        require(_newRate <= 10**20);
-        spreadMultiplier = SafeMath.sub(10**20, _newRate);
-    }
-
-    function setBZxOracle(
-        address _addr)
-        public
-        onlyOwner
-    {
-        bZxOracle = _addr;
-    }
-
-    function setTokenizedRegistry(
-        address _addr)
-        public
-        onlyOwner
-    {
-        tokenizedRegistry = _addr;
-    }
-
-    function initialize(
-        address _bZxContract,
-        address _bZxVault,
-        address _bZxOracle,
-        address _wethContract,
-        address _loanTokenAddress,
-        address _tokenizedRegistry,
-        string memory _name,
-        string memory _symbol)
-        public
-        onlyOwner
-    {
-        require (!isInitialized_);
-
-        bZxContract = _bZxContract;
-        bZxVault = _bZxVault;
-        bZxOracle = _bZxOracle;
-        wethContract = _wethContract;
-        loanTokenAddress = _loanTokenAddress;
-        tokenizedRegistry = _tokenizedRegistry;
-
-        name = _name;
-        symbol = _symbol;
-        decimals = EIP20(loanTokenAddress).decimals();
-
-        spreadMultiplier = SafeMath.sub(10**20, IBZxOracle(_bZxOracle).interestFeePercent());
-
-        initialPrice = 10**18; // starting price of 1
-
-        isInitialized_ = true;
+        assembly {
+            return(ptr, size)
+        }
     }
 }

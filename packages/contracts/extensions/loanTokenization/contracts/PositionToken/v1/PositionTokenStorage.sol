@@ -5,7 +5,7 @@
  
 pragma solidity 0.5.8;
 
-import "../shared/LoanTokenization.sol";
+import "../../shared/LoanTokenization.sol";
 
 
 contract PositionTokenStorage is LoanTokenization {
