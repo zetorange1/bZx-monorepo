@@ -4,7 +4,7 @@ import MuiButton from "@material-ui/core/Button";
 import BZxComponent from "../../common/BZxComponent";
 import { Divider } from "../../common/FormSection";
 import { COLORS } from "../../styles/constants";
-import { fromBigNumber, toBigNumber } from "../../common/utils";
+import { fromBigNumber, toBigNumber, MAX_UINT } from "../../common/utils";
 import { TextField, Input, InputLabel, InputAdornment, FormControl, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@material-ui/core";
 
 const IsSaleLive = true;
@@ -222,7 +222,7 @@ export default class DebugTokenization extends BZxComponent {
         const currentRateObj = await this.wrapAndRun(oracleContract.methods.getTradeData(
           TradeToken._address,
           LoanedToken._address,
-          toBigNumber(1, 1e18).toString()
+          MAX_UINT.toFixed(0, 1)
         ).call());
         currentRate = await toBigNumber(currentRateObj.sourceToDestRate, 10 ** -18).toString();
       } else {

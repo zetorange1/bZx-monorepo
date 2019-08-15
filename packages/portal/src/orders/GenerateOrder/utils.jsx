@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { BZxJS } from "bzx.js"; // eslint-disable-line
+import { BZxJS } from "@bzxnetwork/bzx.js"; // eslint-disable-line
 import { toBigNumber } from "../../common/utils";
 import getNetworkId from "../../web3/getNetworkId";
 import { getDecimals } from "../../common/tokens";

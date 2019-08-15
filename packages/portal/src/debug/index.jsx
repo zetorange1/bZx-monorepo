@@ -132,7 +132,7 @@ export default class Debug extends BZxComponent {
 
     //console.log(`Token contract:`, tokenContract._address);
     let orderFilledAmounts, orderCancelledAmounts;
-    let lenderInterestForOracle, lenderInterestForOrder, traderInterestForLoan;
+    let lenderInterestForOracle, traderInterestForLoan;
 
     try {
       let order = {};
@@ -214,20 +214,12 @@ export default class Debug extends BZxComponent {
         //position[`positionTokenAmountFilled`] = toBigNumber(position[`positionTokenAmountFilled`], 10 ** -18).toString()+ ` (normalized)`;
       
       
-        lenderInterestForOrder = await this.wrapAndRun(bzxContract.methods.getLenderInterestForOrder(
+        const lender = await this.wrapAndRun(bzxContract.methods.orderLender(
           newHash
         ).call());
-        lenderInterestForOrder = {
-          lender: lenderInterestForOrder[0],
-          interestTokenAddress: lenderInterestForOrder[1],
-          interestPaid: lenderInterestForOrder[2],//toBigNumber(lenderInterestForOrder[2], 10 ** -18).toString()+ ` (normalized)`,
-          interestPaidDate: lenderInterestForOrder[3],
-          interestOwedPerDay: lenderInterestForOrder[4],//toBigNumber(lenderInterestForOrder[4], 10 ** -18).toString()+ ` (normalized)`,
-          interestUnPaid: lenderInterestForOrder[5]//,toBigNumber(lenderInterestForOrder[5], 10 ** -18).toString()+ ` (normalized)`
-        };
 
         lenderInterestForOracle = await this.wrapAndRun(bzxContract.methods.getLenderInterestForOracle(
-          lenderInterestForOrder[`lender`],
+          lender,
           order[`oracleAddress`],
           order[`interestTokenAddress`]
         ).call());
@@ -260,7 +252,6 @@ export default class Debug extends BZxComponent {
         orderFilledAmounts,
         orderCancelledAmounts,
         lenderInterestForOracle,
-        lenderInterestForOrder,
         traderInterestForLoan
       });
 
@@ -336,56 +327,6 @@ export default class Debug extends BZxComponent {
     }
   };
 
-  payInterestForOrder = async () => {
-    const { web3, bZx, accounts } = this.props;
-    const { bzxContract, order } = this.state;
-
-    if (!bzxContract || !order)
-      return;
-
-    if (bZx.portalProviderName !== `MetaMask`) {
-      alert(`Please confirm this transaction on your device.`);
-    }
-
-    const txOpts = {
-      from: accounts[0],
-      gas: 2000000,
-      gasPrice: window.defaultGasPrice.toString()
-    };
-
-    const txObj = await bzxContract.methods.payInterestForOrder(
-      order[`loanOrderHash`]
-    );
-    console.log(txOpts);
-
-    try {
-      console.log(txOpts);
-      await txObj.send(txOpts)
-        .once(`transactionHash`, hash => {
-          alert(`Transaction submitted, transaction hash:`, {
-            component: () => (
-              <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
-                {hash}
-              </TxHashLink>
-            )
-          });
-          this.setState({ showReduceDialog: false });
-        })
-        .then(async () => {
-          alert(`The txn is complete.`);
-        })
-        .catch(error => {
-          console.error(error.message);
-          alert(`The txn did not complete.`);
-          this.setState({ showReduceDialog: false });
-        });
-    } catch (error) {
-      console.error(error.message);
-      alert(`The txn did not complete.`);
-      this.setState({ showReduceDialog: false });
-    }
-  };
-
   render() {
     const { 
       loading,
@@ -396,7 +337,6 @@ export default class Debug extends BZxComponent {
       orderFilledAmounts,
       orderCancelledAmounts,
       lenderInterestForOracle,
-      lenderInterestForOrder,
       traderInterestForLoan
     } = this.state;
     const { bZx, currentHash, currentTrader } = this.props; 
@@ -461,14 +401,6 @@ export default class Debug extends BZxComponent {
             >
               Pay Interest For Oracle
             </Button>
-            <Button
-              variant="raised"
-              color="primary"
-              onClick={this.payInterestForOrder}
-              style={{ marginLeft: `12px` }}
-            >
-              Pay Interest For Order
-            </Button>
           </DataPointContainer>
 
           <DataPointContainer>
@@ -478,14 +410,6 @@ export default class Debug extends BZxComponent {
             </DataPoint>
           </DataPointContainer>
         </Fragment> ) : ``}
-
-        {lenderInterestForOrder ? (
-        <DataPointContainer>
-          <Label>Lender Interest For Order</Label>
-          <DataPoint>
-            <pre>{JSON.stringify(lenderInterestForOrder, null, '  ')}</pre>
-          </DataPoint>
-        </DataPointContainer>) : ``}
 
         {traderInterestForLoan ? (
         <DataPointContainer>

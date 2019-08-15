@@ -170,9 +170,7 @@ export default class LoanTokens extends BZxComponent {
     try {
 
       const assetAddress = await this.wrapAndRun(tokenContract.methods.loanTokenAddress().call());
-
       const tokenBalance = await this.wrapAndRun(tokenContract.methods.balanceOf(accounts[0]).call());
-
       const checkpointPrice = await this.wrapAndRun(tokenContract.methods.checkpointPrice(accounts[0]).call());
 
       const listIndex = await this.wrapAndRun(tokenContract.methods.burntTokenReserveListIndex(accounts[0]).call());
@@ -180,21 +178,17 @@ export default class LoanTokens extends BZxComponent {
       if (listIndex.isSet) {
         burntReserveBalance = (await this.wrapAndRun(tokenContract.methods.burntTokenReserveList(listIndex.index).call())).amount;
       }
-      
       const burntReserveBalanceContract = await this.wrapAndRun(tokenContract.methods.burntTokenReserved().call());
-
       const ethBalance = await this.wrapAndRun(web3.eth.getBalance(accounts[0]));
       const contractEthBalance = await this.wrapAndRun(web3.eth.getBalance(tokenContract._address));
-
       const supplyInterestRate = await this.wrapAndRun(tokenContract.methods.supplyInterestRate().call());
       const borrowInterestRate = await this.wrapAndRun(tokenContract.methods.borrowInterestRate().call());
       const nextLoanInterestRate = await this.wrapAndRun(tokenContract.methods.nextLoanInterestRate("10000000000000000").call());
-
       const totalAssetBorrow = await this.wrapAndRun(tokenContract.methods.totalAssetBorrow().call());
       const totalAssetSupply = await this.wrapAndRun(tokenContract.methods.totalAssetSupply().call());
       const tokenPrice = await this.wrapAndRun(tokenContract.methods.tokenPrice().call());
 
-      const marketLiquidity = (await this.wrapAndRun(tokenContract.methods.marketLiquidity().call())).times(10**(18-this.state.tokenContractDecimals));
+      const marketLiquidity = toBigNumber(await this.wrapAndRun(tokenContract.methods.marketLiquidity().call())).times(10**(18-this.state.tokenContractDecimals));
 
       const baseRateCurrent = toBigNumber(
         await this.wrapAndRun(tokenContract.methods.baseRate().call()),
@@ -392,14 +386,14 @@ export default class LoanTokens extends BZxComponent {
       from: accounts[0],
       gas: 2000000,
       gasPrice: window.defaultGasPrice.toString(),
-      value: useToken ? "0" : toBigNumber(buyAmount, 1e18)
+      value: useToken ? "0" : toBigNumber(buyAmount, 1e18).toFixed(0, 1)
     };
 
     let txObj;
     if (useToken) {
       txObj = await tokenContract.methods.mint(
         accounts[0],
-        toBigNumber(buyAmount, 1e18).toString()
+        toBigNumber(buyAmount, 1e18).toFixed(0, 1)
       );
     } else {
       txObj = await tokenContract.methods.mintWithEther(accounts[0]);
@@ -465,12 +459,12 @@ export default class LoanTokens extends BZxComponent {
     if (useToken) {
       txObj = await tokenContract.methods.burn(
         accounts[0],
-        toBigNumber(sellAmount, 1e18).toFixed(0)
+        toBigNumber(sellAmount, 1e18).toFixed(0, 1)
       );
     } else {
       txObj = await tokenContract.methods.burnToEther(
         accounts[0],
-        toBigNumber(sellAmount, 1e18).toFixed(0)
+        toBigNumber(sellAmount, 1e18).toFixed(0, 1)
       );
     }
     console.log(txOpts);

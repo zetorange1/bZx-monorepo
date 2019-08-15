@@ -9,17 +9,15 @@ const validRange = (min, max, val) => {
   throw new Error(`Invalid range`);
 };
 
-const checkCoinsAdded = ({ loanTokenAddress, interestTokenAddress, collateralTokenAddress, role }, tokens) => {
-  return true;
-  /*const trackedTokens = getTrackedTokens(tokens);
+const checkCoinsAdded = ({ loanTokenAddress, interestTokenAddress, collateralTokenAddress, role }, tokens) => true;
+/* const trackedTokens = getTrackedTokens(tokens);
 
   if (role === `lender`) {
     return trackedTokens.includes(loanTokenAddress);
   }
   const a = trackedTokens.includes(interestTokenAddress);
   const b = trackedTokens.includes(collateralTokenAddress);
-  return a && b;*/
-};
+  return a && b; */
 
 const checkAllowance = async (bZx, accounts, tokenAddress) => {
   const allowance = await bZx.getAllowance({
@@ -30,77 +28,67 @@ const checkAllowance = async (bZx, accounts, tokenAddress) => {
 };
 
 const silentAllowance = async (bZx, accounts, tokenAddress) => {
-    const txOpts = {
-      from: accounts[0],
-      // gas: 1000000,
-      gasPrice: window.defaultGasPrice.toString()
-    };
+  const txOpts = {
+    from: accounts[0],
+    // gas: 1000000,
+    gasPrice: window.defaultGasPrice.toString()
+  };
 
-    const txObj = await bZx.setAllowanceUnlimited({
-      tokenAddress: tokenAddress,
-      ownerAddress: accounts[0].toLowerCase(),
-      getObject: true,
-      txOpts
-    });
+  const txObj = await bZx.setAllowanceUnlimited({
+    tokenAddress,
+    ownerAddress: accounts[0].toLowerCase(),
+    getObject: true,
+    txOpts
+  });
 
-    try {
-      let gas = await txObj.estimateGas(txOpts);
-      console.log(gas);
-      txOpts.gas = window.gasValue(gas);
-      await txObj.send(txOpts);
-      return true;
-	} catch (error) {
-      console.error(error.message);
-      return false;
-    }
-}
+  try {
+    const gas = await txObj.estimateGas(txOpts);
+    console.log(gas);
+    txOpts.gas = window.gasValue(gas);
+    await txObj.send(txOpts);
+    return true;
+  } catch (error) {
+    console.error(error.message);
+    return false;
+  }
+};
 
 // TODO: Verify sufficient BZRX token balance to pay fees
-const checkRelaysFees = async (
-  bZx,
-  accounts,
-  tokens,
-  state
-) => {
+const checkRelaysFees = async (bZx, accounts, tokens, state) => {
   const { role, feeRecipientAddress, traderRelayFee, lenderRelayFee } = state;
   if (feeRecipientAddress === `0x0000000000000000000000000000000000000000`) {
     return true;
   }
-  const feeToken = tokens.filter(
-    t => t.symbol === `BZRX`
-  )[0];
+  const feeToken = tokens.filter(t => t.symbol === `BZRX`)[0];
   if ((role === `trader` && traderRelayFee !== `0`) || (role === `lender` && lenderRelayFee !== `0`)) {
     const a = await checkAllowance(bZx, accounts, feeToken.address);
     if (!a) {
-      return (await silentAllowance(bZx, accounts, feeToken.address));
-    } else {
-      return true;
+      return await silentAllowance(bZx, accounts, feeToken.address);
     }
+    return true;
   }
-}
+};
 
 const checkCoinsApproved = async (bZx, accounts, state) => {
   const { loanTokenAddress, interestTokenAddress, collateralTokenAddress, role } = state;
   if (role === `lender`) {
     const loanTokenAllowed = await checkAllowance(bZx, accounts, loanTokenAddress);
     if (!loanTokenAllowed) {
-      return (await silentAllowance(bZx, accounts, loanTokenAddress));
-    } else {
-      return true;
+      return await silentAllowance(bZx, accounts, loanTokenAddress);
     }
-  } else {
-    let a = await checkAllowance(bZx, accounts, interestTokenAddress);
-    if (!a) {
-      a = await silentAllowance(bZx, accounts, interestTokenAddress);
-    }
-
-    let b = await checkAllowance(bZx, accounts, collateralTokenAddress);
-    if (!b) {
-      b = await silentAllowance(bZx, accounts, collateralTokenAddress);
-    }
-
-    return a && b;
+    return true;
   }
+  let a = await checkAllowance(bZx, accounts, interestTokenAddress);
+  if (!a) {
+    a = await silentAllowance(bZx, accounts, interestTokenAddress);
+  }
+
+  let b = await checkAllowance(bZx, accounts, collateralTokenAddress);
+  if (!b) {
+    b = await silentAllowance(bZx, accounts, collateralTokenAddress);
+  }
+
+  return a && b;
 };
 
 const checkCoinsAllowed = (state, tokens, networkId) => {
@@ -199,13 +187,13 @@ export default async (bZx, accounts, state, tokens, web3) => {
     return false;
   }
 
-  /*const relayFeesOk = await checkRelaysFees(bZx, accounts, tokens, state);
+  /* const relayFeesOk = await checkRelaysFees(bZx, accounts, tokens, state);
   if (!relayFeesOk) {
     alert(
       `Please ensure you have enough BZRX to pay relay fees.`
     );
     return false;
-  }*/
+  } */
 
   if (role === `trader`) {
     const interestTokenBalance = await getTokenBalance(bZx, interestTokenAddress, accounts);

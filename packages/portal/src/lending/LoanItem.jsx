@@ -80,13 +80,22 @@ export default class LoanItem extends BZxComponent {
   }
   
   componentDidMount = async () => {
+    const order = await this.wrapAndRun(this.props.bZx.getSingleOrder({
+      loanOrderHash: this.props.data.loanOrderHash
+    }));
+    await this.setState({ 
+      order: order
+    });
+    
     await this.getLenderInterest();
   };
 
   getLenderInterest = async () => {
-    const { bZx, data } = this.props;
-    const lenderInterest = await this.wrapAndRun(bZx.getLenderInterestForOrder({
-      loanOrderHash: data.loanOrderHash
+    const { bZx, data, accounts } = this.props;
+    const lenderInterest = await this.wrapAndRun(bZx.getLenderInterestForOracle({
+      lender: accounts[0],
+      oracleAddress: this.state.order.oracleAddress,
+      interestTokenAddress: data.interestTokenAddress
     }));
     console.log(`lenderInterest`,lenderInterest);
     await this.setState({ 
@@ -106,10 +115,10 @@ export default class LoanItem extends BZxComponent {
   toggleOrderDialog = async event => {
     event.preventDefault();
     if (event.target.id !== ``) {
-      const order = await this.getSingleOrder(event.target.id);
+      const order = this.state.order ? this.state.order : await this.getSingleOrder(event.target.id);
       this.setState(p => ({
         showOrderDialog: !p.showOrderDialog,
-        order
+        order: order
       }));
     } else {
       this.setState(p => ({
@@ -162,7 +171,7 @@ export default class LoanItem extends BZxComponent {
       tokens,
       positionTokenAddressFilled
     );
-
+console.log(this.props);
     const loanOpenedDate = new Date(loanStartUnixTimestampSec * 1000);
     return (
       <Card>
@@ -307,8 +316,9 @@ export default class LoanItem extends BZxComponent {
                   decimals={interestTokenDecimals}
                   accounts={accounts}
                   web3={web3}
-                  loanOrderHash={loanOrderHash}
+                  interestTokenAddress={interestTokenAddress}
                   currentFee={currentFee}
+                  oracleAddress={this.state.order ? this.state.order.oracleAddress : ``}
                 />
               </div>
             </Fragment>

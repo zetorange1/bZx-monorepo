@@ -26,7 +26,7 @@ export default class WithdrawInterest extends React.Component {
   closeDialog = () => this.setState({ showDialog: false });
 
   withdrawInterest = async () => {
-    const { accounts, web3, bZx, loanOrderHash } = this.props;
+    const { accounts, web3, bZx, oracleAddress, interestTokenAddress } = this.props;
 
     const txOpts = {
       from: accounts[0],
@@ -38,11 +38,13 @@ export default class WithdrawInterest extends React.Component {
       alert(`Please confirm this transaction on your device.`);
     }
 
-    const txObj = await bZx.payInterestForOrder({
-      loanOrderHash,
+    const txObj = await bZx.payInterestForOracle({
+      oracleAddress,
+      interestTokenAddress,
       getObject: true,
       txOpts
     });
+    console.log(txOpts);
 
     try {
       await txObj

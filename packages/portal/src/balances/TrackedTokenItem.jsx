@@ -102,6 +102,8 @@ export default class TrackedTokenItem extends BZxComponent {
     approvalLoading: false,
     approvedFees: null,
     approvalLoadingFees: false,
+    approvedOTC: null,
+    approvalLoadingOTC: false,
   };
 
   async componentDidMount() {
@@ -110,6 +112,9 @@ export default class TrackedTokenItem extends BZxComponent {
 
     if (this.props.token.symbol === `WETH`)
       this.checkAllowanceFees();
+
+    if (this.props.token.symbol === `BZRX`)
+      this.checkAllowanceOTC();
   }
 
   setStateForInput = key => e => this.setState({ [key]: e.target.value });
@@ -155,6 +160,22 @@ export default class TrackedTokenItem extends BZxComponent {
     this.setState({
       approvedFees: allowance.toNumber() !== 0,
       approvalLoadingFees: false
+    });
+  };
+
+  checkAllowanceOTC = async () => {
+    const { bZx, token, accounts } = this.props;
+    console.log(`checking otc allowance`);
+    console.log(token.name, token.address);
+    const allowance = await window.pqueueTokens.add(() => this.wrapAndRun(bZx.getAllowance({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase(),
+      spenderAddress: "0xff856149b80762752158a0709187176955612722" // mainnet only
+    })));
+    console.log(`OTC Allowance:`, allowance.toNumber());
+    this.setState({
+      approvedOTC: allowance.toNumber() !== 0,
+      approvalLoadingOTC: false
     });
   };
 
@@ -698,6 +719,179 @@ export default class TrackedTokenItem extends BZxComponent {
     }
   };
 
+  approveOTC = async () => {
+    const { bZx, token, web3, accounts } = this.props;
+    console.log(`approving OTC allowance`);
+    console.log(token.name, token.address);
+    this.setState({ approvalLoadingOTC: true });
+
+    if (bZx.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
+
+    const txOpts = {
+      from: accounts[0],
+      // gas: 1000000,
+      gasPrice: window.defaultGasPrice.toString()
+    };
+
+    const txObj = await bZx.setAllowanceUnlimited({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase(),
+      spenderAddress: "0xff856149b80762752158a0709187176955612722", // mainnet only
+      getObject: true,
+      txOpts
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = window.gasValue(gas);
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+            })
+            .then(() => {
+              alert(`Your token is approved.`);
+              this.checkAllowanceOTC();
+            })
+            .catch(error => {
+              console.error(error.message);
+              if (
+                error.message.includes(`denied transaction signature`) ||
+                error.message.includes(`Condition of use not satisfied`) ||
+                error.message.includes(`Invalid status`)
+              ) {
+                alert();
+              } else {
+                alert(`The transaction is failing. Please try again later.`);
+              }
+              this.setState({ approvalLoadingOTC: false });
+            });
+        })
+        .catch(error => {
+          console.error(error.message);
+          if (
+            error.message.includes(`denied transaction signature`) ||
+            error.message.includes(`Condition of use not satisfied`) ||
+            error.message.includes(`Invalid status`)
+          ) {
+            alert();
+          } else {
+            alert(`The transaction is failing. Please try again later.`);
+          }
+          this.setState({ approvalLoadingOTC: false });
+        });
+    } catch (error) {
+      console.error(error.message);
+      if (
+        error.message.includes(`denied transaction signature`) ||
+        error.message.includes(`Condition of use not satisfied`) ||
+        error.message.includes(`Invalid status`)
+      ) {
+        alert();
+      } else {
+        alert(`The transaction is failing. Please try again later.`);
+      }
+      this.setState({ approvalLoadingOTC: false });
+    }
+  };
+
+  unapproveOTC = async () => {
+    const { bZx, token, web3, accounts } = this.props;
+    console.log(`unapproving OTC allowance`);
+    console.log(token.name, token.address);
+    this.setState({ approvalLoadingOTC: true });
+
+    if (bZx.portalProviderName !== `MetaMask`) {
+      alert(`Please confirm this transaction on your device.`);
+    }
+
+    const txOpts = {
+      from: accounts[0],
+      // gas: 1000000,
+      gasPrice: window.defaultGasPrice.toString()
+    };
+
+    const txObj = await bZx.resetAllowance({
+      tokenAddress: token.address,
+      ownerAddress: accounts[0].toLowerCase(),
+      spenderAddress: "0xff856149b80762752158a0709187176955612722", // mainnet only
+      getObject: true
+    });
+
+    try {
+      await txObj
+        .estimateGas(txOpts)
+        .then(gas => {
+          console.log(gas);
+          txOpts.gas = window.gasValue(gas);
+          txObj
+            .send(txOpts)
+            .once(`transactionHash`, hash => {
+              alert(`Transaction submitted, transaction hash:`, {
+                component: () => (
+                  <TxHashLink href={`${bZx.etherscanURL}tx/${hash}`}>
+                    {hash}
+                  </TxHashLink>
+                )
+              });
+            })
+            .then(() => {
+              alert(`Your token is un-approved.`);
+              this.checkAllowanceOTC();
+            })
+            .catch(error => {
+              console.error(error.message);
+              if (
+                error.message.includes(`denied transaction signature`) ||
+                error.message.includes(`Condition of use not satisfied`) ||
+                error.message.includes(`Invalid status`)
+              ) {
+                alert();
+              } else {
+                alert(`The transaction is failing. Please try again later.`);
+              }
+              this.setState({ approvalLoadingOTC: false });
+            });
+        })
+        .catch(error => {
+          console.error(error.message);
+          if (
+            error.message.includes(`denied transaction signature`) ||
+            error.message.includes(`Condition of use not satisfied`) ||
+            error.message.includes(`Invalid status`)
+          ) {
+            alert();
+          } else {
+            alert(`The transaction is failing. Please try again later.`);
+          }
+          this.setState({ approvalLoadingOTC: false });
+        });
+    } catch (error) {
+      console.error(error.message);
+      if (
+        error.message.includes(`denied transaction signature`) ||
+        error.message.includes(`Condition of use not satisfied`) ||
+        error.message.includes(`Invalid status`)
+      ) {
+        alert();
+      } else {
+        alert(`The transaction is failing. Please try again later.`);
+      }
+      this.setState({ approvalLoadingOTC: false });
+    }
+  };
+  
   renderAllowance = () => {
     const { approved, approvalLoading } = this.state;
     if (approved === null) {
@@ -754,6 +948,33 @@ export default class TrackedTokenItem extends BZxComponent {
     );
   };
 
+  renderAllowanceOTC = () => {
+    const { approvedOTC, approvalLoadingOTC } = this.state;
+    if (approvedOTC === null) {
+      return <div>Checking</div>;
+    }
+    if (approvedOTC === true) {
+      return (
+        <Button
+          variant="raised"
+          onClick={this.unapproveOTC}
+          disabled={approvalLoadingOTC}
+        >
+          Un-approve OTC
+        </Button>
+      );
+    }
+    return (
+      <Button
+        variant="raised"
+        onClick={this.approveOTC}
+        disabled={approvalLoadingOTC}
+      >
+        Approve OTC
+      </Button>
+    );
+  };
+
   render() {
     const { name, symbol, iconUrl, address } = this.props.token;
     const { balance } = this.state;
@@ -799,6 +1020,7 @@ export default class TrackedTokenItem extends BZxComponent {
             Request
           </Button>
           {symbol === `WETH` ? this.renderAllowanceFees() : ``}
+          {symbol === `BZRX` ? this.renderAllowanceOTC() : ``}
           {this.renderAllowance()}
           <Button
             variant="raised"

@@ -84,8 +84,7 @@ export default class PositionTokens extends BZxComponent {
     tokenBalance: 0,
     tokenPrice: 0,
     liquidationPrice: 0,
-    marketLiquidityForAsset: 0,
-    marketLiquidityForToken: 0,
+    marketLiquidityForLoan: 0,
     //totalTokens: 0,
     //totalTokenBonus: 0,
     //ethRate: 0,
@@ -96,6 +95,8 @@ export default class PositionTokens extends BZxComponent {
     sellAmount: 0,
     wethBalance: 0,
     wethBalanceContract: 0,
+    otherTokenBalance: 0,
+    otherTokenBalanceContract: 0,
     reserveBalance: 0,
     ethBalance: 0,
     contractEthBalance: 0,
@@ -135,8 +136,8 @@ export default class PositionTokens extends BZxComponent {
         (await tokenList.filter(t => t.symbol === `iDAI`)[0]).token;
 
       pTokenAddress = this.props.activeTokenizedTab === `tokenizedloans_positiontokens_short` ? 
-        (await tokenList.filter(t => t.symbol === `usETH2x`)[0]).token :
-        (await tokenList.filter(t => t.symbol === `uLETH2x`)[0]).token;
+        (await tokenList.filter(t => t.symbol === `dsETH2x`)[0]).token :
+        (await tokenList.filter(t => t.symbol === `dLETH2x`)[0]).token;
 
       if (this.props.bZx.networkId === 50) { // development
         tradeTokenContract = await this.props.bZx.getWeb3Contract(`TestToken9`);
@@ -217,9 +218,9 @@ export default class PositionTokens extends BZxComponent {
     }
   }
 
-  getWETHBalance = async (stateVar, who) => {
+  getTokenBalance = async (stateVar, tokenStr, who) => {
     const { bZx, tokens, accounts } = this.props;
-    const token = await tokens.filter(t => t.symbol === `WETH`)[0];
+    const token = await tokens.filter(t => t.symbol === tokenStr)[0];
 
     const balance = await this.wrapAndRun(bZx.getBalance({
       tokenAddress: token.address,
@@ -238,19 +239,15 @@ export default class PositionTokens extends BZxComponent {
 
     try {
       const assetAddress = await this.wrapAndRun(tokenContract.methods.loanTokenAddress().call());
-
       const tokenBalance = await this.wrapAndRun(tokenContract.methods.balanceOf(accounts[0]).call());
       const tokenPrice = await this.wrapAndRun(tokenContract.methods.tokenPrice().call());
       const liquidationPrice = await this.wrapAndRun(tokenContract.methods.liquidationPrice().call());
-      const marketLiquidityForAsset = await this.wrapAndRun(tokenContract.methods.marketLiquidityForAsset().call());
-      const marketLiquidityForToken = await this.wrapAndRun(tokenContract.methods.marketLiquidityForToken().call());
+      const marketLiquidityForLoan = await this.wrapAndRun(tokenContract.methods.marketLiquidityForLoan().call());
       //const tokenData = await this.wrapAndRun(tokensaleContract.methods.purchases(accounts[0]).call());
       //console.log(tokenData);
 
       const checkpointPrice = await this.wrapAndRun(tokenContract.methods.checkpointPrice(accounts[0]).call());
-
       const splitFactor = await this.wrapAndRun(tokenContract.methods.splitFactor().call());
-
       //const ethRate = await this.wrapAndRun(tokensaleContract.methods.getEthRate().call());
       //console.log(ethRate);
 
@@ -258,7 +255,6 @@ export default class PositionTokens extends BZxComponent {
       const contractEthBalance = await this.wrapAndRun(web3.eth.getBalance(tokenContract._address));
 
       const loanOrderHash = "0x"; //await this.wrapAndRun(iTokenContract.methods.loanOrderHashes(toBigNumber(2, 1e18).toString()).call());
-
       //await this.props.setiTokenHash(loanOrderHash);
       //await this.props.setiTokenTrader(tokenContract._address);
 
@@ -280,8 +276,7 @@ export default class PositionTokens extends BZxComponent {
         tokenBalance: tokenBalance,
         tokenPrice: tokenPrice,
         liquidationPrice: liquidationPrice,
-        marketLiquidityForAsset: marketLiquidityForAsset,
-        marketLiquidityForToken: marketLiquidityForToken,
+        marketLiquidityForLoan: marketLiquidityForLoan,
         ethBalance: ethBalance,
         contractEthBalance: contractEthBalance,
         loading: false, 
@@ -296,8 +291,12 @@ export default class PositionTokens extends BZxComponent {
         assetAddress
       });
 
-      await this.getWETHBalance(`wethBalance`, accounts[0]);
-      await this.getWETHBalance(`wethBalanceContract`, this.state.tokenContract._address);
+      await this.getTokenBalance(`wethBalance`, `WETH`, accounts[0]);
+      await this.getTokenBalance(`otherTokenBalance`, `TEST9`, accounts[0]);
+      await this.getTokenBalance(`wethBalanceContract`, `WETH`, this.state.tokenContract._address);
+      await this.getTokenBalance(`otherTokenBalanceContract`, `TEST9`, this.state.tokenContract._address);
+      
+
 
     } catch(e) {
       console.log(e);
@@ -363,10 +362,11 @@ export default class PositionTokens extends BZxComponent {
       txObj = await tokenContract.methods.mintWithToken(
         accounts[0],
         assetAddress,
-        toBigNumber(buyAmount, 1e18).toString()
+        toBigNumber(buyAmount, 1e18).toString(),
+        0
       );
     } else {
-      txObj = await tokenContract.methods.mintWithEther(accounts[0]);
+      txObj = await tokenContract.methods.mintWithEther(accounts[0], 0);
     }
     console.log(txOpts);
 
@@ -431,12 +431,14 @@ export default class PositionTokens extends BZxComponent {
       txObj = await tokenContract.methods.burnToToken(
         accounts[0],
         assetAddress,
-        toBigNumber(sellAmount, 1e18).toFixed(0)
+        toBigNumber(sellAmount, 1e18).toFixed(0),
+        0
       );
     } else {
       txObj = await tokenContract.methods.burnToEther(
         accounts[0],
-        toBigNumber(sellAmount, 1e18).toFixed(0)
+        toBigNumber(sellAmount, 1e18).toFixed(0),
+        0
       );
     }
     console.log(txOpts);
@@ -589,7 +591,7 @@ export default class PositionTokens extends BZxComponent {
       gasPrice: window.defaultGasPrice.toString()
     };
 
-    const txObj = await tokenContract.methods.triggerPosition()
+    const txObj = await tokenContract.methods.triggerPosition(false)
     console.log(txOpts);
 
     try {
@@ -698,13 +700,14 @@ export default class PositionTokens extends BZxComponent {
       tokenBalance,
       tokenPrice,
       liquidationPrice,
-      marketLiquidityForAsset,
-      marketLiquidityForToken,
+      marketLiquidityForLoan,
       tokenContract,
       tokenContractSymbol,
       tradeTokenContractSymbol,
       wethBalance,
       wethBalanceContract,
+      otherTokenBalanceContract,
+      otherTokenBalance,
       ethBalance,
       contractEthBalance,
       vaultTradeTokenBalance,
@@ -783,27 +786,14 @@ export default class PositionTokens extends BZxComponent {
             <br/>
 
             <DataPointContainer>
-              <Label>Market Liquidity (Asset)</Label>
+              <Label>Market Liquidity (Loan Token)</Label>
               <DataPoint>
                 {toBigNumber(
-                  marketLiquidityForAsset,
+                  marketLiquidityForLoan,
                   10 ** -18
                 ).toString()}
                 {` `}
                 {`Token (Max Deposit)`}
-              </DataPoint>
-            </DataPointContainer>
-
-            <DataPointContainer>
-              <Label>Market Liquidity (Token)</Label>
-              <DataPoint>
-                {toBigNumber(
-                  marketLiquidityForToken,
-                  10 ** -18
-                ).toString()}
-                {` `}
-                {tokenContractSymbol}
-                {` (Max Buy)`}
               </DataPoint>
             </DataPointContainer>
 
@@ -820,7 +810,7 @@ export default class PositionTokens extends BZxComponent {
                 {tokenContractSymbol}
                 {` (value: `}
                 {toBigNumber(tokenBalance).times(tokenPrice).div(10**36).toString()}
-                {` ETH)`}
+                {` DAI)`}
               </DataPoint>
             </DataPointContainer>
 
@@ -969,6 +959,18 @@ export default class PositionTokens extends BZxComponent {
               </DataPoint>
             </DataPointContainer>
 
+            <DataPointContainer>
+              <Label>My TEST9 Balance Balance</Label>
+              <DataPoint>
+                {toBigNumber(
+                  otherTokenBalance,
+                  10 ** -18
+                ).toString()}
+                {` `}
+                {`TEST9`}
+              </DataPoint>
+            </DataPointContainer>
+
             <br/>
 
             <DataPointContainer>
@@ -988,6 +990,18 @@ export default class PositionTokens extends BZxComponent {
               <DataPoint>
                 {toBigNumber(
                   wethBalanceContract,
+                  10 ** -18
+                ).toString()}
+                {` `}
+                {`WETH`}
+              </DataPoint>
+            </DataPointContainer>
+
+            <DataPointContainer>
+              <Label>pToken TEST9 Balance (debug only)</Label>
+              <DataPoint>
+                {toBigNumber(
+                  otherTokenBalanceContract,
                   10 ** -18
                 ).toString()}
                 {` `}
