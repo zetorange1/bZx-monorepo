@@ -519,6 +519,8 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
                         loanPosition.positionTokenAddressFilled,
                         loanTokenAmountFilled,
                         MAX_UINT);
+                    require(amountFilled != 0 && amountFilled != MAX_UINT, "amountFilled == 0");
+
                     loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.add(amountFilled);
 
                     // It is assumed that all of the loan token will be traded, so the remaining token balance of the oracle

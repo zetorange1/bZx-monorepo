@@ -464,23 +464,34 @@ contract LoanHealth_MiscFunctions3 is BZxStorage, BZxProxiable, OrderClosingFunc
         );
     }
 
-    function _updateCloseAmounts(
-        uint256 closeAmount,
-        uint256 collateralCloseAmount,
-        uint256 subtrahend)
+    function _tradeWithOracle(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        address oracleAddress,
+        uint256 sourceTokenAmount,
+        uint256 maxDestTokenAmount)
         internal
-        pure
-        returns (uint256, uint256)
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
-        uint256 newCloseAmount = closeAmount
-            .sub(subtrahend);
+        if (!BZxVault(vaultContract).withdrawToken(
+            sourceTokenAddress,
+            oracleAddress,
+            sourceTokenAmount
+        )) {
+            revert("oracletrade: withdrawToken (sourceToken) failed");
+        }
 
-        return (
-            newCloseAmount,
-            collateralCloseAmount
-                .mul(newCloseAmount)
-                .div(closeAmount)
+        (destTokenAmountReceived, sourceTokenAmountUsed) = OracleInterface(oracleAddress).trade(
+            sourceTokenAddress,
+            destTokenAddress,
+            sourceTokenAmount,
+            maxDestTokenAmount
         );
+        require (destTokenAmountReceived != 0, "destTokenAmountReceived == 0");
+
+        if (destTokenAmountReceived == MAX_UINT) {
+            destTokenAmountReceived = 0;
+        }
     }
 
     function _settlePartialClosure(
@@ -512,5 +523,24 @@ contract LoanHealth_MiscFunctions3 is BZxStorage, BZxProxiable, OrderClosingFunc
                 });
             }
         }
+    }
+
+    function _updateCloseAmounts(
+        uint256 closeAmount,
+        uint256 collateralCloseAmount,
+        uint256 subtrahend)
+        internal
+        pure
+        returns (uint256, uint256)
+    {
+        uint256 newCloseAmount = closeAmount
+            .sub(subtrahend);
+
+        return (
+            newCloseAmount,
+            collateralCloseAmount
+                .mul(newCloseAmount)
+                .div(closeAmount)
+        );
     }
 }

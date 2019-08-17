@@ -19,7 +19,7 @@ const config = require("../protocol-config.js");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const OLD_ORACLE_ADDRESS = "";
-//const OLD_ORACLE_ADDRESS = "0x4c1974e5ff413c6e061ae217040795aaa1748e8b"; // mainnet
+//const OLD_ORACLE_ADDRESS = "0x9abc36ac04ed2a6c866beb084e70d4b1674e5ea3"; // mainnet
 //const OLD_ORACLE_ADDRESS = "0x208ec15dbb52b417343887ed8a5523d3c4d23e55"; // ropsten
 //const OLD_ORACLE_ADDRESS = "0x5d940c359165a8d4647cc8a237dcef8b0c6b60de"; // kovan
 

@@ -427,8 +427,8 @@ contract OrderTaking_takeOrderFromiToken is BZxStorage, BZxProxiable {
                 collateralTokenUsable,
                 interestTokenNeeded
             );
+            require (destTokenAmountReceived >= interestTokenNeeded && destTokenAmountReceived != MAX_UINT, "can't fill interest");
 
-            require (destTokenAmountReceived >= interestTokenNeeded, "can't fill interest");
             collateralTokenUsable = collateralTokenUsable.sub(sourceTokenAmountUsed);
             loanTokenUsable = loanTokenUsable.add(destTokenAmountReceived);
         }
@@ -473,6 +473,7 @@ contract OrderTaking_takeOrderFromiToken is BZxStorage, BZxProxiable {
                     loanTokenUsable,
                     MAX_UINT
                 );
+                require(destTokenAmountReceived != 0 && destTokenAmountReceived != MAX_UINT, "destTokenAmountReceived == 0");
 
                 loanTokenUsable = loanTokenUsable
                     .sub(sourceTokenAmountUsed);

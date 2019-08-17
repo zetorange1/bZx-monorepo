@@ -146,39 +146,6 @@ contract MiscFunctions is BZxStorage, MathFunctions {
         }
     }
 
-    function _tradeWithOracle(
-        address sourceTokenAddress,
-        address destTokenAddress,
-        address oracleAddress,
-        uint256 sourceTokenAmount,
-        uint256 maxDestTokenAmount)
-        internal
-        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
-    {
-        if (!BZxVault(vaultContract).withdrawToken(
-            sourceTokenAddress,
-            oracleAddress,
-            sourceTokenAmount
-        )) {
-            revert("oracletrade: withdrawToken (sourceToken) failed");
-        }
-
-        (destTokenAmountReceived, sourceTokenAmountUsed) = OracleInterface(oracleAddress).trade(
-            sourceTokenAddress,
-            destTokenAddress,
-            sourceTokenAmount,
-            maxDestTokenAmount
-        );
-
-        if (sourceTokenAmount < sourceTokenAmountUsed) {
-            revert("oracletrade: sourceTokenAmount < sourceTokenAmountUsed");
-        }
-
-        if (destTokenAmountReceived == 0 && sourceTokenAmountUsed > 0) {
-            revert("oracletrade: invalid trade");
-        }
-    }
-
     function _removeLoanOrder(
         bytes32 loanOrderHash,
         address addr)
