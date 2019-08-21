@@ -170,7 +170,7 @@ export default class TrackedTokenItem extends BZxComponent {
     const allowance = await window.pqueueTokens.add(() => this.wrapAndRun(bZx.getAllowance({
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase(),
-      spenderAddress: "0xff856149b80762752158a0709187176955612722" // mainnet only
+      spenderAddress: "0x1c80fa23e7507a9ea1cea658388ceff456e882de" // mainnet only
     })));
     console.log(`OTC Allowance:`, allowance.toNumber());
     this.setState({
@@ -738,7 +738,7 @@ export default class TrackedTokenItem extends BZxComponent {
     const txObj = await bZx.setAllowanceUnlimited({
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase(),
-      spenderAddress: "0xff856149b80762752158a0709187176955612722", // mainnet only
+      spenderAddress: "0x1c80fa23e7507a9ea1cea658388ceff456e882de", // mainnet only
       getObject: true,
       txOpts
     });
@@ -825,7 +825,7 @@ export default class TrackedTokenItem extends BZxComponent {
     const txObj = await bZx.resetAllowance({
       tokenAddress: token.address,
       ownerAddress: accounts[0].toLowerCase(),
-      spenderAddress: "0xff856149b80762752158a0709187176955612722", // mainnet only
+      spenderAddress: "0x1c80fa23e7507a9ea1cea658388ceff456e882de", // mainnet only
       getObject: true
     });
 
