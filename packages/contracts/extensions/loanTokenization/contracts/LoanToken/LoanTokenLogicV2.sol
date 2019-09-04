@@ -513,8 +513,19 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         }
     }
 
-    // interest that borrowers are currently paying for open loans, prior to any fees
-    function borrowInterestRate()
+    // interest that lenders are currently receiving for open loans, prior to any fees
+    function supplyInterestRate()
+        public
+        view
+        returns (uint256)
+    {
+        if (totalAssetBorrow != 0) {
+            return _supplyInterestRate(totalAssetSupply());
+        }
+    }
+
+    // the average interest that borrowers are currently paying for open loans, prior to any fees
+    function avgBorrowInterestRate()
         public
         view
         returns (uint256)
@@ -526,15 +537,16 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         }
     }
 
-    // interest that lenders are currently receiving for open loans, prior to any fees
-    function supplyInterestRate()
+    // the base rate the next base protocol borrower will receive
+    function borrowInterestRate()
         public
         view
         returns (uint256)
     {
-        if (totalAssetBorrow != 0) {
-            return _supplyInterestRate(totalAssetSupply());
-        }
+        return _nextBorrowInterestRate(
+            0, // borrowAmount
+            totalAssetSupply()
+        );
     }
 
     // the rate the next base protocol borrower will receive based on the amount being borrowed
@@ -712,26 +724,6 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         }
     }
 
-    function _getInterestInitialAmount(
-        uint256 borrowAmount,
-        uint256 initialLoanDuration)
-        public
-        view
-        returns (uint256 interestAmount)
-    {
-        uint256 assetSupply = totalAssetSupply();
-        uint256 interestRate = _nextBorrowInterestRate(
-            borrowAmount,
-            assetSupply
-        );
-
-        // initial interestInitialAmount
-        return borrowAmount
-            .mul(interestRate)
-            .mul(initialLoanDuration)
-            .div(31536000 * 10**20); // 365 * 86400 * 10**20
-    }
-
 
     /* Internal functions */
 
@@ -842,6 +834,26 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
             success;
             lastSettleTime_ = block.timestamp;
         }
+    }
+
+    function _getInterestInitialAmount(
+        uint256 borrowAmount,
+        uint256 initialLoanDuration)
+        internal
+        view
+        returns (uint256 interestAmount)
+    {
+        uint256 assetSupply = totalAssetSupply();
+        uint256 interestRate = _nextBorrowInterestRate(
+            borrowAmount,
+            assetSupply
+        );
+
+        // initial interestInitialAmount
+        return borrowAmount
+            .mul(interestRate)
+            .mul(initialLoanDuration)
+            .div(31536000 * 10**20); // 365 * 86400 * 10**20
     }
 
     function _getNextOwed()
@@ -998,6 +1010,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
             borrower,
             collateralTokenAddress,
             tradeTokenAddress,
+            borrowAmount,
             sentAmounts[1], // loanTokenSent
             sentAmounts[2], // collateralTokenSent
             sentAmounts[3], // tradeTokenSent
@@ -1070,6 +1083,7 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
         address borrower,
         address collateralTokenAddress,
         address tradeTokenAddress,
+        uint256 borrowAmount,
         uint256 loanTokenSent,
         uint256 collateralTokenSent,
         uint256 tradeTokenSent,
@@ -1081,10 +1095,17 @@ contract LoanTokenLogicV2 is AdvancedToken, OracleNotifierInterface {
                 borrower,
                 withdrawalAmount
             ), "26");
+
+            if (borrowAmount > withdrawalAmount) {
+                require(ERC20(loanTokenAddress).transfer(
+                    bZxVault,
+                    borrowAmount - withdrawalAmount
+                ), "34");
+            }
         } else {
             require(ERC20(loanTokenAddress).transfer(
                 bZxVault,
-                withdrawalAmount
+                borrowAmount
             ), "27");
         }
 
