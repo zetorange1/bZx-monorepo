@@ -2,7 +2,7 @@
  * Copyright 2017-2019, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
- 
+
 pragma solidity 0.5.3;
 pragma experimental ABIEncoderV2;
 
@@ -16,58 +16,13 @@ import "../modifiers/GasRefunder.sol";
 
 import "../tokens/EIP20.sol";
 import "../tokens/EIP20Wrapper.sol";
-//import "./OracleInterface.sol";
 import "./OracleNotifier.sol";
 
 import "../shared/WETHInterface.sol";
 
-// solhint-disable-next-line contract-name-camelcase
+
 interface KyberNetworkInterface {
-    /// @notice use token address ETH_TOKEN_ADDRESS for ether
-    /// @dev makes a trade between src and dest token and send dest token to destAddress
-    /// @param src Src token
-    /// @param srcAmount amount of src tokens
-    /// @param dest   Destination token
-    /// @param destAddress Address to send tokens to
-    /// @param maxDestAmount A limit on the amount of dest tokens
-    /// @param minConversionRate The minimal conversion rate. If actual rate is lower, trade is canceled.
-    /// @param walletId is the wallet ID to send part of the fees
-    /// @param hint for filtering permissionless reserves
-    /// @return amount of actual dest tokens
-    /*function tradeWithHint(
-        address src,
-        uint256 srcAmount,
-        address dest,
-        address destAddress,
-        uint256 maxDestAmount,
-        uint256 minConversionRate,
-        address walletId,
-        bytes calldata hint
-    )
-        external
-        payable
-        returns(uint256);*/
-
-    /// @notice use token address ETH_TOKEN_ADDRESS for ether
-    /*function getExpectedRate(
-        address src,
-        address dest,
-        uint256 srcQty)
-        external
-        view
-        returns (uint256 expectedRate, uint256 slippageRate);*/
-
     function kyberNetworkContract()
-        external
-        view
-        returns (address);
-
-    function getReserves()
-        external
-        view
-        returns (address[] memory);
-
-    function feeBurnerContract()
         external
         view
         returns (address);
@@ -93,6 +48,10 @@ interface KyberNetworkInterface {
     enum ReserveType {NONE, PERMISSIONED, PERMISSIONLESS}
 }
 
+interface iMakerDAIPriceFeed {
+    function read() external view returns (bytes32);
+}
+
 contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
     using SafeMath for uint256;
 
@@ -103,6 +62,9 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
 
     // collateral collected to pay margin callers
     uint256 internal collateralReserve_;
+
+    // supported tokens for rate lookups and swaps
+    mapping (address => bool) public supportedTokens;
 
     // decimals of supported tokens
     mapping (address => uint256) public decimals;
@@ -152,14 +114,12 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
     // wallet address to send part of the fees to
     address public feeWallet = address(this);
 
-/* solhint-disable var-name-mixedcase */
     address public vaultContract;
     address public kyberContract;
     address public kyberNetworkContract;
     address public wethContract;
     address public bZRxTokenContract;
     address public oracleNotifier;
-/* solhint-enable var-name-mixedcase */
 
     mapping (uint256 => uint256) public collateralInWethAmounts; // mapping of position ids to initial collateralInWethAmounts
 
@@ -168,7 +128,8 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         address _kyberContract,
         address _wethContract,
         address _bZRxTokenContract,
-        address _oracleNotifier)
+        address _oracleNotifier,
+        address _feeWallet)
         public
         payable
     {
@@ -177,6 +138,8 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         wethContract = _wethContract;
         bZRxTokenContract = _bZRxTokenContract;
         oracleNotifier = _oracleNotifier;
+
+        setFeeWallet(_feeWallet);
 
         if (_kyberContract != address(0)) {
             kyberNetworkContract = KyberNetworkInterface(_kyberContract).kyberNetworkContract();
@@ -224,85 +187,6 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         return true;
     }
 
-    /*function didTakeOrder(
-        BZxObjects.LoanOrder memory, // loanOrder
-        BZxObjects.LoanOrderAux memory, // loanOrderAux
-        BZxObjects.LoanPosition memory, // loanPosition
-        address, // taker
-        uint256) // gasUsed
-        public
-        onlyBZx
-        updatesEMA(tx.gasprice)
-        returns (bool)
-    {*/
-        /*if (enforceMinimum) {
-            uint256 collateralInWethAmount;
-            if (loanPosition.collateralTokenAddressFilled != wethContract) {
-                (uint256 collateralToWethRate,) = _getExpectedRate(
-                    loanPosition.collateralTokenAddressFilled,
-                    wethContract,
-                    loanPosition.collateralTokenAmountFilled
-                );
-                collateralInWethAmount = loanPosition.collateralTokenAmountFilled.mul(collateralToWethRate).div(_getDecimalPrecision(loanPosition.collateralTokenAddressFilled, wethContract));
-            } else {
-                collateralInWethAmount = loanPosition.collateralTokenAmountFilled;
-            }
-
-            require(collateralInWethAmount >= minCollateralInWethAmount, "collateral below minimum for BZxOracle");
-            collateralInWethAmounts[loanPosition.positionId] = collateralInWethAmount;
-        }*/
-
-        /*
-        address notifier = OracleNotifier(oracleNotifier).takeOrderNotifier(loanOrder.loanOrderHash);
-        if (notifier != address(0)) {
-            OracleNotifierInterface(notifier).takeOrderNotifier(
-                loanOrder,
-                loanOrderAux,
-                loanPosition,
-                taker
-            );
-        }
-        */
-    /*
-        return true;
-    }*/
-
-    /*function didTradePosition(
-        BZxObjects.LoanOrder memory, // loanOrder
-        BZxObjects.LoanPosition memory, // loanPosition
-        uint256) // gasUsed
-        public
-        onlyBZx
-        updatesEMA(tx.gasprice)
-        returns (bool)
-    {*/
-        /*
-        // this is handled by the base protocol
-        require (
-            getCurrentMarginAmount(
-                loanOrder.loanTokenAddress,
-                loanPosition.positionTokenAddressFilled,
-                loanPosition.collateralTokenAddressFilled,
-                loanPosition.loanTokenAmountFilled,
-                loanPosition.positionTokenAmountFilled,
-                loanPosition.collateralTokenAmountFilled) > loanOrder.maintenanceMarginAmount,
-            "BZxOracle::didTradePosition: trade triggers liquidation"
-        );
-        */
-
-        /*
-        address notifier = OracleNotifier(oracleNotifier).tradePositionNotifier(loanOrder.loanOrderHash);
-        if (notifier != address(0)) {
-            OracleNotifierInterface(notifier).tradePositionNotifier(
-                loanOrder,
-                loanPosition
-            );
-        }
-        */
-    /*
-        return true;
-    }*/
-
     // will not update the EMA
     function didPayInterest(
         BZxObjects.LoanOrder memory loanOrder,
@@ -325,30 +209,6 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             amountPaid)) {
             revert("BZxOracle::didPayInterest: _transferToken failed");
         }
-
-        /*if (loanOrder.interestTokenAddress != wethContract && loanOrder.interestTokenAddress != bZRxTokenContract) {
-            // interest paid in WETH or BZRX is retained as is, other tokens are sold for WETH
-            _trade(
-                loanOrder.interestTokenAddress,
-                wethContract,
-                address(this), // BZxOracle receives the WETH proceeds
-                address(this),
-                interestFee,
-                MAX_FOR_KYBER, // no limit on the dest amount
-                0 // minConversionRate
-            );
-        }*/
-
-        /*
-        address notifier = OracleNotifier(oracleNotifier).payInterestNotifier(loanOrder.loanOrderHash);
-        if (notifier != address(0)) {
-            OracleNotifierInterface(notifier).payInterestNotifier(
-                loanOrder,
-                lender,
-                amountPaid
-            );
-        }
-        */
 
         return true;
     }
@@ -376,85 +236,8 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             revert("BZxOracle::didPayInterestByLender: _transferToken failed");
         }
 
-        /*if (interestTokenAddress != wethContract && interestTokenAddress != bZRxTokenContract) {
-            // interest paid in WETH or BZRX is retained as is, other tokens are sold for WETH
-            _trade(
-                interestTokenAddress,
-                wethContract,
-                address(this), // BZxOracle receives the WETH proceeds
-                address(this),
-                interestFee,
-                MAX_FOR_KYBER, // no limit on the dest amount
-                0 // minConversionRate
-            );
-        }*/
-
         return true;
     }
-
-    /*function didDepositCollateral(
-        BZxObjects.LoanOrder memory, // loanOrder
-        BZxObjects.LoanPosition memory, // loanPosition
-        uint256, // depositAmount
-        uint256) // gasUsed
-        public
-        onlyBZx
-        updatesEMA(tx.gasprice)
-        returns (bool)
-    {
-        return true;
-    }
-
-    function didWithdrawCollateral(
-        BZxObjects.LoanOrder memory, // loanOrder
-        BZxObjects.LoanPosition memory, // loanPosition
-        uint256, // withdrawAmount
-        uint256) // gasUsed
-        public
-        onlyBZx
-        updatesEMA(tx.gasprice)
-        returns (bool)
-    {
-        return true;
-    }*/
-
-    /*function didChangeCollateral(
-        BZxObjects.LoanOrder memory, // loanOrder
-        BZxObjects.LoanPosition memory, // loanPosition
-        uint256) // gasUsed
-        public
-        onlyBZx
-        updatesEMA(tx.gasprice)
-        returns (bool)
-    {
-        return true;
-    }*/
-
-    /*function didWithdrawPosition(
-        BZxObjects.LoanOrder memory, // loanOrder
-        BZxObjects.LoanPosition memory, // loanPosition
-        uint256, // withdrawAmount
-        uint256) // gasUsed
-        public
-        onlyBZx
-        updatesEMA(tx.gasprice)
-        returns (bool)
-    {
-        return true;
-    }*/
-
-    /*function didDepositPosition(
-        BZxObjects.LoanOrder memory, // loanOrder
-        BZxObjects.LoanPosition memory, // loanPosition
-        uint256, // depositAmount
-        uint256) // gasUsed
-        public
-        onlyBZx
-        updatesEMA(tx.gasprice)
-        returns (bool)
-    {
-        return true;
-    }*/
 
     function didCloseLoan(
         BZxObjects.LoanOrder memory loanOrder,
@@ -524,7 +307,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
 
                     if (traderRefund != 0 && traderRefund <= address(this).balance) {
                         // allow silent fail
-                        bool result = address(uint256(loanPosition.trader)).send(traderRefund); // solhint-disable-line check-send-result
+                        bool result = address(uint256(loanPosition.trader)).send(traderRefund);
                         result;
                     }
                 }
@@ -535,47 +318,6 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
 
         return true;
     }
-
-    /*function didChangeTraderOwnership(
-        BZxObjects.LoanOrder memory, // loanOrder
-        BZxObjects.LoanPosition memory, // loanPosition
-        address, // oldTrader
-        uint256) // gasUsed
-        public
-        onlyBZx
-        updatesEMA(tx.gasprice)
-        returns (bool)
-    {
-        return true;
-    }*/
-
-    /*function didChangeLenderOwnership(
-        BZxObjects.LoanOrder memory, // loanOrder
-        address, // oldLender
-        address, // newLender
-        uint256) // gasUsed
-        public
-        onlyBZx
-        updatesEMA(tx.gasprice)
-        returns (bool)
-    {
-        return true;
-    }*/
-
-    /*function didUpdateLoanAsLender(
-        BZxObjects.LoanOrder memory, loanOrder
-        address, // lender
-        uint256, // loanTokenAmountAdded
-        uint256, // totalNewFillableAmount
-        uint256, // newExpirationTimestamp
-        uint256) // gasUsed
-        public
-        onlyBZx
-        updatesEMA(tx.gasprice)
-        returns (bool)
-    {
-        return true;
-    }*/
 
     function trade(
         address sourceTokenAddress,
@@ -639,21 +381,6 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         onlyBZx
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
-        /*if (ensureValid && !shouldLiquidate(
-            loanOrder,
-            loanPosition)) {
-
-            // send unused source token back
-            if (!_transferToken(
-                loanPosition.positionTokenAddressFilled,
-                vaultContract,
-                loanPosition.positionTokenAmountFilled)) {
-                revert("BZxOracle::liquidatePosition: _transferToken failed");
-            }
-
-            return (0,0);
-        }*/
-
         if (minPermissionedReserveCount != 0) {
             _checkReserveCount(
                 loanOrder,
@@ -787,7 +514,9 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         (uint256 rate, uint256 slippage) = _getExpectedRate(
             sourceTokenAddress,
             destTokenAddress,
-            sourceTokenAmount);
+            sourceTokenAmount,
+            false // saneRate
+        );
 
         if (rate != 0 && slippage != 0)
             return true;
@@ -807,7 +536,8 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             (sourceToDestRate,) = _getExpectedRate(
                 sourceTokenAddress,
                 destTokenAddress,
-                sourceTokenAmount
+                sourceTokenAmount,
+                false // saneRate
             );
 
             sourceToDestPrecision = _getDecimalPrecision(sourceTokenAddress, destTokenAddress);
@@ -816,17 +546,11 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
                                 .mul(sourceToDestRate)
                                 .div(sourceToDestPrecision);
         } else {
-            uint256 sourceTokenDecimals = decimals[sourceTokenAddress];
-            if (sourceTokenDecimals == 0)
-                sourceTokenDecimals = EIP20(sourceTokenAddress).decimals();
-
             (sourceToDestRate,) = _getExpectedRate(
                 sourceTokenAddress,
                 destTokenAddress,
-                10**(sourceTokenDecimals >= 2 ?
-                    sourceTokenDecimals-2 :
-                    sourceTokenDecimals
-                )
+                uint256(-1),
+                true // saneRate
             );
 
             sourceToDestPrecision = _getDecimalPrecision(sourceTokenAddress, destTokenAddress);
@@ -849,7 +573,9 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             (collateralToLoanRatePrecise,) = _getExpectedRate(
                 loanPosition.collateralTokenAddressFilled,
                 loanOrder.loanTokenAddress,
-                loanPosition.collateralTokenAmountFilled);
+                loanPosition.collateralTokenAmountFilled,
+                false // saneRate
+            );
 
             if (collateralToLoanRatePrecise != 0) {
                 collateralToLoanRatePrecise = collateralToLoanRatePrecise.mul(10**18).div(_getDecimalPrecision(loanPosition.collateralTokenAddressFilled, loanOrder.loanTokenAddress));
@@ -866,7 +592,9 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             (positionToLoanRatePrecise,) = _getExpectedRate(
                 loanPosition.positionTokenAddressFilled,
                 loanOrder.loanTokenAddress,
-                loanPosition.positionTokenAmountFilled);
+                loanPosition.positionTokenAmountFilled,
+                false // saneRate
+            );
 
             if (positionToLoanRatePrecise != 0) {
                 positionToLoanRatePrecise = positionToLoanRatePrecise.mul(10**18).div(_getDecimalPrecision(loanPosition.positionTokenAddressFilled, loanOrder.loanTokenAddress));
@@ -948,36 +676,12 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         }
     }
 
-    function setDecimals(
-        EIP20 token)
-        public
-    {
-        decimals[address(token)] = token.decimals();
-    }
-
     function setDecimalsBatch(
         EIP20[] memory tokens)
         public
     {
         for (uint256 i=0; i < tokens.length; i++) {
             decimals[address(tokens[i])] = tokens[i].decimals();
-        }
-    }
-
-    function claimFees()
-        public
-    {
-        address[] memory reserves = KyberNetworkInterface(kyberNetworkContract).getReserves();
-        address feeBurnerAddress = KyberNetworkInterface(kyberNetworkContract).feeBurnerContract();
-        for(uint256 i=0; i < reserves.length; i++) {
-            (bool result,) = feeBurnerAddress.call(
-                abi.encodeWithSignature(
-                    "sendFeeToWallet(address,address)",
-                    address(this),
-                    reserves[i]
-                )
-            );
-            require(result, "sendFeeToWallet failed");
         }
     }
 
@@ -1018,13 +722,17 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
     * Owner functions
     */
 
-    function setMaxSourceAmountAllowed(
-        address token,
-        uint256 amount)
+    function setSupportedTokensBatch(
+        address[] memory tokens,
+        bool[] memory toggles)
         public
         onlyOwner
     {
-        maxSourceAmountAllowed[token] = amount;
+        require(tokens.length == toggles.length, "count mismatch");
+
+        for (uint256 i=0; i < tokens.length; i++) {
+            supportedTokens[tokens[i]] = toggles[i];
+        }
     }
 
     function setMaxSourceAmountAllowedBatch(
@@ -1366,16 +1074,11 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
     {
         uint256 precision = _getDecimalPrecision(loanPosition.positionTokenAddressFilled, loanOrder.loanTokenAddress);
 
-        uint256 sourceTokenDecimals = decimals[loanPosition.positionTokenAddressFilled];
-        if (sourceTokenDecimals == 0)
-            sourceTokenDecimals = EIP20(loanPosition.positionTokenAddressFilled).decimals();
         (uint256 goodRate,) = _getExpectedRate(
             loanPosition.positionTokenAddressFilled,
             loanOrder.loanTokenAddress,
-            10**(sourceTokenDecimals >= 2 ?
-                sourceTokenDecimals-2 :
-                sourceTokenDecimals
-            )
+            uint256(-1),
+            true // saneRate
         );
 
         require(goodRate != 0, "can't find good rate");
@@ -1421,38 +1124,70 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         }
     }
 
-    // ref: https://github.com/KyberNetwork/smart-contracts/blob/master/integration.md#rate-query
     function _getExpectedRate(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint256 sourceTokenAmount)
+        uint256 sourceTokenAmount,
+        bool saneRate)
         internal
         view
         returns (uint256 expectedRate, uint256 slippageRate)
     {
+        if (sourceTokenAddress == address(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee)) {
+            sourceTokenAddress = wethContract;
+        }
+        if (destTokenAddress == address(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee)) {
+            destTokenAddress = wethContract;
+        }
+
         if (sourceTokenAddress == destTokenAddress) {
             expectedRate = 10**18;
             slippageRate = 10**18;
         } else {
             if (sourceTokenAmount != 0) {
-                (bool result, bytes memory data) = kyberContract.staticcall(
-                    abi.encodeWithSignature(
-                        "getExpectedRate(address,address,uint256)",
-                        sourceTokenAddress,
-                        destTokenAddress,
-                        requirePermissionedReserveForQuery ? sourceTokenAmount.add(2**255) : sourceTokenAmount
-                    )
-                );
+                require(supportedTokens[sourceTokenAddress] && supportedTokens[destTokenAddress], "invalid tokens");
 
-                assembly {
-                    switch result
-                    case 0 {
-                        expectedRate := 0
-                        slippageRate := 0
+                address daiAddress = 0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359;
+                iMakerDAIPriceFeed medianizer = iMakerDAIPriceFeed(0x729D19f657BD0614b4985Cf1D82531c67569197B);
+                if (saneRate && sourceTokenAddress == wethContract && destTokenAddress == daiAddress) {
+                    // WETH -> DAI
+                    expectedRate = uint256(medianizer.read());
+                    slippageRate = expectedRate;
+                } else if (saneRate && sourceTokenAddress == daiAddress && destTokenAddress == wethContract) {
+                    // DAI -> WETH
+                    expectedRate = SafeMath.div(10**36, uint256(medianizer.read()));
+                    slippageRate = expectedRate;
+                } else {
+                    if (saneRate) {
+                        uint256 sourceTokenDecimals = decimals[sourceTokenAddress];
+                        if (sourceTokenDecimals == 0)
+                            sourceTokenDecimals = EIP20(sourceTokenAddress).decimals();
+
+                        sourceTokenAmount = 10**(sourceTokenDecimals >= 2 ?
+                            sourceTokenDecimals-2 :
+                            sourceTokenDecimals
+                        );
                     }
-                    default {
-                        expectedRate := mload(add(data, 32))
-                        slippageRate := mload(add(data, 64))
+
+                    (bool result, bytes memory data) = kyberContract.staticcall(
+                        abi.encodeWithSignature(
+                            "getExpectedRate(address,address,uint256)",
+                            sourceTokenAddress,
+                            destTokenAddress,
+                            requirePermissionedReserveForQuery ? sourceTokenAmount.add(2**255) : sourceTokenAmount
+                        )
+                    );
+
+                    assembly {
+                        switch result
+                        case 0 {
+                            expectedRate := 0
+                            slippageRate := 0
+                        }
+                        default {
+                            expectedRate := mload(add(data, 32))
+                            slippageRate := mload(add(data, 64))
+                        }
                     }
                 }
             } else {
@@ -1481,7 +1216,8 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
                 destTokenAddress,
                 sourceTokenAmount < maxSrcAllowed || maxSrcAllowed == 0 ?
                     sourceTokenAmount :
-                    maxSrcAllowed
+                    maxSrcAllowed,
+                false // saneRate
             );
             if (slippageRate == 0) {
                 return "";
@@ -1568,6 +1304,8 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
                     }
             }
         } else {
+            require(supportedTokens[sourceTokenAddress] && supportedTokens[destTokenAddress], "invalid tokens");
+
             bytes memory txnData = _getTradeTxnData(
                 sourceTokenAddress,
                 destTokenAddress,
@@ -1642,7 +1380,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             amount = address(this).balance;
         }
 
-        return (to.send(amount)); // solhint-disable-line check-send-result, multiple-sends
+        return (to.send(amount));
     }
 
     function _transferToken(
