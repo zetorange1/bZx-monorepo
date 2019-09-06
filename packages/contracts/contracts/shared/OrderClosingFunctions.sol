@@ -64,15 +64,25 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
                     loanOrder,
                     loanPosition,
                     loanOrder.loanTokenAddress, // tradeTokenAddress
-                    MAX_UINT, // close the entire position
+                    loanPosition.positionTokenAddressFilled == loanPosition.collateralTokenAddressFilled ?
+                        loanPosition.loanTokenAmountFilled :
+                        MAX_UINT, // close the entire position
                     false // ensureHealthy
                 );
 
                 if (positionTokenAmountUsed < loanPosition.positionTokenAmountFilled) {
                     // left over sourceToken needs to be dispursed
+                    address receiver;
+                    if (loanPosition.positionTokenAddressFilled == loanPosition.collateralTokenAddressFilled) {
+                        receiver = loanPosition.trader;
+                    } else {
+                        receiver = loanTokenAmount >= loanPosition.loanTokenAmountFilled ?
+                            loanPosition.trader :
+                            orderLender[loanOrderHash];
+                    }
                     if (!BZxVault(vaultContract).withdrawToken(
                         loanPosition.positionTokenAddressFilled,
-                        loanTokenAmount >= loanPosition.loanTokenAmountFilled ? loanPosition.trader : orderLender[loanOrderHash],
+                        receiver,
                         loanPosition.positionTokenAmountFilled.sub(positionTokenAmountUsed)
                     )) {
                         revert("BZxLoanHealth::liquidatePosition: BZxVault.withdrawToken excess failed");

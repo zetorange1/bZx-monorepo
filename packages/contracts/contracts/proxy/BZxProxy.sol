@@ -9,7 +9,7 @@ import "./BZxProxiable.sol";
 
 
 contract BZxProxy is BZxStorage, BZxProxiable {
-    
+
     constructor(
         address _settings)
         public
@@ -17,7 +17,7 @@ contract BZxProxy is BZxStorage, BZxProxiable {
         (bool result,) = _settings.delegatecall.gas(gasleft())(abi.encodeWithSignature("initialize(address)", _settings));
         require(result, "BZxProxy::constructor: failed");
     }
-    
+
     function()
         external
         payable
