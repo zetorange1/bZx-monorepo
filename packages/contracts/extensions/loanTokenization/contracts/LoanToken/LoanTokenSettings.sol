@@ -2,7 +2,7 @@
  * Copyright 2017-2019, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
- 
+
 pragma solidity 0.5.8;
 pragma experimental ABIEncoderV2;
 
@@ -23,9 +23,26 @@ interface IBZxSettings {
         string calldata desc)
         external
         returns (bool);
+
+    function oracleAddresses(
+        address oracleAddress)
+        external
+        view
+        returns (address);
 }
 
 interface IBZxOracleSettings {
+    function tradeUserAsset(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        address receiverAddress,
+        address returnToSenderAddress,
+        uint256 sourceTokenAmount,
+        uint256 maxDestTokenAmount,
+        uint256 minConversionRate)
+        external
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
+
     function interestFeePercent()
         external
         view
@@ -143,13 +160,24 @@ contract LoanTokenSettings is AdvancedToken {
     // rateMultiplier + baseRate can't exceed 100%
     function setDemandCurve(
         uint256 _baseRate,
-        uint256 _rateMultiplier)
+        uint256 _rateMultiplier,
+        uint256 _lowUtilBaseRate,
+        uint256 _lowUtilRateMultiplier)
         public
         onlyAdmin
     {
-        require(rateMultiplier.add(baseRate) <= 10**20);
+        require(_rateMultiplier.add(_baseRate) <= 10**20);
+        require(_lowUtilRateMultiplier.add(_lowUtilBaseRate) <= 10**20);
+
         baseRate = _baseRate;
         rateMultiplier = _rateMultiplier;
+
+        bytes32 slotLowUtilBaseRate = keccak256("iToken_LowUtilBaseRate");
+        bytes32 slotLowUtilRateMultiplier = keccak256("iToken_LowUtilRateMultiplier");
+        assembly {
+            sstore(slotLowUtilBaseRate, _lowUtilBaseRate)
+            sstore(slotLowUtilRateMultiplier, _lowUtilRateMultiplier)
+        }
     }
 
     function setInterestFeePercent(
@@ -183,6 +211,76 @@ contract LoanTokenSettings is AdvancedToken {
         onlyAdmin
     {
         wethContract = _addr;
+    }
+
+    function recoverEther(
+        address payable receiver,
+        uint256 amount)
+        public
+        onlyAdmin
+    {
+        uint256 balance = address(this).balance;
+        if (balance < amount)
+            amount = balance;
+
+        receiver.transfer(amount);
+    }
+
+    function recoverToken(
+        address tokenAddress,
+        address receiver,
+        uint256 amount)
+        public
+        onlyAdmin
+    {
+        require(tokenAddress != loanTokenAddress, "invalid token");
+
+        ERC20 token = ERC20(tokenAddress);
+
+        uint256 balance = token.balanceOf(address(this));
+        if (balance < amount)
+            amount = balance;
+
+        require(token.transfer(
+            receiver,
+            amount),
+            "transfer failed"
+        );
+    }
+
+    function swapIntoLoanToken(
+        address sourceTokenAddress,
+        uint256 amount)
+        public
+        onlyAdmin
+    {
+        require(sourceTokenAddress != loanTokenAddress, "invalid token");
+
+        address oracleAddress = IBZxSettings(bZxContract).oracleAddresses(bZxOracle);
+
+        uint256 balance = ERC20(sourceTokenAddress).balanceOf(address(this));
+        if (balance < amount)
+            amount = balance;
+
+        uint256 tempAllowance = ERC20(sourceTokenAddress).allowance(address(this), oracleAddress);
+        if (tempAllowance < amount) {
+            if (tempAllowance != 0) {
+                // reset approval to 0
+                require(ERC20(sourceTokenAddress).approve(oracleAddress, 0), "token approval reset failed");
+            }
+
+            require(ERC20(sourceTokenAddress).approve(oracleAddress, MAX_UINT), "token approval failed");
+        }
+
+        IBZxOracleSettings(oracleAddress).tradeUserAsset(
+            sourceTokenAddress,
+            loanTokenAddress,
+            address(this),  // receiverAddress
+            address(this),  // returnToSenderAddress
+            amount,         // sourceTokenAmount
+            MAX_UINT,       // maxDestTokenAmount
+            0               // minConversionRate
+        );
     }
 
     function initialize(

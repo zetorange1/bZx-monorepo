@@ -51,7 +51,10 @@ contract LoanTokenStorage is LoanTokenization {
     address public tokenizedRegistry;
 
     uint256 public baseRate = 1000000000000000000; // 1.0%
-    uint256 public rateMultiplier = 22000000000000000000; // 22%
+    uint256 public rateMultiplier = 18750000000000000000; // 18.75%
+
+    // slot addition (non-sequential): lowUtilBaseRate = 8000000000000000000; // 8.0%
+    // slot addition (non-sequential): lowUtilRateMultiplier = 4750000000000000000; // 4.75%
 
     // "fee percentage retained by the oracle" = SafeMath.sub(10**20, spreadMultiplier);
     uint256 public spreadMultiplier;
