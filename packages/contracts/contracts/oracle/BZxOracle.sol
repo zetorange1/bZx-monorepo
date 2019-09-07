@@ -58,13 +58,16 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
     uint256 internal constant MAX_UINT = 2**256 - 1;
 
     // this is the value the Kyber portal uses when setting a very high maximum number
-    uint256 constant internal MAX_FOR_KYBER = 10**28;
+    uint256 internal constant MAX_FOR_KYBER = 10**28;
 
     // collateral collected to pay margin callers
     uint256 internal collateralReserve_;
 
     // supported tokens for rate lookups and swaps
     mapping (address => bool) public supportedTokens;
+
+    // list of tokens to be treated as pegged to USD
+    mapping (address => bool) public USDStableCoins;
 
     // decimals of supported tokens
     mapping (address => uint256) public decimals;
@@ -732,6 +735,19 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
 
         for (uint256 i=0; i < tokens.length; i++) {
             supportedTokens[tokens[i]] = toggles[i];
+        }
+    }
+
+    function setUSDStableCoinsBatch(
+        address[] memory tokens,
+        bool[] memory toggles)
+        public
+        onlyOwner
+    {
+        require(tokens.length == toggles.length, "count mismatch");
+
+        for (uint256 i=0; i < tokens.length; i++) {
+            USDStableCoins[tokens[i]] = toggles[i];
         }
     }
 

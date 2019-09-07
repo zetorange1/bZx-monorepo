@@ -7,7 +7,6 @@ var OrderTaking_takeLoanOrderAsTrader = artifacts.require("OrderTaking_takeLoanO
 var OrderTaking_takeLoanOrderOnChainAsLender = artifacts.require("OrderTaking_takeLoanOrderOnChainAsLender");
 var OrderTaking_takeLoanOrderOnChainAsTrader = artifacts.require("OrderTaking_takeLoanOrderOnChainAsTrader");
 var OrderTaking_takeLoanOrderOnChainAsTraderByDelegate = artifacts.require("OrderTaking_takeLoanOrderOnChainAsTraderByDelegate");
-var OrderTaking_takeOrderFromiToken = artifacts.require("OrderTaking_takeOrderFromiToken");
 
 const path = require("path");
 
@@ -32,9 +31,6 @@ module.exports = (deployer, network, accounts) => {
 
     await deployer.deploy(OrderTaking_takeLoanOrderOnChainAsTraderByDelegate);
     await bZxProxy.replaceContract(OrderTaking_takeLoanOrderOnChainAsTraderByDelegate.address);
-
-    await deployer.deploy(OrderTaking_takeOrderFromiToken);
-    await bZxProxy.replaceContract(OrderTaking_takeOrderFromiToken.address);
 
     console.log(`   > [${parseInt(path.basename(__filename))}] BZxOrderTakingOnChain deploy: #done`);
   });
