@@ -1163,52 +1163,97 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             if (sourceTokenAmount != 0) {
                 require(supportedTokens[sourceTokenAddress] && supportedTokens[destTokenAddress], "invalid tokens");
 
-                address daiAddress = 0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359;
-                iMakerDAIPriceFeed medianizer = iMakerDAIPriceFeed(0x729D19f657BD0614b4985Cf1D82531c67569197B);
-                if (saneRate && sourceTokenAddress == wethContract && destTokenAddress == daiAddress) {
-                    // WETH -> DAI
-                    expectedRate = uint256(medianizer.read());
-                    slippageRate = expectedRate;
-                } else if (saneRate && sourceTokenAddress == daiAddress && destTokenAddress == wethContract) {
-                    // DAI -> WETH
-                    expectedRate = SafeMath.div(10**36, uint256(medianizer.read()));
-                    slippageRate = expectedRate;
-                } else {
-                    if (saneRate) {
-                        uint256 sourceTokenDecimals = decimals[sourceTokenAddress];
-                        if (sourceTokenDecimals == 0)
-                            sourceTokenDecimals = EIP20(sourceTokenAddress).decimals();
+                if (saneRate) {
+                    iMakerDAIPriceFeed medianizer = iMakerDAIPriceFeed(0x729D19f657BD0614b4985Cf1D82531c67569197B);
+                    uint256 intermediateExpectedRate;
+                    uint256 intermediateSlippageRate;
 
-                        sourceTokenAmount = 10**(sourceTokenDecimals >= 2 ?
-                            sourceTokenDecimals-2 :
-                            sourceTokenDecimals
+                    if (USDStableCoins[sourceTokenAddress]) {
+                        // USD -> WETH
+                        intermediateExpectedRate = SafeMath.div(10**36, uint256(medianizer.read()));
+                        intermediateSlippageRate = intermediateExpectedRate;
+                    } else if (sourceTokenAddress != wethContract) {
+                        (intermediateExpectedRate, intermediateSlippageRate) = _getExpectedRateCall(
+                            sourceTokenAddress,
+                            wethContract,
+                            0,   // sourceTokenAmount
+                            true // saneRate
                         );
                     }
 
-                    (bool result, bytes memory data) = kyberContract.staticcall(
-                        abi.encodeWithSignature(
-                            "getExpectedRate(address,address,uint256)",
-                            sourceTokenAddress,
+                    if (USDStableCoins[destTokenAddress]) {
+                        // WETH -> USD
+                        expectedRate = uint256(medianizer.read());
+                        slippageRate = expectedRate;
+                    } else if (destTokenAddress != wethContract) {
+                        (expectedRate, slippageRate) = _getExpectedRateCall(
+                            wethContract,
                             destTokenAddress,
-                            requirePermissionedReserveForQuery ? sourceTokenAmount.add(2**255) : sourceTokenAmount
-                        )
-                    );
-
-                    assembly {
-                        switch result
-                        case 0 {
-                            expectedRate := 0
-                            slippageRate := 0
-                        }
-                        default {
-                            expectedRate := mload(add(data, 32))
-                            slippageRate := mload(add(data, 64))
-                        }
+                            0,   // sourceTokenAmount
+                            true // saneRate
+                        );
                     }
+
+                    if (intermediateExpectedRate != 0 && expectedRate != 0) {
+                        expectedRate = intermediateExpectedRate.mul(expectedRate).div(10**18);
+                        slippageRate = intermediateSlippageRate.mul(slippageRate).div(10**18);
+                    } else if (intermediateExpectedRate != 0) {
+                        expectedRate = intermediateExpectedRate;
+                        slippageRate = intermediateSlippageRate;
+                    }
+                } else {
+                    (expectedRate, slippageRate) = _getExpectedRateCall(
+                        sourceTokenAddress,
+                        destTokenAddress,
+                        sourceTokenAmount,
+                        false // saneRate
+                    );
                 }
             } else {
                 expectedRate = 0;
                 slippageRate = 0;
+            }
+        }
+    }
+
+    function _getExpectedRateCall(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint256 sourceTokenAmount,
+        bool saneRate)
+        internal
+        view
+        returns (uint256 expectedRate, uint256 slippageRate)
+    {
+        if (saneRate) {
+            uint256 sourceTokenDecimals = decimals[sourceTokenAddress];
+            if (sourceTokenDecimals == 0)
+                sourceTokenDecimals = EIP20(sourceTokenAddress).decimals();
+
+            sourceTokenAmount = 10**(sourceTokenDecimals >= 2 ?
+                sourceTokenDecimals-2 :
+                sourceTokenDecimals
+            );
+        }
+
+        (bool result, bytes memory data) = kyberContract.staticcall(
+            abi.encodeWithSignature(
+                "getExpectedRate(address,address,uint256)",
+                sourceTokenAddress,
+                destTokenAddress,
+                requirePermissionedReserveForQuery ? sourceTokenAmount.add(2**255) : sourceTokenAmount
+            )
+        );
+
+        assembly {
+            switch result
+            case 0 {
+                expectedRate := 0
+                slippageRate := 0
+            }
+            default {
+                expectedRate := mload(add(data, 32))
+                slippageRate := mload(add(data, 64))
             }
         }
     }
