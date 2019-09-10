@@ -114,7 +114,7 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
         LoanOrder memory loanOrder,
         LoanPosition storage loanPosition,
         uint256 closeAmount, // amount of loanToken being closed
-        uint256 closeAmountUsable, // amount of loanToken available to close (closeAmountUsable <= closeAmount)
+        uint256 closeAmountUsable, // amount of loanToken available to close
         bool isLiquidation,
         uint256 gasUsed)
         internal
@@ -148,10 +148,12 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
             }
         }
 
+        require(closeAmountUsable >= closeAmount, "insufficient liquidity");
+
         address lender = orderLender[loanOrder.loanOrderHash];
 
         if (loanPosition.collateralTokenAmountFilled != 0) {
-            if (closeAmount > closeAmountUsable) {
+            /*if (closeAmount > closeAmountUsable) {
                 // in case we couldn't cover the full loanTokenAmount yet,
                 // reemburse the lender in collateralToken as last resort
                 uint256 reimburseAmount = closeAmount - closeAmountUsable;
@@ -174,7 +176,7 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
                         loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(reimburseAmount);
                     }
                 }
-            }
+            }*/
 
             if (loanPosition.collateralTokenAmountFilled != 0) {
                 if (closeAmount == loanPosition.loanTokenAmountFilled) {

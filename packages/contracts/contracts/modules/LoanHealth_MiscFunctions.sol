@@ -108,11 +108,26 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, OrderClosingFunct
             closeAmount = Math.min256(closeAmount, maxCloseAmount);
         }
 
+        uint256 loanAmountBought;
+        if (loanOrder.interestAmount != 0) {
+            (loanAmountBought,) = _settleInterest(
+                loanOrder,
+                loanPosition,
+                closeAmount,
+                true, // sendToOracle
+                true  // refundToCollateral
+            );
+        }
+
         uint256 closeAmountUsable;
 
         if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
             if (loanPosition.positionTokenAmountFilled == 0) {
                 loanPosition.positionTokenAddressFilled = loanOrder.loanTokenAddress;
+
+                if (loanAmountBought != 0) {
+                    closeAmountUsable = loanAmountBought;
+                }
             } else {
                 // If the position token is not the loan token, then we need to buy back the loan token prior to closing the loan.
 
@@ -128,11 +143,19 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, OrderClosingFunct
                 (closeAmountUsable, positionTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).liquidatePosition(
                     loanOrder,
                     loanPosition,
-                    closeAmount < loanPosition.loanTokenAmountFilled ? closeAmount : MAX_UINT // maxDestTokenAmount
+                    closeAmount < loanPosition.loanTokenAmountFilled ?
+                        closeAmount
+                            .sub(loanAmountBought) :
+                        MAX_UINT // maxDestTokenAmount
                 );
 
                 if (positionTokenAmountUsed == 0) {
                     revert("BZxLoanHealth::liquidatePosition: liquidation not allowed");
+                }
+
+                if (loanAmountBought != 0) {
+                    closeAmountUsable = closeAmountUsable
+                        .add(loanAmountBought);
                 }
 
                 if (closeAmount == loanPosition.loanTokenAmountFilled) {
@@ -155,12 +178,17 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, OrderClosingFunct
                 }
             }
         } else {
-            if (loanPosition.positionTokenAmountFilled != closeAmount) {
+            if (loanPosition.positionTokenAmountFilled > closeAmount) {
                 closeAmountUsable = closeAmount;
                 loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(closeAmount);
             } else {
                 closeAmountUsable = loanPosition.positionTokenAmountFilled;
                 loanPosition.positionTokenAmountFilled = 0;
+            }
+
+            if (loanAmountBought != 0) {
+                closeAmountUsable = closeAmountUsable
+                    .add(loanAmountBought);
             }
         }
 

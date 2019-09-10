@@ -288,6 +288,14 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
             loanOrder.loanTokenAmount
         );
         oracleInterest.interestOwedPerDay = oracleInterest.interestOwedPerDay.add(owedPerDay);
+
+        if (traderInterest.interestUpdatedDate != 0 && traderInterest.interestOwedPerDay != 0) {
+            traderInterest.interestPaid = block.timestamp
+                .sub(traderInterest.interestUpdatedDate)
+                .mul(traderInterest.interestOwedPerDay)
+                .div(86400)
+                .add(traderInterest.interestPaid);
+        }
         traderInterest.interestOwedPerDay = traderInterest.interestOwedPerDay.add(owedPerDay);
 
         uint256 maxDuration = loanOrder.maxDurationUnixTimestampSec;
@@ -324,14 +332,6 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
                 .sub(block.timestamp)
                 .mul(owedPerDay)
                 .div(86400);
-        }
-
-        if (traderInterest.interestUpdatedDate != 0 && traderInterest.interestOwedPerDay != 0) {
-            traderInterest.interestPaid = block.timestamp
-                .sub(traderInterest.interestUpdatedDate)
-                .mul(traderInterest.interestOwedPerDay)
-                .div(86400)
-                .add(traderInterest.interestPaid);
         }
 
         traderInterest.interestDepositTotal = traderInterest.interestDepositTotal.add(interestAmountRequired);
