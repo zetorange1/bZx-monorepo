@@ -66,9 +66,6 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
     // supported tokens for rate lookups and swaps
     mapping (address => bool) public supportedTokens;
 
-    // list of tokens to be treated as pegged to USD
-    mapping (address => bool) public USDStableCoins;
-
     // decimals of supported tokens
     mapping (address => uint256) public decimals;
 
@@ -112,7 +109,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
 
     // Percentage of maximum slippage allowed for Kyber swap when liquidating
     // This will always be between 0 and 100%
-    uint256 public maxSlippagePercent = 100 ether;//10 * 10**18;
+    uint256 public maxLiquidationSlippagePercent = 8 * 10**18;
 
     // wallet address to send part of the fees to
     address public feeWallet = address(this);
@@ -392,7 +389,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         }
 
         uint256 minConversionRate;
-        if (maxSlippagePercent != 100 ether) {
+        if (maxLiquidationSlippagePercent != 100 ether) {
             minConversionRate = _getMinConversionRate(
                 loanOrder,
                 loanPosition,
@@ -738,19 +735,6 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         }
     }
 
-    function setUSDStableCoinsBatch(
-        address[] memory tokens,
-        bool[] memory toggles)
-        public
-        onlyOwner
-    {
-        require(tokens.length == toggles.length, "count mismatch");
-
-        for (uint256 i=0; i < tokens.length; i++) {
-            USDStableCoins[tokens[i]] = toggles[i];
-        }
-    }
-
     function setMaxSourceAmountAllowedBatch(
         address[] memory tokens,
         uint256[] memory amounts)
@@ -833,13 +817,13 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         minPermissionedReserveCount = newValue;
     }
 
-    function setMaxSlippagePercent(
+    function setMaxLiquidationSlippagePercent(
         uint256 newAmount)
         public
         onlyOwner
     {
-        require(newAmount != maxSlippagePercent && newAmount <= 10**20);
-        maxSlippagePercent = newAmount;
+        require(newAmount != maxLiquidationSlippagePercent && newAmount <= 10**20);
+        maxLiquidationSlippagePercent = newAmount;
     }
 
     function setVaultContractAddress(
@@ -1110,7 +1094,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         } else {
             return goodRate
                 .sub(goodRate
-                    .mul(maxSlippagePercent)
+                    .mul(maxLiquidationSlippagePercent)
                     .div(10**20));
         }
     }
@@ -1164,42 +1148,53 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
                 require(supportedTokens[sourceTokenAddress] && supportedTokens[destTokenAddress], "invalid tokens");
 
                 if (saneRate) {
-                    iMakerDAIPriceFeed medianizer = iMakerDAIPriceFeed(0x729D19f657BD0614b4985Cf1D82531c67569197B);
-                    uint256 intermediateExpectedRate;
-                    uint256 intermediateSlippageRate;
+                    (expectedRate, slippageRate) = _getExpectedRateCall(
+                        sourceTokenAddress,
+                        destTokenAddress,
+                        0,   // sourceTokenAmount
+                        true // saneRate
+                    );
 
-                    if (USDStableCoins[sourceTokenAddress]) {
-                        // USD -> WETH
-                        intermediateExpectedRate = SafeMath.div(10**36, uint256(medianizer.read()));
-                        intermediateSlippageRate = intermediateExpectedRate;
-                    } else if (sourceTokenAddress != wethContract) {
-                        (intermediateExpectedRate, intermediateSlippageRate) = _getExpectedRateCall(
-                            sourceTokenAddress,
-                            wethContract,
-                            0,   // sourceTokenAmount
-                            true // saneRate
+                    (uint256 reversedRate, uint256 reversedSlippageRate) = _getExpectedRateCall(
+                        destTokenAddress,
+                        sourceTokenAddress,
+                        0,   // sourceTokenAmount
+                        true // saneRate
+                    );
+
+                    if (expectedRate != 0 && reversedRate != 0) {
+                        reversedRate = SafeMath.div(10**36, reversedRate);
+
+                        // check spread
+                        uint256 spreadPercentage;
+                        if (reversedRate > expectedRate) {
+                            spreadPercentage = reversedRate
+                                .sub(expectedRate);
+                            spreadPercentage = spreadPercentage
+                                .mul(10**20);
+                            spreadPercentage = spreadPercentage
+                                .div(reversedRate);
+                        } else {
+                            spreadPercentage = expectedRate
+                                .sub(reversedRate);
+                            spreadPercentage = spreadPercentage
+                                .mul(10**20);
+                            spreadPercentage = spreadPercentage
+                                .div(expectedRate);
+                        }
+
+                        require(
+                            spreadPercentage <= 5 ether,
+                            "spread too great"
                         );
-                    }
 
-                    if (USDStableCoins[destTokenAddress]) {
-                        // WETH -> USD
-                        expectedRate = uint256(medianizer.read());
-                        slippageRate = expectedRate;
-                    } else if (destTokenAddress != wethContract) {
-                        (expectedRate, slippageRate) = _getExpectedRateCall(
-                            wethContract,
-                            destTokenAddress,
-                            0,   // sourceTokenAmount
-                            true // saneRate
-                        );
-                    }
+                        reversedSlippageRate = SafeMath.div(10**36, reversedSlippageRate);
 
-                    if (intermediateExpectedRate != 0 && expectedRate != 0) {
-                        expectedRate = intermediateExpectedRate.mul(expectedRate).div(10**18);
-                        slippageRate = intermediateSlippageRate.mul(slippageRate).div(10**18);
-                    } else if (intermediateExpectedRate != 0) {
-                        expectedRate = intermediateExpectedRate;
-                        slippageRate = intermediateSlippageRate;
+                        expectedRate = expectedRate.add(reversedRate).div(2);
+                        slippageRate = slippageRate.add(reversedSlippageRate).div(2);
+                    } else {
+                        expectedRate = 0;
+                        slippageRate = 0;
                     }
                 } else {
                     (expectedRate, slippageRate) = _getExpectedRateCall(
@@ -1286,7 +1281,10 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
 
             uint256 sourceToDestPrecision = _getDecimalPrecision(sourceTokenAddress, destTokenAddress);
 
-            maxSourceTokenAmount = maxDestTokenAmount.mul(sourceToDestPrecision).div(slippageRate);
+            maxSourceTokenAmount = maxDestTokenAmount
+                .mul(sourceToDestPrecision)
+                .div(slippageRate)
+                .mul(11).div(10); // include 1% safety buffer
             if (maxSourceTokenAmount == 0) {
                 return "";
             }
