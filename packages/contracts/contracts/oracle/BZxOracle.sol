@@ -1165,27 +1165,9 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
                     if (expectedRate != 0 && reversedRate != 0) {
                         reversedRate = SafeMath.div(10**36, reversedRate);
 
-                        // check spread
-                        uint256 spreadPercentage;
-                        if (reversedRate > expectedRate) {
-                            spreadPercentage = reversedRate
-                                .sub(expectedRate);
-                            spreadPercentage = spreadPercentage
-                                .mul(10**20);
-                            spreadPercentage = spreadPercentage
-                                .div(reversedRate);
-                        } else {
-                            spreadPercentage = expectedRate
-                                .sub(reversedRate);
-                            spreadPercentage = spreadPercentage
-                                .mul(10**20);
-                            spreadPercentage = spreadPercentage
-                                .div(expectedRate);
-                        }
-
                         require(
-                            spreadPercentage <= 5 ether,
-                            "spread too great"
+                            reversedRate >= expectedRate,
+                            "bad price"
                         );
 
                         reversedSlippageRate = SafeMath.div(10**36, reversedSlippageRate);
