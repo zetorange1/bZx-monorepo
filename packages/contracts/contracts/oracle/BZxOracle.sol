@@ -58,7 +58,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
     uint256 internal constant MAX_UINT = 2**256 - 1;
 
     // this is the value the Kyber portal uses when setting a very high maximum number
-    uint256 internal constant MAX_FOR_KYBER = 10**28;
+    // uint256 internal constant MAX_FOR_KYBER = 10**28;
 
     // collateral collected to pay margin callers
     uint256 internal collateralReserve_;
@@ -110,6 +110,8 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
     // Percentage of maximum slippage allowed for Kyber swap when liquidating
     // This will always be between 0 and 100%
     uint256 public maxLiquidationSlippagePercent = 8 * 10**18;
+
+    uint256 public maxSpreadPercentage = 3 * 10**18;
 
     // wallet address to send part of the fees to
     address public feeWallet = address(this);
@@ -334,7 +336,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             vaultContract,
             vaultContract,
             sourceTokenAmount,
-            maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER,
+            maxDestTokenAmount < 10**28 ? maxDestTokenAmount : 10**28,
             0 // minConversionRate
         );
     }
@@ -355,7 +357,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             vaultContract,
             vaultContract,
             loanPosition.positionTokenAmountFilled,
-            maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER,
+            maxDestTokenAmount < 10**28 ? maxDestTokenAmount : 10**28,
             0 // minConversionRate
         );
         require(destTokenAmountReceived != 0 && destTokenAmountReceived != MAX_UINT, "destTokenAmountReceived == 0");
@@ -403,7 +405,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             vaultContract,
             vaultContract,
             loanPosition.positionTokenAmountFilled,
-            maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER,
+            maxDestTokenAmount < 10**28 ? maxDestTokenAmount : 10**28,
             minConversionRate
         );
         require(destTokenAmountReceived != 0 && destTokenAmountReceived != MAX_UINT, "destTokenAmountReceived == 0");
@@ -532,7 +534,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         view
         returns (uint256 sourceToDestRate, uint256 sourceToDestPrecision, uint256 destTokenAmount)
     {
-        if (sourceTokenAmount < MAX_FOR_KYBER) {
+        if (sourceTokenAmount < 10**28) {
             (sourceToDestRate,) = _getExpectedRate(
                 sourceTokenAddress,
                 destTokenAddress,
@@ -643,7 +645,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             (sourceToDestRate,sourceToDestPrecision,) = getTradeData(
                 collateralTokenAddress,
                 loanTokenAddress,
-                MAX_FOR_KYBER // collateralTokenAmount
+                10**28 // collateralTokenAmount
             );
             collateralToLoanAmount = collateralTokenAmount
                 .mul(sourceToDestRate)
@@ -657,7 +659,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             (sourceToDestRate,sourceToDestPrecision,) = getTradeData(
                 positionTokenAddress,
                 loanTokenAddress,
-                MAX_FOR_KYBER // positionTokenAmount
+                10**28 // positionTokenAmount
             );
             positionToLoanAmount = positionTokenAmount
                 .mul(sourceToDestRate)
@@ -826,6 +828,15 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         maxLiquidationSlippagePercent = newAmount;
     }
 
+    function setMaxSpreadPercentage(
+        uint256 newAmount)
+        public
+        onlyOwner
+    {
+        require(newAmount != maxSpreadPercentage);
+        maxSpreadPercentage = newAmount;
+    }
+
     function setVaultContractAddress(
         address newAddress)
         public
@@ -967,7 +978,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
             address(this),
             address(this),
             sourceTokenAmount,
-            MAX_FOR_KYBER,
+            10**28,
             minConversionRate
         );
         require(destTokenAmountReceived != 0 && destTokenAmountReceived != MAX_UINT, "destTokenAmountReceived == 0");
@@ -1072,31 +1083,33 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         view
         returns (uint256)
     {
-        uint256 precision = _getDecimalPrecision(loanPosition.positionTokenAddressFilled, loanOrder.loanTokenAddress);
+        uint256 sourceTokenDecimals = decimals[loanPosition.positionTokenAddressFilled];
+        if (sourceTokenDecimals == 0)
+            sourceTokenDecimals = EIP20(loanPosition.positionTokenAddressFilled).decimals();
 
-        (uint256 goodRate,) = _getExpectedRate(
+        uint256 sourceTokenAmount = 10**(sourceTokenDecimals >= 2 ?
+            sourceTokenDecimals-2 :
+            sourceTokenDecimals
+        );
+
+        if (loanPosition.positionTokenAmountFilled <= sourceTokenAmount) {
+            // rate will be better than or equal to sane rate, so include no minimum restriction
+            return 0;
+        }
+
+        (uint256 goodRate,) = _getExpectedRateCall(
             loanPosition.positionTokenAddressFilled,
             loanOrder.loanTokenAddress,
-            uint256(-1),
+            sourceTokenAmount,
             true // saneRate
         );
 
         require(goodRate != 0, "can't find good rate");
 
-        uint256 srcAmount = maxDestTokenAmount < MAX_FOR_KYBER ?
-            maxDestTokenAmount
-                .mul(precision)
-                .div(goodRate) :
-            loanPosition.positionTokenAmountFilled;
-
-        if (srcAmount <= 1 ether) {
-            return goodRate;
-        } else {
-            return goodRate
-                .sub(goodRate
-                    .mul(maxLiquidationSlippagePercent)
-                    .div(10**20));
-        }
+        return goodRate
+            .sub(goodRate
+                .mul(maxLiquidationSlippagePercent)
+                .div(10**20));
     }
 
     function _getDecimalPrecision(
@@ -1165,10 +1178,20 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
                     if (expectedRate != 0 && reversedRate != 0) {
                         reversedRate = SafeMath.div(10**36, reversedRate);
 
-                        require(
-                            reversedRate >= expectedRate,
-                            "bad price"
-                        );
+                        uint256 maxSpread = maxSpreadPercentage;
+                        if (maxSpread != 0 && reversedRate < expectedRate) {
+                            uint256 spreadPercentage = expectedRate
+                                .sub(reversedRate);
+                            spreadPercentage = spreadPercentage
+                                .mul(10**20);
+                            spreadPercentage = spreadPercentage
+                                .div(expectedRate);
+
+                            require(
+                                spreadPercentage <= maxSpread,
+                                "bad price"
+                            );
+                        }
 
                         reversedSlippageRate = SafeMath.div(10**36, reversedSlippageRate);
 
@@ -1202,7 +1225,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         view
         returns (uint256 expectedRate, uint256 slippageRate)
     {
-        if (saneRate) {
+        if (saneRate && sourceTokenAmount == 0) {
             uint256 sourceTokenDecimals = decimals[sourceTokenAddress];
             if (sourceTokenDecimals == 0)
                 sourceTokenDecimals = EIP20(sourceTokenAddress).decimals();
@@ -1247,7 +1270,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         returns (bytes memory)
     {
         uint256 maxSourceTokenAmount;
-        if (maxDestTokenAmount < MAX_FOR_KYBER) {
+        if (maxDestTokenAmount < 10**28) {
             uint256 maxSrcAllowed = maxSourceAmountAllowed[sourceTokenAddress];
             (uint256 slippageRate,) = _getExpectedRate(
                 sourceTokenAddress,
@@ -1371,7 +1394,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
                     eip20Approve(
                         sourceTokenAddress,
                         kyberContract,
-                        MAX_FOR_KYBER);
+                        10**28);
                 }
 
                 uint256 sourceBalanceBefore = EIP20(sourceTokenAddress).balanceOf(address(this));

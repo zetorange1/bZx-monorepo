@@ -75,7 +75,7 @@ contract TestNetOracle is BZxOracle {
             vaultContract,
             vaultContract,
             loanPosition.positionTokenAmountFilled,
-            maxDestTokenAmount < MAX_FOR_KYBER ? maxDestTokenAmount : MAX_FOR_KYBER,
+            maxDestTokenAmount < 10**28 ? maxDestTokenAmount : 10**28,
             0); // minConversionRate
         require(destTokenAmountReceived > 0, "destTokenAmountReceived == 0");
     }
@@ -95,7 +95,7 @@ contract TestNetOracle is BZxOracle {
             sourceTokenDecimals-2 :
             sourceTokenDecimals;
 
-        if (sourceTokenAmount < MAX_FOR_KYBER) {
+        if (sourceTokenAmount < 10**28) {
             (sourceToDestRate,) = _getExpectedRate(
                 sourceTokenAddress,
                 destTokenAddress,
@@ -205,8 +205,8 @@ contract TestNetOracle is BZxOracle {
             return (0,0);
         }
 
-        if (maxDestTokenAmount > MAX_FOR_KYBER)
-            maxDestTokenAmount = MAX_FOR_KYBER;
+        if (maxDestTokenAmount > 10**28)
+            maxDestTokenAmount = 10**28;
         
         if (sourceTokenAddress == destTokenAddress) {
             if (maxDestTokenAmount < sourceTokenAmount) {
