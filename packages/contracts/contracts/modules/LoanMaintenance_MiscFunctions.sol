@@ -32,8 +32,9 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         onlyOwner
     {
         targets[bytes4(keccak256("depositCollateral(bytes32,address,uint256)"))] = _target;
-        targets[bytes4(keccak256("depositCollateralForBorrower(bytes32,address,address,uint256)"))] = _target;
+        targets[bytes4(keccak256("depositCollateralForBorrower(bytes32,address,address,address,uint256)"))] = _target;
         targets[bytes4(keccak256("withdrawCollateral(bytes32,uint256)"))] = _target;
+        targets[bytes4(keccak256("withdrawCollateralForBorrower(bytes32,uint256,address,address)"))] = _target;
         targets[bytes4(keccak256("changeCollateral(bytes32,address)"))] = _target;
         targets[bytes4(keccak256("withdrawPosition(bytes32,uint256)"))] = _target;
         targets[bytes4(keccak256("depositPosition(bytes32,address,uint256)"))] = _target;
@@ -55,41 +56,48 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         uint256 depositAmount)
         external
         nonReentrant
-        tracksGas
+        //tracksGas
         returns (bool)
     {
         return _depositCollateral(
             loanOrderHash,
             msg.sender, // borrower
+            msg.sender, // payer
             depositTokenAddress,
-            depositAmount,
-            gasUsed
+            depositAmount
         );
     }
 
-    /// @dev Allows the trader to increase the collateral for a loan.
     /// @dev If depositTokenAddress is not the correct token, it will be traded to the correct token using the oracle.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param borrower The borrower whose loan to deposit collateral to (for margin trades, this has to equal the sender)
+    /// @param payer The address sending the funds
     /// @param depositTokenAddress The address of the collateral token used.
     /// @param depositAmount The amount of additional collateral token to deposit.
     /// @return True on success
     function depositCollateralForBorrower(
         bytes32 loanOrderHash,
         address borrower,
+        address payer,
         address depositTokenAddress,
         uint256 depositAmount)
         external
         nonReentrant
-        tracksGas
+        //tracksGas
         returns (bool)
     {
+        require(
+            payer == msg.sender ||
+            allowedValidators[address(0)][msg.sender], // allows for iToken/pToken deposits
+            "unauthorized"
+        );
+
         return _depositCollateral(
             loanOrderHash,
             borrower,
+            payer,
             depositTokenAddress,
-            depositAmount,
-            gasUsed
+            depositAmount
         );
     }
 
@@ -103,11 +111,57 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         uint256 withdrawAmount)
         external
         nonReentrant
-        tracksGas
+        //tracksGas
+        returns (uint256 amountWithdrawn)
+    {
+        return _withdrawCollateral(
+            loanOrderHash,
+            withdrawAmount,
+            msg.sender, // trader
+            msg.sender  // receiver
+        );
+    }
+
+    /// @dev Excess collateral is any amount above the initial margin.
+    /// @param loanOrderHash A unique hash representing the loan order
+    /// @param withdrawAmount The amount to withdraw
+    /// @param trader The trader address
+    /// @param receiver The receiver address
+    /// @return amountWithdrawn The amount withdrawn denominated in collateralToken. Can be less than withdrawAmount.
+    function withdrawCollateralForBorrower(
+        bytes32 loanOrderHash,
+        uint256 withdrawAmount,
+        address trader,
+        address receiver)
+        external
+        nonReentrant
+        //tracksGas
+        returns (uint256 amountWithdrawn)
+    {
+        require(
+            trader == msg.sender ||
+            allowedValidators[address(0)][msg.sender], // allows for iToken/pToken withdrawals
+            "unauthorized"
+        );
+
+        return _withdrawCollateral(
+            loanOrderHash,
+            withdrawAmount,
+            trader,
+            receiver
+        );
+    }
+
+    function _withdrawCollateral(
+        bytes32 loanOrderHash,
+        uint256 withdrawAmount,
+        address trader,
+        address receiver)
+        internal
         returns (uint256 amountWithdrawn)
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
-        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
 
         bool isPositive;
         (isPositive,,,amountWithdrawn) = _getPositionOffset(
@@ -167,10 +221,10 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             return 0;
         }
 
-        // transfer excess collateral to trader
+        // transfer excess collateral to the receiver
         if (!BZxVault(vaultContract).withdrawToken(
             loanPosition.collateralTokenAddressFilled,
-            msg.sender,
+            receiver,
             amountWithdrawn
         )) {
             revert("withdrawCollateral: BZxVault.withdrawToken collateral failed");
@@ -179,14 +233,14 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         // update stored collateral amount
         loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(amountWithdrawn);
 
-        if (!OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didWithdrawCollateral(
+        /*if (!OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didWithdrawCollateral(
             loanOrder,
             loanPosition,
             amountWithdrawn,
             gasUsed // initial used gas, collected in modifier
         )) {
             revert("withdrawCollateral: OracleInterface.didWithdrawCollateral failed");
-        }
+        }*/
 
         return amountWithdrawn;
     }
@@ -439,7 +493,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
     /// @param trader The trader of the position
     /// @return netCollateralAmount The amount of collateral escrowed netted to any exceess or deficit from gains and losses
     /// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender. This is denominated in collateral token.
-    /// @return loanTokenAmountBorrowed The amount of loan token borrowed for the position
+    /// @return loanToCollateralAmount The amount of loan token borrowed for the position. This is denominated in collateral token.
     function getTotalEscrow(
         bytes32 loanOrderHash,
         address trader)
@@ -470,7 +524,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
     /// @param toCollateralPrecision Precision of exposure token to collateral token
     /// @return netCollateralAmount The amount of collateral escrowed netted to any exceess or deficit from gains and losses
     /// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender. This is denominated in collateral token.
-    /// @return loanTokenAmountBorrowed The amount of loan token borrowed for the position
+    /// @return loanToCollateralAmount The amount of loan token borrowed for the position. This is denominated in collateral token.
     /// @return toCollateralRate Rate of exposure token to collateral token
     /// @return toCollateralPrecision Precision of exposure token to collateral token
     function getTotalEscrowWithRate(
@@ -623,9 +677,10 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
     function _depositCollateral(
         bytes32 loanOrderHash,
         address borrower,
+        address msgsender,
         address depositTokenAddress,
-        uint256 depositAmount,
-        uint256 gasUsed)
+        uint256 depositAmount)
+        //uint256 gasUsed)
         internal
         returns (bool)
     {
@@ -643,7 +698,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
 
         // only the borrower can add collateral to their margin trade
         require(loanPosition.positionTokenAddressFilled == loanOrder.loanTokenAddress ||
-            borrower == msg.sender, "unauthorized");
+            borrower == msgsender, "unauthorized");
 
         // for now we allow a collateral deposit prior to loan liquidation
         // require(block.timestamp < loanPosition.loanEndUnixTimestampSec);
@@ -653,7 +708,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             // send deposit token directly to the oracle to trade it
             if (!BZxVault(vaultContract).transferTokenFrom(
                 depositTokenAddress,
-                msg.sender,
+                msgsender,
                 oracleAddresses[loanOrder.oracleAddress],
                 depositAmount)) {
                 revert("BZxVault.transferTokenFrom failed");
@@ -672,7 +727,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
                 // left over depositToken needs to be refunded to trader
                 if (!BZxVault(vaultContract).withdrawToken(
                     depositTokenAddress,
-                    msg.sender,
+                    msgsender,
                     depositAmount.sub(depositTokenAmountUsed)
                 )) {
                     revert("BZxVault.withdrawToken deposit failed");
@@ -684,7 +739,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             // send deposit token to the vault
             if (!BZxVault(vaultContract).depositToken(
                 depositTokenAddress,
-                msg.sender,
+                msgsender,
                 depositAmount
             )) {
                 revert("BZxVault.depositToken position failed");
@@ -694,14 +749,14 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             collateralTokenAmountReceived = depositAmount;
         }
 
-        if (!OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didDepositCollateral(
+        /*if (!OracleInterface(oracleAddresses[loanOrder.oracleAddress]).didDepositCollateral(
             loanOrder,
             loanPosition,
             collateralTokenAmountReceived,
             gasUsed // initial used gas, collected in modifier
         )) {
             revert("OracleInterface.didDepositCollateral failed");
-        }
+        }*/
 
         return true;
     }

@@ -395,12 +395,14 @@ contract BZx is BZxStorage {
     /// @dev If depositTokenAddress is not the correct token, it will be traded to the correct token using the oracle.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param borrower The borrower whose loan to deposit collateral to (for margin trades, this has to equal the sender)
+    /// @param payer The address sending the funds
     /// @param depositTokenAddress The address of the collateral token used.
     /// @param depositAmount The amount of additional collateral token to deposit.
     /// @return True on success
     function depositCollateralForBorrower(
         bytes32 loanOrderHash,
         address borrower,
+        address payer,
         address depositTokenAddress,
         uint256 depositAmount)
         external
@@ -535,8 +537,8 @@ contract BZx is BZxStorage {
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param trader The trader of the position
     /// @return netCollateralAmount The amount of collateral escrowed netted to any exceess or deficit from gains and losses
-    /// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender
-    /// @return loanTokenAmountBorrowed The amount of loan token borrowed for the position
+    /// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender. This is denominated in collateral token.
+    /// @return loanToCollateralAmount The amount of loan token borrowed for the position. This is denominated in collateral token.
     function getTotalEscrow(
         bytes32 loanOrderHash,
         address trader)
@@ -545,7 +547,7 @@ contract BZx is BZxStorage {
         returns (
             uint256 netCollateralAmount,
             uint256 interestDepositRemaining,
-            uint256 loanTokenAmountBorrowed);
+            uint256 loanToCollateralAmount);
 
     /// @dev Pays the lender the total amount of interest for open loans using a particular oracle and interest token
     /// @dev Note that this function can be only be called by a lender for their loans.

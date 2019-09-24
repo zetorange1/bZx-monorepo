@@ -22,13 +22,14 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
     function _closeLoan(
         bytes32 loanOrderHash,
         address borrower,
+        address receiver,
         uint256 gasUsed)
         internal
-        returns (bool)
+        returns (uint256 closeAmount, uint256 collateralCloseAmount)
     {
-        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][msg.sender]];
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][borrower]];
         if (loanPosition.loanTokenAmountFilled == 0 || !loanPosition.active) {
-            return false;
+            return (0, 0);
         }
 
         LoanOrder memory loanOrder = orders[loanOrderHash];
@@ -44,6 +45,8 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
             "unauthorized"
         );
 
+        borrower = receiver;
+
         uint256 loanAmountBought;
         if (loanOrder.interestAmount != 0) {
             (loanAmountBought,) = _settleInterest(
@@ -54,6 +57,8 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
                 true  // refundToCollateral
             );
         }
+
+        uint256 dispurseAmount;
 
         // If the position token is not the loan token, then we need to buy back the loan token prior to closing the loan.
         if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
@@ -72,7 +77,6 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
 
                 if (positionTokenAmountUsed < loanPosition.positionTokenAmountFilled) {
                     // left over sourceToken needs to be dispursed
-                    address receiver;
                     if (loanPosition.positionTokenAddressFilled == loanPosition.collateralTokenAddressFilled) {
                         receiver = loanPosition.trader;
                     } else {
@@ -80,12 +84,16 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
                             loanPosition.trader :
                             orderLender[loanOrderHash];
                     }
+                    dispurseAmount = loanPosition.positionTokenAmountFilled.sub(positionTokenAmountUsed);
                     if (!BZxVault(vaultContract).withdrawToken(
                         loanPosition.positionTokenAddressFilled,
                         receiver,
-                        loanPosition.positionTokenAmountFilled.sub(positionTokenAmountUsed)
+                        dispurseAmount
                     )) {
                         revert("BZxLoanHealth::liquidatePosition: BZxVault.withdrawToken excess failed");
+                    }
+                    if (loanPosition.positionTokenAddressFilled != loanPosition.collateralTokenAddressFilled) {
+                        dispurseAmount = 0;
                     }
                 }
             }
@@ -100,7 +108,8 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
                 .add(loanAmountBought);
         }
 
-        return _finalizeLoan(
+        (closeAmount, collateralCloseAmount) = _finalizeLoan(
+            borrower, // receiver
             loanOrder,
             loanPosition, // needs to be storage
             loanPosition.loanTokenAmountFilled, // closeAmount
@@ -108,9 +117,15 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
             false, // isLiquidation
             gasUsed // initial used gas, collected in modifier
         );
+        if (dispurseAmount != 0) {
+            collateralCloseAmount = collateralCloseAmount
+                .add(dispurseAmount);
+        }
+        return (closeAmount, collateralCloseAmount);
     }
 
     function _finalizeLoan(
+        address receiver, // of collateral
         LoanOrder memory loanOrder,
         LoanPosition storage loanPosition,
         uint256 closeAmount, // amount of loanToken being closed
@@ -118,7 +133,7 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
         bool isLiquidation,
         uint256 gasUsed)
         internal
-        returns (bool)
+        returns (uint256, uint256)
     {
         //require(loanPosition.positionTokenAddressFilled == loanOrder.loanTokenAddress, "BZxLoanHealth::_finalizeLoan: loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress");
 
@@ -152,6 +167,7 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
 
         address lender = orderLender[loanOrder.loanOrderHash];
 
+        uint256 collateralCloseAmount;
         if (loanPosition.collateralTokenAmountFilled != 0) {
             /*if (closeAmount > closeAmountUsable) {
                 // in case we couldn't cover the full loanTokenAmount yet,
@@ -183,11 +199,12 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
                     // send remaining collateral token back to the trader if the loan is being fully closed
                     if (!BZxVault(vaultContract).withdrawToken(
                         loanPosition.collateralTokenAddressFilled,
-                        loanPosition.trader,
+                        receiver,
                         loanPosition.collateralTokenAmountFilled
                     )) {
                         revert("BZxLoanHealth::_finalizeLoan: BZxVault.withdrawToken collateral failed");
                     }
+                    collateralCloseAmount = loanPosition.collateralTokenAmountFilled;
                     loanPosition.collateralTokenAmountFilled = 0;
                 }
             }
@@ -267,7 +284,7 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
             revert("BZxLoanHealth::_finalizeLoan: OracleInterface.didCloseLoan failed");
         }
 
-        return true;
+        return (closeAmount, collateralCloseAmount);
     }
 
     function _settleInterest(

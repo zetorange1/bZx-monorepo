@@ -240,6 +240,7 @@ export default class Debug extends BZxComponent {
           interestPaidTotal: traderInterestForLoan[2],//toBigNumber(traderInterestForLoan[2], 10 ** -18).toString()+ ` (normalized)`,
           interestDepositTotal: traderInterestForLoan[3],//toBigNumber(traderInterestForLoan[3], 10 ** -18).toString()+ ` (normalized)`,
           interestDepositRemaining: traderInterestForLoan[4],//toBigNumber(traderInterestForLoan[4], 10 ** -18).toString()+ ` (normalized)`
+          interestUpdatedDate: (await this.wrapAndRun(bzxContract.methods.traderLoanInterest(position[`positionId`]).call())).interestUpdatedDate,
         };
       }
 

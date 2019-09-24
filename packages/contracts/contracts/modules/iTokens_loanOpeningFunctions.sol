@@ -283,6 +283,16 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
             loanOrder.interestTokenAddress
         );
 
+        uint256 maxDuration = loanOrder.maxDurationUnixTimestampSec;
+
+        uint256 previousDepositRemaining;
+        if (maxDuration == 0 && loanPosition.loanEndUnixTimestampSec != 0) {
+            previousDepositRemaining = loanPosition.loanEndUnixTimestampSec
+                .sub(block.timestamp) // block.timestamp < loanEndUnixTimestampSec was confirmed earlier
+                .mul(traderInterest.interestOwedPerDay)
+                .div(86400);
+        }
+
         uint256 owedPerDay = SafeMath.div(
             SafeMath.mul(newLoanAmount, loanOrder.interestAmount),
             loanOrder.loanTokenAmount
@@ -298,20 +308,15 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
         }
         traderInterest.interestOwedPerDay = traderInterest.interestOwedPerDay.add(owedPerDay);
 
-        uint256 maxDuration = loanOrder.maxDurationUnixTimestampSec;
-
         if (maxDuration == 0) {
             // indefinite-term loan
 
             // interestInitialAmount != 0 was confirmed earlier
             loanPosition.loanEndUnixTimestampSec = interestInitialAmount
+                .add(previousDepositRemaining)
                 .mul(86400)
                 .div(traderInterest.interestOwedPerDay)
-                .add(
-                    loanPosition.loanEndUnixTimestampSec != 0 ?
-                        loanPosition.loanEndUnixTimestampSec :  // exiting loan -> block.timestamp < loanEndUnixTimestampSec was confirmed earlier
-                        block.timestamp                         // new loan
-                );
+                .add(block.timestamp);
 
             // update maxDuration
             maxDuration = loanPosition.loanEndUnixTimestampSec
@@ -517,7 +522,7 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
                 "collateral insufficient"
             );
         }
- 
+
         if (loanTokenUsable != 0) {
             if (loanOrder.loanTokenAddress == loanPosition.positionTokenAddressFilled) {
                 // since withdrawOnOpen == true, we pay back some of the borrowed token with loan token excess

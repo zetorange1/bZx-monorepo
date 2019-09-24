@@ -19,9 +19,9 @@ const config = require("../protocol-config.js");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const OLD_ORACLE_ADDRESS = "";
-//const OLD_ORACLE_ADDRESS = "0x5853ceef2a2d8ccde2f3b2fd2d4c5b87b3cd2ad0"; // mainnet
+//const OLD_ORACLE_ADDRESS = "0xde89afc93e381744745737641619a025d11ee79f"; // mainnet
 //const OLD_ORACLE_ADDRESS = "0x208ec15dbb52b417343887ed8a5523d3c4d23e55"; // ropsten
-//const OLD_ORACLE_ADDRESS = "0xcc351c16f56da5aed732f465cbf6807f7903963c"; // kovan
+//const OLD_ORACLE_ADDRESS = "0x7ec0426c9a9a2200e113cbe5871bd1f0b82b919d"; // kovan
 
 module.exports = (deployer, network, accounts) => {
 
@@ -52,6 +52,8 @@ module.exports = (deployer, network, accounts) => {
     FULCRUM_ORACLE = "0xf257246627f7cb036ae40aa6cfe8d8ce5f0eba63";
   } else if (network == "ropsten") {
     FULCRUM_ORACLE = "0xd5f66f2ac36b6d765a1cfdacbb7a8868c2d91a9d";
+  } else if (network == "kovan") {
+    FULCRUM_ORACLE = "0x5d940C359165A8D4647cc8A237DCEF8b0c6B60de";
   }
 
   let FULCRUM_ORACLE2 = "";
@@ -105,7 +107,7 @@ module.exports = (deployer, network, accounts) => {
           "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", // USDC
           "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359", // DAI
           "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599", // WBTC
-          "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", // MKR
+          //"0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", // MKR
           "0xdd974d5c2e2928dea5f71b9825b8b646686bd200", // KNC
           "0x1985365e9f78359a9b6ad760e32412f4a445e862", // REP
           "0x0d8775f648430679a709e98d2b0cb6250d2887ef", // BAT
@@ -118,7 +120,7 @@ module.exports = (deployer, network, accounts) => {
           "true", // USDC
           "true", // DAI
           "true", // WBTC
-          "true", // MKR
+          //"true", // MKR
           "true", // KNC
           "true", // REP
           "true", // BAT
@@ -126,7 +128,6 @@ module.exports = (deployer, network, accounts) => {
           "true"  // LINK
         ]
         );
-        // ETH,WETH,USDC,DAI,WBTC,MKR,KNC,REP,BAT,ZRX,LINK
 
         await oracle.setDecimalsBatch([
           "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", // WETH
@@ -142,14 +143,39 @@ module.exports = (deployer, network, accounts) => {
         ]);
 
         await oracle.setMaxSourceAmountAllowedBatch([
+          "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", // USDC
+          "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359", // DAI
           "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599", // WBTC
+          "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", // MKR
+          "0xdd974d5c2e2928dea5f71b9825b8b646686bd200", // KNC
+          //"0x1985365e9f78359a9b6ad760e32412f4a445e862", // REP
+          "0x0d8775f648430679a709e98d2b0cb6250d2887ef", // BAT
+          //"0xe41d2489571d322189246dafa5ebde1f4699f498", // ZRX
           "0x514910771af9ca656af840dff83e8264ecf986ca"  // LINK
         ],
         [
-          "400000000",                // WBTC
-          "15000000000000000000000"   // LINK
+          "70000000000",                // USDC
+          "75000000000000000000000",    // DAI
+          "450000000",                  // WBTC
+          "100000000000000000000",      // MKR
+          "70000000000000000000000",    // KNC
+          //"",                           // REP - slippage high for small amounts
+          "100000000000000000000000",   // BAT
+          //"",                           // ZRX - low liquidity for small amounts
+          "19000000000000000000000"     // LINK
         ]
         );
+
+
+        /*await oracle.setUSDStableCoinsBatch([
+          "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", // USDC
+          "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359", // DAI
+        ],
+        [
+          "true", // USDC
+          "true", // DAI
+        ]
+        );*/
 
         /*
         let txData = web3.eth.abi.encodeFunctionSignature('registerWallet(address)') +
@@ -164,6 +190,23 @@ module.exports = (deployer, network, accounts) => {
 
         await oracle.setFeeWallet("0x13ddac8d492e463073934e2a101e419481970299");
         */
+      } else if (network == "kovan") {
+        await oracle.setSupportedTokensBatch([
+          "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", // ETH
+          "0xd0a1e359811322d97991e03f863a0c30c2cf029c", // WETH
+          "0xc4375b7de8af5a38a93548eb8453a498222c4ff2", // DAI
+        ],
+        [
+          "true", // ETH
+          "true", // WETH
+          "true", // DAI
+        ]
+        );
+
+        await oracle.setDecimalsBatch([
+          "0xd0a1e359811322d97991e03f863a0c30c2cf029c", // WETH
+          "0xc4375b7de8af5a38a93548eb8453a498222c4ff2", // DAI
+        ]);
       }
 
       var weth = await BZxEther.at(weth_token_address);

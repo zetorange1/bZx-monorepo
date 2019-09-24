@@ -192,14 +192,16 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, OrderClosingFunct
             }
         }
 
-        require(_finalizeLoan(
+        (closeAmount,) = _finalizeLoan(
+            trader, // receiver
             loanOrder,
             loanPosition, // needs to be storage
             closeAmount,
             closeAmountUsable,
             true, // isLiquidation
             gasUsed // initial used gas, collected in modifier
-        ),"BZxLoanHealth::liquidatePosition: _finalizeLoan failed");
+        );
+        require(closeAmount != 0, "BZxLoanHealth::liquidatePosition: _finalizeLoan failed");
 
         return true;
     }
@@ -214,11 +216,13 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, OrderClosingFunct
         tracksGas
         returns (bool)
     {
-        return _closeLoan(
+        (uint256 closeAmount,) = _closeLoan(
             loanOrderHash,
             msg.sender, // borrower
+            msg.sender, // receiver
             gasUsed // initial used gas, collected in modifier
         );
+        return closeAmount != 0;
     }
 
     /// @dev Called to close a loan in full for someone else
@@ -233,11 +237,13 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, OrderClosingFunct
         tracksGas
         returns (bool)
     {
-        return _closeLoan(
+        (uint256 closeAmount,) = _closeLoan(
             loanOrderHash,
-            borrower,
+            borrower, // borrower
+            borrower, // receiver
             gasUsed // initial used gas, collected in modifier
         );
+        return closeAmount != 0;
     }
 
     /// @dev Called by an admin to force close a loan early and return assets to the lender and trader as is.
