@@ -1,0 +1,4 @@
+
+
+contract("ENSLoans", function(accounts) {
+});
