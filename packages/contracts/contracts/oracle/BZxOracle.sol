@@ -394,8 +394,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
         if (maxLiquidationSlippagePercent != 100 ether) {
             minConversionRate = _getMinConversionRate(
                 loanOrder,
-                loanPosition,
-                maxDestTokenAmount
+                loanPosition
             );
         }
 
@@ -1077,8 +1076,7 @@ contract BZxOracle is EIP20Wrapper, EMACollector, GasRefunder, BZxOwnable {
 
     function _getMinConversionRate(
         BZxObjects.LoanOrder memory loanOrder,
-        BZxObjects.LoanPosition memory loanPosition,
-        uint256 maxDestTokenAmount)
+        BZxObjects.LoanPosition memory loanPosition)
         internal
         view
         returns (uint256)
