@@ -172,8 +172,12 @@ contract LoanTokenSettings is AdvancedToken {
         baseRate = _baseRate;
         rateMultiplier = _rateMultiplier;
 
-        bytes32 slotLowUtilBaseRate = keccak256("iToken_LowUtilBaseRate");
-        bytes32 slotLowUtilRateMultiplier = keccak256("iToken_LowUtilRateMultiplier");
+        //keccak256("iToken_LowUtilBaseRate")
+        bytes32 slotLowUtilBaseRate = 0x3d82e958c891799f357c1316ae5543412952ae5c423336f8929ed7458039c995;
+
+        //keccak256("iToken_LowUtilRateMultiplier")
+        bytes32 slotLowUtilRateMultiplier = 0x2b4858b1bc9e2d14afab03340ce5f6c81b703c86a0c570653ae586534e095fb1;
+
         assembly {
             sstore(slotLowUtilBaseRate, _lowUtilBaseRate)
             sstore(slotLowUtilRateMultiplier, _lowUtilRateMultiplier)

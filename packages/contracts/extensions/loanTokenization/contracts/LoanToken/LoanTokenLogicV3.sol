@@ -622,7 +622,7 @@ contract LoanTokenLogicV3 is AdvancedToken, OracleNotifierInterface {
         if (totalAssetBorrow != 0) {
             return _protocolInterestRate(totalAssetSupply());
         } else {
-            return baseRate;
+            return _getLowUtilBaseRate();
         }
     }
 
@@ -633,9 +633,8 @@ contract LoanTokenLogicV3 is AdvancedToken, OracleNotifierInterface {
         returns (uint256)
     {
         return _nextBorrowInterestRate(
-            0, // borrowAmount
-            totalAssetSupply(),
-            false // useFixedInterestModel
+            0,              // borrowAmount
+            false           // useFixedInterestModel
         );
     }
 
@@ -646,37 +645,23 @@ contract LoanTokenLogicV3 is AdvancedToken, OracleNotifierInterface {
         view
         returns (uint256)
     {
-        uint256 interestUnPaid;
-        if (borrowAmount != 0) {
-            if (lastSettleTime_ != block.timestamp) {
-                (,,interestUnPaid) = _getAllInterest();
-
-                interestUnPaid = interestUnPaid
-                    .mul(spreadMultiplier)
-                    .div(10**20);
-            }
-
-            uint256 balance = ERC20(loanTokenAddress).balanceOf(address(this)).add(interestUnPaid);
-            if (borrowAmount > balance) {
-                borrowAmount = balance;
-            }
-        }
-
         return _nextBorrowInterestRate(
-            borrowAmount,
-            _totalAssetSupply(interestUnPaid),
-            false // useFixedInterestModel
+            borrowAmount,   // borrowAmount
+            false           // useFixedInterestModel
         );
     }
 
-    // kept for backwards compatability
-    function nextLoanInterestRate(
-        uint256 borrowAmount)
+    function nextBorrowInterestRateWithOption(
+        uint256 borrowAmount,
+        bool useFixedInterestModel)
         public
         view
         returns (uint256)
     {
-        return nextBorrowInterestRate(borrowAmount);
+        return _nextBorrowInterestRate(
+            borrowAmount,   // borrowAmount
+            useFixedInterestModel
+        );
     }
 
     function nextSupplyInterestRate(
@@ -990,7 +975,7 @@ contract LoanTokenLogicV3 is AdvancedToken, OracleNotifierInterface {
         view
         returns (uint256 interestRate, uint256 interestInitialAmount)
     {
-        interestRate = _nextBorrowInterestRate(
+        interestRate = _nextBorrowInterestRate2(
             borrowAmount,
             assetSupply,
             useFixedInterestModel
@@ -1114,7 +1099,7 @@ contract LoanTokenLogicV3 is AdvancedToken, OracleNotifierInterface {
             sentAmounts[6] = sentAmounts[1]; // borrowAmount
         } else {
             // amount is borrow amount
-            sentAmounts[0] = _nextBorrowInterestRate( // interestRate
+            sentAmounts[0] = _nextBorrowInterestRate2( // interestRate
                 sentAmounts[1], // amount
                 _totalAssetSupply(0),
                 useFixedInterestModel
@@ -1361,7 +1346,7 @@ contract LoanTokenLogicV3 is AdvancedToken, OracleNotifierInterface {
                 .mul(checkpointSupply)
                 .div(assetSupply);
         } else {
-            interestRate = baseRate;
+            interestRate = _getLowUtilBaseRate();
         }
 
         return interestRate;
@@ -1383,8 +1368,37 @@ contract LoanTokenLogicV3 is AdvancedToken, OracleNotifierInterface {
         }
     }
 
-    // next borrow interest adjustment
     function _nextBorrowInterestRate(
+        uint256 borrowAmount,
+        bool useFixedInterestModel)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 interestUnPaid;
+        if (borrowAmount != 0) {
+            if (lastSettleTime_ != block.timestamp) {
+                (,,interestUnPaid) = _getAllInterest();
+
+                interestUnPaid = interestUnPaid
+                    .mul(spreadMultiplier)
+                    .div(10**20);
+            }
+
+            uint256 balance = ERC20(loanTokenAddress).balanceOf(address(this)).add(interestUnPaid);
+            if (borrowAmount > balance) {
+                borrowAmount = balance;
+            }
+        }
+
+        return _nextBorrowInterestRate2(
+            borrowAmount,
+            _totalAssetSupply(interestUnPaid),
+            useFixedInterestModel
+        );
+    }
+
+    function _nextBorrowInterestRate2(
         uint256 newBorrowAmount,
         uint256 assetSupply,
         bool useFixedInterestModel)
@@ -1433,7 +1447,8 @@ contract LoanTokenLogicV3 is AdvancedToken, OracleNotifierInterface {
                 maxRate = rateMultiplier
                     .add(baseRate);
             } else {
-                (uint256 lowUtilBaseRate, uint256 lowUtilRateMultiplier) = _getLowUtilValues();
+                uint256 lowUtilBaseRate = _getLowUtilBaseRate();
+                uint256 lowUtilRateMultiplier = _getLowUtilRateMultiplier();
                 nextRate = utilRate
                     .mul(lowUtilRateMultiplier)
                     .div(10**20)
@@ -1480,7 +1495,7 @@ contract LoanTokenLogicV3 is AdvancedToken, OracleNotifierInterface {
         LoanData memory loanData = loanOrderData[loanOrderHash];
         require(loanData.initialMarginAmount != 0, "33");
 
-        interestRate = _nextBorrowInterestRate(
+        interestRate = _nextBorrowInterestRate2(
             depositAmount
                 .mul(10**20)
                 .div(loanData.initialMarginAmount),
@@ -1545,20 +1560,24 @@ contract LoanTokenLogicV3 is AdvancedToken, OracleNotifierInterface {
         }
     }
 
-    function _getLowUtilValues()
+    function _getLowUtilBaseRate()
         internal
         view
-        returns (uint256 lowUtilBaseRate, uint256 lowUtilRateMultiplier)
+        returns (uint256 lowUtilBaseRate)
     {
         //keccak256("iToken_LowUtilBaseRate")
-        bytes32 slotLowUtilBaseRate = 0x3d82e958c891799f357c1316ae5543412952ae5c423336f8929ed7458039c995;
-
-        //keccak256("iToken_LowUtilRateMultiplier")
-        bytes32 slotLowUtilRateMultiplier = 0x2b4858b1bc9e2d14afab03340ce5f6c81b703c86a0c570653ae586534e095fb1;
-
         assembly {
-            lowUtilBaseRate := sload(slotLowUtilBaseRate)
-            lowUtilRateMultiplier := sload(slotLowUtilRateMultiplier)
+            lowUtilBaseRate := sload(0x3d82e958c891799f357c1316ae5543412952ae5c423336f8929ed7458039c995)
+        }
+    }
+    function _getLowUtilRateMultiplier()
+        internal
+        view
+        returns (uint256 lowUtilRateMultiplier)
+    {
+        //keccak256("iToken_LowUtilRateMultiplier")
+        assembly {
+            lowUtilRateMultiplier := sload(0x2b4858b1bc9e2d14afab03340ce5f6c81b703c86a0c570653ae586534e095fb1)
         }
     }
 
@@ -1570,7 +1589,7 @@ contract LoanTokenLogicV3 is AdvancedToken, OracleNotifierInterface {
         BZxObjects.LoanPosition memory loanPosition,
         address loanCloser,
         uint256 closeAmount,
-        bool /* isLiquidation */)
+        bool isLiquidation)
         public
         onlyOracle
         returns (bool)
@@ -1580,6 +1599,14 @@ contract LoanTokenLogicV3 is AdvancedToken, OracleNotifierInterface {
 
             totalAssetBorrow = totalAssetBorrow > closeAmount ?
                 totalAssetBorrow.sub(closeAmount) : 0;
+
+            emit Repay(
+                loanOrder.loanOrderHash,    // loanOrderHash
+                loanPosition.trader,        // borrower
+                loanCloser,                 // closer
+                closeAmount,                // amount
+                isLiquidation               // isLiquidation
+            );
 
             if (burntTokenReserveList.length != 0) {
                 _claimLoanToken(address(0));
