@@ -14,6 +14,7 @@ import "../shared/MiscFunctions.sol";
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 
+import "../tokens/EIP20.sol";
 
 contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
     using SafeMath for uint256;
@@ -22,8 +23,9 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
 
     function()
         external
+        payable
     {
-        revert("fallback not allowed");
+        require(msg.sender == wethContract, "fallback not allowed");
     }
 
     function initialize(
@@ -55,6 +57,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         address depositTokenAddress,
         uint256 depositAmount)
         external
+        payable
         nonReentrant
         //tracksGas
         returns (bool)
@@ -82,6 +85,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         address depositTokenAddress,
         uint256 depositAmount)
         external
+        payable
         nonReentrant
         //tracksGas
         returns (bool)
@@ -114,7 +118,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         //tracksGas
         returns (uint256 amountWithdrawn)
     {
-        return _withdrawCollateral(
+        (amountWithdrawn,) = _withdrawCollateral(
             loanOrderHash,
             withdrawAmount,
             msg.sender, // trader
@@ -128,6 +132,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
     /// @param trader The trader address
     /// @param receiver The receiver address
     /// @return amountWithdrawn The amount withdrawn denominated in collateralToken. Can be less than withdrawAmount.
+    /// @return collateralTokenAddress The collateral token.
     function withdrawCollateralForBorrower(
         bytes32 loanOrderHash,
         uint256 withdrawAmount,
@@ -136,7 +141,10 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         external
         nonReentrant
         //tracksGas
-        returns (uint256 amountWithdrawn)
+        returns (
+            uint256 amountWithdrawn,
+            address collateralTokenAddress
+        )
     {
         require(
             trader == msg.sender ||
@@ -144,12 +152,33 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             "unauthorized"
         );
 
-        return _withdrawCollateral(
+        address receiver_ = receiver;
+        if (receiver_ == address(0)) {
+            receiver_ = address(this);
+        }
+
+        (amountWithdrawn, collateralTokenAddress) = _withdrawCollateral(
             loanOrderHash,
             withdrawAmount,
             trader,
-            receiver
+            receiver_
         );
+
+        if (receiver_ == address(this)) {
+            require(collateralTokenAddress == wethContract, "withdraw failed");
+
+            // withdraw(uint256)
+            (bool success,) = wethContract.call(
+                abi.encodeWithSelector(
+                    0x2e1a7d4d, // withdraw(uint256)
+                    amountWithdrawn
+                )
+            );
+            if (success) {
+                (success,) = trader.call.value(amountWithdrawn)("");
+            }
+            require(success, "withdraw failed");
+        }
     }
 
     function _withdrawCollateral(
@@ -158,7 +187,10 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         address trader,
         address receiver)
         internal
-        returns (uint256 amountWithdrawn)
+        returns (
+            uint256 amountWithdrawn,
+            address collateralTokenAddress
+        )
     {
         LoanOrder memory loanOrder = orders[loanOrderHash];
         LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
@@ -168,13 +200,13 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             loanOrder,
             loanPosition);
         if (amountWithdrawn == 0 || !isPositive) {
-            return 0;
+            return (0, address(0));
         }
 
         // for now we allow excess collateral withdrawals
         /*if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
             // if a loan has ended, a loan close function should be called to recover collateral
-            return 0;
+            return (0, address(0));
         }*/
 
         // Withdraw withdrawAmount or amountWithdrawn, whichever is lessor
@@ -190,7 +222,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
                         oracleAddresses[loanOrder.oracleAddress],
                         loanPosition.positionTokenAmountFilled
                     )) {
-                        revert("withdrawCollateral: BZxVault.withdrawToken (position) failed");
+                        revert("withdrawCollateral: (position) failed");
                     }
 
                     (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) = OracleInterface(oracleAddresses[loanOrder.oracleAddress]).trade(
@@ -218,7 +250,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         }
 
         if (amountWithdrawn == 0) {
-            return 0;
+            return (0, loanPosition.collateralTokenAddressFilled);
         }
 
         // transfer excess collateral to the receiver
@@ -227,7 +259,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             receiver,
             amountWithdrawn
         )) {
-            revert("withdrawCollateral: BZxVault.withdrawToken collateral failed");
+            revert("withdrawCollateral: collateral failed");
         }
 
         // update stored collateral amount
@@ -242,7 +274,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             revert("withdrawCollateral: OracleInterface.didWithdrawCollateral failed");
         }*/
 
-        return amountWithdrawn;
+        return (amountWithdrawn, loanPosition.collateralTokenAddressFilled);
     }
 
     /// @dev Allows the trader to change the collateral token being used for a loan.
@@ -298,7 +330,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             collateralTokenAmountFilled = collateralTokenAmountFilled.mul(sourceToDestRate).div(sourceToDestPrecision);
 
             if (collateralTokenAmountFilled == 0) {
-                revert("changeCollateral: BZxVault.depositToken new collateral == 0");
+                revert("changeCollateral: new collateral == 0");
             }
 
             // transfer the new collateral token from the trader to the vault
@@ -307,7 +339,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
                 msg.sender,
                 collateralTokenAmountFilled
             )) {
-                revert("changeCollateral: BZxVault.depositToken new collateral failed");
+                revert("changeCollateral: new collateral failed");
             }
         }
 
@@ -318,7 +350,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
                 msg.sender,
                 loanPosition.collateralTokenAmountFilled
             )) {
-                revert("changeCollateral: BZxVault.withdrawToken old collateral failed");
+                revert("changeCollateral: old collateral failed");
             }
         }
 
@@ -348,6 +380,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         address depositTokenAddress,
         uint256 depositAmount)
         external
+        payable
         nonReentrant
         tracksGas
         returns (bool)
@@ -375,6 +408,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         address depositTokenAddress,
         uint256 depositAmount)
         external
+        payable
         nonReentrant
         tracksGas
         returns (bool)
@@ -426,14 +460,14 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         if (amountWithdrawn == 0) {
             return 0;
         }
-        
+
         // transfer position excess to the trader
         if (!BZxVault(vaultContract).withdrawToken(
             loanPosition.positionTokenAddressFilled,
             msg.sender,
             amountWithdrawn
         )) {
-            revert("withdrawPosition: BZxVault.withdrawToken loan failed");
+            revert("withdrawPosition: loan failed");
         }
 
         // deduct position excess from positionToken balance
@@ -703,6 +737,8 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         // for now we allow a collateral deposit prior to loan liquidation
         // require(block.timestamp < loanPosition.loanEndUnixTimestampSec);
 
+        require(msg.value == 0 || (depositTokenAddress == loanPosition.collateralTokenAddressFilled && loanPosition.collateralTokenAddressFilled == wethContract), "wrong asset sent");
+
         uint256 collateralTokenAmountReceived;
         if (depositTokenAddress != loanPosition.collateralTokenAddressFilled) {
             // send deposit token directly to the oracle to trade it
@@ -730,19 +766,35 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
                     msgsender,
                     depositAmount.sub(depositTokenAmountUsed)
                 )) {
-                    revert("BZxVault.withdrawToken deposit failed");
+                    revert("deposit failed");
                 }
             }
 
             loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.add(collateralTokenAmountReceived);
         } else {
-            // send deposit token to the vault
-            if (!BZxVault(vaultContract).depositToken(
-                depositTokenAddress,
-                msgsender,
-                depositAmount
-            )) {
-                revert("BZxVault.depositToken position failed");
+            if (msg.value != 0) {
+                require(msg.value >= depositAmount, "insufficient ether");
+
+                // deposit()
+                (bool success,) = wethContract.call.value(depositAmount)("0xd0e30db0");
+                if (success) {
+                    success = EIP20(wethContract).transfer(
+                        vaultContract,
+                        depositAmount
+                    );
+                }
+                if (success && msg.value > depositAmount) {
+                    (success,) = msg.sender.call.value(msg.value - depositAmount)("");
+                }
+                require(success, "deposit failed");
+            } else {
+                if (!BZxVault(vaultContract).depositToken(
+                    depositTokenAddress,
+                    msgsender,
+                    depositAmount
+                )) {
+                    revert("deposit failed");
+                }
             }
 
             loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.add(depositAmount);
@@ -789,6 +841,8 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
         // for now we allow a position deposit prior to loan liquidation
         // require(block.timestamp < loanPosition.loanEndUnixTimestampSec);
 
+        require(msg.value == 0 || (depositTokenAddress == loanPosition.positionTokenAddressFilled && loanPosition.positionTokenAddressFilled == wethContract), "wrong asset sent");
+
         uint256 positionTokenAmountReceived;
         if (depositTokenAddress != loanPosition.positionTokenAddressFilled) {
             // send deposit token directly to the oracle to trade it
@@ -816,19 +870,35 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
                     msg.sender,
                     depositAmount.sub(depositTokenAmountUsed)
                 )) {
-                    revert("BZxVault.withdrawToken deposit failed");
+                    revert("deposit failed");
                 }
             }
 
             loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.add(positionTokenAmountReceived);
         } else {
-            // send deposit token to the vault
-            if (!BZxVault(vaultContract).depositToken(
-                depositTokenAddress,
-                msg.sender,
-                depositAmount
-            )) {
-                revert("BZxVault.depositToken position failed");
+            if (msg.value != 0) {
+                require(msg.value >= depositAmount, "insufficient ether");
+
+                // deposit()
+                (bool success,) = wethContract.call.value(depositAmount)("0xd0e30db0");
+                if (success) {
+                    success = EIP20(wethContract).transfer(
+                        vaultContract,
+                        depositAmount
+                    );
+                }
+                if (success && msg.value > depositAmount) {
+                    (success,) = msg.sender.call.value(msg.value - depositAmount)("");
+                }
+                require(success, "deposit failed");
+            } else {
+                if (!BZxVault(vaultContract).depositToken(
+                    depositTokenAddress,
+                    msg.sender,
+                    depositAmount
+                )) {
+                    revert("position failed");
+                }
             }
 
             loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.add(depositAmount);

@@ -29,19 +29,19 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
         public
         onlyOwner
     {
-        targets[bytes4(keccak256("takeOrderFromiToken(bytes32,address[3],uint256[7],bytes)"))] = _target;
+        targets[bytes4(keccak256("takeOrderFromiToken(bytes32,address[3],uint256[8],bytes)"))] = _target;
         targets[bytes4(keccak256("getRequiredCollateral(address,address,address,uint256,uint256)"))] = _target;
         targets[bytes4(keccak256("getBorrowAmount(address,address,address,uint256,uint256)"))] = _target;
     }
 
     // assumption: loan and interest are the same token
     function takeOrderFromiToken(
-        bytes32 loanOrderHash,          // existing loan order hash
+        bytes32 loanOrderHash, // existing loan order hash
         address[3] calldata sentAddresses,
             // trader: borrower/trader
             // collateralTokenAddress: collateral token
             // tradeTokenAddress: trade token
-        uint256[7] calldata sentAmounts,
+        uint256[8] calldata sentAmounts,
             // newInterestRate: new loan interest rate
             // newLoanAmount: new loan size (principal from lender)
             // interestInitialAmount: interestAmount sent to determine initial loan length (this is included in one of the below)
@@ -49,6 +49,7 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
             // collateralTokenSent: collateralAmountRequired + any extra
             // tradeTokenSent: tradeTokenAmount (optional)
             // withdrawalAmount: Actual amount sent to borrower (can't exceed newLoanAmount)
+            // marginPremiumAmount: The additional percentage of collateral required for loan opening
         bytes calldata loanData)
         external
         nonReentrant
@@ -97,12 +98,19 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
         );
         require(collateralAmountRequired != 0, "collateral is 0");
         if (loanOrder.loanTokenAddress == loanPosition.positionTokenAddressFilled) { // withdrawOnOpen == true
+            uint256 collateralInitialPremium = collateralAmountRequired
+                .mul(10**20)
+                .div(loanOrder.initialMarginAmount);
+
+            if (sentAmounts[7] != 0) { // marginPremiumAmount
+                collateralInitialPremium = collateralInitialPremium
+                    .mul(sentAmounts[7])
+                    .div(10**20)
+                    .add(collateralInitialPremium);
+            }
+
             collateralAmountRequired = collateralAmountRequired
-                .add(
-                    collateralAmountRequired
-                        .mul(10**20)
-                        .div(loanOrder.initialMarginAmount)
-                    );
+                .add(collateralInitialPremium);
         }
 
         // get required interest
@@ -202,12 +210,19 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
             // trader has already filled part of the loan order previously and that loan is still active
             require (block.timestamp < loanPosition.loanEndUnixTimestampSec, "loan has ended");
 
-            require(tradeTokenAddress != address(0) || loanOrder.loanTokenAddress == loanPosition.positionTokenAddressFilled, "no withdrawals when in trade");
+            require(collateralTokenAddress == loanPosition.collateralTokenAddressFilled, "wrong collateral");
+
+            if (tradeTokenAddress == address(0)) {
+                require(loanOrder.loanTokenAddress == loanPosition.positionTokenAddressFilled, "no withdrawals when in trade");
+            } else {
+                require(tradeTokenAddress == loanPosition.positionTokenAddressFilled, "wrong trade");
+            }
+
             loanPosition.loanTokenAmountFilled = loanPosition.loanTokenAmountFilled.add(newLoanAmount);
         } else {
             // trader has not previously filled part of this loan or the previous fill is inactive
 
-            positionId = uint(keccak256(abi.encodePacked(
+            positionId = uint256(keccak256(abi.encodePacked(
                 loanOrder.loanOrderHash,
                 orderPositionList[loanOrder.loanOrderHash].length,
                 trader,
@@ -382,7 +397,7 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
         LoanPosition memory loanPosition,
         uint256 interestAmountRequired,
         uint256 collateralAmountRequired,
-        uint256[7] memory sentAmounts,
+        uint256[8] memory sentAmounts,
         bytes memory /* loanData */)
         internal
     {
