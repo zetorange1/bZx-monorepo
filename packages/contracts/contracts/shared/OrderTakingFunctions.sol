@@ -540,7 +540,7 @@ contract OrderTakingFunctions is BZxStorage, MiscFunctions {
         } else {
             // trader has not previously filled part of this loan or the previous fill is inactive
 
-            positionId = uint(keccak256(abi.encodePacked(
+            positionId = uint256(keccak256(abi.encodePacked(
                 loanOrder.loanOrderHash,
                 orderPositionList[loanOrder.loanOrderHash].length,
                 trader,

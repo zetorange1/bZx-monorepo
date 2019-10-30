@@ -25,6 +25,7 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
     {
         targets[bytes4(keccak256("replaceContract(address)"))] = _target;
         targets[bytes4(keccak256("setTarget(string,address)"))] = _target;
+        targets[bytes4(keccak256("setTargetByBytes(bytes4,address)"))] = _target;
         targets[bytes4(keccak256("toggleTargetPause(string,bool)"))] = _target;
         targets[bytes4(keccak256("setBZxAddresses(address,address,address,address,address,address,address)"))] = _target;
         targets[bytes4(keccak256("setDebugMode(bool)"))] = _target;
@@ -49,7 +50,7 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
         public
         onlyOwner
     {
-        (bool result,) = _target.delegatecall.gas(gasleft())(abi.encodeWithSignature("initialize(address)", _target));
+        (bool result,) = _target.delegatecall(abi.encodeWithSignature("initialize(address)", _target));
         require(result, "Proxiable::_replaceContract: failed");
     }
 
@@ -63,6 +64,17 @@ contract BZxProxySettings is BZxStorage, BZxProxiable {
         bytes4 f = bytes4(keccak256(abi.encodePacked(_funcId)));
         targets[f] = _target;
         return f;
+    }
+
+    function setTargetByBytes(
+        bytes4 _funcId,
+        address _target) // logic contract address
+        public
+        onlyOwner
+        returns(bytes4)
+    {
+        targets[_funcId] = _target;
+        return _funcId;
     }
 
     function toggleTargetPause(

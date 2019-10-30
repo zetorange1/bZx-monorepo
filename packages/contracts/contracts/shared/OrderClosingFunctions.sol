@@ -90,7 +90,7 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
                         receiver,
                         dispurseAmount
                     )) {
-                        revert("BZxLoanHealth::liquidatePosition: BZxVault.withdrawToken excess failed");
+                        revert("BZxVault.withdrawToken excess failed");
                     }
                     if (loanPosition.positionTokenAddressFilled != loanPosition.collateralTokenAddressFilled) {
                         dispurseAmount = 0;
@@ -297,6 +297,9 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
         returns (uint256 loanAmountBought, uint256 positionAmountSold)
     {
         TraderInterest storage traderInterest = traderLoanInterest[loanPosition.positionId];
+        if (traderInterest.interestOwedPerDay == 0) {
+            return (0, 0);
+        }
 
         uint256 owedPerDayRefund;
         if (closeAmount < loanPosition.loanTokenAmountFilled) {

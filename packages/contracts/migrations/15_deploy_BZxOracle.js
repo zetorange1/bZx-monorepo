@@ -19,9 +19,9 @@ const config = require("../protocol-config.js");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const OLD_ORACLE_ADDRESS = "";
-//const OLD_ORACLE_ADDRESS = "0xde89afc93e381744745737641619a025d11ee79f"; // mainnet
+//const OLD_ORACLE_ADDRESS = "0xc5c4554dc5ff2076206b5b3e1abdfb77ff74788b"; // mainnet
 //const OLD_ORACLE_ADDRESS = "0x208ec15dbb52b417343887ed8a5523d3c4d23e55"; // ropsten
-//const OLD_ORACLE_ADDRESS = "0x7ec0426c9a9a2200e113cbe5871bd1f0b82b919d"; // kovan
+//const OLD_ORACLE_ADDRESS = "0x4Ad8DBD6f2B08813E35b639Bb46DEe204cCCcd3D"; // kovan
 
 module.exports = (deployer, network, accounts) => {
 
@@ -107,7 +107,7 @@ module.exports = (deployer, network, accounts) => {
           "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", // USDC
           "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359", // DAI
           "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599", // WBTC
-          //"0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", // MKR
+          "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", // MKR
           "0xdd974d5c2e2928dea5f71b9825b8b646686bd200", // KNC
           "0x1985365e9f78359a9b6ad760e32412f4a445e862", // REP
           "0x0d8775f648430679a709e98d2b0cb6250d2887ef", // BAT
@@ -120,7 +120,7 @@ module.exports = (deployer, network, accounts) => {
           "true", // USDC
           "true", // DAI
           "true", // WBTC
-          //"true", // MKR
+          "true", // MKR
           "true", // KNC
           "true", // REP
           "true", // BAT
@@ -150,7 +150,7 @@ module.exports = (deployer, network, accounts) => {
           "0xdd974d5c2e2928dea5f71b9825b8b646686bd200", // KNC
           //"0x1985365e9f78359a9b6ad760e32412f4a445e862", // REP
           "0x0d8775f648430679a709e98d2b0cb6250d2887ef", // BAT
-          //"0xe41d2489571d322189246dafa5ebde1f4699f498", // ZRX
+          "0xe41d2489571d322189246dafa5ebde1f4699f498", // ZRX
           "0x514910771af9ca656af840dff83e8264ecf986ca"  // LINK
         ],
         [
@@ -161,7 +161,7 @@ module.exports = (deployer, network, accounts) => {
           "70000000000000000000000",    // KNC
           //"",                           // REP - slippage high for small amounts
           "100000000000000000000000",   // BAT
-          //"",                           // ZRX - low liquidity for small amounts
+          "15000000000000000000000",    // ZRX - (low liquidity)
           "19000000000000000000000"     // LINK
         ]
         );

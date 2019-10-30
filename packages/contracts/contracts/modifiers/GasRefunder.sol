@@ -24,7 +24,7 @@ contract GasRefunder {
         bool refundSuccess
     );
 
-    modifier refundsGas(address payable payer, uint256 gasPrice, uint256 gasUsed, uint256 percentMultiplier)
+    modifier refundsGas(address payer, uint256 gasPrice, uint256 gasUsed, uint256 percentMultiplier)
     {
         _; // modified function body inserted here
 
@@ -36,7 +36,7 @@ contract GasRefunder {
         );
     }
 
-    modifier refundsGasAfterCollection(address payable payer, uint256 gasPrice, uint256 percentMultiplier)
+    modifier refundsGasAfterCollection(address payer, uint256 gasPrice, uint256 percentMultiplier)
     {
         uint256 startingGas = gasleft();
 
@@ -51,7 +51,7 @@ contract GasRefunder {
     }
 
     function calculateAndSendGasRefund(
-        address payable payer,
+        address payer,
         uint256 gasUsed,
         uint256 gasPrice,
         uint256 percentMultiplier)
@@ -93,34 +93,24 @@ contract GasRefunder {
     }
 
     function sendGasRefund(
-        address payable payer,
+        address payer,
         uint256 refundAmount,
         uint256 finalGasUsed,
         uint256 gasPrice)
         internal
         returns (bool)
     {
-        if (throwOnGasRefundFail) {
-            payer.transfer(refundAmount);
-            emit GasRefund(
-                payer,
-                finalGasUsed,
-                gasPrice,
-                refundAmount,
-                true
-            );
-        } else {
-            // allow payer.send(refundAmount) to silently fail
-            emit GasRefund(
-                payer,
-                finalGasUsed,
-                gasPrice,
-                refundAmount,
-                payer.send(refundAmount) // solhint-disable-line check-send-result
-            );
-        }
+        (bool success, ) = payer.call.value(refundAmount)("");
+        require(!throwOnGasRefundFail || success, "gas refund failed");
+
+        emit GasRefund(
+            payer,
+            finalGasUsed,
+            gasPrice,
+            refundAmount,
+            success
+        );
 
         return true;
     }
-
 }

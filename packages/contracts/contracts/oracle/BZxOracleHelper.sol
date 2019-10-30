@@ -22,9 +22,20 @@ interface IBZxOracle {
         external
         view
         returns (uint256 sourceToDestRate, uint256 sourceToDestPrecision, uint256 destTokenAmount);
+
+    function getCurrentMarginAmount(
+        address loanTokenAddress,
+        address positionTokenAddress,
+        address collateralTokenAddress,
+        uint256 loanTokenAmount,
+        uint256 positionTokenAmount,
+        uint256 collateralTokenAmount)
+        external
+        view
+        returns (uint256);
 }
 
-contract BZxOraclePriceFeed {
+contract BZxOracleHelper {
     function getTradeData(
         address sourceTokenAddress,
         address destTokenAddress,
@@ -39,6 +50,29 @@ contract BZxOraclePriceFeed {
             sourceTokenAddress,
             destTokenAddress,
             sourceTokenAmount
+        );
+    }
+
+    function getCurrentMarginAmount(
+        address loanTokenAddress,
+        address positionTokenAddress,
+        address collateralTokenAddress,
+        uint256 loanTokenAmount,
+        uint256 positionTokenAmount,
+        uint256 collateralTokenAmount)
+        public
+        view
+        returns (uint256)
+    {
+        address oracleAddress = IBZx(0x1Cf226E9413AddaF22412A2E182F9C0dE44AF002).oracleAddresses(0x4c1974e5FF413C6E061aE217040795AaA1748e8B);
+
+        return IBZxOracle(oracleAddress).getCurrentMarginAmount(
+            loanTokenAddress,
+            positionTokenAddress,
+            collateralTokenAddress,
+            loanTokenAmount,
+            positionTokenAmount,
+            collateralTokenAmount
         );
     }
 }
