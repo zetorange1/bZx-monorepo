@@ -66,45 +66,43 @@ contract CompoundBridge is Ownable {
         NO_ERROR
     }
 
-    bytes32 ethSymbol = keccak256(abi.encodePacked("cETH"));
+    address cEther;
+    mapping(address => address) public tokens; // cToken => iToken
 
-    Comptroller comptroller; // TODO do we need comptroller here at all now?
+    event NewToken(address cToken, address iToken);
 
-    event NewComptroller(Comptroller oldComptroller, Comptroller newComptroller);
-
-    constructor(Comptroller _comptroller) public {
-        setComptroller(_comptroller);
+    constructor(address[] memory cTokens, address[] memory iTokens, address _cEther) public {
+        setTokens(cTokens, iTokens);
+        setCEther(_cEther);
     }
 
-    // TODO doc
     function migrateLoan(
-        address loanToken,
+        address loanToken, // cToken address
         uint loanAmount, // the amount of underlying tokens being migrated
-        address[] calldata assets,
-        uint[] calldata amounts // should be approved to transfer
+        address[] calldata assets, // collateral cToken addresses
+        uint[] calldata amounts // collateral amounts, should be approved to transfer
     )
-        external
+    external
     {
+        require(loanAmount > 0);
+        require(assets.length > 0);
+        require(assets.length == amounts.length);
+
         CToken loanCToken = CToken(loanToken);
-
         require(loanCToken.borrowBalanceCurrent(msg.sender) >= loanAmount); // TODO not sure about this one
-
-        bool isETHLoan = keccak256(abi.encodePacked(loanCToken.symbol())) == ethSymbol;
 
         // TODO verify collateralization ratio
         // TODO verify if collateral may be redeemed (or just revert if something went wrong?)
 
-        // TODO define iToken contract – additional contract-storage needed
-        address iTokenAddress = address(0);
-        LoanToken iToken = LoanToken(iTokenAddress);
+        LoanToken iToken = LoanToken(tokens[loanToken]);
 
         iToken.flashBorrowToken(
             loanAmount,
             address(this),
             address(this),
             abi.encodeWithSignature(
-                "_migrateLoan(address,uint,address[],uint[],bool,address)",
-                loanToken, loanAmount, assets, amounts, isETHLoan, iTokenAddress
+                "_migrateLoan(address,uint,address[],uint[])",
+                loanToken, loanAmount, assets, amounts
             )
         );
     }
@@ -114,15 +112,14 @@ contract CompoundBridge is Ownable {
         uint loanAmount,
         address[] calldata assets,
         uint[] calldata amounts,
-        bool isETHLoan,
-        address iTokenAddress
+        bool isETHLoan
     )
-        external
+    external
     {
-        LoanToken iToken = LoanToken(iTokenAddress);
+        LoanToken iToken = LoanToken(tokens[loanToken]);
         uint err;
 
-        if (isETHLoan) {
+        if (loanToken == cEther) {
             CEther(loanToken).repayBorrowBehalf.value(loanAmount)(msg.sender);
         } else {
             err = CErc20(loanToken).repayBorrowBehalf(msg.sender, loanAmount);
@@ -139,10 +136,9 @@ contract CompoundBridge is Ownable {
             require(err == uint(Error.NO_ERROR), "Redeem failed");
 
             uint amountUnderlying = balanceBefore - cToken.balanceOfUnderlying(address(this));
-            bool isETH = keccak256(abi.encodePacked(cToken.symbol())) == ethSymbol;
             bytes memory loanData;
 
-            if (isETH) {
+            if (assets[i] == cEther) {
                 iToken.borrowTokenFromDeposit.value(amountUnderlying)(
                     0,
                     2000000000000000000,
@@ -169,15 +165,19 @@ contract CompoundBridge is Ownable {
         // TODO borrowAmount param of borrowTokenFromDeposit should be manipulated for this
     }
 
-    function setComptroller(Comptroller newComptroller) public onlyOwner returns (bool) { // TODO @bshevchenko: onlyOwner?
+    function setCEther(address _cEther) public onlyOwner
+    {
+        require(keccak256(abi.encodePacked(CToken(cEther).symbol())) == keccak256(abi.encodePacked("cETH")));
+        cEther = _cEther;
+    }
 
-        Comptroller oldComptroller = comptroller;
-        require(newComptroller.isComptroller(), "marker method returned false");
+    function setTokens(address[] memory cTokens, address[] memory iTokens) public onlyOwner
+    {
+        require(cTokens.length == iTokens.length);
 
-        comptroller = newComptroller;
-
-        emit NewComptroller(oldComptroller, newComptroller);
-
-        return true;
+        for (uint i = 0; i < cTokens.length; i++) {
+            tokens[cTokens[i]] = iTokens[i];
+            emit NewToken(cTokens[i], iTokens[i]);
+        }
     }
 }
