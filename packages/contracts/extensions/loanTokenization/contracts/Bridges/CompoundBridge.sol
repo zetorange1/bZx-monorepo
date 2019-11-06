@@ -89,7 +89,7 @@ contract CompoundBridge is Ownable {
         require(assets.length == amounts.length);
 
         CToken loanCToken = CToken(loanToken);
-        require(loanCToken.borrowBalanceCurrent(msg.sender) >= loanAmount); // TODO not sure about this one
+        require(loanCToken.borrowBalanceCurrent(msg.sender) >= loanAmount);
 
         // TODO verify collateralization ratio
         // TODO verify if collateral may be redeemed (or just revert if something went wrong?)
@@ -126,6 +126,9 @@ contract CompoundBridge is Ownable {
             require(err == uint(Error.NO_ERROR), "Repay borrow behalf failed");
         }
 
+        uint256 leverageAmount = 2000000000000000000;
+        uint256 initialLoanDuration = 7884000; // standard 3 months
+
         for (uint i = 0; i < assets.length; i++) {
             CToken cToken = CToken(assets[i]);
             require(cToken.transferFrom(msg.sender, address(this), amounts[i]));
@@ -141,8 +144,8 @@ contract CompoundBridge is Ownable {
             if (assets[i] == cEther) {
                 iToken.borrowTokenFromDeposit.value(amountUnderlying)(
                     0,
-                    2000000000000000000,
-                    7884000,
+                    leverageAmount,
+                    initialLoanDuration,
                     0,
                     msg.sender,
                     address(0),
@@ -151,8 +154,8 @@ contract CompoundBridge is Ownable {
             } else {
                 iToken.borrowTokenFromDeposit(
                     0,
-                    2000000000000000000,
-                    7884000,
+                    leverageAmount,
+                    initialLoanDuration,
                     amountUnderlying,
                     msg.sender,
                     CErc20(address(cToken)).underlying(),
