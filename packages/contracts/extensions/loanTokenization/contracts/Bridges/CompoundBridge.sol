@@ -5,6 +5,7 @@
 
 pragma solidity 0.5.8;
 
+import "./LoanTokenInterface.sol";
 import "../shared/openzeppelin-solidity/ERC20.sol";
 import "../shared/openzeppelin-solidity/Ownable.sol";
 
@@ -26,38 +27,6 @@ interface CErc20 {
 
 interface CEther {
     function repayBorrowBehalf(address borrower) external payable;
-}
-
-interface Comptroller {
-    function getAssetsIn(address account) external view returns (CToken[] memory);
-    function isComptroller() external view returns (bool);
-}
-
-interface LoanToken {
-    function mintWithEther(address receiver) external payable returns (uint256 mintAmount);
-    function mint(address receiver, uint256 depositAmount) external returns (uint256 mintAmount);
-
-    function flashBorrowToken(
-        uint256 borrowAmount,
-        address borrower,
-        address target,
-        bytes calldata callData
-    )
-        external
-        payable;
-
-    function borrowTokenFromDeposit(
-        uint256 borrowAmount,
-        uint256 leverageAmount,
-        uint256 initialLoanDuration,    // duration in seconds
-        uint256 collateralTokenSent,    // set to 0 if sending ETH
-        address borrower,
-        address collateralTokenAddress, // address(0) means ETH and ETH must be sent with the call
-        bytes calldata loanData // arbitrary order data
-    )
-        external
-        payable
-        returns (bytes32 loanOrderHash);
 }
 
 contract CompoundBridge is Ownable {
@@ -94,7 +63,7 @@ contract CompoundBridge is Ownable {
         // TODO verify collateralization ratio
         // TODO verify if collateral may be redeemed (or just revert if something went wrong?)
 
-        LoanToken iToken = LoanToken(tokens[loanToken]);
+        LoanTokenInterface iToken = LoanTokenInterface(tokens[loanToken]);
 
         iToken.flashBorrowToken(
             loanAmount,
@@ -116,7 +85,7 @@ contract CompoundBridge is Ownable {
     )
     external
     {
-        LoanToken iToken = LoanToken(tokens[loanToken]);
+        LoanTokenInterface iToken = LoanTokenInterface(tokens[loanToken]);
         uint err;
 
         if (loanToken == cEther) {
