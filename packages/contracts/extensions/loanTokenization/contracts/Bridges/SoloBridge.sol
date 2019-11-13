@@ -10,6 +10,7 @@ import "../shared/openzeppelin-solidity/ERC20.sol";
 import "../shared/openzeppelin-solidity/Ownable.sol";
 import "./solo/SoloMargin.sol";
 import "./solo/lib/Account.sol";
+import "./solo/lib/Actions.sol";
 import "./LoanTokenInterface.sol";
 
 contract SoloBridge is Ownable
@@ -54,7 +55,7 @@ contract SoloBridge is Ownable
             address(this),
             address(this),
             abi.encodeWithSignature(
-                "_migrateLoan(address,uint,address[],uint[])", // TODO change signature
+                "_migrateLoan(Account.Info,uint,uint,uint[],uint[])",
                 account, marketId, loanAmount, marketIds, amounts
             )
         );
@@ -71,17 +72,29 @@ contract SoloBridge is Ownable
     {
         LoanTokenInterface iToken = LoanTokenInterface(tokens[marketId]);
 
-        // TODO repay borrow
-        // SoloMargin(sm).operate();
+        SoloMargin(sm).operate(
+            [account],
+            [Actions.ActionsArgs({
+                actionType: Actions.ActionType.Deposit,
+                amount: loanAmount,
+                primaryMarketId: marketId,
+                otherAddress: address(this)
+            })]
+        );
 
         for (uint i = 0; i < marketIds.length; i++) {
-            // TODO withdraw (this contract should be added as operator of sender's Solo account)
-            // SoloMargin(sm).operate();
-
-            uint amountUnderlying = loanAmount; // TODO are you sure?
+            SoloMargin(sm).operate(
+                [account],
+                [Actions.ActionsArgs({
+                    actionType: Actions.ActionType.Withdraw,
+                    amount: amounts[i],
+                    primaryMarketId: marketIds[i],
+                    otherAddress: address(this)
+                })]
+            );
 
             if (marketIds[i] == 0) { // 0 is ETH market
-                iToken.borrowTokenFromDeposit.value(amountUnderlying)(
+                iToken.borrowTokenFromDeposit.value(loanAmount)(
                     0,
                     leverageAmount,
                     initialLoanDuration,
@@ -95,7 +108,7 @@ contract SoloBridge is Ownable
                     0,
                     leverageAmount,
                     initialLoanDuration,
-                    amountUnderlying,
+                    loanAmount,
                     msg.sender,
                     iToken.loanTokenAddress(),
                     loanData
