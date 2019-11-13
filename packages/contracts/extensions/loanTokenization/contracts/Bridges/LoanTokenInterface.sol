@@ -4,6 +4,8 @@
  */
 
 interface LoanTokenInterface {
+    function loanTokenAddress() external view returns (address);
+
     function mintWithEther(address receiver) external payable returns (uint256 mintAmount);
     function mint(address receiver, uint256 depositAmount) external returns (uint256 mintAmount);
 

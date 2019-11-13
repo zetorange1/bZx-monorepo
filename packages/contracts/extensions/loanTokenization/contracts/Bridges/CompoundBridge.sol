@@ -16,7 +16,7 @@ interface CToken {
     function balanceOfUnderlying(address owner) external returns (uint);
 
     function redeem(uint redeemAmount) external returns (uint);
-    function transferFrom(address src, address dst, uint256 amount) external returns (bool);
+    function transferFrom(address src, address dst, uint amount) external returns (bool);
 }
 
 interface CErc20 {
@@ -29,11 +29,15 @@ interface CEther {
     function repayBorrowBehalf(address borrower) external payable;
 }
 
-contract CompoundBridge is Ownable {
-
+contract CompoundBridge is Ownable
+{
     enum Error {
         NO_ERROR
     }
+
+    bytes loanData;
+    uint leverageAmount = 2000000000000000000;
+    uint initialLoanDuration = 7884000; // standard 3 months
 
     address cEther;
     mapping(address => address) public tokens; // cToken => iToken
@@ -51,7 +55,7 @@ contract CompoundBridge is Ownable {
         address[] calldata assets, // collateral cToken addresses
         uint[] calldata amounts // collateral amounts, should be approved to transfer
     )
-    external
+        external
     {
         require(loanAmount > 0);
         require(assets.length > 0);
@@ -61,7 +65,7 @@ contract CompoundBridge is Ownable {
         require(loanCToken.borrowBalanceCurrent(msg.sender) >= loanAmount);
 
         // TODO verify collateralization ratio
-        // TODO verify if collateral may be redeemed (or just revert if something went wrong?)
+        // TODO verify if collateral may be redeemed
 
         LoanTokenInterface iToken = LoanTokenInterface(tokens[loanToken]);
 
@@ -80,10 +84,9 @@ contract CompoundBridge is Ownable {
         address loanToken,
         uint loanAmount,
         address[] calldata assets,
-        uint[] calldata amounts,
-        bool isETHLoan
+        uint[] calldata amounts
     )
-    external
+        external
     {
         LoanTokenInterface iToken = LoanTokenInterface(tokens[loanToken]);
         uint err;
@@ -95,9 +98,6 @@ contract CompoundBridge is Ownable {
             require(err == uint(Error.NO_ERROR), "Repay borrow behalf failed");
         }
 
-        uint256 leverageAmount = 2000000000000000000;
-        uint256 initialLoanDuration = 7884000; // standard 3 months
-
         for (uint i = 0; i < assets.length; i++) {
             CToken cToken = CToken(assets[i]);
             require(cToken.transferFrom(msg.sender, address(this), amounts[i]));
@@ -108,7 +108,6 @@ contract CompoundBridge is Ownable {
             require(err == uint(Error.NO_ERROR), "Redeem failed");
 
             uint amountUnderlying = balanceBefore - cToken.balanceOfUnderlying(address(this));
-            bytes memory loanData;
 
             if (assets[i] == cEther) {
                 iToken.borrowTokenFromDeposit.value(amountUnderlying)(
