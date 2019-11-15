@@ -5,9 +5,7 @@
 
 pragma solidity 0.5.8;
 
-import "./LoanTokenInterface.sol";
-import "../shared/openzeppelin-solidity/ERC20.sol";
-import "../shared/openzeppelin-solidity/Ownable.sol";
+import "./BZxBridge.sol";
 
 
 interface CToken {
@@ -29,15 +27,11 @@ interface CEther {
     function repayBorrowBehalf(address borrower) external payable;
 }
 
-contract CompoundBridge is Ownable
+contract CompoundBridge is BZxBridge
 {
     enum Error {
         NO_ERROR
     }
-
-    bytes loanData;
-    uint leverageAmount = 2000000000000000000;
-    uint initialLoanDuration = 7884000; // standard 3 months
 
     address cEther;
     mapping(address => address) public tokens; // cToken => iToken
@@ -105,7 +99,7 @@ contract CompoundBridge is Ownable
             uint balanceBefore = cToken.balanceOfUnderlying(address(this));
 
             err = cToken.redeem(amounts[i]);
-            require(err == uint(Error.NO_ERROR), "Redeem failed");
+            require(err == uint(Error.NO_ERROR), "Redeem failed"); // TODO concatenate i
 
             uint amountUnderlying = balanceBefore - cToken.balanceOfUnderlying(address(this));
 

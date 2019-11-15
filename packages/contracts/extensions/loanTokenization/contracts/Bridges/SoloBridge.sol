@@ -6,19 +6,65 @@
 pragma solidity 0.5.8;
 pragma experimental ABIEncoderV2;
 
-import "../shared/openzeppelin-solidity/ERC20.sol";
-import "../shared/openzeppelin-solidity/Ownable.sol";
-import "./solo/SoloMargin.sol";
-import "./solo/lib/Account.sol";
-import "./solo/lib/Actions.sol";
-import "./LoanTokenInterface.sol";
+import "./BZxBridge.sol";
 
-contract SoloBridge is Ownable
+
+library Account {
+    struct Info {
+        address owner;
+        uint256 number;
+    }
+}
+
+library Types {
+    struct Wei {
+        bool sign; // true if positive
+        uint256 value;
+    }
+
+    enum AssetDenomination {
+        Wei, // the amount is denominated in wei
+        Par  // the amount is denominated in par
+    }
+
+    enum AssetReference {
+        Delta, // the amount is given as a delta from the current value
+        Target // the amount is given as an exact number to end up at
+    }
+
+    struct AssetAmount {
+        bool sign; // true if positive
+        AssetDenomination denomination;
+        AssetReference ref;
+        uint256 value;
+    }
+}
+
+library Actions {
+    enum ActionType {
+        Deposit,   // supply tokens
+        Withdraw  // borrow tokens
+    }
+
+    struct ActionArgs {
+        ActionType actionType;
+        uint256 accountId;
+        Types.AssetAmount amount;
+        uint256 primaryMarketId;
+        uint256 secondaryMarketId;
+        address otherAddress;
+        uint256 otherAccountId;
+        bytes data;
+    }
+}
+
+contract SoloMargin {
+    function operate(Account.Info[] memory accounts, Actions.ActionArgs[] memory actions) public;
+    function getAccountWei(Account.Info memory account, uint256 marketId) public view returns (Types.Wei memory);
+}
+
+contract SoloBridge is BZxBridge
 {
-    bytes loanData;
-    uint leverageAmount = 2000000000000000000;
-    uint initialLoanDuration = 7884000; // standard 3 months
-
     address sm; // SoloMargin contract address
     mapping(uint => address) public tokens; // Solo market id => iToken
 
@@ -33,7 +79,7 @@ contract SoloBridge is Ownable
         Account.Info calldata account,
         uint marketId, // Solo market id
         uint loanAmount, // the amount of underlying tokens being migrated
-        uint[] calldata marketIds, // collateral market ids
+        uint[] calldata marketIds, // collateral market ids8812
         uint[] calldata amounts // collateral amounts
     )
         external
@@ -72,28 +118,51 @@ contract SoloBridge is Ownable
     {
         LoanTokenInterface iToken = LoanTokenInterface(tokens[marketId]);
 
-        SoloMargin(sm).operate(
-            [account],
-            [Actions.ActionsArgs({
-                actionType: Actions.ActionType.Deposit,
-                amount: loanAmount,
-                primaryMarketId: marketId,
-                otherAddress: address(this)
-            })]
-        );
+        Account.Info[] memory accounts = new Account.Info[](1);
+        accounts[0] = account;
+
+        bytes memory data;
+
+        Actions.ActionArgs[] memory actions = new Actions.ActionArgs[](marketIds.length + 1);
+        actions[0] = Actions.ActionArgs({
+            actionType: Actions.ActionType.Deposit,
+            amount: Types.AssetAmount({
+                sign: true,
+                denomination: Types.AssetDenomination.Wei,
+                ref: Types.AssetReference.Delta,
+                value: loanAmount
+            }),
+            primaryMarketId: marketId,
+            otherAddress: address(this),
+            accountId: 0,
+            secondaryMarketId: 0,
+            otherAccountId: 0,
+            data: data
+        });
 
         for (uint i = 0; i < marketIds.length; i++) {
-            SoloMargin(sm).operate(
-                [account],
-                [Actions.ActionsArgs({
-                    actionType: Actions.ActionType.Withdraw,
-                    amount: amounts[i],
-                    primaryMarketId: marketIds[i],
-                    otherAddress: address(this)
-                })]
-            );
+            actions[i + 1] = Actions.ActionArgs({
+                actionType: Actions.ActionType.Withdraw,
+                amount: Types.AssetAmount({
+                    sign: false,
+                    denomination: Types.AssetDenomination.Wei,
+                    ref: Types.AssetReference.Delta,
+                    value: amounts[i]
+                }),
+                primaryMarketId: marketIds[i],
+                otherAddress: address(this),
+                accountId: 0,
+                secondaryMarketId: 0,
+                otherAccountId: 0,
+                data: data
+            });
+        }
 
+        SoloMargin(sm).operate(accounts, actions);
+
+        for (uint i = 0; i < marketIds.length; i++) {
             if (marketIds[i] == 0) { // 0 is ETH market
+                // TODO unwrap ETH?
                 iToken.borrowTokenFromDeposit.value(loanAmount)(
                     0,
                     leverageAmount,
