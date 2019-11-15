@@ -79,7 +79,7 @@ contract SoloBridge is BZxBridge
         Account.Info calldata account,
         uint marketId, // Solo market id
         uint loanAmount, // the amount of underlying tokens being migrated
-        uint[] calldata marketIds, // collateral market ids8812
+        uint[] calldata marketIds, // collateral market ids
         uint[] calldata amounts // collateral amounts
     )
         external
@@ -161,28 +161,16 @@ contract SoloBridge is BZxBridge
         SoloMargin(sm).operate(accounts, actions);
 
         for (uint i = 0; i < marketIds.length; i++) {
-            if (marketIds[i] == 0) { // 0 is ETH market
-                // TODO unwrap ETH?
-                iToken.borrowTokenFromDeposit.value(loanAmount)(
-                    0,
-                    leverageAmount,
-                    initialLoanDuration,
-                    0,
-                    msg.sender,
-                    address(0),
-                    loanData
-                );
-            } else {
-                iToken.borrowTokenFromDeposit(
-                    0,
-                    leverageAmount,
-                    initialLoanDuration,
-                    loanAmount,
-                    msg.sender,
-                    iToken.loanTokenAddress(),
-                    loanData
-                );
-            }
+            uint market = marketIds[i];
+            iToken.borrowTokenFromDeposit(
+                0,
+                leverageAmount,
+                initialLoanDuration,
+                amounts[i],
+                msg.sender,
+                LoanTokenInterface(tokens[market]).loanTokenAddress(),
+                loanData
+            );
         }
 
         // TODO If there is excess collateral above a certain level, the rest is used to mint iTokens...
