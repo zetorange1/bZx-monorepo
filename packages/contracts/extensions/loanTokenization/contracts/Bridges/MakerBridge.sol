@@ -25,9 +25,10 @@ interface JoinAdapter {
 contract MakerBridge is BZxBridge
 {
     address dai;
-    address iDai;
-    address cdpManager;
     address joinDAI;
+
+    LoanTokenInterface iDai;
+    CDPManager cdpManager;
 
     // TODO if there is no other way, then add setters for the following mappings:
     mapping(bytes32 => address) public joinAdapters; // ilk => join adapter address
@@ -35,9 +36,10 @@ contract MakerBridge is BZxBridge
 
     constructor(address _dai, address _iDai, address _cdpManager, address _joinDAI) public {
         dai = _dai;
-        iDai = _iDai;
-        cdpManager = _cdpManager;
         joinDAI = _joinDAI;
+
+        iDai = LoanTokenInterface(_iDai);
+        cdpManager = CDPManager(_cdpManager);
     }
 
     function migrateLoan(
@@ -60,7 +62,7 @@ contract MakerBridge is BZxBridge
 
         ERC20(dai).approve(joinDAI, loanAmount);
 
-        LoanTokenInterface(iDai).flashBorrowToken(
+        iDai.flashBorrowToken(
             loanAmount,
             address(this),
             address(this),
@@ -82,19 +84,19 @@ contract MakerBridge is BZxBridge
             uint cdp = cdps[i];
             uint dart = darts[i];
             require(
-                CDPManager(cdpManager).cdpCan(msg.sender, cdp, address(this)),
+                cdpManager.cdpCan(msg.sender, cdp, address(this)),
                 string(abi.encodePacked("cdp-not-allowed", COLON, i)) // TODO stringifyTruncated?
             );
 
-            address urn = CDPManager(cdpManager).urns(cdp);
+            address urn = cdpManager.urns(cdp);
             JoinAdapter(joinDAI).join(urn, dart);
 
-            CDPManager(cdpManager).frob(cdp, address(this), -int(dinks[i]), -int(dart));
+            cdpManager.frob(cdp, address(this), -int(dinks[i]), -int(dart));
 
-            bytes32 ilk = CDPManager(cdpManager).ilks(cdp);
+            bytes32 ilk = cdpManager.ilks(cdp);
             JoinAdapter(joinAdapters[ilk]).exit(address(this), dinks[i]);
 
-            LoanTokenInterface(iDai).borrowTokenFromDeposit(
+            iDai.borrowTokenFromDeposit(
                 0,
                 leverageAmount,
                 initialLoanDuration,
