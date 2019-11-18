@@ -11,6 +11,8 @@ import "./LoanTokenInterface.sol";
 
 contract BZxBridge is Ownable
 {
+    bytes2 constant COLON = 0x3a20;
+
     bytes loanData;
     uint leverageAmount = 2000000000000000000;
     uint initialLoanDuration = 7884000; // standard 3 months

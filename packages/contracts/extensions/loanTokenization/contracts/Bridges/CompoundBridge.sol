@@ -99,7 +99,10 @@ contract CompoundBridge is BZxBridge
             uint balanceBefore = cToken.balanceOfUnderlying(address(this));
 
             err = cToken.redeem(amounts[i]);
-            require(err == uint(Error.NO_ERROR), "Redeem failed"); // TODO concatenate i
+            require(
+                err == uint(Error.NO_ERROR),
+                string(abi.encodePacked("Redeem failed", COLON, i)) // TODO stringifyTruncated?
+            );
 
             uint amountUnderlying = balanceBefore - cToken.balanceOfUnderlying(address(this));
 
