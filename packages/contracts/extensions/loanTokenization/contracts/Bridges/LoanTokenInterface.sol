@@ -13,10 +13,11 @@ interface LoanTokenInterface {
         uint256 borrowAmount,
         address borrower,
         address target,
-        bytes calldata callData
+        string calldata signature,
+        bytes calldata data
     )
-    external
-    payable;
+        external
+        payable;
 
     function borrowTokenFromDeposit(
         uint256 borrowAmount,
@@ -27,7 +28,7 @@ interface LoanTokenInterface {
         address collateralTokenAddress, // address(0) means ETH and ETH must be sent with the call
         bytes calldata loanData // arbitrary order data
     )
-    external
-    payable
-    returns (bytes32 loanOrderHash);
+        external
+        payable
+        returns (bytes32 loanOrderHash);
 }

@@ -6,7 +6,6 @@
 pragma solidity 0.5.8;
 
 import "./BZxBridge.sol";
-import "../shared/openzeppelin-solidity/ERC20.sol";
 
 
 interface CDPManager {
@@ -66,14 +65,16 @@ contract MakerBridge is BZxBridge
             loanAmount,
             address(this),
             address(this),
+            "",
             abi.encodeWithSignature(
-                "_migrateLoan(uint[],uint[],uint[])",
-                cdps, darts, dinks
+                "_migrateLoan(address,uint256[],uint256[],uint256[])",
+                msg.sender, cdps, darts, dinks
             )
         );
     }
 
     function _migrateLoan(
+        address borrower,
         uint[] calldata cdps,
         uint[] calldata darts,
         uint[] calldata dinks
@@ -84,7 +85,7 @@ contract MakerBridge is BZxBridge
             uint cdp = cdps[i];
             uint dart = darts[i];
             require(
-                cdpManager.cdpCan(msg.sender, cdp, address(this)),
+                cdpManager.cdpCan(borrower, cdp, address(this)),
                 string(abi.encodePacked("cdp-not-allowed", COLON, i)) // TODO stringifyTruncated?
             );
 
@@ -96,12 +97,14 @@ contract MakerBridge is BZxBridge
             bytes32 ilk = cdpManager.ilks(cdp);
             JoinAdapter(joinAdapters[ilk]).exit(address(this), dinks[i]);
 
+            address _borrower = borrower;
+            ERC20(tokens[ilk]).approve(address(iDai), dinks[i]);
             iDai.borrowTokenFromDeposit(
                 0,
                 leverageAmount,
                 initialLoanDuration,
                 dinks[i],
-                msg.sender,
+                _borrower,
                 tokens[ilk],
                 loanData
             );

@@ -6,6 +6,7 @@
 pragma solidity 0.5.8;
 
 import "../shared/openzeppelin-solidity/Ownable.sol";
+import "../shared/openzeppelin-solidity/ERC20.sol";
 import "./LoanTokenInterface.sol";
 
 

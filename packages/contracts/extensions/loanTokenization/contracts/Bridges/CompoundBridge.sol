@@ -67,14 +67,16 @@ contract CompoundBridge is BZxBridge
             loanAmount,
             address(this),
             address(this),
+            "",
             abi.encodeWithSignature(
-                "_migrateLoan(address,uint,address[],uint[])",
-                loanToken, loanAmount, assets, amounts
+                "_migrateLoan(address,address,uint256,address[],uint256[])",
+                msg.sender, loanToken, loanAmount, assets, amounts
             )
         );
     }
 
     function _migrateLoan(
+        address borrower,
         address loanToken,
         uint loanAmount,
         address[] calldata assets,
@@ -86,15 +88,15 @@ contract CompoundBridge is BZxBridge
         uint err;
 
         if (loanToken == cEther) {
-            CEther(loanToken).repayBorrowBehalf.value(loanAmount)(msg.sender);
+            CEther(loanToken).repayBorrowBehalf.value(loanAmount)(borrower);
         } else {
-            err = CErc20(loanToken).repayBorrowBehalf(msg.sender, loanAmount);
+            err = CErc20(loanToken).repayBorrowBehalf(borrower, loanAmount);
             require(err == uint(Error.NO_ERROR), "Repay borrow behalf failed");
         }
 
         for (uint i = 0; i < assets.length; i++) {
             CToken cToken = CToken(assets[i]);
-            require(cToken.transferFrom(msg.sender, address(this), amounts[i]));
+            require(cToken.transferFrom(borrower, address(this), amounts[i]));
 
             uint balanceBefore = cToken.balanceOfUnderlying(address(this));
 
@@ -106,24 +108,27 @@ contract CompoundBridge is BZxBridge
 
             uint amountUnderlying = balanceBefore - cToken.balanceOfUnderlying(address(this));
 
+            address _borrower = borrower;
             if (assets[i] == cEther) {
                 iToken.borrowTokenFromDeposit.value(amountUnderlying)(
                     0,
                     leverageAmount,
                     initialLoanDuration,
                     0,
-                    msg.sender,
+                    _borrower,
                     address(0),
                     loanData
                 );
             } else {
+                address underlying = CErc20(address(cToken)).underlying();
+                ERC20(underlying).approve(address(iToken), amountUnderlying);
                 iToken.borrowTokenFromDeposit(
                     0,
                     leverageAmount,
                     initialLoanDuration,
                     amountUnderlying,
-                    msg.sender,
-                    CErc20(address(cToken)).underlying(),
+                    _borrower,
+                    underlying,
                     loanData
                 );
             }
