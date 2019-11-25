@@ -11,7 +11,6 @@ import "./BZxBridge.sol";
 interface CToken {
     function borrowBalanceCurrent(address account) external returns (uint);
     function symbol() external view returns (string memory);
-    function balanceOfUnderlying(address owner) external returns (uint);
 
     function redeem(uint redeemAmount) external returns (uint);
     function transferFrom(address src, address dst, uint amount) external returns (bool);
@@ -47,19 +46,18 @@ contract CompoundBridge is BZxBridge
         address loanToken, // cToken address
         uint loanAmount, // the amount of underlying tokens being migrated
         address[] calldata assets, // collateral cToken addresses
-        uint[] calldata amounts // collateral amounts, should be approved to transfer
+        uint[] calldata amounts, // collateral amounts, should be approved to transfer
+        uint[] calldata collateralAmounts // will be used for borrow on bZx
     )
         external
     {
-        require(loanAmount > 0);
-        require(assets.length > 0);
-        require(assets.length == amounts.length);
+        require(loanAmount > 0, "Invalid loan amount");
+        require(assets.length > 0, "Invalid assets");
+        require(assets.length == amounts.length, "Invalid amounts");
+        require(amounts.length == collateralAmounts.length, "Invalid collateral amounts");
 
         CToken loanCToken = CToken(loanToken);
         require(loanCToken.borrowBalanceCurrent(msg.sender) >= loanAmount);
-
-        // TODO verify collateralization ratio
-        // TODO verify if collateral may be redeemed
 
         LoanTokenInterface iToken = LoanTokenInterface(tokens[loanToken]);
 
@@ -69,8 +67,8 @@ contract CompoundBridge is BZxBridge
             address(this),
             "",
             abi.encodeWithSignature(
-                "_migrateLoan(address,address,uint256,address[],uint256[])",
-                msg.sender, loanToken, loanAmount, assets, amounts
+                "_migrateLoan(address,address,uint256,address[],uint256[],uint256[])",
+                msg.sender, loanToken, loanAmount, assets, amounts, collateralAmounts
             )
         );
     }
@@ -80,37 +78,40 @@ contract CompoundBridge is BZxBridge
         address loanToken,
         uint loanAmount,
         address[] calldata assets,
-        uint[] calldata amounts
+        uint[] calldata amounts,
+        uint[] calldata collateralAmounts
     )
         external
     {
         LoanTokenInterface iToken = LoanTokenInterface(tokens[loanToken]);
+        address loanTokenAddress = iToken.loanTokenAddress();
         uint err;
 
         if (loanToken == cEther) {
             CEther(loanToken).repayBorrowBehalf.value(loanAmount)(borrower);
         } else {
+            ERC20(loanTokenAddress).approve(loanToken, loanAmount);
             err = CErc20(loanToken).repayBorrowBehalf(borrower, loanAmount);
             require(err == uint(Error.NO_ERROR), "Repay borrow behalf failed");
         }
 
+        address _borrower = borrower;
         for (uint i = 0; i < assets.length; i++) {
             CToken cToken = CToken(assets[i]);
-            require(cToken.transferFrom(borrower, address(this), amounts[i]));
+            uint amount = amounts[i];
+            uint collateralAmount = collateralAmounts[i];
 
-            uint balanceBefore = cToken.balanceOfUnderlying(address(this));
+            require(cToken.transferFrom(_borrower, address(this), amount));
 
-            err = cToken.redeem(amounts[i]);
-            require(
-                err == uint(Error.NO_ERROR),
-                string(abi.encodePacked("Redeem failed", COLON, i)) // TODO stringifyTruncated?
-            );
+            err = cToken.redeem(amount);
+            requireThat(err == uint(Error.NO_ERROR), "Redeem failed", i);
 
-            uint amountUnderlying = balanceBefore - cToken.balanceOfUnderlying(address(this));
+            LoanTokenInterface iTokenCollateral = LoanTokenInterface(tokens[address(cToken)]);
 
-            address _borrower = borrower;
-            if (assets[i] == cEther) {
-                iToken.borrowTokenFromDeposit.value(amountUnderlying)(
+            uint excess = amount - collateralAmount;
+
+            if (address(cToken) == cEther) {
+                iToken.borrowTokenFromDeposit.value(collateralAmount)(
                     0,
                     leverageAmount,
                     initialLoanDuration,
@@ -119,23 +120,30 @@ contract CompoundBridge is BZxBridge
                     address(0),
                     loanData
                 );
+                if (excess > 0) {
+                    iTokenCollateral.mintWithEther.value(excess)(_borrower);
+                }
             } else {
                 address underlying = CErc20(address(cToken)).underlying();
-                ERC20(underlying).approve(address(iToken), amountUnderlying);
+                ERC20(underlying).approve(address(iToken), collateralAmount);
                 iToken.borrowTokenFromDeposit(
                     0,
                     leverageAmount,
                     initialLoanDuration,
-                    amountUnderlying,
+                    collateralAmount,
                     _borrower,
                     underlying,
                     loanData
                 );
+                if (excess > 0) {
+                    ERC20(underlying).approve(address(iTokenCollateral), excess);
+                    iTokenCollateral.mint(_borrower, excess);
+                }
             }
         }
 
-        // TODO If there is excess collateral above a certain level, the rest is used to mint iTokens...
-        // TODO borrowAmount param of borrowTokenFromDeposit should be manipulated for this
+        // repaying flash borrow
+        ERC20(loanTokenAddress).transfer(address(iToken), loanAmount);
     }
 
     function setCEther(address _cEther) public onlyOwner

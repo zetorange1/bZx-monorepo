@@ -82,34 +82,29 @@ contract SoloBridge is BZxBridge
         uint marketId, // Solo market id
         uint loanAmount, // the amount of underlying tokens being migrated
         uint[] calldata marketIds, // collateral market ids
-        uint[] calldata amounts // collateral amounts
+        uint[] calldata amounts, // collateral amounts to migrate
+        uint[] calldata collateralAmounts // will be used for borrow on bZx
     )
         external
     {
-        require(loanAmount > 0);
-        require(marketIds.length > 0);
-        require(marketIds.length == amounts.length);
+        require(loanAmount > 0, "Invalid loan amount");
+        require(marketIds.length > 0, "Invalid markets");
+        require(marketIds.length == amounts.length, "Invalid amounts");
+        require(amounts.length == collateralAmounts.length, "Invalid collateral amounts");
 
         require(sm.getIsLocalOperator(msg.sender, address(this)), "Bridge is not an operator");
 
         Types.Wei memory accountWei = sm.getAccountWei(account, marketId);
-        require(!accountWei.sign && accountWei.value >= loanAmount);
-
-        // TODO verify collateralization ratio
-        // TODO verify if collateral may be redeemed
+        require(!accountWei.sign && accountWei.value >= loanAmount, "Invalid Solo balance");
 
         LoanTokenInterface iToken = LoanTokenInterface(tokens[marketId]);
 
-        iToken.flashBorrowToken(
-            loanAmount,
-            address(this),
-            address(this),
-            "",
-            abi.encodeWithSignature(
-                "_migrateLoan(address,uint256,uint256,uint256,uint256[],uint256[])",
-                msg.sender, account.number, marketId, loanAmount, marketIds, amounts
-            )
+        bytes memory data = abi.encodeWithSignature(
+            "_migrateLoan(address,uint256,uint256,uint256,uint256[],uint256[],uint256[])",
+            msg.sender, account.number, marketId, loanAmount, marketIds, amounts, collateralAmounts
         );
+
+        iToken.flashBorrowToken(loanAmount, address(this), address(this), "", data);
     }
 
     function _migrateLoan(
@@ -118,7 +113,8 @@ contract SoloBridge is BZxBridge
         uint marketId,
         uint loanAmount,
         uint[] calldata marketIds,
-        uint[] calldata amounts
+        uint[] calldata amounts,
+        uint[] calldata collateralAmounts
     )
         external
     {
@@ -128,8 +124,9 @@ contract SoloBridge is BZxBridge
         accounts[0] = Account.Info(borrower, account);
 
         bytes memory data;
+        address loanTokenAddress = iToken.loanTokenAddress();
 
-        ERC20(iToken.loanTokenAddress()).approve(address(sm), loanAmount);
+        ERC20(loanTokenAddress).approve(address(sm), loanAmount);
 
         Actions.ActionArgs[] memory actions = new Actions.ActionArgs[](marketIds.length + 1);
         actions[0] = Actions.ActionArgs({
@@ -170,22 +167,35 @@ contract SoloBridge is BZxBridge
 
         address _borrower = borrower;
         for (uint i = 0; i < marketIds.length; i++) {
+            requireThat(collateralAmounts[i] <= amounts[i], "Collateral amount exceeds total value", i);
+
             uint market = marketIds[i];
-            address underlying = LoanTokenInterface(tokens[market]).loanTokenAddress();
-            ERC20(underlying).approve(address(iToken), amounts[i]);
+            uint amount = amounts[i];
+            uint collateralAmount = collateralAmounts[i];
+            LoanTokenInterface iTokenCollateral = LoanTokenInterface(tokens[market]);
+            address underlying = iTokenCollateral.loanTokenAddress();
+
+            ERC20(underlying).approve(address(iToken), amount);
+
             iToken.borrowTokenFromDeposit(
                 0,
                 leverageAmount,
                 initialLoanDuration,
-                amounts[i],
+                collateralAmount,
                 _borrower,
                 underlying,
                 loanData
             );
+
+            uint excess = amount - collateralAmount;
+            if (excess > 0) {
+                ERC20(underlying).approve(address(iTokenCollateral), excess);
+                iTokenCollateral.mint(_borrower, excess);
+            }
         }
 
-        // TODO If there is excess collateral above a certain level, the rest is used to mint iTokens...
-        // TODO borrowAmount param of borrowTokenFromDeposit should be manipulated for this
+        // repaying flash borrow
+        ERC20(loanTokenAddress).transfer(address(iToken), loanAmount);
     }
 
     function setTokens(uint[] memory marketIds, address[] memory iTokens) public onlyOwner
