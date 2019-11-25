@@ -24,7 +24,7 @@ const Button = styled(MuiButton)`
 `;
 
 export default class Bounties extends BZxComponent {
-  state = { loans: [], loading: false, error: false, count: 50, showAll: false };
+  state = { loans: [], loading: false, error: false, count: 150, showAll: false };
 
   componentDidMount() {
     this.getLoans();

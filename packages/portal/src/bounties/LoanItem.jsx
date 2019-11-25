@@ -7,6 +7,7 @@ import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
+import Input from "@material-ui/core/Input";
 import BigNumber from "bignumber.js";
 
 import OrderItem from "../orders/OrderHistory/OrderItem";
@@ -68,12 +69,16 @@ export default class LoanItem extends BZxComponent {
     maintenanceMarginAmount: null,
     currentMarginAmount: null,
     showOrderDialog: false,
-    order: undefined
+    order: undefined,
+    amount: "0"
   };
 
   componentDidMount = async () => {
     this.getMarginLevels();
   };
+
+  setStateForInput = key => event =>
+    this.setState({ [key]: event.target.value });
 
   getMarginLevels = async () => {
     const { bZx, data } = this.props;
@@ -129,6 +134,7 @@ export default class LoanItem extends BZxComponent {
   liquidate = () => {
     const { bZx, web3, accounts, data } = this.props;
     const { loanOrderHash, trader } = data;
+    let amount = new BigNumber(this.state.amount).times(10**18);
 
     const txOpts = {
       from: accounts[0],
@@ -145,7 +151,7 @@ export default class LoanItem extends BZxComponent {
     const txObj = bZx.liquidateLoan({
       loanOrderHash,
       trader,
-      liquidateAmount: "0", // full position
+      liquidateAmount: amount.toFixed(0), // full position
       getObject: true
     });
 
@@ -195,7 +201,8 @@ export default class LoanItem extends BZxComponent {
       error,
       initialMarginAmount,
       maintenanceMarginAmount,
-      currentMarginAmount
+      currentMarginAmount,
+      amount
     } = this.state;
     const isUnSafe = currentMarginAmount ? !BigNumber(currentMarginAmount)
       .gt(maintenanceMarginAmount) : false;
@@ -305,6 +312,10 @@ export default class LoanItem extends BZxComponent {
             >
               Liquidate
             </Button>
+            <Input
+              value={amount}
+              onChange={this.setStateForInput(`amount`)}
+            />
             <DataPoint style={{ marginTop: `12px` }}>
               {isExpired // eslint-disable-line no-nested-ternary
                 ? `Loan is Expired`
