@@ -70,7 +70,8 @@ export default class LoanItem extends BZxComponent {
     currentMarginAmount: null,
     showOrderDialog: false,
     order: undefined,
-    amount: "0"
+    amount: "0",
+    precision: "18",
   };
 
   componentDidMount = async () => {
@@ -134,7 +135,10 @@ export default class LoanItem extends BZxComponent {
   liquidate = () => {
     const { bZx, web3, accounts, data } = this.props;
     const { loanOrderHash, trader } = data;
-    let amount = new BigNumber(this.state.amount).times(10**18);
+    let decimals = new BigNumber(this.state.precision);
+    let amount = new BigNumber(this.state.amount);
+    if (amount.lte(0) || decimals.lte(0) || decimals.gt(18)) return;
+    amount = amount.times(10**decimals.toNumber());
 
     const txOpts = {
       from: accounts[0],
@@ -196,13 +200,15 @@ export default class LoanItem extends BZxComponent {
 
   render() {
     const { data, tokens, bZx, accounts, showAll } = this.props;
+    console.log(data);
     const {
       loadingMargins,
       error,
       initialMarginAmount,
       maintenanceMarginAmount,
       currentMarginAmount,
-      amount
+      amount,
+      precision
     } = this.state;
     const isUnSafe = currentMarginAmount ? !BigNumber(currentMarginAmount)
       .gt(maintenanceMarginAmount) : false;
@@ -315,6 +321,10 @@ export default class LoanItem extends BZxComponent {
             <Input
               value={amount}
               onChange={this.setStateForInput(`amount`)}
+            />
+            <Input
+              value={precision}
+              onChange={this.setStateForInput(`precision`)}
             />
             <DataPoint style={{ marginTop: `12px` }}>
               {isExpired // eslint-disable-line no-nested-ternary
