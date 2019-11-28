@@ -33,13 +33,14 @@ contract CompoundBridge is BZxBridge
     }
 
     address cEther;
-    mapping(address => address) public tokens; // cToken => iToken
+    mapping(address => address) public iTokens; // cToken => iToken
+    mapping(address => address) public tokens; // cToken => underlying
 
     event NewToken(address cToken, address iToken);
 
-    constructor(address[] memory cTokens, address[] memory iTokens, address _cEther) public {
-        setTokens(cTokens, iTokens);
+    constructor(address[] memory cTokens, address[] memory _iTokens, address _cEther) public {
         setCEther(_cEther);
+        setTokens(cTokens, _iTokens);
     }
 
     function migrateLoan(
@@ -59,7 +60,7 @@ contract CompoundBridge is BZxBridge
         CToken loanCToken = CToken(loanToken);
         require(loanCToken.borrowBalanceCurrent(msg.sender) >= loanAmount);
 
-        LoanTokenInterface iToken = LoanTokenInterface(tokens[loanToken]);
+        LoanTokenInterface iToken = LoanTokenInterface(iTokens[loanToken]);
 
         iToken.flashBorrowToken(
             loanAmount,
@@ -83,7 +84,7 @@ contract CompoundBridge is BZxBridge
     )
         external
     {
-        LoanTokenInterface iToken = LoanTokenInterface(tokens[loanToken]);
+        LoanTokenInterface iToken = LoanTokenInterface(iTokens[loanToken]);
         address loanTokenAddress = iToken.loanTokenAddress();
         uint err;
 
@@ -106,7 +107,7 @@ contract CompoundBridge is BZxBridge
             err = cToken.redeem(amount);
             requireThat(err == uint(Error.NO_ERROR), "Redeem failed", i);
 
-            LoanTokenInterface iTokenCollateral = LoanTokenInterface(tokens[address(cToken)]);
+            LoanTokenInterface iCollateral = LoanTokenInterface(iTokens[address(cToken)]);
 
             uint excess = amount - collateralAmount;
 
@@ -121,23 +122,23 @@ contract CompoundBridge is BZxBridge
                     loanData
                 );
                 if (excess > 0) {
-                    iTokenCollateral.mintWithEther.value(excess)(_borrower);
+                    iCollateral.mintWithEther.value(excess)(_borrower);
                 }
             } else {
-                address underlying = CErc20(address(cToken)).underlying();
+                address underlying = tokens[address(cToken)];
                 ERC20(underlying).approve(address(iToken), collateralAmount);
                 iToken.borrowTokenFromDeposit(
                     0,
                     leverageAmount,
                     initialLoanDuration,
                     collateralAmount,
-                    _borrower,
+                    _borrower, // TODO bridge won't be a receiver and hence won't be able to repay flash borrow
                     underlying,
                     loanData
                 );
                 if (excess > 0) {
-                    ERC20(underlying).approve(address(iTokenCollateral), excess);
-                    iTokenCollateral.mint(_borrower, excess);
+                    ERC20(underlying).approve(address(iCollateral), excess);
+                    iCollateral.mint(_borrower, excess);
                 }
             }
         }
@@ -148,17 +149,34 @@ contract CompoundBridge is BZxBridge
 
     function setCEther(address _cEther) public onlyOwner
     {
-        require(keccak256(abi.encodePacked(CToken(cEther).symbol())) == keccak256(abi.encodePacked("cETH")));
+        require(isEqual(CToken(cEther).symbol(), "cETH"), "invalid cEther address");
         cEther = _cEther;
     }
 
-    function setTokens(address[] memory cTokens, address[] memory iTokens) public onlyOwner
+    function setTokens(address[] memory cTokens, address[] memory _iTokens) public onlyOwner
     {
-        require(cTokens.length == iTokens.length);
+        require(cTokens.length == _iTokens.length);
 
         for (uint i = 0; i < cTokens.length; i++) {
-            tokens[cTokens[i]] = iTokens[i];
-            emit NewToken(cTokens[i], iTokens[i]);
+            address cToken = cTokens[i];
+            LoanTokenInterface iToken = LoanTokenInterface(_iTokens[i]);
+            if (cToken != cEther) {
+                tokens[cToken] = CErc20(cToken).underlying();
+                requireThat(
+                    tokens[cToken] == iToken.loanTokenAddress(),
+                    "Incompatible tokens",
+                    i
+                );
+            } else {
+                require(isEqual(iToken.symbol(), "iETH"), "Incompatible ETH tokens");
+            }
+            iTokens[cToken] = _iTokens[i];
+            emit NewToken(cTokens[i], _iTokens[i]);
         }
+    }
+
+    function isEqual(string memory a, string memory b) private pure returns (bool)
+    {
+        return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 }

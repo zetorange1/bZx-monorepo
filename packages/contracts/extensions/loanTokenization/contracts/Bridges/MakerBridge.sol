@@ -13,10 +13,13 @@ interface CDPManager {
     function urns(uint cdp) external view returns(address);
     function cdpCan(address owner, uint cdp, address allowed) external view returns(bool);
 
-    function frob(uint cdp, address usr, int dink, int dart) external; // TODO why example has 4 arguments? frob on release failed to me
+    function frob(uint cdp, int dink, int dart) external;
 }
 
 interface JoinAdapter {
+    function ilk() external view returns (bytes32);
+    function gem() external view returns (address);
+
     function join(address urn, uint dart) external;
     function exit(address usr, uint wad) external;
 }
@@ -30,26 +33,26 @@ contract MakerBridge is BZxBridge
     CDPManager public cdpManager;
 
     mapping(bytes32 => address) public joinAdapters; // ilk => join adapter address
-    mapping(bytes32 => address) public tokens; // ilk => underlying token address
+    mapping(bytes32 => address) public gems; // ilk => underlying token address
+    mapping(bytes32 => address) public tokens; // ilk => iToken address
 
-    event NewAddresses(bytes32 ilk, address joinAdapter, address token);
+    event NewAddresses(bytes32 ilk, address joinAdapter, address iToken);
 
     constructor(
-        address _dai,
         address _iDai,
         address _cdpManager,
         address _joinDAI,
-        bytes32[] memory ilks,
         address[] memory _joinAdapters,
-        address[] memory _tokens
+        address[] memory iTokens
     ) public {
-        dai = _dai;
         joinDAI = _joinDAI;
 
         iDai = LoanTokenInterface(_iDai);
+        dai = iDai.loanTokenAddress();
+
         cdpManager = CDPManager(_cdpManager);
 
-        setJoinAdaptersAndTokens(ilks, _joinAdapters, _tokens);
+        setAddresses(_joinAdapters, iTokens);
     }
 
     function migrateLoan(
@@ -70,10 +73,8 @@ contract MakerBridge is BZxBridge
             loanAmount += darts[i];
         }
 
-        ERC20(dai).approve(joinDAI, loanAmount);
-
         bytes memory data = abi.encodeWithSignature(
-            "_migrateLoan(address,uint256[],uint256[],uint256[],uint256[],uint)",
+            "_migrateLoan(address,uint256[],uint256[],uint256[],uint256[],uint256)",
             msg.sender, cdps, darts, dinks, collateralDinks, loanAmount
         );
 
@@ -90,8 +91,9 @@ contract MakerBridge is BZxBridge
     )
         external
     {
+        ERC20(dai).approve(joinDAI, loanAmount);
+
         address _borrower = borrower;
-        uint excess = 0;
         for (uint i = 0; i < cdps.length; i++) {
             uint cdp = cdps[i];
             uint dart = darts[i];
@@ -104,49 +106,49 @@ contract MakerBridge is BZxBridge
             address urn = cdpManager.urns(cdp);
             JoinAdapter(joinDAI).join(urn, dart);
 
-            cdpManager.frob(cdp, address(this), -int(dink), -int(dart));
+            cdpManager.frob(cdp, -int(dink), 0);
 
             bytes32 ilk = cdpManager.ilks(cdp);
-            JoinAdapter(joinAdapters[ilk]).exit(address(this), dink);
+            address gem = gems[ilk];
+            // JoinAdapter(joinAdapters[ilk]).exit(address(this), dink); TODO remove?
 
-            ERC20(tokens[ilk]).approve(address(iDai), dink);
+            ERC20(gem).approve(address(iDai), dink);
+
             iDai.borrowTokenFromDeposit(
                 0,
                 leverageAmount,
                 initialLoanDuration,
                 collateralDink,
-                _borrower,
-                tokens[ilk],
+                _borrower, // TODO bridge won't be a receiver and hence won't be able to repay flash borrow
+                gem,
                 loanData
             );
 
-            excess += dink - collateralDink;
-        }
-        if (excess > 0) {
-            ERC20(dai).approve(address(iDai), excess);
-            iDai.mint(_borrower, excess);
+            uint excess = dink - collateralDink;
+            if (excess > 0) {
+                LoanTokenInterface iCollateral = LoanTokenInterface(tokens[ilk]);
+                ERC20(gem).approve(address(iCollateral), excess);
+                iCollateral.mint(_borrower, excess);
+            }
         }
 
         // repaying flash borrow
         ERC20(dai).transfer(address(iDai), loanAmount);
     }
 
-    function setJoinAdaptersAndTokens(
-        bytes32[] memory ilks,
-        address[] memory _joinAdapters,
-        address[] memory _tokens
-    )
-        public
-        onlyOwner
+    function setAddresses(address[] memory _joinAdapters, address[] memory iTokens) public onlyOwner
     {
-        require(ilks.length == _joinAdapters.length);
-        require(ilks.length == _tokens.length);
+        for (uint i = 0; i < _joinAdapters.length; i++) {
+            JoinAdapter ja = JoinAdapter(_joinAdapters[i]);
+            bytes32 ilk = ja.ilk();
+            joinAdapters[ilk] = address(ja);
+            gems[ilk] = ja.gem();
 
-        for (uint i = 0; i < ilks.length; i++) {
-            bytes32 ilk = ilks[i];
-            joinAdapters[ilk] = _joinAdapters[i];
-            tokens[ilk] = _tokens[i];
-            emit NewAddresses(ilk, joinAdapters[ilk], tokens[ilks[i]]);
+            LoanTokenInterface iToken = LoanTokenInterface(iTokens[i]);
+            requireThat(iToken.loanTokenAddress() == gems[ilk], "Incompatible join adapter", i);
+
+            tokens[ilk] = address(iToken);
+            emit NewAddresses(ilk, address(ja), address(iToken));
         }
     }
 }
