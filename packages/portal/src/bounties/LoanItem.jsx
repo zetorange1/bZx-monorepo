@@ -137,7 +137,7 @@ export default class LoanItem extends BZxComponent {
     const { loanOrderHash, trader } = data;
     let decimals = new BigNumber(this.state.precision);
     let amount = new BigNumber(this.state.amount);
-    if (amount.lte(0) || decimals.lte(0) || decimals.gt(18)) return;
+    if (amount.lt(0) || decimals.lte(0) || decimals.gt(18)) return;
     amount = amount.times(10**decimals.toNumber());
 
     const txOpts = {
