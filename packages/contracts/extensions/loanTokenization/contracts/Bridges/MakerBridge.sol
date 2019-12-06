@@ -14,6 +14,7 @@ interface CDPManager {
     function cdpCan(address owner, uint cdp, address allowed) external view returns(bool);
 
     function frob(uint cdp, int dink, int dart) external;
+    function flux(uint cdp, address dst, uint wad) external;
 }
 
 interface JoinAdapter {
@@ -99,7 +100,7 @@ contract MakerBridge is BZxBridge
             uint dart = darts[i];
             uint dink = dinks[i];
             uint collateralDink = collateralDinks[i];
-            
+
             requireThat(cdpManager.cdpCan(_borrower, cdp, address(this)), "cdp-not-allowed", i);
             requireThat(collateralDink <= dink, "Collateral amount exceeds total value (dink)", i);
 
@@ -107,10 +108,12 @@ contract MakerBridge is BZxBridge
             JoinAdapter(joinDAI).join(urn, dart);
 
             cdpManager.frob(cdp, -int(dink), 0);
+            cdpManager.flux(cdp, address(this), dink);
 
             bytes32 ilk = cdpManager.ilks(cdp);
+            JoinAdapter(joinAdapters[ilk]).exit(address(this), dink);
+
             address gem = gems[ilk];
-            // JoinAdapter(joinAdapters[ilk]).exit(address(this), dink); TODO remove?
 
             ERC20(gem).approve(address(iDai), dink);
 
@@ -119,7 +122,7 @@ contract MakerBridge is BZxBridge
                 leverageAmount,
                 initialLoanDuration,
                 collateralDink,
-                _borrower, // TODO bridge won't be a receiver and hence won't be able to repay flash borrow
+                address(this), // TODO @bshevchenko: bridge should be only a receiver
                 gem,
                 loanData
             );

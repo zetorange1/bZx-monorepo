@@ -132,7 +132,7 @@ contract CompoundBridge is BZxBridge
                     leverageAmount,
                     initialLoanDuration,
                     collateralAmount,
-                    _borrower, // TODO bridge won't be a receiver and hence won't be able to repay flash borrow
+                    address(this), // TODO @bshevchenko: bridge should be only a receiver
                     underlying,
                     loanData
                 );
