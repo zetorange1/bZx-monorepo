@@ -83,7 +83,8 @@ contract SoloBridge is BZxBridge
         uint loanAmount, // the amount of underlying tokens being migrated
         uint[] calldata marketIds, // collateral market ids
         uint[] calldata amounts, // collateral amounts to migrate
-        uint[] calldata collateralAmounts // will be used for borrow on bZx
+        uint[] calldata collateralAmounts, // will be used for borrow on bZx
+        uint[] calldata borrowAmounts // the amounts of underlying tokens for each new Torque loan
     )
         external
     {
@@ -91,6 +92,13 @@ contract SoloBridge is BZxBridge
         require(marketIds.length > 0, "Invalid markets");
         require(marketIds.length == amounts.length, "Invalid amounts");
         require(amounts.length == collateralAmounts.length, "Invalid collateral amounts");
+        require(collateralAmounts.length == borrowAmounts.length, "Invalid borrow amounts length");
+
+        uint totalBorrowAmount;
+        for (uint i = 0; i < borrowAmounts.length; i++) {
+            totalBorrowAmount += borrowAmounts[i];
+        }
+        require(totalBorrowAmount == loanAmount, "Invalid borrow amounts value");
 
         require(sm.getIsLocalOperator(msg.sender, address(this)), "Bridge is not an operator");
 
@@ -100,8 +108,8 @@ contract SoloBridge is BZxBridge
         LoanTokenInterface iToken = LoanTokenInterface(iTokens[marketId]);
 
         bytes memory data = abi.encodeWithSignature(
-            "_migrateLoan(address,uint256,uint256,uint256,uint256[],uint256[],uint256[])",
-            msg.sender, account.number, marketId, loanAmount, marketIds, amounts, collateralAmounts
+            "_migrateLoan(address,uint256,uint256,uint256,uint256[],uint256[],uint256[],uint256[])",
+            msg.sender, account.number, marketId, loanAmount, marketIds, amounts, collateralAmounts, borrowAmounts
         );
 
         iToken.flashBorrowToken(loanAmount, address(this), address(this), "", data);
@@ -114,7 +122,8 @@ contract SoloBridge is BZxBridge
         uint loanAmount,
         uint[] calldata marketIds,
         uint[] calldata amounts,
-        uint[] calldata collateralAmounts
+        uint[] calldata collateralAmounts,
+        uint[] calldata borrowAmounts
     )
         external
     {
@@ -178,7 +187,7 @@ contract SoloBridge is BZxBridge
             ERC20(underlying).approve(address(iToken), collateralAmount);
 
             iToken.borrowTokenFromDeposit(
-                0,
+                borrowAmounts[i],
                 leverageAmount,
                 initialLoanDuration,
                 collateralAmount,
