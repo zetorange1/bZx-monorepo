@@ -78,15 +78,15 @@ contract SoloBridge is BZxBridge
     }
 
     function migrateLoan(
-        Account.Info calldata account,
+        Account.Info memory account,
         uint marketId, // Solo market id
         uint loanAmount, // the amount of underlying tokens being migrated
-        uint[] calldata marketIds, // collateral market ids
-        uint[] calldata amounts, // collateral amounts to migrate
-        uint[] calldata collateralAmounts, // will be used for borrow on bZx
-        uint[] calldata borrowAmounts // the amounts of underlying tokens for each new Torque loan
+        uint[] memory marketIds, // collateral market ids
+        uint[] memory amounts, // collateral amounts to migrate
+        uint[] memory collateralAmounts, // will be used for borrow on bZx
+        uint[] memory borrowAmounts // the amounts of underlying tokens for each new Torque loan
     )
-        external
+        public
     {
         require(loanAmount > 0, "Invalid loan amount");
         require(marketIds.length > 0, "Invalid markets");
@@ -108,50 +108,36 @@ contract SoloBridge is BZxBridge
         LoanTokenInterface iToken = LoanTokenInterface(iTokens[marketId]);
 
         bytes memory data = abi.encodeWithSignature(
-            "_migrateLoan(address,uint256,uint256,uint256,uint256[],uint256[],uint256[],uint256[])",
-            msg.sender, account.number, marketId, loanAmount, marketIds, amounts, collateralAmounts, borrowAmounts
+            "_migrateLoan(address,uint256[3],uint256[],uint256[],uint256[],uint256[])",
+            msg.sender, [account.number, marketId, loanAmount], marketIds, amounts, collateralAmounts, borrowAmounts
         );
 
         iToken.flashBorrowToken(loanAmount, address(this), address(this), "", data);
     }
 
-    function _migrateLoan(
-        address borrower,
-        uint account,
-        uint marketId,
-        uint loanAmount,
-        uint[] calldata marketIds,
-        uint[] calldata amounts,
-        uint[] calldata collateralAmounts,
-        uint[] calldata borrowAmounts
+    function _buildActionArgs(
+        uint[3] memory values, // account, marketId, loanAmount
+        uint[] memory marketIds,
+        uint[] memory amounts
     )
-        external
+        internal
+        returns (Actions.ActionArgs[] memory actions)
     {
-        LoanTokenInterface iToken = LoanTokenInterface(iTokens[marketId]);
-
-        Account.Info[] memory accounts = new Account.Info[](1);
-        accounts[0] = Account.Info(borrower, account);
-
-        bytes memory data;
-        address loanTokenAddress = iToken.loanTokenAddress();
-
-        ERC20(loanTokenAddress).approve(address(sm), loanAmount);
-
-        Actions.ActionArgs[] memory actions = new Actions.ActionArgs[](marketIds.length + 1);
+        actions = new Actions.ActionArgs[](marketIds.length + 1);
         actions[0] = Actions.ActionArgs({
             actionType: Actions.ActionType.Deposit,
             amount: Types.AssetAmount({
                 sign: true,
                 denomination: Types.AssetDenomination.Wei,
                 ref: Types.AssetReference.Delta,
-                value: loanAmount
+                value: values[2]
             }),
-            primaryMarketId: marketId,
+            primaryMarketId: values[1],
             otherAddress: address(this),
             accountId: 0,
             secondaryMarketId: 0,
             otherAccountId: 0,
-            data: data
+            data: ""
         });
 
         for (uint i = 0; i < marketIds.length; i++) {
@@ -168,13 +154,40 @@ contract SoloBridge is BZxBridge
                 accountId: 0,
                 secondaryMarketId: 0,
                 otherAccountId: 0,
-                data: data
+                data: ""
             });
         }
+    }
+
+    function _migrateLoan(
+        address borrower,
+        uint[3] memory values, // account, marketId, loanAmount
+        uint[] memory marketIds,
+        uint[] memory amounts,
+        uint[] memory collateralAmounts,
+        uint[] memory borrowAmounts
+    )
+        public
+    {
+        address _borrower = borrower;
+        LoanTokenInterface iToken = LoanTokenInterface(iTokens[values[1]]);
+
+        Account.Info[] memory accounts = new Account.Info[](1);
+        accounts[0] = Account.Info(_borrower, values[0]);
+
+        //bytes memory data;
+        address loanTokenAddress = iToken.loanTokenAddress();
+
+        ERC20(loanTokenAddress).approve(address(sm), values[2]);
+
+        Actions.ActionArgs[] memory actions = _buildActionArgs(
+            values,
+            marketIds,
+            amounts
+        );
 
         sm.operate(accounts, actions);
 
-        address _borrower = borrower;
         for (uint i = 0; i < marketIds.length; i++) {
             requireThat(collateralAmounts[i] <= amounts[i], "Collateral amount exceeds total value", i);
 
@@ -193,7 +206,7 @@ contract SoloBridge is BZxBridge
                 collateralAmount,
                 address(this), // TODO @bshevchenko: bridge should be only a receiver
                 underlying,
-                loanData
+                ""
             );
 
             uint excess = amount - collateralAmount;
@@ -204,7 +217,7 @@ contract SoloBridge is BZxBridge
         }
 
         // repaying flash borrow
-        ERC20(loanTokenAddress).transfer(address(iToken), loanAmount);
+        ERC20(loanTokenAddress).transfer(address(iToken), values[2]);
     }
 
     function setTokens(uint[] memory marketIds, address[] memory _iTokens) public onlyOwner
