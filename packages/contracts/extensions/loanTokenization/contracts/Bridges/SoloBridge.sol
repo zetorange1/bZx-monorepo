@@ -169,11 +169,10 @@ contract SoloBridge is BZxBridge
     )
         public
     {
-        address _borrower = borrower;
         LoanTokenInterface iToken = LoanTokenInterface(iTokens[values[1]]);
 
         Account.Info[] memory accounts = new Account.Info[](1);
-        accounts[0] = Account.Info(_borrower, values[0]);
+        accounts[0] = Account.Info(borrower, values[0]);
 
         //bytes memory data;
         address loanTokenAddress = iToken.loanTokenAddress();
@@ -188,6 +187,7 @@ contract SoloBridge is BZxBridge
 
         sm.operate(accounts, actions);
 
+        address _borrower = borrower;
         for (uint i = 0; i < marketIds.length; i++) {
             requireThat(collateralAmounts[i] <= amounts[i], "Collateral amount exceeds total value", i);
 
@@ -204,7 +204,8 @@ contract SoloBridge is BZxBridge
                 leverageAmount,
                 initialLoanDuration,
                 collateralAmount,
-                address(this), // TODO @bshevchenko: bridge should be only a receiver
+                _borrower,
+                address(this),
                 underlying,
                 ""
             );

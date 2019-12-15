@@ -26,6 +26,7 @@ interface LoanTokenInterface {
         uint256 initialLoanDuration, // duration in seconds
         uint256 collateralTokenSent, // set to 0 if sending ETH
         address borrower,
+        address receiver,
         address collateralTokenAddress, // address(0) means ETH and ETH must be sent with the call
         bytes calldata loanData // arbitrary order data
     )
