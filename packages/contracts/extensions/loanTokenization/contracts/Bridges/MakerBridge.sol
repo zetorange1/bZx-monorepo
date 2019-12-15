@@ -57,26 +57,31 @@ contract MakerBridge is BZxBridge
     }
 
     function migrateLoan(
-        uint[] calldata cdps, // ids
-        uint[] calldata darts, // DAI amounts
-        uint[] calldata dinks, // other amounts
-        uint[] calldata collateralDinks // will be used for borrow on bZx
+        uint[] memory cdps, // ids
+        uint[] memory darts, // DAI amounts
+        uint[] memory dinks, // other amounts
+        uint[] memory collateralDinks, // will be used for borrow on bZx
+        uint[] memory borrowAmounts // the amounts of underlying tokens for each new Torque loan
     )
-        external
+        public
     {
         require(cdps.length > 0, "Invalid cdps");
         require(cdps.length == darts.length, "Invalid darts");
         require(darts.length == dinks.length, "Invalid dinks");
         require(collateralDinks.length == dinks.length, "Invalid collateral dinks");
+        require(collateralDinks.length == borrowAmounts.length, "Invalid borrow amounts length");
 
         uint loanAmount;
+        uint totalBorrowAmount;
         for (uint i = 0; i < darts.length; i++) {
             loanAmount += darts[i];
+            totalBorrowAmount += borrowAmounts[i];
         }
+        require(totalBorrowAmount == loanAmount, "Invalid borrow amounts value");
 
         bytes memory data = abi.encodeWithSignature(
-            "_migrateLoan(address,uint256[],uint256[],uint256[],uint256[],uint256)",
-            msg.sender, cdps, darts, dinks, collateralDinks, loanAmount
+            "_migrateLoan(address,uint256[],uint256[],uint256[],uint256[],uint256,uint256[])",
+            msg.sender, cdps, darts, dinks, collateralDinks, loanAmount, borrowAmounts
         );
 
         iDai.flashBorrowToken(loanAmount, address(this), address(this), "", data);
@@ -84,13 +89,14 @@ contract MakerBridge is BZxBridge
 
     function _migrateLoan(
         address borrower,
-        uint[] calldata cdps,
-        uint[] calldata darts,
-        uint[] calldata dinks,
-        uint[] calldata collateralDinks,
-        uint loanAmount
+        uint[] memory cdps,
+        uint[] memory darts,
+        uint[] memory dinks,
+        uint[] memory collateralDinks,
+        uint loanAmount,
+        uint[] memory borrowAmounts
     )
-        external
+        public
     {
         ERC20(dai).approve(joinDAI, loanAmount);
 
@@ -118,11 +124,12 @@ contract MakerBridge is BZxBridge
             ERC20(gem).approve(address(iDai), dink);
 
             iDai.borrowTokenFromDeposit(
-                0,
+                borrowAmounts[i],
                 leverageAmount,
                 initialLoanDuration,
                 collateralDink,
-                address(this), // TODO @bshevchenko: bridge should be only a receiver
+                _borrower,
+                address(this),
                 gem,
                 loanData
             );

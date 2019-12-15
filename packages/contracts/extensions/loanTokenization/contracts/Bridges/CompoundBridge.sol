@@ -46,16 +46,24 @@ contract CompoundBridge is BZxBridge
     function migrateLoan(
         address loanToken, // cToken address
         uint loanAmount, // the amount of underlying tokens being migrated
-        address[] calldata assets, // collateral cToken addresses
-        uint[] calldata amounts, // collateral amounts, should be approved to transfer
-        uint[] calldata collateralAmounts // will be used for borrow on bZx
+        address[] memory assets, // collateral cToken addresses
+        uint[] memory amounts, // collateral amounts, should be approved to transfer
+        uint[] memory collateralAmounts, // will be used for borrow on bZx
+        uint[] memory borrowAmounts // the amounts of underlying tokens for each new Torque loan
     )
-        external
+        public
     {
         require(loanAmount > 0, "Invalid loan amount");
         require(assets.length > 0, "Invalid assets");
         require(assets.length == amounts.length, "Invalid amounts");
         require(amounts.length == collateralAmounts.length, "Invalid collateral amounts");
+        require(collateralAmounts.length == borrowAmounts.length, "Invalid borrow amounts length");
+
+        uint totalBorrowAmount;
+        for (uint i = 0; i < borrowAmounts.length; i++) {
+            totalBorrowAmount += borrowAmounts[i];
+        }
+        require(totalBorrowAmount == loanAmount, "Invalid borrow amounts value");
 
         CToken loanCToken = CToken(loanToken);
         require(loanCToken.borrowBalanceCurrent(msg.sender) >= loanAmount);
@@ -68,8 +76,8 @@ contract CompoundBridge is BZxBridge
             address(this),
             "",
             abi.encodeWithSignature(
-                "_migrateLoan(address,address,uint256,address[],uint256[],uint256[])",
-                msg.sender, loanToken, loanAmount, assets, amounts, collateralAmounts
+                "_migrateLoan(address,address,uint256,address[],uint256[],uint256[],uint256[])",
+                msg.sender, loanToken, loanAmount, assets, amounts, collateralAmounts, borrowAmounts
             )
         );
     }
@@ -78,11 +86,12 @@ contract CompoundBridge is BZxBridge
         address borrower,
         address loanToken,
         uint loanAmount,
-        address[] calldata assets,
-        uint[] calldata amounts,
-        uint[] calldata collateralAmounts
+        address[] memory assets,
+        uint[] memory amounts,
+        uint[] memory collateralAmounts,
+        uint[] memory borrowAmounts
     )
-        external
+        public
     {
         LoanTokenInterface iToken = LoanTokenInterface(iTokens[loanToken]);
         address loanTokenAddress = iToken.loanTokenAddress();
@@ -113,11 +122,12 @@ contract CompoundBridge is BZxBridge
 
             if (address(cToken) == cEther) {
                 iToken.borrowTokenFromDeposit.value(collateralAmount)(
-                    0,
+                    borrowAmounts[i],
                     leverageAmount,
                     initialLoanDuration,
                     0,
                     _borrower,
+                    address(this),
                     address(0),
                     loanData
                 );
@@ -128,11 +138,12 @@ contract CompoundBridge is BZxBridge
                 address underlying = tokens[address(cToken)];
                 ERC20(underlying).approve(address(iToken), collateralAmount);
                 iToken.borrowTokenFromDeposit(
-                    0,
+                    borrowAmounts[i],
                     leverageAmount,
                     initialLoanDuration,
                     collateralAmount,
-                    address(this), // TODO @bshevchenko: bridge should be only a receiver
+                    _borrower,
+                    address(this),
                     underlying,
                     loanData
                 );
