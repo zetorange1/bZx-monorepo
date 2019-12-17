@@ -12,7 +12,7 @@ import BigNumber from "bignumber.js";
 
 import OrderItem from "../orders/OrderHistory/OrderItem";
 
-import { fromBigNumber } from "../common/utils";
+import { fromBigNumber, toBigNumber } from "../common/utils";
 
 import { COLORS } from "../styles/constants";
 
@@ -72,6 +72,8 @@ export default class LoanItem extends BZxComponent {
     order: undefined,
     amount: "0",
     precision: "18",
+    order: null,
+    position: null
   };
 
   componentDidMount = async () => {
@@ -102,18 +104,43 @@ export default class LoanItem extends BZxComponent {
     }
   };
 
-  getSingleOrder = async loanOrderHash => {
+  getSingleOrder = async () => {
     const { bZx } = this.props;
-    const order = await bZx.getSingleOrder({
-      loanOrderHash
-    });
+    let order = this.state.order;
+    if (!order) {
+      order = await bZx.getSingleOrder({
+        loanOrderHash: this.props.data.loanOrderHash
+      });
+      const position = await this.wrapAndRun(this.props.bzxContract.methods.getLoanPosition(
+        await this.wrapAndRun(this.props.bzxContract.methods.loanPositionsIds(this.props.data.loanOrderHash, this.props.data.trader).call())
+      ).call());
+      this.setState({
+        order,
+        position
+      });
+    }
+
+    console.log(this.state.order);
+    console.log(this.state.position);
+
     return order;
   };
+
+  getPrecision = addr => {
+    addr = addr.toLowerCase();
+    if (addr === "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48") { // USDC
+      return 6;
+    } else if (addr === "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599") { // WBTC
+      return 8;
+    } else {
+      return 18;
+    }
+  }
 
   toggleOrderDialog = async event => {
     event.preventDefault();
     if (event.target.id !== ``) {
-      const order = await this.getSingleOrder(event.target.id);
+      const order = await this.getSingleOrder();
       this.setState(p => ({
         showOrderDialog: !p.showOrderDialog,
         order
@@ -142,7 +169,7 @@ export default class LoanItem extends BZxComponent {
 
     const txOpts = {
       from: accounts[0],
-      gas: 6000000,
+      gas: 8000000,
       gasPrice: window.defaultGasPrice.toString()
     };
 
@@ -208,13 +235,47 @@ export default class LoanItem extends BZxComponent {
       maintenanceMarginAmount,
       currentMarginAmount,
       amount,
-      precision
+      precision,
+      order,
+      position
     } = this.state;
     const isUnSafe = currentMarginAmount ? !BigNumber(currentMarginAmount)
       .gt(maintenanceMarginAmount) : false;
     const date = moment(data.loanEndUnixTimestampSec * 1000).utc();
     const dateStr = date.format(`MMMM Do YYYY, h:mm a UTC`);
     const isExpired = moment(moment().utc()).isAfter(date);
+
+    let collateralToken, loanToken, positionToken;
+    let collateralTokenAmount, loanTokenAmount, positionTokenAmount;
+    if (order && position) {
+      const collateralTokenObj = tokens.filter(
+        t => t.address === position.collateralTokenAddressFilled.toLowerCase()
+      )[0];
+      console.log(`collateralToken`,collateralToken);
+      if (collateralTokenObj) {
+        collateralToken = collateralTokenObj.symbol;
+      }
+      collateralTokenAmount = toBigNumber(position.collateralTokenAmountFilled, 10 ** -(this.getPrecision(position.collateralTokenAddressFilled))).toString();
+
+      const loanTokenObj = tokens.filter(
+        t => t.address === order.loanTokenAddress.toLowerCase()
+      )[0];
+      console.log(`loanToken`,loanToken);
+      if (loanTokenObj) {
+        loanToken = loanTokenObj.symbol;
+      }
+      loanTokenAmount = toBigNumber(position.loanTokenAmountFilled, 10 ** -(this.getPrecision(order.loanTokenAddress))).toString();
+
+      const positionTokenObj = tokens.filter(
+        t => t.address === position.positionTokenAddressFilled.toLowerCase()
+      )[0];
+      console.log(`positionToken`,positionToken);
+      if (positionTokenObj) {
+        positionToken = positionTokenObj.symbol;
+      }
+      positionTokenAmount = toBigNumber(position.positionTokenAmountFilled, 10 ** -(this.getPrecision(position.positionTokenAddressFilled))).toString();
+    }
+
     return (
       <Card style={{ display: !showAll && !loadingMargins && !error && !isExpired && !isUnSafe ? `none` : `` }}>
         <CardContent>
@@ -290,6 +351,39 @@ export default class LoanItem extends BZxComponent {
                 <DataPoint>
                   {Math.round(100*fromBigNumber(currentMarginAmount, 1e18))/100}%
                 </DataPoint>
+              </DataPointContainer>
+
+              <br />
+
+              <DataPointContainer>
+                <Label>LoanToken</Label>
+                <DataPoint>
+                  {loanToken && loanTokenAmount ? `${loanTokenAmount} ${loanToken}` : `[query needed]`}
+                </DataPoint>
+              </DataPointContainer>
+
+              <DataPointContainer>
+                <Label>PositionToken</Label>
+                <DataPoint>
+                  {positionToken && positionTokenAmount ? `${positionTokenAmount} ${positionToken}` : `[query needed]`}
+                </DataPoint>
+              </DataPointContainer>
+
+              <DataPointContainer>
+                <Label>CollateralToken</Label>
+                <DataPoint>
+                  {collateralToken && collateralTokenAmount ? `${collateralTokenAmount} ${collateralToken}` : `[query needed]`}
+                </DataPoint>
+              </DataPointContainer>
+
+              <DataPointContainer>
+                <Button
+                style={{ marginTop: `12px`, marginRight: `12px` }}
+                variant="raised"
+                onClick={this.getSingleOrder}
+                >
+                  Get Values
+                </Button>
               </DataPointContainer>
 
               <br />

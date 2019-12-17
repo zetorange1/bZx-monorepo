@@ -24,10 +24,23 @@ const Button = styled(MuiButton)`
 `;
 
 export default class Bounties extends BZxComponent {
-  state = { loans: [], loading: false, error: false, count: 150, showAll: false };
+  state = { loans: [], loading: false, error: false, count: 150, showAll: false, bzxContract: null };
 
-  componentDidMount() {
-    this.getLoans();
+  async componentDidMount() {
+    await this.getLoans();
+
+    let bzxAddress;
+
+    /** TEMP **/
+    bzxAddress = (await this.props.bZx.getWeb3Contract(`BZx`))._address;
+    /** TEMP **/
+
+    const bzxContract = await this.props.bZx.getWeb3Contract(`BZx`, bzxAddress);
+    console.log(`bzx contract:`, bzxContract._address);
+
+    await this.setState({ 
+      bzxContract
+    });
   }
 
   setShowAllCheckbox = (e, value) => 
@@ -108,6 +121,7 @@ export default class Bounties extends BZxComponent {
           <SectionLabel>Active Loans ({loans.length})</SectionLabel>
           {loans.map(data => (
             <LoanItem
+              bzxContract={this.state.bzxContract}
               key={data.loanOrderHash + data.trader}
               bZx={bZx}
               tokens={tokens}
