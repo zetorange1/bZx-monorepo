@@ -2,7 +2,7 @@
  * Copyright 2017-2019, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
- 
+
 pragma solidity 0.5.8;
 
 import "../shared/LoanTokenization.sol";
@@ -22,6 +22,8 @@ contract LoanTokenStorage is LoanTokenization {
         uint256 maintenanceMarginAmount;
         uint256 maxDurationUnixTimestampSec;
         uint256 index;
+        uint256 marginPremiumAmount;
+        address collateralTokenAddress;
     }
 
     struct TokenReserves {

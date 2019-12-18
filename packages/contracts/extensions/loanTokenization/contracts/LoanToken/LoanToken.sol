@@ -2,7 +2,7 @@
  * Copyright 2017-2019, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
- 
+
 pragma solidity 0.5.8;
 
 import "./AdvancedTokenStorage.sol";
@@ -23,6 +23,10 @@ contract LoanToken is AdvancedTokenStorage {
         external
         payable
     {
+        if (msg.value != 0) {
+            return;
+        }
+
         address target = target_;
         bytes memory data = msg.data;
         assembly {

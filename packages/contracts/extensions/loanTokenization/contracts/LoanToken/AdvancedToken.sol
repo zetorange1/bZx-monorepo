@@ -29,7 +29,7 @@ contract AdvancedToken is AdvancedTokenStorage {
         uint256 _price)
         internal
     {
-        require(_to != address(0), "invalid address");
+        require(_to != address(0), "15");
         totalSupply_ = totalSupply_.add(_tokenAmount);
         balances[_to] = balances[_to].add(_tokenAmount);
 
@@ -44,7 +44,7 @@ contract AdvancedToken is AdvancedTokenStorage {
         uint256 _price)
         internal
     {
-        require(_tokenAmount <= balances[_who], "burn value exceeds balance");
+        require(_tokenAmount <= balances[_who], "16");
         // no need to require value <= totalSupply, since that would imply the
         // sender's balance is greater than the totalSupply, which *should* be an assertion failure
 
