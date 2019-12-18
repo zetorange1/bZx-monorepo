@@ -140,7 +140,7 @@ interface Comptroller {
     function redeemAllowed(address cToken, address redeemer, uint redeemTokens) external returns (uint);
 }
 
-contract CompoundBridge is BZxBridge, Exponential // TODO clean Exponential
+contract CompoundBridge is BZxBridge, Exponential
 {
     enum Error {
         NO_ERROR
