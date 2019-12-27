@@ -139,18 +139,16 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
         );
     }
 
-
-    function _liquidatePosition(
-        BZxVault vault,
-        OracleInterface oracle,
-        LoanOrder storage loanOrder,
-        LoanPosition storage loanPosition,
+    function getCloseAmount(
+        bytes32 loanOrderHash,
+        address trader,
         uint256 maxCloseAmount)
-        internal
-        returns (bool result)
+        external
+        returns (uint256)
     {
-        require(loanPosition.trader != msg.sender, "trader can't liquidate");
-        require(msg.sender == tx.origin, "only EOAs can liquidate");
+        LoanOrder storage loanOrder = orders[loanOrderHash];
+        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
+        OracleInterface oracle = OracleInterface(oracleAddresses[loanOrder.oracleAddress]);
 
         (uint256 currentMargin, uint256 collateralInEthAmount) = oracle.getCurrentMarginAndCollateralSize(
             loanOrder.loanTokenAddress,
@@ -160,12 +158,19 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
             loanPosition.positionTokenAmountFilled,
             loanPosition.collateralTokenAmountFilled
         );
-        if (currentMargin > loanOrder.maintenanceMarginAmount && block.timestamp < loanPosition.loanEndUnixTimestampSec) {
-            revert("loan is healthy");
-        }
 
-        uint256 closeAmount;
+        return _getCloseAmount(loanOrder, loanPosition, maxCloseAmount, currentMargin, collateralInEthAmount);
+    }
 
+    function _getCloseAmount(
+        LoanOrder storage loanOrder,
+        LoanPosition storage loanPosition,
+        uint256 maxCloseAmount,
+        uint256 currentMargin,
+        uint256 collateralInEthAmount)
+        internal
+        returns (uint256 closeAmount)
+    {
         if (block.timestamp < loanPosition.loanEndUnixTimestampSec) {
             // loan hasn't ended
 
@@ -192,6 +197,44 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
                 closeAmount = loanPosition.loanTokenAmountFilled;
             }
         } else {
+            // loans passed their end dates will fully closed if possible
+            closeAmount = loanPosition.loanTokenAmountFilled;
+        }
+
+        if (maxCloseAmount == 0 || maxCloseAmount > loanPosition.loanTokenAmountFilled) {
+            closeAmount = Math.min256(closeAmount, loanPosition.loanTokenAmountFilled);
+        } else {
+            closeAmount = Math.min256(closeAmount, maxCloseAmount);
+        }
+    }
+
+    function _liquidatePosition(
+        BZxVault vault,
+        OracleInterface oracle,
+        LoanOrder storage loanOrder,
+        LoanPosition storage loanPosition,
+        uint256 maxCloseAmount)
+        internal
+        returns (bool result)
+    {
+        require(loanPosition.trader != msg.sender, "trader can't liquidate");
+        require(msg.sender == tx.origin, "only EOAs can liquidate");
+
+        (uint256 currentMargin, uint256 collateralInEthAmount) = oracle.getCurrentMarginAndCollateralSize(
+            loanOrder.loanTokenAddress,
+            loanPosition.positionTokenAddressFilled,
+            loanPosition.collateralTokenAddressFilled,
+            loanPosition.loanTokenAmountFilled,
+            loanPosition.positionTokenAmountFilled,
+            loanPosition.collateralTokenAmountFilled
+        );
+        if (currentMargin > loanOrder.maintenanceMarginAmount && block.timestamp < loanPosition.loanEndUnixTimestampSec) {
+            revert("loan is healthy");
+        }
+
+        uint256 closeAmount = _getCloseAmount(loanOrder, loanPosition, maxCloseAmount, currentMargin, collateralInEthAmount);
+
+        if (block.timestamp > loanPosition.loanEndUnixTimestampSec) {
             // check if we need to roll-over without closing (iToken loans)
             if(collateralInEthAmount >= 0.2 ether && _handleRollOver(
                 vault,
@@ -202,15 +245,6 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
             )) {
                 return true;
             }
-
-            // loans passed their end dates will fully closed if possible
-            closeAmount = loanPosition.loanTokenAmountFilled;
-        }
-
-        if (maxCloseAmount == 0 || maxCloseAmount > loanPosition.loanTokenAmountFilled) {
-            closeAmount = Math.min256(closeAmount, loanPosition.loanTokenAmountFilled);
-        } else {
-            closeAmount = Math.min256(closeAmount, maxCloseAmount);
         }
 
         uint256 loanAmountBought;
