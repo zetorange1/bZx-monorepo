@@ -6,18 +6,20 @@
 pragma solidity 0.5.8;
 
 import "../shared/openzeppelin-solidity/SafeMath.sol";
-import "./ENSLoanTopupStorage.sol";
+import "./ENSLoanWithdrawStorage.sol";
 
 
 interface IBZx {
-    function depositCollateralForBorrower(
+    function withdrawCollateralForBorrower(
         bytes32 loanOrderHash,
-        address borrower,
-        address payer,
-        address depositTokenAddress,
-        uint256 depositAmount)
+        uint256 withdrawAmount,
+        address trader,
+        address receiver)
         external
-        returns (bool);
+        returns (
+            uint256 amountWithdrawn,
+            address collateralTokenAddress
+        );
 }
 
 interface ILoanToken {
@@ -55,12 +57,15 @@ interface iBasicToken {
         returns (uint256 value);
 }
 
-interface iWETH {
-    function deposit() external payable;
-    function withdraw(uint256 wad) external;
+interface IWethHelper {
+    function claimEther(
+        address receiver,
+        uint256 amount)
+        external
+        returns (uint256 claimAmount);
 }
 
-contract ENSLoanTopupLogic is ENSLoanTopupStorage {
+contract ENSLoanWithdrawLogic is ENSLoanWithdrawStorage {
     using SafeMath for uint256;
 
     function()
@@ -70,22 +75,43 @@ contract ENSLoanTopupLogic is ENSLoanTopupStorage {
         if (msg.sender == wethContract) {
             return;
         }
-        require(msg.value != 0, "no eth sent");
+        require(msg.value == 0, "no eth allowed");
 
         bytes32 loanOrderHash = ILoanToken(loanTokenLender).loanOrderHashes(
-            4 ether // leverageAmount
+            2 ether // leverageAmount
         );
         require(loanOrderHash != 0, "invalid hash");
 
-        iWETH(wethContract).deposit.value(msg.value)();
-
-        require(IBZx(bZxContract).depositCollateralForBorrower(
+        (uint256 amountWithdrawn, address collateralTokenAddress) = IBZx(bZxContract).withdrawCollateralForBorrower(
             loanOrderHash,
-            msg.sender,         // borrower
-            address(this),      // payer,
-            wethContract,       // depositTokenAddress
-            msg.value           // depositAmount
-        ), "deposit failed");
+            MAX_UINT,       // withdrawAmount
+            msg.sender,     // trader
+            address(this)   // receiver
+        );
+        require(amountWithdrawn != 0, "no withdrawal");
+
+        if (collateralTokenAddress == wethContract) {
+            IWethHelper wethHelper = IWethHelper(0x3b5bDCCDFA2a0a1911984F203C19628EeB6036e0);
+
+            iBasicToken(collateralTokenAddress).transfer(
+                address(wethHelper),
+                amountWithdrawn
+            );
+
+            require(amountWithdrawn == wethHelper.claimEther(msg.sender, amountWithdrawn),
+                "eth transfer failed"
+            );
+        } else {
+            iBasicToken(collateralTokenAddress).transfer(
+                msg.sender,
+                amountWithdrawn
+            );
+        }
+
+        assembly {
+            mstore(0, amountWithdrawn)
+            return(0, 32)
+        }
     }
 
     function initialize(

@@ -16,8 +16,9 @@ interface ILoanToken {
         uint256 initialLoanDuration,
         uint256 collateralTokenSent,
         address borrower,
+        address receiver,
         address collateralTokenAddress,
-        bytes calldata loanData)
+        bytes calldata loanDataBytes)
         external
         payable
         returns (bytes32 loanOrderHash);
@@ -75,21 +76,15 @@ contract ENSLoanOpenerLogic is ENSLoanOpenerStorage {
         iENSLoanOwner(ensLoanOwner).setupUser(msg.sender);
 
         if (msg.value != 0) {
-            uint256 borrowAmount = ILoanToken(loanTokenLender).getBorrowAmountForDeposit(
-                msg.value,              // depositAmount,
-                4 ether,                // leverageAmount,
-                initialLoanDuration,
-                address(0)              // collateralTokenAddress,
-            ).mul(125).div(150);        // 150% collateralization
-
             bytes32 loanOrderHash = ILoanToken(loanTokenLender).borrowTokenFromDeposit.value(msg.value)(
-                borrowAmount,
-                4 ether,                // leverageAmount
+                0,                      // borrowAmount
+                2 ether,                // leverageAmount
                 initialLoanDuration,
                 0,                      // collateralTokenSent,
                 msg.sender,             // borrower,
+                msg.sender,             // receiver,
                 address(0),             // collateralTokenAddress
-                ""                      // loanData
+                ""                      // loanDataBytes
             );
 
             assembly {

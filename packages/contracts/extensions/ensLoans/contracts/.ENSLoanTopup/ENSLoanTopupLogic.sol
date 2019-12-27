@@ -6,22 +6,18 @@
 pragma solidity 0.5.8;
 
 import "../shared/openzeppelin-solidity/SafeMath.sol";
-import "./ENSLoanRepayStorage.sol";
+import "./ENSLoanTopupStorage.sol";
 
 
 interface IBZx {
-    function paybackLoanAndClose(
+    function depositCollateralForBorrower(
         bytes32 loanOrderHash,
         address borrower,
         address payer,
-        address receiver,
-        uint256 closeAmount)
+        address depositTokenAddress,
+        uint256 depositAmount)
         external
-        returns (
-            uint256 actualCloseAmount,
-            uint256 collateralCloseAmount,
-            address collateralTokenAddress
-        );
+        returns (bool);
 }
 
 interface ILoanToken {
@@ -64,24 +60,7 @@ interface iWETH {
     function withdraw(uint256 wad) external;
 }
 
-interface iUserContract {
-    function transferAsset(
-        address asset,
-        address payable to,
-        uint256 amount)
-        external
-        returns (uint256 transferAmount);
-}
-
-interface iUserContractRegistry {
-    function userContracts(
-        address user)
-        external
-        view
-        returns (iUserContract);
-}
-
-contract ENSLoanRepayLogic is ENSLoanRepayStorage {
+contract ENSLoanTopupLogic is ENSLoanTopupStorage {
     using SafeMath for uint256;
 
     function()
@@ -91,73 +70,22 @@ contract ENSLoanRepayLogic is ENSLoanRepayStorage {
         if (msg.sender == wethContract) {
             return;
         }
-        require(msg.value == 0, "no eth allowed");
-
-        iUserContract userContract = iUserContractRegistry(userContractRegistry).userContracts(msg.sender);
-        require(address(userContract) != address(0), "contract not found");
-
-        uint256 beforeBalance = iBasicToken(loanTokenAddress).balanceOf(address(this));
-
-        uint256 transferAmount = userContract.transferAsset(
-            loanTokenAddress,
-            address(uint256(address(this))),
-            0
-        );
-        //require(transferAmount != 0, "no deposit"); <-- allow no deposit
+        require(msg.value != 0, "no eth sent");
 
         bytes32 loanOrderHash = ILoanToken(loanTokenLender).loanOrderHashes(
-            4 ether // leverageAmount
+            26985473425953342135791518606717287597326611559540027600454822645050577529548 // uint256(keccak256(abi.encodePacked(2 ether, wethContract)))
         );
         require(loanOrderHash != 0, "invalid hash");
 
-        iBasicToken token = iBasicToken(loanTokenAddress);
-        uint256 tempAllowance = token.allowance(address(this), bZxVault);
-        if (tempAllowance != MAX_UINT) {
-            if (tempAllowance != 0) {
-                // reset approval to 0
-                require(token.approve(bZxVault, 0), "token approval reset failed");
-            }
+        iWETH(wethContract).deposit.value(msg.value)();
 
-            require(token.approve(bZxVault, MAX_UINT), "token approval failed");
-        }
-
-        (uint256 actualCloseAmount, uint256 collateralCloseAmount, address collateralTokenAddress) = IBZx(bZxContract).paybackLoanAndClose(
+        require(IBZx(bZxContract).depositCollateralForBorrower(
             loanOrderHash,
-            msg.sender,        // borrower
-            address(this),     // payer
-            address(this),     // receiver
-            transferAmount     // closeAmount
-        );
-        require(actualCloseAmount != 0, "loan not closed");
-
-        if (collateralCloseAmount != 0) {
-            if (collateralTokenAddress == wethContract) {
-                iWETH(wethContract).withdraw(collateralCloseAmount);
-                (bool success, ) = msg.sender.call.value(collateralCloseAmount)("");
-                require(success, "eth transfer failed");
-            } else {
-                iBasicToken(collateralTokenAddress).transfer(
-                    msg.sender,
-                    collateralCloseAmount
-                );
-            }
-        }
-
-        uint256 afterBalance = iBasicToken(loanTokenAddress).balanceOf(address(this));
-
-        if (afterBalance > beforeBalance) {
-            iBasicToken(loanTokenAddress).transfer(
-                msg.sender,
-                afterBalance - beforeBalance
-            );
-        } else if (afterBalance < beforeBalance) {
-            revert("too much spent");
-        }
-
-        assembly {
-            mstore(0, actualCloseAmount)
-            return(0, 32)
-        }
+            msg.sender,         // borrower
+            address(this),      // payer,
+            wethContract,       // depositTokenAddress
+            msg.value           // depositAmount
+        ), "deposit failed");
     }
 
     function initialize(
@@ -179,7 +107,7 @@ contract ENSLoanRepayLogic is ENSLoanRepayStorage {
         wethContract = _wethContract;
         ensLoanOwner = _ensLoanOwner;
 
-        iBasicToken token = iBasicToken(loanTokenAddress);
+        iBasicToken token = iBasicToken(wethContract);
         uint256 tempAllowance = token.allowance(address(this), bZxVault);
         if (tempAllowance != MAX_UINT) {
             if (tempAllowance != 0) {

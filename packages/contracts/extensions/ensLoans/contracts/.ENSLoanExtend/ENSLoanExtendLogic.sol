@@ -102,20 +102,9 @@ contract ENSLoanExtendLogic is ENSLoanExtendStorage {
         require(transferAmount != 0, "no deposit");
 
         bytes32 loanOrderHash = ILoanToken(loanTokenLender).loanOrderHashes(
-            4 ether // leverageAmount
+            26985473425953342135791518606717287597326611559540027600454822645050577529548 // uint256(keccak256(abi.encodePacked(2 ether, wethContract)))
         );
         require(loanOrderHash != 0, "invalid hash");
-
-        iBasicToken token = iBasicToken(loanTokenAddress);
-        uint256 tempAllowance = token.allowance(address(this), bZxVault);
-        if (tempAllowance != MAX_UINT) {
-            if (tempAllowance != 0) {
-                // reset approval to 0
-                require(token.approve(bZxVault, 0), "token approval reset failed");
-            }
-
-            require(token.approve(bZxVault, MAX_UINT), "token approval failed");
-        }
 
         uint256 secondsExtended = IBZx(bZxContract).extendLoanByInterest(
             loanOrderHash,

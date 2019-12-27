@@ -42,7 +42,7 @@ contract ENSLoanOwnerLogic is ENSLoanOwnerStorage {
     function()
         external
     {
-        revert("fallback not allowed");
+        setupUser(msg.sender);
     }
 
     function initialize(
@@ -169,7 +169,7 @@ contract ENSLoanOwnerLogic is ENSLoanOwnerStorage {
         address addr)
         public
         pure
-        returns(string memory)
+        returns (string memory)
     {
         bytes32 value = bytes32(uint256(addr));
         bytes memory alphabet = "0123456789abcdef";
