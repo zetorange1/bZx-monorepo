@@ -50,6 +50,7 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
     {
         targets[bytes4(keccak256("liquidatePosition(bytes32,address,uint256)"))] = _target;
         targets[bytes4(keccak256("liquidateWithCollateral(bytes32,address,uint256,address,uint256)"))] = _target;
+        targets[bytes4(keccak256("getCloseAmount(bytes32,address)"))] = _target;
     }
 
 
@@ -141,13 +142,13 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
 
     function getCloseAmount(
         bytes32 loanOrderHash,
-        address trader,
-        uint256 maxCloseAmount)
+        address trader)
         external
+        view
         returns (uint256)
     {
-        LoanOrder storage loanOrder = orders[loanOrderHash];
-        LoanPosition storage loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        LoanPosition memory loanPosition = loanPositions[loanPositionsIds[loanOrderHash][trader]];
         OracleInterface oracle = OracleInterface(oracleAddresses[loanOrder.oracleAddress]);
 
         (uint256 currentMargin, uint256 collateralInEthAmount) = oracle.getCurrentMarginAndCollateralSize(
@@ -159,16 +160,23 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
             loanPosition.collateralTokenAmountFilled
         );
 
-        return _getCloseAmount(loanOrder, loanPosition, maxCloseAmount, currentMargin, collateralInEthAmount);
+        return _getCloseAmount(
+            loanOrder,
+            loanPosition,
+            0, // maxCloseAmount
+            currentMargin,
+            collateralInEthAmount
+        );
     }
 
     function _getCloseAmount(
-        LoanOrder storage loanOrder,
-        LoanPosition storage loanPosition,
+        LoanOrder memory loanOrder,
+        LoanPosition memory loanPosition,
         uint256 maxCloseAmount,
         uint256 currentMargin,
         uint256 collateralInEthAmount)
         internal
+        view
         returns (uint256 closeAmount)
     {
         if (block.timestamp < loanPosition.loanEndUnixTimestampSec) {
@@ -193,7 +201,7 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
                     closeAmount = loanPosition.loanTokenAmountFilled;
                 }
             } else {
-                // position is too small for roll-over
+                // position is too small for partial liquidation
                 closeAmount = loanPosition.loanTokenAmountFilled;
             }
         } else {
@@ -217,7 +225,6 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
         internal
         returns (bool result)
     {
-        require(loanPosition.trader != msg.sender, "trader can't liquidate");
         require(msg.sender == tx.origin, "only EOAs can liquidate");
 
         (uint256 currentMargin, uint256 collateralInEthAmount) = oracle.getCurrentMarginAndCollateralSize(
@@ -232,9 +239,7 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
             revert("loan is healthy");
         }
 
-        uint256 closeAmount = _getCloseAmount(loanOrder, loanPosition, maxCloseAmount, currentMargin, collateralInEthAmount);
-
-        if (block.timestamp > loanPosition.loanEndUnixTimestampSec) {
+        if (block.timestamp >= loanPosition.loanEndUnixTimestampSec) {
             // check if we need to roll-over without closing (iToken loans)
             if(collateralInEthAmount >= 0.2 ether && _handleRollOver(
                 vault,
@@ -246,6 +251,14 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
                 return true;
             }
         }
+
+        uint256 closeAmount = _getCloseAmount(
+            loanOrder,
+            loanPosition,
+            maxCloseAmount,
+            currentMargin,
+            collateralInEthAmount
+        );
 
         uint256 loanAmountBought;
         if (loanOrder.interestAmount != 0) {
