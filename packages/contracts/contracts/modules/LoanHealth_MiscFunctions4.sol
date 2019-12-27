@@ -176,19 +176,19 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
 
             if (collateralInEthAmount >= 0.2 ether) {
                 uint256 desiredMargin = loanOrder.maintenanceMarginAmount
-                .add(10 ether); // 10 percentage points above maintenance
+                    .add(10 ether); // 10 percentage points above maintenance
 
                 if (desiredMargin > loanOrder.initialMarginAmount) {
                     desiredMargin = loanOrder.initialMarginAmount;
                 }
 
                 uint256 normalizedCollateral = currentMargin
-                .mul(loanPosition.loanTokenAmountFilled)
-                .div(desiredMargin);
+                    .mul(loanPosition.loanTokenAmountFilled)
+                    .div(desiredMargin);
 
                 if (loanPosition.loanTokenAmountFilled > normalizedCollateral) {
                     closeAmount = loanPosition.loanTokenAmountFilled
-                    .sub(normalizedCollateral);
+                        .sub(normalizedCollateral);
                 } else {
                     closeAmount = loanPosition.loanTokenAmountFilled;
                 }
