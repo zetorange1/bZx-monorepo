@@ -2,7 +2,7 @@ var BZxProxy = artifacts.require("BZxProxy");
 var BZxProxySettings = artifacts.require("BZxProxySettings");
 var BZRxToken = artifacts.require("BZRxToken");
 var BZxVault = artifacts.require("BZxVault");
-var OracleRegistry = artifacts.require("OracleRegistry");
+//var OracleRegistry = artifacts.require("OracleRegistry");
 var BZxTo0x = artifacts.require("BZxTo0x");
 var BZxTo0xV2 = artifacts.require("BZxTo0xV2");
 var BZxEther = artifacts.require("BZxEther");
@@ -39,7 +39,7 @@ module.exports = (deployer, network, accounts) => {
       bzrx_ether_address,
       config["addresses"][network]["ZeroEx"]["WETH9"],
       BZxVault.address,
-      OracleRegistry.address,
+      "0x0000000000000000000000000000000000000000",//OracleRegistry.address,
       BZxTo0x.address,
       BZxTo0xV2.address
     );

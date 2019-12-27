@@ -29,7 +29,7 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
         public
         onlyOwner
     {
-        targets[bytes4(keccak256("takeOrderFromiToken(bytes32,address[3],uint256[8],bytes)"))] = _target;
+        targets[bytes4(keccak256("takeOrderFromiToken(bytes32,address[4],uint256[7],bytes)"))] = _target;
         targets[bytes4(keccak256("getRequiredCollateral(address,address,address,uint256,uint256)"))] = _target;
         targets[bytes4(keccak256("getBorrowAmount(address,address,address,uint256,uint256)"))] = _target;
     }
@@ -37,11 +37,12 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
     // assumption: loan and interest are the same token
     function takeOrderFromiToken(
         bytes32 loanOrderHash, // existing loan order hash
-        address[3] calldata sentAddresses,
+        address[4] calldata sentAddresses,
             // trader: borrower/trader
             // collateralTokenAddress: collateral token
             // tradeTokenAddress: trade token
-        uint256[8] calldata sentAmounts,
+            // receiver: receiver of funds (address(0) assumes trader address)
+        uint256[7] calldata sentAmounts,
             // newInterestRate: new loan interest rate
             // newLoanAmount: new loan size (principal from lender)
             // interestInitialAmount: interestAmount sent to determine initial loan length (this is included in one of the below)
@@ -49,7 +50,6 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
             // collateralTokenSent: collateralAmountRequired + any extra
             // tradeTokenSent: tradeTokenAmount (optional)
             // withdrawalAmount: Actual amount sent to borrower (can't exceed newLoanAmount)
-            // marginPremiumAmount: The additional percentage of collateral required for loan opening
         bytes calldata loanData)
         external
         nonReentrant
@@ -102,12 +102,12 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
                 .mul(10**20)
                 .div(loanOrder.initialMarginAmount);
 
-            if (sentAmounts[7] != 0) { // marginPremiumAmount
+            /*if (sentAmounts[7] != 0) { // marginPremiumAmount
                 collateralInitialPremium = collateralInitialPremium
                     .mul(sentAmounts[7])
                     .div(10**20)
                     .add(collateralInitialPremium);
-            }
+            }*/
 
             collateralAmountRequired = collateralAmountRequired
                 .add(collateralInitialPremium);
@@ -397,7 +397,7 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
         LoanPosition memory loanPosition,
         uint256 interestAmountRequired,
         uint256 collateralAmountRequired,
-        uint256[8] memory sentAmounts,
+        uint256[7] memory sentAmounts,
         bytes memory /* loanData */)
         internal
     {

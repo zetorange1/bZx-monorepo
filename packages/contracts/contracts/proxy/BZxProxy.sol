@@ -22,6 +22,10 @@ contract BZxProxy is BZxStorage, BZxProxiable {
         external
         payable
     {
+        if (msg.value != 0) {
+            return;
+        }
+
         require(!targetIsPaused[msg.sig], "BZxProxy::Function temporarily paused");
 
         address target = targets[msg.sig];

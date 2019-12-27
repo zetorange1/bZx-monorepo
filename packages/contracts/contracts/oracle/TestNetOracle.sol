@@ -28,31 +28,40 @@ contract TestNetOracle is BZxOracle {
 
     uint256 public slippageMultiplier = 100 ether;
 
-    constructor(
+    address public vaultContract;
+    address public kyberContract;
+    address public wethContract;
+    address public bZRxTokenContract;
+    address public oracleNotifier;
+
+    function initialize(
         address _vaultContract,
         address _kyberContract,
         address _wethContract,
         address _bZRxTokenContract,
-        address _oracleNotifier,
-        address _feeWallet)
+        address _oracleNotifier)
         public
-        BZxOracle(
-            _vaultContract,
-            _kyberContract,
-            _wethContract,
-            _bZRxTokenContract,
-            _oracleNotifier,
-            _feeWallet)
         payable
-    {}
+        onlyOwner
+    {
+        vaultContract = _vaultContract;
+        kyberContract = _kyberContract;
+        wethContract = _wethContract;
+        bZRxTokenContract = _bZRxTokenContract;
+        oracleNotifier = _oracleNotifier;
+    }
 
     function()
         external
         payable
     {
-        if (msg.sender == bZxContractAddress) {
-            updateEMA(tx.gasprice);
+        if (msg.value != 0) {
+            return;
         }
+
+        /*if (msg.sender == bZxContractAddress) {
+            updateEMA(tx.gasprice);
+        }*/
 
         // always returns true
         assembly {

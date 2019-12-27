@@ -80,7 +80,7 @@ function proceed() {
   };
 
   if (network != "mainnet") {
-    if (network != "ropsten" && network != "kovan") {
+    if (network != "ropsten" && network != "kovan" && network != "rinkeby") {
       for (var i = 0; i <= 9; i++) {
         addresses["TestToken" + i] = "unknown";
       }

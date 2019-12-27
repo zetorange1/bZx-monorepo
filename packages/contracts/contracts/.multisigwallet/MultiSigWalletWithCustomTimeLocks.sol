@@ -20,7 +20,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
         uint256 secondsTimeLocked;
         bool isSet;
     }
-    
+
     uint256 public secondsTimeLockedDefault; // default timelock for functions without a custom setting
     mapping (bytes4 => CustomTimeLock) public customTimeLocks; // mapping of function headers to CustomTimeLock structs
     string[] public customTimeLockFunctions; // array of functions with custom values
@@ -28,18 +28,18 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     mapping (uint256 => uint256) public confirmationTimes;
 
     modifier notFullyConfirmed(uint256 transactionId) {
-        require(!isConfirmed(transactionId));
+        require(!isConfirmed(transactionId), "is confirmed");
         _;
     }
 
     modifier fullyConfirmed(uint256 transactionId) {
-        require(isConfirmed(transactionId));
+        require(isConfirmed(transactionId), "not confirmed");
         _;
     }
 
-    modifier pastTimeLock(uint256 transactionId) {
+    modifier passedTimeLock(uint256 transactionId) {
         uint256 timelock = getSecondsTimeLockedByTx(transactionId);
-        require(timelock == 0 || block.timestamp >= confirmationTimes[transactionId] + timelock);
+        require(timelock == 0 || block.timestamp >= confirmationTimes[transactionId] + timelock, "not passed timelock");
         _;
     }
 
@@ -59,47 +59,55 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
 
         customTimeLockFunctions.push("transferOwnership(address)");
         customTimeLocks[bytes4(keccak256("transferOwnership(address)"))].isSet = true;
-        customTimeLocks[bytes4(keccak256("transferOwnership(address)"))].secondsTimeLocked = 2419200; // 28 days
+        customTimeLocks[bytes4(keccak256("transferOwnership(address)"))].secondsTimeLocked = 172800;
 
         customTimeLockFunctions.push("transferBZxOwnership(address)");
         customTimeLocks[bytes4(keccak256("transferBZxOwnership(address)"))].isSet = true;
-        customTimeLocks[bytes4(keccak256("transferBZxOwnership(address)"))].secondsTimeLocked = 2419200;
+        customTimeLocks[bytes4(keccak256("transferBZxOwnership(address)"))].secondsTimeLocked = 172800;
 
-        customTimeLockFunctions.push("replaceContract(address)");
-        customTimeLocks[bytes4(keccak256("replaceContract(address)"))].isSet = true;
-        customTimeLocks[bytes4(keccak256("replaceContract(address)"))].secondsTimeLocked = 2419200;
-
-        customTimeLockFunctions.push("setTarget(string,address)");
-        customTimeLocks[bytes4(keccak256("setTarget(string,address)"))].isSet = true;
-        customTimeLocks[bytes4(keccak256("setTarget(string,address)"))].secondsTimeLocked = 2419200;
-
-        customTimeLockFunctions.push("setBZxAddresses(address,address,address,address,address)");
-        customTimeLocks[bytes4(keccak256("setBZxAddresses(address,address,address,address,address)"))].isSet = true;
-        customTimeLocks[bytes4(keccak256("setBZxAddresses(address,address,address,address,address)"))].secondsTimeLocked = 2419200;
+        customTimeLockFunctions.push("setBZxAddresses(address,address,address,address,address,address,address)");
+        customTimeLocks[bytes4(keccak256("setBZxAddresses(address,address,address,address,address,address,address)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("setBZxAddresses(address,address,address,address,address,address,address)"))].secondsTimeLocked = 172800;
 
         customTimeLockFunctions.push("setVault(address)");
         customTimeLocks[bytes4(keccak256("setVault(address)"))].isSet = true;
-        customTimeLocks[bytes4(keccak256("setVault(address)"))].secondsTimeLocked = 2419200;
+        customTimeLocks[bytes4(keccak256("setVault(address)"))].secondsTimeLocked = 172800;
+
+        customTimeLockFunctions.push("addOwner(address)");
+        customTimeLocks[bytes4(keccak256("addOwner(address)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("addOwner(address)"))].secondsTimeLocked = 172800;
+
+        customTimeLockFunctions.push("removeOwner(address)");
+        customTimeLocks[bytes4(keccak256("removeOwner(address)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("removeOwner(address)"))].secondsTimeLocked = 172800;
+
+        customTimeLockFunctions.push("replaceOwner(address,address)");
+        customTimeLocks[bytes4(keccak256("replaceOwner(address,address)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("replaceOwner(address,address)"))].secondsTimeLocked = 172800;
+
+        customTimeLockFunctions.push("changeRequirement(uint256)");
+        customTimeLocks[bytes4(keccak256("changeRequirement(uint256)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("changeRequirement(uint256)"))].secondsTimeLocked = 172800;
 
         customTimeLockFunctions.push("changeDefaultTimeLock(uint256)");
         customTimeLocks[bytes4(keccak256("changeDefaultTimeLock(uint256)"))].isSet = true;
-        customTimeLocks[bytes4(keccak256("changeDefaultTimeLock(uint256)"))].secondsTimeLocked = 2419200;
+        customTimeLocks[bytes4(keccak256("changeDefaultTimeLock(uint256)"))].secondsTimeLocked = 172800;
 
         customTimeLockFunctions.push("changeCustomTimeLock(string,uint256)");
         customTimeLocks[bytes4(keccak256("changeCustomTimeLock(string,uint256)"))].isSet = true;
-        customTimeLocks[bytes4(keccak256("changeCustomTimeLock(string,uint256)"))].secondsTimeLocked = 2419200;
+        customTimeLocks[bytes4(keccak256("changeCustomTimeLock(string,uint256)"))].secondsTimeLocked = 172800;
 
         customTimeLockFunctions.push("removeCustomTimeLock(string)");
         customTimeLocks[bytes4(keccak256("removeCustomTimeLock(string)"))].isSet = true;
-        customTimeLocks[bytes4(keccak256("removeCustomTimeLock(string)"))].secondsTimeLocked = 2419200;
+        customTimeLocks[bytes4(keccak256("removeCustomTimeLock(string)"))].secondsTimeLocked = 172800;
 
         customTimeLockFunctions.push("toggleTargetPause(string,bool)");
         customTimeLocks[bytes4(keccak256("toggleTargetPause(string,bool)"))].isSet = true;
         customTimeLocks[bytes4(keccak256("toggleTargetPause(string,bool)"))].secondsTimeLocked = 0;
 
-        customTimeLockFunctions.push("toggleDebug(bool)");
-        customTimeLocks[bytes4(keccak256("toggleDebug(bool)"))].isSet = true;
-        customTimeLocks[bytes4(keccak256("toggleDebug(bool)"))].secondsTimeLocked = 0;
+        customTimeLockFunctions.push("toggleMintingPause(string,bool)");
+        customTimeLocks[bytes4(keccak256("toggleMintingPause(string,bool)"))].isSet = true;
+        customTimeLocks[bytes4(keccak256("toggleMintingPause(string,bool)"))].secondsTimeLocked = 0;
     }
 
     /// @dev Changes the default duration of the time lock for transactions.
@@ -136,7 +144,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
     {
         bytes4 f = bytes4(keccak256(abi.encodePacked(_funcId)));
         if (!customTimeLocks[f].isSet)
-            revert();
+            revert("not set");
 
         for (uint256 i=0; i < customTimeLockFunctions.length; i++) {
             if (keccak256(bytes(customTimeLockFunctions[i])) == keccak256(bytes(_funcId))) {
@@ -189,7 +197,7 @@ contract MultiSigWalletWithCustomTimeLocks is MultiSigWallet {
         public
         notExecuted(transactionId)
         fullyConfirmed(transactionId)
-        pastTimeLock(transactionId)
+        passedTimeLock(transactionId)
     {
         Transaction storage txn = transactions[transactionId];
         txn.executed = true;

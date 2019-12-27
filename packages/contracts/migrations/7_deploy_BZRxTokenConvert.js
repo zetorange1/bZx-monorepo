@@ -19,8 +19,9 @@ module.exports = (deployer, network, accounts) => {
     bzrx_token_address = BZRxToken.address
     weth_token_address = config["addresses"]["development"]["ZeroEx"]["WETH9"]; //BZxEther.address;
   } else {
-    bzrx_token_address = config["addresses"][network]["BZRXToken"];
-    weth_token_address = config["addresses"][network]["ZeroEx"]["WETH9"];
+    return;
+    //bzrx_token_address = config["addresses"][network]["BZRXToken"];
+    //weth_token_address = config["addresses"][network]["ZeroEx"]["WETH9"];
   }
 
   deployer.then(async () => {

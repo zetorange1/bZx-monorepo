@@ -284,18 +284,15 @@ contract OracleInterface {
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
 
     /// @dev Liquidates collateral to cover loan losses and does any other processing required by the oracle
-    /// @param loanOrder The loanOrder object
-    /// @param loanPosition The loanPosition object
-    /// @param loanTokenAmountNeeded The amount of loan token needed to cover losses
-    /// @param isLiquidation A boolean indicating if the loan was closed due to liquidation
-    /// @return loanTokenAmountCovered and collateralTokenAmountUsed
     function processCollateral(
         BZxObjects.LoanOrder memory loanOrder,
         BZxObjects.LoanPosition memory loanPosition,
-        uint256 loanTokenAmountNeeded,
+        uint256 destTokenAmountNeeded,
+        uint256 gasUsedForRollover,
+        address gasRefundAddress,
         bool isLiquidation)
         public
-        returns (uint256 loanTokenAmountCovered, uint256 collateralTokenAmountUsed);
+        returns (uint256[3] memory returnValues); // loanTokenAmountCovered, collateralTokenAmountUsed, reserve
 
     /// @dev Checks if a position has fallen below margin
     /// @dev maintenance and should be liquidated
@@ -351,6 +348,17 @@ contract OracleInterface {
         public
         view
         returns (uint256);
+
+    function getCurrentMarginAndCollateralSize(
+        address loanTokenAddress,
+        address positionTokenAddress,
+        address collateralTokenAddress,
+        uint256 loanTokenAmount,
+        uint256 positionTokenAmount,
+        uint256 collateralTokenAmount)
+        public
+        view
+        returns (uint256 currentMargin, uint256 collateralInEthAmount);
 
     /// @dev Checks if the ERC20 token pair is supported by the oracle
     /// @param sourceTokenAddress Token being sold

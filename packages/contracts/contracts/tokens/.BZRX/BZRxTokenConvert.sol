@@ -44,9 +44,7 @@ contract BZRxTokenConvert is Ownable {
     function()
         external
         payable 
-    {
-        require(msg.sender == wethContractAddress, "fallback not allowed");
-    }
+    {}
 
     // conforms to ERC20 transferFrom function for BZRX token support
     function transferFrom(

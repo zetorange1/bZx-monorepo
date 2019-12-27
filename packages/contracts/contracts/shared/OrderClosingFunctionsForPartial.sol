@@ -138,12 +138,12 @@ contract OrderClosingFunctionsForPartial is BZxStorage, MiscFunctions, OrderClos
             }
         } else {
             if (loanPosition.positionTokenAmountFilled < tmpVals[2]) {
-                tmpVals[2] = tmpVals[2] - loanPosition.positionTokenAmountFilled;
+                tmpVals[2] -= loanPosition.positionTokenAmountFilled;
                 loanPosition.positionTokenAmountFilled = 0;
             } else {
                 // we can close all of tmpVals[2], if here
+                loanPosition.positionTokenAmountFilled -= tmpVals[2];
                 tmpVals[2] = 0;
-                loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled.sub(vals[0]);
             }
         }
 
@@ -204,8 +204,8 @@ contract OrderClosingFunctionsForPartial is BZxStorage, MiscFunctions, OrderClos
                             // we can close all of closeAmount, if here
                             //tmpVals[1] = tmpVals[2];
 
+                            loanPosition.collateralTokenAmountFilled -= tmpVals[2];
                             //tmpVals[2] = 0;
-                            loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled.sub(tmpVals[2]);
                         }
                     }
                 }
@@ -241,7 +241,7 @@ contract OrderClosingFunctionsForPartial is BZxStorage, MiscFunctions, OrderClos
         _settlePartialClosure(
             loanOrder.loanOrderHash,
             loanOrder.loanTokenAddress,
-            loanOrder.loanTokenAmount,
+            //loanOrder.loanTokenAmount,
             vals[0]
         );
 
@@ -311,7 +311,7 @@ contract OrderClosingFunctionsForPartial is BZxStorage, MiscFunctions, OrderClos
     function _settlePartialClosure(
         bytes32 loanOrderHash,
         address loanTokenAddress,
-        uint256 loanTokenAmount,
+        //uint256 loanTokenAmount,
         uint256 closeAmount)
         internal
     {
@@ -324,7 +324,7 @@ contract OrderClosingFunctionsForPartial is BZxStorage, MiscFunctions, OrderClos
             revert("BZxLoanHealth::_closeLoanPartially: BZxVault.withdrawToken loan failed");
         }
 
-        if (orderAux[loanOrderHash].expirationUnixTimestampSec == 0 || block.timestamp < orderAux[loanOrderHash].expirationUnixTimestampSec) {
+        /*if (orderAux[loanOrderHash].expirationUnixTimestampSec == 0 || block.timestamp < orderAux[loanOrderHash].expirationUnixTimestampSec) {
             // since order is not expired, we make the closeAmount available for borrowing again
             orderFilledAmounts[loanOrderHash] = orderFilledAmounts[loanOrderHash].sub(closeAmount);
 
@@ -336,7 +336,7 @@ contract OrderClosingFunctionsForPartial is BZxStorage, MiscFunctions, OrderClos
                     isSet: true
                 });
             }
-        }
+        }*/
     }
 
     function _updateCloseAmounts(

@@ -12,7 +12,7 @@ module.exports = {
         WETH9: "0x0b1ba0af832d7c05fd64161e0db78e85978e8082"
       },
       KyberContractAddress: "0x0000000000000000000000000000000000000000",
-      DAITokenAddress: "",
+      SAITokenAddress: "",
     },
     ropsten: {
       ZeroEx: {
@@ -38,7 +38,7 @@ module.exports = {
       BZxEther: "0xa3eBDf66e0292F1d5FD82Ae3fcd92551Ac9dB081",
       MultiSig: "0x35b94649Bd03D13eF08e999127351Cc52286473C",
       TokenizedRegistry: "0xd03eea21041a19672e451bcbb413ce8be72d0381", // old: "0xaa5c713387972841995553c9690459596336800b",
-      DAITokenAddress: "0xad6d458402f60fd3bd25163575031acdce07538d", // Kyber DAI
+      SAITokenAddress: "0xad6d458402f60fd3bd25163575031acdce07538d", // Kyber SAI
       WBTCTokenAddress: "0x95cc8d8f29d0f7fcc425e8708893e759d1599c97" // Kyber ENG
     },
     kovan: {
@@ -58,14 +58,18 @@ module.exports = {
         Registry: "0x9590A50Ee1043F8915FF72C0aCC2Dbc600080d36",
         Resolver: "0x44b92B8F27abAC2ebc9d0C4fa6fF0EEd4E98ba79"
       },
+      WethHelper: "0x3b5bDCCDFA2a0a1911984F203C19628EeB6036e0",
       OracleNotifier: "0xc406f51A23F28D6559e311010d3EcD8A07696a45",
       KyberContractAddress: "0x692f391bCc85cefCe8C237C01e1f636BbD70EA4D", // Kovan
       BZRXToken: "0xe3e682A8Fc7EFec410E4099cc09EfCC0743C634a",
       BZxEther: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
       MultiSig: "",
       TokenizedRegistry: "0xF1C87dD61BF8a4e21978487e2705D52AA687F97E",
-      LoanTokenSettings: "0x6eb52a9366527a62dc4acddab97fb170e50f77c4",
-      DAITokenAddress: "0xC4375B7De8af5a38a93548eb8453a498222C4fF2",
+      LoanTokenSettings: "0x7645F5FFd0b24A60C6A9fFF54Ce767f144f41Df4",
+      LoanTokenSettingsLowerAdmin: "0x7645F5FFd0b24A60C6A9fFF54Ce767f144f41Df4",
+      SAITokenAddress: "0xC4375B7De8af5a38a93548eb8453a498222C4fF2",
+      DAITokenAddress: "0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa",
+      CHAITokenAddress: "0x71DD45d9579A499B58aa85F50E5E3B241Ca2d10d",
       KNCTokenAddress: "0xad67cB4d63C9da94AcA37fDF2761AaDF780ff4a2",
     },
     rinkeby: {
@@ -81,11 +85,15 @@ module.exports = {
         ERC721Proxy: "0x8e1ff02637cb5e39f2fa36c14706aa348b065b09",
         AssetProxyOwner: "0x1da52d1d3a3acfa0a1836b737393b4e9931268fc"
       },
-      KyberContractAddress: "0x39CC6802cF1625C30548B57D885932CB381EB4a4",
+      OracleNotifier: "0xDF65BD1Bb78E93B533fd95e9Ce30775Dac023F35",
+      KyberContractAddress: "0xF77eC7Ed5f5B9a5aee4cfa6FFCaC6A4C315BaC76", // "0x39CC6802cF1625C30548B57D885932CB381EB4a4",
+      LoanTokenSettings: "0xebec45f9f4011faf1605a77bae0b4e5188068a1f",
+      LoanTokenSettingsLowerAdmin: "0x47b2150f92e272db622ad3ce9a023c9e076354bc",
       BZRXToken: "0xb70ce29af9de22e28509cdcf3e0368b5a550548a",
       BZxEther: "0xc778417e063141139fce010982780140aa0cd5ab",
       MultiSig: "",
-      DAITokenAddress: "0x55080ac40700bde5725d8a87f48a01e192f660af", // KNC (no DAI on Kovan Rinkeby)
+      DAITokenAddress: "0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea", // Compound DAI
+      REPTokenAddress: "0x6e894660985207feb7cf89faf048998c71e8ee89", // Compound REP
     },
     mainnet: {
       ZeroEx: {
@@ -104,6 +112,8 @@ module.exports = {
         Registry: "0x314159265dd8dbb310642f98f50c066173c1259b",
         Resolver: "0xD3ddcCDD3b25A8a7423B5bEe360a42146eb4Baf3"
       },
+      WethHelper: "0x3b5bDCCDFA2a0a1911984F203C19628EeB6036e0",
+      BZxProxy: "0x1cf226e9413addaf22412a2e182f9c0de44af002",
       BZxVault: "0x8b3d70d628ebd30d4a2ea82db95ba2e906c71633",
       OracleNotifier: "0x6d20ea6fe6d67363684e22f1485712cfdccf177a",
       KyberContractAddress: "0x818e6fecd516ecc3849daf6845e3ec868087b755", // Mainnet (https://kyber.network/swap)
@@ -112,10 +122,14 @@ module.exports = {
       BZRXTokenSale: "0x0b12cf7964731f7190b74600fcdad9ba4cac870c",
       BZxEther: "0x96CCe310096755f69594212d5D5fB5485577E7d1",
       MultiSig: "0x758dae5e06e11322c8be3463578150401cd31165",
+      Timelock: "0xbb536eb24fb89b544d4bd9e9f1f34d9fd902bb96",
       TokenizedRegistry: "0xd8dc30d298ccf40042991cb4b96a540d8affe73a",
-      LoanTokenSettings: "0x359aee8dc86c3d11667e74986d6bf685faae8e90", //"0x09b4611e07506468b398fabf2c271d97684b022d",
+      LoanTokenSettings: "0xf945189f46f84cff21cf6b9d19e5248138618fa9",
+      LoanTokenSettingsLowerAdmin: "0xcb2ac9dee371c123ffb3ad4d43ba7db54d0ec276", //"0xe56abc82c83cc7a4447fbc5ad4c6af84b15f71ec",
       BZxOracleHelper: "0xee14de2e67e1ec23c8561a6fad2635ff1b618db6",
-      DAITokenAddress: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359",
+      SAITokenAddress: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359",
+      DAITokenAddress: "0x6b175474e89094c44da98b954eedeac495271d0f",
+      CHAITokenAddress: "0x06AF07097C9Eeb7fD685c692751D5C66dB49c215",
       USDCTokenAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
       WBTCTokenAddress: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
       BATTokenAddress: "0x0d8775f648430679a709e98d2b0cb6250d2887ef",
@@ -123,7 +137,8 @@ module.exports = {
       MKRTokenAddress: "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2",
       REPTokenAddress: "0x1985365e9f78359a9b6ad760e32412f4a445e862",
       ZRXTokenAddress: "0xe41d2489571d322189246dafa5ebde1f4699f498",
-      LINKTokenAddress: "0x514910771af9ca656af840dff83e8264ecf986ca"
+      LINKTokenAddress: "0x514910771af9ca656af840dff83e8264ecf986ca",
+      SUSDTokenAddress: "0x57ab1ec28d129707052df4df418d58a2d46d5f51", // <- proxy, actual -> "0x57Ab1E02fEE23774580C119740129eAC7081e9D3"
     }
   }
 };

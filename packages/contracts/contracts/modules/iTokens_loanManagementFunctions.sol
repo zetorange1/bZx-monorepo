@@ -11,6 +11,14 @@ import "../proxy/BZxProxiable.sol";
 import "../shared/OrderClosingFunctionsForPartial.sol";
 
 
+interface IWethHelper {
+    function claimEther(
+        address receiver,
+        uint256 amount)
+        external
+        returns (uint256 claimAmount);
+}
+
 contract iTokens_loanManagementFunctions is BZxStorage, BZxProxiable, OrderClosingFunctionsForPartial {
     using SafeMath for uint256;
 
@@ -18,9 +26,8 @@ contract iTokens_loanManagementFunctions is BZxStorage, BZxProxiable, OrderClosi
 
     function()
         external
-        payable
     {
-        require(msg.sender == wethContract, "fallback not allowed");
+        revert("fallback not allowed");
     }
 
     function initialize(
@@ -47,6 +54,8 @@ contract iTokens_loanManagementFunctions is BZxStorage, BZxProxiable, OrderClosi
             address collateralTokenAddress
         )
     {
+        IWethHelper wethHelper = IWethHelper(0x3b5bDCCDFA2a0a1911984F203C19628EeB6036e0);
+
         // only callable by borrower or by iTokens and supporting contracts
         require(
             allowedValidators[address(0)][msg.sender] ||
@@ -68,8 +77,8 @@ contract iTokens_loanManagementFunctions is BZxStorage, BZxProxiable, OrderClosi
         require(msg.value == 0 || loanPosition.positionTokenAddressFilled == wethContract, "wrong asset sent");
 
         address receiver_ = receiver;
-        if (receiver_ == address(0)) {
-            receiver_ = address(this);
+        if (receiver_ == address(0) || receiver_ == address(this)) {
+            receiver_ = address(wethHelper);
         }
 
         if (closeAmount != 0) {
@@ -103,26 +112,36 @@ contract iTokens_loanManagementFunctions is BZxStorage, BZxProxiable, OrderClosi
                 0;
             if (amountNeeded != 0) {
                 if (msg.value != 0) {
-                    require(msg.value >= amountNeeded, "insufficient ether");
+                    require(msg.value >= amountNeeded ||
+                        closeAmount > loanPosition.loanTokenAmountFilled, // always indicates full payoff is requested
+                        "insufficient ether"
+                    );
 
                     // deposit()
-                    (success,) = wethContract.call.value(amountNeeded)("0xd0e30db0");
+                    uint256 etherDeposit = msg.value > amountNeeded ?
+                        amountNeeded :
+                        msg.value;
+                    (success,) = wethContract.call.value(etherDeposit)("0xd0e30db0");
                     if (success) {
                         success = EIP20(wethContract).transfer(
                             vaultContract,
-                            amountNeeded
+                            etherDeposit
                         );
                     }
                     require(success, "deposit failed");
+
+                    loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled
+                        .add(etherDeposit);
                 } else {
                     require(BZxVault(vaultContract).depositToken(
                         loanPosition.positionTokenAddressFilled,
                         payer,
                         amountNeeded
                     ), "deposit failed");
+
+                    loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled
+                        .add(amountNeeded);
                 }
-                loanPosition.positionTokenAmountFilled = loanPosition.positionTokenAmountFilled
-                    .add(amountNeeded);
             }
             if (msg.value > amountNeeded) {
                 (success,) = msg.sender.call.value(msg.value - amountNeeded)("");
@@ -149,20 +168,11 @@ contract iTokens_loanManagementFunctions is BZxStorage, BZxProxiable, OrderClosi
             false // ensureHealthy
         );
 
-        if (receiver_ == address(this)) {
-            require(collateralTokenAddress == wethContract, "withdraw failed");
-
-            // withdraw(uint256)
-            (bool success,) = wethContract.call(
-                abi.encodeWithSelector(
-                    0x2e1a7d4d, // withdraw(uint256)
-                    collateralCloseAmount
-                )
+        if (receiver_ == address(wethHelper)) {
+            require(collateralTokenAddress == wethContract &&
+                collateralCloseAmount == wethHelper.claimEther(borrower, collateralCloseAmount),
+                "withdraw failed"
             );
-            if (success) {
-                (success, ) = borrower.call.value(collateralCloseAmount)("");
-            }
-            require(success, "withdraw failed");
         }
     }
 }

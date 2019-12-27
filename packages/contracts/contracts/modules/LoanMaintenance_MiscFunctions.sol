@@ -16,6 +16,14 @@ import "../oracle/OracleInterface.sol";
 
 import "../tokens/EIP20.sol";
 
+interface IWethHelper {
+    function claimEther(
+        address receiver,
+        uint256 amount)
+        external
+        returns (uint256 claimAmount);
+}
+
 contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunctions {
     using SafeMath for uint256;
 
@@ -23,9 +31,8 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
 
     function()
         external
-        payable
     {
-        require(msg.sender == wethContract, "fallback not allowed");
+        revert("fallback not allowed");
     }
 
     function initialize(
@@ -152,9 +159,11 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             "unauthorized"
         );
 
+        IWethHelper wethHelper = IWethHelper(0x3b5bDCCDFA2a0a1911984F203C19628EeB6036e0);
+
         address receiver_ = receiver;
-        if (receiver_ == address(0)) {
-            receiver_ = address(this);
+        if (receiver_ == address(0) || receiver_ == address(this)) {
+            receiver_ = address(wethHelper);
         }
 
         (amountWithdrawn, collateralTokenAddress) = _withdrawCollateral(
@@ -164,20 +173,11 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
             receiver_
         );
 
-        if (receiver_ == address(this)) {
-            require(collateralTokenAddress == wethContract, "withdraw failed");
-
-            // withdraw(uint256)
-            (bool success,) = wethContract.call(
-                abi.encodeWithSelector(
-                    0x2e1a7d4d, // withdraw(uint256)
-                    amountWithdrawn
-                )
+        if (receiver_ == address(wethHelper)) {
+            require(collateralTokenAddress == wethContract &&
+                amountWithdrawn == wethHelper.claimEther(trader, amountWithdrawn),
+                "withdraw failed"
             );
-            if (success) {
-                (success,) = trader.call.value(amountWithdrawn)("");
-            }
-            require(success, "withdraw failed");
         }
     }
 
@@ -766,7 +766,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
                     msgsender,
                     depositAmount.sub(depositTokenAmountUsed)
                 )) {
-                    revert("deposit failed");
+                    revert("refund failed");
                 }
             }
 
@@ -868,7 +868,7 @@ contract LoanMaintenance_MiscFunctions is BZxStorage, BZxProxiable, MiscFunction
                 if (!BZxVault(vaultContract).withdrawToken(
                     depositTokenAddress,
                     msg.sender,
-                    depositAmount.sub(depositTokenAmountUsed)
+                    depositAmount - depositTokenAmountUsed
                 )) {
                     revert("deposit failed");
                 }

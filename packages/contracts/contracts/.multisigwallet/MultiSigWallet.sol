@@ -1,3 +1,8 @@
+/**
+ * Copyright 2017-2019, bZeroX, LLC. All Rights Reserved.
+ * Adapted from MultiSigWalletWithTimeLock.sol, Copyright 2017 ZeroEx Intl.
+ * Licensed under the Apache License, Version 2.0.
+ */
 
 pragma solidity 0.5.3;
 
@@ -96,7 +101,7 @@ contract MultiSigWallet {
         external
         payable
     {
-        if (msg.value > 0)
+        if (msg.value != 0)
             emit Deposit(msg.sender, msg.value);
     }
 
@@ -110,7 +115,7 @@ contract MultiSigWallet {
         public
         validRequirement(_owners.length, _required)
     {
-        for (uint256 i=0; i<_owners.length; i++) {
+        for (uint256 i=0; i < _owners.length; i++) {
             require(!isOwner[_owners[i]] && _owners[i] != address(0));
             isOwner[_owners[i]] = true;
         }
