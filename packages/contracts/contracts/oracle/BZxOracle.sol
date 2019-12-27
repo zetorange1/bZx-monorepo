@@ -123,11 +123,11 @@ contract BZxOracle is EIP20Wrapper, GasRefunder, BZxOwnable {
     address public constant oracleNotifier = 0x6d20Ea6fE6d67363684e22F1485712cfDcCf177A;
 
     // kovan
-    /*address public constant vaultContract = ;
-    address public constant kyberContract = ;
-    address public constant wethContract = ;
-    address public constant bZRxTokenContract = ;
-    address public constant oracleNotifier = ;*/
+    /*address public constant vaultContract = 0xcE069b35AE99762BEe444C81DeC1728AA99AFd4B;
+    address public constant kyberContract = 0x692f391bCc85cefCe8C237C01e1f636BbD70EA4D;
+    address public constant wethContract = 0xd0A1E359811322d97991E03f863a0C30C2cF029C;
+    address public constant bZRxTokenContract = 0xe3e682A8Fc7EFec410E4099cc09EfCC0743C634a;
+    address public constant oracleNotifier = 0xc406f51A23F28D6559e311010d3EcD8A07696a45;*/
 
     //address public constant kyberNetworkContract = ;
 
