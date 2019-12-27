@@ -2,7 +2,7 @@
  * Copyright 2017-2019, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
- 
+
 pragma solidity 0.5.8;
 
 import "./SplittableTokenStorageV2.sol";
@@ -13,16 +13,26 @@ contract PositionTokenV2 is SplittableTokenStorageV2 {
     address internal target_;
 
     constructor(
-        address _newTarget)
+        address _newTarget,
+        address _newOwner)
         public
     {
-        _setTarget(_newTarget);
+        if (_newTarget != address(0)) {
+            _setTarget(_newTarget);
+        }
+        if (_newOwner != address(0)) {
+            owner = _newOwner;
+        }
     }
 
     function()
         external
         payable
     {
+        if (msg.value != 0) {
+            return;
+        }
+
         address target = target_;
         bytes memory data = msg.data;
         assembly {

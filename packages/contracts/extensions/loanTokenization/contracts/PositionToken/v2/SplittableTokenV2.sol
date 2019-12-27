@@ -2,7 +2,7 @@
  * Copyright 2017-2019, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
- 
+
 pragma solidity 0.5.8;
 
 import "./SplittableTokenStorageV2.sol";
@@ -72,36 +72,6 @@ contract SplittableTokenV2 is SplittableTokenStorageV2 {
         }
 
         emit Approval(msg.sender, _spender, _value);
-        return true;
-    }
-
-    function increaseApproval(
-        address _spender,
-        uint256 _addedValue)
-        public
-        returns (bool)
-    {
-        allowed[msg.sender][_spender] = normalize(denormalize(allowed[msg.sender][_spender]).add(_addedValue));
-        emit Approval(msg.sender, _spender, denormalize(allowed[msg.sender][_spender]));
-        return true;
-    }
-
-    function decreaseApproval(
-        address _spender,
-        uint256 _subtractedValue)
-        public
-        returns (bool)
-    {
-        uint256 oldValue = denormalize(allowed[msg.sender][_spender]);
-        if (_subtractedValue >= oldValue) {
-            allowed[msg.sender][_spender] = 0;
-        } else {
-            allowed[msg.sender][_spender] = normalize(oldValue.sub(_subtractedValue));
-            if (allowance(msg.sender, _spender) == 0) {
-                allowed[msg.sender][_spender] = 0;
-            }
-        }
-        emit Approval(msg.sender, _spender, denormalize(allowed[msg.sender][_spender]));
         return true;
     }
 

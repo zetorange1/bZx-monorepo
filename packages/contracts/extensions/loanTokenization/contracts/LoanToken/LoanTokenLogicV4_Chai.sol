@@ -375,33 +375,6 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
         address trader,
         address depositTokenAddress,
         address collateralTokenAddress,
-        address tradeTokenAddress)
-        public
-        returns (bytes32 loanOrderHash)
-    {
-        return _marginTradeFromDeposit(
-            depositAmount,
-            leverageAmount,
-            loanTokenSent,
-            collateralTokenSent,
-            tradeTokenSent,
-            trader,
-            depositTokenAddress,
-            collateralTokenAddress,
-            tradeTokenAddress,
-            "" // loanDataBytes
-        );
-    }
-
-    function marginTradeFromDeposit(
-        uint256 depositAmount,
-        uint256 leverageAmount,
-        uint256 loanTokenSent,
-        uint256 collateralTokenSent,
-        uint256 tradeTokenSent,
-        address trader,
-        address depositTokenAddress,
-        address collateralTokenAddress,
         address tradeTokenAddress,
         bytes memory loanDataBytes)
         public
@@ -1324,7 +1297,7 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
         uint256 assetBorrow = totalAssetBorrow;
         if (assetBorrow != 0) {
             uint256 localBalance = _getDai().balanceOf(address(this));
-            
+
             uint256 _utilRate = _utilizationRate(
                 assetBorrow,
                 assetSupply
