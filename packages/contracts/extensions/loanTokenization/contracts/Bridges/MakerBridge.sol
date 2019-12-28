@@ -25,6 +25,14 @@ interface JoinAdapter {
     function exit(address usr, uint wad) external;
 }
 
+contract DSProxyFactory {
+    mapping(address => bool) public isProxy;
+}
+
+contract DSProxy {
+    address public owner;
+}
+
 contract MakerBridge is BZxBridge
 {
     address public dai;
@@ -32,6 +40,7 @@ contract MakerBridge is BZxBridge
 
     LoanTokenInterface public iDai;
     CDPManager public cdpManager;
+    DSProxyFactory public proxyFactory;
 
     mapping(bytes32 => address) public joinAdapters; // ilk => join adapter address
     mapping(bytes32 => address) public gems; // ilk => underlying token address
@@ -43,6 +52,7 @@ contract MakerBridge is BZxBridge
         address _iDai,
         address _cdpManager,
         address _joinDAI,
+        address _proxyFactory,
         address[] memory _joinAdapters,
         address[] memory iTokens
     ) public {
@@ -52,6 +62,7 @@ contract MakerBridge is BZxBridge
         dai = iDai.loanTokenAddress();
 
         cdpManager = CDPManager(_cdpManager);
+        proxyFactory = DSProxyFactory(_proxyFactory);
 
         setAddresses(_joinAdapters, iTokens);
     }
@@ -88,7 +99,7 @@ contract MakerBridge is BZxBridge
     }
 
     function _migrateLoan(
-        address borrower,
+        address owner,
         uint[] memory cdps,
         uint[] memory darts,
         uint[] memory dinks,
@@ -100,14 +111,18 @@ contract MakerBridge is BZxBridge
     {
         ERC20(dai).approve(joinDAI, loanAmount);
 
-        address _borrower = borrower;
+        address borrower = owner;
+        if (proxyFactory.isProxy(owner)) {
+            borrower = DSProxy(owner).owner();
+        }
+        
         for (uint i = 0; i < cdps.length; i++) {
             uint cdp = cdps[i];
             uint dart = darts[i];
             uint dink = dinks[i];
             uint collateralDink = collateralDinks[i];
 
-            requireThat(cdpManager.cdpCan(_borrower, cdp, address(this)), "cdp-not-allowed", i);
+            requireThat(cdpManager.cdpCan(owner, cdp, address(this)), "cdp-not-allowed", i);
             requireThat(collateralDink <= dink, "Collateral amount exceeds total value (dink)", i);
 
             address urn = cdpManager.urns(cdp);
@@ -128,7 +143,7 @@ contract MakerBridge is BZxBridge
                 leverageAmount,
                 initialLoanDuration,
                 collateralDink,
-                _borrower,
+                borrower,
                 address(this),
                 gem,
                 loanData
@@ -138,7 +153,7 @@ contract MakerBridge is BZxBridge
             if (excess > 0) {
                 LoanTokenInterface iCollateral = LoanTokenInterface(tokens[ilk]);
                 ERC20(gem).approve(address(iCollateral), excess);
-                iCollateral.mint(_borrower, excess);
+                iCollateral.mint(borrower, excess);
             }
         }
 
