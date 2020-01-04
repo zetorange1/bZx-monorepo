@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2019, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.
  * Adapted from MultiSigWalletWithTimeLock.sol, Copyright 2017 ZeroEx Intl.
  * Licensed under the Apache License, Version 2.0.
  */
