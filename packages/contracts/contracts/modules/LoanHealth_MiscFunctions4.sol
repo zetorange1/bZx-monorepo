@@ -496,6 +496,14 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
             true // sendToOracle
         );
 
+        // Handle back interest
+        uint256 backInterestTime = block.timestamp
+            .sub(loanPosition.loanEndUnixTimestampSec);
+        uint256 backInterestOwed = backInterestTime
+            .mul(traderInterest.interestOwedPerDay);
+        backInterestOwed = backInterestOwed
+            .div(86400);
+
         if (traderInterest.interestUpdatedDate != 0 && traderInterest.interestOwedPerDay != 0) {
             traderInterest.interestPaid = loanPosition.loanEndUnixTimestampSec
                 .sub(traderInterest.interestUpdatedDate);
@@ -505,6 +513,8 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
                 .div(86400);
             traderInterest.interestPaid = traderInterest.interestPaid
                 .add(traderInterest.interestPaid);
+            traderInterest.interestPaid = traderInterest.interestPaid
+                .add(backInterestOwed);
         }
 
         uint256 maxDuration = loanOrder.maxDurationUnixTimestampSec;
@@ -547,24 +557,30 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
             maxDuration = 2628000; // approx. 1 month
         }
 
-        // update loan end time
-        loanPosition.loanEndUnixTimestampSec = block.timestamp.add(maxDuration);
+        if (backInterestTime >= maxDuration) {
+            maxDuration = backInterestTime
+                .add(86400); // adds an extra 24 hours
+        }
 
-        uint256 interestAmountRequired = maxDuration
+        // update loan end time
+        loanPosition.loanEndUnixTimestampSec = loanPosition.loanEndUnixTimestampSec
+            .add(maxDuration);
+
+        uint256 interestAmountRequired = loanPosition.loanEndUnixTimestampSec
+            .sub(block.timestamp);
+        interestAmountRequired = interestAmountRequired
             .mul(owedPerDay);
         interestAmountRequired = interestAmountRequired
             .div(86400);
-
-        // ensure the loan is still healthy
-        /*require (!OracleInterface(oracle)
-            .shouldLiquidate(loanOrder, loanPosition),
-            "unhealthy"
-        );*/
 
         traderInterest.interestDepositTotal = traderInterest.interestDepositTotal.add(interestAmountRequired);
         traderInterest.interestUpdatedDate = block.timestamp;
 
         tokenInterestOwed[lender][loanOrder.interestTokenAddress] = tokenInterestOwed[lender][loanOrder.interestTokenAddress].add(interestAmountRequired);
+
+        // add backInterestOwed
+        interestAmountRequired = interestAmountRequired
+            .add(backInterestOwed);
 
         _processCollateral(
             vault,
@@ -574,6 +590,29 @@ contract LoanHealth_MiscFunctions4 is BZxStorage, BZxProxiable, OrderClosingFunc
             interestAmountRequired,
             gasUsed
         );
+
+        // ensure the loan is still healthy
+        /*require (!OracleInterface(oracle)
+            .shouldLiquidate(loanOrder, loanPosition),
+            "unhealthy"
+        );*/
+
+        if (backInterestOwed != 0) {
+            // pay out backInterestOwed
+
+            require(BZxVault(vaultContract).withdrawToken(
+                loanOrder.interestTokenAddress,
+                address(oracle),
+                backInterestOwed
+            ), "withdrawToken failed");
+
+            require(oracle.didPayInterestByLender(
+                lender,
+                loanOrder.interestTokenAddress,
+                backInterestOwed,
+                0
+            ), "didPayInterestByLender failed");
+        }
 
         return true;
     }

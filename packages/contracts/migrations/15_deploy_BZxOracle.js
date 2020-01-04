@@ -19,9 +19,9 @@ const config = require("../protocol-config.js");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const OLD_ORACLE_ADDRESS = "";
-//const OLD_ORACLE_ADDRESS = "0xf7412a8475e604C0C3Dfe73a118184cFE3494645"; // mainnet
+//const OLD_ORACLE_ADDRESS = "0xa88172b2afc6e79693acd4e1e558d4d3e3662114"; // mainnet
 //const OLD_ORACLE_ADDRESS = "0x208ec15dbb52b417343887ed8a5523d3c4d23e55"; // ropsten
-//const OLD_ORACLE_ADDRESS = "0x85f9118760C1913dcC31e7c1B8Ae35287BCcd555"; // kovan
+//const OLD_ORACLE_ADDRESS = "0x7ff1cfCa416e33BC04ef18718a0c6c8135770809"; // kovan
 //const OLD_ORACLE_ADDRESS = "0x76dE3d406FeE6c3316558406B17fF785c978E98C"; // rinkeby
 
 module.exports = (deployer, network, accounts) => {
@@ -105,9 +105,8 @@ module.exports = (deployer, network, accounts) => {
         BZxOracle,
         { from: accounts[0] }
       );
-      
 
-      //const oracle = await BZxOracle.deployed();
+      const oracle = await BZxOracle.deployed();
       //const oracle = await BZxOracle.at("...");
 
       const oracleAddress = oracle.address;

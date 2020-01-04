@@ -117,6 +117,7 @@ module.exports = {
       BZxVault: "0x8b3d70d628ebd30d4a2ea82db95ba2e906c71633",
       OracleNotifier: "0x6d20ea6fe6d67363684e22f1485712cfdccf177a",
       KyberContractAddress: "0x818e6fecd516ecc3849daf6845e3ec868087b755", // Mainnet (https://kyber.network/swap)
+      // KyberNetworkContract: "0x65bf64ff5f51272f729bdcd7acfb00677ced86cd",
       KyberRegisterWallet: "0xECa04bB23612857650D727B8ed008f80952654ee",
       BZRXToken: "0x1c74cff0376fb4031cd7492cd6db2d66c3f2c6b9", //"0xe23d55af1646a65c1504f69e3d485c1d6da68e94", //"0x13939ac9F1e0F99872fA873B6E00DE9248ac95A0",
       BZRXTokenSale: "0x0b12cf7964731f7190b74600fcdad9ba4cac870c",

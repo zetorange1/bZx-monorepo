@@ -81,7 +81,7 @@ contract BZxOracle is EIP20Wrapper, GasRefunder, BZxOwnable {
     uint256 public interestFeePercent = 10 * 10**18;
 
     // Percentage of EMA-based gas refund paid to margin callers after successfully liquidating a position
-    uint256 public marginCallerRewardPercent = 200 * 10**18;
+    uint256 public marginCallerRewardPercent = 125 * 10**18;
 
     // Gas price for refunds
     uint256 public gasPrice = 20 * 10**9;
@@ -272,8 +272,7 @@ contract BZxOracle is EIP20Wrapper, GasRefunder, BZxOwnable {
     {
         address notifier = OracleNotifier(oracleNotifier).closeLoanNotifier(loanOrder.loanOrderHash);
         if (notifier != address(0)) {
-            // allow silent fail
-            (bool result,) = notifier.call.gas(gasleft())(
+            (bool result,) = notifier.call(
                 abi.encodeWithSignature(
                     "closeLoanNotifier((address,address,address,address,uint256,uint256,uint256,uint256,uint256,bytes32),(address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bool,uint256),address,uint256,bool)",
                     loanOrder,
@@ -283,7 +282,7 @@ contract BZxOracle is EIP20Wrapper, GasRefunder, BZxOwnable {
                     isLiquidation
                 )
             );
-            result;
+            require(result, "notifier failed");
         }
 
         if (isLiquidation) {
@@ -419,7 +418,7 @@ contract BZxOracle is EIP20Wrapper, GasRefunder, BZxOwnable {
         );
 
         if (destTokenAmountNeeded != 0) {
-            uint256 wethBalance = EIP20(wethAddress).balanceOf(address(this)).sub(returnValues[2]);
+            uint256 wethBalance = EIP20(wethAddress).balanceOf(address(this));
             if ( !
                     (
                         //(!enforceMinimum || collateralInWethAmounts[loanPosition.positionId] == 0 || collateralInWethAmounts[loanPosition.positionId] >= minCollateralInWethAmount) &&
@@ -1154,8 +1153,6 @@ contract BZxOracle is EIP20Wrapper, GasRefunder, BZxOwnable {
         }
         if (wethAmountReceived < wethAmountNeeded.add(reserve)) {
             reserve = 0;
-        } else {
-            wethAmountReceived -= reserve;
         }
 
         collateralReserve_ = reserve;
