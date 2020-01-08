@@ -10,11 +10,24 @@ import "./BZxBridge.sol";
 
 interface CDPManager {
     function ilks(uint cdp) external view returns (bytes32);
+    function vat() external view returns (address);
     function urns(uint cdp) external view returns(address);
     function cdpCan(address owner, uint cdp, address allowed) external view returns(bool);
 
     function frob(uint cdp, int dink, int dart) external;
     function flux(uint cdp, address dst, uint wad) external;
+    
+    function cdpAllow(
+        uint cdp,
+        address usr,
+        uint ok
+    ) external;
+}
+
+interface Vat {
+    function ilks(bytes32) external view returns (uint, uint, uint, uint, uint);
+    function dai(address) external view returns (uint);
+    function urns(bytes32, address) external view returns (uint, uint);
 }
 
 interface JoinAdapter {
@@ -37,6 +50,7 @@ contract MakerBridge is BZxBridge
 {
     address public dai;
     address public joinDAI;
+    address public vat;
 
     LoanTokenInterface public iDai;
     CDPManager public cdpManager;
@@ -63,6 +77,8 @@ contract MakerBridge is BZxBridge
 
         cdpManager = CDPManager(_cdpManager);
         proxyFactory = DSProxyFactory(_proxyFactory);
+        
+        vat = cdpManager.vat();
 
         setAddresses(_joinAdapters, iTokens);
     }
@@ -97,6 +113,11 @@ contract MakerBridge is BZxBridge
 
         iDai.flashBorrowToken(loanAmount, address(this), address(this), "", data);
     }
+    
+    function toInt(uint x) internal pure returns (int y) {
+        y = int(x);
+        require(y >= 0, "int-overflow");
+    }
 
     function _migrateLoan(
         address owner,
@@ -122,17 +143,17 @@ contract MakerBridge is BZxBridge
             uint dink = dinks[i];
             uint collateralDink = collateralDinks[i];
 
-            requireThat(cdpManager.cdpCan(owner, cdp, address(this)), "cdp-not-allowed", i);
+            requireThat(cdpManager.cdpCan(owner, cdp, address(this)), "cdp-not-allowed", i); // action 33
             requireThat(collateralDink <= dink, "Collateral amount exceeds total value (dink)", i);
 
             address urn = cdpManager.urns(cdp);
+            bytes32 ilk = cdpManager.ilks(cdp); // action 35
             JoinAdapter(joinDAI).join(urn, dart);
 
-            cdpManager.frob(cdp, -int(dink), 0);
-            cdpManager.flux(cdp, address(this), dink);
+            cdpManager.frob(cdp, -toInt(dink), _getWipeDart(Vat(vat).dai(urn), urn, ilk));
+            cdpManager.flux(cdp, address(this), dink); // action 44
 
-            bytes32 ilk = cdpManager.ilks(cdp);
-            JoinAdapter(joinAdapters[ilk]).exit(address(this), dink);
+            JoinAdapter(joinAdapters[ilk]).exit(address(this), dink); // action 46
 
             address gem = gems[ilk];
 
@@ -159,6 +180,22 @@ contract MakerBridge is BZxBridge
 
         // repaying flash borrow
         ERC20(dai).transfer(address(iDai), loanAmount);
+    }
+    
+    function _getWipeDart(
+        uint daiValue,
+        address urn,
+        bytes32 ilk
+    ) internal view returns (int dart) {
+        // Gets actual rate from the vat
+        (, uint rate,,,) = Vat(vat).ilks(ilk);
+        // Gets actual art value of the urn
+        (, uint art) = Vat(vat).urns(ilk, urn);
+
+        // Uses the whole dai balance in the vat to reduce the debt
+        dart = toInt(daiValue / rate);
+        // Checks the calculated dart is not higher than urn.art (total debt), otherwise uses its value
+        dart = uint(dart) <= art ? - dart : - toInt(art);
     }
 
     function setAddresses(address[] memory _joinAdapters, address[] memory iTokens) public onlyOwner
