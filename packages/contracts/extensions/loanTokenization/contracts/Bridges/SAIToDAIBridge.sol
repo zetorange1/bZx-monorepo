@@ -4,11 +4,18 @@
  */
 
 pragma solidity 0.5.8;
+pragma experimental ABIEncoderV2;
 
 import "./BZxBridge.sol";
 
 
 interface IBZx {
+    struct LoanOrder {
+        uint256 loanTokenAmount;
+    }
+
+    function getLoanOrder(bytes32 loanOrderHash) external view returns (LoanOrder memory);
+
     function paybackLoanAndClose(
         bytes32 loanOrderHash,
         address borrower,
@@ -31,11 +38,11 @@ interface GemLike {
 }
 
 interface DaiJoin {
-    function dai() public returns (GemLike);
+    function dai() external returns (GemLike);
 }
 
 interface SaiJoin {
-    function gem() public returns (GemLike);
+    function gem() external returns (GemLike);
 }
 
 interface ScdMcdMigration {
@@ -67,9 +74,20 @@ contract SAIToDAIBridge is BZxBridge
     )
         public
     {
+        IBZx.LoanOrder memory order = iBZx.getLoanOrder(loanOrderHash);
+        if (migrationAmount == 0) {
+            migrationAmount = order.loanTokenAmount;
+        } else {
+            requireThat(
+                order.loanTokenAmount >= migrationAmount,
+                "migrationAmount should be lower than or equal to",
+                order.loanTokenAmount
+            );
+        }
+
         bytes memory data = abi.encodeWithSignature(
-            "_migrateLoan(bytes32,address,uint256)", // TODO
-            loanOrderHash, msg.sender, migrationAmount // TODO
+            "_migrateLoan(bytes32,address,uint256)",
+            loanOrderHash, msg.sender, migrationAmount
         );
 
         iDai.flashBorrowToken(migrationAmount, address(this), address(this), "", data);
@@ -79,16 +97,13 @@ contract SAIToDAIBridge is BZxBridge
         bytes32 loanOrderHash,
         address borrower,
         uint migrationAmount
-        // TODO
     )
         public
     {
         GemLike dai = migration.daiJoin().dai();
-        
+
         dai.approve(address(migration), migrationAmount);
         migration.swapDaiToSai(migrationAmount);
-
-        // TODO check allowedValidators
 
         migration.saiJoin().gem().approve(address(migration), migrationAmount);
         uint256 collateralCloseAmount;
@@ -96,14 +111,14 @@ contract SAIToDAIBridge is BZxBridge
         (, collateralCloseAmount, collateralTokenAddress) = iBZx.paybackLoanAndClose(
             loanOrderHash, borrower, address(this), address(this), migrationAmount
         );
-        
+
         iDai.borrowTokenFromDeposit(
             migrationAmount,
             leverageAmount,
             initialLoanDuration,
             collateralCloseAmount,
             borrower,
-            address(this), 
+            address(this),
             collateralTokenAddress,
             ""
         );
