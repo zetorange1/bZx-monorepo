@@ -187,6 +187,62 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         }
     }
 
+    function flashBorrowToken(
+        uint256 borrowAmount,
+        address borrower,
+        address target,
+        string calldata signature,
+        bytes calldata data)
+        external
+        payable
+    {
+        require(reentrancyLock == REENTRANCY_GUARD_FREE, "nonReentrant");
+        reentrancyLock = REENTRANCY_GUARD_LOCKED;
+
+        _settleInterest();
+
+        uint256 beforeEtherBalance = address(this).balance.sub(msg.value);
+        uint256 beforeAssetsBalance = ERC20(loanTokenAddress).balanceOf(address(this))
+            .add(totalAssetBorrow);
+        require(beforeAssetsBalance != 0, "38");
+
+        require(ERC20(loanTokenAddress).transfer(
+            borrower,
+            borrowAmount
+        ), "39");
+
+        bytes memory callData;
+        if (bytes(signature).length == 0) {
+            callData = data;
+        } else {
+            callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
+        }
+
+        burntTokenReserved = beforeAssetsBalance;
+        (bool success,) = target.call.value(msg.value)(callData);
+        uint256 size;
+        uint256 ptr;
+        assembly {
+            size := returndatasize
+            ptr := mload(0x40)
+            returndatacopy(ptr, 0, size)
+            if eq(success, 0) { revert(ptr, size) }
+        }
+        burntTokenReserved = 0;
+
+        require(
+            address(this).balance >= beforeEtherBalance &&
+            ERC20(loanTokenAddress).balanceOf(address(this))
+                .add(totalAssetBorrow) >= beforeAssetsBalance,
+            "40"
+        );
+
+        reentrancyLock = REENTRANCY_GUARD_FREE;
+        assembly {
+            return(ptr, size)
+        }
+    }
+
     function borrowTokenFromDeposit(
         uint256 borrowAmount,
         uint256 leverageAmount,
@@ -466,6 +522,14 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         }
     }
 
+    function protocolInterestRate()
+        public
+        view
+        returns (uint256)
+    {
+        return _protocolInterestRate(totalAssetBorrow);
+    }
+
     // the minimum rate the next base protocol borrower will receive for variable-rate loans
     function borrowInterestRate()
         public
@@ -478,7 +542,6 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         );
     }
 
-    // the minimum rate the next base protocol borrower will receive for variable-rate loans
     function nextBorrowInterestRate(
         uint256 borrowAmount)
         public
@@ -504,28 +567,29 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         );
     }
 
-    // the average interest that borrowers are currently paying for open loans, prior to any fees
+    // the average interest that borrowers are currently paying for open loans
     function avgBorrowInterestRate()
         public
         view
         returns (uint256)
     {
-        if (totalAssetBorrow != 0) {
-            return _protocolInterestRate(totalAssetSupply());
+        uint256 assetBorrow = totalAssetBorrow;
+        if (assetBorrow != 0) {
+            return _protocolInterestRate(assetBorrow)
+                .mul(checkpointSupply)
+                .div(totalAssetSupply());
         } else {
             return _getLowUtilBaseRate();
         }
     }
 
-    // interest that lenders are currently receiving for open loans, prior to any fees
+    // interest that lenders are currently receiving when supplying to the pool
     function supplyInterestRate()
         public
         view
         returns (uint256)
     {
-        if (totalAssetBorrow != 0) {
-            return _supplyInterestRate(totalAssetSupply());
-        }
+        return totalSupplyInterestRate(totalAssetSupply());
     }
 
     function nextSupplyInterestRate(
@@ -534,8 +598,21 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         view
         returns (uint256)
     {
-        if (totalAssetBorrow != 0) {
-            return _supplyInterestRate(totalAssetSupply().add(supplyAmount));
+        return totalSupplyInterestRate(totalAssetSupply().add(supplyAmount));
+    }
+
+    function totalSupplyInterestRate(
+        uint256 assetSupply)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 assetBorrow = totalAssetBorrow;
+        if (assetBorrow != 0) {
+            return _supplyInterestRate(
+                assetBorrow,
+                assetSupply
+            );
         }
     }
 
@@ -1113,41 +1190,32 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
     }
 
     function _protocolInterestRate(
-        uint256 assetSupply)
+        uint256 assetBorrow)
         internal
         view
         returns (uint256)
     {
-        uint256 interestRate;
-        if (totalAssetBorrow != 0) {
+        if (assetBorrow != 0) {
             (uint256 interestOwedPerDay,) = _getAllInterest();
-            interestRate = interestOwedPerDay
+            return interestOwedPerDay
                 .mul(10**20)
-                .div(totalAssetBorrow)
-                .mul(365)
-                .mul(checkpointSupply)
-                .div(assetSupply);
-        } else {
-            interestRate = _getLowUtilBaseRate();
+                .div(assetBorrow)
+                .mul(365);
         }
-
-        return interestRate;
     }
 
     // next supply interest adjustment
     function _supplyInterestRate(
+        uint256 assetBorrow,
         uint256 assetSupply)
         public
         view
         returns (uint256)
     {
-        uint256 assetBorrow = totalAssetBorrow;
-        if (assetBorrow != 0) {
-            return _protocolInterestRate(assetSupply)
+        if (assetBorrow != 0 && assetSupply >= assetBorrow) {
+            return _protocolInterestRate(assetBorrow)
                 .mul(_utilizationRate(assetBorrow, assetSupply))
                 .div(10**20);
-        } else {
-            return 0;
         }
     }
 
@@ -1165,7 +1233,6 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
             }
 
             uint256 balance = ERC20(loanTokenAddress).balanceOf(address(this))
-                .add(burntTokenReserved) // temporary holder when flash lending
                 .add(interestUnPaid);
             if (borrowAmount > balance) {
                 borrowAmount = balance;
@@ -1308,9 +1375,13 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         returns (uint256 assetSupply)
     {
         if (totalSupply_ != 0) {
-            return ERC20(loanTokenAddress).balanceOf(address(this))
-                .add(burntTokenReserved) // temporary holder when flash lending
-                .add(totalAssetBorrow)
+            uint256 assetsBalance = burntTokenReserved; // temporary holder when flash lending
+            if (assetsBalance == 0) {
+                assetsBalance = ERC20(loanTokenAddress).balanceOf(address(this))
+                    .add(totalAssetBorrow);
+            }
+
+            return assetsBalance
                 .add(interestUnPaid);
         }
     }
