@@ -11,10 +11,16 @@ import "./BZxBridge.sol";
 
 interface IBZx {
     struct LoanOrder {
+        address loanTokenAddress;
+        address collateralTokenAddress;
         uint256 loanTokenAmount;
     }
 
+    function wethContract() external view returns (address);
+    function vaultContract() external view returns (address);
     function getLoanOrder(bytes32 loanOrderHash) external view returns (LoanOrder memory);
+
+    function debugToggleProtocolDelegateApproved(address, bool) external;
 
     function paybackLoanAndClose(
         bytes32 loanOrderHash,
@@ -35,6 +41,7 @@ interface IBZx {
 interface GemLike {
     function approve(address, uint) external;
     function transfer(address, uint) external;
+    function balanceOf(address) external returns (uint);
 }
 
 interface DaiJoin {
@@ -50,6 +57,10 @@ interface ScdMcdMigration {
     function saiJoin() external returns (SaiJoin);
 
     function swapDaiToSai(uint wad) external;
+}
+
+interface WETH {
+    function deposit() external payable;
 }
 
 contract SAIToDAIBridge is BZxBridge
@@ -73,44 +84,51 @@ contract SAIToDAIBridge is BZxBridge
         uint migrationAmount
     )
         public
+        payable
     {
         IBZx.LoanOrder memory order = iBZx.getLoanOrder(loanOrderHash);
-        if (migrationAmount == 0) {
-            migrationAmount = order.loanTokenAmount;
-        } else {
-            requireThat(
-                order.loanTokenAmount >= migrationAmount,
-                "migrationAmount should be lower than or equal to",
-                order.loanTokenAmount
-            );
-        }
+        require(order.loanTokenAddress == address(migration.saiJoin().gem()), "Loan token should be SAI");
 
         bytes memory data = abi.encodeWithSignature(
             "_migrateLoan(bytes32,address,uint256)",
             loanOrderHash, msg.sender, migrationAmount
         );
 
-        iDai.flashBorrowToken(migrationAmount, address(this), address(this), "", data);
+        iDai.flashBorrowToken.value(msg.value)(migrationAmount, address(this), address(this), "", data);
     }
 
     function _migrateLoan(
         bytes32 loanOrderHash,
-        address borrower,
+        address payable borrower,
         uint migrationAmount
     )
         public
+        payable
     {
         GemLike dai = migration.daiJoin().dai();
 
         dai.approve(address(migration), migrationAmount);
         migration.swapDaiToSai(migrationAmount);
 
-        migration.saiJoin().gem().approve(address(migration), migrationAmount);
+        migration.saiJoin().gem().approve(iBZx.vaultContract(), migrationAmount);
         uint256 collateralCloseAmount;
         address collateralTokenAddress;
+        
         (, collateralCloseAmount, collateralTokenAddress) = iBZx.paybackLoanAndClose(
             loanOrderHash, borrower, address(this), address(this), migrationAmount
         );
+        
+        if (msg.value > 0) {
+            collateralCloseAmount += msg.value;
+        
+            if (collateralTokenAddress == iBZx.wethContract()) {
+                WETH(iBZx.wethContract()).deposit.value(msg.value)();
+            } else {
+                borrower.transfer(msg.value);
+            }
+        }
+        
+        ERC20(collateralTokenAddress).approve(address(iDai), collateralCloseAmount);
 
         iDai.borrowTokenFromDeposit(
             migrationAmount,
