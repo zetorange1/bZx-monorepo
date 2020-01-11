@@ -6,6 +6,8 @@
 pragma solidity 0.5.8;
 pragma experimental ABIEncoderV2;
 
+import "./BZxBridge.sol";
+
 
 interface IBZx {
     struct LoanOrder {
