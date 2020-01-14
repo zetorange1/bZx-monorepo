@@ -42,17 +42,17 @@ function proceed() {
 
     LoanTokenLogic: "unknown",
     PositionTokenLogic: "unknown",
-    TokenizedRegistry: "unknown",
+    //TokenizedRegistry: "unknown",
   };
   var replacements = {
-    LoanTokenLogic: "LoanTokenLogicV2",
+    LoanTokenLogic: "LoanTokenLogicV4",
     PositionTokenLogic: "PositionTokenLogicV2"
   };
 
   var loanTokenization = new Array(
     "LoanTokenLogic",
     "PositionTokenLogic",
-    "TokenizedRegistry"
+    //"TokenizedRegistry"
   );
 
   var network = "development";

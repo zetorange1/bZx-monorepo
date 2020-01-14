@@ -28,7 +28,7 @@
     "solc_0.5.3": "npm:solc@0.5.3",
     "solc_0.5.8": "npm:solc@0.5.8",
     "solc_0.6.1": "npm:solc@0.6.1",
-    "truffle": "^5.1.6",
+    "truffle": "^5.1.8",
     "truffle-privatekey-provider": "https://github.com/bZxNetwork/truffle-privatekey-provider",
     "web3-utils": "^1.2.4"
   },
