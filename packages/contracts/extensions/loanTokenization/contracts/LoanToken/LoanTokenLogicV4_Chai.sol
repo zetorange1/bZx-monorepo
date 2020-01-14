@@ -138,6 +138,8 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
 
     uint256 constant RAY = 10 ** 27;
 
+    address internal constant arbitraryCaller = 0x4c67b3dB1d4474c0EBb2DB8BeC4e345526d9E2fd;
+
     // Mainnet
     iChai public constant chai = iChai(0x06AF07097C9Eeb7fD685c692751D5C66dB49c215);
     iPot public constant pot = iPot(0x197E90f9FAD81970bA7976f33CbD77088E5D7cf7);
@@ -147,7 +149,6 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
     /*iChai public constant chai = iChai(0x71DD45d9579A499B58aa85F50E5E3B241Ca2d10d);
     iPot public constant pot = iPot(0xEA190DBDC7adF265260ec4dA6e9675Fd4f5A78bb);
     ERC20 public constant dai = ERC20(0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);*/
-
 
     modifier onlyOracle() {
         require(msg.sender == IBZx(bZxContract).oracleAddresses(bZxOracle), "1");
@@ -216,6 +217,66 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
             receiver,
             false // toChai
         );
+    }
+
+    function flashBorrowToken(
+        uint256 borrowAmount,
+        address borrower,
+        address target,
+        string calldata signature,
+        bytes calldata data)
+        external
+        payable
+        nonReentrant
+        returns (bytes memory)
+    {
+        _settleInterest();
+
+        ERC20 _dai = _dsrWithdraw(borrowAmount);
+
+        uint256 beforeEtherBalance = address(this).balance.sub(msg.value);
+        uint256 beforeAssetsBalance = _underlyingBalance()
+            .add(totalAssetBorrow);
+        require(beforeAssetsBalance != 0, "38");
+
+        if (borrowAmount != 0) {
+            require(_dai.transfer(
+                borrower,
+                borrowAmount
+            ), "39");
+        }
+
+        bytes memory callData;
+        if (bytes(signature).length == 0) {
+            callData = data;
+        } else {
+            callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
+        }
+
+        burntTokenReserved = beforeAssetsBalance;
+
+        (bool success, bytes memory returnData) = arbitraryCaller.call.value(msg.value)(
+            abi.encodeWithSelector(
+                0xba25d2ff, // sendCall(address,address,bytes)
+                msg.sender,
+                target,
+                callData
+            )
+        );
+        require(success, "call failed");
+
+        burntTokenReserved = 0;
+
+        require(
+            address(this).balance >= beforeEtherBalance &&
+            _underlyingBalance()
+                .add(totalAssetBorrow) >= beforeAssetsBalance,
+            "40"
+        );
+
+        _dsrDeposit();
+
+        return returnData;
     }
 
     function borrowTokenFromDeposit(

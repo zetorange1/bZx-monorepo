@@ -102,6 +102,8 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
 
     address internal target_;
 
+    address internal constant arbitraryCaller = 0x4c67b3dB1d4474c0EBb2DB8BeC4e345526d9E2fd;
+
     modifier onlyOracle() {
         require(msg.sender == IBZx(bZxContract).oracleAddresses(bZxOracle), "1");
         _;
@@ -185,6 +187,62 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
                 loanAmountPaid
             ), "5");
         }
+    }
+
+    function flashBorrowToken(
+        uint256 borrowAmount,
+        address borrower,
+        address target,
+        string calldata signature,
+        bytes calldata data)
+        external
+        payable
+        nonReentrant
+        returns (bytes memory)
+    {
+        _settleInterest();
+
+        uint256 beforeEtherBalance = address(this).balance.sub(msg.value);
+        uint256 beforeAssetsBalance = ERC20(loanTokenAddress).balanceOf(address(this))
+            .add(totalAssetBorrow);
+        require(beforeAssetsBalance != 0, "38");
+
+        if (borrowAmount != 0) {
+            require(ERC20(loanTokenAddress).transfer(
+                borrower,
+                borrowAmount
+            ), "39");
+        }
+
+        bytes memory callData;
+        if (bytes(signature).length == 0) {
+            callData = data;
+        } else {
+            callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
+        }
+
+        burntTokenReserved = beforeAssetsBalance;
+
+        (bool success, bytes memory returnData) = arbitraryCaller.call.value(msg.value)(
+            abi.encodeWithSelector(
+                0xba25d2ff, // sendCall(address,address,bytes)
+                msg.sender,
+                target,
+                callData
+            )
+        );
+        require(success, "call failed");
+
+        burntTokenReserved = 0;
+
+        require(
+            address(this).balance >= beforeEtherBalance &&
+            ERC20(loanTokenAddress).balanceOf(address(this))
+                .add(totalAssetBorrow) >= beforeAssetsBalance,
+            "40"
+        );
+
+        return returnData;
     }
 
     function borrowTokenFromDeposit(
