@@ -11,7 +11,7 @@ import Icon from "@material-ui/core/Icon";
 import MuiFormControl from "@material-ui/core/FormControl";
 
 import MomentUtils from "material-ui-pickers/utils/moment-utils";
-import MuiPickersUtilsProvider from "material-ui-pickers/utils/MuiPickersUtilsProvider";
+import MuiPickersUtilsProvider from "material-ui-pickers/MuiPickersUtilsProvider";
 import { DateTimePicker } from "material-ui-pickers";
 
 import Section, { SectionLabel } from "../../common/FormSection";
