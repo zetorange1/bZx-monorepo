@@ -5,6 +5,7 @@
 
 interface LoanTokenInterface {
     function symbol() external view returns (string memory);
+    function wethContract() external view returns (address);
     function loanTokenAddress() external view returns (address);
 
     function mintWithEther(address receiver) external payable returns (uint256 mintAmount);

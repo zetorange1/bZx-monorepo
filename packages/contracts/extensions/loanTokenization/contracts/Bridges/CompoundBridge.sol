@@ -226,6 +226,7 @@ contract CompoundBridge is BZxBridge, Exponential
             CToken cToken = CToken(assets[i]);
             uint amount = amounts[i];
             uint collateralAmount = collateralAmounts[i];
+            uint excess = amount - collateralAmount;
 
             uint cTokenAmount;
             MathError mathErr;
@@ -238,8 +239,6 @@ contract CompoundBridge is BZxBridge, Exponential
             requireThat(err == uint(Error.NO_ERROR), "Redeem failed", i);
 
             LoanTokenInterface iCollateral = LoanTokenInterface(iTokens[address(cToken)]);
-
-            uint excess = amount - collateralAmount;
 
             if (address(cToken) == cEther) {
                 iToken.borrowTokenFromDeposit.value(collateralAmount)(
@@ -275,7 +274,7 @@ contract CompoundBridge is BZxBridge, Exponential
             }
         }
 
-        // repaying flash borrow
+        // repay flash borrow
         ERC20(loanTokenAddress).transfer(address(iToken), loanAmount);
     }
 
@@ -300,15 +299,11 @@ contract CompoundBridge is BZxBridge, Exponential
                     i
                 );
             } else {
-                // require(isEqual(iToken.symbol(), "iETH"), "Incompatible ETH tokens");
+                requireThat(iToken.wethContract() == iToken.loanTokenAddress(), "Incompatible ETH tokens", i);
             }
+
             iTokens[cToken] = _iTokens[i];
             emit NewToken(cTokens[i], _iTokens[i]);
         }
     }
-
-//    function isEqual(string memory a, string memory b) private pure returns (bool)
-//    {
-//        return (keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b)));
-//    }
 }
