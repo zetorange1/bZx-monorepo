@@ -57,6 +57,7 @@ interface ScdMcdMigration {
     function saiJoin() external returns (SaiJoin);
 
     function swapDaiToSai(uint wad) external;
+    function swapSaiToDai(uint wad) external;
 }
 
 interface WETH {
@@ -106,28 +107,35 @@ contract SAIToDAIBridge is BZxBridge
         payable
     {
         GemLike dai = migration.daiJoin().dai();
+        GemLike sai = migration.saiJoin().gem();
 
         dai.approve(address(migration), migrationAmount);
         migration.swapDaiToSai(migrationAmount);
 
-        migration.saiJoin().gem().approve(iBZx.vaultContract(), migrationAmount);
+        sai.approve(iBZx.vaultContract(), migrationAmount);
         uint256 collateralCloseAmount;
         address collateralTokenAddress;
-        
+
         (, collateralCloseAmount, collateralTokenAddress) = iBZx.paybackLoanAndClose(
             loanOrderHash, borrower, address(this), address(this), migrationAmount
         );
-        
+
+        uint bridgeSaiBalance = sai.balanceOf(address(this));
+        if (bridgeSaiBalance > 0) {
+            sai.approve(address(migration), bridgeSaiBalance);
+            migration.swapSaiToDai(bridgeSaiBalance);
+            dai.transfer(borrower, bridgeSaiBalance);
+        }
+
         if (msg.value > 0) {
-            collateralCloseAmount += msg.value;
-        
             if (collateralTokenAddress == iBZx.wethContract()) {
+                collateralCloseAmount += msg.value;
                 WETH(iBZx.wethContract()).deposit.value(msg.value)();
             } else {
                 borrower.transfer(msg.value);
             }
         }
-        
+
         ERC20(collateralTokenAddress).approve(address(iDai), collateralCloseAmount);
 
         iDai.borrowTokenFromDeposit(
