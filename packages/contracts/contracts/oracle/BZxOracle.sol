@@ -451,12 +451,23 @@ contract BZxOracle is EIP20Wrapper, GasRefunder, BZxOwnable {
         if (returnValues[1] < loanPosition.collateralTokenAmountFilled) {
             // send unused collateral token back to the vault
             collateralTokenBalance = loanPosition.collateralTokenAmountFilled - returnValues[1];
-            if (!_transferToken(
-                loanPosition.collateralTokenAddressFilled,
-                vaultContract,
-                collateralTokenBalance
-            )) {
-                revert("_transferToken failed");
+
+            if (returnValues[2] != 0 && loanPosition.collateralTokenAddressFilled == wethAddress) {
+                if (collateralTokenBalance > returnValues[2]) {
+                    collateralTokenBalance -= returnValues[2];
+                } else {
+                    collateralTokenBalance = 0;
+                }
+            }
+
+            if (collateralTokenBalance != 0) {
+                if (!_transferToken(
+                    loanPosition.collateralTokenAddressFilled,
+                    vaultContract,
+                    collateralTokenBalance
+                )) {
+                    revert("_transferToken failed");
+                }
             }
         } else if (returnValues[1] > loanPosition.collateralTokenAmountFilled) {
             if (loanPosition.collateralTokenAddressFilled == wethAddress) {

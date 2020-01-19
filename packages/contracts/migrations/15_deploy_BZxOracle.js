@@ -19,9 +19,9 @@ const config = require("../protocol-config.js");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const OLD_ORACLE_ADDRESS = "";
-//const OLD_ORACLE_ADDRESS = "0xa88172b2afc6e79693acd4e1e558d4d3e3662114"; // mainnet
+//const OLD_ORACLE_ADDRESS = "0xb017c9936f9271daff23d4c9876651442958a80f"; // mainnet
 //const OLD_ORACLE_ADDRESS = "0x208ec15dbb52b417343887ed8a5523d3c4d23e55"; // ropsten
-//const OLD_ORACLE_ADDRESS = "0x9ea8c9b39569933f840f47a5e25dfa56209e0320"; // kovan
+//const OLD_ORACLE_ADDRESS = "0x9b97fd524e25a177371238221cc93695d07b79ec"; // kovan
 //const OLD_ORACLE_ADDRESS = "0x76dE3d406FeE6c3316558406B17fF785c978E98C"; // rinkeby
 
 module.exports = (deployer, network, accounts) => {
