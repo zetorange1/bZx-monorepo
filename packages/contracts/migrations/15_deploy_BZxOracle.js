@@ -160,6 +160,7 @@ module.exports = (deployer, network, accounts) => {
         ]);
 
         await oracle.setMaxSourceAmountAllowedBatch([
+          "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", // WETH
           "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", // USDC
           "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359", // SAI
           "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599", // WBTC
@@ -173,6 +174,7 @@ module.exports = (deployer, network, accounts) => {
           //"0x6b175474e89094c44da98b954eedeac495271d0f"  // DAI
         ],
         [
+          "500000000000000000000",      // WETH
           "70000000000",                // USDC
           "75000000000000000000000",    // SAI
           "450000000",                  // WBTC
