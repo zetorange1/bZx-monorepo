@@ -30,7 +30,7 @@ contract SplittableTokenV2 is SplittableTokenStorageV2 {
         }
 
         balances[_to] = normalize(denormalize(balances[_to]).add(_value));
-        if (allowanceAmount < MAX_UINT) {
+        if (allowanceAmount != MAX_UINT) {
             allowed[_from][msg.sender] = normalize(allowanceAmount.sub(_value));
             if (allowance(_from, msg.sender) == 0) {
                 allowed[_from][msg.sender] = 0;
@@ -67,7 +67,7 @@ contract SplittableTokenV2 is SplittableTokenStorageV2 {
         returns (bool)
     {
         allowed[msg.sender][_spender] = _value;
-        if (allowance(msg.sender, _spender) == 0) {
+        if (_value != MAX_UINT && allowance(msg.sender, _spender) == 0) {
             allowed[msg.sender][_spender] = 0;
         }
 
