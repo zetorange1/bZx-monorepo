@@ -219,6 +219,7 @@ module.exports = (deployer, network, accounts) => {
           "0xd0a1e359811322d97991e03f863a0c30c2cf029c", // WETH
           "0xc4375b7de8af5a38a93548eb8453a498222c4ff2", // SAI
           "0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa", // DAI
+          "0xad67cB4d63C9da94AcA37fDF2761AaDF780ff4a2", // KNC
           "0x71DD45d9579A499B58aa85F50E5E3B241Ca2d10d", // CHAI
         ],
         [
@@ -226,6 +227,7 @@ module.exports = (deployer, network, accounts) => {
           "true", // WETH
           "true", // SAI
           "true", // DAI
+          "true", // KNC
           "true", // CHAI
         ]
         );
@@ -234,6 +236,7 @@ module.exports = (deployer, network, accounts) => {
           "0xd0a1e359811322d97991e03f863a0c30c2cf029c", // WETH
           "0xc4375b7de8af5a38a93548eb8453a498222c4ff2", // SAI
           "0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa", // DAI
+          "0xad67cB4d63C9da94AcA37fDF2761AaDF780ff4a2", // KNC
           "0x71DD45d9579A499B58aa85F50E5E3B241Ca2d10d", // CHAI
         ]);
       } else if (network == "rinkeby") {
