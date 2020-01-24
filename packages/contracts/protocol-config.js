@@ -38,6 +38,8 @@ module.exports = {
       BZxEther: "0xa3eBDf66e0292F1d5FD82Ae3fcd92551Ac9dB081",
       MultiSig: "0x35b94649Bd03D13eF08e999127351Cc52286473C",
       TokenizedRegistry: "0xd03eea21041a19672e451bcbb413ce8be72d0381", // old: "0xaa5c713387972841995553c9690459596336800b",
+      LoanTokenSettings: "0x633a8328ae5947FA5E173Cd5e2c8a838637939c3",
+      LoanTokenSettingsLowerAdmin: "0xfC92Cf77FC3ef447F631a37E341c6803AdCEe622",
       SAITokenAddress: "0xad6d458402f60fd3bd25163575031acdce07538d", // Kyber SAI
       WBTCTokenAddress: "0x95cc8d8f29d0f7fcc425e8708893e759d1599c97" // Kyber ENG
     },

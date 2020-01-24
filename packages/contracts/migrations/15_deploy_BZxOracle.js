@@ -20,7 +20,7 @@ const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const OLD_ORACLE_ADDRESS = "";
 //const OLD_ORACLE_ADDRESS = "0xb017c9936f9271daff23d4c9876651442958a80f"; // mainnet
-//const OLD_ORACLE_ADDRESS = "0x208ec15dbb52b417343887ed8a5523d3c4d23e55"; // ropsten
+//const OLD_ORACLE_ADDRESS = "0x115338e77339d64b3d58181aa9c0518df9d18022"; // ropsten
 //const OLD_ORACLE_ADDRESS = "0x9b97fd524e25a177371238221cc93695d07b79ec"; // kovan
 //const OLD_ORACLE_ADDRESS = "0x76dE3d406FeE6c3316558406B17fF785c978E98C"; // rinkeby
 
@@ -258,6 +258,26 @@ module.exports = (deployer, network, accounts) => {
           "0xc778417e063141139fce010982780140aa0cd5ab", // WETH
           "0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea", // SAI (Compound)
           "0x6e894660985207feb7cf89faf048998c71e8ee89", // REP (Compound)
+        ]);
+      } else if (network == "ropsten") {
+        await oracle.setSupportedTokensBatch([
+          "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", // ETH
+          "0xc778417e063141139fce010982780140aa0cd5ab", // WETH
+          "0xdb67275d12909bc7038a6c6343dd581f7cdbb391", // DAI (Maker)
+          "0xf80A32A835F79D7787E8a8ee5721D0fEaFd78108", // DAI (Aave)
+        ],
+        [
+          "true", // ETH
+          "true", // WETH
+          "true", // DAI (Maker)
+          "true", // DAI (Aave)
+        ]
+        );
+
+        await oracle.setDecimalsBatch([
+          "0xc778417e063141139fce010982780140aa0cd5ab", // WETH
+          "0xdb67275d12909bc7038a6c6343dd581f7cdbb391", // DAI (Maker)
+          "0xf80A32A835F79D7787E8a8ee5721D0fEaFd78108", // DAI (Aave)
         ]);
       }
 
