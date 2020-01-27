@@ -47,9 +47,9 @@ contract iTokens_loanManagementFunctions2 is BZxStorage, BZxProxiable, MiscFunct
         onlyOwner
     {
         targets[bytes4(keccak256("extendLoanByInterest(bytes32,address,address,uint256,bool)"))] = _target;
-        targets[bytes4(keccak256("getBasicLoansData(address,uint256)"))] = _target;
+        targets[bytes4(keccak256("getBasicLoansData(address,uint256,uint256)"))] = _target;
+        targets[bytes4(keccak256("getBasicLoanData(bytes32,address)"))] = _target;
     }
-
 
     function extendLoanByInterest(
         bytes32 loanOrderHash,
@@ -181,10 +181,14 @@ contract iTokens_loanManagementFunctions2 is BZxStorage, BZxProxiable, MiscFunct
         tokenInterestOwed[lender][loanOrder.interestTokenAddress] = tokenInterestOwed[lender][loanOrder.interestTokenAddress].add(depositAmount);
     }
 
-    // only returns data for non-margin trade loans that haven't ended
+    // Only returns data for loans that are active
+    // loanType 0: all loans
+    // loanType 1: margin trade loans
+    // loanType 2: non-margin trade loans
     function getBasicLoansData(
         address borrower,
-        uint256 count)
+        uint256 count,
+        uint256 loanType)
         public
         view
         returns (BasicLoanData[] memory loans)
@@ -211,11 +215,16 @@ contract iTokens_loanManagementFunctions2 is BZxStorage, BZxProxiable, MiscFunct
                 uint256 positionId = positionIds[i-1];
                 LoanPosition memory loanPosition = loanPositions[positionId];
 
-                if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
-                    continue;
+                if (loanType != 0) {
+                    if (!(
+                        (loanType == 1 && loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) ||
+                        (loanType == 2 && loanPosition.positionTokenAddressFilled == loanOrder.loanTokenAddress)
+                    )) {
+                        continue;
+                    }
                 }
 
-                if (!loanPosition.active || (loanPosition.loanEndUnixTimestampSec != 0 && block.timestamp >= loanPosition.loanEndUnixTimestampSec)) {
+                if (!loanPosition.active) {
                     continue;
                 }
 
@@ -251,5 +260,53 @@ contract iTokens_loanManagementFunctions2 is BZxStorage, BZxProxiable, MiscFunct
                 itemCount++;
             }
         }
+
+        if (itemCount < count) {
+            assembly {
+                mstore(loans, itemCount)
+            }
+        }
+    }
+
+    function getBasicLoanData(
+        bytes32 loanOrderHash,
+        address borrower)
+        public
+        view
+        returns (BasicLoanData memory loanData)
+    {
+        uint256 positionId = loanPositionsIds[loanOrderHash][borrower];
+        require(positionId != 0, "invalid loan");
+
+        LoanOrder memory loanOrder = orders[loanOrderHash];
+        LoanPosition storage loanPosition = loanPositions[positionId];
+        require(borrower == loanPosition.trader, "invalid loan");
+
+        OracleInterface oracleRef = OracleInterface(oracleAddresses[loanOrder.oracleAddress]);
+
+        TraderInterest memory traderInterest = traderLoanInterest[positionId];
+
+        loanData = BasicLoanData({
+            loanOrderHash: loanOrderHash,
+            loanTokenAddress: loanOrder.loanTokenAddress,
+            collateralTokenAddress: loanPosition.collateralTokenAddressFilled,
+            loanTokenAmountFilled: loanPosition.loanTokenAmountFilled,
+            positionTokenAmountFilled: loanPosition.positionTokenAmountFilled,
+            collateralTokenAmountFilled: loanPosition.collateralTokenAmountFilled,
+            interestOwedPerDay: traderInterest.interestOwedPerDay,
+            interestDepositRemaining: loanPosition.loanEndUnixTimestampSec.sub(block.timestamp).mul(traderInterest.interestOwedPerDay).div(86400),
+            initialMarginAmount: loanOrder.initialMarginAmount,
+            maintenanceMarginAmount: loanOrder.maintenanceMarginAmount,
+            currentMarginAmount: oracleRef.getCurrentMarginAmount(
+                loanOrder.loanTokenAddress,
+                loanPosition.positionTokenAddressFilled,
+                loanPosition.collateralTokenAddressFilled,
+                loanPosition.loanTokenAmountFilled,
+                loanPosition.positionTokenAmountFilled,
+                loanPosition.collateralTokenAmountFilled
+            ),
+            maxDurationUnixTimestampSec: loanOrder.maxDurationUnixTimestampSec,
+            loanEndUnixTimestampSec: loanPosition.loanEndUnixTimestampSec
+        });
     }
 }
