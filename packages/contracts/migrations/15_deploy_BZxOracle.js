@@ -20,7 +20,7 @@ const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const OLD_ORACLE_ADDRESS = "";
 //const OLD_ORACLE_ADDRESS = "0xb017c9936f9271daff23d4c9876651442958a80f"; // mainnet
-//const OLD_ORACLE_ADDRESS = "0x115338e77339d64b3d58181aa9c0518df9d18022"; // ropsten
+//const OLD_ORACLE_ADDRESS = "0x4330762418df3555ddd1d732200b317c9239b941"; // ropsten
 //const OLD_ORACLE_ADDRESS = "0x9b97fd524e25a177371238221cc93695d07b79ec"; // kovan
 //const OLD_ORACLE_ADDRESS = "0x76dE3d406FeE6c3316558406B17fF785c978E98C"; // rinkeby
 
@@ -61,7 +61,7 @@ module.exports = (deployer, network, accounts) => {
   if (network == "mainnet") {
     FULCRUM_ORACLE2 = "0x4c1974e5ff413c6e061ae217040795aaa1748e8b";
   } else if (network == "ropsten") {
-    FULCRUM_ORACLE2 = "";
+    FULCRUM_ORACLE2 = "0x115338e77339d64b3d58181aa9c0518df9d18022";
   }
 
   let FULCRUM_ORACLE3 = "";

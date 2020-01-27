@@ -129,6 +129,13 @@ contract BZxOracle is EIP20Wrapper, GasRefunder, BZxOwnable {
     address public constant bZRxTokenContract = 0xe3e682A8Fc7EFec410E4099cc09EfCC0743C634a;
     address public constant oracleNotifier = 0xc406f51A23F28D6559e311010d3EcD8A07696a45;*/
 
+    // Ropsten
+    /*address public constant vaultContract = 0xbAB325Bc2E78ea080F46c1A2bf9BF25F8A3c4d69;
+    address public constant kyberContract = 0x818E6FECD516Ecc3849DAf6845e3EC868087B755;
+    address public constant wethContract = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
+    address public constant bZRxTokenContract = 0xF8b0B6Ee32a617beca665b6c5B241AC15b1ACDD5;
+    address public constant oracleNotifier = 0xe09011AF509f72C46312ebabceabC7c5Ea7E6991;*/
+
     //address public constant kyberNetworkContract = ;
 
     //mapping (uint256 => uint256) public collateralInWethAmounts; // mapping of position ids to initial collateralInWethAmounts
