@@ -200,6 +200,7 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         nonReentrant
         returns (bytes memory)
     {
+        _checkPause();
         _settleInterest();
 
         uint256 beforeEtherBalance = address(this).balance.sub(msg.value);
@@ -1397,6 +1398,19 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         assembly {
             lowUtilBaseRate := sload(0x3d82e958c891799f357c1316ae5543412952ae5c423336f8929ed7458039c995)
         }
+    }
+
+    function _checkPause()
+        internal
+        view
+    {
+        //keccak256("iToken_FunctionPause")
+        bytes32 slot = keccak256(abi.encodePacked(msg.sig, uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)));
+        bool isPaused;
+        assembly {
+            isPaused := sload(slot)
+        }
+        require(!isPaused, "unauthorized");
     }
 
     function _adjustValue(

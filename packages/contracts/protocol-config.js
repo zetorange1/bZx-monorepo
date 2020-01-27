@@ -68,7 +68,7 @@ module.exports = {
       MultiSig: "",
       TokenizedRegistry: "0xF1C87dD61BF8a4e21978487e2705D52AA687F97E",
       LoanTokenSettings: "0x7645F5FFd0b24A60C6A9fFF54Ce767f144f41Df4",
-      LoanTokenSettingsLowerAdmin: "0x7645F5FFd0b24A60C6A9fFF54Ce767f144f41Df4",
+      LoanTokenSettingsLowerAdmin: "0x0E45e9D4b318C0EDf2Da94a929d90408d556f740",
       SAITokenAddress: "0xC4375B7De8af5a38a93548eb8453a498222C4fF2",
       DAITokenAddress: "0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa",
       CHAITokenAddress: "0x71DD45d9579A499B58aa85F50E5E3B241Ca2d10d",
