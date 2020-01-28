@@ -88,21 +88,27 @@ contract SoloBridge is BZxBridge
     )
         public
     {
-        require(loanAmount > 0, "Invalid loan amount");
         require(marketIds.length > 0, "Invalid markets");
         require(marketIds.length == amounts.length, "Invalid amounts");
         require(amounts.length == collateralAmounts.length, "Invalid collateral amounts");
         require(collateralAmounts.length == borrowAmounts.length, "Invalid borrow amounts length");
-
+        
         uint totalBorrowAmount;
         for (uint i = 0; i < borrowAmounts.length; i++) {
             totalBorrowAmount += borrowAmounts[i];
         }
-        require(totalBorrowAmount == loanAmount, "Invalid borrow amounts value");
-
-        require(sm.getIsLocalOperator(msg.sender, address(this)), "Bridge is not an operator");
-
+        
         Types.Wei memory accountWei = sm.getAccountWei(account, marketId);
+        if (loanAmount == 0) {
+            loanAmount = accountWei.value;
+            if (totalBorrowAmount < loanAmount) {
+                borrowAmounts[0] += loanAmount - totalBorrowAmount;
+                totalBorrowAmount = loanAmount;
+            }
+        }
+        
+        require(loanAmount <= totalBorrowAmount, "Invalid borrow amounts");
+        require(sm.getIsLocalOperator(msg.sender, address(this)), "Bridge is not an operator");
         require(!accountWei.sign && accountWei.value >= loanAmount, "Invalid Solo balance");
 
         LoanTokenInterface iToken = LoanTokenInterface(iTokens[marketId]);
@@ -121,6 +127,7 @@ contract SoloBridge is BZxBridge
         uint[] memory amounts
     )
         internal
+        view
         returns (Actions.ActionArgs[] memory actions)
     {
         actions = new Actions.ActionArgs[](marketIds.length + 1);
