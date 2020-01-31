@@ -61,6 +61,8 @@ module.exports = {
         Resolver: "0x44b92B8F27abAC2ebc9d0C4fa6fF0EEd4E98ba79"
       },
       WethHelper: "0x3b5bDCCDFA2a0a1911984F203C19628EeB6036e0",
+      BZxProxy: "0x9009e85a687b55b5d6c314363c228803fad32d01",
+      BZxVault: "0xce069b35ae99762bee444c81dec1728aa99afd4b",
       OracleNotifier: "0xc406f51A23F28D6559e311010d3EcD8A07696a45",
       KyberContractAddress: "0x692f391bCc85cefCe8C237C01e1f636BbD70EA4D", // Kovan
       BZRXToken: "0xe3e682A8Fc7EFec410E4099cc09EfCC0743C634a",
@@ -69,6 +71,8 @@ module.exports = {
       TokenizedRegistry: "0xF1C87dD61BF8a4e21978487e2705D52AA687F97E",
       LoanTokenSettings: "0x7645F5FFd0b24A60C6A9fFF54Ce767f144f41Df4",
       LoanTokenSettingsLowerAdmin: "0x0E45e9D4b318C0EDf2Da94a929d90408d556f740",
+      PositionTokenSettingsV2: "0x9039aa76ec9d3a7c9dcec1ee008c7b9b1163f709",
+      PositionTokenLogicV2_Initialize: "0x1665364b226e8aa9e545b613ccded1c4b0834fcf",
       SAITokenAddress: "0xC4375B7De8af5a38a93548eb8453a498222C4fF2",
       DAITokenAddress: "0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa",
       CHAITokenAddress: "0x71DD45d9579A499B58aa85F50E5E3B241Ca2d10d",

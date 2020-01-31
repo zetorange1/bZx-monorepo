@@ -28,6 +28,7 @@ interface IBZx {
             // withdrawalAmount: Actual amount sent to borrower (can't exceed newLoanAmount)
         bytes calldata loanDataBytes)
         external
+        payable
         returns (uint256);
 
     function payInterestForOracle(
@@ -254,7 +255,7 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         address borrower,
         address receiver,
         address collateralTokenAddress, // address(0) means ETH and ETH must be sent with the call
-        bytes memory loanDataBytes)     // arbitrary order data
+        bytes memory /*loanDataBytes*/) // arbitrary order data
         public
         payable
         returns (bytes32 loanOrderHash)
@@ -324,7 +325,7 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
                 0,                      // tradeTokenSent
                 sentAmounts[6]          // withdrawalAmount
             ],
-            loanDataBytes
+            ""                          // loanDataBytes
         );
         require(sentAmounts[6] == _borrowAmount, "8");
     }
@@ -359,8 +360,9 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         address receiver,
         address collateralTokenAddress,
         address tradeTokenAddress,
-        bytes memory loanDataBytes)
+        bytes memory /*loanDataBytes*/)
         public
+        //payable
         returns (bytes32 loanOrderHash)
     {
         address[4] memory sentAddresses;
@@ -388,11 +390,16 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
             uint256(keccak256(abi.encodePacked(leverageAmount,sentAddresses[1]))),
             sentAddresses,
             sentAmounts,
-            false, // amountIsADeposit
-            loanDataBytes
+            false,  // amountIsADeposit
+            ""      // loanDataBytes
         );
     }
 
+    // Called by pTokens to borrow and immediately get into a positions
+    // Other traders can call this, but it's recommended to instead use borrowTokenAndUse(...) instead
+    // assumption: depositAmount is collateral + interest deposit and will be denominated in deposit token
+    // assumption: loan token and interest token are the same
+    // returns loanOrderHash for the base protocol loan
     function marginTradeFromDeposit(
         uint256 depositAmount,
         uint256 leverageAmount,
@@ -405,18 +412,45 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         address tradeTokenAddress,
         bytes memory loanDataBytes)
         public
+        payable
         returns (bytes32 loanOrderHash)
     {
-        return _marginTradeFromDeposit(
-            depositAmount,
+        require(tradeTokenAddress != address(0) &&
+            tradeTokenAddress != loanTokenAddress,
+            "10"
+        );
+
+        uint256 amount = depositAmount;
+        // To calculate borrow amount and interest owed to lender we need deposit amount to be represented as loan token
+        if (depositTokenAddress == tradeTokenAddress) {
+            (,,amount) = IBZxOracle(bZxOracle).getTradeData(
+                tradeTokenAddress,
+                loanTokenAddress,
+                amount
+            );
+        } else if (depositTokenAddress != loanTokenAddress) {
+            // depositTokenAddress can only be tradeTokenAddress or loanTokenAddress
+            revert("11");
+        }
+
+        loanOrderHash = _borrowTokenAndUse(
             leverageAmount,
-            loanTokenSent,
-            collateralTokenSent,
-            tradeTokenSent,
-            trader,
-            depositTokenAddress,
-            collateralTokenAddress,
-            tradeTokenAddress,
+            [
+                trader,
+                collateralTokenAddress,     // collateralTokenAddress
+                tradeTokenAddress,          // tradeTokenAddress
+                trader                      // receiver
+            ],
+            [
+                0,                      // interestRate (found later)
+                amount,                 // amount of deposit
+                0,                      // interestInitialAmount (interest is calculated based on fixed-term loan)
+                loanTokenSent,
+                collateralTokenSent,
+                tradeTokenSent,
+                0
+            ],
+            true,                       // amountIsADeposit
             loanDataBytes
         );
     }
@@ -804,65 +838,6 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         }
     }
 
-    // Called by pTokens to borrow and immediately get into a positions
-    // Other traders can call this, but it's recommended to instead use borrowTokenAndUse(...) instead
-    // assumption: depositAmount is collateral + interest deposit and will be denominated in deposit token
-    // assumption: loan token and interest token are the same
-    // returns loanOrderHash for the base protocol loan
-    function _marginTradeFromDeposit(
-        uint256 depositAmount,
-        uint256 leverageAmount,
-        uint256 loanTokenSent,
-        uint256 collateralTokenSent,
-        uint256 tradeTokenSent,
-        address trader,
-        address depositTokenAddress,
-        address collateralTokenAddress,
-        address tradeTokenAddress,
-        bytes memory loanDataBytes)
-        internal
-        returns (bytes32 loanOrderHash)
-    {
-        require(tradeTokenAddress != address(0) &&
-            tradeTokenAddress != loanTokenAddress,
-            "10"
-        );
-
-        uint256 amount = depositAmount;
-        // To calculate borrow amount and interest owed to lender we need deposit amount to be represented as loan token
-        if (depositTokenAddress == tradeTokenAddress) {
-            (,,amount) = IBZxOracle(bZxOracle).getTradeData(
-                tradeTokenAddress,
-                loanTokenAddress,
-                amount
-            );
-        } else if (depositTokenAddress != loanTokenAddress) {
-            // depositTokenAddress can only be tradeTokenAddress or loanTokenAddress
-            revert("11");
-        }
-
-        loanOrderHash = _borrowTokenAndUse(
-            leverageAmount,
-            [
-                trader,
-                collateralTokenAddress,     // collateralTokenAddress
-                tradeTokenAddress,          // tradeTokenAddress
-                trader                      // receiver
-            ],
-            [
-                0,                      // interestRate (found later)
-                amount,                 // amount of deposit
-                0,                      // interestInitialAmount (interest is calculated based on fixed-term loan)
-                loanTokenSent,
-                collateralTokenSent,
-                tradeTokenSent,
-                0
-            ],
-            true,                       // amountIsADeposit
-            loanDataBytes
-        );
-    }
-
     function _getBorrowAmountForDeposit(
         uint256 depositAmount,
         uint256 leverageAmount,             // use 2000000000000000000 for 150% initial margin
@@ -1042,7 +1017,14 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         sentAmounts[3] = sentAmounts[3]
             .add(sentAmounts[1]); // borrowAmount
 
-        sentAmounts[1] = IBZx(bZxContract).takeOrderFromiToken( // borrowAmount
+        uint256 msgValue;
+        if (msg.value != 0) {
+            msgValue = address(this).balance;
+            if (msgValue > msg.value) {
+                msgValue = msg.value;
+            }
+        }
+        sentAmounts[1] = IBZx(bZxContract).takeOrderFromiToken.value(msgValue)( // borrowAmount
             loanOrderHash,
             sentAddresses,
             sentAmounts,
@@ -1131,7 +1113,6 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         if (collateralTokenSent != 0) {
             if (collateralTokenAddress == wethContract && msg.value != 0 && collateralTokenSent == msg.value) {
                 WETHInterface(wethContract).deposit.value(collateralTokenSent)();
-
                 success = ERC20(collateralTokenAddress).transfer(
                     bZxVault,
                     collateralTokenSent
