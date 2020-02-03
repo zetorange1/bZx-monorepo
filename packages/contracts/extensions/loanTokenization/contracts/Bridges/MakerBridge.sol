@@ -13,6 +13,7 @@ interface CDPManager {
     function vat() external view returns (address);
     function urns(uint cdp) external view returns(address);
     function cdpCan(address owner, uint cdp, address allowed) external view returns(bool);
+    function owns(uint cdp) external view returns(address);
 
     function frob(uint cdp, int dink, int dart) external;
     function flux(uint cdp, address dst, uint wad) external;
@@ -42,6 +43,10 @@ contract DSProxyFactory {
     mapping(address => bool) public isProxy;
 }
 
+contract InstaRegistry {
+    mapping(address => address) public proxies;
+}
+
 contract DSProxy {
     address public owner;
 }
@@ -55,6 +60,7 @@ contract MakerBridge is BZxBridge
     LoanTokenInterface public iDai;
     CDPManager public cdpManager;
     DSProxyFactory public proxyFactory;
+    InstaRegistry public instaRegistry;
 
     mapping(bytes32 => address) public joinAdapters; // ilk => join adapter address
     mapping(bytes32 => address) public gems; // ilk => underlying token address
@@ -67,6 +73,7 @@ contract MakerBridge is BZxBridge
         address _cdpManager,
         address _joinDAI,
         address _proxyFactory,
+        address _instaRegistry,
         address[] memory _joinAdapters,
         address[] memory iTokens
     ) public {
@@ -77,6 +84,7 @@ contract MakerBridge is BZxBridge
 
         cdpManager = CDPManager(_cdpManager);
         proxyFactory = DSProxyFactory(_proxyFactory);
+        instaRegistry = InstaRegistry(_instaRegistry);
         
         vat = cdpManager.vat();
 
@@ -137,23 +145,27 @@ contract MakerBridge is BZxBridge
             borrower = DSProxy(owner).owner();
         }
         
+        address _owner = owner;
+        address _borrower = borrower;
         for (uint i = 0; i < cdps.length; i++) {
             uint cdp = cdps[i];
             uint dart = darts[i];
             uint dink = dinks[i];
             uint collateralDink = collateralDinks[i];
-
-            requireThat(cdpManager.cdpCan(owner, cdp, address(this)), "cdp-not-allowed", i); // action 33
+            
+            address cdpOwner = cdpManager.owns(cdp);
+            requireThat(cdpOwner == _owner || instaRegistry.proxies(_owner) == cdpOwner, "Invalid owner", i);
+            requireThat(cdpManager.cdpCan(cdpOwner, cdp, address(this)), "cdp-not-allowed", i);
             requireThat(collateralDink <= dink, "Collateral amount exceeds total value (dink)", i);
 
             address urn = cdpManager.urns(cdp);
-            bytes32 ilk = cdpManager.ilks(cdp); // action 35
+            bytes32 ilk = cdpManager.ilks(cdp);
             JoinAdapter(joinDAI).join(urn, dart);
 
             cdpManager.frob(cdp, -toInt(dink), _getWipeDart(Vat(vat).dai(urn), urn, ilk));
-            cdpManager.flux(cdp, address(this), dink); // action 44
+            cdpManager.flux(cdp, address(this), dink);
 
-            JoinAdapter(joinAdapters[ilk]).exit(address(this), dink); // action 46
+            JoinAdapter(joinAdapters[ilk]).exit(address(this), dink);
 
             address gem = gems[ilk];
 
@@ -164,7 +176,7 @@ contract MakerBridge is BZxBridge
                 leverageAmount,
                 initialLoanDuration,
                 collateralDink,
-                borrower,
+                _borrower,
                 address(this),
                 gem,
                 loanData
@@ -174,7 +186,7 @@ contract MakerBridge is BZxBridge
             if (excess > 0) {
                 LoanTokenInterface iCollateral = LoanTokenInterface(tokens[ilk]);
                 ERC20(gem).approve(address(iCollateral), excess);
-                iCollateral.mint(borrower, excess);
+                iCollateral.mint(_borrower, excess);
             }
         }
 
