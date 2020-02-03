@@ -10,15 +10,31 @@ import "./BZxBridge.sol";
 
 
 interface IBZx {
-    struct LoanOrder {
+    struct BasicLoanData {
+        bytes32 loanOrderHash;
         address loanTokenAddress;
         address collateralTokenAddress;
-        uint256 loanTokenAmount;
+        uint256 loanTokenAmountFilled;
+        uint256 positionTokenAmountFilled;
+        uint256 collateralTokenAmountFilled;
+        uint256 interestOwedPerDay;
+        uint256 interestDepositRemaining;
+        uint256 initialMarginAmount;
+        uint256 maintenanceMarginAmount;
+        uint256 currentMarginAmount;
+        uint256 maxDurationUnixTimestampSec;
+        uint256 loanEndUnixTimestampSec;
     }
 
     function wethContract() external view returns (address);
     function vaultContract() external view returns (address);
-    function getLoanOrder(bytes32 loanOrderHash) external view returns (LoanOrder memory);
+    
+    function getBasicLoanData(
+        bytes32 loanOrderHash,
+        address borrower)
+        external
+        view
+        returns (BasicLoanData memory loanData);
 
     function debugToggleProtocolDelegateApproved(address, bool) external;
 
@@ -87,8 +103,14 @@ contract SAIToDAIBridge is BZxBridge
         public
         payable
     {
-        IBZx.LoanOrder memory order = iBZx.getLoanOrder(loanOrderHash);
+        IBZx.BasicLoanData memory order = iBZx.getBasicLoanData(loanOrderHash, msg.sender);
         require(order.loanTokenAddress == address(migration.saiJoin().gem()), "Loan token should be SAI");
+        
+        if (migrationAmount == 0) {
+            migrationAmount = order.loanTokenAmountFilled;
+        }
+        
+        require(migrationAmount <= order.loanTokenAmountFilled, "Invalid migration amount");
 
         bytes memory data = abi.encodeWithSignature(
             "_migrateLoan(bytes32,address,uint256)",
@@ -119,13 +141,6 @@ contract SAIToDAIBridge is BZxBridge
         (, collateralCloseAmount, collateralTokenAddress) = iBZx.paybackLoanAndClose(
             loanOrderHash, borrower, address(this), address(this), migrationAmount
         );
-
-        uint bridgeSaiBalance = sai.balanceOf(address(this));
-        if (bridgeSaiBalance > 0) {
-            sai.approve(address(migration), bridgeSaiBalance);
-            migration.swapSaiToDai(bridgeSaiBalance);
-            dai.transfer(borrower, bridgeSaiBalance);
-        }
 
         if (msg.value > 0) {
             if (collateralTokenAddress == iBZx.wethContract()) {
