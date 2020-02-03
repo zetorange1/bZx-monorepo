@@ -583,15 +583,7 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
         view
         returns (uint256)
     {
-        iPot _pot = _getPot();
-
-        uint256 rho = _pot.rho();
-        uint256 chi = _pot.chi();
-        if (now > rho) {
-            chi = rmul(rpow(_pot.dsr(), now - rho, RAY), chi);
-        }
-
-        return chi
+        return _rChaiPrice()
             .div(10**9);
     }
 
@@ -1273,6 +1265,22 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
         }
     }
 
+    function _rChaiPrice()
+        internal
+        view
+        returns (uint256)
+    {
+        iPot _pot = _getPot();
+
+        uint256 rho = _pot.rho();
+        uint256 chi = _pot.chi();
+        if (now > rho) {
+            chi = rmul(rpow(_pot.dsr(), now - rho, RAY), chi);
+        }
+
+        return chi;
+    }
+
     function _dsrDeposit()
         internal
     {
@@ -1305,9 +1313,9 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
         view
         returns (uint256)
     {
-        return _getChai().balanceOf(address(this))
-            .mul(chaiPrice())
-            .div(10**18)
+        return rmul(
+            _getChai().balanceOf(address(this)),
+            _rChaiPrice())
             .add(_getDai().balanceOf(address(this)));
     }
 
