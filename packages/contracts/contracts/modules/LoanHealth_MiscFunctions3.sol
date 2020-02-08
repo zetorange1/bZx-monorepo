@@ -30,6 +30,7 @@ contract LoanHealth_MiscFunctions3 is BZxStorage, BZxProxiable, OrderClosingFunc
         targets[bytes4(keccak256("closeLoanPartially(bytes32,uint256)"))] = _target;
         targets[bytes4(keccak256("closeLoanPartiallyIfHealthy(bytes32,uint256)"))] = _target;
         targets[bytes4(keccak256("closeLoanPartiallyFromCollateral(bytes32,uint256)"))] = _target;
+        targets[bytes4(keccak256("closeLoanPartiallyFromCollateral(bytes32,uint256,bytes)"))] = _target;
     }
 
     /// @dev Called by the trader to close part of their loan early.
@@ -72,7 +73,8 @@ contract LoanHealth_MiscFunctions3 is BZxStorage, BZxProxiable, OrderClosingFunc
             ],
             loanOrder,
             loanPosition,
-            false // ensureHealthy
+            false, // ensureHealthy
+            "" // loanDataBytes
         );
     }
 
@@ -117,7 +119,22 @@ contract LoanHealth_MiscFunctions3 is BZxStorage, BZxProxiable, OrderClosingFunc
             ],
             loanOrder,
             loanPosition,
-            true // ensureHealthy
+            true, // ensureHealthy
+            "" // loanDataBytes
+        );
+    }
+
+    function closeLoanPartiallyFromCollateral(
+        bytes32 loanOrderHash,
+        uint256 closeAmount)
+        external
+        payable
+        returns (uint256 actualCloseAmount)
+    {
+        return closeLoanPartiallyFromCollateral(
+            loanOrderHash,
+            closeAmount,
+            "" // loanDataBytes
         );
     }
 
@@ -125,13 +142,16 @@ contract LoanHealth_MiscFunctions3 is BZxStorage, BZxProxiable, OrderClosingFunc
     /// @dev Contract will revert if the position is unhealthy and the full position is not being closed.
     /// @param loanOrderHash A unique hash representing the loan order
     /// @param closeAmount The amount of collateral token to close out. Loan amount to close will be calculated based on current margin.
+    /// @param loanDataBytes Arbitrary loan data bytes
     /// @return The actual amount of loan token closed. Greater than closeAmount means the loan needed liquidation.
     function closeLoanPartiallyFromCollateral(
         bytes32 loanOrderHash,
-        uint256 closeAmount)
-        external
+        uint256 closeAmount,
+        bytes memory loanDataBytes)
+        public
+        payable
         nonReentrant
-        tracksGas
+        //tracksGas
         returns (uint256 actualCloseAmount)
     {
         if (closeAmount == 0) {
@@ -213,7 +233,8 @@ contract LoanHealth_MiscFunctions3 is BZxStorage, BZxProxiable, OrderClosingFunc
             ],
             loanOrder,
             loanPosition,
-            true // ensureHealthy
+            true, // ensureHealthy
+            loanDataBytes
         );
     }
 }

@@ -3,26 +3,21 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-pragma solidity 0.5.8;
+pragma solidity 0.5.16;
 
-import "./SplittableTokenStorageV2.sol";
+import "./shared/openzeppelin-solidity/Ownable.sol";
 
 
-contract PositionTokenV2 is SplittableTokenStorageV2 {
+contract ZeroXConnector is Ownable {
 
     address internal target_;
 
+
     constructor(
-        address _newTarget,
-        address _newOwner)
+        address _newTarget)
         public
     {
-        if (_newTarget != address(0)) {
-            _setTarget(_newTarget);
-        }
-        if (_newOwner != address(0)) {
-            owner = _newOwner;
-        }
+        _setTarget(_newTarget);
     }
 
     function()

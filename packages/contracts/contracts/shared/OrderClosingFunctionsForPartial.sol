@@ -22,7 +22,8 @@ contract OrderClosingFunctionsForPartial is BZxStorage, MiscFunctions, OrderClos
         uint256[4] memory vals,  // closeAmount, collateralCloseAmount, marginAmountBeforeClose, gasUsed
         LoanOrder memory loanOrder,
         LoanPosition storage loanPosition,
-        bool ensureHealthy)
+        bool ensureHealthy,
+        bytes memory loanDataBytes)
         internal
         returns (uint256, uint256, address)
     {
@@ -32,7 +33,8 @@ contract OrderClosingFunctionsForPartial is BZxStorage, MiscFunctions, OrderClos
                 loanOrder.loanOrderHash,
                 addrs[0],
                 addrs[1],
-                vals[3] // initial used gas, collected in modifier
+                vals[3], // initial used gas, collected in modifier
+                loanDataBytes
             );
             return (
                 vals[0],
@@ -65,9 +67,9 @@ contract OrderClosingFunctionsForPartial is BZxStorage, MiscFunctions, OrderClos
                     MAX_UINT // get best rate
                 );
                 vals[1] = vals[0]
-                    .mul(tmpVals[0]);  // sourceToDestRate
+                    .mul(tmpVals[0]); // sourceToDestRate
                 vals[1] = vals[1]
-                    .div(tmpVals[1]);    // sourceToDestPrecision
+                    .div(tmpVals[1]); // sourceToDestPrecision
             }
 
             vals[1] = vals[1]
@@ -120,13 +122,24 @@ contract OrderClosingFunctionsForPartial is BZxStorage, MiscFunctions, OrderClos
         if (loanPosition.positionTokenAddressFilled != loanOrder.loanTokenAddress) {
             if (loanPosition.positionTokenAmountFilled != 0) {
                 if (tmpVals[2] != 0) {
-                    (tmpVals[0], tmpVals[1]) = _tradeWithOracle(
-                        loanPosition.positionTokenAddressFilled,
-                        loanOrder.loanTokenAddress,
-                        addrs[2],
-                        loanPosition.positionTokenAmountFilled,
-                        tmpVals[2] // maxDestTokenAmount
-                    );
+                    if (loanDataBytes.length == 0) {
+                        (tmpVals[0], tmpVals[1]) = _tradeWithOracle(
+                            loanPosition.positionTokenAddressFilled,
+                            loanOrder.loanTokenAddress,
+                            addrs[2],
+                            loanPosition.positionTokenAmountFilled,
+                            tmpVals[2] // maxDestTokenAmount
+                        );
+                    } else {
+                        (tmpVals[0], tmpVals[1]) = _tradeWith0x(
+                            loanPosition.positionTokenAddressFilled,
+                            loanOrder.loanTokenAddress,
+                            addrs[1],
+                            loanPosition.positionTokenAmountFilled,
+                            tmpVals[2], // maxDestTokenAmount
+                            loanDataBytes
+                        );
+                    }
 
                     if (tmpVals[0] < tmpVals[2]) {
                         tmpVals[2] = tmpVals[2] - tmpVals[0];

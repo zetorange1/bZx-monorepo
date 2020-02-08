@@ -12,18 +12,19 @@ import "../storage/BZxStorage.sol";
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 import "./MiscFunctions.sol";
-
 import "../tokens/EIP20.sol";
+import "../zeroex/iZeroXConnector.sol";
 
 
-contract OrderClosingFunctions is BZxStorage, MiscFunctions {
+contract OrderClosingFunctions is BZxStorage, MiscFunctions, ZeroXAPIUser {
     using SafeMath for uint256;
 
     function _closeLoan(
         bytes32 loanOrderHash,
         address borrower,
         address receiver,
-        uint256 gasUsed)
+        uint256 gasUsed,
+        bytes memory loanDataBytes)
         internal
         returns (uint256 closeAmount, uint256 collateralCloseAmount)
     {
@@ -65,15 +66,28 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
             uint256 loanTokenAmount;
             uint256 positionTokenAmountUsed;
             if (loanPosition.positionTokenAmountFilled != 0) {
-                (loanTokenAmount, positionTokenAmountUsed) = _tradePositionWithOracle(
-                    loanOrder,
-                    loanPosition,
-                    loanOrder.loanTokenAddress, // tradeTokenAddress
-                    loanPosition.positionTokenAddressFilled == loanPosition.collateralTokenAddressFilled ?
-                        loanPosition.loanTokenAmountFilled :
-                        MAX_UINT, // close the entire position
-                    false // ensureHealthy
-                );
+                if (loanDataBytes.length == 0) {
+                    (loanTokenAmount, positionTokenAmountUsed) = _tradePositionWithOracle(
+                        loanOrder,
+                        loanPosition,
+                        loanOrder.loanTokenAddress, // tradeTokenAddress
+                        loanPosition.positionTokenAddressFilled == loanPosition.collateralTokenAddressFilled ?
+                            loanPosition.loanTokenAmountFilled :
+                            MAX_UINT, // close the entire position
+                        false // ensureHealthy
+                    );
+                } else {
+                    (loanTokenAmount, positionTokenAmountUsed) = _tradeWith0x(
+                        loanPosition.positionTokenAddressFilled,
+                        loanOrder.loanTokenAddress,
+                        receiver,
+                        loanPosition.positionTokenAmountFilled,
+                        loanPosition.positionTokenAddressFilled == loanPosition.collateralTokenAddressFilled ?
+                            loanPosition.loanTokenAmountFilled :
+                            0, // close the entire position
+                        loanDataBytes
+                    );
+                }
 
                 if (positionTokenAmountUsed < loanPosition.positionTokenAmountFilled) {
                     // left over sourceToken needs to be dispursed
@@ -473,5 +487,34 @@ contract OrderClosingFunctions is BZxStorage, MiscFunctions {
             // trim array
             positionList.length--;
         }
+    }
+
+    function _tradeWith0x(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        address receiver,
+        uint256 sourceTokenAmount,
+        uint256 maxDestTokenAmount,
+        bytes memory loanDataBytes)
+        internal
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
+    {
+        if (!BZxVault(vaultContract).withdrawToken(
+            sourceTokenAddress,
+            address(zeroXConnector),
+            sourceTokenAmount)) {
+            revert("BZxVault.withdrawToken failed");
+        }
+
+        (destTokenAmountReceived, sourceTokenAmountUsed) = zeroXConnector.trade.value(msg.value)(
+            sourceTokenAddress,
+            destTokenAddress,
+            receiver,
+            sourceTokenAmount,
+            maxDestTokenAmount,
+            loanDataBytes
+        );
+
+        require(destTokenAmountReceived != 0, "swap failed");
     }
 }

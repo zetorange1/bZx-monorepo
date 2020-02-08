@@ -130,13 +130,13 @@ module.exports = {
   },
   compilers: {
     solc: {
-      version: "../../../../node_modules/solc_0.5.8", // v0.5.8
+      version: "../../../../node_modules/solc_0.5.16", // v0.5.16
       settings: {
         optimizer: {
           enabled: true,
-          runs: 200
+          runs: 1000000
         },
-        evmVersion: "petersburg" // "byzantium"
+        evmVersion: "istanbul"
       }
     }
   },

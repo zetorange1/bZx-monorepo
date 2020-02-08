@@ -12,32 +12,11 @@ import "../storage/BZxStorage.sol";
 import "../BZxVault.sol";
 import "../oracle/OracleInterface.sol";
 import "../openzeppelin-solidity/ERC20.sol";
+import "../zeroex/iZeroXConnector.sol";
 
 
-interface IWethHelper {
-    function claimEther(
-        address receiver,
-        uint256 amount)
-        external
-        returns (uint256 claimAmount);
-}
-
-contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
+contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable, ZeroXAPIUser {
     using SafeMath for uint256;
-
-    // Mainnet
-    address internal constant ZeroXExchange = 0x61935CbDd02287B511119DDb11Aeb42F1593b7Ef;
-    address internal constant ZeroXProxy = 0x95E6F48254609A6ee006F7D493c8e5fB97094ceF;
-    address internal constant ZeroXStaking = 0xa26e80e7Dea86279c6d778D702Cc413E6CFfA777;
-
-    // Kovan
-    /*address internal constant ZeroXExchange = 0x4eacd0aF335451709e1e7B570B8Ea68EdEC8bc97;
-    address internal constant ZeroXProxy = 0xF1eC01d6236D3CD881a0bF0130eA25fe4234003E;
-    address internal constant ZeroXStaking = 0xBAb9145f1d57cd4bb0C9aa2d1EcE0A5B6e734D34;*/
-
-
-    IWethHelper internal constant wethHelper = IWethHelper(0x3b5bDCCDFA2a0a1911984F203C19628EeB6036e0);
-    address internal constant feeWallet = 0x13ddAC8d492E463073934E2a101e419481970299;
 
     constructor() public {}
 
@@ -53,10 +32,8 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
         onlyOwner
     {
         targets[bytes4(keccak256("takeOrderFromiToken(bytes32,address[4],uint256[7],bytes)"))] = _target;
-        targets[bytes4(keccak256("affiliateWhitelist(address,bool)"))] = _target;
         targets[bytes4(keccak256("recoverEther(address,uint256)"))] = _target;
         targets[bytes4(keccak256("recoverToken(address,address,uint256)"))] = _target;
-        targets[bytes4(keccak256("set0xStakingApproval()"))] = _target;
         targets[bytes4(keccak256("getRequiredCollateral(address,address,address,uint256,uint256)"))] = _target;
         targets[bytes4(keccak256("getBorrowAmount(address,address,address,uint256,uint256)"))] = _target;
     }
@@ -77,7 +54,7 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
             // collateralTokenSent: collateralAmountRequired + any extra
             // tradeTokenSent: tradeTokenAmount (optional)
             // withdrawalAmount: Actual amount sent to borrower (can't exceed newLoanAmount)
-        bytes calldata loanData)
+        bytes calldata loanDataBytes)
         external
         payable
         nonReentrant
@@ -89,164 +66,8 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
 
         require(sentAmounts[6] <= sentAmounts[1], "invalid withdrawal");
         require(sentAmounts[1] != 0 && sentAmounts[3] >= sentAmounts[1], "loanTokenSent insufficient");
-        require(msg.value == 0 || loanData.length != 0, "loanData required with ether");
+        require(msg.value == 0 || loanDataBytes.length != 0, "loanDataBytes required with ether");
 
-        bool success;
-        address _wethContract;
-        uint256 beforeWethBalance;
-        if (msg.value != 0) {
-            _wethContract = wethContract;
-            beforeWethBalance = ERC20(_wethContract).balanceOf(address(this));
-
-            (success,) = _wethContract.call.value(msg.value)("0xd0e30db0"); // deposit()
-            require(success, "ether deposit failed");
-        }
-
-        _takeOrderFromiToken(
-            loanOrderHash,
-            sentAddresses,
-            sentAmounts,
-            loanData
-        );
-
-        if (msg.value != 0) {
-            uint256 finalWethBalance = ERC20(_wethContract).balanceOf(address(this));
-            if (finalWethBalance > beforeWethBalance) {
-                finalWethBalance = finalWethBalance - beforeWethBalance;
-
-                success = ERC20(_wethContract).transfer(
-                    address(wethHelper),
-                    finalWethBalance
-                );
-
-                require(success && finalWethBalance == wethHelper.claimEther(
-                    sentAddresses[3] != address(0) ?
-                        sentAddresses[3] : // receiver
-                        sentAddresses[0],  // trader
-                    finalWethBalance),
-                    "ether refund failed"
-                );
-            }
-        }
-
-        return sentAmounts[1]; // newLoanAmount
-    }
-
-    function affiliateWhitelist(
-        address affiliate,
-        bool enabled)
-        public
-        onlyOwner
-    {
-        // keccak256("AffiliateWhitelist")
-        bytes32 slot = keccak256(abi.encodePacked(affiliate, uint256(0xcda2fc7eaefa672733be021532baa62a86147ef9434c91b60aa179578a939d72)));
-        assembly {
-            sstore(slot, enabled)
-        }
-    }
-
-    function recoverEther(
-        address receiver,
-        uint256 amount)
-        public
-        onlyOwner
-    {
-        uint256 balance = address(this).balance;
-        if (balance < amount)
-            amount = balance;
-
-        (bool success,) = receiver.call.value(amount)("");
-        require(success,
-            "transfer failed"
-        );
-    }
-
-    function recoverToken(
-        address tokenAddress,
-        address receiver,
-        uint256 amount)
-        public
-        onlyOwner
-    {
-        ERC20 token = ERC20(tokenAddress);
-
-        uint256 balance = token.balanceOf(address(this));
-        if (balance < amount)
-            amount = balance;
-
-        require(token.transfer(
-            receiver,
-            amount),
-            "transfer failed"
-        );
-    }
-
-    function set0xStakingApproval()
-        public
-    {
-        require(ERC20(wethContract).approve(ZeroXStaking, MAX_UINT), "token approval failed");
-    }
-
-    function getRequiredCollateral(
-        address loanTokenAddress,
-        address collateralTokenAddress,
-        address oracleAddress,
-        uint256 newLoanAmount,
-        uint256 marginAmount)
-        public
-        view
-        returns (uint256 collateralAmountRequired)
-    {
-        if (marginAmount != 0) {
-            collateralAmountRequired = _getRequiredCollateral(
-                loanTokenAddress,
-                collateralTokenAddress,
-                oracleAddress,
-                newLoanAmount,
-                marginAmount
-            );
-        }
-    }
-
-    function getBorrowAmount(
-        address loanTokenAddress,
-        address collateralTokenAddress,
-        address oracleAddress,
-        uint256 collateralTokenAmount,
-        uint256 marginAmount)
-        public
-        view
-        returns (uint256 borrowAmount)
-    {
-        if (marginAmount != 0) {
-            if (loanTokenAddress == collateralTokenAddress) {
-                borrowAmount = collateralTokenAmount
-                    .mul(10**20)
-                    .div(marginAmount);
-            } else {
-                (uint256 sourceToDestRate, uint256 sourceToDestPrecision,) = OracleInterface(oracleAddresses[oracleAddress]).getTradeData(
-                    collateralTokenAddress,
-                    loanTokenAddress,
-                    MAX_UINT // get best rate
-                );
-                if (sourceToDestPrecision != 0) {
-                    borrowAmount = collateralTokenAmount
-                        .mul(10**20)
-                        .div(marginAmount)
-                        .mul(sourceToDestRate)
-                        .div(sourceToDestPrecision);
-                }
-            }
-        }
-    }
-
-    function _takeOrderFromiToken(
-        bytes32 loanOrderHash,
-        address[4] memory sentAddresses,
-        uint256[7] memory sentAmounts,
-        bytes memory loanData)
-        internal
-    {
         // update order
         LoanOrder storage loanOrder = orders[loanOrderHash];
         require(loanOrder.maxDurationUnixTimestampSec != 0 ||
@@ -310,14 +131,19 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
         _handleTransfersAndSwaps(
             loanOrder,
             loanPosition,
-            interestAmountRequired,
-            collateralAmountRequired,
+            [
+                interestAmountRequired,
+                collateralAmountRequired
+            ],
             sentAmounts,
-            loanData
+            sentAddresses[3] != address(0) ?
+                sentAddresses[3] : // receiver
+                sentAddresses[0],  // trader
+            loanDataBytes
         );
 
         require ((
-                loanData.length == 0 && // Kyber only
+                loanDataBytes.length == 0 && // Kyber only
                 sentAmounts[6] == sentAmounts[1]) || // newLoanAmount
             !OracleInterface(oracle).shouldLiquidate(
                 loanOrder,
@@ -325,6 +151,97 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
             ),
             "unhealthy position"
         );
+
+        return sentAmounts[1]; // newLoanAmount
+    }
+
+    function recoverEther(
+        address receiver,
+        uint256 amount)
+        public
+        onlyOwner
+    {
+        uint256 balance = address(this).balance;
+        if (balance < amount)
+            amount = balance;
+
+        (bool success,) = receiver.call.value(amount)("");
+        require(success,
+            "transfer failed"
+        );
+    }
+
+    function recoverToken(
+        address tokenAddress,
+        address receiver,
+        uint256 amount)
+        public
+        onlyOwner
+    {
+        ERC20 token = ERC20(tokenAddress);
+
+        uint256 balance = token.balanceOf(address(this));
+        if (balance < amount)
+            amount = balance;
+
+        require(token.transfer(
+            receiver,
+            amount),
+            "transfer failed"
+        );
+    }
+
+    function getRequiredCollateral(
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        address oracleAddress,
+        uint256 newLoanAmount,
+        uint256 marginAmount)
+        public
+        view
+        returns (uint256 collateralAmountRequired)
+    {
+        if (marginAmount != 0) {
+            collateralAmountRequired = _getRequiredCollateral(
+                loanTokenAddress,
+                collateralTokenAddress,
+                oracleAddress,
+                newLoanAmount,
+                marginAmount
+            );
+        }
+    }
+
+    function getBorrowAmount(
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        address oracleAddress,
+        uint256 collateralTokenAmount,
+        uint256 marginAmount)
+        public
+        view
+        returns (uint256 borrowAmount)
+    {
+        if (marginAmount != 0) {
+            if (loanTokenAddress == collateralTokenAddress) {
+                borrowAmount = collateralTokenAmount
+                    .mul(10**20)
+                    .div(marginAmount);
+            } else {
+                (uint256 sourceToDestRate, uint256 sourceToDestPrecision,) = OracleInterface(oracleAddresses[oracleAddress]).getTradeData(
+                    collateralTokenAddress,
+                    loanTokenAddress,
+                    MAX_UINT // get best rate
+                );
+                if (sourceToDestPrecision != 0) {
+                    borrowAmount = collateralTokenAmount
+                        .mul(10**20)
+                        .div(marginAmount)
+                        .mul(sourceToDestRate)
+                        .div(sourceToDestPrecision);
+                }
+            }
+        }
     }
 
     function _initializeLoan(
@@ -527,10 +444,10 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
     function _handleTransfersAndSwaps(
         LoanOrder memory loanOrder,
         LoanPosition memory loanPosition,
-        uint256 interestAmountRequired,
-        uint256 collateralAmountRequired,
+        uint256[2] memory requiredAmounts, // interestAmountRequired, collateralAmountRequired
         uint256[7] memory sentAmounts,
-        bytes memory loanData)
+        address receiver,
+        bytes memory loanDataBytes)
         internal
     {
         uint256 loanTokenUsable = sentAmounts[3];
@@ -565,11 +482,11 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
         uint256 destTokenAmountReceived;
         uint256 sourceTokenAmountUsed;
 
-        if (interestAmountRequired > loanTokenUsable) {
+        if (requiredAmounts[0] > loanTokenUsable) {
             require (collateralTokenUsable != 0, "can't fill interest");
 
             // spend collateral token to fill interest required
-            uint256 interestTokenNeeded = interestAmountRequired - loanTokenUsable;
+            uint256 interestTokenNeeded = requiredAmounts[0] - loanTokenUsable;
             if (!BZxVault(vaultContract).withdrawToken(
                 loanPosition.collateralTokenAddressFilled,
                 oracle,
@@ -588,13 +505,13 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
             loanTokenUsable = loanTokenUsable.add(destTokenAmountReceived);
         }
 
-        // interestAmountRequired is reserved from usable loan amount
-        loanTokenUsable = loanTokenUsable.sub(interestAmountRequired);
+        // requiredAmounts[0] (interestAmountRequired) is reserved from usable loan amount
+        loanTokenUsable = loanTokenUsable.sub(requiredAmounts[0]);
 
         if (loanPosition.collateralTokenAddressFilled == loanOrder.loanTokenAddress) {
-            // collateralAmountRequired is reserved from usable loan amount (collateralTokenUsable is zero until now)
-            loanTokenUsable = loanTokenUsable.sub(collateralAmountRequired);
-            collateralTokenUsable = collateralAmountRequired;
+            // requiredAmounts[1] (collateralAmountRequired) is reserved from usable loan amount (collateralTokenUsable is zero until now)
+            loanTokenUsable = loanTokenUsable.sub(requiredAmounts[1]);
+            collateralTokenUsable = requiredAmounts[1];
         }
 
         if (loanOrder.loanTokenAddress != loanPosition.positionTokenAddressFilled) { // withdrawOnOpen == false
@@ -616,13 +533,16 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
             sourceTokenAmountUsed = 0;
 
             if (loanTokenUsable != 0) {
-                if (loanData.length == 0) {
-                    if (!BZxVault(vaultContract).withdrawToken(
-                        loanOrder.loanTokenAddress,
-                        oracle,
-                        loanTokenUsable)) {
-                        revert("BZxVault.withdrawToken failed");
-                    }
+                if (!BZxVault(vaultContract).withdrawToken(
+                    loanOrder.loanTokenAddress,
+                    loanDataBytes.length == 0 ?
+                        oracle :
+                        address(zeroXConnector),
+                    loanTokenUsable)) {
+                    revert("BZxVault.withdrawToken failed");
+                }
+
+                if (loanDataBytes.length == 0) {
                     (destTokenAmountReceived, sourceTokenAmountUsed) = OracleInterface(oracle).trade(
                         loanOrder.loanTokenAddress,
                         loanPosition.positionTokenAddressFilled,
@@ -630,11 +550,13 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
                         MAX_UINT
                     );
                 } else {
-                    (destTokenAmountReceived, sourceTokenAmountUsed) = _handle0xSwap(
+                    (destTokenAmountReceived, sourceTokenAmountUsed) = zeroXConnector.trade.value(msg.value)(
                         loanOrder.loanTokenAddress,
                         loanPosition.positionTokenAddressFilled,
+                        receiver,
                         loanTokenUsable,
-                        loanData
+                        0,
+                        loanDataBytes
                     );
                 }
 
@@ -652,9 +574,9 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
             uint256 newPositionTokenAmount;
             if (loanPosition.collateralTokenAddressFilled == loanPosition.positionTokenAddressFilled) {
                 newPositionTokenAmount = collateralTokenUsable.add(destTokenAmountReceived)
-                    .sub(collateralAmountRequired);
+                    .sub(requiredAmounts[1]);
 
-                collateralTokenUsable = collateralAmountRequired;
+                collateralTokenUsable = requiredAmounts[1];
             } else {
                 newPositionTokenAmount = destTokenAmountReceived;
             }
@@ -666,14 +588,14 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
        //require (collateralTokenUsable >= collateralAmountRequired, "collateral insufficient");
         loanPosition.collateralTokenAmountFilled = loanPosition.collateralTokenAmountFilled
             .add(collateralTokenUsable);
-        if (collateralTokenUsable < collateralAmountRequired) {
+        if (collateralTokenUsable < requiredAmounts[1]) { // collateralAmountRequired
             // allow at most 2% under-collateralized
-            collateralTokenUsable = collateralAmountRequired
+            collateralTokenUsable = requiredAmounts[1]
                 .sub(collateralTokenUsable);
             collateralTokenUsable = collateralTokenUsable
                 .mul(10**20);
             collateralTokenUsable = collateralTokenUsable
-                .div(collateralAmountRequired);
+                .div(requiredAmounts[1]);
             require(
                 collateralTokenUsable <= (2 * 10**18),
                 "collateral insufficient"
@@ -691,141 +613,6 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable {
         }
 
         loanPositions[loanPosition.positionId] = loanPosition;
-    }
-
-    function _handle0xSwap(
-        address sourceTokenAddress,
-        address destTokenAddress,
-        uint256 sourceTokenAmount,
-        bytes memory loanData)
-        internal
-        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
-    {
-        address affiliateWallet;
-        (affiliateWallet, loanData) = _process0xData(loanData);
-
-        address payable _vaultContract = vaultContract;
-        require(BZxVault(_vaultContract).withdrawToken(
-            sourceTokenAddress,
-            address(this),
-            sourceTokenAmount),
-            "0x withdrawToken failed"
-        );
-
-        // handle fees
-        uint256 feeAmount = sourceTokenAmount
-            .mul(25 * 10**16);
-        feeAmount = feeAmount
-            .div(10**20); // 0.25% fee
-
-        sourceTokenAmount = sourceTokenAmount
-            .sub(feeAmount);
-
-        sourceTokenAmountUsed = feeAmount;
-
-        uint256 amount;
-        bool success = true;
-        if (affiliateWallet != address(0) && _checkWhitelist(affiliateWallet)) {
-            amount = feeAmount.mul(30 * 10**18).div(10**20); // 30% fee share
-            if (amount != 0) {
-                feeAmount = feeAmount.sub(amount);
-                success = ERC20(sourceTokenAddress).transfer(
-                    affiliateWallet,
-                    amount
-                );
-            }
-        }
-
-        if (success && feeAmount != 0) {
-            success = ERC20(sourceTokenAddress).transfer(
-                feeWallet,
-                feeAmount
-            );
-        }
-        require (success, "0x transfer failed");
-
-        assembly {
-            // replace sell amount if needed
-            amount := mload(add(loanData, 68)) // reclaim slot
-            if gt(amount, sourceTokenAmount) {
-                mstore(add(loanData, 68), sourceTokenAmount)
-            }
-        }
-        require(amount >= sourceTokenAmount, "0x swap too small");
-
-        amount = ERC20(sourceTokenAddress).allowance(address(this), ZeroXProxy);  // reclaim slot
-        if (amount < sourceTokenAmount) {
-            if (amount != 0) {
-                // reset approval to 0 (some tokens enforce this)
-                ERC20(sourceTokenAddress).approve(ZeroXProxy, 0);
-            }
-
-            ERC20(sourceTokenAddress).approve(ZeroXProxy, MAX_UINT);
-        }
-
-        amount = sourceTokenAmountUsed; // reclaim slot
-
-        bytes memory retData;
-        (success, retData) = address(ZeroXExchange).call(loanData);
-        assembly {
-            destTokenAmountReceived := mload(add(retData, 32))
-            sourceTokenAmountUsed := mload(add(retData, 64))
-        }
-
-        require(success &&
-            sourceTokenAmountUsed != 0 &&
-            sourceTokenAmountUsed <= sourceTokenAmount &&
-            ERC20(destTokenAddress).transfer(
-                _vaultContract,
-                destTokenAmountReceived),
-            "0x swap failed"
-        );
-
-        sourceTokenAmountUsed = sourceTokenAmountUsed
-            .add(amount);
-    }
-
-    function _process0xData(
-        bytes memory loanData)
-        internal
-        returns (address, bytes memory)
-    {
-        uint256 dataLength = loanData.length;
-        require(dataLength > 64, "0x data invalid");
-
-        bytes4 sig;
-        address affiliateWallet;
-        uint256 protocolFee;
-        assembly {
-            // get function sig
-            sig := mload(add(loanData, 32))
-
-            // get affiliateWallet
-            affiliateWallet := mload(add(loanData, dataLength))
-
-            // get protocolFee
-            protocolFee := mload(add(loanData, sub(dataLength, 32)))
-
-            // remove affiliateWallet and protocolFee from end of data
-            mstore(loanData, sub(dataLength, 64))
-        }
-        require(sig == 0xa6c3bf33, "0x sig invalid"); // marketSellOrdersFillOrKill
-        require(msg.value != 0 && msg.value >= protocolFee, "insufficient ether");
-
-        return (affiliateWallet, loanData);
-    }
-
-    function _checkWhitelist(
-        address affiliate)
-        internal
-        view
-        returns (bool isWhitelisted)
-    {
-        // keccak256("AffiliateWhitelist")
-        bytes32 slot = keccak256(abi.encodePacked(affiliate, uint256(0xcda2fc7eaefa672733be021532baa62a86147ef9434c91b60aa179578a939d72)));
-        assembly {
-            isWhitelisted := sload(slot)
-        }
     }
 
     function _payInterestForOracleAsLender(

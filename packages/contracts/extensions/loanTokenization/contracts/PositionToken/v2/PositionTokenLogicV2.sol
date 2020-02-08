@@ -12,8 +12,10 @@ import "./SplittableTokenV2.sol";
 interface IBZx {
     function closeLoanPartiallyFromCollateral(
         bytes32 loanOrderHash,
-        uint256 closeAmount)
+        uint256 closeAmount,
+        bytes calldata loanDataBytes)
         external
+        payable
         returns (uint256 actualCloseAmount);
 
     function withdrawCollateral(
@@ -356,9 +358,9 @@ contract PositionTokenLogicV2 is SplittableTokenV2 {
         address receiver,
         uint256 burnAmount,
         uint256 minPriceAllowed,
-        bytes memory /*loanDataBytes*/)
+        bytes memory loanDataBytes)
         public
-        //payable
+        payable
         nonReentrant
         fixedSaneRate
         returns (uint256)
@@ -367,7 +369,7 @@ contract PositionTokenLogicV2 is SplittableTokenV2 {
         (uint256 tradeTokenAmountOwed, uint256 currentPrice) = _burnToken(
             burnAmount,
             minPriceAllowed,
-            "" //loanDataBytes
+            loanDataBytes
         );
         if (tradeTokenAmountOwed != 0) {
             address _wethContract = wethContract;
@@ -411,9 +413,9 @@ contract PositionTokenLogicV2 is SplittableTokenV2 {
         address burnTokenAddress,
         uint256 burnAmount,
         uint256 minPriceAllowed,
-        bytes memory /*loanDataBytes*/)
+        bytes memory loanDataBytes)
         public
-        //payable
+        payable
         nonReentrant
         fixedSaneRate
         returns (uint256)
@@ -422,7 +424,7 @@ contract PositionTokenLogicV2 is SplittableTokenV2 {
         (uint256 tradeTokenAmountOwed, uint256 currentPrice) = _burnToken(
             burnAmount,
             minPriceAllowed,
-            "" // loanDataBytes
+            loanDataBytes
         );
         if (tradeTokenAmountOwed != 0) {
             if (burnTokenAddress != tradeTokenAddress) {
@@ -858,7 +860,7 @@ contract PositionTokenLogicV2 is SplittableTokenV2 {
     function _burnToken(
         uint256 burnAmount,
         uint256 minPriceAllowed,
-        bytes memory /*loanDataBytes*/)
+        bytes memory loanDataBytes)
         internal
         returns (uint256 tradeTokenAmountOwed, uint256 currentPrice)
     {
@@ -868,11 +870,13 @@ contract PositionTokenLogicV2 is SplittableTokenV2 {
             burnAmount = balanceOf(msg.sender);
         }
 
+        IBZx _bZxContract = IBZx(bZxContract);
+
         (uint256 netCollateralAmount,
          uint256 interestDepositRemaining,
          ,
          uint256 toCollateralRate,
-         uint256 toCollateralPrecision) = IBZx(bZxContract).getTotalEscrowWithRate(
+         uint256 toCollateralPrecision) = _bZxContract.getTotalEscrowWithRate(
             loanOrderHash,
             address(this),
             0,
@@ -899,24 +903,30 @@ contract PositionTokenLogicV2 is SplittableTokenV2 {
         preCloseEscrow = preCloseEscrow
             .add(interestDepositRemaining);
 
+        uint256 tmpValue;
         bool didCallWithdraw;
         if (tradeTokenAmountAvailableInContract < tradeTokenAmountOwed) {
-            // will revert if the position needs to be liquidated
-            IBZx(bZxContract).closeLoanPartiallyFromCollateral(
-                loanOrderHash,
-                burnAmount < totalSupply() ?
-                    tradeTokenAmountOwed.sub(tradeTokenAmountAvailableInContract) :
-                    MAX_UINT
-            );
+            if (burnAmount < totalSupply()) {
+                tmpValue = tradeTokenAmountOwed - tradeTokenAmountAvailableInContract;
+            } else {
+                tmpValue = MAX_UINT;
+            }
 
+            _closeLoanPartially(
+                _bZxContract,
+                loanOrderHash,
+                tmpValue,
+                loanDataBytes
+            );
             tradeTokenAmountAvailableInContract = ERC20(tradeTokenAddress).balanceOf(address(this));
             didCallWithdraw = true;
         }
 
         if (tradeTokenAmountAvailableInContract < tradeTokenAmountOwed && burnAmount < totalSupply()) {
-            uint256 collateralWithdrawn = IBZx(bZxContract).withdrawCollateral(
+            tmpValue = tradeTokenAmountOwed - tradeTokenAmountAvailableInContract;
+            uint256 collateralWithdrawn = _bZxContract.withdrawCollateral(
                 loanOrderHash,
-                tradeTokenAmountOwed.sub(tradeTokenAmountAvailableInContract)
+                tmpValue
             );
             if (collateralWithdrawn != 0) {
                 tradeTokenAmountAvailableInContract = tradeTokenAmountAvailableInContract.add(collateralWithdrawn);
@@ -927,7 +937,7 @@ contract PositionTokenLogicV2 is SplittableTokenV2 {
         if (didCallWithdraw) {
             uint256 slippageLoss;
             if (burnAmount < totalSupply()) {
-                (netCollateralAmount, interestDepositRemaining,,,) = IBZx(bZxContract).getTotalEscrowWithRate(
+                (netCollateralAmount, interestDepositRemaining,,,) = _bZxContract.getTotalEscrowWithRate(
                     loanOrderHash,
                     address(this),
                     toCollateralRate,
@@ -992,6 +1002,32 @@ contract PositionTokenLogicV2 is SplittableTokenV2 {
             checkpointPrices_[msg.sender] = denormalize(currentPrice);
         } else {
             checkpointPrices_[msg.sender] = 0;
+        }
+    }
+
+    function _closeLoanPartially(
+        IBZx _bZxContract,
+        bytes32 loanOrderHash,
+        uint256 cloanAmount,
+        bytes memory loanDataBytes)
+        internal
+    {
+        // will revert if the position needs to be liquidated
+        uint256 beforeEtherBalance;
+        if (msg.value != 0) {
+            beforeEtherBalance = address(this).balance.sub(msg.value);
+        }
+        _bZxContract.closeLoanPartiallyFromCollateral.value(msg.value)(
+            loanOrderHash,
+            cloanAmount,
+            loanDataBytes
+        );
+        if (msg.value != 0) {
+            uint256 afterEtherBalance = address(this).balance;
+            if (afterEtherBalance > beforeEtherBalance) {
+                (bool success,) = msg.sender.call.value(afterEtherBalance - beforeEtherBalance)("");
+                require(success, "eth refund failed");
+            }
         }
     }
 

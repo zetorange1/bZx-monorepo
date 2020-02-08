@@ -23,7 +23,7 @@ contract LoanToken is AdvancedTokenStorage {
         external
         payable
     {
-        if (msg.value != 0) {
+        if (gasleft() <= 2300) {
             return;
         }
 
