@@ -585,6 +585,8 @@ contract PositionTokenLogicV2 is SplittableTokenV2 {
         bytes memory loanDataBytes)
         public
         payable
+        nonReentrant
+        fixedSaneRate
     {
         if (depositTokenAddress == address(0)) {
             depositTokenAddress = tradeTokenAddress;
@@ -597,11 +599,24 @@ contract PositionTokenLogicV2 is SplittableTokenV2 {
             );
         }
 
+        uint256 beforeEtherBalance;
+        if (msg.value != 0) {
+            beforeEtherBalance = address(this).balance.sub(msg.value);
+        }
+
         _triggerPosition(
             depositTokenAddress,
             depositAmount,
             loanDataBytes
     	);
+
+        if (msg.value != 0) {
+            uint256 afterEtherBalance = address(this).balance;
+            if (afterEtherBalance > beforeEtherBalance) {
+                (bool success,) = msg.sender.call.value(afterEtherBalance - beforeEtherBalance)("");
+                require(success, "eth refund failed");
+            }
+        }
     }
 
 
