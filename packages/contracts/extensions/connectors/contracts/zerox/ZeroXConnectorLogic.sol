@@ -5,9 +5,9 @@
 
 pragma solidity 0.5.16;
 
-import "./shared/openzeppelin-solidity/Ownable.sol";
-import "./shared/openzeppelin-solidity/SafeMath.sol";
-import "./shared/openzeppelin-solidity/ERC20.sol";
+import "../shared/openzeppelin-solidity/Ownable.sol";
+import "../shared/openzeppelin-solidity/SafeMath.sol";
+import "../shared/openzeppelin-solidity/ERC20.sol";
 
 
 contract ZeroXConnectorLogic is Ownable {

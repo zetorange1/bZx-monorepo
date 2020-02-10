@@ -261,8 +261,7 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
 
         (bool success, bytes memory returnData) = arbitraryCaller.call.value(msg.value)(
             abi.encodeWithSelector(
-                0xba25d2ff, // sendCall(address,address,bytes)
-                msg.sender,
+                0xde064e0d, // sendCall(address,bytes)
                 target,
                 callData
             )

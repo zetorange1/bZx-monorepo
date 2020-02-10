@@ -5,7 +5,7 @@
 
 pragma solidity 0.5.16;
 
-import "./shared/openzeppelin-solidity/Ownable.sol";
+import "../shared/openzeppelin-solidity/Ownable.sol";
 
 
 contract ZeroXConnector is Ownable {
