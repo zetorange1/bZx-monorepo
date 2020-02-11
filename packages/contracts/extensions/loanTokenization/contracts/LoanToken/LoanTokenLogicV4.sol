@@ -103,7 +103,7 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
 
     address internal target_;
 
-    address internal constant arbitraryCaller = 0x4c67b3dB1d4474c0EBb2DB8BeC4e345526d9E2fd;
+    address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
 
     modifier onlyOracle() {
         require(msg.sender == IBZx(bZxContract).oracleAddresses(bZxOracle), "1");
@@ -193,6 +193,7 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         returns (bytes memory)
     {
         _checkPause();
+
         _settleInterest();
 
         uint256 beforeEtherBalance = address(this).balance.sub(msg.value);
@@ -247,6 +248,8 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         payable
         returns (bytes32 loanOrderHash)
     {
+        _checkPause();
+
         require(
             ((msg.value == 0 && collateralTokenAddress != address(0) && collateralTokenSent != 0) ||
             (msg.value != 0 && (collateralTokenAddress == address(0) || collateralTokenAddress == wethContract) && collateralTokenSent == 0)),
@@ -352,6 +355,8 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         //payable
         returns (bytes32 loanOrderHash)
     {
+        _checkPause();
+
         address[4] memory sentAddresses;
         sentAddresses[0] = borrower;
         sentAddresses[1] = collateralTokenAddress;
@@ -402,6 +407,8 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         payable
         returns (bytes32 loanOrderHash)
     {
+        _checkPause();
+
         require(tradeTokenAddress != address(0) &&
             tradeTokenAddress != loanTokenAddress,
             "10"

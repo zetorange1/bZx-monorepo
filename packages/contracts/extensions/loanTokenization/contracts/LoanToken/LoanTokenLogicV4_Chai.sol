@@ -139,7 +139,7 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
 
     uint256 constant RAY = 10 ** 27;
 
-    address internal constant arbitraryCaller = 0x4c67b3dB1d4474c0EBb2DB8BeC4e345526d9E2fd;
+    address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
 
     // Mainnet
     iChai public constant chai = iChai(0x06AF07097C9Eeb7fD685c692751D5C66dB49c215);
@@ -231,6 +231,8 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
         nonReentrant
         returns (bytes memory)
     {
+        _checkPause();
+
         _settleInterest();
 
         ERC20 _dai;
@@ -295,6 +297,8 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
         payable
         returns (bytes32 loanOrderHash)
     {
+        _checkPause();
+
         require(
             ((msg.value == 0 && collateralTokenAddress != address(0) && collateralTokenSent != 0) ||
             (msg.value != 0 && (collateralTokenAddress == address(0) || collateralTokenAddress == wethContract) && collateralTokenSent == 0)),
@@ -402,6 +406,8 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
         //payable
         returns (bytes32 loanOrderHash)
     {
+        _checkPause();
+
         address[4] memory sentAddresses;
         sentAddresses[0] = borrower;
         sentAddresses[1] = collateralTokenAddress;
@@ -452,6 +458,8 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
         payable
         returns (bytes32 loanOrderHash)
     {
+        _checkPause();
+
         address _daiAddress = address(_getDai());
         require(tradeTokenAddress != address(0) &&
             tradeTokenAddress != _daiAddress,
@@ -1560,6 +1568,19 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
         assembly {
             lowUtilBaseRate := sload(0x3d82e958c891799f357c1316ae5543412952ae5c423336f8929ed7458039c995)
         }
+    }
+
+    function _checkPause()
+        internal
+        view
+    {
+        //keccak256("iToken_FunctionPause")
+        bytes32 slot = keccak256(abi.encodePacked(msg.sig, uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)));
+        bool isPaused;
+        assembly {
+            isPaused := sload(slot)
+        }
+        require(!isPaused, "unauthorized");
     }
 
     function _adjustValue(
