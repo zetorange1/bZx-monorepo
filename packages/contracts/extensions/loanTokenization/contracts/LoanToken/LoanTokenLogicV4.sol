@@ -160,14 +160,8 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         if (loanAmountPaid != 0) {
             IWethHelper wethHelper = IWethHelper(0x3b5bDCCDFA2a0a1911984F203C19628EeB6036e0);
 
-            bool success = ERC20(loanTokenAddress).transfer(
-                address(wethHelper),
-                loanAmountPaid
-            );
-            if (success) {
-                success = loanAmountPaid == wethHelper.claimEther(receiver, loanAmountPaid);
-            }
-            require(success, "4");
+            _transfer(loanTokenAddress, address(wethHelper), loanAmountPaid, "4");
+            require(loanAmountPaid == wethHelper.claimEther(receiver, loanAmountPaid), "4");
         }
     }
 
@@ -183,10 +177,7 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         );
 
         if (loanAmountPaid != 0) {
-            require(ERC20(loanTokenAddress).transfer(
-                receiver,
-                loanAmountPaid
-            ), "5");
+            _transfer(loanTokenAddress, receiver, loanAmountPaid, "5");
         }
     }
 
@@ -210,10 +201,7 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         require(beforeAssetsBalance != 0, "38");
 
         if (borrowAmount != 0) {
-            require(ERC20(loanTokenAddress).transfer(
-                borrower,
-                borrowAmount
-            ), "39");
+            _transfer(loanTokenAddress, borrower, borrowAmount, "39");
         }
 
         bytes memory callData;
@@ -780,11 +768,7 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         mintAmount = depositAmount.mul(10**18).div(currentPrice);
 
         if (msg.value == 0) {
-            require(ERC20(loanTokenAddress).transferFrom(
-                msg.sender,
-                address(this),
-                depositAmount
-            ), "18");
+            _transferFrom(loanTokenAddress, msg.sender, address(this), depositAmount, "18");
         } else {
             WETHInterface(wethContract).deposit.value(depositAmount)();
         }
@@ -1080,81 +1064,83 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
             if (loanTokenAddress == wethContract) {
                 IWethHelper wethHelper = IWethHelper(0x3b5bDCCDFA2a0a1911984F203C19628EeB6036e0);
 
-                success = ERC20(loanTokenAddress).transfer(
-                    address(wethHelper),
-                    withdrawalAmount
-                );
-                if (success) {
-                    success = withdrawalAmount == wethHelper.claimEther(receiver, withdrawalAmount);
-                }
+                _transfer(loanTokenAddress, address(wethHelper), withdrawalAmount, "");
+                success = withdrawalAmount == wethHelper.claimEther(receiver, withdrawalAmount);
             } else {
-                success = ERC20(loanTokenAddress).transfer(
-                    receiver,
-                    withdrawalAmount
-                );
+                _transfer(loanTokenAddress, receiver, withdrawalAmount, "");
             }
 
             if (success && borrowAmount > withdrawalAmount) {
-                success = ERC20(loanTokenAddress).transfer(
-                    bZxVault,
-                    borrowAmount - withdrawalAmount
-                );
+                _transfer(loanTokenAddress, bZxVault, borrowAmount - withdrawalAmount, "");
             }
+            require(success, "26");
         } else {
-            success = ERC20(loanTokenAddress).transfer(
-                bZxVault,
-                borrowAmount
-            );
+            _transfer(loanTokenAddress, bZxVault, borrowAmount, "26");
         }
-        require(success, "26");
 
-        success = false;
         if (collateralTokenSent != 0) {
             if (collateralTokenAddress == wethContract && msg.value != 0 && collateralTokenSent == msg.value) {
                 WETHInterface(wethContract).deposit.value(collateralTokenSent)();
-                success = ERC20(collateralTokenAddress).transfer(
-                    bZxVault,
-                    collateralTokenSent
-                );
+                _transfer(collateralTokenAddress, bZxVault, collateralTokenSent, "27");
             } else {
                 if (collateralTokenAddress == loanTokenAddress) {
                     loanTokenSent = loanTokenSent.add(collateralTokenSent);
-                    success = true;
                 } else if (collateralTokenAddress == tradeTokenAddress) {
                     tradeTokenSent = tradeTokenSent.add(collateralTokenSent);
-                    success = true;
                 } else {
-                    success = ERC20(collateralTokenAddress).transferFrom(
-                        msg.sender,
-                        bZxVault,
-                        collateralTokenSent
-                    );
+                    _transferFrom(collateralTokenAddress, msg.sender, bZxVault, collateralTokenSent, "27");
                 }
             }
-            require(success, "27");
         }
 
         if (loanTokenSent != 0) {
             if (loanTokenAddress == tradeTokenAddress) {
                 tradeTokenSent = tradeTokenSent.add(loanTokenSent);
             } else {
-                require(ERC20(loanTokenAddress).transferFrom(
-                    msg.sender,
-                    bZxVault,
-                    loanTokenSent
-                ), "31");
+                _transferFrom(loanTokenAddress, msg.sender, bZxVault, loanTokenSent, "31");
             }
         }
 
         if (tradeTokenSent != 0) {
-            require(ERC20(tradeTokenAddress).transferFrom(
-                msg.sender,
-                bZxVault,
-                tradeTokenSent
-            ), "32");
+            _transferFrom(tradeTokenAddress, msg.sender, bZxVault, tradeTokenSent, "32");
         }
     }
 
+    function _transfer(
+        address token,
+        address to,
+        uint256 amount,
+        string memory errorMsg)
+        internal
+    {
+        (bool success,) = token.call(
+            abi.encodeWithSelector(
+                0xa9059cbb, // transfer(address,uint256)
+                to,
+                amount
+            )
+        );
+        require(success, errorMsg);
+    }
+
+    function _transferFrom(
+        address token,
+        address from,
+        address to,
+        uint256 amount,
+        string memory errorMsg)
+        internal
+    {
+        (bool success,) = token.call(
+            abi.encodeWithSelector(
+                0x23b872dd, // transferFrom(address,address,uint256)
+                from,
+                to,
+                amount
+            )
+        );
+        require(success, errorMsg);
+    }
 
     /* Internal View functions */
 
