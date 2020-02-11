@@ -108,6 +108,11 @@ interface iChai {
         uint256 wad)
         external;
 
+    function dai(
+        address usr)
+        external
+        returns (uint256 wad);
+
     function balanceOf(
         address _who)
         external
@@ -238,10 +243,14 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
         ERC20 _dai;
         if (borrowAmount != 0) {
             _dai = _dsrWithdraw(borrowAmount);
+        } else {
+            _dai = _getDai();
         }
 
+        iChai _chai = _getChai();
         uint256 beforeEtherBalance = address(this).balance.sub(msg.value);
-        uint256 beforeAssetsBalance = _underlyingBalance()
+        uint256 beforeAssetsBalance = _chai.dai(address(this))
+            .add(_dai.balanceOf(address(this)))
             .add(totalAssetBorrow);
         require(beforeAssetsBalance != 0, "38");
 
@@ -274,7 +283,8 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
 
         require(
             address(this).balance >= beforeEtherBalance &&
-            _underlyingBalance()
+            _chai.dai(address(this))
+                .add(_dai.balanceOf(address(this)))
                 .add(totalAssetBorrow) >= beforeAssetsBalance,
             "40"
         );
