@@ -9,9 +9,10 @@ import "./BZxBridge.sol";
 
 
 interface CToken {
+    function balanceOfUnderlying(address owner) external returns (uint);
     function borrowBalanceCurrent(address account) external returns (uint);
     function symbol() external view returns (string memory);
-    function exchangeRateStored() external view returns (uint);
+    function exchangeRateCurrent() external returns (uint);
 
     function redeem(uint redeemAmount) external returns (uint);
     function transferFrom(address src, address dst, uint amount) external returns (bool);
@@ -210,13 +211,12 @@ contract CompoundBridge is BZxBridge, Exponential
         public
     {
         LoanTokenInterface iToken = LoanTokenInterface(iTokens[loanToken]);
-        address loanTokenAddress = iToken.loanTokenAddress();
         uint err;
 
         if (loanToken == cEther) {
             CEther(loanToken).repayBorrowBehalf.value(loanAmount)(borrower);
         } else {
-            ERC20(loanTokenAddress).approve(loanToken, loanAmount);
+            ERC20(iToken.loanTokenAddress()).approve(loanToken, loanAmount);
             err = CErc20(loanToken).repayBorrowBehalf(borrower, loanAmount);
             require(err == uint(Error.NO_ERROR), "Repay borrow behalf failed");
         }
@@ -224,24 +224,25 @@ contract CompoundBridge is BZxBridge, Exponential
         address _borrower = borrower;
         for (uint i = 0; i < assets.length; i++) {
             CToken cToken = CToken(assets[i]);
-            uint amount = amounts[i];
-            uint collateralAmount = collateralAmounts[i];
-
+            
             uint cTokenAmount;
             MathError mathErr;
-            (mathErr, cTokenAmount) = divScalarByExpTruncate(amount, Exp({mantissa: cToken.exchangeRateStored()}));
+            (mathErr, cTokenAmount) = divScalarByExpTruncate(amounts[i], Exp({mantissa: cToken.exchangeRateCurrent()}));
             requireThat(mathErr == MathError.NO_ERROR, "cToken exchangeRate calc error", i);
 
             requireThat(cToken.transferFrom(_borrower, address(this), cTokenAmount), "cToken transfer to the bridge failed", i);
-
+    
             err = cToken.redeem(cTokenAmount);
             requireThat(err == uint(Error.NO_ERROR), "Redeem failed", i);
+            
+            uint collateralAmount = collateralAmounts[i];
 
             LoanTokenInterface iCollateral = LoanTokenInterface(iTokens[address(cToken)]);
 
-            uint excess = amount - collateralAmount;
-
             if (address(cToken) == cEther) {
+                if (address(this).balance < collateralAmount) {
+                    collateralAmount = address(this).balance;
+                }
                 iToken.borrowTokenFromDeposit.value(collateralAmount)(
                     borrowAmounts[i],
                     leverageAmount,
@@ -252,11 +253,15 @@ contract CompoundBridge is BZxBridge, Exponential
                     address(0),
                     loanData
                 );
-                if (excess > 0) {
-                    iCollateral.mintWithEther.value(excess)(_borrower);
+                if (address(this).balance > 0) {
+                    iCollateral.mintWithEther.value(address(this).balance)(_borrower);
                 }
             } else {
                 address underlying = tokens[address(cToken)];
+                uint balance = ERC20(underlying).balanceOf(address(this));
+                if (balance < collateralAmount) {
+                    collateralAmount = balance;
+                }
                 ERC20(underlying).approve(address(iToken), collateralAmount);
                 iToken.borrowTokenFromDeposit(
                     borrowAmounts[i],
@@ -268,15 +273,16 @@ contract CompoundBridge is BZxBridge, Exponential
                     underlying,
                     loanData
                 );
-                if (excess > 0) {
-                    ERC20(underlying).approve(address(iCollateral), excess);
-                    iCollateral.mint(_borrower, excess);
+                balance = ERC20(underlying).balanceOf(address(this));
+                if (balance > 0) {
+                    ERC20(underlying).approve(address(iCollateral), balance);
+                    iCollateral.mint(_borrower, balance);
                 }
             }
         }
 
-        // repaying flash borrow
-        ERC20(loanTokenAddress).transfer(address(iToken), loanAmount);
+        // repay flash borrow
+        ERC20(iToken.loanTokenAddress()).transfer(address(iToken), loanAmount);
     }
 
     function setCEther(address _cEther) public onlyOwner
@@ -300,15 +306,11 @@ contract CompoundBridge is BZxBridge, Exponential
                     i
                 );
             } else {
-                // require(isEqual(iToken.symbol(), "iETH"), "Incompatible ETH tokens");
+                requireThat(iToken.wethContract() == iToken.loanTokenAddress(), "Incompatible ETH tokens", i);
             }
+
             iTokens[cToken] = _iTokens[i];
             emit NewToken(cTokens[i], _iTokens[i]);
         }
     }
-
-//    function isEqual(string memory a, string memory b) private pure returns (bool)
-//    {
-//        return (keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b)));
-//    }
 }
