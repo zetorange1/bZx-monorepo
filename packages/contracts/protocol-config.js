@@ -146,6 +146,7 @@ module.exports = {
       ZRXTokenAddress: "0xe41d2489571d322189246dafa5ebde1f4699f498",
       LINKTokenAddress: "0x514910771af9ca656af840dff83e8264ecf986ca",
       SUSDTokenAddress: "0x57ab1ec28d129707052df4df418d58a2d46d5f51", // <- proxy, actual -> "0x57Ab1E02fEE23774580C119740129eAC7081e9D3"
+      USDTTokenAddress: "0xdac17f958d2ee523a2206206994597c13d831ec7",
     }
   }
 };

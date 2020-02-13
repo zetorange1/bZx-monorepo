@@ -125,7 +125,8 @@ module.exports = (deployer, network, accounts) => {
           "0xe41d2489571d322189246dafa5ebde1f4699f498", // ZRX
           "0x514910771af9ca656af840dff83e8264ecf986ca", // LINK
           "0x57ab1ec28d129707052df4df418d58a2d46d5f51", // SUSD
-          "0x6b175474e89094c44da98b954eedeac495271d0f"  // DAI
+          "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
+          "0xdac17f958d2ee523a2206206994597c13d831ec7"  // USDT (Tether)
         ],
         [
           "true", // ETH
@@ -140,7 +141,8 @@ module.exports = (deployer, network, accounts) => {
           "true", // ZRX
           "true", // LINK
           "true", // SUSD
-          "true"  // DAI
+          "true", // DAI
+          "true"  // USDT (Tether)
         ]
         );
 
@@ -156,7 +158,8 @@ module.exports = (deployer, network, accounts) => {
           "0xe41d2489571d322189246dafa5ebde1f4699f498", // ZRX
           "0x514910771af9ca656af840dff83e8264ecf986ca", // LINK
           "0x57ab1ec28d129707052df4df418d58a2d46d5f51", // SUSD
-          "0x6b175474e89094c44da98b954eedeac495271d0f"  // DAI
+          "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
+          "0xdac17f958d2ee523a2206206994597c13d831ec7"  // USDT (Tether)
         ]);
 
         await oracle.setMaxSourceAmountAllowedBatch([
@@ -171,7 +174,8 @@ module.exports = (deployer, network, accounts) => {
           "0xe41d2489571d322189246dafa5ebde1f4699f498", // ZRX
           "0x514910771af9ca656af840dff83e8264ecf986ca", // LINK
           //"0x57ab1ec28d129707052df4df418d58a2d46d5f51", // SUSD
-          //"0x6b175474e89094c44da98b954eedeac495271d0f"  // DAI
+          "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
+          //"0xdac17f958d2ee523a2206206994597c13d831ec7"  // USDT (Tether)
         ],
         [
           "500000000000000000000",      // WETH
@@ -185,7 +189,8 @@ module.exports = (deployer, network, accounts) => {
           "15000000000000000000000",    // ZRX - (low liquidity)
           "19000000000000000000000",    // LINK
           //"",                         // SUSD
-          //"",                         // DAI
+          "17000000000000000000000",    // DAI
+          //""                          // USDT (Tether)
         ]
         );
 
