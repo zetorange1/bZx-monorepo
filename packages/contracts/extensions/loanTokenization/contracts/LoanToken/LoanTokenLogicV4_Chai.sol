@@ -307,8 +307,6 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
         payable
         returns (bytes32 loanOrderHash)
     {
-        _checkPause();
-
         require(
             ((msg.value == 0 && collateralTokenAddress != address(0) && collateralTokenSent != 0) ||
             (msg.value != 0 && (collateralTokenAddress == address(0) || collateralTokenAddress == wethContract) && collateralTokenSent == 0)),
@@ -400,7 +398,7 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
     //    If the borrower wished to instead withdraw the borrowed token to their wallet, set this to address(0)
     //    If set to address(0), initial collateral required will equal initial margin percent + 100%
     // returns loanOrderHash for the base protocol loan
-    function borrowTokenAndUse(
+    /*function borrowTokenAndUse(
         uint256 borrowAmount,
         uint256 leverageAmount,
         uint256 interestInitialAmount,
@@ -411,13 +409,11 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
         address receiver,
         address collateralTokenAddress,
         address tradeTokenAddress,
-        bytes memory /*loanDataBytes*/)
+        bytes memory *//*loanDataBytes*//*)
         public
         //payable
         returns (bytes32 loanOrderHash)
     {
-        _checkPause();
-
         address[4] memory sentAddresses;
         sentAddresses[0] = borrower;
         sentAddresses[1] = collateralTokenAddress;
@@ -446,7 +442,7 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
             false, // amountIsADeposit
             ""      // loanDataBytes
         );
-    }
+    }*/
 
     // Called by pTokens to borrow and immediately get into a positions
     // Other traders can call this, but it's recommended to instead use borrowTokenAndUse(...) instead
@@ -468,8 +464,6 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
         payable
         returns (bytes32 loanOrderHash)
     {
-        _checkPause();
-
         address _daiAddress = address(_getDai());
         require(tradeTokenAddress != address(0) &&
             tradeTokenAddress != _daiAddress,
@@ -845,12 +839,12 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
     }
 
     // can safely be called by anyone at anytime
-    function setupChai()
+    /*function setupChai()
         public
     {
         _getDai().approve(address(_getChai()), MAX_UINT);
         _dsrDeposit();
-    }
+    }*/
 
 
     /* Internal functions */
@@ -1134,6 +1128,8 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
         internal
         returns (uint256)
     {
+        _checkPause();
+
         require (sentAmounts[1] <= _underlyingBalance() && // borrowAmount
             sentAddresses[0] != address(0), // borrower
             "24"
@@ -1393,8 +1389,12 @@ contract LoanTokenLogicV4_Chai is AdvancedToken, OracleNotifierInterface {
                     assetSupply
                 );
             }
-            return _protocolInterestRate(assetBorrow)
+
+            uint256 rate = _protocolInterestRate(assetBorrow)
                 .mul(_utilRate)
+                .mul(spreadMultiplier)
+                .div(10**20);
+            return rate
                 .add(_dsr)
                 .div(10**20);
         } else {

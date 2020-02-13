@@ -248,8 +248,6 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         payable
         returns (bytes32 loanOrderHash)
     {
-        _checkPause();
-
         require(
             ((msg.value == 0 && collateralTokenAddress != address(0) && collateralTokenSent != 0) ||
             (msg.value != 0 && (collateralTokenAddress == address(0) || collateralTokenAddress == wethContract) && collateralTokenSent == 0)),
@@ -339,7 +337,7 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
     //    If the borrower wished to instead withdraw the borrowed token to their wallet, set this to address(0)
     //    If set to address(0), initial collateral required will equal initial margin percent + 100%
     // returns loanOrderHash for the base protocol loan
-    function borrowTokenAndUse(
+    /*function borrowTokenAndUse(
         uint256 borrowAmount,
         uint256 leverageAmount,
         uint256 interestInitialAmount,
@@ -350,13 +348,11 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         address receiver,
         address collateralTokenAddress,
         address tradeTokenAddress,
-        bytes memory /*loanDataBytes*/)
+        bytes memory *//*loanDataBytes*//*)
         public
         //payable
         returns (bytes32 loanOrderHash)
     {
-        _checkPause();
-
         address[4] memory sentAddresses;
         sentAddresses[0] = borrower;
         sentAddresses[1] = collateralTokenAddress;
@@ -385,7 +381,7 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
             false,  // amountIsADeposit
             ""      // loanDataBytes
         );
-    }
+    }*/
 
     // Called by pTokens to borrow and immediately get into a positions
     // Other traders can call this, but it's recommended to instead use borrowTokenAndUse(...) instead
@@ -407,8 +403,6 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         payable
         returns (bytes32 loanOrderHash)
     {
-        _checkPause();
-
         require(tradeTokenAddress != address(0) &&
             tradeTokenAddress != loanTokenAddress,
             "10"
@@ -988,6 +982,8 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         internal
         returns (uint256)
     {
+        _checkPause();
+
         require (sentAmounts[1] <= ERC20(loanTokenAddress).balanceOf(address(this)) && // borrowAmount
             sentAddresses[0] != address(0), // borrower
             "24"
@@ -1075,6 +1071,7 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
                 success = withdrawalAmount == wethHelper.claimEther(receiver, withdrawalAmount);
             } else {
                 _transfer(loanTokenAddress, receiver, withdrawalAmount, "");
+                success = true;
             }
 
             if (success && borrowAmount > withdrawalAmount) {
@@ -1191,7 +1188,8 @@ contract LoanTokenLogicV4 is AdvancedToken, OracleNotifierInterface {
         if (assetBorrow != 0 && assetSupply >= assetBorrow) {
             return _protocolInterestRate(assetBorrow)
                 .mul(_utilizationRate(assetBorrow, assetSupply))
-                .div(10**20);
+                .mul(spreadMultiplier)
+                .div(10**40);
         }
     }
 
