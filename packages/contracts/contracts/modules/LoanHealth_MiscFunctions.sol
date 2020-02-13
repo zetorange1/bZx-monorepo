@@ -51,7 +51,8 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, OrderClosingFunct
             loanOrderHash,
             msg.sender, // borrower
             msg.sender, // receiver
-            gasUsed // initial used gas, collected in modifier
+            gasUsed, // initial used gas, collected in modifier
+            "" // loanDataBytes
         );
         return closeAmount != 0;
     }
@@ -72,7 +73,8 @@ contract LoanHealth_MiscFunctions is BZxStorage, BZxProxiable, OrderClosingFunct
             loanOrderHash,
             borrower, // borrower
             borrower, // receiver
-            gasUsed // initial used gas, collected in modifier
+            gasUsed, // initial used gas, collected in modifier
+            "" // loanDataBytes
         );
         return closeAmount != 0;
     }

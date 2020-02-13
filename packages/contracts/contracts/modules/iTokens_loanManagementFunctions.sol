@@ -165,7 +165,8 @@ contract iTokens_loanManagementFunctions is BZxStorage, BZxProxiable, OrderClosi
             ],
             loanOrder,
             loanPosition,
-            false // ensureHealthy
+            false, // ensureHealthy
+            "" // loanDataBytes
         );
 
         if (receiver_ == address(wethHelper)) {
