@@ -3,6 +3,9 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
+pragma solidity 0.5.8;
+
+
 interface LoanTokenInterface {
     function symbol() external view returns (string memory);
     function wethContract() external view returns (address);
