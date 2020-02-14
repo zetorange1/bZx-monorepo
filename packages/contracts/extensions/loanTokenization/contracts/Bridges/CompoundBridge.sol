@@ -168,20 +168,29 @@ contract CompoundBridge is BZxBridge, Exponential
     )
         public
     {
-        require(loanAmount > 0, "Invalid loan amount");
         require(assets.length > 0, "Invalid assets");
         require(assets.length == amounts.length, "Invalid amounts");
         require(amounts.length == collateralAmounts.length, "Invalid collateral amounts");
         require(collateralAmounts.length == borrowAmounts.length, "Invalid borrow amounts length");
-
+        
+        CToken loanCToken = CToken(loanToken);
+        uint borrowBalance = loanCToken.borrowBalanceCurrent(msg.sender);
+        
         uint totalBorrowAmount;
         for (uint i = 0; i < borrowAmounts.length; i++) {
             totalBorrowAmount += borrowAmounts[i];
         }
-        require(totalBorrowAmount == loanAmount, "Invalid borrow amounts value");
+        
+        if (loanAmount == 0) {
+            loanAmount = borrowBalance;
+            if (totalBorrowAmount < loanAmount) {
+                borrowAmounts[0] += loanAmount - totalBorrowAmount;
+                totalBorrowAmount = loanAmount;
+            }
+        }
 
-        CToken loanCToken = CToken(loanToken);
-        require(loanCToken.borrowBalanceCurrent(msg.sender) >= loanAmount, "Invalid borrow balance");
+        require(loanAmount <= totalBorrowAmount, "Invalid borrow amounts value");
+        require(borrowBalance >= loanAmount, "Invalid borrow balance");
 
         LoanTokenInterface iToken = LoanTokenInterface(iTokens[loanToken]);
 
