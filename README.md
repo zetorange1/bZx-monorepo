@@ -1,4 +1,3 @@
-<img src="https://bzx.network/assets/img/logo.svg" width="100px">
 
 ---
 
