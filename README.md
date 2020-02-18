@@ -1,8 +1,7 @@
-<img src="https://bzx.network/assets/img/logo.svg" width="100px">
 
 ---
 
-[bZx](https://bzx.network) is a protocol for next generation (b)0x-standard relays. A full description of the protocol may be found in our [whitepaper](https://bzx.network/pdfs/bZx_white_paper.pdf).
+[bZx](https://bzx.network) is a protocol for tokenized margin and trading. You can read more about Fulcrum's tokenized loans and tokenized positions [here](https://bzx.network/blog/introducing-fulcrum-tokenized-margin-made-dead-simple) and Torque's borrowing [here](https://bzx.network/blog/introducing-torque-borrowing-made-simple). 
 
 This repository is a monorepo including the bZx protocol smart contracts and numerous developer tools.
 
@@ -14,3 +13,4 @@ This repository is a monorepo including the bZx protocol smart contracts and num
 | portal | Frontend OTC portal |
 
 Developer Docs: [https://docs.bzx.network](https://docs.bzx.network)
+(
