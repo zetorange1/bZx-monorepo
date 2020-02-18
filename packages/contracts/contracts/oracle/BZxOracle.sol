@@ -588,11 +588,10 @@ contract BZxOracle is EIP20Wrapper, GasRefunder, BZxOwnable {
                 loanPosition.collateralTokenAmountFilled,
                 true // saneRate
             );
+            require(collateralToLoanRatePrecise != 0, "kyber price error");
 
-            if (collateralToLoanRatePrecise != 0) {
-                collateralToLoanRatePrecise = collateralToLoanRatePrecise.mul(10**18).div(_getDecimalPrecision(loanPosition.collateralTokenAddressFilled, loanOrder.loanTokenAddress));
-                collateralToLoanAmount = loanPosition.collateralTokenAmountFilled.mul(collateralToLoanRatePrecise).div(10**18);
-            }
+            collateralToLoanRatePrecise = collateralToLoanRatePrecise.mul(10**18).div(_getDecimalPrecision(loanPosition.collateralTokenAddressFilled, loanOrder.loanTokenAddress));
+            collateralToLoanAmount = loanPosition.collateralTokenAmountFilled.mul(collateralToLoanRatePrecise).div(10**18);
         }
 
         uint256 positionToLoanAmount;
@@ -607,11 +606,10 @@ contract BZxOracle is EIP20Wrapper, GasRefunder, BZxOwnable {
                 loanPosition.positionTokenAmountFilled,
                 true // saneRate
             );
+            require(positionToLoanRatePrecise != 0, "kyber price error");
 
-            if (positionToLoanRatePrecise != 0) {
-                positionToLoanRatePrecise = positionToLoanRatePrecise.mul(10**18).div(_getDecimalPrecision(loanPosition.positionTokenAddressFilled, loanOrder.loanTokenAddress));
-                positionToLoanAmount = loanPosition.positionTokenAmountFilled.mul(positionToLoanRatePrecise).div(10**18);
-            }
+            positionToLoanRatePrecise = positionToLoanRatePrecise.mul(10**18).div(_getDecimalPrecision(loanPosition.positionTokenAddressFilled, loanOrder.loanTokenAddress));
+            positionToLoanAmount = loanPosition.positionTokenAmountFilled.mul(positionToLoanRatePrecise).div(10**18);
         }
 
         positionToLoanAmount = positionToLoanAmount.add(collateralToLoanAmount);
@@ -693,6 +691,8 @@ contract BZxOracle is EIP20Wrapper, GasRefunder, BZxOwnable {
                 loanTokenAddress,
                 10**28 // collateralTokenAmount
             );
+            require(sourceToDestRate != 0, "kyber price error");
+
             collateralToLoanAmount = collateralTokenAmount
                 .mul(sourceToDestRate)
                 .div(sourceToDestPrecision);
@@ -707,6 +707,8 @@ contract BZxOracle is EIP20Wrapper, GasRefunder, BZxOwnable {
                 loanTokenAddress,
                 10**28 // positionTokenAmount
             );
+            require(sourceToDestRate != 0, "kyber price error");
+
             positionToLoanAmount = positionTokenAmount
                 .mul(sourceToDestRate)
                 .div(sourceToDestPrecision);
@@ -730,6 +732,25 @@ contract BZxOracle is EIP20Wrapper, GasRefunder, BZxOwnable {
         public
         returns (uint256 saneRate)
     {
+        return setSaneRate(
+            sourceTokenAddress,
+            destTokenAddress,
+            true // clearRate
+        );
+    }
+
+    function setSaneRate(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        bool clearRate)
+        public
+        returns (uint256 saneRate)
+    {
+        if (clearRate) {
+            delete saneRates[sourceTokenAddress][destTokenAddress];
+            delete saneRates[destTokenAddress][sourceTokenAddress];
+        }
+
         RateData memory saneRateData = saneRates[sourceTokenAddress][destTokenAddress];
         saneRate = saneRateData.rate;
         if (saneRateData.timestamp != block.timestamp) {
@@ -1469,6 +1490,12 @@ contract BZxOracle is EIP20Wrapper, GasRefunder, BZxOwnable {
             maxSourceTokenAmount = sourceTokenAmount;
         }
 
+        if (maxDestTokenAmount < 10**28) {
+            _checkTradeSize(destTokenAddress, maxDestTokenAmount);
+        } else {
+            _checkTradeSize(sourceTokenAddress, maxSourceTokenAmount);
+        }
+
         return abi.encodeWithSignature(
             "tradeWithHint(address,uint256,address,address,uint256,uint256,address,bytes)",
             sourceTokenAddress,
@@ -1598,6 +1625,33 @@ contract BZxOracle is EIP20Wrapper, GasRefunder, BZxOwnable {
                 }
             }
         }
+    }
+
+    function _checkTradeSize(
+        address tokenAddress,
+        uint256 amount)
+        internal
+        pure
+    {
+        uint256 maxAmount;
+        if (tokenAddress == 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2) { // WETH
+            maxAmount = 1250 ether; // 270
+        } else if (tokenAddress == 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599) { // WBTC
+            maxAmount = 25 * 10**8; // 10,000
+        } else if (tokenAddress == 0x514910771AF9Ca656af840dff83E8264EcF986CA) { // LINK
+            maxAmount = 60000 ether; // 4.42
+        } else if (tokenAddress == 0xE41d2489571d322189246DaFA5ebDe1F4699F498) { // ZRX
+            maxAmount = 750000 ether; // 0.34
+        } else if (tokenAddress == 0xdd974D5C2e2928deA5F71b9825b8b646686BD200) { // KNC
+            maxAmount = 550000 ether; // 0.44
+        } else if (tokenAddress == 0x6B175474E89094C44Da98b954EedeAC495271d0F) { // DAI
+            maxAmount = 375000 ether; // 1
+        } else if (tokenAddress == 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48) { // USDC
+            maxAmount = 375000 * 10**6; // 1
+        } else if (tokenAddress == 0x1985365e9f78359a9B6AD760e32412f4a445E862) { // REP
+            maxAmount = 15000 ether; // 15.84
+        }
+        require(amount <= maxAmount, "trade too large");
     }
 
     function _transferEther(

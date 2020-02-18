@@ -142,9 +142,7 @@ contract iTokens_loanOpeningFunctions is BZxStorage, BZxProxiable, ZeroXAPIUser 
             loanDataBytes
         );
 
-        require ((
-                loanDataBytes.length == 0 && // Kyber only
-                sentAmounts[6] == sentAmounts[1]) || // newLoanAmount
+        require (
             !OracleInterface(oracle).shouldLiquidate(
                 loanOrder,
                 loanPosition
